@@ -1,0 +1,34 @@
+
+repos:
+    -
+        repo: 'https://github.com/ambv/black'
+        # 18.6b1
+        rev: ed50737290662f6ef4016a7ea44da78ee1eff1e2
+        hooks:
+            - id: black
+              args: ['--safe']
+              language_version: python3.6
+    -
+        repo: 'https://github.com/pre-commit/pre-commit-hooks'
+        # v1.3.0
+        rev: a6209d8d4f97a09b61855ea3f1fb250f55147b8b
+        hooks:
+            - id: flake8
+              language_version: python3.6
+              args: [
+                  # E501 let black handle all line length decisions
+                  # W503 black conflicts with "line break before operator" rule
+                  # E203 black conflicts with "whitespace before ':'" rule
+                  '--ignore=E501,W503,E203']
+    -
+        repo: 'https://github.com/chewse/pre-commit-mirrors-pydocstyle'
+        # 2.1.1
+        rev: 22d3ccf6cf91ffce3b16caa946c155778f0cb20f
+        hooks:
+            - id: pydocstyle
+              language_version: python3.6
+              args: [
+                 # Check for docstring presence only
+                 '--select=D1',
+                 # Don't require docstrings for tests
+                 '--match=(?!test).*\.py']

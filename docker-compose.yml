@@ -1,0 +1,34 @@
+version: '3'
+
+services:
+  titiler:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - CPL_TMPDIR=/tmp
+      - GDAL_CACHEMAX=75%
+      - GDAL_DISABLE_READDIR_ON_OPEN=EMPTY_DIR
+      - GDAL_HTTP_MERGE_CONSECUTIVE_RANGES=YES
+      - GDAL_HTTP_MULTIPLEX=YES
+      - GDAL_HTTP_VERSION=2
+      - MODULE_NAME=titiler.app
+      - MEMCACHE_HOST=0.0.0.0
+      - MEMCACHE_USERNAME=myuser
+      - MEMCACHE_USERNAME=mypassword
+      - PORT=8000
+      - PYTHONWARNINGS=ignore
+      - VARIABLE_NAME=app
+      - VSI_CACHE=TRUE
+      - VSI_CACHE_SIZE=536870912
+      - WORKERS_PER_CORE=5
+
+  memcached:
+    image: remotepixel/memcached-sasl:latest
+    environment:
+      - MEMCACHED_USERNAME=myuser
+      - MEMCACHED_PASSWORD=mypassword
+    ports:
+      - "11211:11211"
