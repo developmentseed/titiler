@@ -2,6 +2,8 @@
 
 from fastapi import FastAPI
 from starlette.requests import Request
+from starlette.responses import HTMLResponse
+from starlette.templating import Jinja2Templates
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.gzip import GZipMiddleware
 
@@ -11,6 +13,20 @@ from titiler.core import config
 from titiler.api.api_v1.api import api_router
 
 from titiler.db.memcache import CacheLayer
+
+templates = Jinja2Templates(directory="titiler/templates")
+if config.MEMCACHE_HOST and not config.DISABLE_CACHE:
+    kwargs = {
+        k: v
+        for k, v in zip(
+            ["port", "user", "password"],
+            [config.MEMCACHE_PORT, config.MEMCACHE_USERNAME, config.MEMCACHE_PASSWORD],
+        )
+        if v
+    }
+    cache = CacheLayer(config.MEMCACHE_HOST, **kwargs)
+else:
+    cache = None
 
 
 app = FastAPI(
@@ -33,21 +49,6 @@ if config.BACKEND_CORS_ORIGINS:
 
 app.add_middleware(GZipMiddleware, minimum_size=0)
 
-app.include_router(api_router, prefix=config.API_V1_STR)
-
-if config.MEMCACHE_HOST and not config.DISABLE_CACHE:
-    kwargs = {
-        k: v
-        for k, v in zip(
-            ["port", "user", "password"],
-            [config.MEMCACHE_PORT, config.MEMCACHE_USERNAME, config.MEMCACHE_PASSWORD],
-        )
-        if v
-    }
-    cache = CacheLayer(config.MEMCACHE_HOST, **kwargs)
-else:
-    cache = None
-
 
 @app.middleware("http")
 async def cache_middleware(request: Request, call_next):
@@ -57,3 +58,35 @@ async def cache_middleware(request: Request, call_next):
     if cache:
         request.state.cache.client.disconnect_all()
     return response
+
+
+@app.get(
+    "/",
+    responses={200: {"content": {"application/hmtl": {}}}},
+    response_class=HTMLResponse,
+)
+@app.get(
+    "/index.html",
+    responses={200: {"content": {"application/hmtl": {}}}},
+    response_class=HTMLResponse,
+)
+def landing(request: Request):
+    """Wmts endpoit."""
+    scheme = request.url.scheme
+    host = request.headers["host"]
+    if config.API_VERSION_STR:
+        host += config.API_VERSION_STR
+    endpoint = f"{scheme}://{host}"
+
+    return templates.TemplateResponse(
+        "index.html", {"request": request, "endpoint": endpoint}, media_type="text/html"
+    )
+
+
+@app.get("/ping", description="Health Check")
+def ping():
+    """Health check."""
+    return {"ping": "pong!"}
+
+
+app.include_router(api_router, prefix=config.API_VERSION_STR)

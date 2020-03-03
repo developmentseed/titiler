@@ -3,7 +3,7 @@
 import os
 
 
-API_V1_STR = "/v1"
+API_VERSION_STR = "/v1"
 
 PROJECT_NAME = "titiler"
 

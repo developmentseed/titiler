@@ -49,8 +49,8 @@ def tilejson(
     """Handle /tilejson.json requests."""
     scheme = request.url.scheme
     host = request.headers["host"]
-    if config.API_V1_STR:
-        host += config.API_V1_STR
+    if config.API_VERSION_STR:
+        host += config.API_VERSION_STR
 
     kwargs = dict(request.query_params)
     kwargs.pop("tile_format", None)

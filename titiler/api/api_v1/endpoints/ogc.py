@@ -35,8 +35,8 @@ def wtms(
     """Wmts endpoit."""
     scheme = request.url.scheme
     host = request.headers["host"]
-    if config.API_V1_STR:
-        host += config.API_V1_STR
+    if config.API_VERSION_STR:
+        host += config.API_VERSION_STR
     endpoint = f"{scheme}://{host}"
 
     kwargs = dict(request.query_params)
