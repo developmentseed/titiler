@@ -1,44 +1,28 @@
-"""Titiler utility functions."""
+"""titiler.api.utils."""
 
-from typing import Any, Tuple, BinaryIO
+from typing import Any, Dict
 
-import os
 import json
 import hashlib
 
 import numpy
 
+from starlette.requests import Request
+
+import mercantile
+from rasterio.transform import from_bounds
+from rasterio.crs import CRS
+
 from rio_color.operations import parse_operations
 from rio_color.utils import scale_dtype, to_math_type
 from rio_tiler.utils import linear_rescale, _chunks
 
-from bmemcached import Client
+from titiler.db.memcache import CacheLayer
 
 
-def get_image_from_cache(img_hash: str, client: Client) -> BinaryIO:
-    """Get image body from cache layer."""
-    if os.getenv("DISABLE_CACHE"):
-        return None
-
-    try:
-        return client.get(img_hash)
-    except Exception:
-        return None
-
-
-def set_image_cache(
-    img_hash: str, img_body: BinaryIO, client: Client, timeout: int = 432000
-) -> bool:
-    """Set base64 encoded image body in cache layer."""
-    if os.getenv("DISABLE_CACHE"):
-        return False
-
-    try:
-        client.set(img_hash, img_body, time=timeout)
-    except Exception:
-        return False
-
-    return True
+def get_cache(request: Request) -> CacheLayer:
+    """Get Memcached Layer."""
+    return request.state.cache
 
 
 def get_hash(**kwargs: Any) -> str:
@@ -46,12 +30,26 @@ def get_hash(**kwargs: Any) -> str:
     return hashlib.sha224(json.dumps(kwargs, sort_keys=True).encode()).hexdigest()
 
 
-def postprocess_tile(
+def get_geotiff_options(
+    tile_x,
+    tile_y,
+    tile_z,
+    data_type: str,
+    tilesize: int = 256,
+    dst_crs: CRS = CRS.from_epsg(3857),
+) -> Dict:
+    """GeoTIFF options."""
+    bounds = mercantile.xy_bounds(mercantile.Tile(x=tile_x, y=tile_y, z=tile_z))
+    dst_transform = from_bounds(*bounds, tilesize, tilesize)
+    return dict(dtype=data_type, crs=dst_crs, transform=dst_transform)
+
+
+def postprocess(
     tile: numpy.ndarray,
     mask: numpy.ndarray,
     rescale: str = None,
     color_formula: str = None,
-) -> Tuple[numpy.ndarray, numpy.ndarray]:
+) -> numpy.ndarray:
     """Post-process tile data."""
     if rescale:
         rescale_arr = list(map(float, rescale.split(",")))
@@ -73,8 +71,7 @@ def postprocess_tile(
         # make sure one last time we don't have
         # negative value before applying color formula
         tile[tile < 0] = 0
-
         for ops in parse_operations(color_formula):
             tile = scale_dtype(ops(to_math_type(tile)), numpy.uint8)
 
-    return tile, mask
+    return tile

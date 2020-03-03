@@ -14,7 +14,7 @@ services:
       - GDAL_HTTP_MERGE_CONSECUTIVE_RANGES=YES
       - GDAL_HTTP_MULTIPLEX=YES
       - GDAL_HTTP_VERSION=2
-      - MODULE_NAME=titiler.app
+      - MODULE_NAME=titiler.main
       - MEMCACHE_HOST=0.0.0.0
       - MEMCACHE_USERNAME=myuser
       - MEMCACHE_USERNAME=mypassword

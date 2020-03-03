@@ -8,7 +8,7 @@ A lightweight Cloud Optimized GeoTIFF tile server.
 
 # Test locally
 ```bash
-$ uvicorn titiler.app:app --reload
+$ uvicorn titiler.main:app --reload
 ```
 
 ### Docker
@@ -16,8 +16,6 @@ $ uvicorn titiler.app:app --reload
 $ docker-compose build
 $ docker-compose up 
 ```
-
-
 
 ## Authors
 Created by [Development Seed](<http://developmentseed.org>)

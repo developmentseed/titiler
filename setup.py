@@ -7,6 +7,7 @@ with open("README.md") as f:
 
 inst_reqs = [
     "fastapi",
+    "jinja2",
     "python-binary-memcached",
     "rio-color",
     "rio-tiler",
