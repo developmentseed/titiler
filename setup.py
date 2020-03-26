@@ -16,7 +16,7 @@ inst_reqs = [
 extra_reqs = {
     "dev": ["pytest", "pytest-cov", "pytest-asyncio", "pre-commit"],
     "server": ["uvicorn", "click==7.0"],
-    "test": ["pytest", "pytest-cov", "pytest-asyncio"],
+    "test": ["pytest", "pytest-cov", "pytest-asyncio", "requests"],
 }
 
 setup(
