@@ -1,6 +1,6 @@
 """titiler.api.utils."""
 
-from typing import Any, Dict
+from typing import Any, Optional
 
 import json
 import hashlib
@@ -9,9 +9,6 @@ import numpy
 
 from starlette.requests import Request
 
-import mercantile
-from rasterio.transform import from_bounds
-from rasterio.crs import CRS
 
 from rio_color.operations import parse_operations
 from rio_color.utils import scale_dtype, to_math_type
@@ -30,25 +27,11 @@ def get_hash(**kwargs: Any) -> str:
     return hashlib.sha224(json.dumps(kwargs, sort_keys=True).encode()).hexdigest()
 
 
-def get_geotiff_options(
-    tile_x,
-    tile_y,
-    tile_z,
-    data_type: str,
-    tilesize: int = 256,
-    dst_crs: CRS = CRS.from_epsg(3857),
-) -> Dict:
-    """GeoTIFF options."""
-    bounds = mercantile.xy_bounds(mercantile.Tile(x=tile_x, y=tile_y, z=tile_z))
-    dst_transform = from_bounds(*bounds, tilesize, tilesize)
-    return dict(dtype=data_type, crs=dst_crs, transform=dst_transform)
-
-
 def postprocess(
     tile: numpy.ndarray,
     mask: numpy.ndarray,
-    rescale: str = None,
-    color_formula: str = None,
+    rescale: Optional[str] = None,
+    color_formula: Optional[str] = None,
 ) -> numpy.ndarray:
     """Post-process tile data."""
     if rescale:

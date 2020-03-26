@@ -1,18 +1,18 @@
 """API tiles."""
 
-from typing import Union
+from typing import Any, Dict, Union, Optional
 
 import re
 from io import BytesIO
 
 import numpy
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Path
 
-from rio_tiler import main as cogTiler
+from rio_tiler.io import cogeo
+from rio_tiler.colormap import get_colormap
+from rio_tiler.utils import render, geotiff_options
 from rio_tiler.profiles import img_profiles
-from rio_tiler.utils import array_to_image, get_colormap
-
 
 from titiler.api import utils
 from titiler.db.memcache import CacheLayer
@@ -35,7 +35,7 @@ responses = {
         "description": "Return an image.",
     }
 }
-tile_routes_params = dict(
+tile_routes_params: Dict[str, Any] = dict(
     responses=responses, tags=["tiles"], response_class=TileResponse
 )
 
@@ -45,17 +45,25 @@ tile_routes_params = dict(
 @router.get(r"/{z}/{x}/{y}@{scale}x", **tile_routes_params)
 @router.get(r"/{z}/{x}/{y}@{scale}x\.{ext}", **tile_routes_params)
 def tile(
-    z: int,
-    x: int,
-    y: int,
-    scale: int = Query(1, gt=0, lt=4),
-    ext: ImageType = None,
-    url: str = Query(..., title="Url of the COG"),
-    bidx: str = Query(None, title="Coma (',') delimited band indexes"),
-    nodata: Union[str, int, float] = None,
-    rescale: str = Query(None, title="Coma (',') delimited Min,Max bounds"),
-    color_formula: str = Query(None, title="rio-color formula"),
-    color_map: str = Query(None, title="rio-tiler color map names"),
+    z: int = Path(..., ge=0, le=30, description="Mercator tiles's zoom level"),
+    x: int = Path(..., description="Mercator tiles's column"),
+    y: int = Path(..., description="Mercator tiles's row"),
+    scale: int = Query(
+        1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
+    ),
+    ext: Optional[ImageType] = Query(
+        None, description="Output image type. Default is auto."
+    ),
+    url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
+    bidx: Optional[str] = Query(None, description="Coma (',') delimited band indexes"),
+    nodata: Optional[Union[str, int, float]] = Query(
+        None, description="Overwrite internal Nodata value."
+    ),
+    rescale: Optional[str] = Query(
+        None, description="Coma (',') delimited Min,Max bounds"
+    ),
+    color_formula: Optional[str] = Query(None, title="rio-color formula"),
+    color_map: Optional[str] = Query(None, title="rio-tiler color map name"),
     cache_client: CacheLayer = Depends(utils.get_cache),
 ) -> TileResponse:
     """Handle /tiles requests."""
@@ -74,6 +82,7 @@ def tile(
             color_map=color_map,
         )
     )
+    tilesize = scale * 256
 
     content = None
     if cache_client:
@@ -88,10 +97,10 @@ def tile(
         if nodata is not None:
             nodata = numpy.nan if nodata == "nan" else float(nodata)
 
-        tilesize = scale * 256
-        tile, mask = cogTiler.tile(
+        tile, mask = cogeo.tile(
             url, x, y, z, indexes=indexes, tilesize=tilesize, nodata=nodata
         )
+
         if not ext:
             ext = ImageType.jpg if mask.all() else ImageType.png
 
@@ -100,23 +109,21 @@ def tile(
         )
 
         if color_map:
-            color_map = get_colormap(color_map, format="gdal")
+            color_map = get_colormap(color_map)
 
-        if ext == "npy":
+        if ext == ImageType.npy:
             sio = BytesIO()
             numpy.save(sio, (tile, mask))
             sio.seek(0)
             content = sio.getvalue()
         else:
-            driver = drivers[ext]
+            driver = drivers[ext.value]
             options = img_profiles.get(driver.lower(), {})
-            if ext == "tif":
-                options = utils.get_geotiff_options(
-                    x, y, z, tile.dtype, tilesize=tilesize
-                )
+            if ext == ImageType.tif:
+                options = geotiff_options(x, y, z, tilesize=tilesize)
 
-            content = array_to_image(
-                tile, mask, img_format=driver, color_map=color_map, **options
+            content = render(
+                tile, mask, img_format=driver, colormap=color_map, **options
             )
 
         if cache_client and content:

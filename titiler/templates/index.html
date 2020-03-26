@@ -780,7 +780,7 @@
                     document.getElementById('hide-arrow').classList.toggle('off')
                     document.getElementById('menu').classList.toggle('off')
 
-                    const bounds = scope.metadata.bounds.value
+                    const bounds = scope.metadata.bounds
                     map.fitBounds([[bounds[0], bounds[1]], [bounds[2], bounds[3]]])
                     addAOI(bounds)
 

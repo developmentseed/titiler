@@ -1,6 +1,6 @@
 """API ogc."""
 
-import urllib
+from urllib.parse import urlencode
 
 from fastapi import APIRouter, Query
 from starlette.requests import Request
@@ -10,6 +10,7 @@ from starlette.templating import Jinja2Templates
 import rasterio
 from rasterio import warp
 from rio_tiler.mercator import get_zooms
+from rio_tiler import constants
 
 from titiler.core import config
 from titiler.ressources.enums import ImageType
@@ -28,9 +29,13 @@ templates = Jinja2Templates(directory="titiler/templates")
 def wtms(
     request: Request,
     response: Response,
-    url: str = Query(..., title="Url of the COG"),
-    tile_format: ImageType = "png",
-    tile_scale: int = Query(1, gt=0, lt=4),
+    url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
+    tile_format: ImageType = Query(
+        ImageType.png, description="Output image type. Default is png."
+    ),
+    tile_scale: int = Query(
+        1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
+    ),
 ):
     """Wmts endpoit."""
     scheme = request.url.scheme
@@ -42,17 +47,17 @@ def wtms(
     kwargs = dict(request.query_params)
     kwargs.pop("tile_format", None)
     kwargs.pop("tile_scale", None)
-    qs = urllib.parse.urlencode(list(kwargs.items()))
+    qs = urlencode(list(kwargs.items()))
 
     with rasterio.open(url) as src_dst:
         bounds = list(
             warp.transform_bounds(
-                src_dst.crs, "epsg:4326", *src_dst.bounds, densify_pts=21
+                src_dst.crs, constants.WGS84_CRS, *src_dst.bounds, densify_pts=21
             )
         )
         minzoom, maxzoom = get_zooms(src_dst)
 
-    media_type = mimetype[tile_format]
+    media_type = mimetype[tile_format.value]
     tilesize = tile_scale * 256
     tileMatrix = []
     for zoom in range(minzoom, maxzoom + 1):
