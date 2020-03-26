@@ -10,18 +10,18 @@ inst_reqs = [
     "jinja2",
     "python-binary-memcached",
     "rio-color",
-    "rio-tiler",
+    "rio-tiler~=2.0a3",
     "email-validator",
 ]
 extra_reqs = {
-    "dev": ["pytest", "pytest-cov", "pre-commit"],
+    "dev": ["pytest", "pytest-cov", "pytest-asyncio", "pre-commit"],
     "server": ["uvicorn", "click==7.0"],
-    "test": ["pytest", "pytest-cov"],
+    "test": ["mock", "pytest", "pytest-cov", "pytest-asyncio", "requests"],
 }
 
 setup(
     name="titiler",
-    version="0.0.1",
+    version="0.1.0",
     description=u"",
     long_description=long_description,
     long_description_content_type="text/markdown",

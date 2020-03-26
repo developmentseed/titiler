@@ -10,11 +10,11 @@ from starlette.middleware.gzip import GZipMiddleware
 
 from titiler import version
 from titiler.core import config
+from titiler.db.memcache import CacheLayer
 from titiler.api.api_v1.api import api_router
 
-from titiler.db.memcache import CacheLayer
-
 templates = Jinja2Templates(directory="titiler/templates")
+
 if config.MEMCACHE_HOST and not config.DISABLE_CACHE:
     kwargs = {
         k: v
@@ -70,8 +70,8 @@ async def cache_middleware(request: Request, call_next):
     responses={200: {"content": {"application/hmtl": {}}}},
     response_class=HTMLResponse,
 )
-def landing(request: Request):
-    """Wmts endpoit."""
+def index(request: Request):
+    """Demo Page."""
     scheme = request.url.scheme
     host = request.headers["host"]
     if config.API_VERSION_STR:

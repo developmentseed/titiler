@@ -1,0 +1,41 @@
+version: 2
+common: &common
+  working_directory: ~/titiler
+  steps:
+    - checkout
+    - run:
+        name: install dependencies
+        command: pip install tox codecov pre-commit --user
+    - run:
+        name: run tox
+        command: ~/.local/bin/tox
+    - run:
+        name: run pre-commit
+        command: |
+          if [[ "$CIRCLE_JOB" == "python-3.7" ]]; then
+             ~/.local/bin/pre-commit run --all-files
+          fi
+    - run:
+        name: upload coverage report
+        command: |
+          if [[ "$UPLOAD_COVERAGE" == 1 ]]; then
+             ~/.local/bin/coverage xml
+             ~/.local/bin/codecov
+          fi
+        when: always
+
+jobs:
+  "python-3.7":
+    <<: *common
+    docker:
+      - image: circleci/python:3.7.2
+        environment:
+          - TOXENV=py37
+          - UPLOAD_COVERAGE=1
+
+
+workflows:
+  version: 2
+  build_and_deploy:
+    jobs:
+      - python-3.7
