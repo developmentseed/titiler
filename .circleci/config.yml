@@ -1,6 +1,6 @@
 version: 2
 common: &common
-  working_directory: ~/rio-tiler
+  working_directory: ~/titiler
   steps:
     - checkout
     - run:
@@ -25,78 +25,17 @@ common: &common
         when: always
 
 jobs:
-  "python-3.6":
-    <<: *common
-    docker:
-      - image: circleci/python:3.6.5
-        environment:
-          - TOXENV=py36
-          - UPLOAD_COVERAGE=1
-
   "python-3.7":
     <<: *common
     docker:
       - image: circleci/python:3.7.2
         environment:
           - TOXENV=py37
+          - UPLOAD_COVERAGE=1
 
-  benchmark:
-    docker:
-      - image: circleci/python:3.7.2
-    working_directory: ~/rio-tiler
-    steps:
-     - checkout
-     - run: pip install -e .[test] --user
-     - run: |
-         python -m pytest \
-         --benchmark-only \
-         --benchmark-autosave \
-         --benchmark-columns 'min, max, mean, median' \
-         --benchmark-sort 'min'
-
-  deploy:
-      docker:
-        - image: circleci/python:3.7.2
-          environment:
-            - TOXENV=release
-      working_directory: ~/rio-tiler
-      steps:
-        - checkout
-        - run:
-            command: pip install -e . --user
-        - run:
-            name: verify git tag vs. version
-            command: |
-              VERSION=$(python -c 'import rio_tiler; print(rio_tiler.version)')
-              if [ "$VERSION" = "$CIRCLE_TAG" ]; then exit 0; else exit 3; fi
-        - run:
-            name: install dependencies
-            command: pip install tox --user
-        - run:
-            name: init .pypirc
-            command: |
-              echo -e "[pypi]" >> ~/.pypirc
-              echo -e "username = $PYPI_USER" >> ~/.pypirc
-              echo -e "password = $PYPI_PASSWORD" >> ~/.pypirc
-        - run:
-            name: run tox
-            command: ~/.local/bin/tox
 
 workflows:
   version: 2
   build_and_deploy:
     jobs:
-      - benchmark
-      - "python-3.6"
-      - "python-3.7":
-          filters:  # required since `deploy` has tag filters AND requires `build`
-            tags:
-              only: /.*/
-      - deploy:
-          requires:
-            - "python-3.7"
-          filters:
-            tags:
-              only: /^[0-9]+.*/
-            branches:
-              ignore: /.*/
+      - python-3.7
