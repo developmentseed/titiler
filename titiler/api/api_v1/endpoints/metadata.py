@@ -4,6 +4,7 @@ from typing import Any, Dict, Optional, Union
 
 import os
 import re
+from functools import partial
 from urllib.parse import urlencode
 
 import numpy
@@ -13,11 +14,16 @@ from rio_tiler.io import cogeo
 from fastapi import APIRouter, Query
 from starlette.requests import Request
 from starlette.responses import Response
-
+from starlette.concurrency import run_in_threadpool
 
 from titiler.core import config
 from titiler.models.mapbox import TileJSON
 from titiler.ressources.enums import ImageType
+
+
+_bounds = partial(run_in_threadpool, cogeo.bounds)
+_metadata = partial(run_in_threadpool, cogeo.metadata)
+_spatial_info = partial(run_in_threadpool, cogeo.spatial_info)
 
 router = APIRouter()
 
@@ -37,7 +43,7 @@ router = APIRouter()
         "tiles",
     },  # https://github.com/tiangolo/fastapi/issues/528#issuecomment-589659378
 )
-def tilejson(
+async def tilejson(
     request: Request,
     response: Response,
     url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
@@ -66,7 +72,7 @@ def tilejson(
     else:
         tile_url = f"{scheme}://{host}/{{z}}/{{x}}/{{y}}@{tile_scale}x?{qs}"
 
-    meta = cogeo.spatial_info(url)
+    meta = await _spatial_info(url)
     response.headers["Cache-Control"] = "max-age=3600"
     return dict(
         bounds=meta["bounds"],
@@ -81,19 +87,19 @@ def tilejson(
 @router.get(
     "/bounds", responses={200: {"description": "Return the bounds of the COG."}}
 )
-def bounds(
+async def bounds(
     response: Response,
     url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
 ):
     """Handle /bounds requests."""
     response.headers["Cache-Control"] = "max-age=3600"
-    return cogeo.bounds(url)
+    return await _bounds(url)
 
 
 @router.get(
     "/metadata", responses={200: {"description": "Return the metadata of the COG."}}
 )
-def metadata(
+async def metadata(
     request: Request,
     response: Response,
     url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
@@ -132,7 +138,7 @@ def metadata(
         hist_options.update(dict(range=list(map(float, histogram_range.split(",")))))
 
     response.headers["Cache-Control"] = "max-age=3600"
-    return cogeo.metadata(
+    return await _metadata(
         url,
         pmin,
         pmax,

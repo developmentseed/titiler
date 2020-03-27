@@ -4,10 +4,12 @@ from typing import Any, Dict, Union, Optional
 
 import re
 from io import BytesIO
+from functools import partial
 
 import numpy
 
 from fastapi import APIRouter, Depends, Query, Path
+from starlette.concurrency import run_in_threadpool
 
 from rio_tiler.io import cogeo
 from rio_tiler.colormap import get_colormap
@@ -20,9 +22,13 @@ from titiler.ressources.enums import ImageType
 from titiler.ressources.common import drivers, mimetype
 from titiler.ressources.responses import TileResponse
 
+
+_tile = partial(run_in_threadpool, cogeo.tile)
+_render = partial(run_in_threadpool, render)
+_postprocess = partial(run_in_threadpool, utils.postprocess)
+
+
 router = APIRouter()
-
-
 responses = {
     200: {
         "content": {
@@ -44,16 +50,14 @@ tile_routes_params: Dict[str, Any] = dict(
 @router.get(r"/{z}/{x}/{y}\.{ext}", **tile_routes_params)
 @router.get(r"/{z}/{x}/{y}@{scale}x", **tile_routes_params)
 @router.get(r"/{z}/{x}/{y}@{scale}x\.{ext}", **tile_routes_params)
-def tile(
+async def tile(
     z: int = Path(..., ge=0, le=30, description="Mercator tiles's zoom level"),
     x: int = Path(..., description="Mercator tiles's column"),
     y: int = Path(..., description="Mercator tiles's row"),
     scale: int = Query(
         1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
     ),
-    ext: Optional[ImageType] = Query(
-        None, description="Output image type. Default is auto."
-    ),
+    ext: ImageType = Query(None, description="Output image type. Default is auto."),
     url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
     bidx: Optional[str] = Query(None, description="Coma (',') delimited band indexes"),
     nodata: Optional[Union[str, int, float]] = Query(
@@ -97,14 +101,14 @@ def tile(
         if nodata is not None:
             nodata = numpy.nan if nodata == "nan" else float(nodata)
 
-        tile, mask = cogeo.tile(
+        tile, mask = await _tile(
             url, x, y, z, indexes=indexes, tilesize=tilesize, nodata=nodata
         )
 
         if not ext:
             ext = ImageType.jpg if mask.all() else ImageType.png
 
-        tile = utils.postprocess(
+        tile = await _postprocess(
             tile, mask, rescale=rescale, color_formula=color_formula
         )
 
@@ -122,7 +126,7 @@ def tile(
             if ext == ImageType.tif:
                 options = geotiff_options(x, y, z, tilesize=tilesize)
 
-            content = render(
+            content = await _render(
                 tile, mask, img_format=driver, colormap=color_map, **options
             )
 

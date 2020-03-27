@@ -15,9 +15,9 @@ services:
       - GDAL_HTTP_MULTIPLEX=YES
       - GDAL_HTTP_VERSION=2
       - MODULE_NAME=titiler.main
-      - MEMCACHE_HOST=0.0.0.0
+      - MEMCACHE_HOST=memcached
       - MEMCACHE_USERNAME=myuser
-      - MEMCACHE_USERNAME=mypassword
+      - MEMCACHE_PASSWORD=mypassword
       - PORT=8000
       - PYTHONWARNINGS=ignore
       - VARIABLE_NAME=app
