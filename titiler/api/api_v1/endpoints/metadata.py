@@ -13,11 +13,17 @@ from rio_tiler.io import cogeo
 from fastapi import APIRouter, Query
 from starlette.requests import Request
 from starlette.responses import Response
-
+from starlette.concurrency import run_in_threadpool
 
 from titiler.core import config
 from titiler.models.mapbox import TileJSON
 from titiler.ressources.enums import ImageType
+
+
+async def _metadata(*args: Any, **kwargs: Any):
+    """ Wraps `rio_tiler.reader.tile,` in a coroutine."""
+    return await run_in_threadpool(cogeo.metadata, *args, **kwargs)
+
 
 router = APIRouter()
 
@@ -93,7 +99,7 @@ def bounds(
 @router.get(
     "/metadata", responses={200: {"description": "Return the metadata of the COG."}}
 )
-def metadata(
+async def metadata(
     request: Request,
     response: Response,
     url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
@@ -132,7 +138,7 @@ def metadata(
         hist_options.update(dict(range=list(map(float, histogram_range.split(",")))))
 
     response.headers["Cache-Control"] = "max-age=3600"
-    return cogeo.metadata(
+    return await _metadata(
         url,
         pmin,
         pmax,

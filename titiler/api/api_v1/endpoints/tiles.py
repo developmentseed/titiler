@@ -8,6 +8,7 @@ from io import BytesIO
 import numpy
 
 from fastapi import APIRouter, Depends, Query, Path
+from starlette.concurrency import run_in_threadpool
 
 from rio_tiler.io import cogeo
 from rio_tiler.colormap import get_colormap
@@ -20,9 +21,13 @@ from titiler.ressources.enums import ImageType
 from titiler.ressources.common import drivers, mimetype
 from titiler.ressources.responses import TileResponse
 
+
+async def _tile(*args: Any, **kwargs: Any):
+    """ Wraps `rio_tiler.reader.tile,` in a coroutine."""
+    return await run_in_threadpool(cogeo.tile, *args, **kwargs)
+
+
 router = APIRouter()
-
-
 responses = {
     200: {
         "content": {
@@ -44,7 +49,7 @@ tile_routes_params: Dict[str, Any] = dict(
 @router.get(r"/{z}/{x}/{y}\.{ext}", **tile_routes_params)
 @router.get(r"/{z}/{x}/{y}@{scale}x", **tile_routes_params)
 @router.get(r"/{z}/{x}/{y}@{scale}x\.{ext}", **tile_routes_params)
-def tile(
+async def tile(
     z: int = Path(..., ge=0, le=30, description="Mercator tiles's zoom level"),
     x: int = Path(..., description="Mercator tiles's column"),
     y: int = Path(..., description="Mercator tiles's row"),
@@ -97,7 +102,7 @@ def tile(
         if nodata is not None:
             nodata = numpy.nan if nodata == "nan" else float(nodata)
 
-        tile, mask = cogeo.tile(
+        tile, mask = await _tile(
             url, x, y, z, indexes=indexes, tilesize=tilesize, nodata=nodata
         )
 
