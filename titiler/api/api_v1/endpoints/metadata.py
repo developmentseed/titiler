@@ -4,6 +4,7 @@ from typing import Any, Dict, Optional, Union
 
 import os
 import re
+from functools import partial
 from urllib.parse import urlencode
 
 import numpy
@@ -20,10 +21,9 @@ from titiler.models.mapbox import TileJSON
 from titiler.ressources.enums import ImageType
 
 
-async def _metadata(*args: Any, **kwargs: Any):
-    """ Wraps `rio_tiler.reader.tile,` in a coroutine."""
-    return await run_in_threadpool(cogeo.metadata, *args, **kwargs)
-
+_bounds = partial(run_in_threadpool, cogeo.bounds)
+_metadata = partial(run_in_threadpool, cogeo.metadata)
+_spatial_info = partial(run_in_threadpool, cogeo.spatial_info)
 
 router = APIRouter()
 
@@ -43,7 +43,7 @@ router = APIRouter()
         "tiles",
     },  # https://github.com/tiangolo/fastapi/issues/528#issuecomment-589659378
 )
-def tilejson(
+async def tilejson(
     request: Request,
     response: Response,
     url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
@@ -72,7 +72,7 @@ def tilejson(
     else:
         tile_url = f"{scheme}://{host}/{{z}}/{{x}}/{{y}}@{tile_scale}x?{qs}"
 
-    meta = cogeo.spatial_info(url)
+    meta = await _spatial_info(url)
     response.headers["Cache-Control"] = "max-age=3600"
     return dict(
         bounds=meta["bounds"],
@@ -87,13 +87,13 @@ def tilejson(
 @router.get(
     "/bounds", responses={200: {"description": "Return the bounds of the COG."}}
 )
-def bounds(
+async def bounds(
     response: Response,
     url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
 ):
     """Handle /bounds requests."""
     response.headers["Cache-Control"] = "max-age=3600"
-    return cogeo.bounds(url)
+    return await _bounds(url)
 
 
 @router.get(

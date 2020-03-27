@@ -4,6 +4,7 @@ from typing import Any, Dict, Union, Optional
 
 import re
 from io import BytesIO
+from functools import partial
 
 import numpy
 
@@ -22,9 +23,9 @@ from titiler.ressources.common import drivers, mimetype
 from titiler.ressources.responses import TileResponse
 
 
-async def _tile(*args: Any, **kwargs: Any):
-    """ Wraps `rio_tiler.reader.tile,` in a coroutine."""
-    return await run_in_threadpool(cogeo.tile, *args, **kwargs)
+_tile = partial(run_in_threadpool, cogeo.tile)
+_render = partial(run_in_threadpool, render)
+_postprocess = partial(run_in_threadpool, utils.postprocess)
 
 
 router = APIRouter()
@@ -56,9 +57,7 @@ async def tile(
     scale: int = Query(
         1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
     ),
-    ext: Optional[ImageType] = Query(
-        None, description="Output image type. Default is auto."
-    ),
+    ext: ImageType = Query(None, description="Output image type. Default is auto."),
     url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
     bidx: Optional[str] = Query(None, description="Coma (',') delimited band indexes"),
     nodata: Optional[Union[str, int, float]] = Query(
@@ -109,7 +108,7 @@ async def tile(
         if not ext:
             ext = ImageType.jpg if mask.all() else ImageType.png
 
-        tile = utils.postprocess(
+        tile = await _postprocess(
             tile, mask, rescale=rescale, color_formula=color_formula
         )
 
@@ -127,7 +126,7 @@ async def tile(
             if ext == ImageType.tif:
                 options = geotiff_options(x, y, z, tilesize=tilesize)
 
-            content = render(
+            content = await _render(
                 tile, mask, img_format=driver, colormap=color_map, **options
             )
 
