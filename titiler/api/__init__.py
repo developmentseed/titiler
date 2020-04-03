@@ -1,1 +1,1 @@
-"""titiler."""
+"""titiler.api"""

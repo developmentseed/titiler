@@ -4,6 +4,8 @@ from typing import Optional, Tuple
 
 from bmemcached import Client
 
+from titiler.ressources.enums import ImageType
+
 
 class CacheLayer(object):
     """Memcache Wrapper."""
@@ -18,7 +20,7 @@ class CacheLayer(object):
         """Init Cache Layer."""
         self.client = Client((f"{host}:{port}",), user, password)
 
-    def get_image_from_cache(self, img_hash: str) -> Tuple[bytes, str]:
+    def get_image_from_cache(self, img_hash: str) -> Tuple[bytes, ImageType]:
         """
         Get image body from cache layer.
 
@@ -39,7 +41,7 @@ class CacheLayer(object):
         return content, ext
 
     def set_image_cache(
-        self, img_hash: str, body: Tuple[bytes, str], timeout: int = 432000
+        self, img_hash: str, body: Tuple[bytes, ImageType], timeout: int = 432000
     ) -> bool:
         """
         Set base64 encoded image body in cache layer.

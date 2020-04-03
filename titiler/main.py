@@ -1,4 +1,5 @@
 """titiler app."""
+from typing import Any, Dict
 
 from fastapi import FastAPI
 from starlette.requests import Request
@@ -16,7 +17,7 @@ from titiler.api.api_v1.api import api_router
 templates = Jinja2Templates(directory="titiler/templates")
 
 if config.MEMCACHE_HOST and not config.DISABLE_CACHE:
-    kwargs = {
+    kwargs: Dict[str, Any] = {
         k: v
         for k, v in zip(
             ["port", "user", "password"],
@@ -80,6 +81,26 @@ def index(request: Request):
 
     return templates.TemplateResponse(
         "index.html", {"request": request, "endpoint": endpoint}, media_type="text/html"
+    )
+
+
+@app.get(
+    "/simple_viewer.html",
+    responses={200: {"content": {"application/hmtl": {}}}},
+    response_class=HTMLResponse,
+)
+def simple(request: Request):
+    """Demo Page."""
+    scheme = request.url.scheme
+    host = request.headers["host"]
+    if config.API_VERSION_STR:
+        host += config.API_VERSION_STR
+    endpoint = f"{scheme}://{host}"
+
+    return templates.TemplateResponse(
+        "simple.html",
+        {"request": request, "endpoint": endpoint},
+        media_type="text/html",
     )
 
 

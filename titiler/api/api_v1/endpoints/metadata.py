@@ -19,8 +19,9 @@ from starlette.concurrency import run_in_threadpool
 from titiler.core import config
 from titiler.models.mapbox import TileJSON
 from titiler.ressources.enums import ImageType
+from titiler.api.utils import info as cogInfo
 
-
+_info = partial(run_in_threadpool, cogInfo)
 _bounds = partial(run_in_threadpool, cogeo.bounds)
 _metadata = partial(run_in_threadpool, cogeo.metadata)
 _spatial_info = partial(run_in_threadpool, cogeo.spatial_info)
@@ -94,6 +95,16 @@ async def bounds(
     """Handle /bounds requests."""
     response.headers["Cache-Control"] = "max-age=3600"
     return await _bounds(url)
+
+
+@router.get("/info", responses={200: {"description": "Return basic info on COG."}})
+async def info(
+    response: Response,
+    url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
+):
+    """Handle /info requests."""
+    response.headers["Cache-Control"] = "max-age=3600"
+    return await _info(url)
 
 
 @router.get(

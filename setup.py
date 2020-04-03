@@ -16,8 +16,16 @@ inst_reqs = [
 extra_reqs = {
     "dev": ["pytest", "pytest-cov", "pytest-asyncio", "pre-commit"],
     "server": ["uvicorn", "click==7.0"],
+    "deploy": [
+        "aws-cdk.core",
+        "aws-cdk.aws_ecs",
+        "aws-cdk.aws_ec2",
+        "aws-cdk.aws_autoscaling",
+        "aws-cdk.aws_ecs_patterns",
+    ],
     "test": ["mock", "pytest", "pytest-cov", "pytest-asyncio", "requests"],
 }
+
 
 setup(
     name="titiler",

@@ -1,1 +1,1 @@
-"""titiler ressources."""
+"""titiler.ressources."""

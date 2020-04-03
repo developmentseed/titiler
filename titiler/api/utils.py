@@ -1,6 +1,6 @@
 """titiler.api.utils."""
 
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 import json
 import hashlib
@@ -9,6 +9,12 @@ import numpy
 
 from starlette.requests import Request
 
+# Temporary
+import rasterio
+from rasterio.warp import transform_bounds
+from rio_tiler import constants
+from rio_tiler.utils import has_alpha_band, has_mask_band
+from rio_tiler.mercator import get_zooms
 
 from rio_color.operations import parse_operations
 from rio_color.utils import scale_dtype, to_math_type
@@ -58,3 +64,70 @@ def postprocess(
             tile = scale_dtype(ops(to_math_type(tile)), numpy.uint8)
 
     return tile
+
+
+# from rio-tiler 2.0a5
+def info(address: str) -> Dict:
+    """
+    Return simple metadata about the file.
+
+    Attributes
+    ----------
+    address : str or PathLike object
+        A dataset path or URL. Will be opened in "r" mode.
+
+    Returns
+    -------
+    out : dict.
+
+    """
+    with rasterio.open(address) as src_dst:
+        minzoom, maxzoom = get_zooms(src_dst)
+        bounds = transform_bounds(
+            src_dst.crs, constants.WGS84_CRS, *src_dst.bounds, densify_pts=21
+        )
+        center = [(bounds[0] + bounds[2]) / 2, (bounds[1] + bounds[3]) / 2, minzoom]
+
+        def _get_descr(ix):
+            """Return band description."""
+            name = src_dst.descriptions[ix - 1]
+            if not name:
+                name = "band{}".format(ix)
+            return name
+
+        band_descriptions = [(ix, _get_descr(ix)) for ix in src_dst.indexes]
+        tags = [(ix, src_dst.tags(ix)) for ix in src_dst.indexes]
+
+        other_meta = dict()
+        if src_dst.scales[0] and src_dst.offsets[0]:
+            other_meta.update(dict(scale=src_dst.scales[0]))
+            other_meta.update(dict(offset=src_dst.offsets[0]))
+
+        if has_alpha_band(src_dst):
+            nodata_type = "Alpha"
+        elif has_mask_band(src_dst):
+            nodata_type = "Mask"
+        elif src_dst.nodata is not None:
+            nodata_type = "Nodata"
+        else:
+            nodata_type = "None"
+
+        try:
+            cmap = src_dst.colormap(1)
+            other_meta.update(dict(colormap=cmap))
+        except ValueError:
+            pass
+
+        return dict(
+            address=address,
+            bounds=bounds,
+            center=center,
+            minzoom=minzoom,
+            maxzoom=maxzoom,
+            band_metadata=tags,
+            band_descriptions=band_descriptions,
+            dtype=src_dst.meta["dtype"],
+            colorinterp=[src_dst.colorinterp[ix - 1].name for ix in src_dst.indexes],
+            nodata_type=nodata_type,
+            **other_meta,
+        )
