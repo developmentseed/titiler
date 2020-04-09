@@ -51,7 +51,7 @@ class titilerStack(core.Stack):
                 container_port=80,
                 environment=dict(
                     CPL_TMPDIR="/tmp",
-                    GDAL_CACHEMAX="25%",
+                    GDAL_CACHEMAX="75%",
                     GDAL_DISABLE_READDIR_ON_OPEN="EMPTY_DIR",
                     GDAL_HTTP_MERGE_CONSECUTIVE_RANGES="YES",
                     GDAL_HTTP_MULTIPLEX="YES",
@@ -61,7 +61,7 @@ class titilerStack(core.Stack):
                     VARIABLE_NAME="app",
                     VSI_CACHE="TRUE",
                     VSI_CACHE_SIZE="1000000",
-                    WORKERS_PER_CORE="5",
+                    WORKERS_PER_CORE="1",
                     LOG_LEVEL="error",
                 ),
             ),
