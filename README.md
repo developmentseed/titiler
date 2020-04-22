@@ -5,8 +5,9 @@ A lightweight Cloud Optimized GeoTIFF tile server.
 [![CircleCI](https://circleci.com/gh/developmentseed/titiler.svg?style=svg)](https://circleci.com/gh/developmentseed/titiler)
 [![codecov](https://codecov.io/gh/developmentseed/titiler/branch/master/graph/badge.svg)](https://codecov.io/gh/developmentseed/titiler)
 
-# Deployment
+## Deployment
 
+### ø AWS ECS (Fargate) + ALB (Application Load Balancer)
 The stack is deployed by the [aws cdk](https://aws.amazon.com/cdk/) utility. It will handle tasks such as generating a docker image and packaging handlers automatically.
 
 1. Instal cdk and set up CDK in your AWS account - Only need once per account
@@ -55,7 +56,11 @@ TASK_MEMORY = 2048
 $ cdk deploy  # Deploys the stack(s) named STACKS into your AWS account
 ```
 
-# Test locally
+### ø AWS Lambda 
+
+see [lambda/README.md](/lambda/README.md)
+
+### Test locally
 ```bash
 $ git clone https://github.com/developmentseed/titiler.git
 
