@@ -1,0 +1,2 @@
+include titiler/templates/*.html
+include titiler/templates/*.xml

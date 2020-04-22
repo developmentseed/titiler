@@ -47,6 +47,7 @@ setup(
     url="https://github.com/developmentseed/titiler",
     license="MIT",
     packages=find_packages(exclude=["ez_setup", "examples", "tests"]),
+    package_data={"titiler": ["templates/*.html", "templates/*.xml"]},
     include_package_data=True,
     zip_safe=False,
     install_requires=inst_reqs,
