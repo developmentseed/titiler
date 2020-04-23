@@ -71,6 +71,9 @@ async def tile(
     cache_client: CacheLayer = Depends(utils.get_cache),
 ) -> TileResponse:
     """Handle /tiles requests."""
+    timings = []
+    headers: Dict[str, str] = {}
+
     tile_hash = utils.get_hash(
         **dict(
             z=z,
@@ -92,6 +95,7 @@ async def tile(
     if cache_client:
         try:
             content, ext = cache_client.get_image_from_cache(tile_hash)
+            headers["X-Cache"] = "HIT"
         except Exception:
             content = None
 
@@ -101,36 +105,48 @@ async def tile(
         if nodata is not None:
             nodata = numpy.nan if nodata == "nan" else float(nodata)
 
-        tile, mask = await _tile(
-            url, x, y, z, indexes=indexes, tilesize=tilesize, nodata=nodata
-        )
+        with utils.Timer() as t:
+            tile, mask = await _tile(
+                url, x, y, z, indexes=indexes, tilesize=tilesize, nodata=nodata
+            )
+        timings.append(("Read", t.elapsed))
 
         if not ext:
             ext = ImageType.jpg if mask.all() else ImageType.png
 
-        tile = await _postprocess(
-            tile, mask, rescale=rescale, color_formula=color_formula
-        )
+        with utils.Timer() as t:
+            tile = await _postprocess(
+                tile, mask, rescale=rescale, color_formula=color_formula
+            )
+        timings.append(("Post-process", t.elapsed))
 
         if color_map:
             color_map = get_colormap(color_map)
 
-        if ext == ImageType.npy:
-            sio = BytesIO()
-            numpy.save(sio, (tile, mask))
-            sio.seek(0)
-            content = sio.getvalue()
-        else:
-            driver = drivers[ext.value]
-            options = img_profiles.get(driver.lower(), {})
-            if ext == ImageType.tif:
-                options = geotiff_options(x, y, z, tilesize=tilesize)
+        with utils.Timer() as t:
+            if ext == ImageType.npy:
+                sio = BytesIO()
+                numpy.save(sio, (tile, mask))
+                sio.seek(0)
+                content = sio.getvalue()
+            else:
+                driver = drivers[ext.value]
+                options = img_profiles.get(driver.lower(), {})
+                if ext == ImageType.tif:
+                    options = geotiff_options(x, y, z, tilesize=tilesize)
 
-            content = await _render(
-                tile, mask, img_format=driver, colormap=color_map, **options
-            )
+                content = await _render(
+                    tile, mask, img_format=driver, colormap=color_map, **options
+                )
+
+        timings.append(("Format", t.elapsed))
 
         if cache_client and content:
             cache_client.set_image_cache(tile_hash, (content, ext))
 
-    return TileResponse(content, media_type=mimetype[ext.value])
+    if timings:
+        headers["X-Server-Timings"] = "; ".join(
+            ["{} - {:0.2f}".format(name, time * 1000) for (name, time) in timings]
+        )
+
+    return TileResponse(content, media_type=mimetype[ext.value], headers=headers)
