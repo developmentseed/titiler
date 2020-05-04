@@ -10,7 +10,8 @@ class TitilerLambdaBuilder:
         current_dir = os.path.dirname(os.path.realpath(__file__))
         self.titiler_lambda_package_filepath = os.path.join(current_dir, 'titiler_lambda.zip')
 
-    def _get_container(self):
+    @staticmethod
+    def _get_container():
         print('Building image and retrieving container')
         client = docker.from_env()
         client.images.build(
