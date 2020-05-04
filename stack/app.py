@@ -10,7 +10,7 @@ from aws_cdk import (
     aws_ecs as ecs,
     aws_ecs_patterns as ecs_patterns,
     aws_lambda as _lambda,
-    core
+    core,
 )
 
 import config
@@ -32,7 +32,7 @@ class titilerStack(core.Stack):
         **kwargs: Any,
     ) -> None:
         """Define stack."""
-        super().__init__(scope, id, *kwargs)
+        super().__init__(scope, id, **kwargs)
 
         vpc = ec2.Vpc(self, f"{id}-vpc", max_azs=2)
 
@@ -100,17 +100,14 @@ class titilerStack(core.Stack):
 
         titiler_lambda = _lambda.Function(
             self,
-            'titiler',
+            f"{id}-lambda",
             runtime=_lambda.Runtime.PYTHON_3_7,
             code=_lambda.Code.asset(TitilerLambdaBuilder().get_package_path()),
-            handler='handler.handler'
+            handler="handler.handler",
         )
 
-        apigw.LambdaRestApi(
-            self,
-            'TestGateway',
-            handler=titiler_lambda
-        )
+        apigw.LambdaRestApi(self, f"{id}-lambda-api-gateway", handler=titiler_lambda)
+
 
 app = core.App()
 
