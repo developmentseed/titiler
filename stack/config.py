@@ -2,7 +2,7 @@
 
 import os
 
-PROJECT_NAME = "titiler-lambda"
+PROJECT_NAME = "titiler"
 STAGE = os.environ.get("STAGE", "dev")
 
 # // Service config
