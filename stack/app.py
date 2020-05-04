@@ -47,7 +47,7 @@ class titilerStack(core.Stack):
             desired_count=mincount,
             public_load_balancer=True,
             listener_port=80,
-            task_image_options=dict(
+            task_image_options=ecs_patterns.ApplicationLoadBalancedTaskImageOptions(
                 image=ecs.ContainerImage.from_asset(
                     code_dir, exclude=["cdk.out", ".git"]
                 ),
