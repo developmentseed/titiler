@@ -5,10 +5,12 @@ from typing import Any, Union
 import os
 
 from aws_cdk import (
-    core,
+    aws_apigateway as apigw,
     aws_ec2 as ec2,
     aws_ecs as ecs,
     aws_ecs_patterns as ecs_patterns,
+    aws_lambda as _lambda,
+    core
 )
 
 import config
@@ -94,6 +96,31 @@ class titilerStack(core.Stack):
         )
 
 
+class titilerLambdaStack(core.Stack):
+    def __init__(
+        self,
+        scope: core.Construct,
+        id: str,
+        code_dir: str = "./",
+        **kwargs: Any,
+    ) -> None:
+        """Define stack."""
+        super().__init__(scope, id, *kwargs)
+
+        titiler_lambda = _lambda.Function(
+            self,
+            'TestLambda',
+            runtime=_lambda.Runtime.PYTHON_3_7,
+            code=_lambda.Code.asset('lambda/lambda.zip'),
+            handler='lambda.handler'
+        )
+
+        apigw.LambdaRestApi(
+            self,
+            'TestGateway',
+            handler=titiler_lambda
+        )
+
 app = core.App()
 
 # Tag infrastructure
@@ -107,12 +134,16 @@ for key, value in {
         core.Tag.add(app, key, value)
 
 stackname = f"{config.PROJECT_NAME}-{config.STAGE}"
-titilerStack(
+# titilerStack(
+#     app,
+#     stackname,
+#     cpu=config.TASK_CPU,
+#     memory=config.TASK_MEMORY,
+#     mincount=config.MIN_ECS_INSTANCES,
+#     maxcount=config.MAX_ECS_INSTANCES,
+# )
+titilerLambdaStack(
     app,
-    stackname,
-    cpu=config.TASK_CPU,
-    memory=config.TASK_MEMORY,
-    mincount=config.MIN_ECS_INSTANCES,
-    maxcount=config.MAX_ECS_INSTANCES,
+    stackname
 )
 app.synth()
