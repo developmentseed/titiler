@@ -14,6 +14,7 @@ from aws_cdk import (
 )
 
 import config
+from titiler_lambda_builder import TitilerLambdaBuilder
 
 
 class titilerStack(core.Stack):
@@ -95,24 +96,14 @@ class titilerStack(core.Stack):
             description="Allows traffic on port 80 from NLB",
         )
 
-
-class titilerLambdaStack(core.Stack):
-    def __init__(
-        self,
-        scope: core.Construct,
-        id: str,
-        code_dir: str = "./",
-        **kwargs: Any,
-    ) -> None:
-        """Define stack."""
-        super().__init__(scope, id, *kwargs)
+        # Task 1 definitions
 
         titiler_lambda = _lambda.Function(
             self,
-            'TestLambda',
+            'titiler',
             runtime=_lambda.Runtime.PYTHON_3_7,
-            code=_lambda.Code.asset('lambda/lambda.zip'),
-            handler='lambda.handler'
+            code=_lambda.Code.asset(TitilerLambdaBuilder().get_package_path()),
+            handler='handler.handler'
         )
 
         apigw.LambdaRestApi(
@@ -134,16 +125,12 @@ for key, value in {
         core.Tag.add(app, key, value)
 
 stackname = f"{config.PROJECT_NAME}-{config.STAGE}"
-# titilerStack(
-#     app,
-#     stackname,
-#     cpu=config.TASK_CPU,
-#     memory=config.TASK_MEMORY,
-#     mincount=config.MIN_ECS_INSTANCES,
-#     maxcount=config.MAX_ECS_INSTANCES,
-# )
-titilerLambdaStack(
+titilerStack(
     app,
-    stackname
+    stackname,
+    cpu=config.TASK_CPU,
+    memory=config.TASK_MEMORY,
+    mincount=config.MIN_ECS_INSTANCES,
+    maxcount=config.MAX_ECS_INSTANCES,
 )
 app.synth()

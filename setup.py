@@ -25,6 +25,7 @@ extra_reqs = {
         "aws-cdk.aws_ecs_patterns",
         "aws-cdk.aws-lambda"
         "aws-cdk.core",
+        "docker"
     ],
     "test": ["mock", "pytest", "pytest-cov", "pytest-asyncio", "requests"],
 }
