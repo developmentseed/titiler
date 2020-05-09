@@ -10,14 +10,17 @@ inst_reqs = [
     "jinja2",
     "python-binary-memcached",
     "rio-color",
-    "rio-tiler~=2.0a3",
+    "rio-tiler~=2.0a6",
     "email-validator",
 ]
 extra_reqs = {
     "dev": ["pytest", "pytest-cov", "pytest-asyncio", "pre-commit"],
     "server": ["uvicorn", "click==7.0"],
     "deploy": [
+        "docker",
         "aws-cdk.core",
+        "aws-cdk.aws_lambda",
+        "aws-cdk.aws_apigatewayv2",
         "aws-cdk.aws_ecs",
         "aws-cdk.aws_ec2",
         "aws-cdk.aws_autoscaling",

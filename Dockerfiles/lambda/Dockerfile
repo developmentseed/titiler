@@ -3,7 +3,12 @@ FROM lambci/lambda:build-python3.7
 WORKDIR /tmp
 
 # We install titiler and mangum
-RUN pip install git+https://github.com/developmentseed/titiler.git mangum -t /var/task --no-binary numpy
+
+COPY README.md /app/README.md
+COPY titiler/ /app/titiler/
+COPY setup.py /app/setup.py
+
+RUN pip install /app/. mangum>=0.9.0 -t /var/task --no-binary numpy
 
 # Reduce package size and remove useless files
 RUN cd /var/task && find . -type f -name '*.pyc' | while read f; do n=$(echo $f | sed 's/__pycache__\///' | sed 's/.cpython-[2-3][0-9]//'); cp $f $n; done;
@@ -15,5 +20,5 @@ RUN rm -rdf /var/task/stack
 
 RUN cd /var/task && zip -r9q /tmp/package.zip *
 
-COPY handler.py handler.py
+COPY lambda/handler.py handler.py
 RUN zip -r9q /tmp/package.zip handler.py
