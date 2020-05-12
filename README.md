@@ -1,15 +1,21 @@
 # titiler
 
-A lightweight Cloud Optimized GeoTIFF tile server.
+A lightweight Cloud Optimized GeoTIFF dynamic tile server.
 
 [![CircleCI](https://circleci.com/gh/developmentseed/titiler.svg?style=svg)](https://circleci.com/gh/developmentseed/titiler)
 [![codecov](https://codecov.io/gh/developmentseed/titiler/branch/master/graph/badge.svg)](https://codecov.io/gh/developmentseed/titiler)
+
+Titiler, pronounced **tee-tiler** (*ti* is the diminutiveversion of the french *petit* which means small), is lightweight service, which sole goal is to create map tiles dynamically from Cloud Optimized GeoTIFF [COG](cogeo.org).
+
+This project is the descendant of https://github.com/developmentseed/cogeo-tiler
+
+Built on top of the *modern and fast* [FastAPI](https://fastapi.tiangolo.com) framework, titiler is written using async/await asynchronous code to improve the performances and handle heavy loads.
 
 ### Test locally
 ```bash
 $ git clone https://github.com/developmentseed/titiler.git
 
-$ pip install -e .
+$ cd titiler && pip install -e .["server"]
 $ uvicorn titiler.main:app --reload
 ```
 Or with Docker
@@ -33,17 +39,20 @@ $ docker-compose up
 ### Tiles
 
 `:endpoint:/v1/{z}/{x}/{y}[@{scale}x][.{ext}]`
-- **z**: Mercator tiles's zoom level.
-- **x**: Mercator tiles's column.
-- **y**: Mercator tiles's row.
-- **scale**: Tile size scale, default is set to 1 (256x256). OPTIONAL
-- **ext**: Output image format, default is set to None and will be either JPEG or PNG depending on masked value. OPTIONAL
-- **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
-- **bidx**: Coma (',') delimited band indexes. OPTIONAL
-- **nodata**: Overwrite internal Nodata value. OPTIONAL
-- **rescale**: Coma (',') delimited Min,Max bounds. OPTIONAL
-- **color_formula**: rio-color formula. OPTIONAL
-- **color_map**: rio-tiler color map name. OPTIONAL
+- PathParams:
+    - **z**: Mercator tiles's zoom level.
+    - **x**: Mercator tiles's column.
+    - **y**: Mercator tiles's row.
+    - **scale**: Tile size scale, default is set to 1 (256x256). OPTIONAL
+    - **ext**: Output image format, default is set to None and will be either JPEG or PNG depending on masked value. OPTIONAL
+
+- QueryParams:
+    - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
+    - **bidx**: Coma (',') delimited band indexes. OPTIONAL
+    - **nodata**: Overwrite internal Nodata value. OPTIONAL
+    - **rescale**: Coma (',') delimited Min,Max bounds. OPTIONAL
+    - **color_formula**: rio-color formula. OPTIONAL
+    - **color_map**: rio-tiler color map name. OPTIONAL
 
 Example: 
 - `https://myendpoint/v1/1/2/3?url=https://somewhere.com/mycog.tif`
@@ -54,10 +63,11 @@ Example:
 ### Metadata
 
 `:endpoint:/v1/tilejson.json` - Get tileJSON document
-- **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
-- **tile_format**: Output image format, default is set to None and will be either JPEG or PNG depending on masked value.
-- **tile_scale**: Tile size scale, default is set to 1 (256x256). OPTIONAL
-- **kwargs**: Other options will be forwarded to the `tiles` url.
+- QueryParams:
+    - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
+    - **tile_format**: Output image format, default is set to None and will be either JPEG or PNG depending on masked value.
+    - **tile_scale**: Tile size scale, default is set to 1 (256x256). OPTIONAL
+    - **kwargs**: Other options will be forwarded to the `tiles` url.
 
 Example: 
 - `https://myendpoint/v1/tilejson.json?url=https://somewhere.com/mycog.tif`
@@ -65,26 +75,31 @@ Example:
 - `https://myendpoint/v1/tilejson.json?url=https://somewhere.com/mycog.tif&tile_scale=2&bidx=1,2,3`
 
 `:endpoint:/v1/bounds` - Get general image bounds
-- **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
+
+- QueryParams:
+    - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
 
 Example: 
 - `https://myendpoint/v1/bounds?url=https://somewhere.com/mycog.tif`
 
 `:endpoint:/v1/info` - Get general image info
-- **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
+- QueryParams:
+    - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
 
 Example: 
 - `https://myendpoint/v1/info?url=https://somewhere.com/mycog.tif`
 
 `:endpoint:/v1/metadata` - Get image statistics
-- **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
-- **bidx**: Coma (',') delimited band indexes. OPTIONAL
-- **nodata**: Overwrite internal Nodata value. OPTIONAL
-- **pmin**: min percentile, default is 2. OPTIONAL
-- **pmax**: max percentile, default is 98. OPTIONAL
-- **max_size**: Max image size from which to calculate statistics, default is 1024. OPTIONAL
-- **histogram_bins**: Histogram bins, default is 20. OPTIONAL
-- **histogram_range**: Coma (',') delimited histogram bounds. OPTIONAL
+
+- QueryParams:
+    - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
+    - **bidx**: Coma (',') delimited band indexes. OPTIONAL
+    - **nodata**: Overwrite internal Nodata value. OPTIONAL
+    - **pmin**: min percentile, default is 2. OPTIONAL
+    - **pmax**: max percentile, default is 98. OPTIONAL
+    - **max_size**: Max image size from which to calculate statistics, default is 1024. OPTIONAL
+    - **histogram_bins**: Histogram bins, default is 20. OPTIONAL
+    - **histogram_range**: Coma (',') delimited histogram bounds. OPTIONAL
 
 Example: 
 - `https://myendpoint/v1/metadata?url=https://somewhere.com/mycog.tif&bidx=1,2,3`
@@ -139,6 +154,13 @@ docs/
 
 ## Deployment
 
+To be able to deploy on either ECS or Lambda you first need to install more dependencies:
+
+```bash
+$ git clone https://github.com/developmentseed/titiler.git
+$ cd titiler && pip install -e .["deploy"]
+```
+
 ### ø AWS ECS (Fargate) + ALB (Application Load Balancer)
 The stack is deployed by the [aws cdk](https://aws.amazon.com/cdk/) utility. It will handle tasks such as generating a docker image set up an application load balancer and the ECS services.
 
@@ -151,20 +173,12 @@ $ npm install cdk -g
 $ cdk bootstrap # Deploys the CDK toolkit stack into an AWS environment
 ```
 
-2. Install dependencies
-
-```bash
-# Note: it's recommanded to use virtualenv
-$ git clone https://github.com/developmentseed/titiler.git
-$ cd titiler && pip install -e .[deploy]
-```
-
-3. Pre-Generate CFN template
+2. Pre-Generate CFN template
 ```bash
 $ cdk synth  # Synthesizes and prints the CloudFormation template for this stack
 ```
 
-4. Edit [stack/config.py](stack/config.py)
+3. Edit [stack/config.py](stack/config.py)
 
 ```python
 PROJECT_NAME = "titiler"
@@ -185,7 +199,7 @@ TASK_CPU = 1024
 TASK_MEMORY = 2048
 ```
 
-5. Deploy  
+4. Deploy  
 ```bash
 $ cdk deploy titiler-ecs-dev # Deploys the stack(s) titiler-ecs-dev in stack/app.py
 ```
@@ -216,20 +230,12 @@ $ npm install cdk -g
 $ cdk bootstrap # Deploys the CDK toolkit stack into an AWS environment
 ```
 
-2. Install dependencies
-
-```bash
-# Note: it's recommanded to use virtualenv
-$ git clone https://github.com/developmentseed/titiler.git
-$ cd titiler && pip install -e .[deploy]
-```
-
-3. Pre-Generate CFN template
+2. Pre-Generate CFN template
 ```bash
 $ cdk synth  # Synthesizes and prints the CloudFormation template for this stack
 ```
 
-4. Edit [stack/config.py](stack/config.py)
+3. Edit [stack/config.py](stack/config.py)
 
 ```python
 PROJECT_NAME = "titiler"
@@ -240,7 +246,7 @@ MEMORY: int = 512
 MAX_CONCURRENT: int = 500
 ```
 
-5. Deploy  
+4. Deploy  
 ```bash
 $ cdk deploy titiler-lambda-dev # Deploys the stack(s) titiler-lambda-dev in stack/app.py
 ```
