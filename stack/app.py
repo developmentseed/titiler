@@ -65,6 +65,7 @@ class titilerLambdaStack(core.Stack):
             memory_size=memory,
             reserved_concurrent_executions=concurrent,
             timeout=core.Duration.seconds(timeout),
+            environment=DEFAULT_ENV,
         )
 
         # defines an API Gateway Http API resource backed by our "dynamoLambda" function.
