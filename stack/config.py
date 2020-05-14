@@ -38,4 +38,7 @@ TASK_MEMORY: int = 512
 ################################################################################
 TIMEOUT: int = 10
 MEMORY: int = 512
-MAX_CONCURRENT: int = 500
+
+# The maximum of concurrent executions you want to reserve for the function.
+# Default: - No specific limit - account limit.
+MAX_CONCURRENT: int = None  # 500

@@ -49,7 +49,7 @@ class titilerLambdaStack(core.Stack):
         id: str,
         memory: int = 1024,
         timeout: int = 30,
-        concurrent: int = 100,
+        concurrent: Optional[int] = None,
         permissions: Optional[iam.PolicyStatement] = None,
         env: dict = {},
         code_dir: str = "./",
