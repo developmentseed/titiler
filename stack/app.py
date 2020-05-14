@@ -1,6 +1,6 @@
 """Construct App."""
 
-from typing import Any, Union
+from typing import Any, Union, Optional
 
 import os
 
@@ -8,6 +8,7 @@ import docker
 
 from aws_cdk import (
     core,
+    aws_iam as iam,
     aws_ec2 as ec2,
     aws_ecs as ecs,
     aws_ecs_patterns as ecs_patterns,
@@ -49,12 +50,16 @@ class titilerLambdaStack(core.Stack):
         memory: int = 1024,
         timeout: int = 30,
         concurrent: int = 100,
+        permissions: Optional[iam.PolicyStatement] = None,
         env: dict = {},
         code_dir: str = "./",
         **kwargs: Any,
     ) -> None:
         """Define stack."""
         super().__init__(scope, id, *kwargs)
+
+        lambda_env = DEFAULT_ENV.copy()
+        lambda_env.update(env)
 
         lambda_function = aws_lambda.Function(
             self,
@@ -65,7 +70,10 @@ class titilerLambdaStack(core.Stack):
             memory_size=memory,
             reserved_concurrent_executions=concurrent,
             timeout=core.Duration.seconds(timeout),
+            environment=lambda_env,
         )
+        if permissions:
+            lambda_function.add_to_role_policy(permissions)
 
         # defines an API Gateway Http API resource backed by our "dynamoLambda" function.
         apigw.HttpApi(
@@ -104,6 +112,7 @@ class titilerECSStack(core.Stack):
         memory: Union[int, float] = 512,
         mincount: int = 1,
         maxcount: int = 50,
+        permissions: Optional[iam.PolicyStatement] = None,
         env: dict = {},
         code_dir: str = "./",
         **kwargs: Any,
@@ -146,6 +155,9 @@ class titilerECSStack(core.Stack):
             ),
         )
 
+        if permissions:
+            fargate_service.task_definition.task_role.add_to_policy(permissions)
+
         scalable_target = fargate_service.service.auto_scale_task_count(
             min_capacity=mincount, max_capacity=maxcount
         )
@@ -175,6 +187,13 @@ class titilerECSStack(core.Stack):
 
 app = core.App()
 
+perms = None
+if config.BUCKET:
+    perms = iam.PolicyStatement(
+        actions=["s3:GetObject", "s3:HeadObject"],
+        resources=[f"arn:aws:s3:::{bucket}*" for bucket in config.BUCKET],
+    )
+
 # Tag infrastructure
 for key, value in {
     "Project": config.PROJECT_NAME,
@@ -193,6 +212,7 @@ titilerECSStack(
     memory=config.TASK_MEMORY,
     mincount=config.MIN_ECS_INSTANCES,
     maxcount=config.MAX_ECS_INSTANCES,
+    permissions=perms,
     env=config.ENV,
 )
 
@@ -203,6 +223,7 @@ titilerLambdaStack(
     memory=config.MEMORY,
     timeout=config.TIMEOUT,
     concurrent=config.MAX_CONCURRENT,
+    permissions=perms,
     env=config.ENV,
 )
 

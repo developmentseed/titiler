@@ -1,12 +1,17 @@
 """STACK Configs."""
 
+from typing import Dict, List
+
 import os
 
 PROJECT_NAME = "titiler"
 STAGE = os.environ.get("STAGE", "dev")
 
 # Additional environement variable to set in the task/lambda
-ENV: dict = dict()
+ENV: Dict = {}
+
+# Add bucket where titiler can s3:GetObject/s3:HeadObject
+BUCKET: List = []
 
 ################################################################################
 #                                                                              #
