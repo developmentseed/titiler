@@ -8,7 +8,7 @@ COPY README.md /app/README.md
 COPY titiler/ /app/titiler/
 COPY setup.py /app/setup.py
 
-RUN pip install /app/. mangum>=0.9.0 -t /var/task --no-binary numpy
+RUN pip install /app/.["lambda"] -t /var/task --no-binary numpy
 
 # Reduce package size and remove useless files
 RUN cd /var/task && find . -type f -name '*.pyc' | while read f; do n=$(echo $f | sed 's/__pycache__\///' | sed 's/.cpython-[2-3][0-9]//'); cp $f $n; done;

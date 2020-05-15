@@ -51,6 +51,7 @@ class titilerLambdaStack(core.Stack):
         timeout: int = 30,
         concurrent: Optional[int] = None,
         permissions: Optional[iam.PolicyStatement] = None,
+        layer_arn: Optional[str] = None,
         env: dict = {},
         code_dir: str = "./",
         **kwargs: Any,
@@ -74,6 +75,13 @@ class titilerLambdaStack(core.Stack):
         )
         if permissions:
             lambda_function.add_to_role_policy(permissions)
+
+        if layer_arn:
+            lambda_function.add_layers(
+                aws_lambda.LayerVersion.from_layer_version_arn(
+                    self, layer_arn.split(":")[-2], layer_arn
+                )
+            )
 
         # defines an API Gateway Http API resource backed by our "dynamoLambda" function.
         apigw.HttpApi(

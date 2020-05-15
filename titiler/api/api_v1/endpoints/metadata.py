@@ -155,6 +155,7 @@ async def metadata(
         pmax,
         nodata=nodata,
         indexes=indexes,
+        max_size=max_size,
         hist_options=hist_options,
         **kwargs,
     )

@@ -1,6 +1,6 @@
 """STACK Configs."""
 
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import os
 
@@ -11,7 +11,7 @@ STAGE = os.environ.get("STAGE", "dev")
 ENV: Dict = {}
 
 # Add bucket where titiler can s3:GetObject/s3:HeadObject
-BUCKET: List = []
+BUCKET: List = ["ds-satellite"]
 
 ################################################################################
 #                                                                              #
@@ -37,8 +37,8 @@ TASK_MEMORY: int = 512
 #                                                                              #
 ################################################################################
 TIMEOUT: int = 10
-MEMORY: int = 512
+MEMORY: int = 1536
 
 # The maximum of concurrent executions you want to reserve for the function.
 # Default: - No specific limit - account limit.
-MAX_CONCURRENT: int = None  # 500
+MAX_CONCURRENT: Optional[int] = None
