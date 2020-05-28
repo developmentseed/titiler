@@ -1,8 +1,7 @@
 """API tiles."""
 
-from typing import Any, Dict, Union, Optional
+from typing import Any, Dict
 
-import re
 from io import BytesIO
 from functools import partial
 
@@ -12,11 +11,11 @@ from fastapi import APIRouter, Depends, Query, Path
 from starlette.concurrency import run_in_threadpool
 
 from rio_tiler.io import cogeo
-from rio_tiler.colormap import get_colormap
 from rio_tiler.utils import render, geotiff_options
 from rio_tiler.profiles import img_profiles
 
 from titiler.api import utils
+from titiler.api.deps import CommonImageParams
 from titiler.db.memcache import CacheLayer
 from titiler.ressources.enums import ImageType
 from titiler.ressources.common import drivers, mimetype
@@ -59,15 +58,7 @@ async def tile(
     ),
     ext: ImageType = Query(None, description="Output image type. Default is auto."),
     url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
-    bidx: Optional[str] = Query(None, description="Coma (',') delimited band indexes"),
-    nodata: Optional[Union[str, int, float]] = Query(
-        None, description="Overwrite internal Nodata value."
-    ),
-    rescale: Optional[str] = Query(
-        None, description="Coma (',') delimited Min,Max bounds"
-    ),
-    color_formula: Optional[str] = Query(None, title="rio-color formula"),
-    color_map: Optional[str] = Query(None, title="rio-tiler color map name"),
+    image_params: CommonImageParams = Depends(CommonImageParams),
     cache_client: CacheLayer = Depends(utils.get_cache),
 ) -> TileResponse:
     """Handle /tiles requests."""
@@ -82,11 +73,11 @@ async def tile(
             ext=ext,
             scale=scale,
             url=url,
-            bidx=bidx,
-            nodata=nodata,
-            rescale=rescale,
-            color_formula=color_formula,
-            color_map=color_map,
+            indexes=image_params.indexes,
+            nodata=image_params.nodata,
+            rescale=image_params.rescale,
+            color_formula=image_params.color_formula,
+            color_map=image_params.color_map,
         )
     )
     tilesize = scale * 256
@@ -100,14 +91,15 @@ async def tile(
             content = None
 
     if not content:
-        indexes = tuple(int(s) for s in re.findall(r"\d+", bidx)) if bidx else None
-
-        if nodata is not None:
-            nodata = numpy.nan if nodata == "nan" else float(nodata)
-
         with utils.Timer() as t:
             tile, mask = await _tile(
-                url, x, y, z, indexes=indexes, tilesize=tilesize, nodata=nodata
+                url,
+                x,
+                y,
+                z,
+                indexes=image_params.indexes,
+                tilesize=tilesize,
+                nodata=image_params.nodata,
             )
         timings.append(("Read", t.elapsed))
 
@@ -116,12 +108,12 @@ async def tile(
 
         with utils.Timer() as t:
             tile = await _postprocess(
-                tile, mask, rescale=rescale, color_formula=color_formula
+                tile,
+                mask,
+                rescale=image_params.rescale,
+                color_formula=image_params.color_formula,
             )
         timings.append(("Post-process", t.elapsed))
-
-        if color_map:
-            color_map = get_colormap(color_map)
 
         with utils.Timer() as t:
             if ext == ImageType.npy:
@@ -135,9 +127,10 @@ async def tile(
                 if ext == ImageType.tif:
                     options = geotiff_options(x, y, z, tilesize=tilesize)
 
-                content = await _render(
-                    tile, mask, img_format=driver, colormap=color_map, **options
-                )
+                if image_params.color_map:
+                    options["colormap"] = image_params.color_map
+
+                content = await _render(tile, mask, img_format=driver, **options)
 
         timings.append(("Format", t.elapsed))
 

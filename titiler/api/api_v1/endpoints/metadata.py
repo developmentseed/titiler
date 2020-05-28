@@ -19,9 +19,9 @@ from starlette.concurrency import run_in_threadpool
 from titiler.core import config
 from titiler.models.mapbox import TileJSON
 from titiler.ressources.enums import ImageType
-from titiler.api.utils import info as cogInfo
 
-_info = partial(run_in_threadpool, cogInfo)
+
+_info = partial(run_in_threadpool, cogeo.info)
 _bounds = partial(run_in_threadpool, cogeo.bounds)
 _metadata = partial(run_in_threadpool, cogeo.metadata)
 _spatial_info = partial(run_in_threadpool, cogeo.spatial_info)

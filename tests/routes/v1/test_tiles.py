@@ -78,3 +78,9 @@ def test_tile(rio, app):
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
+
+    response = app.get(
+        "/v1/8/53/50.png?url=https://myurl.com/above_cog.tif&bidx=1&color_map=above"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/png"
