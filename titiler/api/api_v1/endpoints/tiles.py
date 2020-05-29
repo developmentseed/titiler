@@ -1,14 +1,18 @@
 """API tiles."""
 
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
+import os
 from io import BytesIO
 from functools import partial
+from urllib.parse import urlencode
 
 import numpy
 
 from fastapi import APIRouter, Depends, Query, Path
 from starlette.concurrency import run_in_threadpool
+from starlette.requests import Request
+from starlette.responses import Response
 
 from rio_tiler.io import cogeo
 from rio_tiler.utils import render, geotiff_options
@@ -20,11 +24,14 @@ from titiler.db.memcache import CacheLayer
 from titiler.ressources.enums import ImageType
 from titiler.ressources.common import drivers, mimetype
 from titiler.ressources.responses import TileResponse
+from titiler.core import config
+from titiler.models.mapbox import TileJSON
 
 
 _tile = partial(run_in_threadpool, cogeo.tile)
 _render = partial(run_in_threadpool, render)
 _postprocess = partial(run_in_threadpool, utils.postprocess)
+_spatial_info = partial(run_in_threadpool, cogeo.spatial_info)
 
 
 router = APIRouter()
@@ -41,7 +48,7 @@ responses = {
     }
 }
 tile_routes_params: Dict[str, Any] = dict(
-    responses=responses, tags=["tiles"], response_class=TileResponse
+    responses=responses, response_class=TileResponse
 )
 
 
@@ -143,3 +150,59 @@ async def tile(
         )
 
     return TileResponse(content, media_type=mimetype[ext.value], headers=headers)
+
+
+@router.get(
+    "/tilejson.json",
+    response_model=TileJSON,
+    responses={200: {"description": "Return a tilejson"}},
+    response_model_include={
+        "tilejson",
+        "scheme",
+        "version",
+        "minzoom",
+        "maxzoom",
+        "bounds",
+        "center",
+        "tiles",
+    },  # https://github.com/tiangolo/fastapi/issues/528#issuecomment-589659378
+)
+async def tilejson(
+    request: Request,
+    response: Response,
+    url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
+    tile_format: Optional[ImageType] = Query(
+        None, description="Output image type. Default is auto."
+    ),
+    tile_scale: int = Query(
+        1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
+    ),
+):
+    """Handle /tilejson.json requests."""
+    scheme = request.url.scheme
+    host = request.headers["host"]
+    if config.API_VERSION_STR:
+        host += config.API_VERSION_STR
+
+    kwargs = dict(request.query_params)
+    kwargs.pop("tile_format", None)
+    kwargs.pop("tile_scale", None)
+
+    qs = urlencode(list(kwargs.items()))
+    if tile_format:
+        tile_url = (
+            f"{scheme}://{host}/{{z}}/{{x}}/{{y}}@{tile_scale}x.{tile_format}?{qs}"
+        )
+    else:
+        tile_url = f"{scheme}://{host}/{{z}}/{{x}}/{{y}}@{tile_scale}x?{qs}"
+
+    meta = await _spatial_info(url)
+    response.headers["Cache-Control"] = "max-age=3600"
+    return dict(
+        bounds=meta["bounds"],
+        center=meta["center"],
+        minzoom=meta["minzoom"],
+        maxzoom=meta["maxzoom"],
+        name=os.path.basename(url),
+        tiles=[tile_url],
+    )

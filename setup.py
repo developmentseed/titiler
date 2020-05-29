@@ -10,7 +10,7 @@ inst_reqs = [
     "jinja2",
     "python-binary-memcached",
     "rio-color",
-    "rio-tiler~=2.0a9",
+    "rio-tiler~=2.0a11",
     "email-validator",
 ]
 extra_reqs = {

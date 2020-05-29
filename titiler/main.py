@@ -61,16 +61,8 @@ async def cache_middleware(request: Request, call_next):
     return response
 
 
-@app.get(
-    "/",
-    responses={200: {"content": {"application/hmtl": {}}}},
-    response_class=HTMLResponse,
-)
-@app.get(
-    "/index.html",
-    responses={200: {"content": {"application/hmtl": {}}}},
-    response_class=HTMLResponse,
-)
+@app.get("/", response_class=HTMLResponse, tags=["Webpage"])
+@app.get("/index.html", response_class=HTMLResponse, tags=["Webpage"])
 def index(request: Request):
     """Demo Page."""
     scheme = request.url.scheme
@@ -84,11 +76,7 @@ def index(request: Request):
     )
 
 
-@app.get(
-    "/simple_viewer.html",
-    responses={200: {"content": {"application/hmtl": {}}}},
-    response_class=HTMLResponse,
-)
+@app.get("/simple_viewer.html", response_class=HTMLResponse, tags=["Webpage"])
 def simple(request: Request):
     """Demo Page."""
     scheme = request.url.scheme
@@ -104,7 +92,7 @@ def simple(request: Request):
     )
 
 
-@app.get("/ping", description="Health Check")
+@app.get("/ping", description="Health Check", tags=["Health Check"])
 def ping():
     """Health check."""
     return {"ping": "pong!"}

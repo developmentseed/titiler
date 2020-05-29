@@ -1,4 +1,10 @@
-"""Custom colormaps."""
+"""
+Titiler Custom colormaps.
+
+Custom colormaps needs to be register in titiler/api/deps.py
+e.g `cmap.register("above", custom_colormap.above_cmap)`
+
+"""
 
 # colors from https://daac.ornl.gov/ABOVE/guides/Annual_Landcover_ABoVE.html
 above_cmap = {

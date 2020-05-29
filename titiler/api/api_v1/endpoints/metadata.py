@@ -2,10 +2,8 @@
 
 from typing import Any, Dict, Optional, Union
 
-import os
 import re
 from functools import partial
-from urllib.parse import urlencode
 
 import numpy
 
@@ -16,10 +14,6 @@ from starlette.requests import Request
 from starlette.responses import Response
 from starlette.concurrency import run_in_threadpool
 
-from titiler.core import config
-from titiler.models.mapbox import TileJSON
-from titiler.ressources.enums import ImageType
-
 
 _info = partial(run_in_threadpool, cogeo.info)
 _bounds = partial(run_in_threadpool, cogeo.bounds)
@@ -27,62 +21,6 @@ _metadata = partial(run_in_threadpool, cogeo.metadata)
 _spatial_info = partial(run_in_threadpool, cogeo.spatial_info)
 
 router = APIRouter()
-
-
-@router.get(
-    "/tilejson.json",
-    response_model=TileJSON,
-    responses={200: {"description": "Return a tilejson"}},
-    response_model_include={
-        "tilejson",
-        "scheme",
-        "version",
-        "minzoom",
-        "maxzoom",
-        "bounds",
-        "center",
-        "tiles",
-    },  # https://github.com/tiangolo/fastapi/issues/528#issuecomment-589659378
-)
-async def tilejson(
-    request: Request,
-    response: Response,
-    url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
-    tile_format: Optional[ImageType] = Query(
-        None, description="Output image type. Default is auto."
-    ),
-    tile_scale: int = Query(
-        1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
-    ),
-):
-    """Handle /tilejson.json requests."""
-    scheme = request.url.scheme
-    host = request.headers["host"]
-    if config.API_VERSION_STR:
-        host += config.API_VERSION_STR
-
-    kwargs = dict(request.query_params)
-    kwargs.pop("tile_format", None)
-    kwargs.pop("tile_scale", None)
-
-    qs = urlencode(list(kwargs.items()))
-    if tile_format:
-        tile_url = (
-            f"{scheme}://{host}/{{z}}/{{x}}/{{y}}@{tile_scale}x.{tile_format}?{qs}"
-        )
-    else:
-        tile_url = f"{scheme}://{host}/{{z}}/{{x}}/{{y}}@{tile_scale}x?{qs}"
-
-    meta = await _spatial_info(url)
-    response.headers["Cache-Control"] = "max-age=3600"
-    return dict(
-        bounds=meta["bounds"],
-        center=meta["center"],
-        minzoom=meta["minzoom"],
-        maxzoom=meta["maxzoom"],
-        name=os.path.basename(url),
-        tiles=[tile_url],
-    )
 
 
 @router.get(
