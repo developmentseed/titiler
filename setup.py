@@ -10,8 +10,7 @@ inst_reqs = [
     "jinja2",
     "python-binary-memcached",
     "rio-color",
-    "rio-tiler~=2.0a11",
-    "email-validator",
+    "rio-tiler-crs~=2.0" "email-validator",
 ]
 extra_reqs = {
     "dev": ["pytest", "pytest-cov", "pytest-asyncio", "pre-commit"],

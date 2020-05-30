@@ -7,12 +7,10 @@ from starlette.requests import Request
 from starlette.responses import Response
 from starlette.templating import Jinja2Templates
 
-import rasterio
-from rasterio import warp
-from rio_tiler.mercator import get_zooms
-from rio_tiler import constants
+from rio_tiler_crs import COGReader
 
 from titiler.core import config
+from titiler.api.deps import TileMatrixSetNames, morecantile
 from titiler.ressources.enums import ImageType
 from titiler.ressources.common import mimetype
 from titiler.ressources.responses import XMLResponse
@@ -21,14 +19,15 @@ router = APIRouter()
 templates = Jinja2Templates(directory="titiler/templates")
 
 
-@router.get(
-    r"/WMTSCapabilities.xml",
-    responses={200: {"content": {"application/xml": {}}}},
-    response_class=XMLResponse,
-)
+@router.get("/cogs/WMTSCapabilities.xml", response_class=XMLResponse)
+@router.get("/cogs/{identifier}/WMTSCapabilities.xml", response_class=XMLResponse)
 def wtms(
     request: Request,
     response: Response,
+    identifier: TileMatrixSetNames = Query(
+        TileMatrixSetNames.WebMercatorQuad,  # type: ignore
+        description="TileMatrixSet Name (default: 'WebMercatorQuad')",
+    ),
     url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
     tile_format: ImageType = Query(
         ImageType.png, description="Output image type. Default is png."
@@ -49,13 +48,9 @@ def wtms(
     kwargs.pop("tile_scale", None)
     qs = urlencode(list(kwargs.items()))
 
-    with rasterio.open(url) as src_dst:
-        bounds = list(
-            warp.transform_bounds(
-                src_dst.crs, constants.WGS84_CRS, *src_dst.bounds, densify_pts=21
-            )
-        )
-        minzoom, maxzoom = get_zooms(src_dst)
+    tms = morecantile.tms.get(identifier.name)
+    with COGReader(url, tms=tms) as cog:
+        minzoom, maxzoom, bounds = cog.minzoom, cog.maxzoom, cog.bounds
 
     media_type = mimetype[tile_format.value]
     tilesize = tile_scale * 256

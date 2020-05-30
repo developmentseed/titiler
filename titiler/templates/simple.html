@@ -280,7 +280,7 @@
                             <use xlink:href='#icon-palette' /></svg> Color Map</div>
                     <div class='select-container wmax-full'>
                         <select id='colormap-selector' class='select select--s select--stroke wmax-full color-black'>
-                            <option value='b&w'>Black and White</option>
+                            <option value='b&w'>Internal</option>
                             <option value=cfastie>CFastie</option>
                             <option value=rplumbo>RPlumbo</option>
                             <option value=schwarzwald>Schwarzwald (elevation)</option>
@@ -391,7 +391,7 @@
             if (cmap.value !== 'b&w') params.color_map = cmap.value
 
             const url_params = Object.keys(params).map(i => `${i}=${params[i]}`).join('&')
-            let url = `${api_endpoint}/tilejson.json?${url_params}`
+            let url = `${api_endpoint}/cogs/tilejson.json?${url_params}`
             map.addSource('raster', { type: 'raster', url: url, tileSize: 256 })
             map.addLayer({ id: 'raster', type: 'raster', source: 'raster' })
         }
@@ -414,7 +414,7 @@
             }
 
             const url_params = Object.keys(params).map(i => `${i}=${params[i]}`).join('&')
-            let url = `${api_endpoint}/tilejson.json?${url_params}`
+            let url = `${api_endpoint}/cogs/tilejson.json?${url_params}`
             map.addSource('raster', { type: 'raster', url: url, tileSize: 256 })
             map.addLayer({ id: 'raster', type: 'raster', source: 'raster' })
         }
@@ -520,7 +520,7 @@
         }
 
         const addCogeo = () => {
-            fetch(`${api_endpoint}/info?url=${scope.url}`)
+            fetch(`${api_endpoint}/cogs/info?url=${scope.url}`)
                 .then(res => {
                     if (res.ok) return res.json()
                     throw new Error('Network response was not ok.')

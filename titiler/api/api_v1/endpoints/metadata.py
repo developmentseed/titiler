@@ -3,63 +3,60 @@
 from typing import Any, Dict, Optional, Union
 
 import re
-from functools import partial
 
 import numpy
 
-from rio_tiler.io import cogeo
+from rio_tiler_crs import COGReader
 
 from fastapi import APIRouter, Query
 from starlette.requests import Request
 from starlette.responses import Response
-from starlette.concurrency import run_in_threadpool
-
-
-_info = partial(run_in_threadpool, cogeo.info)
-_bounds = partial(run_in_threadpool, cogeo.bounds)
-_metadata = partial(run_in_threadpool, cogeo.metadata)
-_spatial_info = partial(run_in_threadpool, cogeo.spatial_info)
 
 router = APIRouter()
 
 
 @router.get(
-    "/bounds", responses={200: {"description": "Return the bounds of the COG."}}
+    "/cogs/bounds", responses={200: {"description": "Return the bounds of the COG."}}
 )
 async def bounds(
-    response: Response,
-    url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
+    resp: Response, url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
 ):
     """Handle /bounds requests."""
-    response.headers["Cache-Control"] = "max-age=3600"
-    return await _bounds(url)
+    resp.headers["Cache-Control"] = "max-age=3600"
+    with COGReader(url) as cog:
+        return {"bounds": cog.bounds}
 
 
-@router.get("/info", responses={200: {"description": "Return basic info on COG."}})
+@router.get("/cogs/info", responses={200: {"description": "Return basic info on COG."}})
 async def info(
-    response: Response,
-    url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
+    resp: Response, url: str = Query(..., description="Cloud Optimized GeoTIFF URL.")
 ):
     """Handle /info requests."""
-    response.headers["Cache-Control"] = "max-age=3600"
-    return await _info(url)
+    resp.headers["Cache-Control"] = "max-age=3600"
+    with COGReader(url) as cog:
+        info = cog.info
+    info.pop("maxzoom", None)  # We don't use TMS here
+    info.pop("minzoom", None)  # We don't use TMS here
+    info.pop("center", None)  # We don't use TMS here
+    return info
 
 
 @router.get(
-    "/metadata", responses={200: {"description": "Return the metadata of the COG."}}
+    "/cogs/metadata",
+    responses={200: {"description": "Return the metadata of the COG."}},
 )
 async def metadata(
     request: Request,
-    response: Response,
+    resp: Response,
     url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
     bidx: Optional[str] = Query(None, description="Coma (',') delimited band indexes"),
     nodata: Optional[Union[str, int, float]] = Query(
         None, description="Overwrite internal Nodata value."
     ),
-    pmin: float = 2.0,
-    pmax: float = 98.0,
-    max_size: int = 1024,
-    histogram_bins: int = 20,
+    pmin: float = Query(2.0, description="Minimum percentile"),
+    pmax: float = Query(98.0, description="Maximum percentile"),
+    max_size: int = Query(1024, description="Maximum image size to read onto."),
+    histogram_bins: Optional[int] = None,
     histogram_range: Optional[str] = Query(
         None, description="Coma (',') delimited Min,Max bounds"
     ),
@@ -86,14 +83,21 @@ async def metadata(
     if histogram_range:
         hist_options.update(dict(range=list(map(float, histogram_range.split(",")))))
 
-    response.headers["Cache-Control"] = "max-age=3600"
-    return await _metadata(
-        url,
-        pmin,
-        pmax,
-        nodata=nodata,
-        indexes=indexes,
-        max_size=max_size,
-        hist_options=hist_options,
-        **kwargs,
-    )
+    with COGReader(url) as cog:
+        info = cog.info
+        info.pop("maxzoom", None)  # We don't use TMS here
+        info.pop("minzoom", None)  # We don't use TMS here
+        info.pop("center", None)  # We don't use TMS here
+        stats = cog.stats(
+            pmin,
+            pmax,
+            nodata=nodata,
+            indexes=indexes,
+            max_size=max_size,
+            hist_options=hist_options,
+            **kwargs,
+        )
+        info["statistics"] = stats
+
+    resp.headers["Cache-Control"] = "max-age=3600"
+    return info
