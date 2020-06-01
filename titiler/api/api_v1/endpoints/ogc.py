@@ -11,8 +11,7 @@ from rio_tiler_crs import COGReader
 
 from titiler.core import config
 from titiler.api.deps import TileMatrixSetNames, morecantile
-from titiler.ressources.enums import ImageType
-from titiler.ressources.common import mimetype
+from titiler.ressources.enums import ImageType, ImageMimeTypes, MimeTypes
 from titiler.ressources.responses import XMLResponse
 
 router = APIRouter()
@@ -20,11 +19,11 @@ templates = Jinja2Templates(directory="titiler/templates")
 
 
 @router.get("/cogs/WMTSCapabilities.xml", response_class=XMLResponse)
-@router.get("/cogs/{identifier}/WMTSCapabilities.xml", response_class=XMLResponse)
+@router.get("/cogs/{TileMatrixSetId}/WMTSCapabilities.xml", response_class=XMLResponse)
 def wtms(
     request: Request,
     response: Response,
-    identifier: TileMatrixSetNames = Query(
+    TileMatrixSetId: TileMatrixSetNames = Query(
         TileMatrixSetNames.WebMercatorQuad,  # type: ignore
         description="TileMatrixSet Name (default: 'WebMercatorQuad')",
     ),
@@ -48,11 +47,11 @@ def wtms(
     kwargs.pop("tile_scale", None)
     qs = urlencode(list(kwargs.items()))
 
-    tms = morecantile.tms.get(identifier.name)
+    tms = morecantile.tms.get(TileMatrixSetId.name)
     with COGReader(url, tms=tms) as cog:
         minzoom, maxzoom, bounds = cog.minzoom, cog.maxzoom, cog.bounds
 
-    media_type = mimetype[tile_format.value]
+    media_type = ImageMimeTypes[tile_format.value].value
 
     tileMatrix = []
     for zoom in range(minzoom, maxzoom + 1):
@@ -83,5 +82,5 @@ def wtms(
             "tile_format": tile_ext,
             "media_type": media_type,
         },
-        media_type="application/xml",
+        media_type=MimeTypes.xml.value,
     )

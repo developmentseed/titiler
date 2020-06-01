@@ -14,7 +14,7 @@ def test_wmts(reader, app):
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/xml"
     assert (
-        "http://testserver/v1/cogs/WebMercatorQuad/{TileMatrix}/{TileCol}/{TileRow}@1x.png?url=https"
+        "http://testserver/v1/cogs/tiles/WebMercatorQuad/{TileMatrix}/{TileCol}/{TileRow}@1x.png?url=https"
         in response.content.decode()
     )
 
@@ -24,6 +24,6 @@ def test_wmts(reader, app):
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/xml"
     assert (
-        "http://testserver/v1/cogs/WebMercatorQuad/{TileMatrix}/{TileCol}/{TileRow}@2x.jpg?url=https"
+        "http://testserver/v1/cogs/tiles/WebMercatorQuad/{TileMatrix}/{TileCol}/{TileRow}@2x.jpg?url=https"
         in response.content.decode()
     )

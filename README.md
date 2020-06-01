@@ -38,10 +38,10 @@ $ docker-compose up
 
 ## Tiles
 
-`:endpoint:/v1/cogs/[{identifier}]/{z}/{x}/{y}[@{scale}x][.{ext}]`
+`:endpoint:/v1/cogs/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{ext}]`
 
 - PathParams:
-    - **identifier**: TileMatrixSet name, default is `WebMercatorQuad`. OPTIONAL
+    - **TileMatrixSetId**: TileMatrixSet name, default is `WebMercatorQuad`. OPTIONAL
     - **z**: Mercator tiles's zoom level.
     - **x**: Mercator tiles's column.
     - **y**: Mercator tiles's row.
@@ -57,17 +57,86 @@ $ docker-compose up
     - **color_map**: rio-tiler color map name. OPTIONAL
 
 Example: 
-- `https://myendpoint/v1/cogs/1/2/3?url=https://somewhere.com/mycog.tif`
-- `https://myendpoint/v1/cogs/1/2/3.jpg?url=https://somewhere.com/mycog.tif`
-- `https://myendpoint/v1/cogs/WorldCRS84Quad/1/2/3@2x.png?url=https://somewhere.com/mycog.tif`
-- `https://myendpoint/v1/cogs/WorldCRS84Quad/1/2/3?url=https://somewhere.com/mycog.tif&bidx=1,2,3&rescale=0,1000&color_map=cfastie`
+- `https://myendpoint/v1/cogs/tiles/1/2/3?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/v1/cogs/tiles/1/2/3.jpg?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/v1/cogs/tiles/WorldCRS84Quad/1/2/3@2x.png?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/v1/cogs/tiles/WorldCRS84Quad/1/2/3?url=https://somewhere.com/mycog.tif&bidx=1,2,3&rescale=0,1000&color_map=cfastie`
+
+## TileMatrixSets
+
+
+`:endpoint:/v1/tileMatrixSets` - Get the list of supported TileMatrixSet
+
+```
+$ curl https://myendpoint/v1/tileMatrixSets | jq
+
+{
+  "tileMatrixSets": [
+    {
+      "id": "LINZAntarticaMapTilegrid",
+      "title": "LINZ Antarctic Map Tile Grid (Ross Sea Region)",
+      "links": [
+        {
+          "href": "https://myendpoint/v1/tileMatrixSets/LINZAntarticaMapTilegrid",
+          "rel": "item",
+          "type": "application/json"
+        }
+      ]
+    },
+    ...
+  ]
+}
+```
+
+`:endpoint:/v1/tileMatrixSets/{TileMatrixSetId}` - Get the TileMatrixSet JSON document
+
+- PathParams:
+    - **TileMatrixSetId**: TileMatrixSet name
+
+```
+$ curl http://127.0.0.1:8000/v1/tileMatrixSets/WebMercatorQuad | jq
+
+{
+  "type": "TileMatrixSetType",
+  "title": "Google Maps Compatible for the World",
+  "identifier": "WebMercatorQuad",
+  "supportedCRS": "http://www.opengis.net/def/crs/EPSG/0/3857",
+  "wellKnownScaleSet": "http://www.opengis.net/def/wkss/OGC/1.0/GoogleMapsCompatible",
+  "boundingBox": {
+    "type": "BoundingBoxType",
+    "crs": "http://www.opengis.net/def/crs/EPSG/0/3857",
+    "lowerCorner": [
+      -20037508.3427892,
+      -20037508.3427892
+    ],
+    "upperCorner": [
+      20037508.3427892,
+      20037508.3427892
+    ]
+  },
+  "tileMatrix": [
+    {
+      "type": "TileMatrixType",
+      "identifier": "0",
+      "scaleDenominator": 559082264.028717,
+      "topLeftCorner": [
+        -20037508.3427892,
+        20037508.3427892
+      ],
+      "tileWidth": 256,
+      "tileHeight": 256,
+      "matrixWidth": 1,
+      "matrixHeight": 1
+    },
+    ...
+```
 
 ## TilesJSON
 
-`:endpoint:/v1/cogs/[{identifier}]/tilejson.json` - Get tileJSON document
+`:endpoint:/v1/cogs/[{TileMatrixSetId}]/tilejson.json` - Get tileJSON document
 
 - PathParams:
-    - **identifier**: TileMatrixSet name, default is `WebMercatorQuad`. OPTIONAL
+    - **TileMatrixSetId**: TileMatrixSet name, default is `WebMercatorQuad`. OPTIONAL
 
 - QueryParams:
     - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**

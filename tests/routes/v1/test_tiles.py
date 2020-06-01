@@ -24,36 +24,38 @@ def test_tile(reader, app):
     reader.side_effect = mock_reader
 
     # full tile
-    response = app.get("/v1/cogs/8/87/48?url=https://myurl.com/cog.tif&rescale=0,1000")
+    response = app.get(
+        "/v1/cogs/tiles/8/87/48?url=https://myurl.com/cog.tif&rescale=0,1000"
+    )
     assert response.status_code == 200
-    assert response.headers["content-type"] == "image/jpg"
+    assert response.headers["content-type"] == "image/jpeg"
     meta = parse_img(response.content)
     assert meta["width"] == 256
     assert meta["height"] == 256
 
     response = app.get(
-        "/v1/cogs/8/87/48@2x?url=https://myurl.com/cog.tif&rescale=0,1000&color_formula=Gamma R 3"
+        "/v1/cogs/tiles/8/87/48@2x?url=https://myurl.com/cog.tif&rescale=0,1000&color_formula=Gamma R 3"
     )
     assert response.status_code == 200
-    assert response.headers["content-type"] == "image/jpg"
+    assert response.headers["content-type"] == "image/jpeg"
     meta = parse_img(response.content)
     assert meta["width"] == 512
     assert meta["height"] == 512
 
     response = app.get(
-        "/v1/cogs/8/87/48.jpg?url=https://myurl.com/cog.tif&rescale=0,1000"
+        "/v1/cogs/tiles/8/87/48.jpg?url=https://myurl.com/cog.tif&rescale=0,1000"
     )
     assert response.status_code == 200
-    assert response.headers["content-type"] == "image/jpg"
+    assert response.headers["content-type"] == "image/jpeg"
 
     response = app.get(
-        "/v1/cogs/8/87/48@2x.jpg?url=https://myurl.com/cog.tif&rescale=0,1000"
+        "/v1/cogs/tiles/8/87/48@2x.jpg?url=https://myurl.com/cog.tif&rescale=0,1000"
     )
     assert response.status_code == 200
-    assert response.headers["content-type"] == "image/jpg"
+    assert response.headers["content-type"] == "image/jpeg"
 
     response = app.get(
-        "/v1/cogs/8/87/48@2x.tif?url=https://myurl.com/cog.tif&nodata=0&bidx=1"
+        "/v1/cogs/tiles/8/87/48@2x.tif?url=https://myurl.com/cog.tif&nodata=0&bidx=1"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/tiff"
@@ -63,7 +65,9 @@ def test_tile(reader, app):
     assert meta["width"] == 512
     assert meta["height"] == 512
 
-    response = app.get("/v1/cogs/8/87/48.npy?url=https://myurl.com/cog.tif&nodata=0")
+    response = app.get(
+        "/v1/cogs/tiles/8/87/48.npy?url=https://myurl.com/cog.tif&nodata=0"
+    )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/x-binary"
     t, m = numpy.load(BytesIO(response.content), allow_pickle=True)
@@ -71,18 +75,20 @@ def test_tile(reader, app):
     assert m.shape == (256, 256)
 
     # partial
-    response = app.get("/v1/cogs/8/84/47?url=https://myurl.com/cog.tif&rescale=0,1000")
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "image/png"
-
     response = app.get(
-        "/v1/cogs/8/84/47?url=https://myurl.com/cog.tif&nodata=0&rescale=0,1000&color_map=viridis"
+        "/v1/cogs/tiles/8/84/47?url=https://myurl.com/cog.tif&rescale=0,1000"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
 
     response = app.get(
-        "/v1/cogs/8/53/50.png?url=https://myurl.com/above_cog.tif&bidx=1&color_map=above"
+        "/v1/cogs/tiles/8/84/47?url=https://myurl.com/cog.tif&nodata=0&rescale=0,1000&color_map=viridis"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/png"
+
+    response = app.get(
+        "/v1/cogs/tiles/8/53/50.png?url=https://myurl.com/above_cog.tif&bidx=1&color_map=above"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
@@ -101,7 +107,7 @@ def test_tilejson(reader, app):
     assert body["scheme"] == "xyz"
     assert len(body["tiles"]) == 1
     assert body["tiles"][0].startswith(
-        "http://testserver/v1/cogs/WebMercatorQuad/{z}/{x}/{y}@1x?url=https"
+        "http://testserver/v1/cogs/tiles/WebMercatorQuad/{z}/{x}/{y}@1x?url=https"
     )
     assert body["minzoom"] == 5
     assert body["maxzoom"] == 8
@@ -114,5 +120,24 @@ def test_tilejson(reader, app):
     assert response.status_code == 200
     body = response.json()
     assert body["tiles"][0].startswith(
-        "http://testserver/v1/cogs/WebMercatorQuad/{z}/{x}/{y}@2x.png?url=https"
+        "http://testserver/v1/cogs/tiles/WebMercatorQuad/{z}/{x}/{y}@2x.png?url=https"
     )
+
+
+def test_tilematrix(app):
+    """test /tileMatrixSet endpoint."""
+    response = app.get("/v1/tileMatrixSets")
+    assert response.status_code == 200
+    body = response.json()
+    assert len(body["tileMatrixSets"]) == 11  # morecantile has 10 defaults
+    tms = list(filter(lambda m: m["id"] == "EPSG3413", body["tileMatrixSets"]))[0]
+    assert tms["links"][0]["href"] == "http://testserver/v1/tileMatrixSets/EPSG3413"
+
+
+def test_tilematrixInfo(app):
+    """test /tileMatrixSet endpoint."""
+    response = app.get("/v1/tileMatrixSets/EPSG3413")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["type"] == "TileMatrixSetType"
+    assert body["identifier"] == "EPSG3413"

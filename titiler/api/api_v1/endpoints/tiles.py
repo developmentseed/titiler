@@ -12,6 +12,8 @@ from fastapi import APIRouter, Depends, Query, Path
 from starlette.requests import Request
 from starlette.responses import Response
 
+from morecantile.models import TileMatrixSet
+
 from rasterio.transform import from_bounds
 from rio_tiler_crs import COGReader
 from rio_tiler.utils import render
@@ -20,9 +22,10 @@ from rio_tiler.profiles import img_profiles
 from titiler.api import utils
 from titiler.api.deps import CommonImageParams, TileMatrixSetNames, morecantile
 from titiler.db.memcache import CacheLayer
-from titiler.ressources.enums import ImageType
-from titiler.ressources.common import drivers, mimetype
+from titiler.ressources.enums import ImageType, ImageMimeTypes
+from titiler.ressources.common import drivers
 from titiler.ressources.responses import TileResponse
+from titiler.models.OGC import TileMatrixSetList
 from titiler.core import config
 from titiler.models.mapbox import TileJSON
 
@@ -46,19 +49,19 @@ params: Dict[str, Any] = {
 }
 
 
-@router.get(r"/cogs/{z}/{x}/{y}", **params)
-@router.get(r"/cogs/{z}/{x}/{y}\.{ext}", **params)
-@router.get(r"/cogs/{z}/{x}/{y}@{scale}x", **params)
-@router.get(r"/cogs/{z}/{x}/{y}@{scale}x\.{ext}", **params)
-@router.get(r"/cogs/{identifier}/{z}/{x}/{y}", **params)
-@router.get(r"/cogs/{identifier}/{z}/{x}/{y}\.{ext}", **params)
-@router.get(r"/cogs/{identifier}/{z}/{x}/{y}@{scale}x", **params)
-@router.get(r"/cogs/{identifier}/{z}/{x}/{y}@{scale}x\.{ext}", **params)
+@router.get(r"/cogs/tiles/{z}/{x}/{y}", **params)
+@router.get(r"/cogs/tiles/{z}/{x}/{y}\.{ext}", **params)
+@router.get(r"/cogs/tiles/{z}/{x}/{y}@{scale}x", **params)
+@router.get(r"/cogs/tiles/{z}/{x}/{y}@{scale}x\.{ext}", **params)
+@router.get(r"/cogs/tiles/{TileMatrixSetId}/{z}/{x}/{y}", **params)
+@router.get(r"/cogs/tiles/{TileMatrixSetId}/{z}/{x}/{y}\.{ext}", **params)
+@router.get(r"/cogs/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x", **params)
+@router.get(r"/cogs/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x\.{ext}", **params)
 async def tile(
     z: int = Path(..., ge=0, le=30, description="Mercator tiles's zoom level"),
     x: int = Path(..., description="Mercator tiles's column"),
     y: int = Path(..., description="Mercator tiles's row"),
-    identifier: TileMatrixSetNames = Query(
+    TileMatrixSetId: TileMatrixSetNames = Query(
         TileMatrixSetNames.WebMercatorQuad,  # type: ignore
         description="TileMatrixSet Name (default: 'WebMercatorQuad')",
     ),
@@ -76,7 +79,7 @@ async def tile(
 
     tile_hash = utils.get_hash(
         **dict(
-            identifier=identifier.name,
+            identifier=TileMatrixSetId.name,
             z=z,
             x=x,
             y=y,
@@ -91,7 +94,7 @@ async def tile(
         )
     )
     tilesize = scale * 256
-    tms = morecantile.tms.get(identifier.name)
+    tms = morecantile.tms.get(TileMatrixSetId.name)
 
     content = None
     if cache_client:
@@ -155,37 +158,27 @@ async def tile(
             ["{} - {:0.2f}".format(name, time * 1000) for (name, time) in timings]
         )
 
-    return TileResponse(content, media_type=mimetype[ext.value], headers=headers)
-
-
-tilejson_include = {
-    "tilejson",
-    "scheme",
-    "version",
-    "minzoom",
-    "maxzoom",
-    "bounds",
-    "center",
-    "tiles",
-}
+    return TileResponse(
+        content, media_type=ImageMimeTypes[ext.value].value, headers=headers,
+    )
 
 
 @router.get(
     "/cogs/tilejson.json",
     response_model=TileJSON,
     responses={200: {"description": "Return a tilejson"}},
-    response_model_include=tilejson_include,  # https://github.com/tiangolo/fastapi/issues/528#issuecomment-589659378
+    response_model_exclude_none=True,
 )
 @router.get(
-    "/cogs/{identifier}/tilejson.json",
+    "/cogs/{TileMatrixSetId}/tilejson.json",
     response_model=TileJSON,
     responses={200: {"description": "Return a tilejson"}},
-    response_model_include=tilejson_include,  # https://github.com/tiangolo/fastapi/issues/528#issuecomment-589659378
+    response_model_exclude_none=True,
 )
 async def tilejson(
     request: Request,
     response: Response,
-    identifier: TileMatrixSetNames = Query(
+    TileMatrixSetId: TileMatrixSetNames = Query(
         TileMatrixSetNames.WebMercatorQuad,  # type: ignore
         description="TileMatrixSet Name (default: 'WebMercatorQuad')",
     ),
@@ -206,15 +199,15 @@ async def tilejson(
     kwargs = dict(request.query_params)
     kwargs.pop("tile_format", None)
     kwargs.pop("tile_scale", None)
-    kwargs.pop("identifier", None)
+    kwargs.pop("TileMatrixSetId", None)
 
     qs = urlencode(list(kwargs.items()))
     if tile_format:
-        tile_url = f"{scheme}://{host}/cogs/{identifier.name}/{{z}}/{{x}}/{{y}}@{tile_scale}x.{tile_format}?{qs}"
+        tile_url = f"{scheme}://{host}/cogs/tiles/{TileMatrixSetId.name}/{{z}}/{{x}}/{{y}}@{tile_scale}x.{tile_format}?{qs}"
     else:
-        tile_url = f"{scheme}://{host}/cogs/{identifier.name}/{{z}}/{{x}}/{{y}}@{tile_scale}x?{qs}"
+        tile_url = f"{scheme}://{host}/cogs/tiles/{TileMatrixSetId.name}/{{z}}/{{x}}/{{y}}@{tile_scale}x?{qs}"
 
-    tms = morecantile.tms.get(identifier.name)
+    tms = morecantile.tms.get(TileMatrixSetId.name)
     with COGReader(url, tms=tms) as cog:
         tjson = {
             "bounds": cog.bounds,
@@ -227,3 +220,51 @@ async def tilejson(
 
     response.headers["Cache-Control"] = "max-age=3600"
     return tjson
+
+
+@router.get(
+    r"/tileMatrixSets",
+    response_model=TileMatrixSetList,
+    response_model_exclude_none=True,
+)
+async def tmslis(request: Request):
+    """
+    Handle /tileMatrixSets requests.
+
+    Specs: http://docs.opengeospatial.org/per/19-069.html#_tilematrixsets
+    """
+    scheme = request.url.scheme
+    host = request.headers["host"]
+    if config.API_VERSION_STR:
+        host += config.API_VERSION_STR
+
+    tms_list = morecantile.tms.list()
+    return {
+        "tileMatrixSets": [
+            {
+                "id": tms,
+                "title": morecantile.tms.get(tms).title,
+                "links": [
+                    {
+                        "href": f"{scheme}://{host}/tileMatrixSets/{tms}",
+                        "rel": "item",
+                        "type": "application/json",
+                    }
+                ],
+            }
+            for tms in tms_list
+        ]
+    }
+
+
+@router.get(
+    r"/tileMatrixSets/{TileMatrixSetId}",
+    response_model=TileMatrixSet,
+    response_model_exclude_none=True,
+)
+async def tmsinfo(
+    TileMatrixSetId: TileMatrixSetNames = Query(..., description="TileMatrixSet Name")
+):
+    """Handle /tileMatrixSets/identifier requests."""
+    tms = morecantile.tms.get(TileMatrixSetId.name)
+    return tms.dict()
