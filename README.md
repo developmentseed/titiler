@@ -26,20 +26,22 @@ $ docker-compose up
 
 # API
 
-### Doc
+## Doc
 
 `:endpoint:/docs`
 
 <details>
 
-![](https://user-images.githubusercontent.com/10407788/78325903-011c9680-7547-11ea-853f-50e0fb0f4d92.png)
+![](https://user-images.githubusercontent.com/10407788/83420051-06397d00-a3f4-11ea-9dc7-5f42e28deff5.jpg)
 
 </details>
 
-### Tiles
+## Tiles
 
-`:endpoint:/v1/{z}/{x}/{y}[@{scale}x][.{ext}]`
+`:endpoint:/v1/cogs/[{identifier}]/{z}/{x}/{y}[@{scale}x][.{ext}]`
+
 - PathParams:
+    - **identifier**: TileMatrixSet name, default is `WebMercatorQuad`. OPTIONAL
     - **z**: Mercator tiles's zoom level.
     - **x**: Mercator tiles's column.
     - **y**: Mercator tiles's row.
@@ -55,14 +57,18 @@ $ docker-compose up
     - **color_map**: rio-tiler color map name. OPTIONAL
 
 Example: 
-- `https://myendpoint/v1/1/2/3?url=https://somewhere.com/mycog.tif`
-- `https://myendpoint/v1/1/2/3.jpg?url=https://somewhere.com/mycog.tif`
-- `https://myendpoint/v1/1/2/3@2x.png?url=https://somewhere.com/mycog.tif`
-- `https://myendpoint/v1/1/2/3?url=https://somewhere.com/mycog.tif&bidx=1,2,3&rescale=0,1000&color_map=cfastie`
+- `https://myendpoint/v1/cogs/1/2/3?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/v1/cogs/1/2/3.jpg?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/v1/cogs/WorldCRS84Quad/1/2/3@2x.png?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/v1/cogs/WorldCRS84Quad/1/2/3?url=https://somewhere.com/mycog.tif&bidx=1,2,3&rescale=0,1000&color_map=cfastie`
 
-### Metadata
+## TilesJSON
 
-`:endpoint:/v1/tilejson.json` - Get tileJSON document
+`:endpoint:/v1/cogs/[{identifier}]/tilejson.json` - Get tileJSON document
+
+- PathParams:
+    - **identifier**: TileMatrixSet name, default is `WebMercatorQuad`. OPTIONAL
+
 - QueryParams:
     - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
     - **tile_format**: Output image format, default is set to None and will be either JPEG or PNG depending on masked value.
@@ -70,26 +76,33 @@ Example:
     - **kwargs**: Other options will be forwarded to the `tiles` url.
 
 Example: 
-- `https://myendpoint/v1/tilejson.json?url=https://somewhere.com/mycog.tif`
-- `https://myendpoint/v1/tilejson.json?url=https://somewhere.com/mycog.tif&tile_format=png`
-- `https://myendpoint/v1/tilejson.json?url=https://somewhere.com/mycog.tif&tile_scale=2&bidx=1,2,3`
+- `https://myendpoint/v1/cogs/tilejson.json?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/v1/cogs/tilejson.json?url=https://somewhere.com/mycog.tif&tile_format=png`
+- `https://myendpoint/v1/cogs/WorldCRS84Quad/tilejson.json?url=https://somewhere.com/mycog.tif&tile_scale=2&bidx=1,2,3`
 
-`:endpoint:/v1/bounds` - Get general image bounds
+## Bounds
+
+`:endpoint:/v1/cogs/bounds` - Get general image bounds
 
 - QueryParams:
     - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
 
 Example: 
-- `https://myendpoint/v1/bounds?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/v1/cogs/bounds?url=https://somewhere.com/mycog.tif`
 
-`:endpoint:/v1/info` - Get general image info
+
+## Info
+
+`:endpoint:/v1/cogs/info` - Get general image info
 - QueryParams:
     - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
 
 Example: 
-- `https://myendpoint/v1/info?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/v1/cogs/info?url=https://somewhere.com/mycog.tif`
 
-`:endpoint:/v1/metadata` - Get image statistics
+## Metadata
+
+`:endpoint:/v1/cogs/metadata` - Get image statistics
 
 - QueryParams:
     - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
@@ -104,8 +117,7 @@ Example:
 Example: 
 - `https://myendpoint/v1/metadata?url=https://somewhere.com/mycog.tif&bidx=1,2,3`
 
-
-## UI
+## Demo
 
 `:endpoint:/index.html` - Full UI (histogram, predefined rescaling, ...)
 
@@ -123,9 +135,11 @@ titiler/                         - titiler python module.
  │   │   │   ├── operations.py   - clip/points endpoints.
  │   │   │   ├── tiles.py        - tiling related endpoints.
  │   │   └── api.py              - construct the API by merging api_v1 endpoints.
+ │   ├── deps.py                 - API dependencies.
  │   └── utils.py                - API utility functions.
  │
  ├── core/                       - application configuration.
+ ├── custom/                     - Custom colormap and TMS grids.
  ├── db/                         - db related stuff.
  ├── models/                     - pydantic models for this application.
  ├── ressources/                 - application ressources (enums, constants, ...).
