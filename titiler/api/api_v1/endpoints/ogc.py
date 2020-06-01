@@ -41,7 +41,7 @@ def wtms(
     host = request.headers["host"]
     if config.API_VERSION_STR:
         host += config.API_VERSION_STR
-    endpoint = f"{scheme}://{host}"
+    endpoint = f"{scheme}://{host}/cogs"
 
     kwargs = dict(request.query_params)
     kwargs.pop("tile_format", None)
@@ -53,20 +53,21 @@ def wtms(
         minzoom, maxzoom, bounds = cog.minzoom, cog.maxzoom, cog.bounds
 
     media_type = mimetype[tile_format.value]
-    tilesize = tile_scale * 256
+
     tileMatrix = []
     for zoom in range(minzoom, maxzoom + 1):
-        tileMatrix.append(
-            f"""<TileMatrix>
-                <ows:Identifier>{zoom}</ows:Identifier>
-                <ScaleDenominator>{559082264.02872 / 2 ** zoom / tile_scale}</ScaleDenominator>
-                <TopLeftCorner>-20037508.34278925 20037508.34278925</TopLeftCorner>
-                <TileWidth>{tilesize}</TileWidth>
-                <TileHeight>{tilesize}</TileHeight>
-                <MatrixWidth>{2 ** zoom}</MatrixWidth>
-                <MatrixHeight>{2 ** zoom}</MatrixHeight>
-            </TileMatrix>"""
-        )
+        matrix = tms.matrix(zoom)
+        tm = f"""
+                <TileMatrix>
+                    <ows:Identifier>{matrix.identifier}</ows:Identifier>
+                    <ScaleDenominator>{matrix.scaleDenominator}</ScaleDenominator>
+                    <TopLeftCorner>{matrix.topLeftCorner[0]} {matrix.topLeftCorner[1]}</TopLeftCorner>
+                    <TileWidth>{matrix.tileWidth}</TileWidth>
+                    <TileHeight>{matrix.tileHeight}</TileHeight>
+                    <MatrixWidth>{matrix.matrixWidth}</MatrixWidth>
+                    <MatrixHeight>{matrix.matrixHeight}</MatrixHeight>
+                </TileMatrix>"""
+        tileMatrix.append(tm)
 
     return templates.TemplateResponse(
         "wmts.xml",
@@ -75,9 +76,9 @@ def wtms(
             "endpoint": endpoint,
             "bounds": bounds,
             "tileMatrix": tileMatrix,
+            "tms": tms,
             "title": "Cloud Optimized GeoTIFF",
             "query_string": qs,
-            "tile_scale": tile_scale,
             "tile_format": tile_format.value,
             "media_type": media_type,
         },
