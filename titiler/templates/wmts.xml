@@ -1,11 +1,4 @@
-<Capabilities
-    xmlns='http://www.opengis.net/wmts/1.0'
-    xmlns:ows='http://www.opengis.net/ows/1.1'
-    xmlns:xlink='http://www.w3.org/1999/xlink'
-    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-    xmlns:gml='http://www.opengis.net/gml'
-    xsi:schemaLocation='http://www.opengis.net/wmts/1.0 http://schemas.opengis.net/wmts/1.0/wmtsGetCapabilities_response.xsd'
-    version='1.0.0'>
+<Capabilities xmlns="http://www.opengis.net/wmts/1.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:gml="http://www.opengis.net/gml" xsi:schemaLocation="http://www.opengis.net/wmts/1.0 http://schemas.opengis.net/wmts/1.0/wmtsGetCapabilities_response.xsd" version="1.0.0">
     <ows:ServiceIdentification>
         <ows:Title>"{{ title }}"</ows:Title>
         <ows:ServiceType>OGC WMTS</ows:ServiceType>
@@ -15,8 +8,8 @@
         <ows:Operation name="GetCapabilities">
             <ows:DCP>
                 <ows:HTTP>
-                    <ows:Get xlink:href="{{ endpoint }}/WMTSCapabilities.xml?{{ query_string }}">
-                        <ows:Constraint name='GetEncoding'>
+                    <ows:Get xlink:href="{{ endpoint }}/{{ tms.identifier }}/WMTSCapabilities.xml?{{ query_string }}">
+                        <ows:Constraint name="GetEncoding">
                             <ows:AllowedValues>
                                 <ows:Value>RESTful</ows:Value>
                             </ows:AllowedValues>
@@ -25,10 +18,10 @@
                 </ows:HTTP>
             </ows:DCP>
         </ows:Operation>
-        <ows:Operation name='GetTile'>
+        <ows:Operation name="GetTile">
             <ows:DCP>
                 <ows:HTTP>
-                    <ows:Get xlink:href="{{ endpoint }}/WMTSCapabilities.xml?{{ query_string }}">
+                    <ows:Get xlink:href="{{ endpoint }}/{{ tms.identifier }}/WMTSCapabilities.xml?{{ query_string }}">
                         <ows:Constraint name="GetEncoding">
                             <ows:AllowedValues>
                                 <ows:Value>RESTful</ows:Value>
@@ -48,24 +41,22 @@
                 <ows:LowerCorner>{{ bounds[0] }} {{ bounds[1] }}</ows:LowerCorner>
                 <ows:UpperCorner>{{ bounds[2] }} {{ bounds[3] }}</ows:UpperCorner>
             </ows:WGS84BoundingBox>
-            <Style isDefault='true'>
+            <Style isDefault="true">
                 <ows:Identifier>default</ows:Identifier>
             </Style>
             <Format>{{ media_type }}</Format>
             <TileMatrixSetLink>
-                <TileMatrixSet>GoogleMapsCompatible</TileMatrixSet>
+                <TileMatrixSet>{{ tms.identifier }}</TileMatrixSet>
             </TileMatrixSetLink>
-            <ResourceURL format="{{ media_type }}" resourceType="tile" template="{{ endpoint }}/{TileMatrix}/{TileCol}/{TileRow}@{{ tile_scale }}x.{{ tile_format }}?{{ query_string }}" />
+            <ResourceURL format="{{ media_type }}" resourceType="tile" template="{{ endpoint }}/tiles/{{ tms.identifier }}/{TileMatrix}/{TileCol}/{TileRow}{{ tile_format }}?{{ query_string }}" />
         </Layer>
         <TileMatrixSet>
-            <ows:Title>GoogleMapsCompatible</ows:Title>
-            <ows:Abstract>GoogleMapsCompatible EPSG:3857</ows:Abstract>
-            <ows:Identifier>GoogleMapsCompatible</ows:Identifier>
-            <ows:SupportedCRS>urn:ogc:def:crs:EPSG::3857</ows:SupportedCRS>
+            <ows:Identifier>{{ tms.identifier }}</ows:Identifier>
+            <ows:SupportedCRS>EPSG:{{ tms.crs.to_epsg() }}</ows:SupportedCRS>
             {% for item in tileMatrix %}
             {{ item | safe }}
             {% endfor %}
         </TileMatrixSet>
     </Contents>
-    <ServiceMetadataURL xlink:href="{{ endpoint }}/WMTSCapabilities.xml?{{ query_string }}" />
+    <ServiceMetadataURL xlink:href="{{ endpoint }}/{{ tms.identifier }}/WMTSCapabilities.xml?{{ query_string }}" />
 </Capabilities>

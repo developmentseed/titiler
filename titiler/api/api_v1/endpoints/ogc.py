@@ -7,28 +7,26 @@ from starlette.requests import Request
 from starlette.responses import Response
 from starlette.templating import Jinja2Templates
 
-import rasterio
-from rasterio import warp
-from rio_tiler.mercator import get_zooms
-from rio_tiler import constants
+from rio_tiler_crs import COGReader
 
 from titiler.core import config
-from titiler.ressources.enums import ImageType
-from titiler.ressources.common import mimetype
+from titiler.api.deps import TileMatrixSetNames, morecantile
+from titiler.ressources.enums import ImageType, ImageMimeTypes, MimeTypes
 from titiler.ressources.responses import XMLResponse
 
 router = APIRouter()
 templates = Jinja2Templates(directory="titiler/templates")
 
 
-@router.get(
-    r"/WMTSCapabilities.xml",
-    responses={200: {"content": {"application/xml": {}}}},
-    response_class=XMLResponse,
-)
+@router.get("/cog/WMTSCapabilities.xml", response_class=XMLResponse)
+@router.get("/cog/{TileMatrixSetId}/WMTSCapabilities.xml", response_class=XMLResponse)
 def wtms(
     request: Request,
     response: Response,
+    TileMatrixSetId: TileMatrixSetNames = Query(
+        TileMatrixSetNames.WebMercatorQuad,  # type: ignore
+        description="TileMatrixSet Name (default: 'WebMercatorQuad')",
+    ),
     url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
     tile_format: ImageType = Query(
         ImageType.png, description="Output image type. Default is png."
@@ -42,37 +40,35 @@ def wtms(
     host = request.headers["host"]
     if config.API_VERSION_STR:
         host += config.API_VERSION_STR
-    endpoint = f"{scheme}://{host}"
+    endpoint = f"{scheme}://{host}/cog"
 
     kwargs = dict(request.query_params)
     kwargs.pop("tile_format", None)
     kwargs.pop("tile_scale", None)
     qs = urlencode(list(kwargs.items()))
 
-    with rasterio.open(url) as src_dst:
-        bounds = list(
-            warp.transform_bounds(
-                src_dst.crs, constants.WGS84_CRS, *src_dst.bounds, densify_pts=21
-            )
-        )
-        minzoom, maxzoom = get_zooms(src_dst)
+    tms = morecantile.tms.get(TileMatrixSetId.name)
+    with COGReader(url, tms=tms) as cog:
+        minzoom, maxzoom, bounds = cog.minzoom, cog.maxzoom, cog.bounds
 
-    media_type = mimetype[tile_format.value]
-    tilesize = tile_scale * 256
+    media_type = ImageMimeTypes[tile_format.value].value
+
     tileMatrix = []
     for zoom in range(minzoom, maxzoom + 1):
-        tileMatrix.append(
-            f"""<TileMatrix>
-                <ows:Identifier>{zoom}</ows:Identifier>
-                <ScaleDenominator>{559082264.02872 / 2 ** zoom / tile_scale}</ScaleDenominator>
-                <TopLeftCorner>-20037508.34278925 20037508.34278925</TopLeftCorner>
-                <TileWidth>{tilesize}</TileWidth>
-                <TileHeight>{tilesize}</TileHeight>
-                <MatrixWidth>{2 ** zoom}</MatrixWidth>
-                <MatrixHeight>{2 ** zoom}</MatrixHeight>
-            </TileMatrix>"""
-        )
+        matrix = tms.matrix(zoom)
+        tm = f"""
+                <TileMatrix>
+                    <ows:Identifier>{matrix.identifier}</ows:Identifier>
+                    <ScaleDenominator>{matrix.scaleDenominator}</ScaleDenominator>
+                    <TopLeftCorner>{matrix.topLeftCorner[0]} {matrix.topLeftCorner[1]}</TopLeftCorner>
+                    <TileWidth>{matrix.tileWidth}</TileWidth>
+                    <TileHeight>{matrix.tileHeight}</TileHeight>
+                    <MatrixWidth>{matrix.matrixWidth}</MatrixWidth>
+                    <MatrixHeight>{matrix.matrixHeight}</MatrixHeight>
+                </TileMatrix>"""
+        tileMatrix.append(tm)
 
+    tile_ext = f"@{tile_scale}x.{tile_format.value}"
     return templates.TemplateResponse(
         "wmts.xml",
         {
@@ -80,11 +76,11 @@ def wtms(
             "endpoint": endpoint,
             "bounds": bounds,
             "tileMatrix": tileMatrix,
+            "tms": tms,
             "title": "Cloud Optimized GeoTIFF",
             "query_string": qs,
-            "tile_scale": tile_scale,
-            "tile_format": tile_format.value,
+            "tile_format": tile_ext,
             "media_type": media_type,
         },
-        media_type="application/xml",
+        media_type=MimeTypes.xml.value,
     )

@@ -26,20 +26,22 @@ $ docker-compose up
 
 # API
 
-### Doc
+## Doc
 
 `:endpoint:/docs`
 
 <details>
 
-![](https://user-images.githubusercontent.com/10407788/78325903-011c9680-7547-11ea-853f-50e0fb0f4d92.png)
+![](https://user-images.githubusercontent.com/10407788/83449203-33e8eb00-a421-11ea-8c78-6b12d368fad5.png)
 
 </details>
 
-### Tiles
+## Tiles
 
-`:endpoint:/v1/{z}/{x}/{y}[@{scale}x][.{ext}]`
+`:endpoint:/v1/cog/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{ext}]`
+
 - PathParams:
+    - **TileMatrixSetId**: TileMatrixSet name, default is `WebMercatorQuad`. OPTIONAL
     - **z**: Mercator tiles's zoom level.
     - **x**: Mercator tiles's column.
     - **y**: Mercator tiles's row.
@@ -55,14 +57,87 @@ $ docker-compose up
     - **color_map**: rio-tiler color map name. OPTIONAL
 
 Example: 
-- `https://myendpoint/v1/1/2/3?url=https://somewhere.com/mycog.tif`
-- `https://myendpoint/v1/1/2/3.jpg?url=https://somewhere.com/mycog.tif`
-- `https://myendpoint/v1/1/2/3@2x.png?url=https://somewhere.com/mycog.tif`
-- `https://myendpoint/v1/1/2/3?url=https://somewhere.com/mycog.tif&bidx=1,2,3&rescale=0,1000&color_map=cfastie`
+- `https://myendpoint/v1/cog/tiles/1/2/3?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/v1/cog/tiles/1/2/3.jpg?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/v1/cog/tiles/WorldCRS84Quad/1/2/3@2x.png?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/v1/cog/tiles/WorldCRS84Quad/1/2/3?url=https://somewhere.com/mycog.tif&bidx=1,2,3&rescale=0,1000&color_map=cfastie`
 
-### Metadata
+## TileMatrixSets
 
-`:endpoint:/v1/tilejson.json` - Get tileJSON document
+
+`:endpoint:/v1/tileMatrixSets` - Get the list of supported TileMatrixSet
+
+```
+$ curl https://myendpoint/v1/tileMatrixSets | jq
+
+{
+  "tileMatrixSets": [
+    {
+      "id": "LINZAntarticaMapTilegrid",
+      "title": "LINZ Antarctic Map Tile Grid (Ross Sea Region)",
+      "links": [
+        {
+          "href": "https://myendpoint/v1/tileMatrixSets/LINZAntarticaMapTilegrid",
+          "rel": "item",
+          "type": "application/json"
+        }
+      ]
+    },
+    ...
+  ]
+}
+```
+
+`:endpoint:/v1/tileMatrixSets/{TileMatrixSetId}` - Get the TileMatrixSet JSON document
+
+- PathParams:
+    - **TileMatrixSetId**: TileMatrixSet name
+
+```
+$ curl http://127.0.0.1:8000/v1/tileMatrixSets/WebMercatorQuad | jq
+
+{
+  "type": "TileMatrixSetType",
+  "title": "Google Maps Compatible for the World",
+  "identifier": "WebMercatorQuad",
+  "supportedCRS": "http://www.opengis.net/def/crs/EPSG/0/3857",
+  "wellKnownScaleSet": "http://www.opengis.net/def/wkss/OGC/1.0/GoogleMapsCompatible",
+  "boundingBox": {
+    "type": "BoundingBoxType",
+    "crs": "http://www.opengis.net/def/crs/EPSG/0/3857",
+    "lowerCorner": [
+      -20037508.3427892,
+      -20037508.3427892
+    ],
+    "upperCorner": [
+      20037508.3427892,
+      20037508.3427892
+    ]
+  },
+  "tileMatrix": [
+    {
+      "type": "TileMatrixType",
+      "identifier": "0",
+      "scaleDenominator": 559082264.028717,
+      "topLeftCorner": [
+        -20037508.3427892,
+        20037508.3427892
+      ],
+      "tileWidth": 256,
+      "tileHeight": 256,
+      "matrixWidth": 1,
+      "matrixHeight": 1
+    },
+    ...
+```
+
+## TilesJSON
+
+`:endpoint:/v1/cog/[{TileMatrixSetId}]/tilejson.json` - Get tileJSON document
+
+- PathParams:
+    - **TileMatrixSetId**: TileMatrixSet name, default is `WebMercatorQuad`. OPTIONAL
+
 - QueryParams:
     - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
     - **tile_format**: Output image format, default is set to None and will be either JPEG or PNG depending on masked value.
@@ -70,26 +145,33 @@ Example:
     - **kwargs**: Other options will be forwarded to the `tiles` url.
 
 Example: 
-- `https://myendpoint/v1/tilejson.json?url=https://somewhere.com/mycog.tif`
-- `https://myendpoint/v1/tilejson.json?url=https://somewhere.com/mycog.tif&tile_format=png`
-- `https://myendpoint/v1/tilejson.json?url=https://somewhere.com/mycog.tif&tile_scale=2&bidx=1,2,3`
+- `https://myendpoint/v1/cog/tilejson.json?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/v1/cog/tilejson.json?url=https://somewhere.com/mycog.tif&tile_format=png`
+- `https://myendpoint/v1/cog/WorldCRS84Quad/tilejson.json?url=https://somewhere.com/mycog.tif&tile_scale=2&bidx=1,2,3`
 
-`:endpoint:/v1/bounds` - Get general image bounds
+## Bounds
+
+`:endpoint:/v1/cog/bounds` - Get general image bounds
 
 - QueryParams:
     - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
 
 Example: 
-- `https://myendpoint/v1/bounds?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/v1/cog/bounds?url=https://somewhere.com/mycog.tif`
 
-`:endpoint:/v1/info` - Get general image info
+
+## Info
+
+`:endpoint:/v1/cog/info` - Get general image info
 - QueryParams:
     - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
 
 Example: 
-- `https://myendpoint/v1/info?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/v1/cog/info?url=https://somewhere.com/mycog.tif`
 
-`:endpoint:/v1/metadata` - Get image statistics
+## Metadata
+
+`:endpoint:/v1/cog/metadata` - Get image statistics
 
 - QueryParams:
     - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
@@ -102,10 +184,9 @@ Example:
     - **histogram_range**: Coma (',') delimited histogram bounds. OPTIONAL
 
 Example: 
-- `https://myendpoint/v1/metadata?url=https://somewhere.com/mycog.tif&bidx=1,2,3`
+- `https://myendpoint/v1/cog/metadata?url=https://somewhere.com/mycog.tif&bidx=1,2,3`
 
-
-## UI
+## Demo
 
 `:endpoint:/index.html` - Full UI (histogram, predefined rescaling, ...)
 
@@ -123,9 +204,11 @@ titiler/                         - titiler python module.
  │   │   │   ├── operations.py   - clip/points endpoints.
  │   │   │   ├── tiles.py        - tiling related endpoints.
  │   │   └── api.py              - construct the API by merging api_v1 endpoints.
+ │   ├── deps.py                 - API dependencies.
  │   └── utils.py                - API utility functions.
  │
  ├── core/                       - application configuration.
+ ├── custom/                     - Custom colormap and TMS grids.
  ├── db/                         - db related stuff.
  ├── models/                     - pydantic models for this application.
  ├── ressources/                 - application ressources (enums, constants, ...).
