@@ -1,16 +1,14 @@
 """test /v1/metadata endpoints."""
 
-# from typing import Dict
+from unittest.mock import patch
 
-from mock import patch
-
-from ...conftest import mock_rio
+from ...conftest import mock_reader
 
 
-@patch("titiler.api.api_v1.endpoints.ogc.rasterio")
-def test_wmts(rio, app):
+@patch("titiler.api.api_v1.endpoints.ogc.COGReader")
+def test_wmts(reader, app):
     """test wmts endpoints."""
-    rio.open = mock_rio
+    reader.side_effect = mock_reader
 
     response = app.get("/v1/cogs/WMTSCapabilities.xml?url=https://myurl.com/cog.tif")
     assert response.status_code == 200

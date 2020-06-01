@@ -5,8 +5,7 @@ import pytest
 
 from starlette.testclient import TestClient
 
-import rasterio
-from rasterio.io import DatasetReader
+from rio_tiler_crs import COGReader
 
 
 @pytest.fixture(autouse=True)
@@ -25,9 +24,9 @@ def app(monkeypatch) -> TestClient:
     return TestClient(app)
 
 
-def mock_rio(src_path: str) -> DatasetReader:
+def mock_reader(src_path: str, *args, **kwargs) -> COGReader:
     """Mock rasterio.open."""
     prefix = os.path.join(os.path.dirname(__file__), "fixtures")
     assert src_path.startswith("https://myurl.com/")
     cog_path = os.path.basename(src_path)
-    return rasterio.open(os.path.join(prefix, cog_path))
+    return COGReader(os.path.join(prefix, cog_path), *args, **kwargs)

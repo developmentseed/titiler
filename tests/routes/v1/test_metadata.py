@@ -1,36 +1,32 @@
 """test /v1/metadata endpoints."""
 
-# from typing import Dict
+from unittest.mock import patch
 
-from mock import patch
-
-from ...conftest import mock_rio
+from ...conftest import mock_reader
 
 
-@patch("titiler.api.api_v1.endpoints.metadata.COGReader.rasterio")
-def test_bounds(rio, app):
+@patch("titiler.api.api_v1.endpoints.metadata.COGReader")
+def test_bounds(reader, app):
     """test /bounds endpoint."""
-    rio.open = mock_rio
+    reader.side_effect = mock_reader
 
     response = app.get("/v1/cogs/bounds?url=https://myurl.com/cog.tif")
     assert response.status_code == 200
     body = response.json()
-    assert body["address"] == "https://myurl.com/cog.tif"
     assert len(body["bounds"]) == 4
 
 
-@patch("titiler.api.api_v1.endpoints.metadata.COGReader.rasterio")
-def test_metadata(rio, app):
+@patch("titiler.api.api_v1.endpoints.metadata.COGReader")
+def test_metadata(reader, app):
     """test /metadata endpoint."""
-    rio.open = mock_rio
+    reader.side_effect = mock_reader
 
     response = app.get("/v1/cogs/metadata?url=https://myurl.com/cog.tif")
     assert response.status_code == 200
     body = response.json()
-    assert body["address"] == "https://myurl.com/cog.tif"
     assert len(body["bounds"]) == 4
     assert body["statistics"]
-    assert len(body["statistics"]["1"]["histogram"][0]) == 20
+    assert len(body["statistics"]["1"]["histogram"][0]) == 10
     assert body["band_descriptions"] == [[1, "band1"]]
     assert body["dtype"] == "uint16"
     assert body["colorinterp"] == ["gray"]

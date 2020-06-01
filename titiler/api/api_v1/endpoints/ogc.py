@@ -69,6 +69,7 @@ def wtms(
                 </TileMatrix>"""
         tileMatrix.append(tm)
 
+    tile_ext = f"@{tile_scale}x.{tile_format.value}"
     return templates.TemplateResponse(
         "wmts.xml",
         {
@@ -79,7 +80,7 @@ def wtms(
             "tms": tms,
             "title": "Cloud Optimized GeoTIFF",
             "query_string": qs,
-            "tile_format": tile_format.value,
+            "tile_format": tile_ext,
             "media_type": media_type,
         },
         media_type="application/xml",

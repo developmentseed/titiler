@@ -3,13 +3,13 @@
 from typing import Dict
 
 from io import BytesIO
-from mock import patch
+from unittest.mock import patch
 
 import numpy
 
 from rasterio.io import MemoryFile
 
-from ...conftest import mock_rio
+from ...conftest import mock_reader
 
 
 def parse_img(content: bytes) -> Dict:
@@ -18,10 +18,10 @@ def parse_img(content: bytes) -> Dict:
             return dst.meta
 
 
-@patch("titiler.api.api_v1.endpoints.tiles.COGReader.rasterio")
-def test_tile(rio, app):
+@patch("titiler.api.api_v1.endpoints.tiles.COGReader")
+def test_tile(reader, app):
     """test tile endpoints."""
-    rio.open = mock_rio
+    reader.side_effect = mock_reader
 
     # full tile
     response = app.get("/v1/cogs/8/87/48?url=https://myurl.com/cog.tif&rescale=0,1000")
@@ -88,10 +88,10 @@ def test_tile(rio, app):
     assert response.headers["content-type"] == "image/png"
 
 
-@patch("titiler.api.api_v1.endpoints.tiles.cogeo.rasterio")
-def test_tilejson(rio, app):
+@patch("titiler.api.api_v1.endpoints.tiles.COGReader")
+def test_tilejson(reader, app):
     """test /tilejson endpoint."""
-    rio.open = mock_rio
+    reader.side_effect = mock_reader
 
     response = app.get("/v1/cogs/tilejson.json?url=https://myurl.com/cog.tif")
     assert response.status_code == 200
