@@ -10,20 +10,20 @@ def test_wmts(reader, app):
     """test wmts endpoints."""
     reader.side_effect = mock_reader
 
-    response = app.get("/v1/cogs/WMTSCapabilities.xml?url=https://myurl.com/cog.tif")
+    response = app.get("/v1/cog/WMTSCapabilities.xml?url=https://myurl.com/cog.tif")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/xml"
     assert (
-        "http://testserver/v1/cogs/tiles/WebMercatorQuad/{TileMatrix}/{TileCol}/{TileRow}@1x.png?url=https"
+        "http://testserver/v1/cog/tiles/WebMercatorQuad/{TileMatrix}/{TileCol}/{TileRow}@1x.png?url=https"
         in response.content.decode()
     )
 
     response = app.get(
-        "/v1/cogs/WMTSCapabilities.xml?url=https://myurl.com/cog.tif&tile_scale=2&tile_format=jpg"
+        "/v1/cog/WMTSCapabilities.xml?url=https://myurl.com/cog.tif&tile_scale=2&tile_format=jpg"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/xml"
     assert (
-        "http://testserver/v1/cogs/tiles/WebMercatorQuad/{TileMatrix}/{TileCol}/{TileRow}@2x.jpg?url=https"
+        "http://testserver/v1/cog/tiles/WebMercatorQuad/{TileMatrix}/{TileCol}/{TileRow}@2x.jpg?url=https"
         in response.content.decode()
     )

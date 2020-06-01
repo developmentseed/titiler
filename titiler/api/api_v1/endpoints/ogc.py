@@ -18,8 +18,8 @@ router = APIRouter()
 templates = Jinja2Templates(directory="titiler/templates")
 
 
-@router.get("/cogs/WMTSCapabilities.xml", response_class=XMLResponse)
-@router.get("/cogs/{TileMatrixSetId}/WMTSCapabilities.xml", response_class=XMLResponse)
+@router.get("/cog/WMTSCapabilities.xml", response_class=XMLResponse)
+@router.get("/cog/{TileMatrixSetId}/WMTSCapabilities.xml", response_class=XMLResponse)
 def wtms(
     request: Request,
     response: Response,
@@ -40,7 +40,7 @@ def wtms(
     host = request.headers["host"]
     if config.API_VERSION_STR:
         host += config.API_VERSION_STR
-    endpoint = f"{scheme}://{host}/cogs"
+    endpoint = f"{scheme}://{host}/cog"
 
     kwargs = dict(request.query_params)
     kwargs.pop("tile_format", None)

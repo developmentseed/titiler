@@ -32,13 +32,13 @@ $ docker-compose up
 
 <details>
 
-![](https://user-images.githubusercontent.com/10407788/83420051-06397d00-a3f4-11ea-9dc7-5f42e28deff5.jpg)
+![](https://user-images.githubusercontent.com/10407788/83449203-33e8eb00-a421-11ea-8c78-6b12d368fad5.png)
 
 </details>
 
 ## Tiles
 
-`:endpoint:/v1/cogs/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{ext}]`
+`:endpoint:/v1/cog/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{ext}]`
 
 - PathParams:
     - **TileMatrixSetId**: TileMatrixSet name, default is `WebMercatorQuad`. OPTIONAL
@@ -57,10 +57,10 @@ $ docker-compose up
     - **color_map**: rio-tiler color map name. OPTIONAL
 
 Example: 
-- `https://myendpoint/v1/cogs/tiles/1/2/3?url=https://somewhere.com/mycog.tif`
-- `https://myendpoint/v1/cogs/tiles/1/2/3.jpg?url=https://somewhere.com/mycog.tif`
-- `https://myendpoint/v1/cogs/tiles/WorldCRS84Quad/1/2/3@2x.png?url=https://somewhere.com/mycog.tif`
-- `https://myendpoint/v1/cogs/tiles/WorldCRS84Quad/1/2/3?url=https://somewhere.com/mycog.tif&bidx=1,2,3&rescale=0,1000&color_map=cfastie`
+- `https://myendpoint/v1/cog/tiles/1/2/3?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/v1/cog/tiles/1/2/3.jpg?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/v1/cog/tiles/WorldCRS84Quad/1/2/3@2x.png?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/v1/cog/tiles/WorldCRS84Quad/1/2/3?url=https://somewhere.com/mycog.tif&bidx=1,2,3&rescale=0,1000&color_map=cfastie`
 
 ## TileMatrixSets
 
@@ -133,7 +133,7 @@ $ curl http://127.0.0.1:8000/v1/tileMatrixSets/WebMercatorQuad | jq
 
 ## TilesJSON
 
-`:endpoint:/v1/cogs/[{TileMatrixSetId}]/tilejson.json` - Get tileJSON document
+`:endpoint:/v1/cog/[{TileMatrixSetId}]/tilejson.json` - Get tileJSON document
 
 - PathParams:
     - **TileMatrixSetId**: TileMatrixSet name, default is `WebMercatorQuad`. OPTIONAL
@@ -145,33 +145,33 @@ $ curl http://127.0.0.1:8000/v1/tileMatrixSets/WebMercatorQuad | jq
     - **kwargs**: Other options will be forwarded to the `tiles` url.
 
 Example: 
-- `https://myendpoint/v1/cogs/tilejson.json?url=https://somewhere.com/mycog.tif`
-- `https://myendpoint/v1/cogs/tilejson.json?url=https://somewhere.com/mycog.tif&tile_format=png`
-- `https://myendpoint/v1/cogs/WorldCRS84Quad/tilejson.json?url=https://somewhere.com/mycog.tif&tile_scale=2&bidx=1,2,3`
+- `https://myendpoint/v1/cog/tilejson.json?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/v1/cog/tilejson.json?url=https://somewhere.com/mycog.tif&tile_format=png`
+- `https://myendpoint/v1/cog/WorldCRS84Quad/tilejson.json?url=https://somewhere.com/mycog.tif&tile_scale=2&bidx=1,2,3`
 
 ## Bounds
 
-`:endpoint:/v1/cogs/bounds` - Get general image bounds
+`:endpoint:/v1/cog/bounds` - Get general image bounds
 
 - QueryParams:
     - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
 
 Example: 
-- `https://myendpoint/v1/cogs/bounds?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/v1/cog/bounds?url=https://somewhere.com/mycog.tif`
 
 
 ## Info
 
-`:endpoint:/v1/cogs/info` - Get general image info
+`:endpoint:/v1/cog/info` - Get general image info
 - QueryParams:
     - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
 
 Example: 
-- `https://myendpoint/v1/cogs/info?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/v1/cog/info?url=https://somewhere.com/mycog.tif`
 
 ## Metadata
 
-`:endpoint:/v1/cogs/metadata` - Get image statistics
+`:endpoint:/v1/cog/metadata` - Get image statistics
 
 - QueryParams:
     - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
@@ -184,7 +184,7 @@ Example:
     - **histogram_range**: Coma (',') delimited histogram bounds. OPTIONAL
 
 Example: 
-- `https://myendpoint/v1/metadata?url=https://somewhere.com/mycog.tif&bidx=1,2,3`
+- `https://myendpoint/v1/cog/metadata?url=https://somewhere.com/mycog.tif&bidx=1,2,3`
 
 ## Demo
 

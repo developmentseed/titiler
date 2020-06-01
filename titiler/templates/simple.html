@@ -391,7 +391,7 @@
             if (cmap.value !== 'b&w') params.color_map = cmap.value
 
             const url_params = Object.keys(params).map(i => `${i}=${params[i]}`).join('&')
-            let url = `${api_endpoint}/cogs/tilejson.json?${url_params}`
+            let url = `${api_endpoint}/cog/tilejson.json?${url_params}`
             map.addSource('raster', { type: 'raster', url: url, tileSize: 256 })
             map.addLayer({ id: 'raster', type: 'raster', source: 'raster' })
         }
@@ -414,7 +414,7 @@
             }
 
             const url_params = Object.keys(params).map(i => `${i}=${params[i]}`).join('&')
-            let url = `${api_endpoint}/cogs/tilejson.json?${url_params}`
+            let url = `${api_endpoint}/cog/tilejson.json?${url_params}`
             map.addSource('raster', { type: 'raster', url: url, tileSize: 256 })
             map.addLayer({ id: 'raster', type: 'raster', source: 'raster' })
         }
@@ -520,7 +520,7 @@
         }
 
         const addCogeo = () => {
-            fetch(`${api_endpoint}/cogs/info?url=${scope.url}`)
+            fetch(`${api_endpoint}/cog/info?url=${scope.url}`)
                 .then(res => {
                     if (res.ok) return res.json()
                     throw new Error('Network response was not ok.')

@@ -49,14 +49,14 @@ params: Dict[str, Any] = {
 }
 
 
-@router.get(r"/cogs/tiles/{z}/{x}/{y}", **params)
-@router.get(r"/cogs/tiles/{z}/{x}/{y}\.{ext}", **params)
-@router.get(r"/cogs/tiles/{z}/{x}/{y}@{scale}x", **params)
-@router.get(r"/cogs/tiles/{z}/{x}/{y}@{scale}x\.{ext}", **params)
-@router.get(r"/cogs/tiles/{TileMatrixSetId}/{z}/{x}/{y}", **params)
-@router.get(r"/cogs/tiles/{TileMatrixSetId}/{z}/{x}/{y}\.{ext}", **params)
-@router.get(r"/cogs/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x", **params)
-@router.get(r"/cogs/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x\.{ext}", **params)
+@router.get(r"/cog/tiles/{z}/{x}/{y}", **params)
+@router.get(r"/cog/tiles/{z}/{x}/{y}\.{ext}", **params)
+@router.get(r"/cog/tiles/{z}/{x}/{y}@{scale}x", **params)
+@router.get(r"/cog/tiles/{z}/{x}/{y}@{scale}x\.{ext}", **params)
+@router.get(r"/cog/tiles/{TileMatrixSetId}/{z}/{x}/{y}", **params)
+@router.get(r"/cog/tiles/{TileMatrixSetId}/{z}/{x}/{y}\.{ext}", **params)
+@router.get(r"/cog/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x", **params)
+@router.get(r"/cog/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x\.{ext}", **params)
 async def tile(
     z: int = Path(..., ge=0, le=30, description="Mercator tiles's zoom level"),
     x: int = Path(..., description="Mercator tiles's column"),
@@ -164,13 +164,13 @@ async def tile(
 
 
 @router.get(
-    "/cogs/tilejson.json",
+    "/cog/tilejson.json",
     response_model=TileJSON,
     responses={200: {"description": "Return a tilejson"}},
     response_model_exclude_none=True,
 )
 @router.get(
-    "/cogs/{TileMatrixSetId}/tilejson.json",
+    "/cog/{TileMatrixSetId}/tilejson.json",
     response_model=TileJSON,
     responses={200: {"description": "Return a tilejson"}},
     response_model_exclude_none=True,
@@ -203,9 +203,9 @@ async def tilejson(
 
     qs = urlencode(list(kwargs.items()))
     if tile_format:
-        tile_url = f"{scheme}://{host}/cogs/tiles/{TileMatrixSetId.name}/{{z}}/{{x}}/{{y}}@{tile_scale}x.{tile_format}?{qs}"
+        tile_url = f"{scheme}://{host}/cog/tiles/{TileMatrixSetId.name}/{{z}}/{{x}}/{{y}}@{tile_scale}x.{tile_format}?{qs}"
     else:
-        tile_url = f"{scheme}://{host}/cogs/tiles/{TileMatrixSetId.name}/{{z}}/{{x}}/{{y}}@{tile_scale}x?{qs}"
+        tile_url = f"{scheme}://{host}/cog/tiles/{TileMatrixSetId.name}/{{z}}/{{x}}/{{y}}@{tile_scale}x?{qs}"
 
     tms = morecantile.tms.get(TileMatrixSetId.name)
     with COGReader(url, tms=tms) as cog:

@@ -10,7 +10,7 @@ def test_bounds(reader, app):
     """test /bounds endpoint."""
     reader.side_effect = mock_reader
 
-    response = app.get("/v1/cogs/bounds?url=https://myurl.com/cog.tif")
+    response = app.get("/v1/cog/bounds?url=https://myurl.com/cog.tif")
     assert response.status_code == 200
     body = response.json()
     assert len(body["bounds"]) == 4
@@ -21,7 +21,7 @@ def test_metadata(reader, app):
     """test /metadata endpoint."""
     reader.side_effect = mock_reader
 
-    response = app.get("/v1/cogs/metadata?url=https://myurl.com/cog.tif")
+    response = app.get("/v1/cog/metadata?url=https://myurl.com/cog.tif")
     assert response.status_code == 200
     body = response.json()
     assert len(body["bounds"]) == 4
@@ -33,7 +33,7 @@ def test_metadata(reader, app):
     assert body["nodata_type"] == "None"
 
     response = app.get(
-        "/v1/cogs/metadata?url=https://myurl.com/cog.tif&histogram_bins=5&histogram_range=1,1000&nodata=0"
+        "/v1/cog/metadata?url=https://myurl.com/cog.tif&histogram_bins=5&histogram_range=1,1000&nodata=0"
     )
     assert response.status_code == 200
     body = response.json()

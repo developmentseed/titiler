@@ -16,7 +16,7 @@ router = APIRouter()
 
 
 @router.get(
-    "/cogs/bounds", responses={200: {"description": "Return the bounds of the COG."}}
+    "/cog/bounds", responses={200: {"description": "Return the bounds of the COG."}}
 )
 async def bounds(
     resp: Response, url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
@@ -27,7 +27,7 @@ async def bounds(
         return {"bounds": cog.bounds}
 
 
-@router.get("/cogs/info", responses={200: {"description": "Return basic info on COG."}})
+@router.get("/cog/info", responses={200: {"description": "Return basic info on COG."}})
 async def info(
     resp: Response, url: str = Query(..., description="Cloud Optimized GeoTIFF URL.")
 ):
@@ -42,7 +42,7 @@ async def info(
 
 
 @router.get(
-    "/cogs/metadata",
+    "/cog/metadata",
     responses={200: {"description": "Return the metadata of the COG."}},
 )
 async def metadata(
