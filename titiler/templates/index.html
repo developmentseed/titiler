@@ -731,7 +731,7 @@
         }
 
         const addCogeo = () => {
-            fetch(`${api_endpoint}/cogs/metadata?url=${scope.url}`)
+            fetch(`${api_endpoint}/cog/metadata?url=${scope.url}`)
                 .then(res => {
                     if (res.ok) return res.json()
                     throw new Error('Network response was not ok.')

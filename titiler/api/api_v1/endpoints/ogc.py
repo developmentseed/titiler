@@ -18,8 +18,12 @@ router = APIRouter()
 templates = Jinja2Templates(directory="titiler/templates")
 
 
-@router.get("/cog/WMTSCapabilities.xml", response_class=XMLResponse)
-@router.get("/cog/{TileMatrixSetId}/WMTSCapabilities.xml", response_class=XMLResponse)
+@router.get("/cog/WMTSCapabilities.xml", response_class=XMLResponse, tags=["WMTS"])
+@router.get(
+    "/cog/{TileMatrixSetId}/WMTSCapabilities.xml",
+    response_class=XMLResponse,
+    tags=["WMTS"],
+)
 def wtms(
     request: Request,
     response: Response,

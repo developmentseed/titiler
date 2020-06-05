@@ -10,7 +10,8 @@ inst_reqs = [
     "jinja2",
     "python-binary-memcached",
     "rio-color",
-    "rio-tiler-crs~=2.0",
+    "rio-tiler-crs~=2.0.2",
+    "stac-tiler~=0.0rc2",
     "email-validator",
 ]
 extra_reqs = {
@@ -33,7 +34,7 @@ extra_reqs = {
 
 setup(
     name="titiler",
-    version="1.0.0",
+    version="1.1.0",
     description=u"",
     long_description=long_description,
     long_description_content_type="text/markdown",
