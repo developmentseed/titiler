@@ -38,7 +38,7 @@ $ docker-compose up
 
 ## Tiles
 
-`:endpoint:/v1/cog/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{ext}]`
+`:endpoint:/cog/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{ext}]`
 
 - PathParams:
     - **TileMatrixSetId**: TileMatrixSet name, default is `WebMercatorQuad`. OPTIONAL
@@ -57,18 +57,18 @@ $ docker-compose up
     - **color_map**: rio-tiler color map name. OPTIONAL
 
 Example: 
-- `https://myendpoint/v1/cog/tiles/1/2/3?url=https://somewhere.com/mycog.tif`
-- `https://myendpoint/v1/cog/tiles/1/2/3.jpg?url=https://somewhere.com/mycog.tif`
-- `https://myendpoint/v1/cog/tiles/WorldCRS84Quad/1/2/3@2x.png?url=https://somewhere.com/mycog.tif`
-- `https://myendpoint/v1/cog/tiles/WorldCRS84Quad/1/2/3?url=https://somewhere.com/mycog.tif&bidx=1,2,3&rescale=0,1000&color_map=cfastie`
+- `https://myendpoint/cog/tiles/1/2/3?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/cog/tiles/1/2/3.jpg?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/cog/tiles/WorldCRS84Quad/1/2/3@2x.png?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/cog/tiles/WorldCRS84Quad/1/2/3?url=https://somewhere.com/mycog.tif&bidx=1,2,3&rescale=0,1000&color_map=cfastie`
 
 ## TileMatrixSets
 
 
-`:endpoint:/v1/tileMatrixSets` - Get the list of supported TileMatrixSet
+`:endpoint:/tileMatrixSets` - Get the list of supported TileMatrixSet
 
 ```
-$ curl https://myendpoint/v1/tileMatrixSets | jq
+$ curl https://myendpoint/tileMatrixSets | jq
 
 {
   "tileMatrixSets": [
@@ -77,7 +77,7 @@ $ curl https://myendpoint/v1/tileMatrixSets | jq
       "title": "LINZ Antarctic Map Tile Grid (Ross Sea Region)",
       "links": [
         {
-          "href": "https://myendpoint/v1/tileMatrixSets/LINZAntarticaMapTilegrid",
+          "href": "https://myendpoint/tileMatrixSets/LINZAntarticaMapTilegrid",
           "rel": "item",
           "type": "application/json"
         }
@@ -88,13 +88,13 @@ $ curl https://myendpoint/v1/tileMatrixSets | jq
 }
 ```
 
-`:endpoint:/v1/tileMatrixSets/{TileMatrixSetId}` - Get the TileMatrixSet JSON document
+`:endpoint:/tileMatrixSets/{TileMatrixSetId}` - Get the TileMatrixSet JSON document
 
 - PathParams:
     - **TileMatrixSetId**: TileMatrixSet name
 
 ```
-$ curl http://127.0.0.1:8000/v1/tileMatrixSets/WebMercatorQuad | jq
+$ curl http://127.0.0.1:8000/tileMatrixSets/WebMercatorQuad | jq
 
 {
   "type": "TileMatrixSetType",
@@ -133,7 +133,7 @@ $ curl http://127.0.0.1:8000/v1/tileMatrixSets/WebMercatorQuad | jq
 
 ## TilesJSON
 
-`:endpoint:/v1/cog/[{TileMatrixSetId}]/tilejson.json` - Get tileJSON document
+`:endpoint:/cog/[{TileMatrixSetId}]/tilejson.json` - Get tileJSON document
 
 - PathParams:
     - **TileMatrixSetId**: TileMatrixSet name, default is `WebMercatorQuad`. OPTIONAL
@@ -145,33 +145,33 @@ $ curl http://127.0.0.1:8000/v1/tileMatrixSets/WebMercatorQuad | jq
     - **kwargs**: Other options will be forwarded to the `tiles` url.
 
 Example: 
-- `https://myendpoint/v1/cog/tilejson.json?url=https://somewhere.com/mycog.tif`
-- `https://myendpoint/v1/cog/tilejson.json?url=https://somewhere.com/mycog.tif&tile_format=png`
-- `https://myendpoint/v1/cog/WorldCRS84Quad/tilejson.json?url=https://somewhere.com/mycog.tif&tile_scale=2&bidx=1,2,3`
+- `https://myendpoint/cog/tilejson.json?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/cog/tilejson.json?url=https://somewhere.com/mycog.tif&tile_format=png`
+- `https://myendpoint/cog/WorldCRS84Quad/tilejson.json?url=https://somewhere.com/mycog.tif&tile_scale=2&bidx=1,2,3`
 
 ## Bounds
 
-`:endpoint:/v1/cog/bounds` - Get general image bounds
+`:endpoint:/cog/bounds` - Get general image bounds
 
 - QueryParams:
     - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
 
 Example: 
-- `https://myendpoint/v1/cog/bounds?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/cog/bounds?url=https://somewhere.com/mycog.tif`
 
 
 ## Info
 
-`:endpoint:/v1/cog/info` - Get general image info
+`:endpoint:/cog/info` - Get general image info
 - QueryParams:
     - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
 
 Example: 
-- `https://myendpoint/v1/cog/info?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/cog/info?url=https://somewhere.com/mycog.tif`
 
 ## Metadata
 
-`:endpoint:/v1/cog/metadata` - Get image statistics
+`:endpoint:/cog/metadata` - Get image statistics
 
 - QueryParams:
     - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
@@ -184,7 +184,7 @@ Example:
     - **histogram_range**: Coma (',') delimited histogram bounds. OPTIONAL
 
 Example: 
-- `https://myendpoint/v1/cog/metadata?url=https://somewhere.com/mycog.tif&bidx=1,2,3`
+- `https://myendpoint/cog/metadata?url=https://somewhere.com/mycog.tif&bidx=1,2,3`
 
 ## Demo
 
@@ -197,7 +197,7 @@ Example:
 ```
 titiler/                         - titiler python module.
  ├── api/                        - general api directory.
- │   ├── api_v1/                 - directory hosting version 1 of the API.
+ │   ├── api_                 - directory hosting version 1 of the API.
  │   │   ├── endpoints           - api routes.
  │   │   │   ├── metadata.py     - metadata endpoints (e.g. /tilesjson.json, /metadata...).
  │   │   │   ├── ogc.py          - OGC endpoints (e.g WMTS).

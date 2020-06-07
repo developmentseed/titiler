@@ -3,7 +3,7 @@
 
 <head>
     <meta charset='utf-8' />
-    <title>Cogeo Viewer</title>
+    <title>TiTiler - Cloud Optimized GeoTIFF Viewer</title>
     <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
 
     <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.6.1/mapbox-gl.js'></script>
@@ -371,7 +371,8 @@
     <script>
         var scope = { url: "", metadata: {}, config: {} }
 
-        const api_endpoint = '{{ endpoint }}'
+        const tilejson_endpoint = '{{ tilejson_endpoint }}'
+        const metadata_endpoint = '{{ metadata_endpoint }}'
 
         var map = new mapboxgl.Map({
             container: 'map',
@@ -413,7 +414,7 @@
             if (cmap.value !== 'b&w') params.color_map = cmap.value
 
             const url_params = Object.keys(params).map(i => `${i}=${params[i]}`).join('&')
-            let url = `${api_endpoint}/cog/tilejson.json?${url_params}`
+            let url = `${tilejson_endpoint}?${url_params}`
             map.addSource('raster', { type: 'raster', url: url, tileSize: 256 })
             addLayer()
         }
@@ -439,7 +440,7 @@
                 params.rescale = `${min1},${max1},${min2},${max2},${min3},${max3}`
             }
             const url_params = Object.keys(params).map(i => `${i}=${params[i]}`).join('&')
-            let url = `${api_endpoint}/cog/tilejson.json?${url_params}`
+            let url = `${tilejson_endpoint}?${url_params}`
             map.addSource('raster', { type: 'raster', url: url, tileSize: 256 })
             map.addLayer({ id: 'raster', type: 'raster', source: 'raster' })
             addHisto3Bands()
@@ -627,7 +628,6 @@
         })
 
         document.getElementById('layer-selector').addEventListener('change', () => {
-            const active_layer = document.getElementById('layer-selector')[document.getElementById('layer-selector').selectedIndex]
             switchViz()
         })
 
@@ -668,7 +668,7 @@
                     pmax = 95.0
                     break
             }
-            fetch(`${api_endpoint}/cog/metadata?url=${scope.url}&pmin=${pmin}&pmax=${pmax}`)
+            fetch(`${metadata_endpoint}?url=${scope.url}&pmin=${pmin}&pmax=${pmax}`)
                 .then(res => {
                     if (res.ok) return res.json()
                     throw new Error('Network response was not ok.')
@@ -731,7 +731,7 @@
         }
 
         const addCogeo = () => {
-            fetch(`${api_endpoint}/cog/metadata?url=${scope.url}`)
+            fetch(`${metadata_endpoint}?url=${scope.url}`)
                 .then(res => {
                     if (res.ok) return res.json()
                     throw new Error('Network response was not ok.')

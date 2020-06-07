@@ -6,16 +6,16 @@ with open("README.md") as f:
     long_description = f.read()
 
 inst_reqs = [
+    "email-validator",
     "fastapi",
     "jinja2",
     "python-binary-memcached",
     "rio-color",
     "rio-tiler-crs~=2.0.2",
-    "stac-tiler~=0.0rc2",
-    "email-validator",
 ]
 extra_reqs = {
     "dev": ["pytest", "pytest-cov", "pytest-asyncio", "pre-commit"],
+    "stac": ["stac-tiler~=0.0rc2"],
     "server": ["uvicorn", "click==7.0"],
     "lambda": ["mangum>=0.9.0"],
     "deploy": [

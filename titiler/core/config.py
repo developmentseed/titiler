@@ -3,8 +3,6 @@
 import os
 
 
-API_VERSION_STR = "/v1"
-
 PROJECT_NAME = "titiler"
 
 SERVER_NAME = os.getenv("SERVER_NAME")

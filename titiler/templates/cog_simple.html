@@ -3,7 +3,7 @@
 
 <head>
     <meta charset='utf-8' />
-    <title>Cogeo Viewer</title>
+    <title>TiTiler - Cloud Optimized GeoTIFF Viewer</title>
     <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
 
     <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.6.1/mapbox-gl.js'></script>
@@ -274,6 +274,25 @@
                     </label>
                 </div>
 
+                <!-- Resampling -->
+                <div class='px12 pt12 pb6'>
+                    <div class='txt-h5 mt6 mb6 color-black'>Resampling Method</div>
+                    <div id='resamp-selector' class='toggle-group bg-gray-faint mt6 mb6' style="line-height: 0">
+                        <label class='toggle-container'>
+                            <input value='bilinear' name='toggle-resamp' type='radio' />
+                            <div title='bilinear' class='toggle color-gray-dark-on-hover'>bilinear</div>
+                        </label>
+                        <label class='toggle-container'>
+                            <input value='cubic' name='toggle-resamp' type='radio' />
+                            <div title='cubic' class='toggle color-gray-dark-on-hover'>cubic</div>
+                        </label>
+                        <label class='toggle-container'>
+                            <input value='nearest' checked='checked' name='toggle-resamp' type='radio' />
+                            <div title='nearest' class='toggle color-gray-dark-on-hover'>nearest</div>
+                        </label>
+                    </div>
+                </div>
+
                 <!-- Color Map -->
                 <div id='colormap-section'>
                     <div class='txt-h5 mb6 color-black'><svg class='icon icon--l inline-block'>
@@ -300,33 +319,20 @@
             </section>
 
             <!-- Histogram Min/Max -->
-            <div id='histcut-selector' class='px12 pt12 pb6 none'>
-                <div class='txt-h5 mt6 mb6 color-black'>Histogram Min/Max</div>
-                <div class='px6 py6'>
+            <div id='rescale-section' class='px6 py6 none'>
+                <div class='txt-h5 mb6 color-black'>Histogram min/max</div>
+                <div>
                     <input id="min-value" class='input input--s wmax60 inline-block align-center color-black' value='0' />
                     <input id="max-value" class='input input--s wmax60 inline-block align-center color-black' value='1000' />
-                    <button id="updateRescale" class='btn bts--xs btn--stroke bg-darken25-on-hover inline-block txt-s color-black ml12'>Apply</button>
                 </div>
             </div>
 
-            <!-- Resampling -->
-            <div class='px12 pt12 pb6'>
-                <div class='txt-h5 mt6 mb6 color-black'>Resampling Method</div>
-                <div id='resamp-selector' class='toggle-group bg-gray-faint mt6 mb6' style="line-height: 0">
-                    <label class='toggle-container'>
-                        <input value='bilinear' name='toggle-resamp' type='radio' />
-                        <div title='bilinear' class='toggle color-gray-dark-on-hover'>bilinear</div>
-                    </label>
-                    <label class='toggle-container'>
-                        <input value='cubic' name='toggle-resamp' type='radio' />
-                        <div title='cubic' class='toggle color-gray-dark-on-hover'>cubic</div>
-                    </label>
-                    <label class='toggle-container'>
-                        <input value='nearest' checked='checked' name='toggle-resamp' type='radio' />
-                        <div title='nearest' class='toggle color-gray-dark-on-hover'>nearest</div>
-                    </label>
-                </div>
+            <!-- ColorFormula -->
+            <div id='cformula-section' class='px6 py6'>
+                <div class='txt-h5 mb6 color-black'>Color Formula</div>
+                <input id="ColorFormulaValue" class='input input--s w-full color-black' value='' />
             </div>
+            <button id="updateColor" class='btn bts--xs btn--stroke bg-darken25-on-hover txt-s color-black ml12'>Apply</button>
         </div>
         <button id='btn-hide'><svg id='hide-arrow' class='icon'>
             <use xlink:href='#icon-arrow-right' /></svg>
@@ -347,7 +353,8 @@
     <script>
         var scope = { url: "", metadata: {} }
 
-        const api_endpoint = '{{ endpoint }}'
+        const tilejson_endpoint = '{{ tilejson_endpoint }}'
+        const metadata_endpoint = '{{ metadata_endpoint }}'
 
         var map = new mapboxgl.Map({
             container: 'map',
@@ -387,11 +394,15 @@
                 params.rescale = `${minV},${maxV}`
             }
 
+            if (document.getElementById('ColorFormulaValue').value !== '') {
+                params.color_formula = document.getElementById('ColorFormulaValue').value
+            }
+
             const cmap = document.getElementById('colormap-selector')[document.getElementById('colormap-selector').selectedIndex]
             if (cmap.value !== 'b&w') params.color_map = cmap.value
 
             const url_params = Object.keys(params).map(i => `${i}=${params[i]}`).join('&')
-            let url = `${api_endpoint}/cog/tilejson.json?${url_params}`
+            let url = `${tilejson_endpoint}?${url_params}`
             map.addSource('raster', { type: 'raster', url: url, tileSize: 256 })
             map.addLayer({ id: 'raster', type: 'raster', source: 'raster' })
         }
@@ -414,7 +425,7 @@
             }
 
             const url_params = Object.keys(params).map(i => `${i}=${params[i]}`).join('&')
-            let url = `${api_endpoint}/cog/tilejson.json?${url_params}`
+            let url = `${tilejson_endpoint}?${url_params}`
             map.addSource('raster', { type: 'raster', url: url, tileSize: 256 })
             map.addLayer({ id: 'raster', type: 'raster', source: 'raster' })
         }
@@ -436,7 +447,7 @@
             }
         }
         
-        document.getElementById('updateRescale').addEventListener('click', () => {
+        document.getElementById('updateColor').addEventListener('click', () => {
             switchViz()
         })
 
@@ -520,7 +531,7 @@
         }
 
         const addCogeo = () => {
-            fetch(`${api_endpoint}/cog/info?url=${scope.url}`)
+            fetch(`${metadata_endpoint}?url=${scope.url}`)
                 .then(res => {
                     if (res.ok) return res.json()
                     throw new Error('Network response was not ok.')
@@ -530,9 +541,8 @@
                     scope.metadata = data
 
                     if (['uint8', 'int8'].indexOf(scope.metadata.dtype) === -1) {
-                        document.getElementById('histcut-selector').classList.toggle('none')
+                        document.getElementById('rescale-section').classList.toggle('none')
                     }
-
                     //1 band
                     const layerList = document.getElementById('layer-selector')
                     for (var i = 0; i < scope.metadata.band_descriptions.length; i++) {
