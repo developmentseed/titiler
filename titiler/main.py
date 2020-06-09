@@ -1,20 +1,18 @@
 """titiler app."""
 from typing import Any, Dict
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
-from starlette.templating import Jinja2Templates
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.gzip import GZipMiddleware
-
 
 from titiler import version
 from titiler.core import config
 from titiler.db.memcache import CacheLayer
-from titiler.api.api_v1.api import api_router
+from titiler.api import api as titilerAPI
+from titiler.templates.factory import web_template
 
-templates = Jinja2Templates(directory="titiler/templates")
 
 if config.MEMCACHE_HOST and not config.DISABLE_CACHE:
     kwargs: Dict[str, Any] = {
@@ -61,35 +59,17 @@ async def cache_middleware(request: Request, call_next):
     return response
 
 
-@app.get("/", response_class=HTMLResponse, tags=["Webpage"])
-@app.get("/index.html", response_class=HTMLResponse, tags=["Webpage"])
-def index(request: Request):
+@app.get("/", response_class=HTMLResponse, tags=["Webpage"], deprecated=True)
+@app.get("/index.html", response_class=HTMLResponse, tags=["Webpage"], deprecated=True)
+def index(request: Request, template=Depends(web_template)):
     """Demo Page."""
-    scheme = request.url.scheme
-    host = request.headers["host"]
-    if config.API_VERSION_STR:
-        host += config.API_VERSION_STR
-    endpoint = f"{scheme}://{host}"
-
-    return templates.TemplateResponse(
-        "index.html", {"request": request, "endpoint": endpoint}, media_type="text/html"
-    )
+    return template(request, "cog_index.html", "cog_tilejson", "cog_metadata")
 
 
-@app.get("/simple_viewer.html", response_class=HTMLResponse, tags=["Webpage"])
-def simple(request: Request):
+@app.get("/simple.html", response_class=HTMLResponse, tags=["Webpage"], deprecated=True)
+def simple(request: Request, template=Depends(web_template)):
     """Demo Page."""
-    scheme = request.url.scheme
-    host = request.headers["host"]
-    if config.API_VERSION_STR:
-        host += config.API_VERSION_STR
-    endpoint = f"{scheme}://{host}"
-
-    return templates.TemplateResponse(
-        "simple.html",
-        {"request": request, "endpoint": endpoint},
-        media_type="text/html",
-    )
+    return template(request, "cog_simple.html", "cog_tilejson", "cog_info")
 
 
 @app.get("/ping", description="Health Check", tags=["Health Check"])
@@ -98,4 +78,4 @@ def ping():
     return {"ping": "pong!"}
 
 
-app.include_router(api_router, prefix=config.API_VERSION_STR)
+app.include_router(titilerAPI.api_router)

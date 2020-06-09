@@ -6,15 +6,16 @@ with open("README.md") as f:
     long_description = f.read()
 
 inst_reqs = [
+    "email-validator",
     "fastapi",
     "jinja2",
     "python-binary-memcached",
     "rio-color",
-    "rio-tiler-crs~=2.0",
-    "email-validator",
+    "rio-tiler-crs~=2.0.2",
 ]
 extra_reqs = {
     "dev": ["pytest", "pytest-cov", "pytest-asyncio", "pre-commit"],
+    "stac": ["stac-tiler~=0.0rc2"],
     "server": ["uvicorn", "click==7.0"],
     "lambda": ["mangum>=0.9.0"],
     "deploy": [
@@ -33,7 +34,7 @@ extra_reqs = {
 
 setup(
     name="titiler",
-    version="1.0.0",
+    version="2.0.0",
     description=u"",
     long_description=long_description,
     long_description_content_type="text/markdown",

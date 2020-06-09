@@ -3,7 +3,7 @@
 
 <head>
     <meta charset='utf-8' />
-    <title>Cogeo Viewer</title>
+    <title>TiTiler - Cloud Optimized GeoTIFF Viewer</title>
     <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
 
     <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.6.1/mapbox-gl.js'></script>
@@ -11,7 +11,7 @@
 
     <link href='https://api.mapbox.com/mapbox-assembly/v0.23.2/assembly.min.css' rel='stylesheet'>
     <script src='https://api.mapbox.com/mapbox-assembly/v0.23.2/assembly.js'></script>
-    <script src="https://d3js.org/d3.v4.js"></script>
+
     <style>
         body {
             margin: 0;
@@ -248,13 +248,6 @@
                         <div class='select-arrow color-black'></div>
                     </div>
                 </div>
-
-                <!-- Histogram -->
-                <div>
-                    <div class='txt-h5 mt6 mb6 color-black'><svg class='icon icon--l inline-block'>
-                            <use xlink:href='#icon-graph' /></svg> Histogram</div>
-                    <div id="histogram3b" class="w-full h120 h240-ml relative"></div>
-                </div>
             </section>
 
             <!-- 1 Band Selection -->
@@ -281,11 +274,23 @@
                     </label>
                 </div>
 
-                <!-- 1b Histogram -->
-                <div>
-                    <div class='txt-h5 mt6 mb6 color-black'><svg class='icon icon--l inline-block'>
-                            <use xlink:href='#icon-graph' /></svg> Histogram</div>
-                    <div id="histogram1b" class="w-full h120 h240-ml relative"></div>
+                <!-- Resampling -->
+                <div class='px12 pt12 pb6'>
+                    <div class='txt-h5 mt6 mb6 color-black'>Resampling Method</div>
+                    <div id='resamp-selector' class='toggle-group bg-gray-faint mt6 mb6' style="line-height: 0">
+                        <label class='toggle-container'>
+                            <input value='bilinear' name='toggle-resamp' type='radio' />
+                            <div title='bilinear' class='toggle color-gray-dark-on-hover'>bilinear</div>
+                        </label>
+                        <label class='toggle-container'>
+                            <input value='cubic' name='toggle-resamp' type='radio' />
+                            <div title='cubic' class='toggle color-gray-dark-on-hover'>cubic</div>
+                        </label>
+                        <label class='toggle-container'>
+                            <input value='nearest' checked='checked' name='toggle-resamp' type='radio' />
+                            <div title='nearest' class='toggle color-gray-dark-on-hover'>nearest</div>
+                        </label>
+                    </div>
                 </div>
 
                 <!-- Color Map -->
@@ -306,57 +311,34 @@
                             <option value=gist_earth>Earth</option>
                             <option value=ocean>Ocean</option>
                             <option value=terrain>Terrain</option>
+                            <option value=above>ABoVE (Custom)</option>
                         </select>
                         <div class='select-arrow color-black'></div>
                     </div>
                 </div>
             </section>
 
-            <!-- Histogram Cut -->
-            <div class='px12 pt12 pb6'>
-                <div class='txt-h5 mt6 mb6 color-black'>Histogram Cut</div>
-                <div id='histcut-selector' class='toggle-group bg-gray-faint mt6 mb6' style="line-height: 0">
-                    <label class='toggle-container'>
-                        <input value="none" checked="checked" name='toggle-histo' type='radio' />
-                        <div title='None' class='toggle color-gray-dark-on-hover'>None</div>
-                    </label>
-                    <label class='toggle-container'>
-                        <input value="minmax" name='toggle-histo' type='radio' />
-                        <div title='MinMax' class='toggle color-gray-dark-on-hover'>MinMax</div>
-                    </label>
-                    <label class='toggle-container'>
-                        <input value="2pc" name='toggle-histo' type='radio' />
-                        <div title='2%-98%' class='toggle color-gray-dark-on-hover'>2%</div>
-                    </label>
-                    <label class='toggle-container'>
-                        <input value="5pc" name='toggle-histo' type='radio' />
-                        <div title='5%-95%' class='toggle color-gray-dark-on-hover'>5%</div>
-                    </label>
+            <!-- Histogram Min/Max -->
+            <div id='rescale-section' class='px6 py6 none'>
+                <div class='txt-h5 mb6 color-black'>Histogram min/max</div>
+                <div>
+                    <input id="min-value" class='input input--s wmax60 inline-block align-center color-black' value='0' />
+                    <input id="max-value" class='input input--s wmax60 inline-block align-center color-black' value='1000' />
                 </div>
             </div>
 
-            <!-- Resampling -->
-            <div class='px12 pt12 pb6'>
-                <div class='txt-h5 mt6 mb6 color-black'>Resampling Method</div>
-                <div id='resamp-selector' class='toggle-group bg-gray-faint mt6 mb6' style="line-height: 0">
-                    <label class='toggle-container'>
-                        <input value='bilinear' name='toggle-resamp' type='radio' />
-                        <div title='bilinear' class='toggle color-gray-dark-on-hover'>bilinear</div>
-                    </label>
-                    <label class='toggle-container'>
-                        <input value='cubic' name='toggle-resamp' type='radio' />
-                        <div title='cubic' class='toggle color-gray-dark-on-hover'>cubic</div>
-                    </label>
-                    <label class='toggle-container'>
-                        <input value='nearest' checked='checked' name='toggle-resamp' type='radio' />
-                        <div title='nearest' class='toggle color-gray-dark-on-hover'>nearest</div>
-                    </label>
-                </div>
+            <!-- ColorFormula -->
+            <div id='cformula-section' class='px6 py6'>
+                <div class='txt-h5 mb6 color-black'>Color Formula</div>
+                <input id="ColorFormulaValue" class='input input--s w-full color-black' value='' />
             </div>
+            <button id="updateColor" class='btn bts--xs btn--stroke bg-darken25-on-hover txt-s color-black ml12'>Apply</button>
         </div>
         <button id='btn-hide'><svg id='hide-arrow' class='icon'>
-                <use xlink:href='#icon-arrow-right' /></svg></button>
+            <use xlink:href='#icon-arrow-right' /></svg>
+        </button>
     </div>
+
     <div id='map'>
         <div id='loader' class="loading-map z1">
             <div class="middle-center">
@@ -369,9 +351,10 @@
         <div class="zoom-info"><span id="zoom"></span></div>
     </div>
     <script>
-        var scope = { url: "", metadata: {}, config: {} }
+        var scope = { url: "", metadata: {} }
 
-        const api_endpoint = '{{ endpoint }}'
+        const tilejson_endpoint = '{{ tilejson_endpoint }}'
+        const metadata_endpoint = '{{ metadata_endpoint }}'
 
         var map = new mapboxgl.Map({
             container: 'map',
@@ -404,18 +387,24 @@
             const active_layer = document.getElementById('layer-selector')[document.getElementById('layer-selector').selectedIndex]
             indexes = active_layer.getAttribute('data-indexes')
             params.bidx = indexes
-            if (document.getElementById('histcut-selector').querySelector("input[name='toggle-histo']:checked").value !== 'none') {
-                const minV = scope.config[indexes].min
-                const maxV = scope.config[indexes].max
+
+            if (['uint8', 'int8'].indexOf(scope.metadata.dtype) === -1) {
+                const minV = parseFloat(document.getElementById('min-value').value)
+                const maxV = parseFloat(document.getElementById('max-value').value)
                 params.rescale = `${minV},${maxV}`
             }
+
+            if (document.getElementById('ColorFormulaValue').value !== '') {
+                params.color_formula = document.getElementById('ColorFormulaValue').value
+            }
+
             const cmap = document.getElementById('colormap-selector')[document.getElementById('colormap-selector').selectedIndex]
             if (cmap.value !== 'b&w') params.color_map = cmap.value
 
             const url_params = Object.keys(params).map(i => `${i}=${params[i]}`).join('&')
-            let url = `${api_endpoint}/cog/tilejson.json?${url_params}`
+            let url = `${tilejson_endpoint}?${url_params}`
             map.addSource('raster', { type: 'raster', url: url, tileSize: 256 })
-            addLayer()
+            map.addLayer({ id: 'raster', type: 'raster', source: 'raster' })
         }
 
         const set3bViz = () => {
@@ -428,21 +417,17 @@
                 resampling_method: document.getElementById('resamp-selector').querySelector("input[name='toggle-resamp']:checked").value,
                 bidx: `${r},${g},${b}`
             }
-
-            if (document.getElementById('histcut-selector').querySelector("input[name='toggle-histo']:checked").value !== 'none') {
-                const min1 = scope.config[r].min
-                const max1 = scope.config[r].max
-                const min2 = scope.config[g].min
-                const max2 = scope.config[g].max
-                const min3 = scope.config[r].min
-                const max3 = scope.config[r].max
-                params.rescale = `${min1},${max1},${min2},${max2},${min3},${max3}`
+            
+            if (['uint8', 'int8'].indexOf(scope.metadata.dtype) === -1) {
+                const minV = parseFloat(document.getElementById('min-value').value)
+                const maxV = parseFloat(document.getElementById('max-value').value)
+                params.rescale = `${minV},${maxV}`
             }
+
             const url_params = Object.keys(params).map(i => `${i}=${params[i]}`).join('&')
-            let url = `${api_endpoint}/cog/tilejson.json?${url_params}`
+            let url = `${tilejson_endpoint}?${url_params}`
             map.addSource('raster', { type: 'raster', url: url, tileSize: 256 })
             map.addLayer({ id: 'raster', type: 'raster', source: 'raster' })
-            addHisto3Bands()
         }
 
         const switchViz = () => {
@@ -461,161 +446,10 @@
                     throw new Error(`Invalid ${rasterType}`)
             }
         }
-
-        const addLayer = () => {
-            if (map.getLayer('raster')) map.removeLayer('raster')
-            addHisto1Band()
-            map.addLayer({
-                id: 'raster',
-                type: 'raster',
-                source: 'raster'
-            })
-        }
-
-        const addHisto3Bands = () => {
-            const r = document.getElementById('r-selector').value
-            const g = document.getElementById('g-selector').value
-            const b = document.getElementById('b-selector').value
-
-            const rStats = scope.metadata.statistics[r]
-            const gStats = scope.metadata.statistics[g]
-            const bStats = scope.metadata.statistics[b]
-
-            const minV = Math.min(...[rStats.min, gStats.min, bStats.min])
-            const maxV = Math.max(...[rStats.max, gStats.max, bStats.max])
-
-            const rCounts = rStats.histogram[0]
-            const gCounts = rStats.histogram[0]
-            const bCounts = rStats.histogram[0]
-
-            const h = Math.max(...[].concat.apply([], [rCounts, gCounts, bCounts]))
-
-            const bbox = d3.select('#histogram3b').node().getBoundingClientRect()
-
-            // set the dimensions and margins of the graph
-            const margin = { top: 10, right: 30, bottom: 30, left: 40 }
-            const width = bbox.width - margin.left - margin.right
-            const height = bbox.height - margin.top - margin.bottom
-
-            d3.select('#histogram3b').selectAll('*').remove()
-            // append the svg object to the body of the page
-            var svg = d3.select('#histogram3b')
-                .append('svg')
-                .attr('width', width + margin.left + margin.right)
-                .attr('height', height + margin.top + margin.bottom)
-                .append('g')
-                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
-
-            // X axis: scale and draw:
-            var x = d3.scaleLinear()
-                .domain([minV, maxV])
-                .range([0, width])
-
-            svg.append('g')
-                .attr('transform', 'translate(0,' + height + ')')
-                .call(d3.axisBottom(x))
-
-            // Y axis: scale and draw:
-            var y = d3.scaleLinear().range([height, 0])
-            y.domain([0, h])
-            svg.append('g').call(d3.axisLeft(y))
-
-            const addLine = (stats, color) => {
-                //Draw Red line
-                const data = []
-                for (var i = 0; i < stats.histogram[0].length; i++) {
-                    data.push({
-                        count: stats.histogram[0][i],
-                        value: stats.histogram[1][i]
-                    })
-                }
-                var guide = d3.line()
-                    .x(function (d) { return x(d.value) })
-                    .y(function (d) { return y(d.count) });
-                var line = svg.append('path')
-                    .datum(data)
-                    .attr('d', guide)
-                    .attr('class', `line-${color}`);
-            }
-            addLine(rStats, "red")
-            addLine(gStats, "green")
-            addLine(bStats, "blue")
-
-            //Draw axes
-            svg.append("g")
-                .attr("class", "x axis")
-                .attr("transform", "translate(0," + h + ")")
-                .call(x);
-
-            svg.append("g")
-                .attr("class", "y axis")
-                .call(y)
-                .append("text")
-                .attr("transform", "rotate(-90)")
-                .attr("y", 6)
-                .attr("dy", ".71em")
-                .style("text-anchor", "end")
-        }
-
-        const addHisto1Band = () => {
-            const active_layer = document.getElementById('layer-selector')[document.getElementById('layer-selector').selectedIndex]
-            const indexes = active_layer.getAttribute('data-indexes')
-            const stats = scope.metadata.statistics[indexes]
-
-            const counts = stats.histogram[0]
-            const values = stats.histogram[1]
-            const bbox = d3.select('#histogram1b').node().getBoundingClientRect()
-
-            // set the dimensions and margins of the graph
-            const margin = { top: 10, right: 30, bottom: 30, left: 40 }
-            const width = bbox.width - margin.left - margin.right
-            const height = bbox.height - margin.top - margin.bottom
-
-            d3.select('#histogram1b').selectAll('*').remove()
-            // append the svg object to the body of the page
-            var svg = d3.select('#histogram1b')
-                .append('svg')
-                .attr('width', width + margin.left + margin.right)
-                .attr('height', height + margin.top + margin.bottom)
-                .append('g')
-                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
-
-            const min = stats.min
-            const max = stats.max
-
-            // X axis: scale and draw:
-            var x = d3.scaleLinear()
-                .domain([min, max])
-                .range([0, width])
-
-            svg.append('g')
-                .attr('transform', 'translate(0,' + height + ')')
-                .call(d3.axisBottom(x))
-
-            // Y axis: scale and draw:
-            var y = d3.scaleLinear().range([height, 0])
-            y.domain([0, d3.max(counts)])
-            svg.append('g').call(d3.axisLeft(y))
-
-            const bins = []
-            for (var i = 0; i < counts.length; i++) {
-                bins.push({
-                    count: counts[i],
-                    value: values[i]
-                })
-            }
-
-            // append the bar rectangles to the svg element
-            svg.selectAll('rect')
-                .data(bins)
-                .enter()
-                .append('rect')
-                .attr('x', 1)
-                .attr('transform', d => { return 'translate(' + x(d.value) + ',' + y(d.count) + ')' })
-                .attr('width', 10)
-                .attr('height', d => { return height - y(d.count) })
-                .style('fill', '#69b3a2')
-        }
+        
+        document.getElementById('updateColor').addEventListener('click', () => {
+            switchViz()
+        })
 
         document.getElementById('btn-hide').addEventListener('click', () => {
             document.getElementById('hide-arrow').classList.toggle('off')
@@ -651,40 +485,6 @@
             nextSection.classList.toggle('active')
             switchViz()
         }
-
-        document.getElementById('histcut-selector').addEventListener('change', (e) => {
-            let pmin = 0
-            let pmax = 100
-
-            switch (e.target.value) {
-                case 'minmax':
-                    break
-                case '2pc':
-                    pmin = 2.0
-                    pmax = 98.0
-                    break
-                case '5pc':
-                    pmin = 5.0
-                    pmax = 95.0
-                    break
-            }
-            fetch(`${api_endpoint}/cog/metadata?url=${scope.url}&pmin=${pmin}&pmax=${pmax}`)
-                .then(res => {
-                    if (res.ok) return res.json()
-                    throw new Error('Network response was not ok.')
-                })
-                .then(data => {
-                    scope.metadata.statistics = data.statistics
-                    Object.entries(scope.metadata.statistics).forEach(entry => {
-                        scope.config[entry[0]] = { "min": entry[1].pc[0], "max": entry[1].pc[1] }
-                    })
-                    const rasterType = document.getElementById('toolbar').querySelector(".active").id
-                    switchViz()
-                })
-                .catch(err => {
-                    console.warn(err)
-                })
-        })
 
         const bboxPolygon = (bounds)  => {
             return {
@@ -731,7 +531,7 @@
         }
 
         const addCogeo = () => {
-            fetch(`${api_endpoint}/cogs/metadata?url=${scope.url}`)
+            fetch(`${metadata_endpoint}?url=${scope.url}`)
                 .then(res => {
                     if (res.ok) return res.json()
                     throw new Error('Network response was not ok.')
@@ -740,15 +540,9 @@
                     console.log(data)
                     scope.metadata = data
 
-                    if (scope.metadata.dtype !== "uint8") {
-                        document.getElementById('histcut-selector').querySelector("input[value='minmax']").checked = true
+                    if (['uint8', 'int8'].indexOf(scope.metadata.dtype) === -1) {
+                        document.getElementById('rescale-section').classList.toggle('none')
                     }
-
-                    scope.config = {}
-                    Object.entries(scope.metadata.statistics).forEach(entry => {
-                        scope.config[entry[0]] = { "min": entry[1].min, "max": entry[1].max }
-                    })
-
                     //1 band
                     const layerList = document.getElementById('layer-selector')
                     for (var i = 0; i < scope.metadata.band_descriptions.length; i++) {

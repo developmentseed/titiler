@@ -36,3 +36,13 @@ class MimeTypes(str, Enum):
     json = "application/json"
     html = "text/html"
     text = "text/plain"
+
+
+class NodataTypes(str, Enum):
+    """rio-tiler Nodata types."""
+
+    Alpha = "Alpha"
+    Mask = "Mask"
+    Internal = "Internal"
+    Nodata = "Nodata"
+    Empty = "None"

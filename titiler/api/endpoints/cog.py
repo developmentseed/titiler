@@ -1,4 +1,4 @@
-"""API tiles."""
+"""API for Cloud Optimized GeoTIFF Dataset."""
 
 from typing import Any, Dict, Optional
 
@@ -8,29 +8,104 @@ from urllib.parse import urlencode
 
 import numpy
 
+from rio_tiler_crs import COGReader
+
 from fastapi import APIRouter, Depends, Query, Path
 from starlette.requests import Request
-from starlette.responses import Response
+from starlette.responses import Response, HTMLResponse
+from starlette.templating import Jinja2Templates
 
-from morecantile.models import TileMatrixSet
+from titiler.models.metadata import cogBounds, cogInfo, cogMetadata
+from titiler.api.deps import CommonMetadataParams
 
 from rasterio.transform import from_bounds
-from rio_tiler_crs import COGReader
 from rio_tiler.utils import render
 from rio_tiler.profiles import img_profiles
 
 from titiler.api import utils
 from titiler.api.deps import CommonImageParams, TileMatrixSetNames, morecantile
 from titiler.db.memcache import CacheLayer
-from titiler.ressources.enums import ImageType, ImageMimeTypes
+from titiler.ressources.enums import ImageType, ImageMimeTypes, MimeTypes
 from titiler.ressources.common import drivers
-from titiler.ressources.responses import TileResponse
-from titiler.models.OGC import TileMatrixSetList
-from titiler.core import config
+from titiler.ressources.responses import TileResponse, XMLResponse
 from titiler.models.mapbox import TileJSON
-
+from titiler.templates.factory import web_template
 
 router = APIRouter()
+templates = Jinja2Templates(directory="titiler/templates")
+
+
+@router.get(
+    "/bounds",
+    response_model=cogBounds,
+    responses={200: {"description": "Return the bounds of the COG."}},
+)
+async def cog_bounds(
+    resp: Response, url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
+):
+    """Return the bounds of the COG."""
+    resp.headers["Cache-Control"] = "max-age=3600"
+    with COGReader(url) as cog:
+        return {"bounds": cog.bounds}
+
+
+@router.get(
+    "/info",
+    response_model=cogInfo,
+    response_model_exclude={"minzoom", "maxzoom", "center"},
+    response_model_exclude_none=True,
+    responses={200: {"description": "Return basic info on COG."}},
+)
+async def cog_info(
+    resp: Response, url: str = Query(..., description="Cloud Optimized GeoTIFF URL.")
+):
+    """Return basic info on COG."""
+    resp.headers["Cache-Control"] = "max-age=3600"
+    with COGReader(url) as cog:
+        info = cog.info
+    return info
+
+
+@router.get(
+    "/metadata",
+    response_model=cogMetadata,
+    response_model_exclude={"minzoom", "maxzoom", "center"},
+    response_model_exclude_none=True,
+    responses={200: {"description": "Return the metadata of the COG."}},
+)
+async def cog_metadata(
+    request: Request,
+    resp: Response,
+    url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
+    metadata_params: CommonMetadataParams = Depends(CommonMetadataParams),
+):
+    """Return the metadata of the COG."""
+    kwargs = dict(request.query_params)
+    kwargs.pop("url", None)
+    kwargs.pop("bidx", None)
+    kwargs.pop("nodata", None)
+    kwargs.pop("pmin", None)
+    kwargs.pop("pmax", None)
+    kwargs.pop("max_size", None)
+    kwargs.pop("histogram_bins", None)
+    kwargs.pop("histogram_range", None)
+
+    with COGReader(url) as cog:
+        info = cog.info
+        stats = cog.stats(
+            metadata_params.pmin,
+            metadata_params.pmax,
+            nodata=metadata_params.nodata,
+            indexes=metadata_params.indexes,
+            max_size=metadata_params.max_size,
+            hist_options=metadata_params.hist_options,
+            **kwargs,
+        )
+        info["statistics"] = stats
+
+    resp.headers["Cache-Control"] = "max-age=3600"
+    return info
+
 
 params: Dict[str, Any] = {
     "responses": {
@@ -49,15 +124,15 @@ params: Dict[str, Any] = {
 }
 
 
-@router.get(r"/cog/tiles/{z}/{x}/{y}", **params)
-@router.get(r"/cog/tiles/{z}/{x}/{y}\.{ext}", **params)
-@router.get(r"/cog/tiles/{z}/{x}/{y}@{scale}x", **params)
-@router.get(r"/cog/tiles/{z}/{x}/{y}@{scale}x\.{ext}", **params)
-@router.get(r"/cog/tiles/{TileMatrixSetId}/{z}/{x}/{y}", **params)
-@router.get(r"/cog/tiles/{TileMatrixSetId}/{z}/{x}/{y}\.{ext}", **params)
-@router.get(r"/cog/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x", **params)
-@router.get(r"/cog/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x\.{ext}", **params)
-async def tile(
+@router.get(r"/tiles/{z}/{x}/{y}", **params)
+@router.get(r"/tiles/{z}/{x}/{y}\.{ext}", **params)
+@router.get(r"/tiles/{z}/{x}/{y}@{scale}x", **params)
+@router.get(r"/tiles/{z}/{x}/{y}@{scale}x\.{ext}", **params)
+@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}", **params)
+@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}\.{ext}", **params)
+@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x", **params)
+@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x\.{ext}", **params)
+async def cog_tile(
     z: int = Path(..., ge=0, le=30, description="Mercator tiles's zoom level"),
     x: int = Path(..., description="Mercator tiles's column"),
     y: int = Path(..., description="Mercator tiles's row"),
@@ -72,8 +147,8 @@ async def tile(
     url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
     image_params: CommonImageParams = Depends(CommonImageParams),
     cache_client: CacheLayer = Depends(utils.get_cache),
-) -> TileResponse:
-    """Handle /tiles requests."""
+):
+    """Create map tile from a COG."""
     timings = []
     headers: Dict[str, str] = {}
 
@@ -164,18 +239,18 @@ async def tile(
 
 
 @router.get(
-    "/cog/tilejson.json",
+    "/tilejson.json",
     response_model=TileJSON,
     responses={200: {"description": "Return a tilejson"}},
     response_model_exclude_none=True,
 )
 @router.get(
-    "/cog/{TileMatrixSetId}/tilejson.json",
+    "/{TileMatrixSetId}/tilejson.json",
     response_model=TileJSON,
     responses={200: {"description": "Return a tilejson"}},
     response_model_exclude_none=True,
 )
-async def tilejson(
+async def cog_tilejson(
     request: Request,
     response: Response,
     TileMatrixSetId: TileMatrixSetNames = Query(
@@ -189,12 +264,12 @@ async def tilejson(
     tile_scale: int = Query(
         1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
     ),
+    minzoom: Optional[int] = Query(None, description="Overwrite default minzoom."),
+    maxzoom: Optional[int] = Query(None, description="Overwrite default maxzoom."),
 ):
-    """Handle /tilejson.json requests."""
+    """Return TileJSON document for a COG."""
     scheme = request.url.scheme
     host = request.headers["host"]
-    if config.API_VERSION_STR:
-        host += config.API_VERSION_STR
 
     kwargs = dict(request.query_params)
     kwargs.pop("tile_format", None)
@@ -209,11 +284,14 @@ async def tilejson(
 
     tms = morecantile.tms.get(TileMatrixSetId.name)
     with COGReader(url, tms=tms) as cog:
+        center = list(cog.center)
+        if minzoom:
+            center[-1] = minzoom
         tjson = {
             "bounds": cog.bounds,
-            "center": cog.center,
-            "minzoom": cog.minzoom,
-            "maxzoom": cog.maxzoom,
+            "center": tuple(center),
+            "minzoom": minzoom or cog.minzoom,
+            "maxzoom": maxzoom or cog.maxzoom,
             "name": os.path.basename(url),
             "tiles": [tile_url],
         }
@@ -222,49 +300,75 @@ async def tilejson(
     return tjson
 
 
+@router.get("/WMTSCapabilities.xml", response_class=XMLResponse, tags=["OGC"])
 @router.get(
-    r"/tileMatrixSets",
-    response_model=TileMatrixSetList,
-    response_model_exclude_none=True,
+    "/{TileMatrixSetId}/WMTSCapabilities.xml", response_class=XMLResponse, tags=["OGC"],
 )
-async def tmslis(request: Request):
-    """
-    Handle /tileMatrixSets requests.
-
-    Specs: http://docs.opengeospatial.org/per/19-069.html#_tilematrixsets
-    """
+def wtms(
+    request: Request,
+    response: Response,
+    TileMatrixSetId: TileMatrixSetNames = Query(
+        TileMatrixSetNames.WebMercatorQuad,  # type: ignore
+        description="TileMatrixSet Name (default: 'WebMercatorQuad')",
+    ),
+    url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
+    tile_format: ImageType = Query(
+        ImageType.png, description="Output image type. Default is png."
+    ),
+    tile_scale: int = Query(
+        1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
+    ),
+):
+    """OGC WMTS endpoit."""
     scheme = request.url.scheme
     host = request.headers["host"]
-    if config.API_VERSION_STR:
-        host += config.API_VERSION_STR
+    endpoint = f"{scheme}://{host}/cog"
 
-    tms_list = morecantile.tms.list()
-    return {
-        "tileMatrixSets": [
-            {
-                "id": tms,
-                "title": morecantile.tms.get(tms).title,
-                "links": [
-                    {
-                        "href": f"{scheme}://{host}/tileMatrixSets/{tms}",
-                        "rel": "item",
-                        "type": "application/json",
-                    }
-                ],
-            }
-            for tms in tms_list
-        ]
-    }
+    kwargs = dict(request.query_params)
+    kwargs.pop("tile_format", None)
+    kwargs.pop("tile_scale", None)
+    qs = urlencode(list(kwargs.items()))
 
-
-@router.get(
-    r"/tileMatrixSets/{TileMatrixSetId}",
-    response_model=TileMatrixSet,
-    response_model_exclude_none=True,
-)
-async def tmsinfo(
-    TileMatrixSetId: TileMatrixSetNames = Query(..., description="TileMatrixSet Name")
-):
-    """Handle /tileMatrixSets/identifier requests."""
     tms = morecantile.tms.get(TileMatrixSetId.name)
-    return tms.dict()
+    with COGReader(url, tms=tms) as cog:
+        minzoom, maxzoom, bounds = cog.minzoom, cog.maxzoom, cog.bounds
+
+    media_type = ImageMimeTypes[tile_format.value].value
+
+    tileMatrix = []
+    for zoom in range(minzoom, maxzoom + 1):
+        matrix = tms.matrix(zoom)
+        tm = f"""
+                <TileMatrix>
+                    <ows:Identifier>{matrix.identifier}</ows:Identifier>
+                    <ScaleDenominator>{matrix.scaleDenominator}</ScaleDenominator>
+                    <TopLeftCorner>{matrix.topLeftCorner[0]} {matrix.topLeftCorner[1]}</TopLeftCorner>
+                    <TileWidth>{matrix.tileWidth}</TileWidth>
+                    <TileHeight>{matrix.tileHeight}</TileHeight>
+                    <MatrixWidth>{matrix.matrixWidth}</MatrixWidth>
+                    <MatrixHeight>{matrix.matrixHeight}</MatrixHeight>
+                </TileMatrix>"""
+        tileMatrix.append(tm)
+
+    tile_ext = f"@{tile_scale}x.{tile_format.value}"
+    return templates.TemplateResponse(
+        "wmts.xml",
+        {
+            "request": request,
+            "endpoint": endpoint,
+            "bounds": bounds,
+            "tileMatrix": tileMatrix,
+            "tms": tms,
+            "title": "Cloud Optimized GeoTIFF",
+            "query_string": qs,
+            "tile_format": tile_ext,
+            "media_type": media_type,
+        },
+        media_type=MimeTypes.xml.value,
+    )
+
+
+@router.get("/viewer", response_class=HTMLResponse, tags=["Webpage"])
+def cog_viewer(request: Request, template=Depends(web_template)):
+    """Cloud Optimized GeoTIFF Viewer."""
+    return template(request, "cog_index.html", "cog_tilejson", "cog_metadata")
