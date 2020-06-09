@@ -34,7 +34,7 @@ extra_reqs = {
 
 setup(
     name="titiler",
-    version="1.1.0",
+    version="2.0.0",
     description=u"",
     long_description=long_description,
     long_description_content_type="text/markdown",

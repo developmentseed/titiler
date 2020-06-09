@@ -1,8 +1,10 @@
-NEXT (TBD)
+2.0.0 (2020-06-09)
 ------------------
 - support STAC items (#16)
 - better API documentation via response models
+- update UI (`/stac/viewer`, `/cog/viewer`)
 - re-order OpenAPI route tags
+- update documentation
 
 1.0.0 (2020-06-04)
 ------------------
