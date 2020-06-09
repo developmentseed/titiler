@@ -488,7 +488,7 @@
 
         document.getElementById('asset-selector').addEventListener('change', () => {
             const asset = document.getElementById('asset-selector').value
-            document.getElementById('loader').classList.remove('off')
+            updateUI()
             switchViz(asset)
         })
 
