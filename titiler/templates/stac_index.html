@@ -489,7 +489,7 @@
         document.getElementById('asset-selector').addEventListener('change', () => {
             const asset = document.getElementById('asset-selector').value
             document.getElementById('loader').classList.remove('off')
-            loadInfo(asset)
+            switchViz(asset)
         })
 
         document.getElementById('compose-switch').addEventListener('change', () => {
