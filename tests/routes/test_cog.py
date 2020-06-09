@@ -10,10 +10,10 @@ import numpy
 
 from rasterio.io import MemoryFile
 
-from ...conftest import mock_reader
+from ..conftest import mock_reader
 
 
-@patch("titiler.api.api_v1.endpoints.cog.COGReader")
+@patch("titiler.api.endpoints.cog.COGReader")
 def test_bounds(reader, app):
     """test /bounds endpoint."""
     reader.side_effect = mock_reader
@@ -24,7 +24,7 @@ def test_bounds(reader, app):
     assert len(body["bounds"]) == 4
 
 
-@patch("titiler.api.api_v1.endpoints.cog.COGReader")
+@patch("titiler.api.endpoints.cog.COGReader")
 def test_metadata(reader, app):
     """test /metadata endpoint."""
     reader.side_effect = mock_reader
@@ -48,7 +48,7 @@ def test_metadata(reader, app):
     assert len(body["statistics"]["1"]["histogram"][0]) == 5
 
 
-@patch("titiler.api.api_v1.endpoints.cog.COGReader")
+@patch("titiler.api.endpoints.cog.COGReader")
 def test_wmts(reader, app):
     """test wmts endpoints."""
     reader.side_effect = mock_reader
@@ -79,7 +79,7 @@ def parse_img(content: bytes) -> Dict:
             return dst.meta
 
 
-@patch("titiler.api.api_v1.endpoints.cog.COGReader")
+@patch("titiler.api.endpoints.cog.COGReader")
 def test_tile(reader, app):
     """test tile endpoints."""
     reader.side_effect = mock_reader
@@ -153,7 +153,7 @@ def test_tile(reader, app):
     assert response.headers["content-type"] == "image/png"
 
 
-@patch("titiler.api.api_v1.endpoints.cog.COGReader")
+@patch("titiler.api.endpoints.cog.COGReader")
 def test_tilejson(reader, app):
     """test /tilejson endpoint."""
     reader.side_effect = mock_reader

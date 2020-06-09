@@ -13,9 +13,21 @@ from rio_tiler.colormap import cmap
 
 import morecantile
 
+################################################################################
+#                       CMAP AND TMS Customization
 morecantile.tms.register(custom_tms.EPSG3413)
-cmap.register("above", custom_colormap.above_cmap)
+# REGISTER CUSTOM TMS
+#
+# e.g morecantile.tms.register(custom_tms.my_custom_tms)
 
+cmap.register("above", custom_colormap.above_cmap)
+# REGISTER CUSTOM COLORMAP HERE
+#
+# e.g cmap.register("customRed", custom_colormap.custom_red)
+
+################################################################################
+# DO NOT UPDATE
+# Create ENUMS with all CMAP and TMS for documentation and validation.
 ColorMapName = Enum("ColorMapNames", [(a, a) for a in sorted(cmap.list())])  # type: ignore
 TileMatrixSetNames = Enum("TileMatrixSetNames", [(a, a) for a in sorted(morecantile.tms.list())])  # type: ignore
 
@@ -26,7 +38,9 @@ class CommonImageParams:
     def __init__(
         self,
         bidx: Optional[str] = Query(
-            None, title="Band indexes", description="Coma (',') delimited band indexes",
+            None,
+            title="Band indexes",
+            description="comma (',') delimited band indexes",
         ),
         expression: Optional[str] = Query(
             None,
@@ -39,7 +53,7 @@ class CommonImageParams:
         rescale: Optional[str] = Query(
             None,
             title="Min/Max data Rescaling",
-            description="Coma (',') delimited Min,Max bounds",
+            description="comma (',') delimited Min,Max bounds",
         ),
         color_formula: Optional[str] = Query(
             None,
@@ -67,7 +81,9 @@ class CommonMetadataParams:
     def __init__(
         self,
         bidx: Optional[str] = Query(
-            None, title="Band indexes", description="Coma (',') delimited band indexes",
+            None,
+            title="Band indexes",
+            description="comma (',') delimited band indexes",
         ),
         nodata: Optional[Union[str, int, float]] = Query(
             None, title="Nodata value", description="Overwrite internal Nodata value"
@@ -77,7 +93,7 @@ class CommonMetadataParams:
         max_size: int = Query(1024, description="Maximum image size to read onto."),
         histogram_bins: Optional[int] = Query(None, description="Histogram bins."),
         histogram_range: Optional[str] = Query(
-            None, description="Coma (',') delimited Min,Max histogram bounds"
+            None, description="comma (',') delimited Min,Max histogram bounds"
         ),
     ):
         """Populate Imager Params."""

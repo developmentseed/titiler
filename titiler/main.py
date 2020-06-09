@@ -10,7 +10,7 @@ from starlette.middleware.gzip import GZipMiddleware
 from titiler import version
 from titiler.core import config
 from titiler.db.memcache import CacheLayer
-from titiler.api.api_v1.api import api_router
+from titiler.api import api as titilerAPI
 from titiler.templates.factory import web_template
 
 
@@ -78,4 +78,4 @@ def ping():
     return {"ping": "pong!"}
 
 
-app.include_router(api_router)
+app.include_router(titilerAPI.api_router)

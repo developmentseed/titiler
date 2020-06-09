@@ -6,6 +6,7 @@ import pytest
 from starlette.testclient import TestClient
 
 from rio_tiler_crs import COGReader
+from stac_tiler import STACReader
 
 
 @pytest.fixture(autouse=True)
@@ -30,3 +31,11 @@ def mock_reader(src_path: str, *args, **kwargs) -> COGReader:
     assert src_path.startswith("https://myurl.com/")
     cog_path = os.path.basename(src_path)
     return COGReader(os.path.join(prefix, cog_path), *args, **kwargs)
+
+
+def mock_STACreader(src_path: str, *args, **kwargs) -> COGReader:
+    """Mock rasterio.open."""
+    prefix = os.path.join(os.path.dirname(__file__), "fixtures")
+    assert src_path.startswith("https://myurl.com/")
+    stac_path = os.path.basename(src_path)
+    return STACReader(os.path.join(prefix, stac_path), *args, **kwargs)

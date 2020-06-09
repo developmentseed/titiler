@@ -2,10 +2,10 @@
 
 from fastapi import APIRouter
 
-from titiler.api.api_v1.endpoints import cog, tms
+from titiler.api.endpoints import cog, tms
 
 try:
-    from titiler.api.api_v1.endpoints import stac
+    from titiler.api.endpoints import stac
 
     has_stac = True
 except ModuleNotFoundError:
