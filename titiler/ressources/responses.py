@@ -1,7 +1,7 @@
 """Common response models."""
 
-from starlette.responses import Response
 from starlette.background import BackgroundTask
+from starlette.responses import Response
 
 
 class XMLResponse(Response):

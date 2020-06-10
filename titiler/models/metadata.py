@@ -1,7 +1,7 @@
 """Titiler Metadta models."""
 
 
-from typing import Any, Dict, List, Tuple, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from pydantic import BaseModel, Field
 

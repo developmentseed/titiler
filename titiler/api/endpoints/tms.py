@@ -2,13 +2,14 @@
 
 import json
 
-from fastapi import APIRouter, Query
-from starlette.requests import Request
-
 from morecantile.models import TileMatrixSet
 
 from titiler.api.deps import TileMatrixSetNames, morecantile
 from titiler.models.OGC import TileMatrixSetList
+
+from fastapi import APIRouter, Query
+
+from starlette.requests import Request
 
 router = APIRouter()
 

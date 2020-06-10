@@ -2,12 +2,12 @@
 
 
 from typing import Dict
-
 from unittest.mock import patch
 
 from rasterio.io import MemoryFile
 
-from ..conftest import mock_STACreader, mock_reader as mock_COGreader
+from ..conftest import mock_reader as mock_COGreader
+from ..conftest import mock_STACreader
 
 
 @patch("titiler.api.endpoints.stac.STACReader")

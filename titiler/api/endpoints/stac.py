@@ -2,37 +2,35 @@
 
 import os
 from io import BytesIO
+from typing import Any, Dict, List, Optional, Union
 from urllib.parse import urlencode
 
 import numpy
-
-from typing import Dict, Union, List
-
+from rasterio.transform import from_bounds
+from rio_tiler.profiles import img_profiles
+from rio_tiler.utils import render
 from stac_tiler import STACReader
 
-from fastapi import APIRouter, Depends, Query, Path, HTTPException
+from titiler.api import utils
+from titiler.api.deps import (
+    CommonImageParams,
+    CommonMetadataParams,
+    TileMatrixSetNames,
+    morecantile,
+)
+from titiler.db.memcache import CacheLayer
+from titiler.models.mapbox import TileJSON
+from titiler.models.metadata import cogBounds, cogInfo, cogMetadata
+from titiler.ressources.common import drivers
+from titiler.ressources.enums import ImageMimeTypes, ImageType
+from titiler.ressources.responses import TileResponse
+from titiler.templates.factory import web_template
+
+from fastapi import APIRouter, Depends, HTTPException, Path, Query
+
 from starlette import status
 from starlette.requests import Request
-from starlette.responses import Response, HTMLResponse
-
-from titiler.models.metadata import cogBounds, cogInfo, cogMetadata
-from titiler.api.deps import CommonMetadataParams
-
-from typing import Any, Optional
-
-
-from rasterio.transform import from_bounds
-from rio_tiler.utils import render
-from rio_tiler.profiles import img_profiles
-
-from titiler.api import utils
-from titiler.api.deps import CommonImageParams, TileMatrixSetNames, morecantile
-from titiler.db.memcache import CacheLayer
-from titiler.ressources.enums import ImageType, ImageMimeTypes
-from titiler.ressources.common import drivers
-from titiler.ressources.responses import TileResponse
-from titiler.models.mapbox import TileJSON
-from titiler.templates.factory import web_template
+from starlette.responses import HTMLResponse, Response
 
 router = APIRouter()
 

@@ -3,7 +3,7 @@
 
 from typing import List
 
-from pydantic import BaseModel, AnyHttpUrl
+from pydantic import AnyHttpUrl, BaseModel
 
 from titiler.ressources.enums import MimeTypes
 

@@ -1,8 +1,7 @@
 """STACK Configs."""
 
-from typing import Dict, List, Optional
-
 import os
+from typing import Dict, List, Optional
 
 PROJECT_NAME = "titiler"
 STAGE = os.environ.get("STAGE", "dev")

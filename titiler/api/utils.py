@@ -1,20 +1,18 @@
 """titiler.api.utils."""
 
+import hashlib
+import json
+import time
 from typing import Any, Optional
 
-import time
-import json
-import hashlib
-
 import numpy
-
-from starlette.requests import Request
-
 from rio_color.operations import parse_operations
 from rio_color.utils import scale_dtype, to_math_type
-from rio_tiler.utils import linear_rescale, _chunks
+from rio_tiler.utils import _chunks, linear_rescale
 
 from titiler.db.memcache import CacheLayer
+
+from starlette.requests import Request
 
 
 def get_cache(request: Request) -> CacheLayer:

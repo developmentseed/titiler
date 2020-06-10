@@ -1,12 +1,12 @@
 """``pytest`` configuration."""
 
 import os
+
 import pytest
-
-from starlette.testclient import TestClient
-
 from rio_tiler_crs import COGReader
 from stac_tiler import STACReader
+
+from starlette.testclient import TestClient
 
 
 @pytest.fixture(autouse=True)

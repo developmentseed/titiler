@@ -1,18 +1,18 @@
 """titiler app."""
 from typing import Any, Dict
 
-from fastapi import FastAPI, Depends
-from starlette.requests import Request
-from starlette.responses import HTMLResponse
-from starlette.middleware.cors import CORSMiddleware
-from starlette.middleware.gzip import GZipMiddleware
-
 from titiler import version
+from titiler.api import api as titilerAPI
 from titiler.core import config
 from titiler.db.memcache import CacheLayer
-from titiler.api import api as titilerAPI
 from titiler.templates.factory import web_template
 
+from fastapi import Depends, FastAPI
+
+from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.gzip import GZipMiddleware
+from starlette.requests import Request
+from starlette.responses import HTMLResponse
 
 if config.MEMCACHE_HOST and not config.DISABLE_CACHE:
     kwargs: Dict[str, Any] = {
