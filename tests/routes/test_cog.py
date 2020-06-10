@@ -1,13 +1,11 @@
 """test /COG endpoints."""
 
 
-from typing import Dict
-
 from io import BytesIO
+from typing import Dict
 from unittest.mock import patch
 
 import numpy
-
 from rasterio.io import MemoryFile
 
 from ..conftest import mock_reader

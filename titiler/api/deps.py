@@ -1,17 +1,17 @@
 """Common dependency."""
 
-from typing import Union, Optional, Dict, Any
-from enum import Enum
-
 import re
-from fastapi import Query
-
-import numpy
-
-from titiler.custom import cmap as custom_colormap, tms as custom_tms
-from rio_tiler.colormap import cmap
+from enum import Enum
+from typing import Any, Dict, Optional, Union
 
 import morecantile
+import numpy
+from rio_tiler.colormap import cmap
+
+from titiler.custom import cmap as custom_colormap
+from titiler.custom import tms as custom_tms
+
+from fastapi import Query
 
 ################################################################################
 #                       CMAP AND TMS Customization

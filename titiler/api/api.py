@@ -1,8 +1,8 @@
 """titiler api."""
 
-from fastapi import APIRouter
-
 from titiler.api.endpoints import cog, tms
+
+from fastapi import APIRouter
 
 try:
     from titiler.api.endpoints import stac

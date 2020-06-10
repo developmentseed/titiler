@@ -2,7 +2,6 @@
 
 import os
 
-
 PROJECT_NAME = "titiler"
 
 SERVER_NAME = os.getenv("SERVER_NAME")

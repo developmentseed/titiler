@@ -1,35 +1,36 @@
 """API for Cloud Optimized GeoTIFF Dataset."""
 
-from typing import Any, Dict, Optional
-
 import os
 from io import BytesIO
+from typing import Any, Dict, Optional
 from urllib.parse import urlencode
 
 import numpy
-
+from rasterio.transform import from_bounds
+from rio_tiler.profiles import img_profiles
+from rio_tiler.utils import render
 from rio_tiler_crs import COGReader
 
-from fastapi import APIRouter, Depends, Query, Path
-from starlette.requests import Request
-from starlette.responses import Response, HTMLResponse
-from starlette.templating import Jinja2Templates
-
-from titiler.models.metadata import cogBounds, cogInfo, cogMetadata
-from titiler.api.deps import CommonMetadataParams
-
-from rasterio.transform import from_bounds
-from rio_tiler.utils import render
-from rio_tiler.profiles import img_profiles
-
 from titiler.api import utils
-from titiler.api.deps import CommonImageParams, TileMatrixSetNames, morecantile
+from titiler.api.deps import (
+    CommonImageParams,
+    CommonMetadataParams,
+    TileMatrixSetNames,
+    morecantile,
+)
 from titiler.db.memcache import CacheLayer
-from titiler.ressources.enums import ImageType, ImageMimeTypes, MimeTypes
-from titiler.ressources.common import drivers
-from titiler.ressources.responses import TileResponse, XMLResponse
 from titiler.models.mapbox import TileJSON
+from titiler.models.metadata import cogBounds, cogInfo, cogMetadata
+from titiler.ressources.common import drivers
+from titiler.ressources.enums import ImageMimeTypes, ImageType, MimeTypes
+from titiler.ressources.responses import TileResponse, XMLResponse
 from titiler.templates.factory import web_template
+
+from fastapi import APIRouter, Depends, Path, Query
+
+from starlette.requests import Request
+from starlette.responses import HTMLResponse, Response
+from starlette.templating import Jinja2Templates
 
 router = APIRouter()
 templates = Jinja2Templates(directory="titiler/templates")
