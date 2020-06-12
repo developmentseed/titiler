@@ -1,6 +1,7 @@
 """API for SpatioTemporal Asset Catalog items."""
 
 import os
+import re
 from io import BytesIO
 from typing import Any, Dict, List, Optional, Union
 from urllib.parse import urlencode
@@ -15,15 +16,17 @@ from titiler.api import utils
 from titiler.api.deps import (
     CommonImageParams,
     CommonMetadataParams,
+    CommonTileParams,
     TileMatrixSetNames,
     morecantile,
+    request_hash,
 )
 from titiler.db.memcache import CacheLayer
 from titiler.models.mapbox import TileJSON
 from titiler.models.metadata import cogBounds, cogInfo, cogMetadata
 from titiler.ressources.common import drivers
 from titiler.ressources.enums import ImageMimeTypes, ImageType
-from titiler.ressources.responses import TileResponse
+from titiler.ressources.responses import ImgResponse
 from titiler.templates.factory import web_template
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
@@ -84,20 +87,9 @@ async def stac_metadata(
     resp: Response,
     url: str = Query(..., description="STAC item URL."),
     assets: str = Query(..., description="comma (,) separated list of asset names."),
-    metadata_params: CommonMetadataParams = Depends(CommonMetadataParams),
+    metadata_params: CommonMetadataParams = Depends(),
 ):
     """Return the metadata of the COG."""
-    kwargs = dict(request.query_params)
-    kwargs.pop("url", None)
-    kwargs.pop("bidx", None)
-    kwargs.pop("nodata", None)
-    kwargs.pop("pmin", None)
-    kwargs.pop("pmax", None)
-    kwargs.pop("max_size", None)
-    kwargs.pop("histogram_bins", None)
-    kwargs.pop("histogram_range", None)
-    kwargs.pop("assets", None)
-
     with STACReader(url) as stac:
         info = stac.metadata(
             assets.split(","),
@@ -107,7 +99,8 @@ async def stac_metadata(
             indexes=metadata_params.indexes,
             max_size=metadata_params.max_size,
             hist_options=metadata_params.hist_options,
-            **kwargs,
+            bounds=metadata_params.bounds,
+            **metadata_params.kwargs,
         )
 
     resp.headers["Cache-Control"] = "max-age=3600"
@@ -127,18 +120,18 @@ params: Dict[str, Any] = {
             "description": "Return an image.",
         }
     },
-    "response_class": TileResponse,
+    "response_class": ImgResponse,
 }
 
 
 @router.get(r"/tiles/{z}/{x}/{y}", **params)
-@router.get(r"/tiles/{z}/{x}/{y}\.{ext}", **params)
+@router.get(r"/tiles/{z}/{x}/{y}\.{format}", **params)
 @router.get(r"/tiles/{z}/{x}/{y}@{scale}x", **params)
-@router.get(r"/tiles/{z}/{x}/{y}@{scale}x\.{ext}", **params)
+@router.get(r"/tiles/{z}/{x}/{y}@{scale}x\.{format}", **params)
 @router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}", **params)
-@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}\.{ext}", **params)
+@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}\.{format}", **params)
 @router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x", **params)
-@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x\.{ext}", **params)
+@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x\.{format}", **params)
 async def stac_tile(
     z: int = Path(..., ge=0, le=30, description="Mercator tiles's zoom level"),
     x: int = Path(..., description="Mercator tiles's column"),
@@ -150,11 +143,12 @@ async def stac_tile(
     scale: int = Query(
         1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
     ),
-    ext: ImageType = Query(None, description="Output image type. Default is auto."),
+    format: ImageType = Query(None, description="Output image type. Default is auto."),
     url: str = Query(..., description="STAC Item URL."),
     assets: str = Query("", description="comma (,) separated list of asset names."),
-    image_params: CommonImageParams = Depends(CommonImageParams),
+    image_params: CommonTileParams = Depends(),
     cache_client: CacheLayer = Depends(utils.get_cache),
+    request_id: str = Depends(request_hash),
 ):
     """Create map tile from a STAC item."""
     timings = []
@@ -166,29 +160,14 @@ async def stac_tile(
             detail="Must pass Expression or Asset list.",
         )
 
-    tile_hash = utils.get_hash(
-        **dict(
-            identifier=TileMatrixSetId.name,
-            z=z,
-            x=x,
-            y=y,
-            ext=ext,
-            scale=scale,
-            url=url,
-            indexes=image_params.indexes,
-            nodata=image_params.nodata,
-            rescale=image_params.rescale,
-            color_formula=image_params.color_formula,
-            color_map=image_params.color_map,
-        )
-    )
     tilesize = scale * 256
     tms = morecantile.tms.get(TileMatrixSetId.name)
 
     content = None
     if cache_client:
         try:
-            content, ext = cache_client.get_image_from_cache(tile_hash)
+            content, ext = cache_client.get_image_from_cache(request_id)
+            format = ImageType[ext]
             headers["X-Cache"] = "HIT"
         except Exception:
             content = None
@@ -208,8 +187,8 @@ async def stac_tile(
                 )
         timings.append(("Read", t.elapsed))
 
-        if not ext:
-            ext = ImageType.jpg if mask.all() else ImageType.png
+        if not format:
+            format = ImageType.jpg if mask.all() else ImageType.png
 
         with utils.Timer() as t:
             tile = utils.postprocess(
@@ -221,15 +200,15 @@ async def stac_tile(
         timings.append(("Post-process", t.elapsed))
 
         with utils.Timer() as t:
-            if ext == ImageType.npy:
+            if format == ImageType.npy:
                 sio = BytesIO()
                 numpy.save(sio, (tile, mask))
                 sio.seek(0)
                 content = sio.getvalue()
             else:
-                driver = drivers[ext.value]
+                driver = drivers[format.value]
                 options = img_profiles.get(driver.lower(), {})
-                if ext == ImageType.tif:
+                if format == ImageType.tif:
                     bounds = tms.xy_bounds(x, y, z)
                     dst_transform = from_bounds(*bounds, tilesize, tilesize)
                     options = {"crs": tms.crs, "transform": dst_transform}
@@ -243,16 +222,213 @@ async def stac_tile(
         timings.append(("Format", t.elapsed))
 
         if cache_client and content:
-            cache_client.set_image_cache(tile_hash, (content, ext))
+            cache_client.set_image_cache(request_id, (content, format.value))
 
     if timings:
         headers["X-Server-Timings"] = "; ".join(
             ["{} - {:0.2f}".format(name, time * 1000) for (name, time) in timings]
         )
 
-    return TileResponse(
-        content, media_type=ImageMimeTypes[ext.value].value, headers=headers,
+    return ImgResponse(
+        content, media_type=ImageMimeTypes[format.value].value, headers=headers,
     )
+
+
+@router.get(r"/preview", **params)
+@router.get(r"/preview\.{format}", **params)
+async def stac_preview(
+    format: ImageType = Query(None, description="Output image type. Default is auto."),
+    url: str = Query(..., description="STAC Item URL."),
+    assets: str = Query("", description="comma (,) separated list of asset names."),
+    image_params: CommonImageParams = Depends(),
+):
+    """Create preview of STAC assets."""
+    timings = []
+    headers: Dict[str, str] = {}
+
+    if not image_params.expression and not assets:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Must pass Expression or Asset list.",
+        )
+
+    with utils.Timer() as t:
+        with STACReader(url) as stac:
+            data, mask = stac.preview(
+                assets=assets.split(","),
+                expression=image_params.expression,
+                max_size=image_params.max_size,
+                indexes=image_params.indexes,
+                nodata=image_params.nodata,
+                **image_params.kwargs,
+            )
+    timings.append(("Read", t.elapsed))
+
+    if not format:
+        format = ImageType.jpg if mask.all() else ImageType.png
+
+    with utils.Timer() as t:
+        data = utils.postprocess(
+            data,
+            mask,
+            rescale=image_params.rescale,
+            color_formula=image_params.color_formula,
+        )
+    timings.append(("Post-process", t.elapsed))
+
+    with utils.Timer() as t:
+        if format == ImageType.npy:
+            sio = BytesIO()
+            numpy.save(sio, (data, mask))
+            sio.seek(0)
+            content = sio.getvalue()
+        else:
+            driver = drivers[format.value]
+            options = img_profiles.get(driver.lower(), {})
+            content = render(
+                data,
+                mask,
+                img_format=driver,
+                colormap=image_params.color_map,
+                **options,
+            )
+    timings.append(("Format", t.elapsed))
+
+    if timings:
+        headers["X-Server-Timings"] = "; ".join(
+            ["{} - {:0.2f}".format(name, time * 1000) for (name, time) in timings]
+        )
+
+    return ImgResponse(
+        content, media_type=ImageMimeTypes[format.value].value, headers=headers,
+    )
+
+
+# @router.get(r"/crop/{minx},{miny},{maxx},{maxy}", **params)
+@router.get(r"/crop/{minx},{miny},{maxx},{maxy}\.{format}", **params)
+async def stac_part(
+    minx: float = Path(..., description="Bounding box min X"),
+    miny: float = Path(..., description="Bounding box min Y"),
+    maxx: float = Path(..., description="Bounding box max X"),
+    maxy: float = Path(..., description="Bounding box max Y"),
+    format: ImageType = Query(None, description="Output image type."),
+    url: str = Query(..., description="STAC Item URL."),
+    assets: str = Query("", description="comma (,) separated list of asset names."),
+    image_params: CommonImageParams = Depends(),
+):
+    """Create image from part of STAC assets."""
+    timings = []
+    headers: Dict[str, str] = {}
+
+    if not image_params.expression and not assets:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Must pass Expression or Asset list.",
+        )
+
+    with utils.Timer() as t:
+        with STACReader(url) as stac:
+            data, mask = stac.part(
+                [minx, miny, maxx, maxy],
+                max_size=image_params.max_size,
+                assets=assets.split(","),
+                expression=image_params.expression,
+                indexes=image_params.indexes,
+                nodata=image_params.nodata,
+                **image_params.kwargs,
+            )
+    timings.append(("Read", t.elapsed))
+
+    with utils.Timer() as t:
+        data = utils.postprocess(
+            data,
+            mask,
+            rescale=image_params.rescale,
+            color_formula=image_params.color_formula,
+        )
+    timings.append(("Post-process", t.elapsed))
+
+    with utils.Timer() as t:
+        if format == ImageType.npy:
+            sio = BytesIO()
+            numpy.save(sio, (data, mask))
+            sio.seek(0)
+            content = sio.getvalue()
+        else:
+            driver = drivers[format.value]
+            options = img_profiles.get(driver.lower(), {})
+            content = render(
+                data,
+                mask,
+                img_format=driver,
+                colormap=image_params.color_map,
+                **options,
+            )
+    timings.append(("Format", t.elapsed))
+
+    if timings:
+        headers["X-Server-Timings"] = "; ".join(
+            ["{} - {:0.2f}".format(name, time * 1000) for (name, time) in timings]
+        )
+
+    return ImgResponse(
+        content, media_type=ImageMimeTypes[format.value].value, headers=headers,
+    )
+
+
+@router.get(
+    r"/point/{lon},{lat}",
+    responses={200: {"description": "Return a value for a point"}},
+)
+async def cog_point(
+    lon: float = Path(..., description="Longitude"),
+    lat: float = Path(..., description="Latitude"),
+    url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
+    assets: str = Query("", description="comma (,) separated list of asset names."),
+    expression: Optional[str] = Query(
+        None,
+        title="Band Math expression",
+        description="rio-tiler's band math expression (e.g B1/B2)",
+    ),
+    bidx: Optional[str] = Query(
+        None, title="Band indexes", description="comma (',') delimited band indexes",
+    ),
+    asset_expression: Optional[str] = Query(
+        None,
+        title="Band Math expression for assets bands",
+        description="rio-tiler's band math expression (e.g B1/B2)",
+    ),
+):
+    """Get Point value for a COG."""
+    if not expression and not assets:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Must pass Expression or Asset list.",
+        )
+
+    indexes = tuple(int(s) for s in re.findall(r"\d+", bidx)) if bidx else None
+
+    timings = []
+    headers: Dict[str, str] = {}
+
+    with utils.Timer() as t:
+        with STACReader(url) as stac:
+            values = stac.point(
+                lon,
+                lat,
+                assets=assets,
+                expression=expression,
+                indexes=indexes,
+                asset_expression=asset_expression,
+            )
+    timings.append(("Read", t.elapsed))
+
+    if timings:
+        headers["X-Server-Timings"] = "; ".join(
+            ["{} - {:0.2f}".format(name, time * 1000) for (name, time) in timings]
+        )
+
+    return {"coordinates": [lon, lat], "values": values}
 
 
 @router.get(

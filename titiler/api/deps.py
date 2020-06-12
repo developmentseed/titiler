@@ -8,10 +8,13 @@ import morecantile
 import numpy
 from rio_tiler.colormap import cmap
 
+from titiler.api.utils import get_hash
 from titiler.custom import cmap as custom_colormap
 from titiler.custom import tms as custom_tms
 
 from fastapi import Query
+
+from starlette.requests import Request
 
 ################################################################################
 #                       CMAP AND TMS Customization
@@ -32,11 +35,17 @@ ColorMapName = Enum("ColorMapNames", [(a, a) for a in sorted(cmap.list())])  # t
 TileMatrixSetNames = Enum("TileMatrixSetNames", [(a, a) for a in sorted(morecantile.tms.list())])  # type: ignore
 
 
-class CommonImageParams:
-    """Common Image parameters."""
+async def request_hash(request: Request) -> str:
+    """Create SHA224 id from reuqest."""
+    return get_hash(**dict(request.query_params), **request.path_params)
+
+
+class CommonTileParams:
+    """Common Tile parameters."""
 
     def __init__(
         self,
+        request: Request,
         bidx: Optional[str] = Query(
             None,
             title="Band indexes",
@@ -73,6 +82,77 @@ class CommonImageParams:
         self.rescale = rescale
         self.color_formula = color_formula
         self.color_map = cmap.get(color_map.value) if color_map else None
+        kwargs = dict(request.query_params)
+        kwargs.pop("TileMatrixSetId", None)
+        kwargs.pop("url", None)
+        kwargs.pop("scale", None)
+        kwargs.pop("format", None)
+        kwargs.pop("bidx", None)
+        kwargs.pop("expression", None)
+        kwargs.pop("nodata", None)
+        kwargs.pop("rescale", None)
+        kwargs.pop("color_formula", None)
+        kwargs.pop("color_map", None)
+        kwargs.pop("assets", None)  # For STAC
+        self.kwargs = kwargs
+
+
+class CommonImageParams:
+    """Common Image parameters."""
+
+    def __init__(
+        self,
+        request: Request,
+        bidx: Optional[str] = Query(
+            None,
+            title="Band indexes",
+            description="comma (',') delimited band indexes",
+        ),
+        expression: Optional[str] = Query(
+            None,
+            title="Band Math expression",
+            description="rio-tiler's band math expression (e.g B1/B2)",
+        ),
+        max_size: int = Query(1024, description="Maximum image size to read onto."),
+        nodata: Optional[Union[str, int, float]] = Query(
+            None, title="Nodata value", description="Overwrite internal Nodata value"
+        ),
+        rescale: Optional[str] = Query(
+            None,
+            title="Min/Max data Rescaling",
+            description="comma (',') delimited Min,Max bounds",
+        ),
+        color_formula: Optional[str] = Query(
+            None,
+            title="Color Formula",
+            description="rio-color formula (info: https://github.com/mapbox/rio-color)",
+        ),
+        color_map: Optional[ColorMapName] = Query(
+            None, description="rio-tiler's colormap name"
+        ),
+    ):
+        """Populate Imager Params."""
+        self.indexes = tuple(int(s) for s in re.findall(r"\d+", bidx)) if bidx else None
+        self.expression = expression
+        self.max_size = max_size
+        if nodata is not None:
+            nodata = numpy.nan if nodata == "nan" else float(nodata)
+        self.nodata = nodata
+        self.rescale = rescale
+        self.color_formula = color_formula
+        self.color_map = cmap.get(color_map.value) if color_map else None
+        kwargs = dict(request.query_params)
+        kwargs.pop("url", None)
+        kwargs.pop("format", None)
+        kwargs.pop("bidx", None)
+        kwargs.pop("expression", None)
+        kwargs.pop("nodata", None)
+        kwargs.pop("rescale", None)
+        kwargs.pop("color_formula", None)
+        kwargs.pop("color_map", None)
+        kwargs.pop("max_size", None)
+        kwargs.pop("assets", None)  # For STAC
+        self.kwargs = kwargs
 
 
 class CommonMetadataParams:
@@ -80,6 +160,7 @@ class CommonMetadataParams:
 
     def __init__(
         self,
+        request: Request,
         bidx: Optional[str] = Query(
             None,
             title="Band indexes",
@@ -94,6 +175,10 @@ class CommonMetadataParams:
         histogram_bins: Optional[int] = Query(None, description="Histogram bins."),
         histogram_range: Optional[str] = Query(
             None, description="comma (',') delimited Min,Max histogram bounds"
+        ),
+        bounds: Optional[str] = Query(
+            None,
+            descriptions="comma (',') delimited Bounding box coordinates from which to calculate image statistics.",
         ),
     ):
         """Populate Imager Params."""
@@ -111,3 +196,17 @@ class CommonMetadataParams:
             self.hist_options.update(
                 dict(range=list(map(float, histogram_range.split(","))))
             )
+        self.bounds = tuple(map(float, bounds.split(","))) if bounds else None
+
+        kwargs = dict(request.query_params)
+        kwargs.pop("url", None)
+        kwargs.pop("bidx", None)
+        kwargs.pop("nodata", None)
+        kwargs.pop("pmin", None)
+        kwargs.pop("pmax", None)
+        kwargs.pop("max_size", None)
+        kwargs.pop("histogram_bins", None)
+        kwargs.pop("histogram_range", None)
+        kwargs.pop("bounds", None)
+        kwargs.pop("assets", None)  # For STAC
+        self.kwargs = kwargs

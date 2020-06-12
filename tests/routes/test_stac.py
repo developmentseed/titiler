@@ -146,3 +146,98 @@ def test_viewer(app):
     assert response.status_code == 200
     assert response.headers["content-type"] == "text/html; charset=utf-8"
     assert response.headers["content-encoding"] == "gzip"
+
+
+@patch("stac_tiler.reader.COGReader")
+@patch("titiler.api.endpoints.stac.STACReader")
+def test_preview(stac_reader, cog_reader, app):
+    """test preview endpoints."""
+    stac_reader.side_effect = mock_STACreader
+    cog_reader.side_effect = mock_COGreader
+
+    response = app.get("/stac/preview?url=https://myurl.com/item.json")
+    assert response.status_code == 403
+
+    response = app.get(
+        "/stac/preview?url=https://myurl.com/item.json&assets=B01&rescale=0,1000&max_size=64"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/png"
+    meta = parse_img(response.content)
+    assert meta["width"] == 64
+    assert meta["height"] == 64
+
+    response = app.get(
+        "/stac/preview?url=https://myurl.com/item.json&expression=B01&rescale=0,1000&max_size=64"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/png"
+    meta = parse_img(response.content)
+    assert meta["width"] == 64
+    assert meta["height"] == 64
+
+
+@patch("stac_tiler.reader.COGReader")
+@patch("titiler.api.endpoints.stac.STACReader")
+def test_part(stac_reader, cog_reader, app):
+    """test crop endpoints."""
+    stac_reader.side_effect = mock_STACreader
+    cog_reader.side_effect = mock_COGreader
+
+    response = app.get(
+        "/stac/crop/23.878,32.063,23.966,32.145.png?url=https://myurl.com/item.json"
+    )
+    assert response.status_code == 403
+
+    response = app.get(
+        "/stac/crop/23.878,32.063,23.966,32.145.png?url=https://myurl.com/item.json&assets=B01&rescale=0,1000&max_size=64"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/png"
+    meta = parse_img(response.content)
+    assert meta["width"] == 15
+    assert meta["height"] == 16
+
+    response = app.get(
+        "/stac/crop/23.878,32.063,23.966,32.145.png?url=https://myurl.com/item.json&expression=B01&rescale=0,1000&max_size=64"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/png"
+    meta = parse_img(response.content)
+    assert meta["width"] == 15
+    assert meta["height"] == 16
+
+
+@patch("stac_tiler.reader.COGReader")
+@patch("titiler.api.endpoints.stac.STACReader")
+def test_point(stac_reader, cog_reader, app):
+    """test crop endpoints."""
+    stac_reader.side_effect = mock_STACreader
+    cog_reader.side_effect = mock_COGreader
+
+    response = app.get("/stac/point/23.878,32.063?url=https://myurl.com/item.json")
+    assert response.status_code == 403
+
+    response = app.get(
+        "/stac/point/23.878,32.063?url=https://myurl.com/item.json&assets=B01"
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["coordinates"] == [23.878, 32.063]
+    assert body["values"] == [[3565]]
+
+    response = app.get(
+        "/stac/point/23.878,32.063?url=https://myurl.com/item.json&assets=B01&asset_expression=b1*2"
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["coordinates"] == [23.878, 32.063]
+    assert body["values"] == [[7130]]
+
+    response = app.get(
+        "/stac/point/23.878,32.063?url=https://myurl.com/item.json&expression=B01/B09"
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["coordinates"] == [23.878, 32.063]
+    assert round(body["values"][0][0], 2) == 0.49

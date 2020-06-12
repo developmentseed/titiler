@@ -23,6 +23,21 @@ def test_bounds(reader, app):
 
 
 @patch("titiler.api.endpoints.cog.COGReader")
+def test_info(reader, app):
+    """test /info endpoint."""
+    reader.side_effect = mock_reader
+
+    response = app.get("/cog/info?url=https://myurl.com/cog.tif")
+    assert response.status_code == 200
+    body = response.json()
+    assert len(body["bounds"]) == 4
+    assert body["band_descriptions"] == [[1, "band1"]]
+    assert body["dtype"] == "uint16"
+    assert body["colorinterp"] == ["gray"]
+    assert body["nodata_type"] == "None"
+
+
+@patch("titiler.api.endpoints.cog.COGReader")
 def test_metadata(reader, app):
     """test /metadata endpoint."""
     reader.side_effect = mock_reader
@@ -37,6 +52,20 @@ def test_metadata(reader, app):
     assert body["dtype"] == "uint16"
     assert body["colorinterp"] == ["gray"]
     assert body["nodata_type"] == "None"
+
+    response = app.get(
+        "/cog/metadata?url=https://myurl.com/cog.tif&resampling_method=bilinear"
+    )
+    assert response.status_code == 200
+    body2 = response.json()
+    assert body2["statistics"] != body["statistics"]
+
+    response = app.get(
+        "/cog/metadata?url=https://myurl.com/cog.tif&bounds=-56.228,72.715,-54.547,73.188"
+    )
+    assert response.status_code == 200
+    body2 = response.json()
+    assert body2["statistics"] != body["statistics"]
 
     response = app.get(
         "/cog/metadata?url=https://myurl.com/cog.tif&histogram_bins=5&histogram_range=1,1000&nodata=0"
@@ -187,3 +216,75 @@ def test_viewer(app):
     assert response.status_code == 200
     assert response.headers["content-type"] == "text/html; charset=utf-8"
     assert response.headers["content-encoding"] == "gzip"
+
+
+@patch("titiler.api.endpoints.cog.COGReader")
+def test_preview(reader, app):
+    """test /preview endpoint."""
+    reader.side_effect = mock_reader
+
+    response = app.get(
+        "/cog/preview?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=256"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/jpeg"
+    meta = parse_img(response.content)
+    assert meta["width"] == 256
+    assert meta["height"] == 256
+    assert meta["driver"] == "JPEG"
+
+    response = app.get(
+        "/cog/preview.png?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=256"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/png"
+    meta = parse_img(response.content)
+    assert meta["width"] == 256
+    assert meta["height"] == 256
+    assert meta["driver"] == "PNG"
+
+    response = app.get(
+        "/cog/preview.npy?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=1024"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/x-binary"
+    t, m = numpy.load(BytesIO(response.content), allow_pickle=True)
+    assert t.shape == (1, 1024, 1021)
+    assert m.shape == (1024, 1021)
+
+
+@patch("titiler.api.endpoints.cog.COGReader")
+def test_part(reader, app):
+    """test /crop endpoint."""
+    reader.side_effect = mock_reader
+
+    response = app.get(
+        "/cog/crop/-56.228,72.715,-54.547,73.188.png?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=256"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/png"
+    meta = parse_img(response.content)
+    assert meta["width"] == 256
+    assert meta["height"] == 247
+    assert meta["driver"] == "PNG"
+
+    response = app.get(
+        "/cog/crop/-56.228,72.715,-54.547,73.188.npy?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=256"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/x-binary"
+    t, m = numpy.load(BytesIO(response.content), allow_pickle=True)
+    assert t.shape == (1, 247, 256)
+    assert m.shape == (247, 256)
+
+
+@patch("titiler.api.endpoints.cog.COGReader")
+def test_point(reader, app):
+    """test /point endpoint."""
+    reader.side_effect = mock_reader
+
+    response = app.get("/cog/point/-56.228,72.715?url=https://myurl.com/cog.tif")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    body = response.json()
+    assert body["coordinates"] == [-56.228, 72.715]

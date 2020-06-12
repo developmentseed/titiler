@@ -10,8 +10,8 @@ class XMLResponse(Response):
     media_type = "application/xml"
 
 
-class TileResponse(Response):
-    """Tiler's response."""
+class ImgResponse(Response):
+    """Image response."""
 
     def __init__(
         self,
@@ -22,7 +22,7 @@ class TileResponse(Response):
         background: BackgroundTask = None,
         ttl: int = 3600,
     ) -> None:
-        """Init tiler response."""
+        """Image response."""
         headers.update({"Content-Type": media_type})
         if ttl:
             headers.update({"Cache-Control": "max-age=3600"})
