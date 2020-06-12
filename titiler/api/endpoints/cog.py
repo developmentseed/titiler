@@ -1,6 +1,7 @@
 """API for Cloud Optimized GeoTIFF Dataset."""
 
 import os
+import re
 from io import BytesIO
 from typing import Any, Dict, Optional
 from urllib.parse import urlencode
@@ -15,15 +16,17 @@ from titiler.api import utils
 from titiler.api.deps import (
     CommonImageParams,
     CommonMetadataParams,
+    CommonTileParams,
     TileMatrixSetNames,
     morecantile,
+    request_hash,
 )
 from titiler.db.memcache import CacheLayer
 from titiler.models.mapbox import TileJSON
 from titiler.models.metadata import cogBounds, cogInfo, cogMetadata
 from titiler.ressources.common import drivers
 from titiler.ressources.enums import ImageMimeTypes, ImageType, MimeTypes
-from titiler.ressources.responses import TileResponse, XMLResponse
+from titiler.ressources.responses import ImgResponse, XMLResponse
 from titiler.templates.factory import web_template
 
 from fastapi import APIRouter, Depends, Path, Query
@@ -75,22 +78,11 @@ async def cog_info(
     responses={200: {"description": "Return the metadata of the COG."}},
 )
 async def cog_metadata(
-    request: Request,
     resp: Response,
     url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
-    metadata_params: CommonMetadataParams = Depends(CommonMetadataParams),
+    metadata_params: CommonMetadataParams = Depends(),
 ):
     """Return the metadata of the COG."""
-    kwargs = dict(request.query_params)
-    kwargs.pop("url", None)
-    kwargs.pop("bidx", None)
-    kwargs.pop("nodata", None)
-    kwargs.pop("pmin", None)
-    kwargs.pop("pmax", None)
-    kwargs.pop("max_size", None)
-    kwargs.pop("histogram_bins", None)
-    kwargs.pop("histogram_range", None)
-
     with COGReader(url) as cog:
         info = cog.info
         stats = cog.stats(
@@ -100,7 +92,8 @@ async def cog_metadata(
             indexes=metadata_params.indexes,
             max_size=metadata_params.max_size,
             hist_options=metadata_params.hist_options,
-            **kwargs,
+            bounds=metadata_params.bounds,
+            **metadata_params.kwargs,
         )
         info["statistics"] = stats
 
@@ -121,18 +114,18 @@ params: Dict[str, Any] = {
             "description": "Return an image.",
         }
     },
-    "response_class": TileResponse,
+    "response_class": ImgResponse,
 }
 
 
 @router.get(r"/tiles/{z}/{x}/{y}", **params)
-@router.get(r"/tiles/{z}/{x}/{y}\.{ext}", **params)
+@router.get(r"/tiles/{z}/{x}/{y}\.{format}", **params)
 @router.get(r"/tiles/{z}/{x}/{y}@{scale}x", **params)
-@router.get(r"/tiles/{z}/{x}/{y}@{scale}x\.{ext}", **params)
+@router.get(r"/tiles/{z}/{x}/{y}@{scale}x\.{format}", **params)
 @router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}", **params)
-@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}\.{ext}", **params)
+@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}\.{format}", **params)
 @router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x", **params)
-@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x\.{ext}", **params)
+@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x\.{format}", **params)
 async def cog_tile(
     z: int = Path(..., ge=0, le=30, description="Mercator tiles's zoom level"),
     x: int = Path(..., description="Mercator tiles's column"),
@@ -144,38 +137,24 @@ async def cog_tile(
     scale: int = Query(
         1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
     ),
-    ext: ImageType = Query(None, description="Output image type. Default is auto."),
+    format: ImageType = Query(None, description="Output image type. Default is auto."),
     url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
-    image_params: CommonImageParams = Depends(CommonImageParams),
+    image_params: CommonTileParams = Depends(),
     cache_client: CacheLayer = Depends(utils.get_cache),
+    request_id: str = Depends(request_hash),
 ):
     """Create map tile from a COG."""
     timings = []
     headers: Dict[str, str] = {}
 
-    tile_hash = utils.get_hash(
-        **dict(
-            identifier=TileMatrixSetId.name,
-            z=z,
-            x=x,
-            y=y,
-            ext=ext,
-            scale=scale,
-            url=url,
-            indexes=image_params.indexes,
-            nodata=image_params.nodata,
-            rescale=image_params.rescale,
-            color_formula=image_params.color_formula,
-            color_map=image_params.color_map,
-        )
-    )
     tilesize = scale * 256
     tms = morecantile.tms.get(TileMatrixSetId.name)
 
     content = None
     if cache_client:
         try:
-            content, ext = cache_client.get_image_from_cache(tile_hash)
+            content, ext = cache_client.get_image_from_cache(request_id)
+            format = ImageType[ext]
             headers["X-Cache"] = "HIT"
         except Exception:
             content = None
@@ -191,13 +170,13 @@ async def cog_tile(
                     indexes=image_params.indexes,
                     expression=image_params.expression,
                     nodata=image_params.nodata,
+                    **image_params.kwargs,
                 )
                 colormap = image_params.color_map or cog.colormap
-
         timings.append(("Read", t.elapsed))
 
-        if not ext:
-            ext = ImageType.jpg if mask.all() else ImageType.png
+        if not format:
+            format = ImageType.jpg if mask.all() else ImageType.png
 
         with utils.Timer() as t:
             tile = utils.postprocess(
@@ -209,15 +188,15 @@ async def cog_tile(
         timings.append(("Post-process", t.elapsed))
 
         with utils.Timer() as t:
-            if ext == ImageType.npy:
+            if format == ImageType.npy:
                 sio = BytesIO()
                 numpy.save(sio, (tile, mask))
                 sio.seek(0)
                 content = sio.getvalue()
             else:
-                driver = drivers[ext.value]
+                driver = drivers[format.value]
                 options = img_profiles.get(driver.lower(), {})
-                if ext == ImageType.tif:
+                if format == ImageType.tif:
                     bounds = tms.xy_bounds(x, y, z)
                     dst_transform = from_bounds(*bounds, tilesize, tilesize)
                     options = {"crs": tms.crs, "transform": dst_transform}
@@ -227,16 +206,172 @@ async def cog_tile(
         timings.append(("Format", t.elapsed))
 
         if cache_client and content:
-            cache_client.set_image_cache(tile_hash, (content, ext))
+            cache_client.set_image_cache(request_id, (content, format.value))
 
     if timings:
         headers["X-Server-Timings"] = "; ".join(
             ["{} - {:0.2f}".format(name, time * 1000) for (name, time) in timings]
         )
 
-    return TileResponse(
-        content, media_type=ImageMimeTypes[ext.value].value, headers=headers,
+    return ImgResponse(
+        content, media_type=ImageMimeTypes[format.value].value, headers=headers,
     )
+
+
+@router.get(r"/preview", **params)
+@router.get(r"/preview\.{format}", **params)
+async def cog_preview(
+    format: ImageType = Query(None, description="Output image type. Default is auto."),
+    url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
+    image_params: CommonImageParams = Depends(),
+):
+    """Create preview of a COG."""
+    timings = []
+    headers: Dict[str, str] = {}
+
+    with utils.Timer() as t:
+        with COGReader(url) as cog:
+            data, mask = cog.preview(
+                max_size=image_params.max_size,
+                indexes=image_params.indexes,
+                expression=image_params.expression,
+                nodata=image_params.nodata,
+                **image_params.kwargs,
+            )
+            colormap = image_params.color_map or cog.colormap
+    timings.append(("Read", t.elapsed))
+
+    if not format:
+        format = ImageType.jpg if mask.all() else ImageType.png
+
+    with utils.Timer() as t:
+        data = utils.postprocess(
+            data,
+            mask,
+            rescale=image_params.rescale,
+            color_formula=image_params.color_formula,
+        )
+    timings.append(("Post-process", t.elapsed))
+
+    with utils.Timer() as t:
+        if format == ImageType.npy:
+            sio = BytesIO()
+            numpy.save(sio, (data, mask))
+            sio.seek(0)
+            content = sio.getvalue()
+        else:
+            driver = drivers[format.value]
+            options = img_profiles.get(driver.lower(), {})
+            content = render(
+                data, mask, img_format=driver, colormap=colormap, **options
+            )
+    timings.append(("Format", t.elapsed))
+
+    if timings:
+        headers["X-Server-Timings"] = "; ".join(
+            ["{} - {:0.2f}".format(name, time * 1000) for (name, time) in timings]
+        )
+
+    return ImgResponse(
+        content, media_type=ImageMimeTypes[format.value].value, headers=headers,
+    )
+
+
+# @router.get(r"/crop/{minx},{miny},{maxx},{maxy}", **params)
+@router.get(r"/crop/{minx},{miny},{maxx},{maxy}\.{format}", **params)
+async def cog_part(
+    minx: float = Path(..., description="Bounding box min X"),
+    miny: float = Path(..., description="Bounding box min Y"),
+    maxx: float = Path(..., description="Bounding box max X"),
+    maxy: float = Path(..., description="Bounding box max Y"),
+    format: ImageType = Query(None, description="Output image type."),
+    url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
+    image_params: CommonImageParams = Depends(),
+):
+    """Create image from part of a COG."""
+    timings = []
+    headers: Dict[str, str] = {}
+
+    with utils.Timer() as t:
+        with COGReader(url) as cog:
+            data, mask = cog.part(
+                [minx, miny, maxx, maxy],
+                max_size=image_params.max_size,
+                indexes=image_params.indexes,
+                expression=image_params.expression,
+                nodata=image_params.nodata,
+                **image_params.kwargs,
+            )
+            colormap = image_params.color_map or cog.colormap
+    timings.append(("Read", t.elapsed))
+
+    with utils.Timer() as t:
+        data = utils.postprocess(
+            data,
+            mask,
+            rescale=image_params.rescale,
+            color_formula=image_params.color_formula,
+        )
+    timings.append(("Post-process", t.elapsed))
+
+    with utils.Timer() as t:
+        if format == ImageType.npy:
+            sio = BytesIO()
+            numpy.save(sio, (data, mask))
+            sio.seek(0)
+            content = sio.getvalue()
+        else:
+            driver = drivers[format.value]
+            options = img_profiles.get(driver.lower(), {})
+            content = render(
+                data, mask, img_format=driver, colormap=colormap, **options
+            )
+    timings.append(("Format", t.elapsed))
+
+    if timings:
+        headers["X-Server-Timings"] = "; ".join(
+            ["{} - {:0.2f}".format(name, time * 1000) for (name, time) in timings]
+        )
+
+    return ImgResponse(
+        content, media_type=ImageMimeTypes[format.value].value, headers=headers,
+    )
+
+
+@router.get(
+    r"/point/{lon},{lat}",
+    responses={200: {"description": "Return a value for a point"}},
+)
+async def cog_point(
+    lon: float = Path(..., description="Longitude"),
+    lat: float = Path(..., description="Latitude"),
+    url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
+    bidx: Optional[str] = Query(
+        None, title="Band indexes", description="comma (',') delimited band indexes",
+    ),
+    expression: Optional[str] = Query(
+        None,
+        title="Band Math expression",
+        description="rio-tiler's band math expression (e.g B1/B2)",
+    ),
+):
+    """Get Point value for a COG."""
+    indexes = tuple(int(s) for s in re.findall(r"\d+", bidx)) if bidx else None
+
+    timings = []
+    headers: Dict[str, str] = {}
+
+    with utils.Timer() as t:
+        with COGReader(url) as cog:
+            values = cog.point(lon, lat, indexes=indexes, expression=expression)
+    timings.append(("Read", t.elapsed))
+
+    if timings:
+        headers["X-Server-Timings"] = "; ".join(
+            ["{} - {:0.2f}".format(name, time * 1000) for (name, time) in timings]
+        )
+
+    return {"coordinates": [lon, lat], "values": values}
 
 
 @router.get(
