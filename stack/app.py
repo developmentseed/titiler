@@ -193,7 +193,7 @@ perms = None
 if config.BUCKET:
     perms = iam.PolicyStatement(
         actions=["s3:GetObject", "s3:HeadObject"],
-        resources=[f"arn:aws:s3:::{bucket}*" for bucket in config.BUCKET],
+        resources=[f"arn:aws:s3:::{bucket}" for bucket in config.BUCKET],
     )
 
 # Tag infrastructure

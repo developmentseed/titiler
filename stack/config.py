@@ -10,7 +10,7 @@ STAGE = os.environ.get("STAGE", "dev")
 ENV: Dict = {}
 
 # Add bucket where titiler can s3:GetObject/s3:HeadObject
-BUCKET: List = ["ds-satellite"]
+BUCKET: List = ["ds-satellite*", "*"]
 
 ################################################################################
 #                                                                              #
