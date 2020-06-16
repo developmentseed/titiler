@@ -3,7 +3,7 @@
 import os
 from typing import Dict, List, Optional
 
-PROJECT_NAME = "titiler"
+PROJECT_NAME = os.environ.get("PROJECT", "titiler")
 STAGE = os.environ.get("STAGE", "dev")
 
 # Additional environement variable to set in the task/lambda

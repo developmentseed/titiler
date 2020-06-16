@@ -60,6 +60,9 @@ The stack is deployed by the [aws cdk](https://aws.amazon.com/cdk/) utility. It 
 $ npm install cdk -g
 
 $ cdk bootstrap # Deploys the CDK toolkit stack into an AWS environment
+
+# in specific region
+$ cdk bootstrap aws://${AWS_ACCOUNT_ID}/eu-central-1
 ```
 
 2. Pre-Generate CFN template
@@ -70,7 +73,7 @@ $ cdk synth  # Synthesizes and prints the CloudFormation template for this stack
 3. Edit [stack/config.py](stack/config.py)
 
 ```python
-PROJECT_NAME = "titiler"
+PROJECT_NAME = os.environ.get("PROJECT", "titiler")
 STAGE = os.environ.get("STAGE", "dev")
 
 # // Service config
@@ -117,6 +120,9 @@ The Lambda stack is also deployed by the [aws cdk](https://aws.amazon.com/cdk/) 
 $ npm install cdk -g
 
 $ cdk bootstrap # Deploys the CDK toolkit stack into an AWS environment
+
+# in specific region
+$ cdk bootstrap aws://${AWS_ACCOUNT_ID}/eu-central-1
 ```
 
 2. Pre-Generate CFN template
@@ -128,7 +134,7 @@ $ cdk synth  # Synthesizes and prints the CloudFormation template for this stack
 
 ```python
 PROJECT_NAME = "titiler"
-STAGE = os.environ.get("STAGE", "dev")
+PROJECT_NAME = os.environ.get("PROJECT", "titiler")
 ...
 TIMEOUT: int = 10
 MEMORY: int = 512
@@ -138,6 +144,9 @@ MAX_CONCURRENT: int = 500
 4. Deploy  
 ```bash
 $ cdk deploy titiler-lambda-dev # Deploys the stack(s) titiler-lambda-dev in stack/app.py
+
+# in specific region
+$ AWS_DEFAULT_REGION=eu-central-1 AWS_REGION=eu-central-1 cdk deploy titiler-lambda-dev 
 ```
 
 </details>

@@ -86,12 +86,17 @@ class titilerLambdaStack(core.Stack):
 
     def create_package(self, code_dir: str) -> aws_lambda.Code:
         """Build docker image and create package."""
+        print("Creating lambda package [running in Docker]...")
         client = docker.from_env()
+
+        print("Building docker image...")
         client.images.build(
             path=code_dir,
             dockerfile="Dockerfiles/lambda/Dockerfile",
             tag="lambda:latest",
         )
+
+        print("Copying package.zip ...")
         client.containers.run(
             image="lambda:latest",
             command="/bin/sh -c 'cp /tmp/package.zip /local/package.zip'",
