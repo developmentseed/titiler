@@ -474,6 +474,8 @@ async def stac_tilejson(
     kwargs.pop("tile_format", None)
     kwargs.pop("tile_scale", None)
     kwargs.pop("TileMatrixSetId", None)
+    kwargs.pop("minzoom", None)
+    kwargs.pop("maxzoom", None)
 
     if not expression and not assets:
         raise HTTPException(
