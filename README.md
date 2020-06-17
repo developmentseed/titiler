@@ -1,6 +1,10 @@
-# titiler
 
-A lightweight Cloud Optimized GeoTIFF dynamic tile server.
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/10407788/84913491-99c3ac80-b088-11ea-846d-75db9e3ab31c.jpg"/>
+  <p align="center">A lightweight Cloud Optimized GeoTIFF dynamic tile server.</p>
+</p>
+
+# titiler
 
 [![CircleCI](https://circleci.com/gh/developmentseed/titiler.svg?style=svg)](https://circleci.com/gh/developmentseed/titiler)
 [![codecov](https://codecov.io/gh/developmentseed/titiler/branch/master/graph/badge.svg)](https://codecov.io/gh/developmentseed/titiler)
