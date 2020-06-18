@@ -2,7 +2,7 @@
 
 # Documentations
 
-## APIs
+## Routes
 
 - [Cloud Optimized GeoTIFF](COG.md) - `https://myendpoint/cog/*`
 - [SpatioTemporal Asset Catalog](STAC.md) - `https://myendpoint/stac/*`

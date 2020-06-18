@@ -42,7 +42,7 @@ $ docker-compose up
 
 # Docs
 
-[link](docs/README.md)
+Documentation can be found in [/docs](docs/)
 
 
 # Deployment

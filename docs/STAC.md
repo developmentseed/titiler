@@ -1,9 +1,9 @@
 
 # SpatioTemporal Asset Catalog - STAC
 
-## Tiles
+## Tiles - GET
 
-`:endpoint:/stac/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{ext}]`
+`:endpoint:/stac/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`
 
 - PathParams:
     - **TileMatrixSetId**: TileMatrixSet name, default is `WebMercatorQuad`. OPTIONAL
@@ -11,7 +11,7 @@
     - **x**: Mercator tiles's column.
     - **y**: Mercator tiles's row.
     - **scale**: Tile size scale, default is set to 1 (256x256). OPTIONAL
-    - **ext**: Output image format, default is set to None and will be either JPEG or PNG depending on masked value. OPTIONAL
+    - **format**: Output image format, default is set to None and will be either JPEG or PNG depending on masked value. OPTIONAL
 
 - QueryParams:
     - **url**: STAC Item URL. **REQUIRED**
@@ -26,12 +26,83 @@
 ***assets** OR **expression** is required
 
 Example: 
-- `https://myendpoint/cog/tiles/1/2/3?url=https://somewhere.com/item.json&assets=B01`
-- `https://myendpoint/cog/tiles/1/2/3.jpg?url=https://somewhere.com/item.json&assets=B01`
-- `https://myendpoint/cog/tiles/WorldCRS84Quad/1/2/3@2x.png?url=https://somewhere.com/item.json&assets=B01`
-- `https://myendpoint/cog/tiles/WorldCRS84Quad/1/2/3?url=https://somewhere.com/item.json&expression=B01/B02&rescale=0,1000&color_map=cfastie`
+- `https://myendpoint/stac/tiles/1/2/3?url=https://somewhere.com/item.json&assets=B01`
+- `https://myendpoint/stac/tiles/1/2/3.jpg?url=https://somewhere.com/item.json&assets=B01`
+- `https://myendpoint/stac/tiles/WorldCRS84Quad/1/2/3@2x.png?url=https://somewhere.com/item.json&assets=B01`
+- `https://myendpoint/stac/tiles/WorldCRS84Quad/1/2/3?url=https://somewhere.com/item.json&expression=B01/B02&rescale=0,1000&color_map=cfastie`
 
-## TilesJSON
+
+## Preview - GET
+
+`:endpoint:/stac/preview[.{format}]`
+
+- PathParams:
+    - **format**: Output image format, default is set to None and will be either JPEG or PNG depending on masked value. OPTIONAL
+
+- QueryParams:
+    - **url**: STAC Item URL. **REQUIRED**
+    - **assets**: Comma (',') delimited asset names. OPTIONAL*
+    - **expression**: rio-tiler's band math expression (e.g B1/B2). OPTIONAL
+    - **bidx**: Comma (',') delimited band indexes. OPTIONAL
+    - **nodata**: Overwrite internal Nodata value. OPTIONAL
+    - **max_size**: Max image size, default is 1024. OPTIONAL
+    - **rescale**: Comma (',') delimited Min,Max bounds. OPTIONAL
+    - **color_formula**: rio-color formula. OPTIONAL
+    - **color_map**: rio-tiler color map name. OPTIONAL
+
+***assets** OR **expression** is required
+
+Example: 
+- `https://myendpoint/stac/preview?url=https://somewhere.com/item.json&assets=B01`
+- `https://myendpoint/stac/preview.jpg?url=https://somewhere.com/item.json&assets=B01`
+- `https://myendpoint/stac/preview?url=https://somewhere.com/item.json&assets=B01&rescale=0,1000&color_map=cfastie`
+
+## Crop / Part - GET
+
+`:endpoint:/stac/crop/{minx},{miny},{maxx},{maxy}.{format}`
+
+- PathParams:
+    - **minx,miny,maxx,maxy**: Comma (',') delimited bounding box in WGS84.
+    - **format**: Output image format
+
+- QueryParams:
+    - **url**: STAC Item URL. **REQUIRED**
+    - **assets**: Comma (',') delimited asset names. OPTIONAL*
+    - **expression**: rio-tiler's band math expression (e.g B1/B2). OPTIONAL
+    - **bidx**: Comma (',') delimited band indexes. OPTIONAL
+    - **nodata**: Overwrite internal Nodata value. OPTIONAL
+    - **max_size**: Max image size, default is 1024. OPTIONAL
+    - **rescale**: Comma (',') delimited Min,Max bounds. OPTIONAL
+    - **color_formula**: rio-color formula. OPTIONAL
+    - **color_map**: rio-tiler color map name. OPTIONAL
+
+***assets** OR **expression** is required
+
+Example: 
+- `https://myendpoint/stac/crop/0,0,10,10.png?url=https://somewhere.com/item.json&assets=B01`
+- `https://myendpoint/stac/crop/0,0,10,10.png?url=https://somewhere.com/item.json&assets=B01&rescale=0,1000&color_map=cfastie`
+
+## Point - GET
+
+`:endpoint:/cog/point/{lon},{lat}`
+
+- PathParams:
+    - **lon,lat,**: Comma (',') delimited point Longitude and Latitude WGS84.
+
+- QueryParams:
+    - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
+    - **assets**: Comma (',') delimited asset names. OPTIONAL*
+    - **expression**: rio-tiler's band math expression (e.g B1/B2). OPTIONAL
+    - **bidx**: Comma (',') delimited band indexes. OPTIONAL
+    - **nodata**: Overwrite internal Nodata value. OPTIONAL
+
+***assets** OR **expression** is required
+
+Example: 
+- `https://myendpoint/stac/point/0,0?url=https://somewhere.com/item.json&assets=B01`
+
+
+## TilesJSON - GET
 
 `:endpoint:/stac/[{TileMatrixSetId}]/tilejson.json` - Get tileJSON document
 
@@ -55,7 +126,7 @@ Example:
 - `https://myendpoint/stac/tilejson.json?url=https://somewhere.com/item.json&assets=B01&tile_format=png`
 - `https://myendpoint/stac/WorldCRS84Quad/tilejson.json?url=https://somewhere.com/item.json&tile_scale=2&expression=B01/B02`
 
-## Bounds
+## Bounds - GET
 
 `:endpoint:/stac/bounds` - Return the bounds of the STAC item.
 
@@ -66,7 +137,7 @@ Example:
 - `https://myendpoint/stac/bounds?url=https://somewhere.com/item.json`
 
 
-## Info
+## Info - GET
 
 `:endpoint:/stac/info` - Return basic info on STAC item's COG.
 - QueryParams:
@@ -78,7 +149,7 @@ Note: If `assets` is not provided, `/stac/info` will return the list of assets.
 Example: 
 - `https://myendpoint/stac/info?url=https://somewhere.com/item.json&assets=B01`
 
-## Metadata
+## Metadata - GET
 
 `:endpoint:/stac/metadata` - Return metadata of STAC item's COG.
 - QueryParams:
@@ -95,7 +166,7 @@ Example:
 Example: 
 - `https://myendpoint/stac/metadata?https://somewhere.com/item.json&assets=B01`
 
-## Demo
+## Demo - GET
 
 `:endpoint:/stac/viewer` - STAC viewer
 
