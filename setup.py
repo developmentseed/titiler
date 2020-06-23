@@ -7,7 +7,7 @@ with open("README.md") as f:
 
 inst_reqs = [
     "email-validator",
-    "fastapi",
+    "fastapi>=0.54.0",
     "jinja2",
     "python-binary-memcached",
     "rio-color",
@@ -34,7 +34,7 @@ extra_reqs = {
 
 setup(
     name="titiler",
-    version="2.1.0",
+    version="2.1.1",
     description=u"",
     long_description=long_description,
     long_description_content_type="text/markdown",

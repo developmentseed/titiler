@@ -1,7 +1,10 @@
+2.1.1 (2020-06-22)
+------------------
+- add minimum fastapi version (0.54.0) and update docker config
+
 2.1.0 (2020-06-11)
 ------------------
 - add `/preview`, `/crop`, `/point` endpoints
-
 
 2.0.0 (2020-06-09)
 ------------------
