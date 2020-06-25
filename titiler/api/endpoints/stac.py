@@ -257,6 +257,8 @@ async def stac_preview(
             data, mask = stac.preview(
                 assets=assets.split(","),
                 expression=image_params.expression,
+                height=image_params.height,
+                width=image_params.width,
                 max_size=image_params.max_size,
                 indexes=image_params.indexes,
                 nodata=image_params.nodata,
@@ -330,6 +332,8 @@ async def stac_part(
         with STACReader(url) as stac:
             data, mask = stac.part(
                 [minx, miny, maxx, maxy],
+                height=image_params.height,
+                width=image_params.width,
                 max_size=image_params.max_size,
                 assets=assets.split(","),
                 expression=image_params.expression,
