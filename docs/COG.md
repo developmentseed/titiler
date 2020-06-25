@@ -21,6 +21,11 @@
     - **rescale**: Comma (',') delimited Min,Max bounds. OPTIONAL
     - **color_formula**: rio-color formula. OPTIONAL
     - **color_map**: rio-tiler color map name. OPTIONAL
+    - **resampling_method**: rasterio resampling method. Default is `nearest`.
+
+Additional parameters can be provided. See: 
+- https://github.com/cogeotiff/rio-tiler/blob/master/rio_tiler/reader.py#L140-L151
+- https://github.com/cogeotiff/rio-tiler/blob/master/rio_tiler/reader.py#L32-L44
 
 Example: 
 - `https://myendpoint/cog/tiles/1/2/3?url=https://somewhere.com/mycog.tif`
@@ -41,9 +46,17 @@ Example:
     - **expression**: rio-tiler's band math expression (e.g B1/B2). OPTIONAL
     - **nodata**: Overwrite internal Nodata value. OPTIONAL
     - **max_size**: Max image size, default is 1024. OPTIONAL
+    - **height**: Force output image height. OPTIONAL
+    - **width**: Force output image width. OPTIONAL
     - **rescale**: Comma (',') delimited Min,Max bounds. OPTIONAL
     - **color_formula**: rio-color formula. OPTIONAL
     - **color_map**: rio-tiler color map name. OPTIONAL
+    - **resampling_method**: rasterio resampling method. Default is `nearest`.
+
+Additional parameters can be provided. See: 
+- https://github.com/cogeotiff/rio-tiler/blob/master/rio_tiler/reader.py#L32-L44
+
+Note: if `height` and `width` are provided `max_size` will be ignored.
 
 Example: 
 - `https://myendpoint/cog/preview?url=https://somewhere.com/mycog.tif`
@@ -64,9 +77,18 @@ Example:
     - **expression**: rio-tiler's band math expression (e.g B1/B2). OPTIONAL
     - **nodata**: Overwrite internal Nodata value. OPTIONAL
     - **max_size**: Max image size, default is 1024. OPTIONAL
+    - **height**: Force output image height. OPTIONAL
+    - **width**: Force output image width. OPTIONAL
     - **rescale**: Comma (',') delimited Min,Max bounds. OPTIONAL
     - **color_formula**: rio-color formula. OPTIONAL
     - **color_map**: rio-tiler color map name. OPTIONAL
+    - **resampling_method**: rasterio resampling method. Default is `nearest`.
+
+Additional parameters can be provided. See: 
+- https://github.com/cogeotiff/rio-tiler/blob/master/rio_tiler/reader.py#L140-L151
+- https://github.com/cogeotiff/rio-tiler/blob/master/rio_tiler/reader.py#L32-L44
+
+Note: if `height` and `width` are provided `max_size` will be ignored.
 
 Example: 
 - `https://myendpoint/cog/crop/0,0,10,10.png?url=https://somewhere.com/mycog.tif`
@@ -141,6 +163,7 @@ Example:
     - **max_size**: Max image size from which to calculate statistics, default is 1024. OPTIONAL
     - **histogram_bins**: Histogram bins, default is 20. OPTIONAL
     - **histogram_range**: Comma (',') delimited histogram bounds. OPTIONAL
+    - **resampling_method**: rasterio resampling method. Default is `nearest`.
 
 Example: 
 - `https://myendpoint/cog/metadata?url=https://somewhere.com/mycog.tif&bidx=1,2,3`

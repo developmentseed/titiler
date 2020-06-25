@@ -1,3 +1,8 @@
+2.1.2 (2020-06-24)
+------------------
+- add `width` & `height` parameters in API docs to force output size for part/preview endpoints.
+- add `resampling_method` in API docs.
+
 2.1.1 (2020-06-22)
 ------------------
 - add minimum fastapi version (0.54.0) and update docker config

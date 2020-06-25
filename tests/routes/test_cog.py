@@ -179,6 +179,11 @@ def test_tile(reader, app):
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
 
+    response = app.get(
+        "/cog/tiles/8/53/50.png?url=https://myurl.com/above_cog.tif&bidx=1&color_map=above&resampling_method=somethingwrong"
+    )
+    assert response.status_code == 422
+
 
 @patch("titiler.api.endpoints.cog.COGReader")
 def test_tilejson(reader, app):
@@ -244,6 +249,16 @@ def test_preview(reader, app):
     assert meta["driver"] == "PNG"
 
     response = app.get(
+        "/cog/preview.png?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=128&width=512&height=512"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/png"
+    meta = parse_img(response.content)
+    assert meta["width"] == 512
+    assert meta["height"] == 512
+    assert meta["driver"] == "PNG"
+
+    response = app.get(
         "/cog/preview.npy?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=1024"
     )
     assert response.status_code == 200
@@ -266,6 +281,16 @@ def test_part(reader, app):
     meta = parse_img(response.content)
     assert meta["width"] == 256
     assert meta["height"] == 247
+    assert meta["driver"] == "PNG"
+
+    response = app.get(
+        "/cog/crop/-56.228,72.715,-54.547,73.188.png?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=256&width=512&height=512"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/png"
+    meta = parse_img(response.content)
+    assert meta["width"] == 512
+    assert meta["height"] == 512
     assert meta["driver"] == "PNG"
 
     response = app.get(

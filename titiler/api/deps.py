@@ -6,6 +6,7 @@ from typing import Any, Dict, Optional, Union
 
 import morecantile
 import numpy
+from rasterio.enums import Resampling
 from rio_tiler.colormap import cmap
 
 from titiler.api.utils import get_hash
@@ -31,8 +32,9 @@ cmap.register("above", custom_colormap.above_cmap)
 ################################################################################
 # DO NOT UPDATE
 # Create ENUMS with all CMAP and TMS for documentation and validation.
-ColorMapName = Enum("ColorMapNames", [(a, a) for a in sorted(cmap.list())])  # type: ignore
+ColorMapNames = Enum("ColorMapNames", [(a, a) for a in sorted(cmap.list())])  # type: ignore
 TileMatrixSetNames = Enum("TileMatrixSetNames", [(a, a) for a in sorted(morecantile.tms.list())])  # type: ignore
+ResamplingNames = Enum("ResamplingNames", [(r.name, r.name) for r in Resampling])  # type: ignore
 
 
 async def request_hash(request: Request) -> str:
@@ -69,8 +71,11 @@ class CommonTileParams:
             title="Color Formula",
             description="rio-color formula (info: https://github.com/mapbox/rio-color)",
         ),
-        color_map: Optional[ColorMapName] = Query(
+        color_map: Optional[ColorMapNames] = Query(
             None, description="rio-tiler's colormap name"
+        ),
+        resampling_method: ResamplingNames = Query(
+            ResamplingNames.nearest, description="Resampling method."  # type: ignore
         ),
     ):
         """Populate Imager Params."""
@@ -113,7 +118,11 @@ class CommonImageParams:
             title="Band Math expression",
             description="rio-tiler's band math expression (e.g B1/B2)",
         ),
-        max_size: int = Query(1024, description="Maximum image size to read onto."),
+        max_size: Optional[int] = Query(
+            1024, description="Maximum image size to read onto."
+        ),
+        height: Optional[int] = Query(None, description="Force output image height."),
+        width: Optional[int] = Query(None, description="Force output image width."),
         nodata: Optional[Union[str, int, float]] = Query(
             None, title="Nodata value", description="Overwrite internal Nodata value"
         ),
@@ -127,14 +136,21 @@ class CommonImageParams:
             title="Color Formula",
             description="rio-color formula (info: https://github.com/mapbox/rio-color)",
         ),
-        color_map: Optional[ColorMapName] = Query(
+        color_map: Optional[ColorMapNames] = Query(
             None, description="rio-tiler's colormap name"
+        ),
+        resampling_method: ResamplingNames = Query(
+            ResamplingNames.nearest, description="Resampling method."  # type: ignore
         ),
     ):
         """Populate Imager Params."""
         self.indexes = tuple(int(s) for s in re.findall(r"\d+", bidx)) if bidx else None
         self.expression = expression
         self.max_size = max_size
+        self.height = height
+        self.width = width
+        if self.width and self.height:
+            self.max_size = None
         if nodata is not None:
             nodata = numpy.nan if nodata == "nan" else float(nodata)
         self.nodata = nodata
@@ -150,6 +166,8 @@ class CommonImageParams:
         kwargs.pop("rescale", None)
         kwargs.pop("color_formula", None)
         kwargs.pop("color_map", None)
+        kwargs.pop("height", None)
+        kwargs.pop("width", None)
         kwargs.pop("max_size", None)
         kwargs.pop("assets", None)  # For STAC
         self.kwargs = kwargs
@@ -180,6 +198,9 @@ class CommonMetadataParams:
             None,
             descriptions="comma (',') delimited Bounding box coordinates from which to calculate image statistics.",
         ),
+        resampling_method: ResamplingNames = Query(
+            ResamplingNames.nearest, description="Resampling method."  # type: ignore
+        ),
     ):
         """Populate Imager Params."""
         self.indexes = tuple(int(s) for s in re.findall(r"\d+", bidx)) if bidx else None
@@ -197,7 +218,6 @@ class CommonMetadataParams:
                 dict(range=list(map(float, histogram_range.split(","))))
             )
         self.bounds = tuple(map(float, bounds.split(","))) if bounds else None
-
         kwargs = dict(request.query_params)
         kwargs.pop("url", None)
         kwargs.pop("bidx", None)

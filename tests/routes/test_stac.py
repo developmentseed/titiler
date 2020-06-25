@@ -168,6 +168,15 @@ def test_preview(stac_reader, cog_reader, app):
     assert meta["height"] == 64
 
     response = app.get(
+        "/stac/preview?url=https://myurl.com/item.json&assets=B01&rescale=0,1000&max_size=64&width=128&height=128"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/png"
+    meta = parse_img(response.content)
+    assert meta["width"] == 128
+    assert meta["height"] == 128
+
+    response = app.get(
         "/stac/preview?url=https://myurl.com/item.json&expression=B01&rescale=0,1000&max_size=64"
     )
     assert response.status_code == 200
@@ -197,6 +206,15 @@ def test_part(stac_reader, cog_reader, app):
     meta = parse_img(response.content)
     assert meta["width"] == 15
     assert meta["height"] == 16
+
+    response = app.get(
+        "/stac/crop/23.878,32.063,23.966,32.145.png?url=https://myurl.com/item.json&assets=B01&rescale=0,1000&max_size=64&width=128&height=128"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/png"
+    meta = parse_img(response.content)
+    assert meta["width"] == 128
+    assert meta["height"] == 128
 
     response = app.get(
         "/stac/crop/23.878,32.063,23.966,32.145.png?url=https://myurl.com/item.json&expression=B01&rescale=0,1000&max_size=64"

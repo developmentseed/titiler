@@ -232,6 +232,8 @@ async def cog_preview(
     with utils.Timer() as t:
         with COGReader(url) as cog:
             data, mask = cog.preview(
+                height=image_params.height,
+                width=image_params.width,
                 max_size=image_params.max_size,
                 indexes=image_params.indexes,
                 expression=image_params.expression,
@@ -296,6 +298,8 @@ async def cog_part(
         with COGReader(url) as cog:
             data, mask = cog.part(
                 [minx, miny, maxx, maxy],
+                height=image_params.height,
+                width=image_params.width,
                 max_size=image_params.max_size,
                 indexes=image_params.indexes,
                 expression=image_params.expression,
