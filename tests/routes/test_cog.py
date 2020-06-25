@@ -179,6 +179,11 @@ def test_tile(reader, app):
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
 
+    response = app.get(
+        "/cog/tiles/8/53/50.png?url=https://myurl.com/above_cog.tif&bidx=1&color_map=above&resampling_method=somethingwrong"
+    )
+    assert response.status_code == 422
+
 
 @patch("titiler.api.endpoints.cog.COGReader")
 def test_tilejson(reader, app):
