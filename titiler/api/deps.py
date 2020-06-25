@@ -87,7 +87,6 @@ class CommonTileParams:
         self.rescale = rescale
         self.color_formula = color_formula
         self.color_map = cmap.get(color_map.value) if color_map else None
-        self.resampling_method = resampling_method
         kwargs = dict(request.query_params)
         kwargs.pop("TileMatrixSetId", None)
         kwargs.pop("url", None)
@@ -99,7 +98,6 @@ class CommonTileParams:
         kwargs.pop("rescale", None)
         kwargs.pop("color_formula", None)
         kwargs.pop("color_map", None)
-        kwargs.pop("resampling_method", None)
         kwargs.pop("assets", None)  # For STAC
         self.kwargs = kwargs
 
