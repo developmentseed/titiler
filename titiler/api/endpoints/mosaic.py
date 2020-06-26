@@ -1,5 +1,6 @@
 """API for MosaicJSON Dataset."""
 import random
+from typing import Callable
 
 import mercantile
 from cogeo_mosaic.backends import MosaicBackend
@@ -11,10 +12,37 @@ from titiler.models.metadata import cogBounds, cogInfo
 from titiler.models.mosaic import CreateMosaicJSON, UpdateMosaicJSON
 
 from fastapi import APIRouter, Query
+from fastapi.routing import APIRoute
 
+from starlette.exceptions import HTTPException
+from starlette.requests import Request
 from starlette.responses import Response
 
-router = APIRouter()
+
+class MosaicJSONRouter(APIRoute):
+    """Custom router to temporarily forbid usage of cogeo-mosaic STAC backend"""
+
+    def get_route_handler(self) -> Callable:
+        """Override base method (https://fastapi.tiangolo.com/advanced/custom-request-and-route/)"""
+        original_route_handler = super().get_route_handler()
+
+        async def forbid_stac_backend(request: Request) -> Response:
+            url = request.query_params.get("url")
+            if not url:
+                body = await request.json()
+                url = body.get("url")
+            if url.startswith("stac"):
+                # Raise as a validation error
+                raise HTTPException(
+                    status_code=422,
+                    detail="STAC is not currently supported for mosaicjson endpoints",
+                )
+            return await original_route_handler(request)
+
+        return forbid_stac_backend
+
+
+router = APIRouter(route_class=MosaicJSONRouter)
 
 
 @router.post(
