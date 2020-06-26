@@ -22,7 +22,6 @@ class cogInfo(BaseModel):
     """COG Info."""
 
     bounds: Tuple[float, float, float, float]
-    band_metadata: List[Tuple[int, Dict[int, Any]]]
     band_descriptions: List[Tuple[int, str]]
     dtype: str
     colorinterp: List[str]
@@ -30,6 +29,7 @@ class cogInfo(BaseModel):
     scale: Optional[float]
     offsets: Optional[float]
     colormap: Optional[Dict[int, ColorTuple]]
+    band_metadata: Optional[List[Tuple[int, Dict[int, Any]]]]
 
     class Config:
         """Config for model."""

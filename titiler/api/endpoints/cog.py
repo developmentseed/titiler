@@ -60,7 +60,7 @@ async def cog_bounds(
     response_model_exclude_none=True,
     responses={200: {"description": "Return basic info on COG."}},
 )
-async def cog_info(
+def cog_info(
     resp: Response, url: str = Query(..., description="Cloud Optimized GeoTIFF URL.")
 ):
     """Return basic info on COG."""
