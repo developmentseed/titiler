@@ -29,6 +29,6 @@ _include_extra_router(
 _include_extra_router(
     api_router,
     module="titiler.api.endpoints.mosaic",
-    prefix="/mosaic",
+    prefix="/mosaicjson",
     tags=["MosaicJSON"],
 )
