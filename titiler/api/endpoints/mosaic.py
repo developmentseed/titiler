@@ -1,22 +1,41 @@
 """API for MosaicJSON Dataset."""
+import asyncio
 import random
-from typing import Callable
+from functools import partial
+from io import BytesIO
+from typing import Callable, Sequence
 
 import mercantile
+import numpy
 from cogeo_mosaic.backends import MosaicBackend
 from cogeo_mosaic.mosaic import MosaicJSON
 from cogeo_mosaic.utils import get_footprints
+from rio_tiler.io.cogeo import tile as cogeoTiler
+from rio_tiler.profiles import img_profiles
+from rio_tiler.utils import render
+from rio_tiler_mosaic.methods.defaults import FirstMethod
 
-from titiler.api.endpoints.cog import cog_info
+from titiler.api.endpoints.cog import cog_info, tile_response_codes
+from titiler.api.utils import postprocess
 from titiler.models.metadata import cogBounds, cogInfo
 from titiler.models.mosaic import CreateMosaicJSON, UpdateMosaicJSON
+from titiler.ressources.common import drivers
+from titiler.ressources.enums import ImageMimeTypes, ImageType
+from titiler.ressources.responses import ImgResponse
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Path, Query
 from fastapi.routing import APIRoute
 
+from starlette.concurrency import run_in_threadpool
 from starlette.exceptions import HTTPException
 from starlette.requests import Request
 from starlette.responses import Response
+
+
+def _chunks(my_list: Sequence, chuck_size: int):
+    """Yield successive n-sized chunks from l."""
+    for i in range(0, len(my_list), chuck_size):
+        yield my_list[i : i + chuck_size]
 
 
 class MosaicJSONRouter(APIRoute):
@@ -42,7 +61,7 @@ class MosaicJSONRouter(APIRoute):
         return forbid_stac_backend
 
 
-router = APIRouter(route_class=MosaicJSONRouter)
+router = APIRouter()
 
 
 @router.post(
@@ -126,3 +145,77 @@ def mosaicjson_info(
             response["quadkeys"] = list(mosaic_quadkeys)
             response = {**asset_info, **response}
         return response
+
+
+@router.get(r"/tiles/{z}/{x}/{y}", **tile_response_codes)
+@router.get(r"/tiles/{z}/{x}/{y}\.{format}", **tile_response_codes)
+@router.get(r"/tiles/{z}/{x}/{y}@{scale}x", **tile_response_codes)
+@router.get(r"/tiles/{z}/{x}/{y}@{scale}x\.{format}", **tile_response_codes)
+async def mosaic_tile(
+    z: int = Path(..., ge=0, le=30, description="Mercator tiles's zoom level"),
+    x: int = Path(..., description="Mercator tiles's column"),
+    y: int = Path(..., description="Mercator tiles's row"),
+    scale: int = Query(
+        1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
+    ),
+    format: ImageType = Query(None, description="Output image type. Default is auto."),
+    url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
+):
+    """Read MosaicJSON tile"""
+    # TODO: Maybe use ``read_mosaic`` defined above (depending on cache behavior which is still TBD)
+    with MosaicBackend(url) as mosaic:
+        assets = mosaic.tile(x=x, y=y, z=z)
+
+    tilesize = 256 * scale
+
+    # TODO: Parametrize pixsel method
+    pixel_selection = FirstMethod()
+
+    # Rio-tiler-mosaic uses an external ThreadPoolExecutor to process multiple assets at once but we want to use the
+    # executor provided by the event loop.  Instead of calling ``rio_tiler_mosaic.mosaic.mosaic_tiler`` directly we will
+    # transcribe the code here and use the executor provided by the event loop.  This also means we define this function
+    # as a coroutine (even though nothing that is called is a coroutine), since the event loop's executor isn't
+    # available in normal ``def`` functions.
+    # https://github.com/cogeotiff/rio-tiler-mosaic/blob/master/rio_tiler_mosaic/mosaic.py#L37-L102
+    _tiler = partial(cogeoTiler, tile_x=x, tile_y=y, tile_z=z, tilesize=tilesize)
+    futures = [run_in_threadpool(_tiler, asset) for asset in assets]
+
+    # TODO: parametrize concurrency
+    semaphore = asyncio.Semaphore(10)
+
+    async with semaphore:
+        for fut in asyncio.as_completed(futures):
+            try:
+                tile, mask = await fut
+            except Exception:
+                # Gracefully handle exceptions
+                continue
+
+            tile = numpy.ma.array(tile)
+            tile.mask = mask == 0
+            pixel_selection.feed(tile)
+            if pixel_selection.is_done:
+                break
+
+    # TODO: Raise exception if tile is empty
+
+    # TODO: Most of the code below may be deduped with /cog/tiles endpoint
+    if not format:
+        format = ImageType.jpg if mask.all() else ImageType.png
+
+    tile = postprocess(tile, mask)
+
+    if format == ImageType.npy:
+        sio = BytesIO()
+        numpy.save(sio, (tile, mask))
+        sio.seek(0)
+        content = sio.getvalue()
+    else:
+        driver = drivers[format.value]
+        options = img_profiles.get(driver.lower(), {})
+        # TODO: Support tif
+        if format == ImageType.tif:
+            raise Exception("Please support me")
+        content = render(tile, mask, img_format=driver, **options)
+
+    return ImgResponse(content, media_type=ImageMimeTypes[format.value].value)
