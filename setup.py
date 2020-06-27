@@ -16,7 +16,7 @@ inst_reqs = [
 extra_reqs = {
     "dev": ["pytest", "pytest-cov", "pytest-asyncio", "pre-commit"],
     "stac": ["stac-tiler~=0.0rc2"],
-    "mosaic": ["cogeo-mosaic==3.0a4"],
+    "mosaic": ["cogeo-mosaic==3.0a4", "rio-tiler-mosaic"],
     "server": ["uvicorn", "click==7.0"],
     "lambda": ["mangum>=0.9.0"],
     "deploy": [
