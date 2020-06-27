@@ -1,5 +1,6 @@
 """API for MosaicJSON Dataset."""
 import asyncio
+import os
 import random
 from functools import partial
 from io import BytesIO
@@ -193,8 +194,7 @@ async def mosaic_tile(
     )
     futures = [run_in_threadpool(_tiler, asset) for asset in assets]
 
-    # TODO: parametrize concurrency
-    semaphore = asyncio.Semaphore(10)
+    semaphore = asyncio.Semaphore(int(os.getenv("MOSAIC_CONCURRENCY", 10)))
 
     async with semaphore:
         for fut in asyncio.as_completed(futures):
