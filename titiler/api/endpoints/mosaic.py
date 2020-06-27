@@ -13,14 +13,13 @@ from cogeo_mosaic.utils import get_footprints
 from rio_tiler.io.cogeo import tile as cogeoTiler
 from rio_tiler.profiles import img_profiles
 from rio_tiler.utils import render
-from rio_tiler_mosaic.methods.defaults import FirstMethod
 
 from titiler.api.endpoints.cog import cog_info, tile_response_codes
 from titiler.api.utils import postprocess
 from titiler.models.metadata import cogBounds, cogInfo
 from titiler.models.mosaic import CreateMosaicJSON, UpdateMosaicJSON
 from titiler.ressources.common import drivers
-from titiler.ressources.enums import ImageMimeTypes, ImageType
+from titiler.ressources.enums import ImageMimeTypes, ImageType, PixelSelectionMethod
 from titiler.ressources.responses import ImgResponse
 
 from fastapi import APIRouter, Path, Query
@@ -160,16 +159,18 @@ async def mosaic_tile(
     ),
     format: ImageType = Query(None, description="Output image type. Default is auto."),
     url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
+    pixel_selection: PixelSelectionMethod = Query(
+        PixelSelectionMethod.first, description="Pixel selection method."
+    ),
 ):
     """Read MosaicJSON tile"""
     # TODO: Maybe use ``read_mosaic`` defined above (depending on cache behavior which is still TBD)
+    pixsel = pixel_selection.method()
+
     with MosaicBackend(url) as mosaic:
         assets = mosaic.tile(x=x, y=y, z=z)
 
     tilesize = 256 * scale
-
-    # TODO: Parametrize pixsel method
-    pixel_selection = FirstMethod()
 
     # Rio-tiler-mosaic uses an external ThreadPoolExecutor to process multiple assets at once but we want to use the
     # executor provided by the event loop.  Instead of calling ``rio_tiler_mosaic.mosaic.mosaic_tiler`` directly we will
@@ -193,8 +194,8 @@ async def mosaic_tile(
 
             tile = numpy.ma.array(tile)
             tile.mask = mask == 0
-            pixel_selection.feed(tile)
-            if pixel_selection.is_done:
+            pixsel.feed(tile)
+            if pixsel.is_done:
                 break
 
     # TODO: Raise exception if tile is empty
