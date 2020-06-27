@@ -7,17 +7,17 @@ from io import BytesIO
 from typing import Callable, Sequence
 
 import mercantile
-import morecantile
 import numpy
 from cogeo_mosaic.backends import MosaicBackend
 from cogeo_mosaic.mosaic import MosaicJSON
 from cogeo_mosaic.utils import get_footprints
+from rasterio.crs import CRS
 from rasterio.transform import from_bounds
 from rio_tiler.io.cogeo import tile as cogeoTiler
 from rio_tiler.profiles import img_profiles
 from rio_tiler.utils import render
 
-from titiler.api.deps import CommonTileParams, TileMatrixSetNames
+from titiler.api.deps import CommonTileParams
 from titiler.api.endpoints.cog import cog_info, tile_response_codes
 from titiler.api.utils import postprocess
 from titiler.models.metadata import cogBounds, cogInfo
@@ -177,9 +177,6 @@ async def mosaic_tile(
 
     tilesize = 256 * scale
 
-    # TODO: Parametrize/support other tms
-    tms = morecantile.tms.get(TileMatrixSetNames.WebMercatorQuad.name)  # type: ignore
-
     # Rio-tiler-mosaic uses an external ThreadPoolExecutor to process multiple assets at once but we want to use the
     # executor provided by the event loop.  Instead of calling ``rio_tiler_mosaic.mosaic.mosaic_tiler`` directly we will
     # transcribe the code here and use the executor provided by the event loop.  This also means we define this function
@@ -237,9 +234,9 @@ async def mosaic_tile(
         driver = drivers[format.value]
         options = img_profiles.get(driver.lower(), {})
         if format == ImageType.tif:
-            bounds = tms.xy_bounds(x, y, z)
+            bounds = mercantile.xy_bounds(mercantile.Tile(x, y, z))
             dst_transform = from_bounds(*bounds, tilesize, tilesize)
-            options = {"crs": tms.crs, "transform": dst_transform}
+            options = {"crs": CRS.from_epsg("3857"), "transform": dst_transform}
         content = render(tile, mask, img_format=driver, **options)
 
     return ImgResponse(content, media_type=ImageMimeTypes[format.value].value)
