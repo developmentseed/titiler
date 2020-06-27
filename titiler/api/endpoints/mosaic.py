@@ -14,6 +14,7 @@ from rio_tiler.io.cogeo import tile as cogeoTiler
 from rio_tiler.profiles import img_profiles
 from rio_tiler.utils import render
 
+from titiler.api.deps import CommonTileParams
 from titiler.api.endpoints.cog import cog_info, tile_response_codes
 from titiler.api.utils import postprocess
 from titiler.models.metadata import cogBounds, cogInfo
@@ -22,7 +23,7 @@ from titiler.ressources.common import drivers
 from titiler.ressources.enums import ImageMimeTypes, ImageType, PixelSelectionMethod
 from titiler.ressources.responses import ImgResponse
 
-from fastapi import APIRouter, Path, Query
+from fastapi import APIRouter, Depends, Path, Query
 from fastapi.routing import APIRoute
 
 from starlette.concurrency import run_in_threadpool
@@ -162,6 +163,7 @@ async def mosaic_tile(
     pixel_selection: PixelSelectionMethod = Query(
         PixelSelectionMethod.first, description="Pixel selection method."
     ),
+    image_params: CommonTileParams = Depends(),
 ):
     """Read MosaicJSON tile"""
     # TODO: Maybe use ``read_mosaic`` defined above (depending on cache behavior which is still TBD)
@@ -178,7 +180,17 @@ async def mosaic_tile(
     # as a coroutine (even though nothing that is called is a coroutine), since the event loop's executor isn't
     # available in normal ``def`` functions.
     # https://github.com/cogeotiff/rio-tiler-mosaic/blob/master/rio_tiler_mosaic/mosaic.py#L37-L102
-    _tiler = partial(cogeoTiler, tile_x=x, tile_y=y, tile_z=z, tilesize=tilesize)
+    _tiler = partial(
+        cogeoTiler,
+        tile_x=x,
+        tile_y=y,
+        tile_z=z,
+        tilesize=tilesize,
+        indexes=image_params.indexes,
+        # expression=image_params.expression, # TODO: Figure out why expression kwarg doesn't work
+        nodata=image_params.nodata,
+        **image_params.kwargs
+    )
     futures = [run_in_threadpool(_tiler, asset) for asset in assets]
 
     # TODO: parametrize concurrency
@@ -204,7 +216,12 @@ async def mosaic_tile(
     if not format:
         format = ImageType.jpg if mask.all() else ImageType.png
 
-    tile = postprocess(tile, mask)
+    tile = postprocess(
+        tile,
+        mask,
+        rescale=image_params.rescale,
+        color_formula=image_params.color_formula,
+    )
 
     if format == ImageType.npy:
         sio = BytesIO()
