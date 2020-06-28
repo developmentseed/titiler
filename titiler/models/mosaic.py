@@ -13,8 +13,9 @@ class _MosaicJSONCommon(BaseModel):
     """Common request params for MosaicJSON CRUD operations"""
 
     files: List[str]
-    url: str
     max_threads: int = 20
+    url: Optional[str] = None
+    mosaic_id: Optional[str] = None
 
 
 class CreateMosaicJSON(_MosaicJSONCommon):

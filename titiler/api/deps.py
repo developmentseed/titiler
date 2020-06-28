@@ -12,9 +12,11 @@ from rio_tiler.colormap import cmap
 from titiler.api.utils import get_hash
 from titiler.custom import cmap as custom_colormap
 from titiler.custom import tms as custom_tms
+from titiler.settings import DEFAULT_MOSAIC_BACKEND, DEFAULT_MOSAIC_HOST
 
 from fastapi import Query
 
+from starlette.exceptions import HTTPException
 from starlette.requests import Request
 
 ################################################################################
@@ -230,3 +232,21 @@ class CommonMetadataParams:
         kwargs.pop("bounds", None)
         kwargs.pop("assets", None)  # For STAC
         self.kwargs = kwargs
+
+
+class CommonMosaicParams:
+    """Common mosaic params."""
+
+    def __init__(
+        self,
+        mosaic_id: Optional[str] = Query(None, description="MosaicJSON ID"),
+        url: Optional[str] = Query(None, description="MosaicJSON URL"),
+    ):
+        """Create mosaic path from args"""
+        if not mosaic_id and not url:
+            raise HTTPException(
+                status_code=422, detail="Missing 'mosaic_id' or 'url' parameter"
+            )
+        self.mosaic_path = (
+            url or f"{DEFAULT_MOSAIC_BACKEND}{DEFAULT_MOSAIC_HOST}/{mosaic_id}.json.gz"
+        )

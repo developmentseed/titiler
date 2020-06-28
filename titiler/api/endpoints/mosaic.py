@@ -3,18 +3,19 @@ import asyncio
 import os
 import random
 from functools import partial
-from typing import Callable, Sequence
+from typing import Callable
 
 import mercantile
 import numpy
 from cogeo_mosaic.backends import MosaicBackend
+from cogeo_mosaic.backends.utils import get_hash
 from cogeo_mosaic.mosaic import MosaicJSON
 from cogeo_mosaic.utils import get_footprints
 from rasterio.crs import CRS
 from rasterio.transform import from_bounds
 from rio_tiler.io.cogeo import tile as cogeoTiler
 
-from titiler.api.deps import CommonTileParams
+from titiler.api.deps import CommonMosaicParams, CommonTileParams
 from titiler.api.endpoints.cog import cog_info, tile_response_codes
 from titiler.api.utils import postprocess, reformat
 from titiler.errors import BadRequestError, TileNotFoundError
@@ -30,12 +31,6 @@ from starlette.concurrency import run_in_threadpool
 from starlette.exceptions import HTTPException
 from starlette.requests import Request
 from starlette.responses import Response
-
-
-def _chunks(my_list: Sequence, chuck_size: int):
-    """Yield successive n-sized chunks from l."""
-    for i in range(0, len(my_list), chuck_size):
-        yield my_list[i : i + chuck_size]
 
 
 class MosaicJSONRouter(APIRoute):
@@ -75,7 +70,9 @@ def create_mosaicjson(body: CreateMosaicJSON):
         maxzoom=body.maxzoom,
         max_threads=body.max_threads,
     )
-    with MosaicBackend(body.url, mosaic_def=mosaic) as mosaic:
+    mosaic_id = body.mosaic_id or get_hash(**mosaic.dict())
+    mosaic_path = CommonMosaicParams(mosaic_id, body.url).mosaic_path
+    with MosaicBackend(mosaic_path, mosaic_def=mosaic) as mosaic:
         try:
             mosaic.write()
         except NotImplementedError:
@@ -91,19 +88,18 @@ def create_mosaicjson(body: CreateMosaicJSON):
     response_model_exclude_none=True,
     responses={200: {"description": "Return MosaicJSON definition"}},
 )
-def read_mosaicjson(
-    resp: Response, url: str = Query(..., description="MosaicJSON URL")
-):
+def read_mosaicjson(resp: Response, mosaic_params: CommonMosaicParams = Depends()):
     """Read a MosaicJSON"""
     resp.headers["Cache-Control"] = "max-age-3600"
-    with MosaicBackend(url) as mosaic:
+    with MosaicBackend(mosaic_params.mosaic_path) as mosaic:
         return mosaic.mosaic_def
 
 
 @router.put("", response_model=MosaicJSON, response_model_exclude_none=True)
 def update_mosaicjson(body: UpdateMosaicJSON):
     """Update an existing MosaicJSON"""
-    with MosaicBackend(body.url) as mosaic:
+    mosaic_path = CommonMosaicParams(body.mosaic_id, body.url).mosaic_path
+    with MosaicBackend(mosaic_path) as mosaic:
         features = get_footprints(body.files, max_threads=body.max_threads)
         try:
             mosaic.update(features, add_first=body.add_first, quiet=True)
@@ -119,34 +115,31 @@ def update_mosaicjson(body: UpdateMosaicJSON):
     response_model=cogBounds,
     responses={200: {"description": "Return the bounds of the MosaicJSON"}},
 )
-def mosaicjson_bounds(
-    resp: Response, url: str = Query(..., description="MosaicJSON URL")
-):
+def mosaicjson_bounds(resp: Response, mosaic_params: CommonMosaicParams = Depends()):
     """Read MosaicJSON bounds"""
     resp.headers["Cache-Control"] = "max-age=3600"
-    with MosaicBackend(url) as mosaic:
+    with MosaicBackend(mosaic_params.mosaic_path) as mosaic:
         return {"bounds": mosaic.mosaic_def.bounds}
 
 
 @router.get("/info", response_model=cogInfo)
-def mosaicjson_info(
-    resp: Response, url: str = Query(..., description="MosaicJSON URL")
-):
+def mosaicjson_info(resp: Response, mosaic_params: CommonMosaicParams = Depends()):
     """
     Read MosaicJSON info
 
     Ref: https://github.com/developmentseed/cogeo-mosaic-tiler/blob/master/cogeo_mosaic_tiler/handlers/app.py#L164-L198
     """
-    with MosaicBackend(url) as mosaic:
+    mosaic_path = mosaic_params.mosaic_path
+    with MosaicBackend(mosaic_path) as mosaic:
         meta = mosaic.metadata
         response = {
             "bounds": meta["bounds"],
             "center": meta["center"],
             "maxzoom": meta["maxzoom"],
             "minzoom": meta["minzoom"],
-            "name": url,
+            "name": mosaic_path,
         }
-        if not url.startswith("dynamodb://"):
+        if not mosaic_path.startswith("dynamodb://"):
             mosaic_quadkeys = set(mosaic._quadkeys)
             tile = mercantile.quadkey_to_tile(random.sample(mosaic_quadkeys, 1)[0])
             assets = mosaic.tile(*tile)
@@ -169,17 +162,17 @@ async def mosaic_tile(
         1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
     ),
     format: ImageType = Query(None, description="Output image type. Default is auto."),
-    url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
     pixel_selection: PixelSelectionMethod = Query(
         PixelSelectionMethod.first, description="Pixel selection method."
     ),
     image_params: CommonTileParams = Depends(),
+    mosaic_params: CommonMosaicParams = Depends(),
 ):
     """Read MosaicJSON tile"""
     # TODO: Maybe use ``read_mosaic`` defined above (depending on cache behavior which is still TBD)
     pixsel = pixel_selection.method()
 
-    with MosaicBackend(url) as mosaic:
+    with MosaicBackend(mosaic_params.mosaic_path) as mosaic:
         assets = mosaic.tile(x=x, y=y, z=z)
         if not assets:
             raise TileNotFoundError(f"No assets found for tile {z}/{x}/{y}")
