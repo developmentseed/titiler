@@ -3,7 +3,7 @@ import asyncio
 import os
 import random
 from functools import partial
-from typing import Callable
+from typing import Callable, Optional
 
 import mercantile
 import numpy
@@ -20,6 +20,7 @@ from titiler.api.endpoints.cog import cog_info, tile_response_codes
 from titiler.api.utils import postprocess, reformat
 from titiler.errors import BadRequestError, TileNotFoundError
 from titiler.models.cog import cogBounds, cogInfo
+from titiler.models.mapbox import TileJSON
 from titiler.models.mosaic import CreateMosaicJSON, UpdateMosaicJSON
 from titiler.ressources.enums import ImageMimeTypes, ImageType, PixelSelectionMethod
 from titiler.ressources.responses import ImgResponse
@@ -148,6 +149,43 @@ def mosaicjson_info(resp: Response, mosaic_params: CommonMosaicParams = Depends(
             response["quadkeys"] = list(mosaic_quadkeys)
             response = {**asset_info, **response}
         return response
+
+
+@router.get(
+    "/tilejson.json",
+    response_model=TileJSON,
+    responses={200: {"description": "Return a tilejson"}},
+    response_model_exclude_none=True,
+)
+async def mosaic_tilejson(
+    request: Request,
+    response: Response,
+    tile_scale: int = Query(
+        1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
+    ),
+    tile_format: Optional[ImageType] = Query(
+        None, description="Output image type. Default is auto."
+    ),
+    mosaic_params: CommonMosaicParams = Depends(),
+):
+    """Create TileJSON"""
+    kwargs = {"z": "{z}", "x": "{x}", "y": "{y}", "scale": tile_scale}
+    if tile_format:
+        kwargs["format"] = tile_format
+    tile_url = request.url_for("mosaic_tile", **kwargs).replace("\\", "")
+    with MosaicBackend(mosaic_params.mosaic_path) as mosaic:
+        tjson = TileJSON(
+            name=mosaic.mosaic_def.name,
+            description=mosaic.mosaic_def.description,
+            attribution=mosaic.mosaic_def.attribution,
+            bounds=mosaic.mosaic_def.bounds,
+            center=mosaic.mosaic_def.center,
+            minzoom=mosaic.mosaic_def.minzoom,
+            maxzoom=mosaic.mosaic_def.maxzoom,
+            tiles=[tile_url],
+        )
+    response.headers["Cache-Control"] = "max-age=3600"
+    return tjson
 
 
 @router.get(r"/tiles/{z}/{x}/{y}", **tile_response_codes)
