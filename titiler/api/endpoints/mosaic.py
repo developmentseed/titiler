@@ -3,7 +3,6 @@ import asyncio
 import os
 import random
 from functools import partial
-from io import BytesIO
 from typing import Callable, Sequence
 
 import mercantile
@@ -14,15 +13,12 @@ from cogeo_mosaic.utils import get_footprints
 from rasterio.crs import CRS
 from rasterio.transform import from_bounds
 from rio_tiler.io.cogeo import tile as cogeoTiler
-from rio_tiler.profiles import img_profiles
-from rio_tiler.utils import render
 
 from titiler.api.deps import CommonTileParams
 from titiler.api.endpoints.cog import cog_info, tile_response_codes
-from titiler.api.utils import postprocess
+from titiler.api.utils import postprocess, reformat
 from titiler.models.metadata import cogBounds, cogInfo
 from titiler.models.mosaic import CreateMosaicJSON, UpdateMosaicJSON
-from titiler.ressources.common import drivers
 from titiler.ressources.enums import ImageMimeTypes, ImageType, PixelSelectionMethod
 from titiler.ressources.responses import ImgResponse
 
@@ -215,6 +211,7 @@ async def mosaic_tile(
     # TODO: Raise exception if tile is empty
 
     # TODO: Most of the code below may be deduped with /cog/tiles endpoint
+
     if not format:
         format = ImageType.jpg if mask.all() else ImageType.png
 
@@ -225,18 +222,15 @@ async def mosaic_tile(
         color_formula=image_params.color_formula,
     )
 
-    if format == ImageType.npy:
-        sio = BytesIO()
-        numpy.save(sio, (tile, mask))
-        sio.seek(0)
-        content = sio.getvalue()
-    else:
-        driver = drivers[format.value]
-        options = img_profiles.get(driver.lower(), {})
-        if format == ImageType.tif:
-            bounds = mercantile.xy_bounds(mercantile.Tile(x, y, z))
-            dst_transform = from_bounds(*bounds, tilesize, tilesize)
-            options = {"crs": CRS.from_epsg("3857"), "transform": dst_transform}
-        content = render(tile, mask, img_format=driver, **options)
+    bounds = mercantile.xy_bounds(mercantile.Tile(x, y, z))
+    dst_transform = from_bounds(*bounds, tilesize, tilesize)
+    content = reformat(
+        tile,
+        mask,
+        img_format=format,
+        colormap=image_params.color_map,
+        dst_transform=dst_transform,
+        crs=CRS.from_epsg(3857),
+    )
 
     return ImgResponse(content, media_type=ImageMimeTypes[format.value].value)
