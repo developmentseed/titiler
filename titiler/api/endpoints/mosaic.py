@@ -18,7 +18,7 @@ from titiler.api.deps import CommonTileParams
 from titiler.api.endpoints.cog import cog_info, tile_response_codes
 from titiler.api.utils import postprocess, reformat
 from titiler.errors import BadRequestError, TileNotFoundError
-from titiler.models.metadata import cogBounds, cogInfo
+from titiler.models.cog import cogBounds, cogInfo
 from titiler.models.mosaic import CreateMosaicJSON, UpdateMosaicJSON
 from titiler.ressources.enums import ImageMimeTypes, ImageType, PixelSelectionMethod
 from titiler.ressources.responses import ImgResponse

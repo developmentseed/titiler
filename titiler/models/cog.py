@@ -1,15 +1,14 @@
 """Titiler Metadta models."""
 
 
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union
 
 from pydantic import BaseModel, Field
 
-from titiler.ressources.enums import NodataTypes
+from titiler.models.mosaic import mosaicInfo
 
 NumType = Union[float, int]
 BBox = Tuple[NumType, NumType, NumType, NumType]
-ColorTuple = Tuple[int, int, int, int]
 
 
 class cogBounds(BaseModel):
@@ -18,18 +17,10 @@ class cogBounds(BaseModel):
     bounds: BBox
 
 
-class cogInfo(BaseModel):
+class cogInfo(mosaicInfo):
     """COG Info."""
 
-    bounds: Tuple[float, float, float, float]
-    band_descriptions: List[Tuple[int, str]]
-    dtype: str
-    colorinterp: List[str]
-    nodata_type: NodataTypes
-    scale: Optional[float]
-    offsets: Optional[float]
-    colormap: Optional[Dict[int, ColorTuple]]
-    band_metadata: Optional[List[Tuple[int, Dict[int, Any]]]]
+    band_metadata: List[Tuple[int, Dict[int, Any]]]
 
     class Config:
         """Config for model."""

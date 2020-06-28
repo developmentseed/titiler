@@ -18,8 +18,8 @@ from titiler.api.deps import (
     request_hash,
 )
 from titiler.db.memcache import CacheLayer
+from titiler.models.cog import cogBounds, cogInfo, cogMetadata
 from titiler.models.mapbox import TileJSON
-from titiler.models.metadata import cogBounds, cogInfo, cogMetadata
 from titiler.ressources.enums import ImageMimeTypes, ImageType
 from titiler.ressources.responses import ImgResponse
 from titiler.templates.factory import web_template
