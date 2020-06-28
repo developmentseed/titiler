@@ -17,6 +17,7 @@ from rio_tiler.io.cogeo import tile as cogeoTiler
 from titiler.api.deps import CommonTileParams
 from titiler.api.endpoints.cog import cog_info, tile_response_codes
 from titiler.api.utils import postprocess, reformat
+from titiler.errors import TileNotFoundError
 from titiler.models.metadata import cogBounds, cogInfo
 from titiler.models.mosaic import CreateMosaicJSON, UpdateMosaicJSON
 from titiler.ressources.enums import ImageMimeTypes, ImageType, PixelSelectionMethod
@@ -170,6 +171,8 @@ async def mosaic_tile(
 
     with MosaicBackend(url) as mosaic:
         assets = mosaic.tile(x=x, y=y, z=z)
+        if not assets:
+            raise TileNotFoundError(f"No assets found for tile {z}/{x}/{y}")
 
     tilesize = 256 * scale
 
@@ -188,7 +191,7 @@ async def mosaic_tile(
         indexes=image_params.indexes,
         # expression=image_params.expression, # TODO: Figure out why expression kwarg doesn't work
         nodata=image_params.nodata,
-        **image_params.kwargs
+        **image_params.kwargs,
     )
     futures = [run_in_threadpool(_tiler, asset) for asset in assets]
 
@@ -208,9 +211,9 @@ async def mosaic_tile(
             if pixsel.is_done:
                 break
 
-    # TODO: Raise exception if tile is empty
-
-    # TODO: Most of the code below may be deduped with /cog/tiles endpoint
+    tile, mask = pixsel.data
+    if tile is None:
+        raise TileNotFoundError(f"Tile {z}/{x}/{y} was not found")
 
     if not format:
         format = ImageType.jpg if mask.all() else ImageType.png
