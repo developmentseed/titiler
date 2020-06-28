@@ -17,7 +17,7 @@ from rio_tiler.io.cogeo import tile as cogeoTiler
 from titiler.api.deps import CommonTileParams
 from titiler.api.endpoints.cog import cog_info, tile_response_codes
 from titiler.api.utils import postprocess, reformat
-from titiler.errors import TileNotFoundError
+from titiler.errors import BadRequestError, TileNotFoundError
 from titiler.models.metadata import cogBounds, cogInfo
 from titiler.models.mosaic import CreateMosaicJSON, UpdateMosaicJSON
 from titiler.ressources.enums import ImageMimeTypes, ImageType, PixelSelectionMethod
@@ -76,7 +76,12 @@ def create_mosaicjson(body: CreateMosaicJSON):
         max_threads=body.max_threads,
     )
     with MosaicBackend(body.url, mosaic_def=mosaic) as mosaic:
-        mosaic.write()
+        try:
+            mosaic.write()
+        except NotImplementedError:
+            raise BadRequestError(
+                f"{mosaic.__class__.__name__} does not support write operations"
+            )
         return mosaic.mosaic_def
 
 
@@ -100,7 +105,12 @@ def update_mosaicjson(body: UpdateMosaicJSON):
     """Update an existing MosaicJSON"""
     with MosaicBackend(body.url) as mosaic:
         features = get_footprints(body.files, max_threads=body.max_threads)
-        mosaic.update(features, add_first=body.add_first, quiet=True)
+        try:
+            mosaic.update(features, add_first=body.add_first, quiet=True)
+        except NotImplementedError:
+            raise BadRequestError(
+                f"{mosaic.__class__.__name__} does not support update operations"
+            )
         return mosaic.mosaic_def
 
 

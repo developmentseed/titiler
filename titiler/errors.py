@@ -7,3 +7,7 @@ class TilerError(Exception):
 
 class TileNotFoundError(TilerError):
     """Tile not found error."""
+
+
+class BadRequestError(TilerError):
+    """Bad request error."""
