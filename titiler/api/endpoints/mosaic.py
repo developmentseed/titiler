@@ -2,13 +2,15 @@
 import asyncio
 import os
 import random
+import re
 from functools import partial
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 from urllib.parse import urlencode
 
 import mercantile
 import morecantile
 import numpy
+import rasterio
 from cogeo_mosaic.backends import MosaicBackend
 from cogeo_mosaic.backends.utils import get_hash
 from cogeo_mosaic.mosaic import MosaicJSON
@@ -16,6 +18,7 @@ from cogeo_mosaic.utils import get_footprints
 from rasterio.crs import CRS
 from rasterio.transform import from_bounds
 from rio_tiler.io.cogeo import tile as cogeoTiler
+from rio_tiler.reader import point
 
 from titiler.api import utils
 from titiler.api.deps import CommonMosaicParams, CommonTileParams
@@ -169,6 +172,61 @@ async def mosaic_tilejson(
         )
     response.headers["Cache-Control"] = "max-age=3600"
     return tjson
+
+
+@router.get(
+    r"/point/{lon},{lat}",
+    responses={200: {"description": "Return a value for a point"}},
+)
+async def mosaic_point(
+    lon: float = Path(..., description="Longitude"),
+    lat: float = Path(..., description="Latitude"),
+    bidx: Optional[str] = Query(
+        None, title="Band indexes", description="comma (',') delimited band indexes",
+    ),
+    mosaic_params: CommonMosaicParams = Depends(),
+):
+    """Get Point value for a MosaicJSON."""
+    indexes = tuple(int(s) for s in re.findall(r"\d+", bidx)) if bidx else None
+
+    timings = []
+    headers: Dict[str, str] = {}
+
+    with utils.Timer() as t:
+        with MosaicBackend(mosaic_params.mosaic_path) as mosaic:
+            assets = mosaic.point(lon, lat)
+
+    timings.append(("Read-mosaic", t.elapsed))
+
+    # Rio-tiler provides a helper function (``rio_tiler.reader.multi_point``) for reading a point from multiple assets
+    # using an external threadpool.  For similar reasons as described below, we will transcribe the rio-tiler code to
+    # use the default executor provided by the event loop.
+    def worker(asset: str, *args, **kwargs) -> List:
+        # TODO: Maybe move this outside route but I'm feeling lazy right now so it is defined here
+        with rasterio.open(asset) as src_dst:
+            return point(src_dst, *args, **kwargs)
+
+    futures = [
+        run_in_threadpool(worker, asset, coordinates=[lon, lat], indexes=indexes)
+        for asset in assets
+    ]
+
+    semaphore = asyncio.Semaphore(int(os.getenv("MOSAIC_CONCURRENCY", 10)))
+
+    values = []
+    with utils.Timer() as t:
+        async with semaphore:
+            for fut in asyncio.as_completed(futures):
+                try:
+                    values.append(await fut)
+                except Exception:
+                    continue
+    if timings:
+        headers["X-Server-Timings"] = "; ".join(
+            ["{} - {:0.2f}".format(name, time * 1000) for (name, time) in timings]
+        )
+
+    return {"coordinates": [lon, lat], "values": values}
 
 
 @router.get(r"/tiles/{z}/{x}/{y}", **tile_response_codes)
