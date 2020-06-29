@@ -3,7 +3,7 @@ import asyncio
 import os
 import random
 from functools import partial
-from typing import Optional
+from typing import Dict, Optional
 from urllib.parse import urlencode
 
 import mercantile
@@ -17,9 +17,9 @@ from rasterio.crs import CRS
 from rasterio.transform import from_bounds
 from rio_tiler.io.cogeo import tile as cogeoTiler
 
+from titiler.api import utils
 from titiler.api.deps import CommonMosaicParams, CommonTileParams
 from titiler.api.endpoints.cog import cog_info, tile_response_codes
-from titiler.api.utils import postprocess, reformat
 from titiler.errors import BadRequestError, TileNotFoundError
 from titiler.models.cog import cogBounds, cogInfo
 from titiler.models.mapbox import TileJSON
@@ -192,11 +192,15 @@ async def mosaic_tile(
     """Read MosaicJSON tile"""
     # TODO: Maybe use ``read_mosaic`` defined above (depending on cache behavior which is still TBD)
     pixsel = pixel_selection.method()
+    timings = []
+    headers: Dict[str, str] = {}
 
-    with MosaicBackend(mosaic_params.mosaic_path) as mosaic:
-        assets = mosaic.tile(x=x, y=y, z=z)
-        if not assets:
-            raise TileNotFoundError(f"No assets found for tile {z}/{x}/{y}")
+    with utils.Timer() as t:
+        with MosaicBackend(mosaic_params.mosaic_path) as mosaic:
+            assets = mosaic.tile(x=x, y=y, z=z)
+            if not assets:
+                raise TileNotFoundError(f"No assets found for tile {z}/{x}/{y}")
+    timings.append(("Read-mosaic", t.elapsed))
 
     tilesize = 256 * scale
 
@@ -221,19 +225,21 @@ async def mosaic_tile(
 
     semaphore = asyncio.Semaphore(int(os.getenv("MOSAIC_CONCURRENCY", 10)))
 
-    async with semaphore:
-        for fut in asyncio.as_completed(futures):
-            try:
-                tile, mask = await fut
-            except Exception:
-                # Gracefully handle exceptions
-                continue
+    with utils.Timer() as t:
+        async with semaphore:
+            for fut in asyncio.as_completed(futures):
+                try:
+                    tile, mask = await fut
+                except Exception:
+                    # Gracefully handle exceptions
+                    continue
 
-            tile = numpy.ma.array(tile)
-            tile.mask = mask == 0
-            pixsel.feed(tile)
-            if pixsel.is_done:
-                break
+                tile = numpy.ma.array(tile)
+                tile.mask = mask == 0
+                pixsel.feed(tile)
+                if pixsel.is_done:
+                    break
+    timings.append(("Read-tiles", t.elapsed))
 
     tile, mask = pixsel.data
     if tile is None:
@@ -242,25 +248,37 @@ async def mosaic_tile(
     if not format:
         format = ImageType.jpg if mask.all() else ImageType.png
 
-    tile = postprocess(
-        tile,
-        mask,
-        rescale=image_params.rescale,
-        color_formula=image_params.color_formula,
-    )
+    with utils.Timer() as t:
+        tile = utils.postprocess(
+            tile,
+            mask,
+            rescale=image_params.rescale,
+            color_formula=image_params.color_formula,
+        )
+    timings.append(("Post-process", t.elapsed))
 
     bounds = mercantile.xy_bounds(mercantile.Tile(x, y, z))
     dst_transform = from_bounds(*bounds, tilesize, tilesize)
-    content = reformat(
-        tile,
-        mask,
-        img_format=format,
-        colormap=image_params.color_map,
-        dst_transform=dst_transform,
-        crs=CRS.from_epsg(3857),
-    )
 
-    return ImgResponse(content, media_type=ImageMimeTypes[format.value].value)
+    with utils.Timer() as t:
+        content = utils.reformat(
+            tile,
+            mask,
+            img_format=format,
+            colormap=image_params.color_map,
+            dst_transform=dst_transform,
+            crs=CRS.from_epsg(3857),
+        )
+    timings.append(("Format", t.elapsed))
+
+    if timings:
+        headers["X-Server-Timings"] = "; ".join(
+            ["{} - {:0.2f}".format(name, time * 1000) for (name, time) in timings]
+        )
+
+    return ImgResponse(
+        content, media_type=ImageMimeTypes[format.value].value, headers=headers
+    )
 
 
 @router.get("/WMTSCapabilities.xml", response_class=XMLResponse, tags=["OGC"])
