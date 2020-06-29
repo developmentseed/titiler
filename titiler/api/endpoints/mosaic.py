@@ -3,9 +3,11 @@ import asyncio
 import os
 import random
 from functools import partial
-from typing import Callable, Optional
+from typing import Optional
+from urllib.parse import urlencode
 
 import mercantile
+import morecantile
 import numpy
 from cogeo_mosaic.backends import MosaicBackend
 from cogeo_mosaic.backends.utils import get_hash
@@ -22,42 +24,23 @@ from titiler.errors import BadRequestError, TileNotFoundError
 from titiler.models.cog import cogBounds, cogInfo
 from titiler.models.mapbox import TileJSON
 from titiler.models.mosaic import CreateMosaicJSON, UpdateMosaicJSON
-from titiler.ressources.enums import ImageMimeTypes, ImageType, PixelSelectionMethod
-from titiler.ressources.responses import ImgResponse
+from titiler.ressources.enums import (
+    ImageMimeTypes,
+    ImageType,
+    MimeTypes,
+    PixelSelectionMethod,
+)
+from titiler.ressources.responses import ImgResponse, XMLResponse
 
 from fastapi import APIRouter, Depends, Path, Query
-from fastapi.routing import APIRoute
 
 from starlette.concurrency import run_in_threadpool
-from starlette.exceptions import HTTPException
 from starlette.requests import Request
 from starlette.responses import Response
-
-
-class MosaicJSONRouter(APIRoute):
-    """Custom router to temporarily forbid usage of cogeo-mosaic STAC backend"""
-
-    def get_route_handler(self) -> Callable:
-        """Override base method (https://fastapi.tiangolo.com/advanced/custom-request-and-route/)"""
-        original_route_handler = super().get_route_handler()
-
-        async def forbid_stac_backend(request: Request) -> Response:
-            url = request.query_params.get("url")
-            if not url:
-                body = await request.json()
-                url = body.get("url")
-            if url.startswith("stac"):
-                # Raise as a validation error
-                raise HTTPException(
-                    status_code=422,
-                    detail="STAC is not currently supported for mosaicjson endpoints",
-                )
-            return await original_route_handler(request)
-
-        return forbid_stac_backend
-
+from starlette.templating import Jinja2Templates
 
 router = APIRouter()
+templates = Jinja2Templates(directory="titiler/templates")
 
 
 @router.post(
@@ -278,3 +261,65 @@ async def mosaic_tile(
     )
 
     return ImgResponse(content, media_type=ImageMimeTypes[format.value].value)
+
+
+@router.get("/WMTSCapabilities.xml", response_class=XMLResponse, tags=["OGC"])
+def wmts(
+    request: Request,
+    tile_format: ImageType = Query(
+        ImageType.png, description="Output image type. Default is png."
+    ),
+    tile_scale: int = Query(
+        1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
+    ),
+    mosaic_params: CommonMosaicParams = Depends(),
+):
+    """OGC WMTS endpoint."""
+    scheme = request.url.scheme
+    host = request.headers["host"]
+    endpoint = f"{scheme}://{host}/mosaic"
+
+    kwargs = dict(request.query_params)
+    kwargs.pop("tile_format", None)
+    kwargs.pop("tile_scale", None)
+    qs = urlencode(list(kwargs.items()))
+
+    tms = morecantile.tms.get("WebMercatorQuad")
+    with MosaicBackend(mosaic_params.mosaic_path) as mosaic:
+        minzoom = mosaic.mosaic_def.minzoom
+        maxzoom = mosaic.mosaic_def.maxzoom
+        bounds = mosaic.mosaic_def.bounds
+
+    media_type = ImageMimeTypes[tile_format.value].value
+
+    tileMatrix = []
+    for zoom in range(minzoom, maxzoom + 1):
+        matrix = tms.matrix(zoom)
+        tm = f"""
+                <TileMatrix>
+                    <ows:Identifier>{matrix.identifier}</ows:Identifier>
+                    <ScaleDenominator>{matrix.scaleDenominator}</ScaleDenominator>
+                    <TopLeftCorner>{matrix.topLeftCorner[0]} {matrix.topLeftCorner[1]}</TopLeftCorner>
+                    <TileWidth>{matrix.tileWidth}</TileWidth>
+                    <TileHeight>{matrix.tileHeight}</TileHeight>
+                    <MatrixWidth>{matrix.matrixWidth}</MatrixWidth>
+                    <MatrixHeight>{matrix.matrixHeight}</MatrixHeight>
+                </TileMatrix>"""
+        tileMatrix.append(tm)
+
+    tile_ext = f"@{tile_scale}x.{tile_format.value}"
+    return templates.TemplateResponse(
+        "wmts.xml",
+        {
+            "request": request,
+            "endpoint": endpoint,
+            "bounds": bounds,
+            "tileMatrix": tileMatrix,
+            "tms": tms,
+            "title": "Cloud Optimized GeoTIFF",
+            "query_string": qs,
+            "tile_format": tile_ext,
+            "media_type": media_type,
+        },
+        media_type=MimeTypes.xml.value,
+    )

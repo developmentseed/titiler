@@ -421,7 +421,7 @@ async def cog_tilejson(
 @router.get(
     "/{TileMatrixSetId}/WMTSCapabilities.xml", response_class=XMLResponse, tags=["OGC"],
 )
-def wtms(
+def wmts(
     request: Request,
     response: Response,
     TileMatrixSetId: TileMatrixSetNames = Query(
@@ -436,7 +436,7 @@ def wtms(
         1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
     ),
 ):
-    """OGC WMTS endpoit."""
+    """OGC WMTS endpoint."""
     scheme = request.url.scheme
     host = request.headers["host"]
     endpoint = f"{scheme}://{host}/cog"
