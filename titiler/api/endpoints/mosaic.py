@@ -232,6 +232,11 @@ async def mosaic_point(
 @router.get(r"/tiles/{z}/{x}/{y}\.{format}", **tile_response_codes)
 @router.get(r"/tiles/{z}/{x}/{y}@{scale}x", **tile_response_codes)
 @router.get(r"/tiles/{z}/{x}/{y}@{scale}x\.{format}", **tile_response_codes)
+@router.get(r"/tiles/WebMercatorQuad/{z}/{x}/{y}\.{format}", **tile_response_codes)
+@router.get(r"/tiles/WebMercatorQuad/{z}/{x}/{y}@{scale}x", **tile_response_codes)
+@router.get(
+    r"/tiles/WebMercatorQuad/{z}/{x}/{y}@{scale}x\.{format}", **tile_response_codes
+)
 async def mosaic_tile(
     z: int = Path(..., ge=0, le=30, description="Mercator tiles's zoom level"),
     x: int = Path(..., description="Mercator tiles's column"),
