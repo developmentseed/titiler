@@ -14,10 +14,9 @@ import rasterio
 from cogeo_mosaic.backends import MosaicBackend
 from cogeo_mosaic.mosaic import MosaicJSON
 from cogeo_mosaic.utils import get_footprints
-from rasterio.crs import CRS
-from rasterio.transform import from_bounds
 from rio_tiler.io.cogeo import tile as cogeoTiler
 from rio_tiler.reader import point
+from rio_tiler.utils import geotiff_options
 
 from titiler.api import utils
 from titiler.api.deps import CommonMosaicParams, CommonTileParams
@@ -220,6 +219,8 @@ async def mosaic_point(
                     values.append(await fut)
                 except Exception:
                     continue
+    timings.append(("Read-tiles", t.elapsed))
+
     if timings:
         headers["X-Server-Timings"] = "; ".join(
             ["{} - {:0.2f}".format(name, time * 1000) for (name, time) in timings]
@@ -319,17 +320,10 @@ async def mosaic_tile(
         )
     timings.append(("Post-process", t.elapsed))
 
-    bounds = mercantile.xy_bounds(mercantile.Tile(x, y, z))
-    dst_transform = from_bounds(*bounds, tilesize, tilesize)
-
+    opts = geotiff_options(x, y, z, tilesize=tilesize)
     with utils.Timer() as t:
         content = utils.reformat(
-            tile,
-            mask,
-            img_format=format,
-            colormap=image_params.color_map,
-            dst_transform=dst_transform,
-            crs=CRS.from_epsg(3857),
+            tile, mask, img_format=format, colormap=image_params.color_map, **opts
         )
     timings.append(("Format", t.elapsed))
 
