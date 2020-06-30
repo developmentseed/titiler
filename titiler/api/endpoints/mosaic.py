@@ -12,7 +12,6 @@ import morecantile
 import numpy
 import rasterio
 from cogeo_mosaic.backends import MosaicBackend
-from cogeo_mosaic.backends.utils import get_hash
 from cogeo_mosaic.mosaic import MosaicJSON
 from cogeo_mosaic.utils import get_footprints
 from rasterio.crs import CRS
@@ -46,6 +45,12 @@ router = APIRouter()
 templates = Jinja2Templates(directory="titiler/templates")
 
 
+def _read_point(asset: str, *args, **kwargs) -> List:
+    """Read pixel value at a point from an asset"""
+    with rasterio.open(asset) as src_dst:
+        return point(src_dst, *args, **kwargs)
+
+
 @router.post(
     "", response_model=MosaicJSON, response_model_exclude_none=True,
 )
@@ -57,8 +62,7 @@ def create_mosaicjson(body: CreateMosaicJSON):
         maxzoom=body.maxzoom,
         max_threads=body.max_threads,
     )
-    mosaic_id = body.mosaic_id or get_hash(**mosaic.dict())
-    mosaic_path = CommonMosaicParams(mosaic_id, body.url).mosaic_path
+    mosaic_path = CommonMosaicParams(body.url).mosaic_path
     with MosaicBackend(mosaic_path, mosaic_def=mosaic) as mosaic:
         try:
             mosaic.write()
@@ -85,7 +89,7 @@ def read_mosaicjson(resp: Response, mosaic_params: CommonMosaicParams = Depends(
 @router.put("", response_model=MosaicJSON, response_model_exclude_none=True)
 def update_mosaicjson(body: UpdateMosaicJSON):
     """Update an existing MosaicJSON"""
-    mosaic_path = CommonMosaicParams(body.mosaic_id, body.url).mosaic_path
+    mosaic_path = CommonMosaicParams(body.url).mosaic_path
     with MosaicBackend(mosaic_path) as mosaic:
         features = get_footprints(body.files, max_threads=body.max_threads)
         try:
@@ -201,13 +205,8 @@ async def mosaic_point(
     # Rio-tiler provides a helper function (``rio_tiler.reader.multi_point``) for reading a point from multiple assets
     # using an external threadpool.  For similar reasons as described below, we will transcribe the rio-tiler code to
     # use the default executor provided by the event loop.
-    def worker(asset: str, *args, **kwargs) -> List:
-        # TODO: Maybe move this outside route but I'm feeling lazy right now so it is defined here
-        with rasterio.open(asset) as src_dst:
-            return point(src_dst, *args, **kwargs)
-
     futures = [
-        run_in_threadpool(worker, asset, coordinates=[lon, lat], indexes=indexes)
+        run_in_threadpool(_read_point, asset, coordinates=[lon, lat], indexes=indexes)
         for asset in assets
     ]
 

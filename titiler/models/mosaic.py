@@ -14,8 +14,7 @@ class _MosaicJSONCommon(BaseModel):
 
     files: List[str]
     max_threads: int = 20
-    url: Optional[str] = None
-    mosaic_id: Optional[str] = None
+    url: str
 
 
 class CreateMosaicJSON(_MosaicJSONCommon):
