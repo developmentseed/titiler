@@ -10,9 +10,9 @@ from rasterio.enums import Resampling
 from rio_tiler.colormap import cmap
 
 from titiler.api.utils import get_hash
+from titiler.core.config import DEFAULT_MOSAIC_BACKEND, DEFAULT_MOSAIC_HOST
 from titiler.custom import cmap as custom_colormap
 from titiler.custom import tms as custom_tms
-from titiler.settings import DEFAULT_MOSAIC_BACKEND, DEFAULT_MOSAIC_HOST
 
 from fastapi import Query
 
