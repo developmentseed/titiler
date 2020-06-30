@@ -3,6 +3,7 @@
 import re
 from enum import Enum
 from typing import Any, Dict, Optional, Union
+from urllib.parse import urlparse
 
 import morecantile
 import numpy
@@ -16,7 +17,6 @@ from titiler.custom import tms as custom_tms
 
 from fastapi import Query
 
-from starlette.exceptions import HTTPException
 from starlette.requests import Request
 
 ################################################################################
@@ -238,15 +238,13 @@ class CommonMosaicParams:
     """Common mosaic params."""
 
     def __init__(
-        self,
-        mosaic_id: Optional[str] = Query(None, description="MosaicJSON ID"),
-        url: Optional[str] = Query(None, description="MosaicJSON URL"),
+        self, url: str = Query(None, description="MosaicJSON URL"),
     ):
         """Create mosaic path from args"""
-        if not mosaic_id and not url:
-            raise HTTPException(
-                status_code=422, detail="Missing 'mosaic_id' or 'url' parameter"
+        parsed = urlparse(url)
+        if parsed.scheme == "mosaicid":
+            self.mosaic_path = (
+                f"{DEFAULT_MOSAIC_BACKEND}{DEFAULT_MOSAIC_HOST}/{parsed.scheme}.json.gz"
             )
-        self.mosaic_path = (
-            url or f"{DEFAULT_MOSAIC_BACKEND}{DEFAULT_MOSAIC_HOST}/{mosaic_id}.json.gz"
-        )
+        else:
+            self.mosaic_path = url
