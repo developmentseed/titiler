@@ -1,14 +1,12 @@
 """API for MosaicJSON Dataset."""
 import asyncio
 import os
-import random
 import re
 from collections import AsyncGenerator
 from functools import partial
 from typing import Coroutine, Dict, List, Optional
 from urllib.parse import urlencode
 
-import mercantile
 import morecantile
 import numpy
 import rasterio
@@ -21,7 +19,7 @@ from rio_tiler.utils import geotiff_options
 
 from titiler.api import utils
 from titiler.api.deps import CommonMosaicParams, CommonTileParams
-from titiler.api.endpoints.cog import cog_info, tile_response_codes
+from titiler.api.endpoints.cog import tile_response_codes
 from titiler.errors import BadRequestError, TileNotFoundError
 from titiler.models.cog import cogBounds, cogInfo
 from titiler.models.mapbox import TileJSON
@@ -140,14 +138,6 @@ def mosaicjson_info(resp: Response, mosaic_params: CommonMosaicParams = Depends(
             "minzoom": meta["minzoom"],
             "name": mosaic_path,
         }
-        if not mosaic_path.startswith("dynamodb://"):
-            mosaic_quadkeys = set(mosaic._quadkeys)
-            tile = mercantile.quadkey_to_tile(random.sample(mosaic_quadkeys, 1)[0])
-            assets = mosaic.tile(*tile)
-            asset_info = cog_info(resp, url=assets[0])
-            del asset_info["band_metadata"]
-            response["quadkeys"] = list(mosaic_quadkeys)
-            response = {**asset_info, **response}
         return response
 
 
@@ -350,9 +340,7 @@ def wmts(
     mosaic_params: CommonMosaicParams = Depends(),
 ):
     """OGC WMTS endpoint."""
-    scheme = request.url.scheme
-    host = request.headers["host"]
-    endpoint = f"{scheme}://{host}/mosaic"
+    endpoint = request.url_for("read_mosaicjson")
 
     kwargs = dict(request.query_params)
     kwargs.pop("tile_format", None)
