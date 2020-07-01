@@ -174,16 +174,7 @@ def mosaic_tilejson(
         kwargs["format"] = tile_format
     tile_url = request.url_for("mosaic_tile", **kwargs).replace("\\", "")
     with MosaicBackend(mosaic_params.mosaic_path) as mosaic:
-        tjson = TileJSON(
-            name=mosaic.mosaic_def.name,
-            description=mosaic.mosaic_def.description,
-            attribution=mosaic.mosaic_def.attribution,
-            bounds=mosaic.mosaic_def.bounds,
-            center=mosaic.mosaic_def.center,
-            minzoom=mosaic.mosaic_def.minzoom,
-            maxzoom=mosaic.mosaic_def.maxzoom,
-            tiles=[tile_url],
-        )
+        tjson = TileJSON(**mosaic.metadata, tiles=[tile_url],)
     response.headers["Cache-Control"] = "max-age=3600"
     return tjson
 
