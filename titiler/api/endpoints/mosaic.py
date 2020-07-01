@@ -3,8 +3,9 @@ import asyncio
 import os
 import random
 import re
+from collections import AsyncGenerator
 from functools import partial
-from typing import Dict, List, Optional
+from typing import Coroutine, Dict, List, Optional
 from urllib.parse import urlencode
 
 import mercantile
@@ -48,6 +49,16 @@ def _read_point(asset: str, *args, **kwargs) -> List:
     """Read pixel value at a point from an asset"""
     with rasterio.open(asset) as src_dst:
         return point(src_dst, *args, **kwargs)
+
+
+async def _process_futures(
+    futures: List[Coroutine], concurrency: int
+) -> AsyncGenerator:
+    """Create an async generator which executes coroutines at specified concurrency and yields response as completed"""
+    semaphore = asyncio.Semaphore(concurrency)
+    async with semaphore:
+        for fut in asyncio.as_completed(futures):
+            yield fut
 
 
 @router.post(
@@ -146,7 +157,7 @@ def mosaicjson_info(resp: Response, mosaic_params: CommonMosaicParams = Depends(
     responses={200: {"description": "Return a tilejson"}},
     response_model_exclude_none=True,
 )
-async def mosaic_tilejson(
+def mosaic_tilejson(
     request: Request,
     response: Response,
     tile_scale: int = Query(
@@ -209,16 +220,16 @@ async def mosaic_point(
         for asset in assets
     ]
 
-    semaphore = asyncio.Semaphore(int(os.getenv("MOSAIC_CONCURRENCY", 10)))
-
     values = []
     with utils.Timer() as t:
-        async with semaphore:
-            for fut in asyncio.as_completed(futures):
-                try:
-                    values.append(await fut)
-                except Exception:
-                    continue
+        async for fut in _process_futures(
+            futures, concurrency=int(os.getenv("MOSAIC_CONCURRENCY", 10))
+        ):
+            try:
+                values.append(await fut)
+            except Exception:
+                continue
+
     timings.append(("Read-tiles", t.elapsed))
 
     if timings:
@@ -286,22 +297,21 @@ async def mosaic_tile(
     )
     futures = [run_in_threadpool(_tiler, asset) for asset in assets]
 
-    semaphore = asyncio.Semaphore(int(os.getenv("MOSAIC_CONCURRENCY", 10)))
-
     with utils.Timer() as t:
-        async with semaphore:
-            for fut in asyncio.as_completed(futures):
-                try:
-                    tile, mask = await fut
-                except Exception:
-                    # Gracefully handle exceptions
-                    continue
+        async for fut in _process_futures(
+            futures, concurrency=int(os.getenv("MOSAIC_CONCURRENCY", 10))
+        ):
+            try:
+                tile, mask = await fut
+            except Exception:
+                # Gracefully handle exceptions
+                continue
 
-                tile = numpy.ma.array(tile)
-                tile.mask = mask == 0
-                pixsel.feed(tile)
-                if pixsel.is_done:
-                    break
+            tile = numpy.ma.array(tile)
+            tile.mask = mask == 0
+            pixsel.feed(tile)
+            if pixsel.is_done:
+                break
     timings.append(("Read-tiles", t.elapsed))
 
     tile, mask = pixsel.data
