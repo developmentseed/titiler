@@ -17,7 +17,7 @@ from starlette.requests import Request
 
 def get_cache(request: Request) -> CacheLayer:
     """Get Memcached Layer."""
-    return request.state.cache
+    return getattr(request.state, "cache", None)
 
 
 def get_hash(**kwargs: Any) -> str:
