@@ -15,9 +15,12 @@ from titiler.db.memcache import CacheLayer
 from starlette.requests import Request
 
 
-def get_cache(request: Request) -> CacheLayer:
+def get_cache(request: Request) -> Optional[CacheLayer]:
     """Get Memcached Layer."""
-    return request.state.get("cache")
+    try:
+        return request.state.cache
+    except AttributeError:
+        return None
 
 
 def get_hash(**kwargs: Any) -> str:
