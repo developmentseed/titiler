@@ -2,13 +2,11 @@
 
 
 from io import BytesIO
-from typing import Dict
 from unittest.mock import patch
 
 import numpy
-from rasterio.io import MemoryFile
 
-from ..conftest import mock_reader
+from ..conftest import mock_reader, parse_img
 
 
 @patch("titiler.api.endpoints.cog.COGReader")
@@ -97,13 +95,6 @@ def test_wmts(reader, app):
         "http://testserver/cog/tiles/WebMercatorQuad/{TileMatrix}/{TileCol}/{TileRow}@2x.jpg?url=https"
         in response.content.decode()
     )
-
-
-def parse_img(content: bytes) -> Dict:
-    """Read tile image and return metadata."""
-    with MemoryFile(content) as mem:
-        with mem.open() as dst:
-            return dst.meta
 
 
 @patch("titiler.api.endpoints.cog.COGReader")

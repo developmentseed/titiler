@@ -2,14 +2,10 @@
 
 import os
 import re
-from io import BytesIO
 from typing import Any, Dict, Optional
 from urllib.parse import urlencode
 
-import numpy
 from rasterio.transform import from_bounds
-from rio_tiler.profiles import img_profiles
-from rio_tiler.utils import render
 from rio_tiler_crs import COGReader
 
 from titiler.api import utils
@@ -22,9 +18,8 @@ from titiler.api.deps import (
     request_hash,
 )
 from titiler.db.memcache import CacheLayer
+from titiler.models.cog import cogBounds, cogInfo, cogMetadata
 from titiler.models.mapbox import TileJSON
-from titiler.models.metadata import cogBounds, cogInfo, cogMetadata
-from titiler.ressources.common import drivers
 from titiler.ressources.enums import ImageMimeTypes, ImageType, MimeTypes
 from titiler.ressources.responses import ImgResponse, XMLResponse
 from titiler.templates.factory import web_template
@@ -60,7 +55,7 @@ async def cog_bounds(
     response_model_exclude_none=True,
     responses={200: {"description": "Return basic info on COG."}},
 )
-async def cog_info(
+def cog_info(
     resp: Response, url: str = Query(..., description="Cloud Optimized GeoTIFF URL.")
 ):
     """Return basic info on COG."""
@@ -101,7 +96,7 @@ async def cog_metadata(
     return info
 
 
-params: Dict[str, Any] = {
+tile_response_codes: Dict[str, Any] = {
     "responses": {
         200: {
             "content": {
@@ -118,14 +113,16 @@ params: Dict[str, Any] = {
 }
 
 
-@router.get(r"/tiles/{z}/{x}/{y}", **params)
-@router.get(r"/tiles/{z}/{x}/{y}\.{format}", **params)
-@router.get(r"/tiles/{z}/{x}/{y}@{scale}x", **params)
-@router.get(r"/tiles/{z}/{x}/{y}@{scale}x\.{format}", **params)
-@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}", **params)
-@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}\.{format}", **params)
-@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x", **params)
-@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x\.{format}", **params)
+@router.get(r"/tiles/{z}/{x}/{y}", **tile_response_codes)
+@router.get(r"/tiles/{z}/{x}/{y}\.{format}", **tile_response_codes)
+@router.get(r"/tiles/{z}/{x}/{y}@{scale}x", **tile_response_codes)
+@router.get(r"/tiles/{z}/{x}/{y}@{scale}x\.{format}", **tile_response_codes)
+@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}", **tile_response_codes)
+@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}\.{format}", **tile_response_codes)
+@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x", **tile_response_codes)
+@router.get(
+    r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x\.{format}", **tile_response_codes
+)
 async def cog_tile(
     z: int = Path(..., ge=0, le=30, description="Mercator tiles's zoom level"),
     x: int = Path(..., description="Mercator tiles's column"),
@@ -187,22 +184,17 @@ async def cog_tile(
             )
         timings.append(("Post-process", t.elapsed))
 
+        bounds = tms.xy_bounds(x, y, z)
+        dst_transform = from_bounds(*bounds, tilesize, tilesize)
         with utils.Timer() as t:
-            if format == ImageType.npy:
-                sio = BytesIO()
-                numpy.save(sio, (tile, mask))
-                sio.seek(0)
-                content = sio.getvalue()
-            else:
-                driver = drivers[format.value]
-                options = img_profiles.get(driver.lower(), {})
-                if format == ImageType.tif:
-                    bounds = tms.xy_bounds(x, y, z)
-                    dst_transform = from_bounds(*bounds, tilesize, tilesize)
-                    options = {"crs": tms.crs, "transform": dst_transform}
-                content = render(
-                    tile, mask, img_format=driver, colormap=colormap, **options
-                )
+            content = utils.reformat(
+                tile,
+                mask,
+                img_format=format,
+                colormap=colormap,
+                transform=dst_transform,
+                crs=tms.crs,
+            )
         timings.append(("Format", t.elapsed))
 
         if cache_client and content:
@@ -218,8 +210,8 @@ async def cog_tile(
     )
 
 
-@router.get(r"/preview", **params)
-@router.get(r"/preview\.{format}", **params)
+@router.get(r"/preview", **tile_response_codes)
+@router.get(r"/preview\.{format}", **tile_response_codes)
 async def cog_preview(
     format: ImageType = Query(None, description="Output image type. Default is auto."),
     url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
@@ -256,17 +248,7 @@ async def cog_preview(
     timings.append(("Post-process", t.elapsed))
 
     with utils.Timer() as t:
-        if format == ImageType.npy:
-            sio = BytesIO()
-            numpy.save(sio, (data, mask))
-            sio.seek(0)
-            content = sio.getvalue()
-        else:
-            driver = drivers[format.value]
-            options = img_profiles.get(driver.lower(), {})
-            content = render(
-                data, mask, img_format=driver, colormap=colormap, **options
-            )
+        content = utils.reformat(data, mask, img_format=format, colormap=colormap)
     timings.append(("Format", t.elapsed))
 
     if timings:
@@ -280,7 +262,7 @@ async def cog_preview(
 
 
 # @router.get(r"/crop/{minx},{miny},{maxx},{maxy}", **params)
-@router.get(r"/crop/{minx},{miny},{maxx},{maxy}\.{format}", **params)
+@router.get(r"/crop/{minx},{miny},{maxx},{maxy}\.{format}", **tile_response_codes)
 async def cog_part(
     minx: float = Path(..., description="Bounding box min X"),
     miny: float = Path(..., description="Bounding box min Y"),
@@ -309,6 +291,9 @@ async def cog_part(
             colormap = image_params.color_map or cog.colormap
     timings.append(("Read", t.elapsed))
 
+    if not format:
+        format = ImageType.jpg if mask.all() else ImageType.png
+
     with utils.Timer() as t:
         data = utils.postprocess(
             data,
@@ -319,17 +304,7 @@ async def cog_part(
     timings.append(("Post-process", t.elapsed))
 
     with utils.Timer() as t:
-        if format == ImageType.npy:
-            sio = BytesIO()
-            numpy.save(sio, (data, mask))
-            sio.seek(0)
-            content = sio.getvalue()
-        else:
-            driver = drivers[format.value]
-            options = img_profiles.get(driver.lower(), {})
-            content = render(
-                data, mask, img_format=driver, colormap=colormap, **options
-            )
+        content = utils.reformat(data, mask, img_format=format, colormap=colormap)
     timings.append(("Format", t.elapsed))
 
     if timings:
@@ -446,7 +421,7 @@ async def cog_tilejson(
 @router.get(
     "/{TileMatrixSetId}/WMTSCapabilities.xml", response_class=XMLResponse, tags=["OGC"],
 )
-def wtms(
+def wmts(
     request: Request,
     response: Response,
     TileMatrixSetId: TileMatrixSetNames = Query(
@@ -461,7 +436,7 @@ def wtms(
         1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
     ),
 ):
-    """OGC WMTS endpoit."""
+    """OGC WMTS endpoint."""
     scheme = request.url.scheme
     host = request.headers["host"]
     endpoint = f"{scheme}://{host}/cog"

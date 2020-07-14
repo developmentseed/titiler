@@ -2,14 +2,10 @@
 
 import os
 import re
-from io import BytesIO
 from typing import Any, Dict, List, Optional, Union
 from urllib.parse import urlencode
 
-import numpy
 from rasterio.transform import from_bounds
-from rio_tiler.profiles import img_profiles
-from rio_tiler.utils import render
 from stac_tiler import STACReader
 
 from titiler.api import utils
@@ -22,9 +18,8 @@ from titiler.api.deps import (
     request_hash,
 )
 from titiler.db.memcache import CacheLayer
+from titiler.models.cog import cogBounds, cogInfo, cogMetadata
 from titiler.models.mapbox import TileJSON
-from titiler.models.metadata import cogBounds, cogInfo, cogMetadata
-from titiler.ressources.common import drivers
 from titiler.ressources.enums import ImageMimeTypes, ImageType
 from titiler.ressources.responses import ImgResponse
 from titiler.templates.factory import web_template
@@ -199,26 +194,17 @@ async def stac_tile(
             )
         timings.append(("Post-process", t.elapsed))
 
+        bounds = tms.xy_bounds(x, y, z)
+        dst_transform = from_bounds(*bounds, tilesize, tilesize)
         with utils.Timer() as t:
-            if format == ImageType.npy:
-                sio = BytesIO()
-                numpy.save(sio, (tile, mask))
-                sio.seek(0)
-                content = sio.getvalue()
-            else:
-                driver = drivers[format.value]
-                options = img_profiles.get(driver.lower(), {})
-                if format == ImageType.tif:
-                    bounds = tms.xy_bounds(x, y, z)
-                    dst_transform = from_bounds(*bounds, tilesize, tilesize)
-                    options = {"crs": tms.crs, "transform": dst_transform}
-                content = render(
-                    tile,
-                    mask,
-                    img_format=driver,
-                    colormap=image_params.color_map,
-                    **options,
-                )
+            content = utils.reformat(
+                tile,
+                mask,
+                img_format=format,
+                colormap=image_params.color_map,
+                transform=dst_transform,
+                crs=tms.crs,
+            )
         timings.append(("Format", t.elapsed))
 
         if cache_client and content:
@@ -279,21 +265,10 @@ async def stac_preview(
     timings.append(("Post-process", t.elapsed))
 
     with utils.Timer() as t:
-        if format == ImageType.npy:
-            sio = BytesIO()
-            numpy.save(sio, (data, mask))
-            sio.seek(0)
-            content = sio.getvalue()
-        else:
-            driver = drivers[format.value]
-            options = img_profiles.get(driver.lower(), {})
-            content = render(
-                data,
-                mask,
-                img_format=driver,
-                colormap=image_params.color_map,
-                **options,
-            )
+        content = utils.reformat(
+            data, mask, img_format=format, colormap=image_params.color_map,
+        )
+    timings.append(("Format", t.elapsed))
     timings.append(("Format", t.elapsed))
 
     if timings:
@@ -353,21 +328,10 @@ async def stac_part(
     timings.append(("Post-process", t.elapsed))
 
     with utils.Timer() as t:
-        if format == ImageType.npy:
-            sio = BytesIO()
-            numpy.save(sio, (data, mask))
-            sio.seek(0)
-            content = sio.getvalue()
-        else:
-            driver = drivers[format.value]
-            options = img_profiles.get(driver.lower(), {})
-            content = render(
-                data,
-                mask,
-                img_format=driver,
-                colormap=image_params.color_map,
-                **options,
-            )
+        content = utils.reformat(
+            data, mask, img_format=format, colormap=image_params.color_map
+        )
+    timings.append(("Format", t.elapsed))
     timings.append(("Format", t.elapsed))
 
     if timings:

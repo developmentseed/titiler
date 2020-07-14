@@ -38,6 +38,7 @@ $ docker-compose up
 ### Installation options
  
 - STAC: `pip install -e .["stac"]`
+- MosaicJSON: `pip install -e .["mosaic"]`
 
 
 # Docs
@@ -162,10 +163,11 @@ titiler/                         - titiler python module.
  ├── api/                        - general api directory.
  │   ├── api_                 - directory hosting version 1 of the API.
  │   │   ├── endpoints           - api routes.
+ │   │   │   ├── cog.py          - COG related endpoints.
  │   │   │   ├── metadata.py     - metadata endpoints (e.g. /tilesjson.json, /metadata...).
+ │   │   │   ├── mosaic.py       - MosaicJSON related endpoints.
  │   │   │   ├── ogc.py          - OGC endpoints (e.g WMTS).
  │   │   │   ├── operations.py   - clip/points endpoints.
- │   │   │   ├── tiles.py        - tiling related endpoints.
  │   │   └── api.py              - construct the API by merging api_v1 endpoints.
  │   ├── deps.py                 - API dependencies.
  │   └── utils.py                - API utility functions.
