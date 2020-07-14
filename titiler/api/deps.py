@@ -234,17 +234,11 @@ class CommonMetadataParams:
         self.kwargs = kwargs
 
 
-class CommonMosaicParams:
-    """Common mosaic params."""
-
-    def __init__(
-        self, url: str = Query(..., description="MosaicJSON URL"),
-    ):
-        """Create mosaic path from args"""
-        parsed = urlparse(url)
-        if parsed.scheme == "mosaicid":
-            self.mosaic_path = (
-                f"{DEFAULT_MOSAIC_BACKEND}{DEFAULT_MOSAIC_HOST}/{parsed.netloc}.json.gz"
-            )
-        else:
-            self.mosaic_path = url
+def MosaicPath(url: str = Query(..., description="MosaicJSON URL")) -> str:
+    """Create mosaic path from args"""
+    parsed = urlparse(url)
+    if parsed.scheme == "mosaicid":
+        # by default we store the mosaicjson as a GZ compressed json (.json.gz) file
+        return f"{DEFAULT_MOSAIC_BACKEND}{DEFAULT_MOSAIC_HOST}/{parsed.netloc}.json.gz"
+    else:
+        return url

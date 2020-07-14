@@ -15,7 +15,7 @@ from rio_tiler_crs import COGReader
 from rio_tiler_crs.reader import geotiff_options
 
 from titiler.api import utils
-from titiler.api.deps import CommonMosaicParams, CommonTileParams
+from titiler.api.deps import CommonTileParams, MosaicPath
 from titiler.api.endpoints.cog import tile_response_codes
 from titiler.errors import BadRequestError, TileNotFoundError
 from titiler.models.cog import cogBounds
@@ -62,9 +62,7 @@ async def _process_futures(
             yield fut
 
 
-@router.post(
-    "", response_model=MosaicJSON, response_model_exclude_none=True,
-)
+@router.post("", response_model=MosaicJSON, response_model_exclude_none=True)
 def create_mosaicjson(body: CreateMosaicJSON):
     """Create a MosaicJSON"""
     mosaic = MosaicJSON.from_urls(
@@ -73,7 +71,7 @@ def create_mosaicjson(body: CreateMosaicJSON):
         maxzoom=body.maxzoom,
         max_threads=body.max_threads,
     )
-    mosaic_path = CommonMosaicParams(body.url).mosaic_path
+    mosaic_path = MosaicPath(body.url)
     with MosaicBackend(mosaic_path, mosaic_def=mosaic) as mosaic:
         try:
             mosaic.write()
@@ -90,16 +88,16 @@ def create_mosaicjson(body: CreateMosaicJSON):
     response_model_exclude_none=True,
     responses={200: {"description": "Return MosaicJSON definition"}},
 )
-def read_mosaicjson(mosaic_params: CommonMosaicParams = Depends()):
+def read_mosaicjson(mosaic_path: str = Depends(MosaicPath)):
     """Read a MosaicJSON"""
-    with MosaicBackend(mosaic_params.mosaic_path) as mosaic:
+    with MosaicBackend(mosaic_path) as mosaic:
         return mosaic.mosaic_def
 
 
 @router.put("", response_model=MosaicJSON, response_model_exclude_none=True)
 def update_mosaicjson(body: UpdateMosaicJSON):
     """Update an existing MosaicJSON"""
-    mosaic_path = CommonMosaicParams(body.url).mosaic_path
+    mosaic_path = MosaicPath(body.url)
     with MosaicBackend(mosaic_path) as mosaic:
         features = get_footprints(body.files, max_threads=body.max_threads)
         try:
@@ -116,20 +114,19 @@ def update_mosaicjson(body: UpdateMosaicJSON):
     response_model=cogBounds,
     responses={200: {"description": "Return the bounds of the MosaicJSON"}},
 )
-def mosaicjson_bounds(mosaic_params: CommonMosaicParams = Depends()):
+def mosaicjson_bounds(mosaic_path: str = Depends(MosaicPath)):
     """Read MosaicJSON bounds"""
-    with MosaicBackend(mosaic_params.mosaic_path) as mosaic:
+    with MosaicBackend(mosaic_path) as mosaic:
         return {"bounds": mosaic.mosaic_def.bounds}
 
 
 @router.get("/info", response_model=mosaicInfo)
-def mosaicjson_info(mosaic_params: CommonMosaicParams = Depends()):
+def mosaicjson_info(mosaic_path: str = Depends(MosaicPath)):
     """
     Read MosaicJSON info
 
     Ref: https://github.com/developmentseed/cogeo-mosaic-tiler/blob/master/cogeo_mosaic_tiler/handlers/app.py#L164-L198
     """
-    mosaic_path = mosaic_params.mosaic_path
     with MosaicBackend(mosaic_path) as mosaic:
         meta = mosaic.metadata
         response = {
@@ -157,15 +154,15 @@ def mosaic_tilejson(
     tile_format: Optional[ImageType] = Query(
         None, description="Output image type. Default is auto."
     ),
-    mosaic_params: CommonMosaicParams = Depends(),
+    mosaic_path: str = Depends(MosaicPath),
 ):
     """Create TileJSON"""
     kwargs = {"z": "{z}", "x": "{x}", "y": "{y}", "scale": tile_scale}
     if tile_format:
         kwargs["format"] = tile_format
     tile_url = request.url_for("mosaic_tile", **kwargs).replace("\\", "")
-    with MosaicBackend(mosaic_params.mosaic_path) as mosaic:
-        tjson = TileJSON(**mosaic.metadata, tiles=[tile_url],)
+    with MosaicBackend(mosaic_path) as mosaic:
+        tjson = TileJSON(**mosaic.metadata, tiles=[tile_url])
     return tjson
 
 
@@ -184,7 +181,7 @@ async def mosaic_point(
         title="Band Math expression",
         description="rio-tiler's band math expression (e.g B1/B2)",
     ),
-    mosaic_params: CommonMosaicParams = Depends(),
+    mosaic_path: str = Depends(MosaicPath),
 ):
     """Get Point value for a MosaicJSON."""
     indexes = tuple(int(s) for s in re.findall(r"\d+", bidx)) if bidx else None
@@ -193,7 +190,7 @@ async def mosaic_point(
     headers: Dict[str, str] = {}
 
     with utils.Timer() as t:
-        with MosaicBackend(mosaic_params.mosaic_path) as mosaic:
+        with MosaicBackend(mosaic_path) as mosaic:
             assets = mosaic.point(lon, lat)
 
     timings.append(("Read-mosaic", t.elapsed))
@@ -249,7 +246,7 @@ async def mosaic_tile(
         PixelSelectionMethod.first, description="Pixel selection method."
     ),
     image_params: CommonTileParams = Depends(),
-    mosaic_params: CommonMosaicParams = Depends(),
+    mosaic_path: str = Depends(MosaicPath),
 ):
     """Read MosaicJSON tile"""
     pixsel = pixel_selection.method()
@@ -257,7 +254,7 @@ async def mosaic_tile(
     headers: Dict[str, str] = {}
 
     with utils.Timer() as t:
-        with MosaicBackend(mosaic_params.mosaic_path) as mosaic:
+        with MosaicBackend(mosaic_path) as mosaic:
             assets = mosaic.tile(x=x, y=y, z=z)
             if not assets:
                 raise TileNotFoundError(f"No assets found for tile {z}/{x}/{y}")
@@ -348,7 +345,7 @@ def wmts(
     tile_scale: int = Query(
         1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
     ),
-    mosaic_params: CommonMosaicParams = Depends(),
+    mosaic_path: str = Depends(MosaicPath),
 ):
     """OGC WMTS endpoint."""
     endpoint = request.url_for("read_mosaicjson")
@@ -359,7 +356,7 @@ def wmts(
     qs = urlencode(list(kwargs.items()))
 
     tms = morecantile.tms.get("WebMercatorQuad")
-    with MosaicBackend(mosaic_params.mosaic_path) as mosaic:
+    with MosaicBackend(mosaic_path) as mosaic:
         minzoom = mosaic.mosaic_def.minzoom
         maxzoom = mosaic.mosaic_def.maxzoom
         bounds = mosaic.mosaic_def.bounds

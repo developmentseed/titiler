@@ -248,7 +248,7 @@ async def cog_preview(
     timings.append(("Post-process", t.elapsed))
 
     with utils.Timer() as t:
-        content = utils.reformat(data, mask, img_format=format, colormap=colormap,)
+        content = utils.reformat(data, mask, img_format=format, colormap=colormap)
     timings.append(("Format", t.elapsed))
 
     if timings:
