@@ -3,19 +3,16 @@ import asyncio
 import os
 import re
 from collections import AsyncGenerator
-from functools import partial
-from typing import Coroutine, Dict, List, Optional
+from typing import Coroutine, Dict, List, Optional, Tuple
 from urllib.parse import urlencode
 
 import morecantile
 import numpy
-import rasterio
 from cogeo_mosaic.backends import MosaicBackend
 from cogeo_mosaic.mosaic import MosaicJSON
 from cogeo_mosaic.utils import get_footprints
-from rio_tiler.io.cogeo import tile as cogeoTiler
-from rio_tiler.reader import point
-from rio_tiler.utils import geotiff_options
+from rio_tiler_crs import COGReader
+from rio_tiler_crs.reader import geotiff_options
 
 from titiler.api import utils
 from titiler.api.deps import CommonMosaicParams, CommonTileParams
@@ -43,10 +40,17 @@ router = APIRouter()
 templates = Jinja2Templates(directory="titiler/templates")
 
 
+def _read_tile(url: str, *args, **kwargs) -> Tuple[numpy.ndarray, numpy.ndarray]:
+    """Read tile from an asset"""
+    with COGReader(url) as cog:
+        tile, mask = cog.tile(*args, **kwargs)
+    return tile, mask
+
+
 def _read_point(asset: str, *args, **kwargs) -> List:
     """Read pixel value at a point from an asset"""
-    with rasterio.open(asset) as src_dst:
-        return point(src_dst, *args, **kwargs)
+    with COGReader(asset) as cog:
+        return cog.point(*args, **kwargs)
 
 
 async def _process_futures(
@@ -180,6 +184,11 @@ async def mosaic_point(
     bidx: Optional[str] = Query(
         None, title="Band indexes", description="comma (',') delimited band indexes",
     ),
+    expression: Optional[str] = Query(
+        None,
+        title="Band Math expression",
+        description="rio-tiler's band math expression (e.g B1/B2)",
+    ),
     mosaic_params: CommonMosaicParams = Depends(),
 ):
     """Get Point value for a MosaicJSON."""
@@ -198,7 +207,9 @@ async def mosaic_point(
     # using an external threadpool.  For similar reasons as described below, we will transcribe the rio-tiler code to
     # use the default executor provided by the event loop.
     futures = [
-        run_in_threadpool(_read_point, asset, coordinates=[lon, lat], indexes=indexes)
+        run_in_threadpool(
+            _read_point, asset, lon, lat, indexes=indexes, expression=expression
+        )
         for asset in assets
     ]
 
@@ -265,19 +276,21 @@ async def mosaic_tile(
     # transcribe the code here and use the executor provided by the event loop.  This also means we define this function
     # as a coroutine (even though nothing that is called is a coroutine), since the event loop's executor isn't
     # available in normal ``def`` functions.
-    # https://github.com/cogeotiff/rio-tiler-mosaic/blob/master/rio_tiler_mosaic/mosaic.py#L37-L102
-    _tiler = partial(
-        cogeoTiler,
-        tile_x=x,
-        tile_y=y,
-        tile_z=z,
-        tilesize=tilesize,
-        indexes=image_params.indexes,
-        # expression=image_params.expression, # TODO: Figure out why expression kwarg doesn't work
-        nodata=image_params.nodata,
-        **image_params.kwargs,
-    )
-    futures = [run_in_threadpool(_tiler, asset) for asset in assets]
+    futures = [
+        run_in_threadpool(
+            _read_tile,
+            asset,
+            x,
+            y,
+            z,
+            tilesize=tilesize,
+            indexes=image_params.indexes,
+            expression=image_params.expression,
+            nodata=image_params.nodata,
+            **image_params.kwargs,
+        )
+        for asset in assets
+    ]
 
     with utils.Timer() as t:
         async for fut in _process_futures(
