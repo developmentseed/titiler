@@ -238,7 +238,7 @@ class CommonMosaicParams:
     """Common mosaic params."""
 
     def __init__(
-        self, url: str = Query(None, description="MosaicJSON URL"),
+        self, url: str = Query(..., description="MosaicJSON URL"),
     ):
         """Create mosaic path from args"""
         parsed = urlparse(url)

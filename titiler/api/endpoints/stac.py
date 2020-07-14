@@ -202,7 +202,7 @@ async def stac_tile(
                 mask,
                 img_format=format,
                 colormap=image_params.color_map,
-                dst_transform=dst_transform,
+                transform=dst_transform,
                 crs=tms.crs,
             )
         timings.append(("Format", t.elapsed))

@@ -21,9 +21,9 @@ from titiler.api import utils
 from titiler.api.deps import CommonMosaicParams, CommonTileParams
 from titiler.api.endpoints.cog import tile_response_codes
 from titiler.errors import BadRequestError, TileNotFoundError
-from titiler.models.cog import cogBounds, cogInfo
+from titiler.models.cog import cogBounds
 from titiler.models.mapbox import TileJSON
-from titiler.models.mosaic import CreateMosaicJSON, UpdateMosaicJSON
+from titiler.models.mosaic import CreateMosaicJSON, UpdateMosaicJSON, mosaicInfo
 from titiler.ressources.enums import (
     ImageMimeTypes,
     ImageType,
@@ -121,7 +121,7 @@ def mosaicjson_bounds(resp: Response, mosaic_params: CommonMosaicParams = Depend
         return {"bounds": mosaic.mosaic_def.bounds}
 
 
-@router.get("/info", response_model=cogInfo)
+@router.get("/info", response_model=mosaicInfo)
 def mosaicjson_info(resp: Response, mosaic_params: CommonMosaicParams = Depends()):
     """
     Read MosaicJSON info
@@ -137,6 +137,7 @@ def mosaicjson_info(resp: Response, mosaic_params: CommonMosaicParams = Depends(
             "maxzoom": meta["maxzoom"],
             "minzoom": meta["minzoom"],
             "name": mosaic_path,
+            "quadkeys": list(mosaic.mosaic_def.tiles),
         }
         return response
 
@@ -311,7 +312,10 @@ async def mosaic_tile(
         )
     timings.append(("Post-process", t.elapsed))
 
-    opts = geotiff_options(x, y, z, tilesize=tilesize)
+    opts = {}
+    if ImageType.tif in format:
+        opts = geotiff_options(x, y, z, tilesize=tilesize)
+
     with utils.Timer() as t:
         content = utils.reformat(
             tile, mask, img_format=format, colormap=image_params.color_map, **opts

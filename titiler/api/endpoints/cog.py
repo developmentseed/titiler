@@ -192,7 +192,7 @@ async def cog_tile(
                 mask,
                 img_format=format,
                 colormap=colormap,
-                dst_transform=dst_transform,
+                transform=dst_transform,
                 crs=tms.crs,
             )
         timings.append(("Format", t.elapsed))

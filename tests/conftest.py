@@ -1,12 +1,17 @@
 """``pytest`` configuration."""
 
+import json
 import os
+from typing import Any, Dict
 
 import pytest
+from rasterio import MemoryFile
 from rio_tiler_crs import COGReader
 from stac_tiler import STACReader
 
 from starlette.testclient import TestClient
+
+DATA_DIR = os.path.join(os.path.dirname(__file__), "fixtures")
 
 
 @pytest.fixture(autouse=True)
@@ -27,15 +32,26 @@ def app(monkeypatch) -> TestClient:
 
 def mock_reader(src_path: str, *args, **kwargs) -> COGReader:
     """Mock rasterio.open."""
-    prefix = os.path.join(os.path.dirname(__file__), "fixtures")
     assert src_path.startswith("https://myurl.com/")
     cog_path = os.path.basename(src_path)
-    return COGReader(os.path.join(prefix, cog_path), *args, **kwargs)
+    return COGReader(os.path.join(DATA_DIR, cog_path), *args, **kwargs)
 
 
 def mock_STACreader(src_path: str, *args, **kwargs) -> COGReader:
     """Mock rasterio.open."""
-    prefix = os.path.join(os.path.dirname(__file__), "fixtures")
     assert src_path.startswith("https://myurl.com/")
     stac_path = os.path.basename(src_path)
-    return STACReader(os.path.join(prefix, stac_path), *args, **kwargs)
+    return STACReader(os.path.join(DATA_DIR, stac_path), *args, **kwargs)
+
+
+def read_json_fixture(fname: str) -> Dict[Any, Any]:
+    """Read json from test directory."""
+    with open(os.path.join(DATA_DIR, fname)) as f:
+        return json.load(f)
+
+
+def parse_img(content: bytes) -> Dict[Any, Any]:
+    """Read tile image and return metadata."""
+    with MemoryFile(content) as mem:
+        with mem.open() as dst:
+            return dst.meta

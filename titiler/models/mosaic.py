@@ -1,12 +1,8 @@
 "Titiler mosaic models"
 
-from typing import Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 from pydantic import BaseModel
-
-from titiler.ressources.enums import NodataTypes
-
-ColorTuple = Tuple[int, int, int, int]
 
 
 class _MosaicJSONCommon(BaseModel):
@@ -34,16 +30,8 @@ class mosaicInfo(BaseModel):
     """MosaicJSON info."""
 
     bounds: Tuple[float, float, float, float]
-    band_descriptions: List[Tuple[int, str]]
-    dtype: str
-    colorinterp: List[str]
-    nodata_type: NodataTypes
-    scale: Optional[float]
-    offsets: Optional[float]
-    colormap: Optional[Dict[int, ColorTuple]]
-
-    class Config:
-        """Config for model."""
-
-        extra = "ignore"
-        use_enum_values = True
+    center: Tuple[float, float, int]
+    minzoom: int
+    maxzoom: int
+    name: str
+    quadkeys: List[str]

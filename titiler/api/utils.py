@@ -72,7 +72,7 @@ def reformat(
     mask: numpy.ndarray,
     img_format: ImageType,
     colormap: Optional[Dict[int, Tuple[int, int, int, int]]] = None,
-    dst_transform: Optional[affine.Affine] = None,
+    transform: Optional[affine.Affine] = None,
     crs: Optional[CRS] = None,
 ):
     """Reformat image data to bytes"""
@@ -84,8 +84,8 @@ def reformat(
     else:
         driver = drivers[img_format.value]
         options = img_profiles.get(driver.lower(), {})
-        if dst_transform and crs and img_format == ImageType.tif:
-            options = {"crs": crs, "transform": dst_transform}
+        if transform and crs and ImageType.tif in img_format:
+            options = {"crs": crs, "transform": transform}
 
         content = render(data, mask, img_format=driver, colormap=colormap, **options)
     return content
