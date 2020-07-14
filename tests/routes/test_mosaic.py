@@ -30,17 +30,20 @@ def mosaic_read_factory(fname: str) -> Callable:
 
 
 def test_read_mosaic(app):
+    """test GET /mosaicjson endpoint"""
     response = app.get("/mosaicjson", params={"url": MOSAICJSON_FILE})
     assert response.status_code == 200
     MosaicJSON(**response.json())
 
 
 def test_read_default_backend(app):
+    """test GET /mosaicjson endpoint with default backend"""
     response = app.get("/mosaicjson", params={"url": "mosaicid://mosaic"})
     assert response.status_code == 200
 
 
 def test_update_mosaic(app):
+    """test PUT /mosaicjson endpoint"""
     mosaicjson = read_json_fixture("mosaic.json")
     original_qk = json.dumps(mosaicjson["tiles"], sort_keys=True)
 
@@ -69,6 +72,7 @@ def test_update_mosaic(app):
 
 
 def test_create_mosaic(app):
+    """test POST /mosaicjson endpoint"""
     output_mosaic = os.path.join(DATA_DIR, "test_create_mosaic.json")
     body = {
         "files": [os.path.join(DATA_DIR, fname) for fname in ["cog1.tif", "cog2.tif"]],
@@ -83,6 +87,7 @@ def test_create_mosaic(app):
 
 
 def test_bounds(app):
+    """test GET /mosaicjson/bounds endpoint"""
     response = app.get("/mosaicjson/bounds", params={"url": MOSAICJSON_FILE})
     assert response.status_code == 200
     body = response.json()
@@ -92,6 +97,7 @@ def test_bounds(app):
 
 
 def test_info(app):
+    """test GET /mosaicjson/info endpoint"""
     response = app.get("/mosaicjson/info", params={"url": MOSAICJSON_FILE})
     assert response.status_code == 200
     body = response.json()
@@ -112,6 +118,7 @@ def test_info(app):
 
 
 def test_tilejson(app):
+    """test GET /mosaicjson/tilejson.json endpoint"""
     mosaicjson = read_json_fixture(MOSAICJSON_FILE)
     response = app.get("/mosaicjson/tilejson.json", params={"url": MOSAICJSON_FILE})
     assert response.status_code == 200
@@ -129,6 +136,7 @@ def test_tilejson(app):
 
 
 def test_point(app):
+    """test GET /mosaicjson/point endpoint"""
     mosaicjson = read_json_fixture(MOSAICJSON_FILE)
     center = mosaicjson["center"]
     with patch.object(FileBackend, "_read", mosaic_read_factory(MOSAICJSON_FILE)):
@@ -143,10 +151,11 @@ def test_point(app):
 
 
 def test_tile(app):
+    """Test GET /mosaicjson/tiles endpoint"""
     mosaicjson = read_json_fixture(MOSAICJSON_FILE)
     bounds = mosaicjson["bounds"]
     tile = mercantile.tile(*mosaicjson["center"])
-    partial_tile = mercantile.tile(bounds[0], bounds[1], mosaicjson["center"][-1])
+    partial_tile = mercantile.tile(bounds[0], bounds[1], mosaicjson["minzoom"])
 
     with patch.object(FileBackend, "_read", mosaic_read_factory(MOSAICJSON_FILE)):
         # full tile
@@ -219,6 +228,7 @@ def test_tile(app):
 
 
 def test_wmts(app):
+    """test GET /mosaicjson/WMTSCapabilities.xml endpoint"""
     with patch.object(FileBackend, "_read", mosaic_read_factory(MOSAICJSON_FILE)):
         response = app.get(
             "/mosaicjson/WMTSCapabilities.xml", params={"url": MOSAICJSON_FILE}

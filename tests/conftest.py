@@ -5,7 +5,7 @@ import os
 from typing import Any, Dict
 
 import pytest
-from rasterio import MemoryFile
+from rasterio.io import MemoryFile
 from rio_tiler_crs import COGReader
 from stac_tiler import STACReader
 
