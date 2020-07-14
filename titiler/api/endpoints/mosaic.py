@@ -33,7 +33,6 @@ from fastapi import APIRouter, Depends, Path, Query
 
 from starlette.concurrency import run_in_threadpool
 from starlette.requests import Request
-from starlette.responses import Response
 from starlette.templating import Jinja2Templates
 
 router = APIRouter()
@@ -91,9 +90,8 @@ def create_mosaicjson(body: CreateMosaicJSON):
     response_model_exclude_none=True,
     responses={200: {"description": "Return MosaicJSON definition"}},
 )
-def read_mosaicjson(resp: Response, mosaic_params: CommonMosaicParams = Depends()):
+def read_mosaicjson(mosaic_params: CommonMosaicParams = Depends()):
     """Read a MosaicJSON"""
-    resp.headers["Cache-Control"] = "max-age-3600"
     with MosaicBackend(mosaic_params.mosaic_path) as mosaic:
         return mosaic.mosaic_def
 
@@ -118,9 +116,8 @@ def update_mosaicjson(body: UpdateMosaicJSON):
     response_model=cogBounds,
     responses={200: {"description": "Return the bounds of the MosaicJSON"}},
 )
-def mosaicjson_bounds(resp: Response, mosaic_params: CommonMosaicParams = Depends()):
+def mosaicjson_bounds(mosaic_params: CommonMosaicParams = Depends()):
     """Read MosaicJSON bounds"""
-    resp.headers["Cache-Control"] = "max-age=3600"
     with MosaicBackend(mosaic_params.mosaic_path) as mosaic:
         return {"bounds": mosaic.mosaic_def.bounds}
 
@@ -154,7 +151,6 @@ def mosaicjson_info(mosaic_params: CommonMosaicParams = Depends()):
 )
 def mosaic_tilejson(
     request: Request,
-    response: Response,
     tile_scale: int = Query(
         1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
     ),
@@ -170,7 +166,6 @@ def mosaic_tilejson(
     tile_url = request.url_for("mosaic_tile", **kwargs).replace("\\", "")
     with MosaicBackend(mosaic_params.mosaic_path) as mosaic:
         tjson = TileJSON(**mosaic.metadata, tiles=[tile_url],)
-    response.headers["Cache-Control"] = "max-age=3600"
     return tjson
 
 
@@ -257,7 +252,6 @@ async def mosaic_tile(
     mosaic_params: CommonMosaicParams = Depends(),
 ):
     """Read MosaicJSON tile"""
-    # TODO: Maybe use ``read_mosaic`` defined above (depending on cache behavior which is still TBD)
     pixsel = pixel_selection.method()
     timings = []
     headers: Dict[str, str] = {}
