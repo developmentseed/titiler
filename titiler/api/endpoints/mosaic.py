@@ -126,7 +126,7 @@ def mosaicjson_bounds(resp: Response, mosaic_params: CommonMosaicParams = Depend
 
 
 @router.get("/info", response_model=mosaicInfo)
-def mosaicjson_info(resp: Response, mosaic_params: CommonMosaicParams = Depends()):
+def mosaicjson_info(mosaic_params: CommonMosaicParams = Depends()):
     """
     Read MosaicJSON info
 
