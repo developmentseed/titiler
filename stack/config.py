@@ -12,6 +12,10 @@ ENV: Dict = {}
 # Add bucket where titiler can s3:GetObject/s3:HeadObject
 BUCKET: List = ["ds-satellite*", "*"]
 
+# Mosaics
+DEFAULT_MOSAIC_BACKEND = os.getenv("DEFAULT_MOSAIC_BACKEND", "s3://")
+DEFAULT_MOSAIC_HOST = os.getenv("DEFAULT_MOSAIC_HOST", "")
+
 ################################################################################
 #                                                                              #
 #                                   ECS                                        #

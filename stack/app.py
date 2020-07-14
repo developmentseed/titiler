@@ -1,7 +1,7 @@
 """Construct App."""
 
 import os
-from typing import Any, Optional, Union
+from typing import Any, List, Optional, Union
 
 import config
 import docker
@@ -23,6 +23,8 @@ DEFAULT_ENV = dict(
     PYTHONWARNINGS="ignore",
     VSI_CACHE="TRUE",
     VSI_CACHE_SIZE="1000000",
+    DEFAULT_MOSAIC_BACKEND=config.DEFAULT_MOSAIC_BACKEND,
+    DEFAULT_MOSAIC_HOST=config.DEFAULT_MOSAIC_HOST,
 )
 
 
@@ -43,7 +45,7 @@ class titilerLambdaStack(core.Stack):
         memory: int = 1024,
         timeout: int = 30,
         concurrent: Optional[int] = None,
-        permissions: Optional[iam.PolicyStatement] = None,
+        permissions: Optional[List[iam.PolicyStatement]] = [],
         layer_arn: Optional[str] = None,
         env: dict = {},
         code_dir: str = "./",
@@ -66,8 +68,8 @@ class titilerLambdaStack(core.Stack):
             timeout=core.Duration.seconds(timeout),
             environment=lambda_env,
         )
-        if permissions:
-            lambda_function.add_to_role_policy(permissions)
+        for perm in permissions:
+            lambda_function.add_to_role_policy(perm)
 
         if layer_arn:
             lambda_function.add_layers(
@@ -119,7 +121,7 @@ class titilerECSStack(core.Stack):
         memory: Union[int, float] = 512,
         mincount: int = 1,
         maxcount: int = 50,
-        permissions: Optional[iam.PolicyStatement] = None,
+        permissions: Optional[List[iam.PolicyStatement]] = [],
         env: dict = {},
         code_dir: str = "./",
         **kwargs: Any,
@@ -162,8 +164,8 @@ class titilerECSStack(core.Stack):
             ),
         )
 
-        if permissions:
-            fargate_service.task_definition.task_role.add_to_policy(permissions)
+        for perm in permissions:
+            fargate_service.task_definition.task_role.add_to_policy(perm)
 
         scalable_target = fargate_service.service.auto_scale_task_count(
             min_capacity=mincount, max_capacity=maxcount
@@ -194,11 +196,21 @@ class titilerECSStack(core.Stack):
 
 app = core.App()
 
-perms = None
+perms = []
 if config.BUCKET:
-    perms = iam.PolicyStatement(
-        actions=["s3:GetObject", "s3:HeadObject"],
-        resources=[f"arn:aws:s3:::{bucket}" for bucket in config.BUCKET],
+    perms.append(
+        iam.PolicyStatement(
+            actions=["s3:GetObject", "s3:HeadObject"],
+            resources=[f"arn:aws:s3:::{bucket}" for bucket in config.BUCKET],
+        )
+    )
+
+if config.DEFAULT_MOSAIC_BACKEND == "s3://" and config.DEFAULT_MOSAIC_HOST:
+    perms.append(
+        iam.PolicyStatement(
+            actions=["s3:GetObject", "s3:PutObject", "s3:HeadObject"],
+            resources=[f"arn:aws:s3:::{config.DEFAULT_MOSAIC_HOST}"],
+        )
     )
 
 # Tag infrastructure

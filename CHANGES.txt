@@ -1,3 +1,7 @@
+3.0.0 (TBD)
+------------------
+- add mosaic endpoints  (#17 author @geospatial-jeff)
+
 2.1.2 (2020-06-24)
 ------------------
 - add `width` & `height` parameters in API docs to force output size for part/preview endpoints.

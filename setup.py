@@ -16,7 +16,7 @@ inst_reqs = [
 extra_reqs = {
     "dev": ["pytest", "pytest-cov", "pytest-asyncio", "pre-commit"],
     "stac": ["stac-tiler~=0.0rc2"],
-    "mosaic": ["cogeo-mosaic==3.0a4"],
+    "mosaic": ["cogeo-mosaic~=3.0a5"],
     "server": ["uvicorn", "click==7.0"],
     "lambda": ["mangum>=0.9.0"],
     "deploy": [
@@ -35,7 +35,7 @@ extra_reqs = {
 
 setup(
     name="titiler",
-    version="2.1.2",
+    version="3.0.0",
     description=u"",
     long_description=long_description,
     long_description_content_type="text/markdown",
