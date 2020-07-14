@@ -35,6 +35,11 @@ def test_read_mosaic(app):
     MosaicJSON(**response.json())
 
 
+def test_read_default_backend(app):
+    response = app.get("/mosaicjson", params={"url": "mosaicid://mosaic"})
+    assert response.status_code == 200
+
+
 def test_update_mosaic(app):
     mosaicjson = read_json_fixture("mosaic.json")
     original_qk = json.dumps(mosaicjson["tiles"], sort_keys=True)

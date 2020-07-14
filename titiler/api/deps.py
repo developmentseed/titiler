@@ -244,7 +244,7 @@ class CommonMosaicParams:
         parsed = urlparse(url)
         if parsed.scheme == "mosaicid":
             self.mosaic_path = (
-                f"{DEFAULT_MOSAIC_BACKEND}{DEFAULT_MOSAIC_HOST}/{parsed.scheme}.json.gz"
+                f"{DEFAULT_MOSAIC_BACKEND}{DEFAULT_MOSAIC_HOST}/{parsed.netloc}.json.gz"
             )
         else:
             self.mosaic_path = url
