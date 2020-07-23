@@ -14,7 +14,7 @@ inst_reqs = [
     "rio-tiler-crs==3.0b1",
 ]
 extra_reqs = {
-    "dev": ["pytest", "pytest-cov", "pytest-asyncio", "pre-commit"],
+    "dev": ["pytest", "pytest-cov", "pytest-asyncio", "pre-commit", "requests"],
     "mosaic": ["cogeo-mosaic~=3.0a5"],
     "server": ["uvicorn", "click==7.0"],
     "lambda": ["mangum>=0.9.0"],
@@ -28,7 +28,7 @@ extra_reqs = {
         "aws-cdk.aws_autoscaling",
         "aws-cdk.aws_ecs_patterns",
     ],
-    "test": ["mock", "pytest", "pytest-cov", "pytest-asyncio", "requests"],
+    "test": ["pytest", "pytest-cov", "pytest-asyncio", "requests"],
 }
 
 
