@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional, Union
 from urllib.parse import urlencode
 
 from rasterio.transform import from_bounds
-from stac_tiler import STACReader
+from rio_tiler_crs import STACReader
 
 from titiler.api import utils
 from titiler.api.deps import (
@@ -120,13 +120,13 @@ params: Dict[str, Any] = {
 
 
 @router.get(r"/tiles/{z}/{x}/{y}", **params)
-@router.get(r"/tiles/{z}/{x}/{y}\.{format}", **params)
+@router.get(r"/tiles/{z}/{x}/{y}.{format}", **params)
 @router.get(r"/tiles/{z}/{x}/{y}@{scale}x", **params)
-@router.get(r"/tiles/{z}/{x}/{y}@{scale}x\.{format}", **params)
+@router.get(r"/tiles/{z}/{x}/{y}@{scale}x.{format}", **params)
 @router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}", **params)
-@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}\.{format}", **params)
+@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}.{format}", **params)
 @router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x", **params)
-@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x\.{format}", **params)
+@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x.{format}", **params)
 async def stac_tile(
     z: int = Path(..., ge=0, le=30, description="Mercator tiles's zoom level"),
     x: int = Path(..., description="Mercator tiles's column"),
@@ -221,7 +221,7 @@ async def stac_tile(
 
 
 @router.get(r"/preview", **params)
-@router.get(r"/preview\.{format}", **params)
+@router.get(r"/preview.{format}", **params)
 async def stac_preview(
     format: ImageType = Query(None, description="Output image type. Default is auto."),
     url: str = Query(..., description="STAC Item URL."),
@@ -282,7 +282,7 @@ async def stac_preview(
 
 
 # @router.get(r"/crop/{minx},{miny},{maxx},{maxy}", **params)
-@router.get(r"/crop/{minx},{miny},{maxx},{maxy}\.{format}", **params)
+@router.get(r"/crop/{minx},{miny},{maxx},{maxy}.{format}", **params)
 async def stac_part(
     minx: float = Path(..., description="Bounding box min X"),
     miny: float = Path(..., description="Bounding box min Y"),

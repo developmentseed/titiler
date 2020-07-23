@@ -1,6 +1,9 @@
 3.0.0 (TBD)
 ------------------
 - add mosaic endpoints  (#17 author @geospatial-jeff)
+- update to rio-tiler-crs 3.0b.1 (rio-tiler 2.0b2)
+- STAC is now added by default because there is no need for external module.
+- Pin fastapi version to 0.60.1
 
 2.1.2 (2020-06-24)
 ------------------

@@ -271,8 +271,18 @@ def test_part(reader, app):
     assert response.headers["content-type"] == "image/png"
     meta = parse_img(response.content)
     assert meta["width"] == 256
-    assert meta["height"] == 247
+    assert meta["height"] == 73
     assert meta["driver"] == "PNG"
+
+    # response = app.get(
+    #     "/cog/crop/-56.228,72.715,-54.547,73.188?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=256"
+    # )
+    # assert response.status_code == 200
+    # assert response.headers["content-type"] == "image/png"
+    # meta = parse_img(response.content)
+    # assert meta["width"] == 256
+    # assert meta["height"] == 73
+    # assert meta["driver"] == "PNG"
 
     response = app.get(
         "/cog/crop/-56.228,72.715,-54.547,73.188.png?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=256&width=512&height=512"
@@ -290,8 +300,8 @@ def test_part(reader, app):
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/x-binary"
     t, m = numpy.load(BytesIO(response.content), allow_pickle=True)
-    assert t.shape == (1, 247, 256)
-    assert m.shape == (247, 256)
+    assert t.shape == (1, 73, 256)
+    assert m.shape == (73, 256)
 
 
 @patch("titiler.api.endpoints.cog.COGReader")
