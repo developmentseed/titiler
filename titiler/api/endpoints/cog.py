@@ -114,14 +114,14 @@ tile_response_codes: Dict[str, Any] = {
 
 
 @router.get(r"/tiles/{z}/{x}/{y}", **tile_response_codes)
-@router.get(r"/tiles/{z}/{x}/{y}\.{format}", **tile_response_codes)
+@router.get(r"/tiles/{z}/{x}/{y}.{format}", **tile_response_codes)
 @router.get(r"/tiles/{z}/{x}/{y}@{scale}x", **tile_response_codes)
-@router.get(r"/tiles/{z}/{x}/{y}@{scale}x\.{format}", **tile_response_codes)
+@router.get(r"/tiles/{z}/{x}/{y}@{scale}x.{format}", **tile_response_codes)
 @router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}", **tile_response_codes)
-@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}\.{format}", **tile_response_codes)
+@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}.{format}", **tile_response_codes)
 @router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x", **tile_response_codes)
 @router.get(
-    r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x\.{format}", **tile_response_codes
+    r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x.{format}", **tile_response_codes
 )
 async def cog_tile(
     z: int = Path(..., ge=0, le=30, description="Mercator tiles's zoom level"),
@@ -211,7 +211,7 @@ async def cog_tile(
 
 
 @router.get(r"/preview", **tile_response_codes)
-@router.get(r"/preview\.{format}", **tile_response_codes)
+@router.get(r"/preview.{format}", **tile_response_codes)
 async def cog_preview(
     format: ImageType = Query(None, description="Output image type. Default is auto."),
     url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
@@ -261,8 +261,8 @@ async def cog_preview(
     )
 
 
-# @router.get(r"/crop/{minx},{miny},{maxx},{maxy}", **params)
-@router.get(r"/crop/{minx},{miny},{maxx},{maxy}\.{format}", **tile_response_codes)
+# @router.get(r"/crop/{minx},{miny},{maxx},{maxy}", **tile_response_codes)
+@router.get(r"/crop/{minx},{miny},{maxx},{maxy}.{format}", **tile_response_codes)
 async def cog_part(
     minx: float = Path(..., description="Bounding box min X"),
     miny: float = Path(..., description="Bounding box min Y"),

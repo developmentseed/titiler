@@ -5,9 +5,9 @@ import os
 from typing import Any, Dict
 
 import pytest
+import rasterio
 from rasterio.io import MemoryFile
-from rio_tiler_crs import COGReader
-from stac_tiler import STACReader
+from rio_tiler_crs import COGReader, STACReader
 
 from starlette.testclient import TestClient
 
@@ -44,6 +44,13 @@ def mock_STACreader(src_path: str, *args, **kwargs) -> COGReader:
     assert src_path.startswith("https://myurl.com/")
     stac_path = os.path.basename(src_path)
     return STACReader(os.path.join(DATA_DIR, stac_path), *args, **kwargs)
+
+
+def mock_rasterio_open(asset):
+    """Mock rasterio Open."""
+    assert asset.startswith("https://myurl.com/")
+    asset = asset.replace("https://myurl.com", DATA_DIR)
+    return rasterio.open(asset)
 
 
 def read_json_fixture(fname: str) -> Dict[Any, Any]:

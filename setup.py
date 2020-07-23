@@ -7,15 +7,14 @@ with open("README.md") as f:
 
 inst_reqs = [
     "email-validator",
-    "fastapi>=0.54.0",
+    "fastapi==0.60.1",
     "jinja2",
     "python-binary-memcached",
     "rio-color",
-    "rio-tiler-crs~=2.0.2",
+    "rio-tiler-crs==3.0b1",
 ]
 extra_reqs = {
-    "dev": ["pytest", "pytest-cov", "pytest-asyncio", "pre-commit"],
-    "stac": ["stac-tiler~=0.0rc2"],
+    "dev": ["pytest", "pytest-cov", "pytest-asyncio", "pre-commit", "requests"],
     "mosaic": ["cogeo-mosaic~=3.0a5"],
     "server": ["uvicorn", "click==7.0"],
     "lambda": ["mangum>=0.9.0"],
@@ -29,7 +28,7 @@ extra_reqs = {
         "aws-cdk.aws_autoscaling",
         "aws-cdk.aws_ecs_patterns",
     ],
-    "test": ["mock", "pytest", "pytest-cov", "pytest-asyncio", "requests"],
+    "test": ["pytest", "pytest-cov", "pytest-asyncio", "requests"],
 }
 
 

@@ -4,10 +4,19 @@
   <p align="center">A lightweight Cloud Optimized GeoTIFF dynamic tile server.</p>
 </p>
 
-# titiler
+<p align="center">
+  <a href="https://circleci.com/gh/developmentseed/titiler" target="_blank">
+      <img src="https://circleci.com/gh/developmentseed/titiler.svg?style=svg" alt="Test">
+  </a>
+  <a href="https://codecov.io/gh/developmentseed/titiler" target="_blank">
+      <img src="https://codecov.io/gh/developmentseed/titiler/branch/master/graph/badge.svg" alt="Coverage">
+  </a>
+  <a href="https://github.com/developmentseed/titiler/blob/master/LICENSE" target="_blank">
+      <img src="https://img.shields.io/github/license/developmentseed/titiler.svg" alt="Downloads">
+  </a>
+</p>
 
-[![CircleCI](https://circleci.com/gh/developmentseed/titiler.svg?style=svg)](https://circleci.com/gh/developmentseed/titiler)
-[![codecov](https://codecov.io/gh/developmentseed/titiler/branch/master/graph/badge.svg)](https://codecov.io/gh/developmentseed/titiler)
+# titiler
 
 Titiler, pronounced **tee-tiler** (*ti* is the diminutive version of the french *petit* which means small), is lightweight service, which sole goal is to create map tiles dynamically from Cloud Optimized GeoTIFF [COG](cogeo.org).
 
@@ -15,9 +24,10 @@ This project is the descendant of https://github.com/developmentseed/cogeo-tiler
 
 ## Features
 
-- Multiple TileMatrixSets via [morecantile](https://github.com/developmentseed/morecantile). Default is set to WebMercatorQuad which is the usual Web Mercator projection used in most of Wep Map libraries.)
-- Cloud Optimized GeoTIFF support
-- SpatioTemporal Asset Catalog support (Optional)
+- Multiple TileMatrixSets via [morecantile](https://github.com/developmentseed/morecantile). Default is set to WebMercatorQuad which is the usual Web Mercator projection used in most of Wep Map libraries.) (see [docs/TMS](/docs/TMS.md))
+- Cloud Optimized GeoTIFF support (see [docs/COG](/docs/COG.md))
+- SpatioTemporal Asset Catalog support (see [docs/STAC](/docs/STAC.md))
+- MosaicJSON support (Optional)
 - OGC WMTS support
 - Caching layer for tiles (Optional)
 - AWS Lambda / ECS deployement options
@@ -164,10 +174,9 @@ titiler/                         - titiler python module.
  │   ├── api_                 - directory hosting version 1 of the API.
  │   │   ├── endpoints           - api routes.
  │   │   │   ├── cog.py          - COG related endpoints.
- │   │   │   ├── metadata.py     - metadata endpoints (e.g. /tilesjson.json, /metadata...).
+ │   │   │   ├── stac.py         - STAC related endpoints.
  │   │   │   ├── mosaic.py       - MosaicJSON related endpoints.
- │   │   │   ├── ogc.py          - OGC endpoints (e.g WMTS).
- │   │   │   ├── operations.py   - clip/points endpoints.
+ │   │   │   └── tms.py          - TileMatrixSets endpoints.
  │   │   └── api.py              - construct the API by merging api_v1 endpoints.
  │   ├── deps.py                 - API dependencies.
  │   └── utils.py                - API utility functions.

@@ -12,7 +12,7 @@ from cogeo_mosaic.backends import MosaicBackend
 from cogeo_mosaic.mosaic import MosaicJSON
 from cogeo_mosaic.utils import get_footprints
 from rio_tiler_crs import COGReader
-from rio_tiler_crs.reader import geotiff_options
+from rio_tiler_crs.cogeo import geotiff_options
 
 from titiler.api import utils
 from titiler.api.deps import CommonTileParams, MosaicPath
@@ -226,13 +226,13 @@ async def mosaic_point(
 
 
 @router.get(r"/tiles/{z}/{x}/{y}", **tile_response_codes)
-@router.get(r"/tiles/{z}/{x}/{y}\.{format}", **tile_response_codes)
+@router.get(r"/tiles/{z}/{x}/{y}.{format}", **tile_response_codes)
 @router.get(r"/tiles/{z}/{x}/{y}@{scale}x", **tile_response_codes)
-@router.get(r"/tiles/{z}/{x}/{y}@{scale}x\.{format}", **tile_response_codes)
-@router.get(r"/tiles/WebMercatorQuad/{z}/{x}/{y}\.{format}", **tile_response_codes)
+@router.get(r"/tiles/{z}/{x}/{y}@{scale}x.{format}", **tile_response_codes)
+@router.get(r"/tiles/WebMercatorQuad/{z}/{x}/{y}.{format}", **tile_response_codes)
 @router.get(r"/tiles/WebMercatorQuad/{z}/{x}/{y}@{scale}x", **tile_response_codes)
 @router.get(
-    r"/tiles/WebMercatorQuad/{z}/{x}/{y}@{scale}x\.{format}", **tile_response_codes
+    r"/tiles/WebMercatorQuad/{z}/{x}/{y}@{scale}x.{format}", **tile_response_codes
 )
 async def mosaic_tile(
     z: int = Path(..., ge=0, le=30, description="Mercator tiles's zoom level"),
