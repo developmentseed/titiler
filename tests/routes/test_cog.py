@@ -9,7 +9,7 @@ import numpy
 from ..conftest import mock_reader, parse_img
 
 
-@patch("titiler.api.endpoints.cog.COGReader")
+@patch("titiler.endpoints.cog.COGReader")
 def test_bounds(reader, app):
     """test /bounds endpoint."""
     reader.side_effect = mock_reader
@@ -20,7 +20,7 @@ def test_bounds(reader, app):
     assert len(body["bounds"]) == 4
 
 
-@patch("titiler.api.endpoints.cog.COGReader")
+@patch("titiler.endpoints.cog.COGReader")
 def test_info(reader, app):
     """test /info endpoint."""
     reader.side_effect = mock_reader
@@ -35,7 +35,7 @@ def test_info(reader, app):
     assert body["nodata_type"] == "None"
 
 
-@patch("titiler.api.endpoints.cog.COGReader")
+@patch("titiler.endpoints.cog.COGReader")
 def test_metadata(reader, app):
     """test /metadata endpoint."""
     reader.side_effect = mock_reader
@@ -73,7 +73,7 @@ def test_metadata(reader, app):
     assert len(body["statistics"]["1"]["histogram"][0]) == 5
 
 
-@patch("titiler.api.endpoints.cog.COGReader")
+@patch("titiler.endpoints.cog.COGReader")
 def test_wmts(reader, app):
     """test wmts endpoints."""
     reader.side_effect = mock_reader
@@ -97,7 +97,7 @@ def test_wmts(reader, app):
     )
 
 
-@patch("titiler.api.endpoints.cog.COGReader")
+@patch("titiler.endpoints.cog.COGReader")
 def test_tile(reader, app):
     """test tile endpoints."""
     reader.side_effect = mock_reader
@@ -176,7 +176,7 @@ def test_tile(reader, app):
     assert response.status_code == 422
 
 
-@patch("titiler.api.endpoints.cog.COGReader")
+@patch("titiler.endpoints.cog.COGReader")
 def test_tilejson(reader, app):
     """test /tilejson endpoint."""
     reader.side_effect = mock_reader
@@ -214,7 +214,7 @@ def test_viewer(app):
     assert response.headers["content-encoding"] == "gzip"
 
 
-@patch("titiler.api.endpoints.cog.COGReader")
+@patch("titiler.endpoints.cog.COGReader")
 def test_preview(reader, app):
     """test /preview endpoint."""
     reader.side_effect = mock_reader
@@ -259,7 +259,7 @@ def test_preview(reader, app):
     assert m.shape == (1024, 1021)
 
 
-@patch("titiler.api.endpoints.cog.COGReader")
+@patch("titiler.endpoints.cog.COGReader")
 def test_part(reader, app):
     """test /crop endpoint."""
     reader.side_effect = mock_reader
@@ -304,7 +304,7 @@ def test_part(reader, app):
     assert m.shape == (73, 256)
 
 
-@patch("titiler.api.endpoints.cog.COGReader")
+@patch("titiler.endpoints.cog.COGReader")
 def test_point(reader, app):
     """test /point endpoint."""
     reader.side_effect = mock_reader
@@ -321,7 +321,7 @@ def test_file_not_found_error(app):
     assert response.status_code == 404
 
 
-@patch("titiler.api.endpoints.cog.COGReader")
+@patch("titiler.endpoints.cog.COGReader")
 def test_tile_outside_bounds_error(reader, app):
     reader.side_effect = mock_reader
     response = app.get("/cog/tiles/15/0/0?url=https://myurl.com/cog.tif&rescale=0,1000")

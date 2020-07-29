@@ -2,8 +2,8 @@
 import importlib
 
 from titiler import settings, version
-from titiler.api.endpoints import cog, tms
 from titiler.db.memcache import CacheLayer
+from titiler.endpoints import cog, stac, tms
 from titiler.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 from titiler.templates.factory import web_template
 
@@ -36,20 +36,13 @@ app = FastAPI(
     version=version,
 )
 app.include_router(cog.router, prefix="/cog", tags=["Cloud Optimized GeoTIFF"])
+app.include_router(stac.router, prefix="/stac", tags=["SpatioTemporal Asset Catalog"])
+_include_extra_router(
+    app, module="titiler.endpoints.mosaic", prefix="/mosaicjson", tags=["MosaicJSON"],
+)
 app.include_router(tms.router)
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
-_include_extra_router(
-    app,
-    module="titiler.api.endpoints.stac",
-    prefix="/stac",
-    tags=["SpatioTemporal Asset Catalog"],
-)
-_include_extra_router(
-    app,
-    module="titiler.api.endpoints.mosaic",
-    prefix="/mosaicjson",
-    tags=["MosaicJSON"],
-)
+
 
 # Set all CORS enabled origins
 if settings.BACKEND_CORS_ORIGINS:

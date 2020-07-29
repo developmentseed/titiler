@@ -11,9 +11,9 @@ from rasterio.enums import Resampling
 from rio_tiler.colormap import cmap
 
 from titiler import settings
-from titiler.api.utils import get_hash
 from titiler.custom import cmap as custom_colormap
 from titiler.custom import tms as custom_tms
+from titiler.utils import get_hash
 
 from fastapi import Query
 

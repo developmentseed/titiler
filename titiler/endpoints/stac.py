@@ -1,15 +1,17 @@
-"""API for Cloud Optimized GeoTIFF Dataset."""
+"""API for SpatioTemporal Asset Catalog items."""
 
 import os
 import re
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional, Union
 from urllib.parse import urlencode
 
 from rasterio.transform import from_bounds
-from rio_tiler_crs import COGReader
+from rio_tiler.errors import InvalidBandName
+from rio_tiler_crs import STACReader
 
-from titiler.api import utils
-from titiler.api.deps import (
+from titiler import utils
+from titiler.db.memcache import CacheLayer
+from titiler.dependencies import (
     CommonImageParams,
     CommonMetadataParams,
     CommonTileParams,
@@ -17,70 +19,75 @@ from titiler.api.deps import (
     morecantile,
     request_hash,
 )
-from titiler.db.memcache import CacheLayer
 from titiler.models.cog import cogBounds, cogInfo, cogMetadata
 from titiler.models.mapbox import TileJSON
-from titiler.ressources.enums import ImageMimeTypes, ImageType, MimeTypes
-from titiler.ressources.responses import ImgResponse, XMLResponse
+from titiler.ressources.enums import ImageMimeTypes, ImageType
+from titiler.ressources.responses import ImgResponse
 from titiler.templates.factory import web_template
 
 from fastapi import APIRouter, Depends, Path, Query
 
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, Response
-from starlette.templating import Jinja2Templates
 
 router = APIRouter()
-templates = Jinja2Templates(directory="titiler/templates")
 
 
 @router.get(
     "/bounds",
     response_model=cogBounds,
-    responses={200: {"description": "Return the bounds of the COG."}},
+    responses={200: {"description": "Return the bounds of the STAC item."}},
 )
-async def cog_bounds(
-    resp: Response, url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
+async def stac_bounds(
+    resp: Response, url: str = Query(..., description="STAC item URL."),
 ):
-    """Return the bounds of the COG."""
+    """Return the bounds of the STAC item."""
     resp.headers["Cache-Control"] = "max-age=3600"
-    with COGReader(url) as cog:
-        return {"bounds": cog.bounds}
+    with STACReader(url) as stac:
+        return {"bounds": stac.bounds}
 
 
 @router.get(
     "/info",
-    response_model=cogInfo,
-    response_model_exclude={"minzoom", "maxzoom", "center"},
+    response_model=Union[List[str], Dict[str, cogInfo]],
+    response_model_exclude={"__all__": {"minzoom", "maxzoom", "center"}},
     response_model_exclude_none=True,
-    responses={200: {"description": "Return basic info on COG."}},
+    responses={200: {"description": "Return basic info for STAC item's assets"}},
 )
-def cog_info(
-    resp: Response, url: str = Query(..., description="Cloud Optimized GeoTIFF URL.")
+async def stac_info(
+    resp: Response,
+    url: str = Query(..., description="STAC item URL."),
+    assets: str = Query(None, description="comma (,) separated list of asset names."),
 ):
-    """Return basic info on COG."""
+    """Return basic info on STAC item's COG."""
     resp.headers["Cache-Control"] = "max-age=3600"
-    with COGReader(url) as cog:
-        info = cog.info
+    with STACReader(url) as stac:
+        if not assets:
+            return stac.assets
+
+        info = stac.info(assets.split(","))
+
     return info
 
 
 @router.get(
     "/metadata",
-    response_model=cogMetadata,
-    response_model_exclude={"minzoom", "maxzoom", "center"},
+    response_model=Dict[str, cogMetadata],
+    response_model_exclude={"__all__": {"minzoom", "maxzoom", "center"}},
     response_model_exclude_none=True,
-    responses={200: {"description": "Return the metadata of the COG."}},
+    responses={200: {"description": "Return the metadata for STAC item's assets."}},
 )
-async def cog_metadata(
+async def stac_metadata(
+    request: Request,
     resp: Response,
-    url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
+    url: str = Query(..., description="STAC item URL."),
+    assets: str = Query(..., description="comma (,) separated list of asset names."),
     metadata_params: CommonMetadataParams = Depends(),
 ):
     """Return the metadata of the COG."""
-    with COGReader(url) as cog:
-        info = cog.info
-        stats = cog.stats(
+    with STACReader(url) as stac:
+        info = stac.metadata(
+            assets.split(","),
             metadata_params.pmin,
             metadata_params.pmax,
             nodata=metadata_params.nodata,
@@ -90,13 +97,12 @@ async def cog_metadata(
             bounds=metadata_params.bounds,
             **metadata_params.kwargs,
         )
-        info["statistics"] = stats
 
     resp.headers["Cache-Control"] = "max-age=3600"
     return info
 
 
-tile_response_codes: Dict[str, Any] = {
+params: Dict[str, Any] = {
     "responses": {
         200: {
             "content": {
@@ -113,17 +119,15 @@ tile_response_codes: Dict[str, Any] = {
 }
 
 
-@router.get(r"/tiles/{z}/{x}/{y}", **tile_response_codes)
-@router.get(r"/tiles/{z}/{x}/{y}.{format}", **tile_response_codes)
-@router.get(r"/tiles/{z}/{x}/{y}@{scale}x", **tile_response_codes)
-@router.get(r"/tiles/{z}/{x}/{y}@{scale}x.{format}", **tile_response_codes)
-@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}", **tile_response_codes)
-@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}.{format}", **tile_response_codes)
-@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x", **tile_response_codes)
-@router.get(
-    r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x.{format}", **tile_response_codes
-)
-async def cog_tile(
+@router.get(r"/tiles/{z}/{x}/{y}", **params)
+@router.get(r"/tiles/{z}/{x}/{y}.{format}", **params)
+@router.get(r"/tiles/{z}/{x}/{y}@{scale}x", **params)
+@router.get(r"/tiles/{z}/{x}/{y}@{scale}x.{format}", **params)
+@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}", **params)
+@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}.{format}", **params)
+@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x", **params)
+@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x.{format}", **params)
+async def stac_tile(
     z: int = Path(..., ge=0, le=30, description="Mercator tiles's zoom level"),
     x: int = Path(..., description="Mercator tiles's column"),
     y: int = Path(..., description="Mercator tiles's row"),
@@ -135,12 +139,13 @@ async def cog_tile(
         1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
     ),
     format: ImageType = Query(None, description="Output image type. Default is auto."),
-    url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
+    url: str = Query(..., description="STAC Item URL."),
+    assets: str = Query("", description="comma (,) separated list of asset names."),
     image_params: CommonTileParams = Depends(),
     cache_client: CacheLayer = Depends(utils.get_cache),
     request_id: str = Depends(request_hash),
 ):
-    """Create map tile from a COG."""
+    """Create map tile from a STAC item."""
     timings = []
     headers: Dict[str, str] = {}
 
@@ -158,18 +163,17 @@ async def cog_tile(
 
     if not content:
         with utils.Timer() as t:
-            with COGReader(url, tms=tms) as cog:
-                tile, mask = cog.tile(
+            with STACReader(url, tms=tms) as stac:
+                tile, mask = stac.tile(
                     x,
                     y,
                     z,
+                    assets=assets.split(","),
                     tilesize=tilesize,
                     indexes=image_params.indexes,
                     expression=image_params.expression,
                     nodata=image_params.nodata,
-                    **image_params.kwargs,
                 )
-                colormap = image_params.color_map or cog.colormap
         timings.append(("Read", t.elapsed))
 
         if not format:
@@ -191,7 +195,7 @@ async def cog_tile(
                 tile,
                 mask,
                 img_format=format,
-                colormap=colormap,
+                colormap=image_params.color_map,
                 transform=dst_transform,
                 crs=tms.crs,
             )
@@ -210,29 +214,30 @@ async def cog_tile(
     )
 
 
-@router.get(r"/preview", **tile_response_codes)
-@router.get(r"/preview.{format}", **tile_response_codes)
-async def cog_preview(
+@router.get(r"/preview", **params)
+@router.get(r"/preview.{format}", **params)
+async def stac_preview(
     format: ImageType = Query(None, description="Output image type. Default is auto."),
-    url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
+    url: str = Query(..., description="STAC Item URL."),
+    assets: str = Query("", description="comma (,) separated list of asset names."),
     image_params: CommonImageParams = Depends(),
 ):
-    """Create preview of a COG."""
+    """Create preview of STAC assets."""
     timings = []
     headers: Dict[str, str] = {}
 
     with utils.Timer() as t:
-        with COGReader(url) as cog:
-            data, mask = cog.preview(
+        with STACReader(url) as stac:
+            data, mask = stac.preview(
+                assets=assets.split(","),
+                expression=image_params.expression,
                 height=image_params.height,
                 width=image_params.width,
                 max_size=image_params.max_size,
                 indexes=image_params.indexes,
-                expression=image_params.expression,
                 nodata=image_params.nodata,
                 **image_params.kwargs,
             )
-            colormap = image_params.color_map or cog.colormap
     timings.append(("Read", t.elapsed))
 
     if not format:
@@ -248,7 +253,10 @@ async def cog_preview(
     timings.append(("Post-process", t.elapsed))
 
     with utils.Timer() as t:
-        content = utils.reformat(data, mask, img_format=format, colormap=colormap)
+        content = utils.reformat(
+            data, mask, img_format=format, colormap=image_params.color_map,
+        )
+    timings.append(("Format", t.elapsed))
     timings.append(("Format", t.elapsed))
 
     if timings:
@@ -261,38 +269,36 @@ async def cog_preview(
     )
 
 
-# @router.get(r"/crop/{minx},{miny},{maxx},{maxy}", **tile_response_codes)
-@router.get(r"/crop/{minx},{miny},{maxx},{maxy}.{format}", **tile_response_codes)
-async def cog_part(
+# @router.get(r"/crop/{minx},{miny},{maxx},{maxy}", **params)
+@router.get(r"/crop/{minx},{miny},{maxx},{maxy}.{format}", **params)
+async def stac_part(
     minx: float = Path(..., description="Bounding box min X"),
     miny: float = Path(..., description="Bounding box min Y"),
     maxx: float = Path(..., description="Bounding box max X"),
     maxy: float = Path(..., description="Bounding box max Y"),
     format: ImageType = Query(None, description="Output image type."),
-    url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
+    url: str = Query(..., description="STAC Item URL."),
+    assets: str = Query("", description="comma (,) separated list of asset names."),
     image_params: CommonImageParams = Depends(),
 ):
-    """Create image from part of a COG."""
+    """Create image from part of STAC assets."""
     timings = []
     headers: Dict[str, str] = {}
 
     with utils.Timer() as t:
-        with COGReader(url) as cog:
-            data, mask = cog.part(
+        with STACReader(url) as stac:
+            data, mask = stac.part(
                 [minx, miny, maxx, maxy],
                 height=image_params.height,
                 width=image_params.width,
                 max_size=image_params.max_size,
-                indexes=image_params.indexes,
+                assets=assets.split(","),
                 expression=image_params.expression,
+                indexes=image_params.indexes,
                 nodata=image_params.nodata,
                 **image_params.kwargs,
             )
-            colormap = image_params.color_map or cog.colormap
     timings.append(("Read", t.elapsed))
-
-    if not format:
-        format = ImageType.jpg if mask.all() else ImageType.png
 
     with utils.Timer() as t:
         data = utils.postprocess(
@@ -304,7 +310,10 @@ async def cog_part(
     timings.append(("Post-process", t.elapsed))
 
     with utils.Timer() as t:
-        content = utils.reformat(data, mask, img_format=format, colormap=colormap)
+        content = utils.reformat(
+            data, mask, img_format=format, colormap=image_params.color_map
+        )
+    timings.append(("Format", t.elapsed))
     timings.append(("Format", t.elapsed))
 
     if timings:
@@ -325,24 +334,38 @@ async def cog_point(
     lon: float = Path(..., description="Longitude"),
     lat: float = Path(..., description="Latitude"),
     url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
-    bidx: Optional[str] = Query(
-        None, title="Band indexes", description="comma (',') delimited band indexes",
-    ),
+    assets: str = Query("", description="comma (,) separated list of asset names."),
     expression: Optional[str] = Query(
         None,
         title="Band Math expression",
         description="rio-tiler's band math expression (e.g B1/B2)",
     ),
+    bidx: Optional[str] = Query(
+        None, title="Band indexes", description="comma (',') delimited band indexes",
+    ),
+    asset_expression: Optional[str] = Query(
+        None,
+        title="Band Math expression for assets bands",
+        description="rio-tiler's band math expression (e.g B1/B2)",
+    ),
 ):
     """Get Point value for a COG."""
+
     indexes = tuple(int(s) for s in re.findall(r"\d+", bidx)) if bidx else None
 
     timings = []
     headers: Dict[str, str] = {}
 
     with utils.Timer() as t:
-        with COGReader(url) as cog:
-            values = cog.point(lon, lat, indexes=indexes, expression=expression)
+        with STACReader(url) as stac:
+            values = stac.point(
+                lon,
+                lat,
+                assets=assets,
+                expression=expression,
+                indexes=indexes,
+                asset_expression=asset_expression,
+            )
     timings.append(("Read", t.elapsed))
 
     if timings:
@@ -365,14 +388,20 @@ async def cog_point(
     responses={200: {"description": "Return a tilejson"}},
     response_model_exclude_none=True,
 )
-async def cog_tilejson(
+async def stac_tilejson(
     request: Request,
     response: Response,
     TileMatrixSetId: TileMatrixSetNames = Query(
         TileMatrixSetNames.WebMercatorQuad,  # type: ignore
         description="TileMatrixSet Name (default: 'WebMercatorQuad')",
     ),
-    url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
+    url: str = Query(..., description="STAC Item URL."),
+    assets: str = Query("", description="comma (,) separated list of asset names."),
+    expression: Optional[str] = Query(
+        None,
+        title="Band Math expression",
+        description="rio-tiler's band math expression (e.g B1/B2)",
+    ),
     tile_format: Optional[ImageType] = Query(
         None, description="Output image type. Default is auto."
     ),
@@ -382,7 +411,7 @@ async def cog_tilejson(
     minzoom: Optional[int] = Query(None, description="Overwrite default minzoom."),
     maxzoom: Optional[int] = Query(None, description="Overwrite default maxzoom."),
 ):
-    """Return TileJSON document for a COG."""
+    """Return a TileJSON document for a STAC item."""
     scheme = request.url.scheme
     host = request.headers["host"]
 
@@ -393,22 +422,25 @@ async def cog_tilejson(
     kwargs.pop("minzoom", None)
     kwargs.pop("maxzoom", None)
 
+    if not expression and not assets:
+        raise InvalidBandName("Expression or Assets HAVE to be set in the queryString.")
+
     qs = urlencode(list(kwargs.items()))
     if tile_format:
-        tile_url = f"{scheme}://{host}/cog/tiles/{TileMatrixSetId.name}/{{z}}/{{x}}/{{y}}@{tile_scale}x.{tile_format}?{qs}"
+        tile_url = f"{scheme}://{host}/stac/tiles/{TileMatrixSetId.name}/{{z}}/{{x}}/{{y}}@{tile_scale}x.{tile_format}?{qs}"
     else:
-        tile_url = f"{scheme}://{host}/cog/tiles/{TileMatrixSetId.name}/{{z}}/{{x}}/{{y}}@{tile_scale}x?{qs}"
+        tile_url = f"{scheme}://{host}/stac/tiles/{TileMatrixSetId.name}/{{z}}/{{x}}/{{y}}@{tile_scale}x?{qs}"
 
     tms = morecantile.tms.get(TileMatrixSetId.name)
-    with COGReader(url, tms=tms) as cog:
-        center = list(cog.center)
+    with STACReader(url, tms=tms) as stac:
+        center = list(stac.center)
         if minzoom:
             center[-1] = minzoom
         tjson = {
-            "bounds": cog.bounds,
+            "bounds": stac.bounds,
             "center": tuple(center),
-            "minzoom": minzoom or cog.minzoom,
-            "maxzoom": maxzoom or cog.maxzoom,
+            "minzoom": minzoom or stac.minzoom,
+            "maxzoom": maxzoom or stac.maxzoom,
             "name": os.path.basename(url),
             "tiles": [tile_url],
         }
@@ -417,75 +449,7 @@ async def cog_tilejson(
     return tjson
 
 
-@router.get("/WMTSCapabilities.xml", response_class=XMLResponse, tags=["OGC"])
-@router.get(
-    "/{TileMatrixSetId}/WMTSCapabilities.xml", response_class=XMLResponse, tags=["OGC"],
-)
-def wmts(
-    request: Request,
-    response: Response,
-    TileMatrixSetId: TileMatrixSetNames = Query(
-        TileMatrixSetNames.WebMercatorQuad,  # type: ignore
-        description="TileMatrixSet Name (default: 'WebMercatorQuad')",
-    ),
-    url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
-    tile_format: ImageType = Query(
-        ImageType.png, description="Output image type. Default is png."
-    ),
-    tile_scale: int = Query(
-        1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
-    ),
-):
-    """OGC WMTS endpoint."""
-    scheme = request.url.scheme
-    host = request.headers["host"]
-    endpoint = f"{scheme}://{host}/cog"
-
-    kwargs = dict(request.query_params)
-    kwargs.pop("tile_format", None)
-    kwargs.pop("tile_scale", None)
-    qs = urlencode(list(kwargs.items()))
-
-    tms = morecantile.tms.get(TileMatrixSetId.name)
-    with COGReader(url, tms=tms) as cog:
-        minzoom, maxzoom, bounds = cog.minzoom, cog.maxzoom, cog.bounds
-
-    media_type = ImageMimeTypes[tile_format.value].value
-
-    tileMatrix = []
-    for zoom in range(minzoom, maxzoom + 1):
-        matrix = tms.matrix(zoom)
-        tm = f"""
-                <TileMatrix>
-                    <ows:Identifier>{matrix.identifier}</ows:Identifier>
-                    <ScaleDenominator>{matrix.scaleDenominator}</ScaleDenominator>
-                    <TopLeftCorner>{matrix.topLeftCorner[0]} {matrix.topLeftCorner[1]}</TopLeftCorner>
-                    <TileWidth>{matrix.tileWidth}</TileWidth>
-                    <TileHeight>{matrix.tileHeight}</TileHeight>
-                    <MatrixWidth>{matrix.matrixWidth}</MatrixWidth>
-                    <MatrixHeight>{matrix.matrixHeight}</MatrixHeight>
-                </TileMatrix>"""
-        tileMatrix.append(tm)
-
-    tile_ext = f"@{tile_scale}x.{tile_format.value}"
-    return templates.TemplateResponse(
-        "wmts.xml",
-        {
-            "request": request,
-            "endpoint": endpoint,
-            "bounds": bounds,
-            "tileMatrix": tileMatrix,
-            "tms": tms,
-            "title": "Cloud Optimized GeoTIFF",
-            "query_string": qs,
-            "tile_format": tile_ext,
-            "media_type": media_type,
-        },
-        media_type=MimeTypes.xml.value,
-    )
-
-
 @router.get("/viewer", response_class=HTMLResponse, tags=["Webpage"])
-def cog_viewer(request: Request, template=Depends(web_template)):
-    """Cloud Optimized GeoTIFF Viewer."""
-    return template(request, "cog_index.html", "cog_tilejson", "cog_metadata")
+def stac_viewer(request: Request, template=Depends(web_template)):
+    """SpatioTemporal Asset Catalog Viewer."""
+    return template(request, "stac_index.html", "stac_tilejson", "stac_info")
