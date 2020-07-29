@@ -1,4 +1,5 @@
 """Titiler error classes."""
+import logging
 from typing import Callable, Dict, Type
 
 from cogeo_mosaic.errors import MosaicAuthError, MosaicError, MosaicNotFoundError
@@ -10,6 +11,8 @@ from fastapi import FastAPI
 from starlette import status
 from starlette.requests import Request
 from starlette.responses import JSONResponse
+
+logger = logging.getLogger(__name__)
 
 
 class TilerError(Exception):
@@ -45,6 +48,7 @@ def exception_handler_factory(status_code: int) -> Callable:
     """
 
     def handler(request: Request, exc: Exception):
+        logger.error(exc, exc_info=True)
         return JSONResponse(content={"detail": str(exc)}, status_code=status_code)
 
     return handler
