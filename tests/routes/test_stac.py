@@ -9,7 +9,7 @@ from rasterio.io import MemoryFile
 from ..conftest import mock_rasterio_open, mock_STACreader
 
 
-@patch("titiler.api.endpoints.stac.STACReader")
+@patch("titiler.endpoints.stac.STACReader")
 def test_bounds(stac_reader, app):
     """test /bounds endpoint."""
     stac_reader.side_effect = mock_STACreader
@@ -21,7 +21,7 @@ def test_bounds(stac_reader, app):
 
 
 @patch("rio_tiler.io.cogeo.rasterio")
-@patch("titiler.api.endpoints.stac.STACReader")
+@patch("titiler.endpoints.stac.STACReader")
 def test_info(stac_reader, rio, app):
     """test /info endpoint."""
     stac_reader.side_effect = mock_STACreader
@@ -45,7 +45,7 @@ def test_info(stac_reader, rio, app):
 
 
 @patch("rio_tiler.io.cogeo.rasterio")
-@patch("titiler.api.endpoints.stac.STACReader")
+@patch("titiler.endpoints.stac.STACReader")
 def test_metadata(stac_reader, rio, app):
     """test /metadata endpoint."""
     stac_reader.side_effect = mock_STACreader
@@ -71,7 +71,7 @@ def parse_img(content: bytes) -> Dict:
 
 
 @patch("rio_tiler.io.cogeo.rasterio")
-@patch("titiler.api.endpoints.stac.STACReader")
+@patch("titiler.endpoints.stac.STACReader")
 def test_tile(stac_reader, rio, app):
     """test tile endpoints."""
     stac_reader.side_effect = mock_STACreader
@@ -100,7 +100,7 @@ def test_tile(stac_reader, rio, app):
 
 
 @patch("rio_tiler.io.cogeo.rasterio")
-@patch("titiler.api.endpoints.stac.STACReader")
+@patch("titiler.endpoints.stac.STACReader")
 def test_tilejson(stac_reader, rio, app):
     """test /tilejson endpoint."""
     stac_reader.side_effect = mock_STACreader
@@ -145,7 +145,7 @@ def test_viewer(app):
 
 
 @patch("rio_tiler.io.cogeo.rasterio")
-@patch("titiler.api.endpoints.stac.STACReader")
+@patch("titiler.endpoints.stac.STACReader")
 def test_preview(stac_reader, rio, app):
     """test preview endpoints."""
     stac_reader.side_effect = mock_STACreader
@@ -183,7 +183,7 @@ def test_preview(stac_reader, rio, app):
 
 
 @patch("rio_tiler.io.cogeo.rasterio")
-@patch("titiler.api.endpoints.stac.STACReader")
+@patch("titiler.endpoints.stac.STACReader")
 def test_part(stac_reader, rio, app):
     """test crop endpoints."""
     stac_reader.side_effect = mock_STACreader
@@ -223,7 +223,7 @@ def test_part(stac_reader, rio, app):
 
 
 @patch("rio_tiler.io.cogeo.rasterio")
-@patch("titiler.api.endpoints.stac.STACReader")
+@patch("titiler.endpoints.stac.STACReader")
 def test_point(stac_reader, rio, app):
     """test crop endpoints."""
     stac_reader.side_effect = mock_STACreader
@@ -257,7 +257,7 @@ def test_point(stac_reader, rio, app):
 
 
 @patch("rio_tiler.io.cogeo.rasterio")
-@patch("titiler.api.endpoints.stac.STACReader")
+@patch("titiler.endpoints.stac.STACReader")
 def test_missing_asset_not_found(stac_reader, rio, app):
     """test /info endpoint."""
     stac_reader.side_effect = mock_STACreader

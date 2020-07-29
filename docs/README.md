@@ -69,3 +69,9 @@ import morecantile
 
 morecantile.tms.register(custom_tms.EPSG3413)
 ```
+
+### Create Your own app
+
+Titiler can be imported in your python project and you can create your own application from it.
+
+see [Custom_application.md](Custom_application.md) for more.

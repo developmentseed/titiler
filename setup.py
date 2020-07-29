@@ -46,7 +46,7 @@ setup(
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
     ],
-    keywords="",
+    keywords="COG STAC MosaicJSON FastAPI Serverless",
     author=u"Vincent Sarago",
     author_email="vincent@developmentseed.org",
     url="https://github.com/developmentseed/titiler",

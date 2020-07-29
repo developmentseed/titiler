@@ -1,9 +1,9 @@
 """API for MosaicJSON Dataset."""
+
 import asyncio
 import os
 import re
-from collections import AsyncGenerator
-from typing import Coroutine, Dict, List, Optional, Tuple
+from typing import AsyncGenerator, Coroutine, Dict, List, Optional, Tuple
 from urllib.parse import urlencode
 
 import morecantile
@@ -14,9 +14,9 @@ from cogeo_mosaic.utils import get_footprints
 from rio_tiler_crs import COGReader
 from rio_tiler_crs.cogeo import geotiff_options
 
-from titiler.api import utils
-from titiler.api.deps import CommonTileParams, MosaicPath
-from titiler.api.endpoints.cog import tile_response_codes
+from titiler import utils
+from titiler.dependencies import CommonTileParams, MosaicPath
+from titiler.endpoints.cog import tile_response_codes
 from titiler.errors import BadRequestError, TileNotFoundError
 from titiler.models.cog import cogBounds
 from titiler.models.mapbox import TileJSON

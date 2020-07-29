@@ -47,9 +47,7 @@ $ docker-compose up
 
 ### Installation options
  
-- STAC: `pip install -e .["stac"]`
-- MosaicJSON: `pip install -e .["mosaic"]`
-
+- MosaicJSON support: `pip install -e .["mosaic"]`
 
 # Docs
 
@@ -170,24 +168,20 @@ $ AWS_DEFAULT_REGION=eu-central-1 AWS_REGION=eu-central-1 cdk deploy titiler-lam
 
 ```
 titiler/                         - titiler python module.
- ├── api/                        - general api directory.
- │   ├── api_                 - directory hosting version 1 of the API.
- │   │   ├── endpoints           - api routes.
- │   │   │   ├── cog.py          - COG related endpoints.
- │   │   │   ├── stac.py         - STAC related endpoints.
- │   │   │   ├── mosaic.py       - MosaicJSON related endpoints.
- │   │   │   └── tms.py          - TileMatrixSets endpoints.
- │   │   └── api.py              - construct the API by merging api_v1 endpoints.
- │   ├── deps.py                 - API dependencies.
- │   └── utils.py                - API utility functions.
- │
- ├── core/                       - application configuration.
  ├── custom/                     - Custom colormap and TMS grids.
  ├── db/                         - db related stuff.
+ ├── endpoints                   - api routes.
+ │   ├── cog.py                  - COG related endpoints.
+ │   ├── stac.py                 - STAC related endpoints.
+ │   ├── mosaic.py               - MosaicJSON related endpoints.
+ │   └── tms.py                  - TileMatrixSets endpoints.
  ├── models/                     - pydantic models for this application.
  ├── ressources/                 - application ressources (enums, constants, ...).
  ├── templates/                  - html/xml models.
+ ├── dependencies.py             - API dependencies.
+ ├── errors.py                   - API custom error handling.
  ├── main.py                     - FastAPI application creation and configuration.
+ ├── settings.py                 - application configuration.
  ├── utils.py                    - utility functions.
  │
 stack/
@@ -204,7 +198,6 @@ lambda/
  │   └── handler.py              - Mangum adaptator fro AWS Lambda.
  │
 docs/                            - Project documentations.
-
 ```
 
 # Contribution & Development

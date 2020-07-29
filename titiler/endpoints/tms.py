@@ -4,7 +4,7 @@ import json
 
 from morecantile.models import TileMatrixSet
 
-from titiler.api.deps import TileMatrixSetNames, morecantile
+from titiler.dependencies import TileMatrixSetNames, morecantile
 from titiler.models.OGC import TileMatrixSetList
 
 from fastapi import APIRouter, Query
