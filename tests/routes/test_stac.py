@@ -152,7 +152,7 @@ def test_preview(stac_reader, rio, app):
     rio.open = mock_rasterio_open
 
     response = app.get("/stac/preview?url=https://myurl.com/item.json")
-    assert response.status_code == 400
+    assert response.status_code == 404
 
     response = app.get(
         "/stac/preview?url=https://myurl.com/item.json&assets=B01&rescale=0,1000&max_size=64"
@@ -192,7 +192,7 @@ def test_part(stac_reader, rio, app):
     response = app.get(
         "/stac/crop/23.878,32.063,23.966,32.145.png?url=https://myurl.com/item.json"
     )
-    assert response.status_code == 400
+    assert response.status_code == 404
 
     response = app.get(
         "/stac/crop/23.878,32.063,23.966,32.145.png?url=https://myurl.com/item.json&assets=B01&rescale=0,1000&max_size=64"
@@ -230,7 +230,7 @@ def test_point(stac_reader, rio, app):
     rio.open = mock_rasterio_open
 
     response = app.get("/stac/point/23.878,32.063?url=https://myurl.com/item.json")
-    assert response.status_code == 400
+    assert response.status_code == 404
 
     response = app.get(
         "/stac/point/23.878,32.063?url=https://myurl.com/item.json&assets=B01"
