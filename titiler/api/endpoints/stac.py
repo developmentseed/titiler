@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional, Union
 from urllib.parse import urlencode
 
 from rasterio.transform import from_bounds
+from rio_tiler.errors import InvalidBandName
 from rio_tiler_crs import STACReader
 
 from titiler.api import utils
@@ -18,7 +19,6 @@ from titiler.api.deps import (
     request_hash,
 )
 from titiler.db.memcache import CacheLayer
-from titiler.errors import BadRequestError
 from titiler.models.cog import cogBounds, cogInfo, cogMetadata
 from titiler.models.mapbox import TileJSON
 from titiler.ressources.enums import ImageMimeTypes, ImageType
@@ -423,7 +423,7 @@ async def stac_tilejson(
     kwargs.pop("maxzoom", None)
 
     if not expression and not assets:
-        raise BadRequestError("Expression or Assets HAVE to be set in the queryString.")
+        raise InvalidBandName("Expression or Assets HAVE to be set in the queryString.")
 
     qs = urlencode(list(kwargs.items()))
     if tile_format:

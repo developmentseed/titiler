@@ -107,7 +107,7 @@ def test_tilejson(stac_reader, rio, app):
     rio.open = mock_rasterio_open
 
     response = app.get("/stac/tilejson.json?url=https://myurl.com/item.json")
-    assert response.status_code == 400
+    assert response.status_code == 404
 
     response = app.get(
         "/stac/tilejson.json?url=https://myurl.com/item.json&assets=B01&minzoom=5&maxzoom=10"
