@@ -19,7 +19,6 @@ from titiler.api.deps import (
     request_hash,
 )
 from titiler.db.memcache import CacheLayer
-from titiler.errors import BadRequestError
 from titiler.models.cog import cogBounds, cogInfo, cogMetadata
 from titiler.models.mapbox import TileJSON
 from titiler.ressources.enums import ImageMimeTypes, ImageType
