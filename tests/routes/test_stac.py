@@ -78,7 +78,7 @@ def test_tile(stac_reader, rio, app):
     rio.open = mock_rasterio_open
 
     response = app.get("/stac/tiles/9/289/207?url=https://myurl.com/item.json")
-    assert response.status_code == 400
+    assert response.status_code == 404
 
     response = app.get(
         "/stac/tiles/9/289/207?url=https://myurl.com/item.json&assets=B01&rescale=0,1000"

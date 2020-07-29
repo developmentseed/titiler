@@ -149,9 +149,6 @@ async def stac_tile(
     timings = []
     headers: Dict[str, str] = {}
 
-    if not image_params.expression and not assets:
-        raise BadRequestError("Must pass Expression or Asset list.")
-
     tilesize = scale * 256
     tms = morecantile.tms.get(TileMatrixSetId.name)
 
