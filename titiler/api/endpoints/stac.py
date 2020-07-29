@@ -226,9 +226,6 @@ async def stac_preview(
     timings = []
     headers: Dict[str, str] = {}
 
-    if not image_params.expression and not assets:
-        raise BadRequestError("Must pass Expression or Asset list.")
-
     with utils.Timer() as t:
         with STACReader(url) as stac:
             data, mask = stac.preview(
@@ -287,9 +284,6 @@ async def stac_part(
     """Create image from part of STAC assets."""
     timings = []
     headers: Dict[str, str] = {}
-
-    if not image_params.expression and not assets:
-        raise BadRequestError("Must pass Expression or Asset list.")
 
     with utils.Timer() as t:
         with STACReader(url) as stac:
@@ -356,8 +350,6 @@ async def cog_point(
     ),
 ):
     """Get Point value for a COG."""
-    if not expression and not assets:
-        raise BadRequestError("Must pass Expression or Asset list.")
 
     indexes = tuple(int(s) for s in re.findall(r"\d+", bidx)) if bidx else None
 
