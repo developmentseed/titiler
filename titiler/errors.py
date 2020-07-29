@@ -14,6 +14,7 @@ from starlette.responses import JSONResponse
 
 logger = logging.getLogger(__name__)
 
+
 class TilerError(Exception):
     """Base exception class."""
 
