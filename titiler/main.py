@@ -1,6 +1,8 @@
 """titiler app."""
+import importlib
+
 from titiler import settings, version
-from titiler.api import api as titilerAPI
+from titiler.api.endpoints import cog, tms
 from titiler.db.memcache import CacheLayer
 from titiler.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 from titiler.templates.factory import web_template
@@ -18,13 +20,36 @@ else:
     cache = None
 
 
+def _include_extra_router(app: FastAPI, module: str, **kwargs) -> None:
+    """Helper function to add routers available through pip extras"""
+    try:
+        mod = importlib.import_module(module)
+        app.include_router(mod.router, **kwargs)  # type: ignore
+    except ModuleNotFoundError:
+        pass
+
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url="/api/v1/openapi.json",
     description="A lightweight Cloud Optimized GeoTIFF tile server",
     version=version,
 )
+app.include_router(cog.router, prefix="/cog", tags=["Cloud Optimized GeoTIFF"])
+app.include_router(tms.router)
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
+_include_extra_router(
+    app,
+    module="titiler.api.endpoints.stac",
+    prefix="/stac",
+    tags=["SpatioTemporal Asset Catalog"],
+)
+_include_extra_router(
+    app,
+    module="titiler.api.endpoints.mosaic",
+    prefix="/mosaicjson",
+    tags=["MosaicJSON"],
+)
 
 # Set all CORS enabled origins
 if settings.BACKEND_CORS_ORIGINS:
@@ -67,6 +92,3 @@ def simple(request: Request, template=Depends(web_template)):
 def ping():
     """Health check."""
     return {"ping": "pong!"}
-
-
-app.include_router(titilerAPI.api_router)

@@ -231,7 +231,6 @@ def test_point(stac_reader, rio, app):
 
     response = app.get("/stac/point/23.878,32.063?url=https://myurl.com/item.json")
     assert response.status_code == 404
-
     response = app.get(
         "/stac/point/23.878,32.063?url=https://myurl.com/item.json&assets=B01"
     )
