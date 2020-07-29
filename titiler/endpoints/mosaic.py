@@ -27,7 +27,7 @@ from titiler.ressources.enums import (
     MimeTypes,
     PixelSelectionMethod,
 )
-from titiler.ressources.responses import ImgResponse, XMLResponse
+from titiler.ressources.responses import ImgResponse, JSONResponse, XMLResponse
 
 from fastapi import APIRouter, Depends, Path, Query
 
@@ -79,7 +79,7 @@ def create_mosaicjson(body: CreateMosaicJSON):
             raise BadRequestError(
                 f"{mosaic.__class__.__name__} does not support write operations"
             )
-        return mosaic.mosaic_def
+        return JSONResponse(mosaic.mosaic_def.dict())
 
 
 @router.get(
@@ -106,7 +106,7 @@ def update_mosaicjson(body: UpdateMosaicJSON):
             raise BadRequestError(
                 f"{mosaic.__class__.__name__} does not support update operations"
             )
-        return mosaic.mosaic_def
+        return JSONResponse(mosaic.mosaic_def.dict())
 
 
 @router.get(
@@ -117,7 +117,7 @@ def update_mosaicjson(body: UpdateMosaicJSON):
 def mosaicjson_bounds(mosaic_path: str = Depends(MosaicPath)):
     """Read MosaicJSON bounds"""
     with MosaicBackend(mosaic_path) as mosaic:
-        return {"bounds": mosaic.mosaic_def.bounds}
+        return JSONResponse({"bounds": mosaic.mosaic_def.bounds})
 
 
 @router.get("/info", response_model=mosaicInfo)
@@ -137,7 +137,7 @@ def mosaicjson_info(mosaic_path: str = Depends(MosaicPath)):
             "name": mosaic_path,
             "quadkeys": list(mosaic.mosaic_def.tiles),
         }
-        return response
+        return JSONResponse(response)
 
 
 @router.get(
@@ -163,7 +163,7 @@ def mosaic_tilejson(
     tile_url = request.url_for("mosaic_tile", **kwargs).replace("\\", "")
     with MosaicBackend(mosaic_path) as mosaic:
         tjson = TileJSON(**mosaic.metadata, tiles=[tile_url])
-    return tjson
+    return JSONResponse(tjson.dict())
 
 
 @router.get(
@@ -222,7 +222,7 @@ async def mosaic_point(
             ["{} - {:0.2f}".format(name, time * 1000) for (name, time) in timings]
         )
 
-    return {"coordinates": [lon, lat], "values": values}
+    return JSONResponse({"coordinates": [lon, lat], "values": values})
 
 
 @router.get(r"/tiles/{z}/{x}/{y}", **tile_response_codes)

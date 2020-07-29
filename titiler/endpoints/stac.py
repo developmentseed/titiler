@@ -22,7 +22,7 @@ from titiler.dependencies import (
 from titiler.models.cog import cogBounds, cogInfo, cogMetadata
 from titiler.models.mapbox import TileJSON
 from titiler.ressources.enums import ImageMimeTypes, ImageType
-from titiler.ressources.responses import ImgResponse
+from titiler.ressources.responses import ImgResponse, JSONResponse
 from titiler.templates.factory import web_template
 
 from fastapi import APIRouter, Depends, Path, Query
@@ -42,9 +42,8 @@ async def stac_bounds(
     resp: Response, url: str = Query(..., description="STAC item URL."),
 ):
     """Return the bounds of the STAC item."""
-    resp.headers["Cache-Control"] = "max-age=3600"
     with STACReader(url) as stac:
-        return {"bounds": stac.bounds}
+        return JSONResponse({"bounds": stac.bounds})
 
 
 @router.get(
@@ -60,14 +59,13 @@ async def stac_info(
     assets: str = Query(None, description="comma (,) separated list of asset names."),
 ):
     """Return basic info on STAC item's COG."""
-    resp.headers["Cache-Control"] = "max-age=3600"
     with STACReader(url) as stac:
         if not assets:
             return stac.assets
 
         info = stac.info(assets.split(","))
 
-    return info
+    return JSONResponse(info)
 
 
 @router.get(
@@ -98,8 +96,7 @@ async def stac_metadata(
             **metadata_params.kwargs,
         )
 
-    resp.headers["Cache-Control"] = "max-age=3600"
-    return info
+    return JSONResponse(info)
 
 
 params: Dict[str, Any] = {
@@ -373,7 +370,7 @@ async def cog_point(
             ["{} - {:0.2f}".format(name, time * 1000) for (name, time) in timings]
         )
 
-    return {"coordinates": [lon, lat], "values": values}
+    return JSONResponse({"coordinates": [lon, lat], "values": values})
 
 
 @router.get(
@@ -437,6 +434,9 @@ async def stac_tilejson(
         if minzoom:
             center[-1] = minzoom
         tjson = {
+            "tilejson": "2.2.0",
+            "version": "1.0.0",
+            "scheme": "xyz",
             "bounds": stac.bounds,
             "center": tuple(center),
             "minzoom": minzoom or stac.minzoom,
@@ -445,8 +445,7 @@ async def stac_tilejson(
             "tiles": [tile_url],
         }
 
-    response.headers["Cache-Control"] = "max-age=3600"
-    return tjson
+    return JSONResponse(tjson)
 
 
 @router.get("/viewer", response_class=HTMLResponse, tags=["Webpage"])

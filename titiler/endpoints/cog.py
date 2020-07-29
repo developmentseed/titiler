@@ -27,7 +27,7 @@ from titiler.templates.factory import web_template
 from fastapi import APIRouter, Depends, Path, Query
 
 from starlette.requests import Request
-from starlette.responses import HTMLResponse, Response
+from starlette.responses import HTMLResponse, JSONResponse, Response
 from starlette.templating import Jinja2Templates
 
 router = APIRouter()
@@ -43,9 +43,8 @@ async def cog_bounds(
     resp: Response, url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
 ):
     """Return the bounds of the COG."""
-    resp.headers["Cache-Control"] = "max-age=3600"
     with COGReader(url) as cog:
-        return {"bounds": cog.bounds}
+        return JSONResponse({"bounds": cog.bounds})
 
 
 @router.get(
@@ -59,10 +58,9 @@ def cog_info(
     resp: Response, url: str = Query(..., description="Cloud Optimized GeoTIFF URL.")
 ):
     """Return basic info on COG."""
-    resp.headers["Cache-Control"] = "max-age=3600"
     with COGReader(url) as cog:
         info = cog.info
-    return info
+    return JSONResponse(info)
 
 
 @router.get(
@@ -92,8 +90,7 @@ async def cog_metadata(
         )
         info["statistics"] = stats
 
-    resp.headers["Cache-Control"] = "max-age=3600"
-    return info
+    return JSONResponse(info)
 
 
 tile_response_codes: Dict[str, Any] = {
@@ -350,7 +347,7 @@ async def cog_point(
             ["{} - {:0.2f}".format(name, time * 1000) for (name, time) in timings]
         )
 
-    return {"coordinates": [lon, lat], "values": values}
+    return JSONResponse({"coordinates": [lon, lat], "values": values})
 
 
 @router.get(
@@ -405,6 +402,9 @@ async def cog_tilejson(
         if minzoom:
             center[-1] = minzoom
         tjson = {
+            "tilejson": "2.2.0",
+            "version": "1.0.0",
+            "scheme": "xyz",
             "bounds": cog.bounds,
             "center": tuple(center),
             "minzoom": minzoom or cog.minzoom,
@@ -413,8 +413,7 @@ async def cog_tilejson(
             "tiles": [tile_url],
         }
 
-    response.headers["Cache-Control"] = "max-age=3600"
-    return tjson
+    return JSONResponse(tjson)
 
 
 @router.get("/WMTSCapabilities.xml", response_class=XMLResponse, tags=["OGC"])
