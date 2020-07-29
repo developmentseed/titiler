@@ -314,3 +314,15 @@ def test_point(reader, app):
     assert response.headers["content-type"] == "application/json"
     body = response.json()
     assert body["coordinates"] == [-56.228, 72.715]
+
+
+def test_file_not_found_error(app):
+    response = app.get("/cog/info?url=foo.tif")
+    assert response.status_code == 404
+
+
+@patch("titiler.api.endpoints.cog.COGReader")
+def test_tile_outside_bounds_error(reader, app):
+    reader.side_effect = mock_reader
+    response = app.get("/cog/tiles/15/0/0?url=https://myurl.com/cog.tif&rescale=0,1000")
+    assert response.status_code == 404
