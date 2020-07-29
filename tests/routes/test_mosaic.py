@@ -250,3 +250,17 @@ def test_wmts(app):
             "http://testserver/mosaicjson/tiles/WebMercatorQuad/{TileMatrix}/{TileCol}/{TileRow}@2x.png?url="
             in response.content.decode()
         )
+
+
+def test_mosaic_auth_error(app):
+    response = app.get("/mosaicjson", params={"url": "s3://bucket/mosaic.json"})
+    assert response.status_code == 401
+
+
+def test_mosaic_not_found_error(app):
+    """
+    This should probably return a 404 but currently returns a 424 because cogeo_mosaic incorrectly raises a MosaicError
+    instead of MosaicNotFoundError.
+    """
+    response = app.get("/mosaicjson", params={"url": "mosaic.json"})
+    assert response.status_code == 424

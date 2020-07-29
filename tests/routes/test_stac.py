@@ -78,7 +78,7 @@ def test_tile(stac_reader, rio, app):
     rio.open = mock_rasterio_open
 
     response = app.get("/stac/tiles/9/289/207?url=https://myurl.com/item.json")
-    assert response.status_code == 403
+    assert response.status_code == 400
 
     response = app.get(
         "/stac/tiles/9/289/207?url=https://myurl.com/item.json&assets=B01&rescale=0,1000"
@@ -107,7 +107,7 @@ def test_tilejson(stac_reader, rio, app):
     rio.open = mock_rasterio_open
 
     response = app.get("/stac/tilejson.json?url=https://myurl.com/item.json")
-    assert response.status_code == 403
+    assert response.status_code == 400
 
     response = app.get(
         "/stac/tilejson.json?url=https://myurl.com/item.json&assets=B01&minzoom=5&maxzoom=10"
@@ -152,7 +152,7 @@ def test_preview(stac_reader, rio, app):
     rio.open = mock_rasterio_open
 
     response = app.get("/stac/preview?url=https://myurl.com/item.json")
-    assert response.status_code == 403
+    assert response.status_code == 400
 
     response = app.get(
         "/stac/preview?url=https://myurl.com/item.json&assets=B01&rescale=0,1000&max_size=64"
@@ -192,7 +192,7 @@ def test_part(stac_reader, rio, app):
     response = app.get(
         "/stac/crop/23.878,32.063,23.966,32.145.png?url=https://myurl.com/item.json"
     )
-    assert response.status_code == 403
+    assert response.status_code == 400
 
     response = app.get(
         "/stac/crop/23.878,32.063,23.966,32.145.png?url=https://myurl.com/item.json&assets=B01&rescale=0,1000&max_size=64"
@@ -230,7 +230,7 @@ def test_point(stac_reader, rio, app):
     rio.open = mock_rasterio_open
 
     response = app.get("/stac/point/23.878,32.063?url=https://myurl.com/item.json")
-    assert response.status_code == 403
+    assert response.status_code == 400
 
     response = app.get(
         "/stac/point/23.878,32.063?url=https://myurl.com/item.json&assets=B01"
@@ -255,3 +255,16 @@ def test_point(stac_reader, rio, app):
     body = response.json()
     assert body["coordinates"] == [23.878, 32.063]
     assert round(body["values"][0][0], 2) == 0.49
+
+
+@patch("rio_tiler.io.cogeo.rasterio")
+@patch("titiler.api.endpoints.stac.STACReader")
+def test_missing_asset_not_found(stac_reader, rio, app):
+    """test /info endpoint."""
+    stac_reader.side_effect = mock_STACreader
+    rio.open = mock_rasterio_open
+
+    response = app.get(
+        "/stac/preview?url=https://myurl.com/item.json&assets=B1111&rescale=0,1000&max_size=64"
+    )
+    assert response.status_code == 404
