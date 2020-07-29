@@ -19,6 +19,7 @@ from titiler.api.deps import (
     request_hash,
 )
 from titiler.db.memcache import CacheLayer
+from titiler.errors import BadRequestError
 from titiler.models.cog import cogBounds, cogInfo, cogMetadata
 from titiler.models.mapbox import TileJSON
 from titiler.ressources.enums import ImageMimeTypes, ImageType
@@ -148,6 +149,7 @@ async def stac_tile(
     """Create map tile from a STAC item."""
     timings = []
     headers: Dict[str, str] = {}
+
 
     tilesize = scale * 256
     tms = morecantile.tms.get(TileMatrixSetId.name)
