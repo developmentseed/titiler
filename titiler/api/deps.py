@@ -10,8 +10,8 @@ import numpy
 from rasterio.enums import Resampling
 from rio_tiler.colormap import cmap
 
+from titiler import settings
 from titiler.api.utils import get_hash
-from titiler.core.config import DEFAULT_MOSAIC_BACKEND, DEFAULT_MOSAIC_HOST
 from titiler.custom import cmap as custom_colormap
 from titiler.custom import tms as custom_tms
 
@@ -239,6 +239,6 @@ def MosaicPath(url: str = Query(..., description="MosaicJSON URL")) -> str:
     parsed = urlparse(url)
     if parsed.scheme == "mosaicid":
         # by default we store the mosaicjson as a GZ compressed json (.json.gz) file
-        return f"{DEFAULT_MOSAIC_BACKEND}{DEFAULT_MOSAIC_HOST}/{parsed.netloc}.json.gz"
+        return f"{settings.DEFAULT_MOSAIC_BACKEND}{settings.DEFAULT_MOSAIC_HOST}/{parsed.netloc}.json.gz"
     else:
         return url

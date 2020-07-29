@@ -1,14 +1,26 @@
 """titiler.cache.memcache: memcached layer."""
-
 from typing import Optional, Tuple
 
 from bmemcached import Client
 
+from titiler import settings
 from titiler.ressources.enums import ImageType
 
 
 class CacheLayer(object):
     """Memcache Wrapper."""
+
+    @classmethod
+    def create_from_env(cls) -> "CacheLayer":
+        """
+        Instatiate from environment variables.
+        """
+        return cls(
+            host=settings.MEMCACHE_HOST,
+            port=settings.MEMCACHE_PORT,
+            user=settings.MEMCACHE_USERNAME,
+            password=settings.MEMCACHE_PASSWORD,
+        )
 
     def __init__(
         self,
