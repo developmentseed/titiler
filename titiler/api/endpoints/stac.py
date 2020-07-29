@@ -150,7 +150,6 @@ async def stac_tile(
     timings = []
     headers: Dict[str, str] = {}
 
-
     tilesize = scale * 256
     tms = morecantile.tms.get(TileMatrixSetId.name)
 
