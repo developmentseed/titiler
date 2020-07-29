@@ -18,15 +18,15 @@ from titiler.api.deps import (
     request_hash,
 )
 from titiler.db.memcache import CacheLayer
+from titiler.errors import BadRequestError
 from titiler.models.cog import cogBounds, cogInfo, cogMetadata
 from titiler.models.mapbox import TileJSON
 from titiler.ressources.enums import ImageMimeTypes, ImageType
 from titiler.ressources.responses import ImgResponse
 from titiler.templates.factory import web_template
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query
+from fastapi import APIRouter, Depends, Path, Query
 
-from starlette import status
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, Response
 
@@ -150,10 +150,7 @@ async def stac_tile(
     headers: Dict[str, str] = {}
 
     if not image_params.expression and not assets:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Must pass Expression or Asset list.",
-        )
+        raise BadRequestError("Must pass Expression or Asset list.")
 
     tilesize = scale * 256
     tms = morecantile.tms.get(TileMatrixSetId.name)
@@ -233,10 +230,7 @@ async def stac_preview(
     headers: Dict[str, str] = {}
 
     if not image_params.expression and not assets:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Must pass Expression or Asset list.",
-        )
+        raise BadRequestError("Must pass Expression or Asset list.")
 
     with utils.Timer() as t:
         with STACReader(url) as stac:
@@ -298,10 +292,7 @@ async def stac_part(
     headers: Dict[str, str] = {}
 
     if not image_params.expression and not assets:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Must pass Expression or Asset list.",
-        )
+        raise BadRequestError("Must pass Expression or Asset list.")
 
     with utils.Timer() as t:
         with STACReader(url) as stac:
@@ -369,10 +360,7 @@ async def cog_point(
 ):
     """Get Point value for a COG."""
     if not expression and not assets:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Must pass Expression or Asset list.",
-        )
+        raise BadRequestError("Must pass Expression or Asset list.")
 
     indexes = tuple(int(s) for s in re.findall(r"\d+", bidx)) if bidx else None
 
@@ -446,10 +434,7 @@ async def stac_tilejson(
     kwargs.pop("maxzoom", None)
 
     if not expression and not assets:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Expression or Assets HAVE to be set in the queryString.",
-        )
+        raise BadRequestError("Expression or Assets HAVE to be set in the queryString.")
 
     qs = urlencode(list(kwargs.items()))
     if tile_format:

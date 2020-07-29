@@ -2,6 +2,7 @@
 from titiler import settings, version
 from titiler.api import api as titilerAPI
 from titiler.db.memcache import CacheLayer
+from titiler.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 from titiler.templates.factory import web_template
 
 from fastapi import Depends, FastAPI
@@ -23,6 +24,7 @@ app = FastAPI(
     description="A lightweight Cloud Optimized GeoTIFF tile server",
     version=version,
 )
+add_exception_handlers(app, DEFAULT_STATUS_CODES)
 
 # Set all CORS enabled origins
 if settings.BACKEND_CORS_ORIGINS:
