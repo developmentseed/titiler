@@ -1,9 +1,6 @@
 """titiler app."""
-from typing import Any, Dict
-
-from titiler import version
+from titiler import settings, version
 from titiler.api import api as titilerAPI
-from titiler.core import config
 from titiler.db.memcache import CacheLayer
 from titiler.templates.factory import web_template
 
@@ -14,30 +11,22 @@ from starlette.middleware.gzip import GZipMiddleware
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
 
-if config.MEMCACHE_HOST and not config.DISABLE_CACHE:
-    kwargs: Dict[str, Any] = {
-        k: v
-        for k, v in zip(
-            ["port", "user", "password"],
-            [config.MEMCACHE_PORT, config.MEMCACHE_USERNAME, config.MEMCACHE_PASSWORD],
-        )
-        if v
-    }
-    cache = CacheLayer(config.MEMCACHE_HOST, **kwargs)
+if settings.MEMCACHE_HOST and not settings.DISABLE_CACHE:
+    cache = CacheLayer.create_from_env()
 else:
     cache = None
 
 
 app = FastAPI(
-    title=config.PROJECT_NAME,
+    title=settings.PROJECT_NAME,
     openapi_url="/api/v1/openapi.json",
     description="A lightweight Cloud Optimized GeoTIFF tile server",
     version=version,
 )
 
 # Set all CORS enabled origins
-if config.BACKEND_CORS_ORIGINS:
-    origins = [origin.strip() for origin in config.BACKEND_CORS_ORIGINS.split(",")]
+if settings.BACKEND_CORS_ORIGINS:
+    origins = [origin.strip() for origin in settings.BACKEND_CORS_ORIGINS.split(",")]
     app.add_middleware(
         CORSMiddleware,
         allow_origins=origins,
