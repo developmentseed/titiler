@@ -21,7 +21,7 @@ from titiler.dependencies import (
 from titiler.models.cog import cogBounds, cogInfo, cogMetadata
 from titiler.models.mapbox import TileJSON
 from titiler.ressources.enums import ImageMimeTypes, ImageType, MimeTypes
-from titiler.ressources.responses import ImgResponse, XMLResponse
+from titiler.ressources.responses import XMLResponse
 from titiler.templates.factory import web_template
 
 from fastapi import APIRouter, Depends, Path, Query
@@ -39,11 +39,8 @@ templates = Jinja2Templates(directory="titiler/templates")
     response_model=cogBounds,
     responses={200: {"description": "Return the bounds of the COG."}},
 )
-async def cog_bounds(
-    resp: Response, url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
-):
+async def cog_bounds(url: str = Query(..., description="Cloud Optimized GeoTIFF URL.")):
     """Return the bounds of the COG."""
-    resp.headers["Cache-Control"] = "max-age=3600"
     with COGReader(url) as cog:
         return {"bounds": cog.bounds}
 
@@ -55,11 +52,8 @@ async def cog_bounds(
     response_model_exclude_none=True,
     responses={200: {"description": "Return basic info on COG."}},
 )
-def cog_info(
-    resp: Response, url: str = Query(..., description="Cloud Optimized GeoTIFF URL.")
-):
+def cog_info(url: str = Query(..., description="Cloud Optimized GeoTIFF URL.")):
     """Return basic info on COG."""
-    resp.headers["Cache-Control"] = "max-age=3600"
     with COGReader(url) as cog:
         info = cog.info
     return info
@@ -73,7 +67,6 @@ def cog_info(
     responses={200: {"description": "Return the metadata of the COG."}},
 )
 async def cog_metadata(
-    resp: Response,
     url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
     metadata_params: CommonMetadataParams = Depends(),
 ):
@@ -92,7 +85,6 @@ async def cog_metadata(
         )
         info["statistics"] = stats
 
-    resp.headers["Cache-Control"] = "max-age=3600"
     return info
 
 
@@ -109,7 +101,7 @@ tile_response_codes: Dict[str, Any] = {
             "description": "Return an image.",
         }
     },
-    "response_class": ImgResponse,
+    "response_class": Response,
 }
 
 
@@ -205,7 +197,7 @@ async def cog_tile(
             ["{} - {:0.2f}".format(name, time * 1000) for (name, time) in timings]
         )
 
-    return ImgResponse(
+    return Response(
         content, media_type=ImageMimeTypes[format.value].value, headers=headers,
     )
 
@@ -256,7 +248,7 @@ async def cog_preview(
             ["{} - {:0.2f}".format(name, time * 1000) for (name, time) in timings]
         )
 
-    return ImgResponse(
+    return Response(
         content, media_type=ImageMimeTypes[format.value].value, headers=headers,
     )
 
@@ -312,7 +304,7 @@ async def cog_part(
             ["{} - {:0.2f}".format(name, time * 1000) for (name, time) in timings]
         )
 
-    return ImgResponse(
+    return Response(
         content, media_type=ImageMimeTypes[format.value].value, headers=headers,
     )
 
@@ -367,7 +359,6 @@ async def cog_point(
 )
 async def cog_tilejson(
     request: Request,
-    response: Response,
     TileMatrixSetId: TileMatrixSetNames = Query(
         TileMatrixSetNames.WebMercatorQuad,  # type: ignore
         description="TileMatrixSet Name (default: 'WebMercatorQuad')",
@@ -413,7 +404,6 @@ async def cog_tilejson(
             "tiles": [tile_url],
         }
 
-    response.headers["Cache-Control"] = "max-age=3600"
     return tjson
 
 
@@ -423,7 +413,6 @@ async def cog_tilejson(
 )
 def wmts(
     request: Request,
-    response: Response,
     TileMatrixSetId: TileMatrixSetNames = Query(
         TileMatrixSetNames.WebMercatorQuad,  # type: ignore
         description="TileMatrixSet Name (default: 'WebMercatorQuad')",

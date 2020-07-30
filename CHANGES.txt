@@ -8,6 +8,7 @@
 - Add fastapi exception handlers (#56, author @geospatial-jeff)
 - Remove intermediary routers (#57, author @geospatial-jeff)
 - Remove /titiler/api submodule (e.g titiler.api.utils -> titiler.utils)
+- Add Cache-Control middleware. Endpoints do not define any cache-control headers. (part of #43, co-author with @geospatial-jeff)
 
 2.1.2 (2020-06-24)
 ------------------
