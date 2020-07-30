@@ -1,0 +1,67 @@
+site_name: titiler
+site_description: Titiler is a lightweight service for creating map tiles from Cloud Optimized GeoTiff
+
+theme:
+  name: material
+  palette:
+    primary: indigo
+    scheme: default
+
+# TODO: Add edit_uri/site_uri
+
+repo_name: "developmentseed/titiler"
+repo_url: "https://github.com/developmentseed/titiler"
+
+extra:
+  social:
+    - icon: 'fontawesome/brands/github'
+      link: 'https://github.com/developmentseed'
+    - icon: 'fontawesome/brands/twitter'
+      link: 'https://twitter.com/developmentseed'
+
+
+nav:
+  - Titiler: "index.md"
+  - Concepts:
+      - "titiler/concepts/dynamic_tiling.md"
+      - "titiler/concepts/data_formats.md"
+      - "titiler/concepts/tile_matrix_sets.md"
+  - Endpoints:
+      - "titiler/endpoints/cog.md"
+      - "titiler/endpoints/mosaic.md"
+      - "titiler/endpoints/stac.md"
+  - Deployment:
+      - "titiler/deployment/settings.md"
+      - "titiler/deployment/ecs.md"
+      - "titiler/deployment/lambda.md"
+  - Advanced:
+      - "titiler/advanced/custom_application.md"
+
+
+# https://github.com/kylebarron/cogeo-mosaic/blob/mkdocs/mkdocs.yml#L50-L75
+markdown_extensions:
+    - admonition
+    - attr_list
+    - codehilite:
+        guess_lang: false
+    - def_list
+    - footnotes
+    - pymdownx.arithmatex
+    - pymdownx.betterem
+    - pymdownx.caret:
+        insert: false
+    - pymdownx.details
+    - pymdownx.emoji
+    - pymdownx.escapeall:
+        hardbreak: true
+        nbsp: true
+    - pymdownx.magiclink:
+        hide_protocol: true
+        repo_url_shortener: true
+    - pymdownx.smartsymbols
+    - pymdownx.superfences
+    - pymdownx.tasklist:
+        custom_checkbox: true
+    - pymdownx.tilde
+    - toc:
+        permalink: true

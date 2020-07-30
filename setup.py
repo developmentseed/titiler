@@ -14,7 +14,15 @@ inst_reqs = [
     "rio-tiler-crs==3.0b2",
 ]
 extra_reqs = {
-    "dev": ["pytest", "pytest-cov", "pytest-asyncio", "pre-commit", "requests"],
+    "dev": [
+        "pytest",
+        "pytest-cov",
+        "pytest-asyncio",
+        "pre-commit",
+        "requests",
+        "mkdocs",
+        "mkdocs-material",
+    ],
     "mosaic": ["cogeo-mosaic~=3.0a5"],
     "server": ["uvicorn", "click==7.0"],
     "lambda": ["mangum>=0.9.0"],

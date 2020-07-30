@@ -1,0 +1,3 @@
+# SpatioTemporal Asset Catalog
+
+placeholder
