@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional, Union
 from urllib.parse import urlencode
 
 from rasterio.transform import from_bounds
-from rio_tiler.errors import InvalidBandName
+from rio_tiler.errors import MissingAssets
 from rio_tiler_crs import STACReader
 
 from titiler import utils
@@ -59,7 +59,7 @@ async def stac_info(
         if not assets:
             return stac.assets
 
-        info = stac.info(assets.split(","))
+        info = stac.info(assets=assets.split(","))
 
     return info
 
@@ -80,9 +80,9 @@ async def stac_metadata(
     """Return the metadata of the COG."""
     with STACReader(url) as stac:
         info = stac.metadata(
-            assets.split(","),
             metadata_params.pmin,
             metadata_params.pmax,
+            assets=assets.split(","),
             nodata=metadata_params.nodata,
             indexes=metadata_params.indexes,
             max_size=metadata_params.max_size,
@@ -413,7 +413,7 @@ async def stac_tilejson(
     kwargs.pop("maxzoom", None)
 
     if not expression and not assets:
-        raise InvalidBandName("Expression or Assets HAVE to be set in the queryString.")
+        raise MissingAssets("Expression or Assets HAVE to be set in the queryString.")
 
     qs = urlencode(list(kwargs.items()))
     if tile_format:

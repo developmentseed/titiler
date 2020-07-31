@@ -147,7 +147,9 @@ def test_point(app):
     assert response.status_code == 200
     body = response.json()
     assert len(body["values"]) == 1
-    assert body["values"][0] == [9943, 9127, 9603]
+    # value might be renamed to values
+    # https://github.com/developmentseed/cogeo-mosaic/issues/98
+    assert body["values"][0]["value"] == [9943, 9127, 9603]
 
 
 def test_tile(app):
