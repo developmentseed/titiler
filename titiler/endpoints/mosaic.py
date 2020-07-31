@@ -27,12 +27,13 @@ from titiler.ressources.enums import (
     MimeTypes,
     PixelSelectionMethod,
 )
-from titiler.ressources.responses import ImgResponse, XMLResponse
+from titiler.ressources.responses import XMLResponse
 
 from fastapi import APIRouter, Depends, Path, Query
 
 from starlette.concurrency import run_in_threadpool
 from starlette.requests import Request
+from starlette.responses import Response
 from starlette.templating import Jinja2Templates
 
 router = APIRouter()
@@ -331,7 +332,7 @@ async def mosaic_tile(
             ["{} - {:0.2f}".format(name, time * 1000) for (name, time) in timings]
         )
 
-    return ImgResponse(
+    return Response(
         content, media_type=ImageMimeTypes[format.value].value, headers=headers
     )
 

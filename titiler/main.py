@@ -59,6 +59,20 @@ app.add_middleware(GZipMiddleware, minimum_size=0)
 
 
 @app.middleware("http")
+async def header_middleware(request: Request, call_next):
+    """Add custom header."""
+    response = await call_next(request)
+    if (
+        not response.headers.get("Cache-Control")
+        and settings.DEFAULT_CACHECONTROL
+        and request.method in ["HEAD", "GET"]
+        and response.status_code < 500
+    ):
+        response.headers["Cache-Control"] = settings.DEFAULT_CACHECONTROL
+    return response
+
+
+@app.middleware("http")
 async def cache_middleware(request: Request, call_next):
     """Add cache layer."""
     request.state.cache = cache
