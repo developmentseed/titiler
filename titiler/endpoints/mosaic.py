@@ -1,5 +1,6 @@
 """API for MosaicJSON Dataset."""
 
+import os
 import re
 from typing import Dict, Optional
 from urllib.parse import urlencode
@@ -8,6 +9,7 @@ import morecantile
 from cogeo_mosaic.backends import MosaicBackend
 from cogeo_mosaic.mosaic import MosaicJSON
 from cogeo_mosaic.utils import get_footprints
+from rio_tiler.constants import MAX_THREADS
 from rio_tiler_crs.cogeo import geotiff_options
 
 from titiler import utils
@@ -163,10 +165,11 @@ async def mosaic_point(
 
     timings = []
     headers: Dict[str, str] = {}
+    threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
 
     with utils.Timer() as t:
         with MosaicBackend(mosaic_path) as mosaic:
-            values = mosaic.point(lon, lat, indexes=indexes)
+            values = mosaic.point(lon, lat, indexes=indexes, threads=threads)
 
     timings.append(("Read-values", t.elapsed))
 
@@ -206,6 +209,7 @@ async def mosaic_tile(
     headers: Dict[str, str] = {}
 
     tilesize = 256 * scale
+    threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
 
     with utils.Timer() as t:
         with MosaicBackend(mosaic_path) as mosaic:
@@ -214,6 +218,7 @@ async def mosaic_tile(
                 y,
                 z,
                 pixel_selection=pixel_selection.method(),
+                threads=threads,
                 tilesize=tilesize,
                 indexes=image_params.indexes,
                 expression=image_params.expression,
