@@ -492,7 +492,7 @@ def validate_cog(
     strict: bool = Query(False, description="Treat warnings as errors"),
 ):
     """Validate a COG"""
-    return {"valid": cog_validate(url, strict=strict, quiet=True)}
+    return {"valid": cog_validate(url, strict=strict)}
 
 
 @router.get("/viewer", response_class=HTMLResponse, tags=["Webpage"])
