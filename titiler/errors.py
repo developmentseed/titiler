@@ -45,7 +45,7 @@ DEFAULT_STATUS_CODES = {
     MosaicNotFoundError: status.HTTP_404_NOT_FOUND,
     NoAssetFoundError: status.HTTP_404_NOT_FOUND,
     RasterioIOError: status.HTTP_404_NOT_FOUND,
-    MissingAssets: status.HTTP_404_NOT_FOUND,
+    MissingAssets: status.HTTP_400_BAD_REQUEST,
     InvalidAssetName: status.HTTP_404_NOT_FOUND,
     MosaicError: status.HTTP_424_FAILED_DEPENDENCY,
     RasterioError: status.HTTP_500_INTERNAL_SERVER_ERROR,
