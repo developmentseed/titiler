@@ -72,8 +72,7 @@ async def cog_metadata(
 ):
     """Return the metadata of the COG."""
     with COGReader(url) as cog:
-        info = cog.info
-        stats = cog.stats(
+        info = cog.metadata(
             metadata_params.pmin,
             metadata_params.pmax,
             nodata=metadata_params.nodata,
@@ -83,7 +82,6 @@ async def cog_metadata(
             bounds=metadata_params.bounds,
             **metadata_params.kwargs,
         )
-        info["statistics"] = stats
 
     return info
 

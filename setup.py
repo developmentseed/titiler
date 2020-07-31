@@ -11,11 +11,11 @@ inst_reqs = [
     "jinja2",
     "python-binary-memcached",
     "rio-color",
-    "rio-tiler-crs==3.0b2",
+    "rio-tiler-crs==3.0b3",
 ]
 extra_reqs = {
     "dev": ["pytest", "pytest-cov", "pytest-asyncio", "pre-commit", "requests"],
-    "mosaic": ["cogeo-mosaic~=3.0a5"],
+    "mosaic": ["cogeo-mosaic==3.0a6"],
     "server": ["uvicorn", "click==7.0"],
     "lambda": ["mangum>=0.9.0"],
     "deploy": [
