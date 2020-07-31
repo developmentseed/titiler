@@ -6,6 +6,7 @@ from typing import Any, Dict, Optional
 from urllib.parse import urlencode
 
 from rasterio.transform import from_bounds
+from rio_cogeo.cogeo import cog_validate
 from rio_tiler_crs import COGReader
 
 from titiler import utils
@@ -27,7 +28,7 @@ from titiler.templates.factory import web_template
 from fastapi import APIRouter, Depends, Path, Query
 
 from starlette.requests import Request
-from starlette.responses import HTMLResponse, Response
+from starlette.responses import HTMLResponse, JSONResponse, Response
 from starlette.templating import Jinja2Templates
 
 router = APIRouter()
@@ -483,6 +484,15 @@ def wmts(
         },
         media_type=MimeTypes.xml.value,
     )
+
+
+@router.get("/validate", response_class=JSONResponse)
+def validate_cog(
+    url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
+    strict: bool = Query(False, description="Treat warnings as errors"),
+):
+    """Validate a COG"""
+    return {"valid": cog_validate(url, strict=strict, quiet=True)}
 
 
 @router.get("/viewer", response_class=HTMLResponse, tags=["Webpage"])

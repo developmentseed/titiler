@@ -12,6 +12,7 @@ inst_reqs = [
     "python-binary-memcached",
     "rio-color",
     "rio-tiler-crs==3.0b2",
+    "rio-cogeo",
 ]
 extra_reqs = {
     "dev": ["pytest", "pytest-cov", "pytest-asyncio", "pre-commit", "requests"],
