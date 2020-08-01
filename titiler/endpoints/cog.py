@@ -55,7 +55,7 @@ async def cog_bounds(url: str = Query(..., description="Cloud Optimized GeoTIFF 
 def cog_info(url: str = Query(..., description="Cloud Optimized GeoTIFF URL.")):
     """Return basic info on COG."""
     with COGReader(url) as cog:
-        info = cog.info
+        info = cog.info()
     return info
 
 

@@ -213,7 +213,7 @@ async def mosaic_tile(
 
     with utils.Timer() as t:
         with MosaicBackend(mosaic_path) as mosaic:
-            tile, mask = mosaic.tile(
+            (tile, mask), assets_used = mosaic.tile(
                 x,
                 y,
                 z,
@@ -257,6 +257,9 @@ async def mosaic_tile(
         headers["X-Server-Timings"] = "; ".join(
             ["{} - {:0.2f}".format(name, time * 1000) for (name, time) in timings]
         )
+
+    if assets_used:
+        headers["X-Assets"] = ",".join(assets_used)
 
     return Response(
         content, media_type=ImageMimeTypes[format.value].value, headers=headers
