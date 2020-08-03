@@ -18,6 +18,7 @@ def test_bounds(reader, app):
     assert response.status_code == 200
     body = response.json()
     assert len(body["bounds"]) == 4
+    assert response.headers["Cache-Control"] == "public, max-age=3600"
 
 
 @patch("titiler.endpoints.cog.COGReader")
@@ -81,6 +82,7 @@ def test_wmts(reader, app):
     response = app.get("/cog/WMTSCapabilities.xml?url=https://myurl.com/cog.tif")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/xml"
+    assert response.headers["Cache-Control"] == "public, max-age=3600"
     assert (
         "http://testserver/cog/tiles/WebMercatorQuad/{TileMatrix}/{TileCol}/{TileRow}@1x.png?url=https"
         in response.content.decode()
@@ -108,6 +110,7 @@ def test_tile(reader, app):
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/jpeg"
+    assert response.headers["Cache-Control"] == "public, max-age=3600"
     meta = parse_img(response.content)
     assert meta["width"] == 256
     assert meta["height"] == 256
@@ -326,6 +329,8 @@ def test_tile_outside_bounds_error(reader, app):
     reader.side_effect = mock_reader
     response = app.get("/cog/tiles/15/0/0?url=https://myurl.com/cog.tif&rescale=0,1000")
     assert response.status_code == 404
+    # NOT THIS MIGHT CHANGE
+    assert response.headers["Cache-Control"] == "public, max-age=3600"
 
 
 @pytest.mark.parametrize(
@@ -336,4 +341,4 @@ def test_validate_cog(app, url):
     """test /validate endpoint"""
     response = app.get(f"/cog/validate?url={os.path.join(DATA_DIR, 'cog.tif')}")
     assert response.status_code == 200
-    assert response.json()["valid"]
+    assert response.json()["COG"]

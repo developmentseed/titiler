@@ -3,7 +3,7 @@
 from enum import Enum
 from types import DynamicClassAttribute
 
-from rio_tiler_mosaic.methods import defaults
+from rio_tiler.mosaic.methods import defaults
 
 
 class ImageType(str, Enum):

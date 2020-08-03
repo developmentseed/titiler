@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional, Union
 from urllib.parse import urlencode
 
 from rasterio.transform import from_bounds
-from rio_tiler.errors import InvalidBandName
+from rio_tiler.errors import MissingAssets
 from rio_tiler_crs import STACReader
 
 from titiler import utils
@@ -22,7 +22,6 @@ from titiler.dependencies import (
 from titiler.models.cog import cogBounds, cogInfo, cogMetadata
 from titiler.models.mapbox import TileJSON
 from titiler.ressources.enums import ImageMimeTypes, ImageType
-from titiler.ressources.responses import ImgResponse
 from titiler.templates.factory import web_template
 
 from fastapi import APIRouter, Depends, Path, Query
@@ -38,11 +37,8 @@ router = APIRouter()
     response_model=cogBounds,
     responses={200: {"description": "Return the bounds of the STAC item."}},
 )
-async def stac_bounds(
-    resp: Response, url: str = Query(..., description="STAC item URL."),
-):
+async def stac_bounds(url: str = Query(..., description="STAC item URL.")):
     """Return the bounds of the STAC item."""
-    resp.headers["Cache-Control"] = "max-age=3600"
     with STACReader(url) as stac:
         return {"bounds": stac.bounds}
 
@@ -55,17 +51,15 @@ async def stac_bounds(
     responses={200: {"description": "Return basic info for STAC item's assets"}},
 )
 async def stac_info(
-    resp: Response,
     url: str = Query(..., description="STAC item URL."),
     assets: str = Query(None, description="comma (,) separated list of asset names."),
 ):
     """Return basic info on STAC item's COG."""
-    resp.headers["Cache-Control"] = "max-age=3600"
     with STACReader(url) as stac:
         if not assets:
             return stac.assets
 
-        info = stac.info(assets.split(","))
+        info = stac.info(assets=assets.split(","))
 
     return info
 
@@ -79,7 +73,6 @@ async def stac_info(
 )
 async def stac_metadata(
     request: Request,
-    resp: Response,
     url: str = Query(..., description="STAC item URL."),
     assets: str = Query(..., description="comma (,) separated list of asset names."),
     metadata_params: CommonMetadataParams = Depends(),
@@ -87,9 +80,9 @@ async def stac_metadata(
     """Return the metadata of the COG."""
     with STACReader(url) as stac:
         info = stac.metadata(
-            assets.split(","),
             metadata_params.pmin,
             metadata_params.pmax,
+            assets=assets.split(","),
             nodata=metadata_params.nodata,
             indexes=metadata_params.indexes,
             max_size=metadata_params.max_size,
@@ -97,8 +90,6 @@ async def stac_metadata(
             bounds=metadata_params.bounds,
             **metadata_params.kwargs,
         )
-
-    resp.headers["Cache-Control"] = "max-age=3600"
     return info
 
 
@@ -115,7 +106,7 @@ params: Dict[str, Any] = {
             "description": "Return an image.",
         }
     },
-    "response_class": ImgResponse,
+    "response_class": Response,
 }
 
 
@@ -209,7 +200,7 @@ async def stac_tile(
             ["{} - {:0.2f}".format(name, time * 1000) for (name, time) in timings]
         )
 
-    return ImgResponse(
+    return Response(
         content, media_type=ImageMimeTypes[format.value].value, headers=headers,
     )
 
@@ -264,7 +255,7 @@ async def stac_preview(
             ["{} - {:0.2f}".format(name, time * 1000) for (name, time) in timings]
         )
 
-    return ImgResponse(
+    return Response(
         content, media_type=ImageMimeTypes[format.value].value, headers=headers,
     )
 
@@ -321,7 +312,7 @@ async def stac_part(
             ["{} - {:0.2f}".format(name, time * 1000) for (name, time) in timings]
         )
 
-    return ImgResponse(
+    return Response(
         content, media_type=ImageMimeTypes[format.value].value, headers=headers,
     )
 
@@ -390,7 +381,6 @@ async def cog_point(
 )
 async def stac_tilejson(
     request: Request,
-    response: Response,
     TileMatrixSetId: TileMatrixSetNames = Query(
         TileMatrixSetNames.WebMercatorQuad,  # type: ignore
         description="TileMatrixSet Name (default: 'WebMercatorQuad')",
@@ -423,7 +413,7 @@ async def stac_tilejson(
     kwargs.pop("maxzoom", None)
 
     if not expression and not assets:
-        raise InvalidBandName("Expression or Assets HAVE to be set in the queryString.")
+        raise MissingAssets("Expression or Assets HAVE to be set in the queryString.")
 
     qs = urlencode(list(kwargs.items()))
     if tile_format:
@@ -445,7 +435,6 @@ async def stac_tilejson(
             "tiles": [tile_url],
         }
 
-    response.headers["Cache-Control"] = "max-age=3600"
     return tjson
 
 

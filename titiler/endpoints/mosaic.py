@@ -1,17 +1,15 @@
 """API for MosaicJSON Dataset."""
 
-import asyncio
 import os
 import re
-from typing import AsyncGenerator, Coroutine, Dict, List, Optional, Tuple
+from typing import Dict, Optional
 from urllib.parse import urlencode
 
 import morecantile
-import numpy
 from cogeo_mosaic.backends import MosaicBackend
 from cogeo_mosaic.mosaic import MosaicJSON
 from cogeo_mosaic.utils import get_footprints
-from rio_tiler_crs import COGReader
+from rio_tiler.constants import MAX_THREADS
 from rio_tiler_crs.cogeo import geotiff_options
 
 from titiler import utils
@@ -27,39 +25,16 @@ from titiler.ressources.enums import (
     MimeTypes,
     PixelSelectionMethod,
 )
-from titiler.ressources.responses import ImgResponse, XMLResponse
+from titiler.ressources.responses import XMLResponse
 
 from fastapi import APIRouter, Depends, Path, Query
 
-from starlette.concurrency import run_in_threadpool
 from starlette.requests import Request
+from starlette.responses import Response
 from starlette.templating import Jinja2Templates
 
 router = APIRouter()
 templates = Jinja2Templates(directory="titiler/templates")
-
-
-def _read_tile(url: str, *args, **kwargs) -> Tuple[numpy.ndarray, numpy.ndarray]:
-    """Read tile from an asset"""
-    with COGReader(url) as cog:
-        tile, mask = cog.tile(*args, **kwargs)
-    return tile, mask
-
-
-def _read_point(asset: str, *args, **kwargs) -> List:
-    """Read pixel value at a point from an asset"""
-    with COGReader(asset) as cog:
-        return cog.point(*args, **kwargs)
-
-
-async def _process_futures(
-    futures: List[Coroutine], concurrency: int
-) -> AsyncGenerator:
-    """Create an async generator which executes coroutines at specified concurrency and yields response as completed"""
-    semaphore = asyncio.Semaphore(concurrency)
-    async with semaphore:
-        for fut in asyncio.as_completed(futures):
-            yield fut
 
 
 @router.post("", response_model=MosaicJSON, response_model_exclude_none=True)
@@ -161,8 +136,10 @@ def mosaic_tilejson(
     if tile_format:
         kwargs["format"] = tile_format
     tile_url = request.url_for("mosaic_tile", **kwargs).replace("\\", "")
+
     with MosaicBackend(mosaic_path) as mosaic:
         tjson = TileJSON(**mosaic.metadata, tiles=[tile_url])
+
     return tjson
 
 
@@ -188,34 +165,13 @@ async def mosaic_point(
 
     timings = []
     headers: Dict[str, str] = {}
+    threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
 
     with utils.Timer() as t:
         with MosaicBackend(mosaic_path) as mosaic:
-            assets = mosaic.point(lon, lat)
+            values = mosaic.point(lon, lat, indexes=indexes, threads=threads)
 
-    timings.append(("Read-mosaic", t.elapsed))
-
-    # Rio-tiler provides a helper function (``rio_tiler.reader.multi_point``) for reading a point from multiple assets
-    # using an external threadpool.  For similar reasons as described below, we will transcribe the rio-tiler code to
-    # use the default executor provided by the event loop.
-    futures = [
-        run_in_threadpool(
-            _read_point, asset, lon, lat, indexes=indexes, expression=expression
-        )
-        for asset in assets
-    ]
-
-    values = []
-    with utils.Timer() as t:
-        async for fut in _process_futures(
-            futures, concurrency=int(os.getenv("MOSAIC_CONCURRENCY", 10))
-        ):
-            try:
-                values.append(await fut)
-            except Exception:
-                continue
-
-    timings.append(("Read-tiles", t.elapsed))
+    timings.append(("Read-values", t.elapsed))
 
     if timings:
         headers["X-Server-Timings"] = "; ".join(
@@ -249,58 +205,29 @@ async def mosaic_tile(
     mosaic_path: str = Depends(MosaicPath),
 ):
     """Read MosaicJSON tile"""
-    pixsel = pixel_selection.method()
     timings = []
     headers: Dict[str, str] = {}
 
+    tilesize = 256 * scale
+    threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
+
     with utils.Timer() as t:
         with MosaicBackend(mosaic_path) as mosaic:
-            assets = mosaic.tile(x=x, y=y, z=z)
-            if not assets:
-                raise TileNotFoundError(f"No assets found for tile {z}/{x}/{y}")
-    timings.append(("Read-mosaic", t.elapsed))
+            (tile, mask), assets_used = mosaic.tile(
+                x,
+                y,
+                z,
+                pixel_selection=pixel_selection.method(),
+                threads=threads,
+                tilesize=tilesize,
+                indexes=image_params.indexes,
+                expression=image_params.expression,
+                nodata=image_params.nodata,
+                **image_params.kwargs,
+            )
 
-    tilesize = 256 * scale
+    timings.append(("Read-tile", t.elapsed))
 
-    # Rio-tiler-mosaic uses an external ThreadPoolExecutor to process multiple assets at once but we want to use the
-    # executor provided by the event loop.  Instead of calling ``rio_tiler_mosaic.mosaic.mosaic_tiler`` directly we will
-    # transcribe the code here and use the executor provided by the event loop.  This also means we define this function
-    # as a coroutine (even though nothing that is called is a coroutine), since the event loop's executor isn't
-    # available in normal ``def`` functions.
-    futures = [
-        run_in_threadpool(
-            _read_tile,
-            asset,
-            x,
-            y,
-            z,
-            tilesize=tilesize,
-            indexes=image_params.indexes,
-            expression=image_params.expression,
-            nodata=image_params.nodata,
-            **image_params.kwargs,
-        )
-        for asset in assets
-    ]
-
-    with utils.Timer() as t:
-        async for fut in _process_futures(
-            futures, concurrency=int(os.getenv("MOSAIC_CONCURRENCY", 10))
-        ):
-            try:
-                tile, mask = await fut
-            except Exception:
-                # Gracefully handle exceptions
-                continue
-
-            tile = numpy.ma.array(tile)
-            tile.mask = mask == 0
-            pixsel.feed(tile)
-            if pixsel.is_done:
-                break
-    timings.append(("Read-tiles", t.elapsed))
-
-    tile, mask = pixsel.data
     if tile is None:
         raise TileNotFoundError(f"Tile {z}/{x}/{y} was not found")
 
@@ -331,7 +258,10 @@ async def mosaic_tile(
             ["{} - {:0.2f}".format(name, time * 1000) for (name, time) in timings]
         )
 
-    return ImgResponse(
+    if assets_used:
+        headers["X-Assets"] = ",".join(assets_used)
+
+    return Response(
         content, media_type=ImageMimeTypes[format.value].value, headers=headers
     )
 
