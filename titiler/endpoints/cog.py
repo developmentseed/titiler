@@ -6,6 +6,7 @@ from typing import Any, Dict, Optional
 from urllib.parse import urlencode
 
 from rasterio.transform import from_bounds
+from rio_cogeo.cogeo import cog_info as rio_cogeo_info
 from rio_tiler_crs import COGReader
 
 from titiler import utils
@@ -18,7 +19,7 @@ from titiler.dependencies import (
     morecantile,
     request_hash,
 )
-from titiler.models.cog import cogBounds, cogInfo, cogMetadata
+from titiler.models.cog import RioCogeoInfo, cogBounds, cogInfo, cogMetadata
 from titiler.models.mapbox import TileJSON
 from titiler.ressources.enums import ImageMimeTypes, ImageType, MimeTypes
 from titiler.ressources.responses import XMLResponse
@@ -32,6 +33,15 @@ from starlette.templating import Jinja2Templates
 
 router = APIRouter()
 templates = Jinja2Templates(directory="titiler/templates")
+
+
+@router.get("/validate", response_model=RioCogeoInfo)
+def cog_validate(
+    url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
+    strict: bool = Query(False, description="Treat warnings as errors"),
+):
+    """Validate a COG"""
+    return rio_cogeo_info(url, strict=strict)
 
 
 @router.get(

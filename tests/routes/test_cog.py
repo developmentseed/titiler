@@ -1,12 +1,12 @@
 """test /COG endpoints."""
-
-
+import os
 from io import BytesIO
 from unittest.mock import patch
 
 import numpy
+import pytest
 
-from ..conftest import mock_reader, parse_img
+from ..conftest import DATA_DIR, mock_reader, parse_img
 
 
 @patch("titiler.endpoints.cog.COGReader")
@@ -331,3 +331,14 @@ def test_tile_outside_bounds_error(reader, app):
     assert response.status_code == 404
     # NOT THIS MIGHT CHANGE
     assert response.headers["Cache-Control"] == "public, max-age=3600"
+
+
+@pytest.mark.parametrize(
+    "url",
+    [os.path.join(DATA_DIR, f) for f in os.listdir(DATA_DIR) if f.endswith(".tif")],
+)
+def test_validate_cog(app, url):
+    """test /validate endpoint"""
+    response = app.get(f"/cog/validate?url={os.path.join(DATA_DIR, 'cog.tif')}")
+    assert response.status_code == 200
+    assert response.json()["COG"]

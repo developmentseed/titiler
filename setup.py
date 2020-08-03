@@ -11,7 +11,8 @@ inst_reqs = [
     "jinja2",
     "python-binary-memcached",
     "rio-color",
-    "rio-tiler>=2.0b.5",
+    "rio-tiler>=2.0b5",
+    "rio-cogeo~=2.0a5",
     "rio-tiler-crs==3.0b3",
 ]
 extra_reqs = {
