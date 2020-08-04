@@ -136,14 +136,6 @@ def test_tilejson(stac_reader, rio, app):
     )
 
 
-def test_viewer(app):
-    """Test STAC Viewer."""
-    response = app.get("/stac/viewer")
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "text/html; charset=utf-8"
-    assert response.headers["content-encoding"] == "gzip"
-
-
 @patch("rio_tiler.io.cogeo.rasterio")
 @patch("titiler.endpoints.stac.STACReader")
 def test_preview(stac_reader, rio, app):

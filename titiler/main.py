@@ -3,16 +3,14 @@ import importlib
 
 from titiler import settings, version
 from titiler.db.memcache import CacheLayer
-from titiler.endpoints import cog, stac, tms
+from titiler.endpoints import cog, demo, stac, tms
 from titiler.errors import DEFAULT_STATUS_CODES, add_exception_handlers
-from titiler.templates.factory import web_template
 
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI
 
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.gzip import GZipMiddleware
 from starlette.requests import Request
-from starlette.responses import HTMLResponse
 
 if settings.MEMCACHE_HOST and not settings.DISABLE_CACHE:
     cache = CacheLayer.create_from_env()
@@ -41,6 +39,8 @@ _include_extra_router(
     app, module="titiler.endpoints.mosaic", prefix="/mosaicjson", tags=["MosaicJSON"],
 )
 app.include_router(tms.router)
+app.include_router(demo.router)
+
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
 
 
@@ -80,19 +80,6 @@ async def cache_middleware(request: Request, call_next):
     if cache:
         request.state.cache.client.disconnect_all()
     return response
-
-
-@app.get("/", response_class=HTMLResponse, tags=["Webpage"], deprecated=True)
-@app.get("/index.html", response_class=HTMLResponse, tags=["Webpage"], deprecated=True)
-def index(request: Request, template=Depends(web_template)):
-    """Demo Page."""
-    return template(request, "cog_index.html", "cog_tilejson", "cog_metadata")
-
-
-@app.get("/simple.html", response_class=HTMLResponse, tags=["Webpage"], deprecated=True)
-def simple(request: Request, template=Depends(web_template)):
-    """Demo Page."""
-    return template(request, "cog_simple.html", "cog_tilejson", "cog_info")
 
 
 @app.get("/ping", description="Health Check", tags=["Health Check"])

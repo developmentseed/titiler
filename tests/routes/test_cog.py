@@ -209,14 +209,6 @@ def test_tilejson(reader, app):
     )
 
 
-def test_viewer(app):
-    """Test COG Viewer."""
-    response = app.get("/cog/viewer")
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "text/html; charset=utf-8"
-    assert response.headers["content-encoding"] == "gzip"
-
-
 @patch("titiler.endpoints.cog.COGReader")
 def test_preview(reader, app):
     """test /preview endpoint."""

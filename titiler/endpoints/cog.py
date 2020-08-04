@@ -24,12 +24,11 @@ from titiler.models.mapbox import TileJSON
 from titiler.ressources.common import img_endpoint_params
 from titiler.ressources.enums import ImageMimeTypes, ImageType, MimeTypes
 from titiler.ressources.responses import XMLResponse
-from titiler.templates.factory import web_template
 
 from fastapi import APIRouter, Depends, Path, Query
 
 from starlette.requests import Request
-from starlette.responses import HTMLResponse, Response
+from starlette.responses import Response
 from starlette.templating import Jinja2Templates
 
 router = APIRouter()
@@ -464,9 +463,3 @@ def wmts(
         },
         media_type=MimeTypes.xml.value,
     )
-
-
-@router.get("/viewer", response_class=HTMLResponse, tags=["Webpage"])
-def cog_viewer(request: Request, template=Depends(web_template)):
-    """Cloud Optimized GeoTIFF Viewer."""
-    return template(request, "cog_index.html", "cog_tilejson", "cog_metadata")
