@@ -2,7 +2,7 @@
 
 import os
 import re
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 from urllib.parse import urlencode
 
 from rasterio.transform import from_bounds
@@ -21,6 +21,7 @@ from titiler.dependencies import (
 )
 from titiler.models.cog import RioCogeoInfo, cogBounds, cogInfo, cogMetadata
 from titiler.models.mapbox import TileJSON
+from titiler.ressources.common import img_endpoint_params
 from titiler.ressources.enums import ImageMimeTypes, ImageType, MimeTypes
 from titiler.ressources.responses import XMLResponse
 from titiler.templates.factory import web_template
@@ -96,32 +97,15 @@ async def cog_metadata(
     return info
 
 
-tile_response_codes: Dict[str, Any] = {
-    "responses": {
-        200: {
-            "content": {
-                "image/png": {},
-                "image/jpg": {},
-                "image/webp": {},
-                "image/tiff": {},
-                "application/x-binary": {},
-            },
-            "description": "Return an image.",
-        }
-    },
-    "response_class": Response,
-}
-
-
-@router.get(r"/tiles/{z}/{x}/{y}", **tile_response_codes)
-@router.get(r"/tiles/{z}/{x}/{y}.{format}", **tile_response_codes)
-@router.get(r"/tiles/{z}/{x}/{y}@{scale}x", **tile_response_codes)
-@router.get(r"/tiles/{z}/{x}/{y}@{scale}x.{format}", **tile_response_codes)
-@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}", **tile_response_codes)
-@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}.{format}", **tile_response_codes)
-@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x", **tile_response_codes)
+@router.get(r"/tiles/{z}/{x}/{y}", **img_endpoint_params)
+@router.get(r"/tiles/{z}/{x}/{y}.{format}", **img_endpoint_params)
+@router.get(r"/tiles/{z}/{x}/{y}@{scale}x", **img_endpoint_params)
+@router.get(r"/tiles/{z}/{x}/{y}@{scale}x.{format}", **img_endpoint_params)
+@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}", **img_endpoint_params)
+@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}.{format}", **img_endpoint_params)
+@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x", **img_endpoint_params)
 @router.get(
-    r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x.{format}", **tile_response_codes
+    r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x.{format}", **img_endpoint_params
 )
 async def cog_tile(
     z: int = Path(..., ge=0, le=30, description="Mercator tiles's zoom level"),
@@ -210,8 +194,8 @@ async def cog_tile(
     )
 
 
-@router.get(r"/preview", **tile_response_codes)
-@router.get(r"/preview.{format}", **tile_response_codes)
+@router.get(r"/preview", **img_endpoint_params)
+@router.get(r"/preview.{format}", **img_endpoint_params)
 async def cog_preview(
     format: ImageType = Query(None, description="Output image type. Default is auto."),
     url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
@@ -261,8 +245,8 @@ async def cog_preview(
     )
 
 
-# @router.get(r"/crop/{minx},{miny},{maxx},{maxy}", **tile_response_codes)
-@router.get(r"/crop/{minx},{miny},{maxx},{maxy}.{format}", **tile_response_codes)
+# @router.get(r"/crop/{minx},{miny},{maxx},{maxy}", **img_endpoint_params)
+@router.get(r"/crop/{minx},{miny},{maxx},{maxy}.{format}", **img_endpoint_params)
 async def cog_part(
     minx: float = Path(..., description="Bounding box min X"),
     miny: float = Path(..., description="Bounding box min Y"),

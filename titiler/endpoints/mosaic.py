@@ -14,11 +14,11 @@ from rio_tiler_crs.cogeo import geotiff_options
 
 from titiler import utils
 from titiler.dependencies import CommonTileParams, MosaicPath
-from titiler.endpoints.cog import tile_response_codes
 from titiler.errors import BadRequestError, TileNotFoundError
 from titiler.models.cog import cogBounds
 from titiler.models.mapbox import TileJSON
 from titiler.models.mosaic import CreateMosaicJSON, UpdateMosaicJSON, mosaicInfo
+from titiler.ressources.common import img_endpoint_params
 from titiler.ressources.enums import (
     ImageMimeTypes,
     ImageType,
@@ -181,14 +181,14 @@ async def mosaic_point(
     return {"coordinates": [lon, lat], "values": values}
 
 
-@router.get(r"/tiles/{z}/{x}/{y}", **tile_response_codes)
-@router.get(r"/tiles/{z}/{x}/{y}.{format}", **tile_response_codes)
-@router.get(r"/tiles/{z}/{x}/{y}@{scale}x", **tile_response_codes)
-@router.get(r"/tiles/{z}/{x}/{y}@{scale}x.{format}", **tile_response_codes)
-@router.get(r"/tiles/WebMercatorQuad/{z}/{x}/{y}.{format}", **tile_response_codes)
-@router.get(r"/tiles/WebMercatorQuad/{z}/{x}/{y}@{scale}x", **tile_response_codes)
+@router.get(r"/tiles/{z}/{x}/{y}", **img_endpoint_params)
+@router.get(r"/tiles/{z}/{x}/{y}.{format}", **img_endpoint_params)
+@router.get(r"/tiles/{z}/{x}/{y}@{scale}x", **img_endpoint_params)
+@router.get(r"/tiles/{z}/{x}/{y}@{scale}x.{format}", **img_endpoint_params)
+@router.get(r"/tiles/WebMercatorQuad/{z}/{x}/{y}.{format}", **img_endpoint_params)
+@router.get(r"/tiles/WebMercatorQuad/{z}/{x}/{y}@{scale}x", **img_endpoint_params)
 @router.get(
-    r"/tiles/WebMercatorQuad/{z}/{x}/{y}@{scale}x.{format}", **tile_response_codes
+    r"/tiles/WebMercatorQuad/{z}/{x}/{y}@{scale}x.{format}", **img_endpoint_params
 )
 async def mosaic_tile(
     z: int = Path(..., ge=0, le=30, description="Mercator tiles's zoom level"),

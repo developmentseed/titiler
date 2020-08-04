@@ -2,7 +2,7 @@
 
 import os
 import re
-from typing import Any, Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union
 from urllib.parse import urlencode
 
 from rasterio.transform import from_bounds
@@ -21,6 +21,7 @@ from titiler.dependencies import (
 )
 from titiler.models.cog import cogBounds, cogInfo, cogMetadata
 from titiler.models.mapbox import TileJSON
+from titiler.ressources.common import img_endpoint_params
 from titiler.ressources.enums import ImageMimeTypes, ImageType
 from titiler.templates.factory import web_template
 
@@ -93,31 +94,16 @@ async def stac_metadata(
     return info
 
 
-params: Dict[str, Any] = {
-    "responses": {
-        200: {
-            "content": {
-                "image/png": {},
-                "image/jpg": {},
-                "image/webp": {},
-                "image/tiff": {},
-                "application/x-binary": {},
-            },
-            "description": "Return an image.",
-        }
-    },
-    "response_class": Response,
-}
-
-
-@router.get(r"/tiles/{z}/{x}/{y}", **params)
-@router.get(r"/tiles/{z}/{x}/{y}.{format}", **params)
-@router.get(r"/tiles/{z}/{x}/{y}@{scale}x", **params)
-@router.get(r"/tiles/{z}/{x}/{y}@{scale}x.{format}", **params)
-@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}", **params)
-@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}.{format}", **params)
-@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x", **params)
-@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x.{format}", **params)
+@router.get(r"/tiles/{z}/{x}/{y}", **img_endpoint_params)
+@router.get(r"/tiles/{z}/{x}/{y}.{format}", **img_endpoint_params)
+@router.get(r"/tiles/{z}/{x}/{y}@{scale}x", **img_endpoint_params)
+@router.get(r"/tiles/{z}/{x}/{y}@{scale}x.{format}", **img_endpoint_params)
+@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}", **img_endpoint_params)
+@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}.{format}", **img_endpoint_params)
+@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x", **img_endpoint_params)
+@router.get(
+    r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x.{format}", **img_endpoint_params
+)
 async def stac_tile(
     z: int = Path(..., ge=0, le=30, description="Mercator tiles's zoom level"),
     x: int = Path(..., description="Mercator tiles's column"),
@@ -205,8 +191,8 @@ async def stac_tile(
     )
 
 
-@router.get(r"/preview", **params)
-@router.get(r"/preview.{format}", **params)
+@router.get(r"/preview", **img_endpoint_params)
+@router.get(r"/preview.{format}", **img_endpoint_params)
 async def stac_preview(
     format: ImageType = Query(None, description="Output image type. Default is auto."),
     url: str = Query(..., description="STAC Item URL."),
@@ -248,7 +234,6 @@ async def stac_preview(
             data, mask, img_format=format, colormap=image_params.color_map,
         )
     timings.append(("Format", t.elapsed))
-    timings.append(("Format", t.elapsed))
 
     if timings:
         headers["X-Server-Timings"] = "; ".join(
@@ -260,8 +245,8 @@ async def stac_preview(
     )
 
 
-# @router.get(r"/crop/{minx},{miny},{maxx},{maxy}", **params)
-@router.get(r"/crop/{minx},{miny},{maxx},{maxy}.{format}", **params)
+# @router.get(r"/crop/{minx},{miny},{maxx},{maxy}", **img_endpoint_params)
+@router.get(r"/crop/{minx},{miny},{maxx},{maxy}.{format}", **img_endpoint_params)
 async def stac_part(
     minx: float = Path(..., description="Bounding box min X"),
     miny: float = Path(..., description="Bounding box min Y"),
@@ -304,7 +289,6 @@ async def stac_part(
         content = utils.reformat(
             data, mask, img_format=format, colormap=image_params.color_map
         )
-    timings.append(("Format", t.elapsed))
     timings.append(("Format", t.elapsed))
 
     if timings:
