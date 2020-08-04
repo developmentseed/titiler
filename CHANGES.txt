@@ -11,6 +11,8 @@
 - Add Cache-Control middleware. Endpoints do not define any cache-control headers. (part of #43, co-author with @geospatial-jeff)
 - Add 'X-Assets' in response headers for mosaic tiles (#51)
 - add cog validation endpoint (co-author with @geospatial-jeff, #37)
+- move demos (/stac/viewer, /cog/viewer) to `demo.py` (#49)
+
 
 2.1.2 (2020-06-24)
 ------------------
