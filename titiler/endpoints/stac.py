@@ -23,12 +23,11 @@ from titiler.models.cog import cogBounds, cogInfo, cogMetadata
 from titiler.models.mapbox import TileJSON
 from titiler.ressources.common import img_endpoint_params
 from titiler.ressources.enums import ImageMimeTypes, ImageType
-from titiler.templates.factory import web_template
 
 from fastapi import APIRouter, Depends, Path, Query
 
 from starlette.requests import Request
-from starlette.responses import HTMLResponse, Response
+from starlette.responses import Response
 
 router = APIRouter()
 
@@ -420,9 +419,3 @@ async def stac_tilejson(
         }
 
     return tjson
-
-
-@router.get("/viewer", response_class=HTMLResponse, tags=["Webpage"])
-def stac_viewer(request: Request, template=Depends(web_template)):
-    """SpatioTemporal Asset Catalog Viewer."""
-    return template(request, "stac_index.html", "stac_tilejson", "stac_info")
