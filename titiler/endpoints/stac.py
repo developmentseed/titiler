@@ -10,6 +10,7 @@ from rio_tiler.errors import MissingAssets
 from rio_tiler_crs import STACReader
 
 from titiler import utils
+from titiler.clients.base import StacTiler
 from titiler.db.memcache import CacheLayer
 from titiler.dependencies import (
     CommonImageParams,
@@ -37,10 +38,12 @@ router = APIRouter()
     response_model=cogBounds,
     responses={200: {"description": "Return the bounds of the STAC item."}},
 )
-async def stac_bounds(url: str = Query(..., description="STAC item URL.")):
+async def stac_bounds(
+    url: str = Query(..., description="STAC item URL."),
+    tiler: StacTiler = Depends(StacTiler.create_from_request),
+):
     """Return the bounds of the STAC item."""
-    with STACReader(url) as stac:
-        return {"bounds": stac.bounds}
+    return tiler.get_bounds()
 
 
 @router.get(

@@ -10,6 +10,7 @@ from rio_cogeo.cogeo import cog_info as rio_cogeo_info
 from rio_tiler_crs import COGReader
 
 from titiler import utils
+from titiler.clients.base import Tiler
 from titiler.db.memcache import CacheLayer
 from titiler.dependencies import (
     CommonImageParams,
@@ -49,10 +50,12 @@ def cog_validate(
     response_model=cogBounds,
     responses={200: {"description": "Return the bounds of the COG."}},
 )
-async def cog_bounds(url: str = Query(..., description="Cloud Optimized GeoTIFF URL.")):
+async def cog_bounds(
+    url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
+    tiler: Tiler = Depends(Tiler.create_from_request),
+):
     """Return the bounds of the COG."""
-    with COGReader(url) as cog:
-        return {"bounds": cog.bounds}
+    return tiler.get_bounds()
 
 
 @router.get(

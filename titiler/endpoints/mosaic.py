@@ -13,6 +13,7 @@ from rio_tiler.constants import MAX_THREADS
 from rio_tiler_crs.cogeo import geotiff_options
 
 from titiler import utils
+from titiler.clients.base import MosaicTiler
 from titiler.dependencies import CommonTileParams, MosaicPath
 from titiler.errors import BadRequestError, TileNotFoundError
 from titiler.models.cog import cogBounds
@@ -89,10 +90,12 @@ def update_mosaicjson(body: UpdateMosaicJSON):
     response_model=cogBounds,
     responses={200: {"description": "Return the bounds of the MosaicJSON"}},
 )
-def mosaicjson_bounds(mosaic_path: str = Depends(MosaicPath)):
+def mosaicjson_bounds(
+    mosaic_path: str = Depends(MosaicPath),
+    tiler: MosaicTiler = Depends(MosaicTiler.create_from_request),
+):
     """Read MosaicJSON bounds"""
-    with MosaicBackend(mosaic_path) as mosaic:
-        return {"bounds": mosaic.mosaic_def.bounds}
+    return tiler.get_bounds()
 
 
 @router.get("/info", response_model=mosaicInfo)
