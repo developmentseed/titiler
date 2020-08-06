@@ -27,9 +27,7 @@ class Tiler(COGReader, BaseTiler):
     """
 
     @classmethod
-    def create_from_request(
-        cls, request: Request
-    ) -> Generator["StacTiler", Request, None]:
+    def create_from_request(cls, request: Request) -> Generator["Tiler", Request, None]:
         """
         Create an instance of the class from a starlette request, used for dependency injection
         """
