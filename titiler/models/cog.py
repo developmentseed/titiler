@@ -18,10 +18,9 @@ class cogBounds(BaseModel):
     bounds: BBox
 
 
-class cogInfo(BaseModel):
+class cogInfo(cogBounds):
     """COG Info."""
 
-    bounds: Tuple[float, float, float, float]
     band_metadata: List[Tuple[int, Dict[int, Any]]]
     band_descriptions: List[Tuple[int, str]]
     dtype: str
@@ -68,7 +67,7 @@ class CogeoInfoGeo(BaseModel):
     """rio-cogeo validation GEO information."""
 
     CRS: str
-    BoundingBox: Tuple[float, float, float, float]
+    BoundingBox: BBox
     Origin: Tuple[float, float]
     Resolution: Tuple[float, float]
 

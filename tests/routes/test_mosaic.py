@@ -126,8 +126,8 @@ def test_tilejson(app):
     TileJSON(**body)
 
     assert (
-        body["tiles"][0]
-        == "http://testserver/mosaicjson/tiles/WebMercatorQuad/{z}/{x}/{y}@1x"
+        "http://testserver/mosaicjson/tiles/WebMercatorQuad/{z}/{x}/{y}@1x?url="
+        in body["tiles"][0]
     )
     assert body["minzoom"] == mosaicjson["minzoom"]
     assert body["maxzoom"] == mosaicjson["maxzoom"]
