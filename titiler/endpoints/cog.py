@@ -173,7 +173,7 @@ async def cog_tile(
             content = utils.reformat(
                 tile,
                 mask,
-                img_format=format,
+                format,
                 colormap=colormap,
                 transform=dst_transform,
                 crs=tms.crs,
@@ -231,7 +231,7 @@ async def cog_preview(
     timings.append(("Post-process", t.elapsed))
 
     with utils.Timer() as t:
-        content = utils.reformat(data, mask, img_format=format, colormap=colormap)
+        content = utils.reformat(data, mask, format, colormap=colormap)
     timings.append(("Format", t.elapsed))
 
     if timings:
@@ -287,7 +287,7 @@ async def cog_part(
     timings.append(("Post-process", t.elapsed))
 
     with utils.Timer() as t:
-        content = utils.reformat(data, mask, img_format=format, colormap=colormap)
+        content = utils.reformat(data, mask, format, colormap=colormap)
     timings.append(("Format", t.elapsed))
 
     if timings:
@@ -365,21 +365,26 @@ async def cog_tilejson(
     maxzoom: Optional[int] = Query(None, description="Overwrite default maxzoom."),
 ):
     """Return TileJSON document for a COG."""
-    scheme = request.url.scheme
-    host = request.headers["host"]
-
-    kwargs = dict(request.query_params)
-    kwargs.pop("tile_format", None)
-    kwargs.pop("tile_scale", None)
-    kwargs.pop("TileMatrixSetId", None)
-    kwargs.pop("minzoom", None)
-    kwargs.pop("maxzoom", None)
-
-    qs = urlencode(list(kwargs.items()))
+    kwargs = {
+        "z": "{z}",
+        "x": "{x}",
+        "y": "{y}",
+        "scale": tile_scale,
+        "TileMatrixSetId": TileMatrixSetId.name,
+    }
     if tile_format:
-        tile_url = f"{scheme}://{host}/cog/tiles/{TileMatrixSetId.name}/{{z}}/{{x}}/{{y}}@{tile_scale}x.{tile_format}?{qs}"
-    else:
-        tile_url = f"{scheme}://{host}/cog/tiles/{TileMatrixSetId.name}/{{z}}/{{x}}/{{y}}@{tile_scale}x?{qs}"
+        kwargs["format"] = tile_format.value
+
+    q = dict(request.query_params)
+    q.pop("TileMatrixSetId", None)
+    q.pop("tile_format", None)
+    q.pop("tile_scale", None)
+    q.pop("minzoom", None)
+    q.pop("maxzoom", None)
+    qs = urlencode(list(q.items()))
+
+    tiles_url = request.url_for("cog_tile", **kwargs).replace("\\", "")
+    tiles_url += f"?{qs}"
 
     tms = morecantile.tms.get(TileMatrixSetId.name)
     with COGReader(url, tms=tms) as cog:
@@ -392,7 +397,7 @@ async def cog_tilejson(
             "minzoom": minzoom or cog.minzoom,
             "maxzoom": maxzoom or cog.maxzoom,
             "name": os.path.basename(url),
-            "tiles": [tile_url],
+            "tiles": [tiles_url],
         }
 
     return tjson
@@ -402,7 +407,7 @@ async def cog_tilejson(
 @router.get(
     "/{TileMatrixSetId}/WMTSCapabilities.xml", response_class=XMLResponse, tags=["OGC"],
 )
-def wmts(
+def cog_wmts(
     request: Request,
     TileMatrixSetId: TileMatrixSetNames = Query(
         TileMatrixSetNames.WebMercatorQuad,  # type: ignore
@@ -415,20 +420,35 @@ def wmts(
     tile_scale: int = Query(
         1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
     ),
+    minzoom: Optional[int] = Query(None, description="Overwrite default minzoom."),
+    maxzoom: Optional[int] = Query(None, description="Overwrite default maxzoom."),
 ):
     """OGC WMTS endpoint."""
-    scheme = request.url.scheme
-    host = request.headers["host"]
-    endpoint = f"{scheme}://{host}/cog"
-
-    kwargs = dict(request.query_params)
-    kwargs.pop("tile_format", None)
-    kwargs.pop("tile_scale", None)
-    qs = urlencode(list(kwargs.items()))
+    kwargs = {
+        "z": "{TileMatrix}",
+        "x": "{TileCol}",
+        "y": "{TileRow}",
+        "scale": tile_scale,
+        "format": tile_format.value,
+        "TileMatrixSetId": TileMatrixSetId.name,
+    }
+    tiles_endpoint = request.url_for("cog_tile", **kwargs)
+    q = dict(request.query_params)
+    q.pop("TileMatrixSetId", None)
+    q.pop("tile_format", None)
+    q.pop("tile_scale", None)
+    q.pop("minzoom", None)
+    q.pop("maxzoom", None)
+    q.pop("SERVICE", None)
+    q.pop("REQUEST", None)
+    qs = urlencode(list(q.items()))
+    tiles_endpoint += f"?{qs}"
 
     tms = morecantile.tms.get(TileMatrixSetId.name)
     with COGReader(url, tms=tms) as cog:
-        minzoom, maxzoom, bounds = cog.minzoom, cog.maxzoom, cog.bounds
+        bounds = cog.bounds
+        minzoom = minzoom or cog.minzoom
+        maxzoom = maxzoom or cog.maxzoom
 
     media_type = ImageMimeTypes[tile_format.value].value
 
@@ -447,18 +467,16 @@ def wmts(
                 </TileMatrix>"""
         tileMatrix.append(tm)
 
-    tile_ext = f"@{tile_scale}x.{tile_format.value}"
     return templates.TemplateResponse(
         "wmts.xml",
         {
             "request": request,
-            "endpoint": endpoint,
+            "tiles_endpoint": tiles_endpoint,
             "bounds": bounds,
             "tileMatrix": tileMatrix,
             "tms": tms,
             "title": "Cloud Optimized GeoTIFF",
-            "query_string": qs,
-            "tile_format": tile_ext,
+            "layer_name": "cogeo",
             "media_type": media_type,
         },
         media_type=MimeTypes.xml.value,

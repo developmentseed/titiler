@@ -115,72 +115,6 @@ def mosaicjson_info(mosaic_path: str = Depends(MosaicPath)):
         return response
 
 
-@router.get(
-    "/tilejson.json",
-    response_model=TileJSON,
-    responses={200: {"description": "Return a tilejson"}},
-    response_model_exclude_none=True,
-)
-def mosaic_tilejson(
-    request: Request,
-    tile_scale: int = Query(
-        1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
-    ),
-    tile_format: Optional[ImageType] = Query(
-        None, description="Output image type. Default is auto."
-    ),
-    mosaic_path: str = Depends(MosaicPath),
-):
-    """Create TileJSON"""
-    kwargs = {"z": "{z}", "x": "{x}", "y": "{y}", "scale": tile_scale}
-    if tile_format:
-        kwargs["format"] = tile_format
-    tile_url = request.url_for("mosaic_tile", **kwargs).replace("\\", "")
-
-    with MosaicBackend(mosaic_path) as mosaic:
-        tjson = TileJSON(**mosaic.metadata, tiles=[tile_url])
-
-    return tjson
-
-
-@router.get(
-    r"/point/{lon},{lat}",
-    responses={200: {"description": "Return a value for a point"}},
-)
-async def mosaic_point(
-    lon: float = Path(..., description="Longitude"),
-    lat: float = Path(..., description="Latitude"),
-    bidx: Optional[str] = Query(
-        None, title="Band indexes", description="comma (',') delimited band indexes",
-    ),
-    expression: Optional[str] = Query(
-        None,
-        title="Band Math expression",
-        description="rio-tiler's band math expression (e.g B1/B2)",
-    ),
-    mosaic_path: str = Depends(MosaicPath),
-):
-    """Get Point value for a MosaicJSON."""
-    indexes = tuple(int(s) for s in re.findall(r"\d+", bidx)) if bidx else None
-
-    timings = []
-    headers: Dict[str, str] = {}
-    threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
-
-    with utils.Timer() as t:
-        with MosaicBackend(mosaic_path) as mosaic:
-            values = mosaic.point(lon, lat, indexes=indexes, threads=threads)
-
-    timings.append(("Read-values", t.elapsed))
-
-    if timings:
-        headers["X-Server-Timings"] = "; ".join(
-            ["{} - {:0.2f}".format(name, time * 1000) for (name, time) in timings]
-        )
-
-    return {"coordinates": [lon, lat], "values": values}
-
-
 @router.get(r"/tiles/{z}/{x}/{y}", **img_endpoint_params)
 @router.get(r"/tiles/{z}/{x}/{y}.{format}", **img_endpoint_params)
 @router.get(r"/tiles/{z}/{x}/{y}@{scale}x", **img_endpoint_params)
@@ -249,7 +183,7 @@ async def mosaic_tile(
 
     with utils.Timer() as t:
         content = utils.reformat(
-            tile, mask, img_format=format, colormap=image_params.color_map, **opts
+            tile, mask, format, colormap=image_params.color_map, **opts
         )
     timings.append(("Format", t.elapsed))
 
@@ -266,8 +200,84 @@ async def mosaic_tile(
     )
 
 
+@router.get(
+    r"/point/{lon},{lat}",
+    responses={200: {"description": "Return a value for a point"}},
+)
+async def mosaic_point(
+    lon: float = Path(..., description="Longitude"),
+    lat: float = Path(..., description="Latitude"),
+    bidx: Optional[str] = Query(
+        None, title="Band indexes", description="comma (',') delimited band indexes",
+    ),
+    expression: Optional[str] = Query(
+        None,
+        title="Band Math expression",
+        description="rio-tiler's band math expression (e.g B1/B2)",
+    ),
+    mosaic_path: str = Depends(MosaicPath),
+):
+    """Get Point value for a MosaicJSON."""
+    indexes = tuple(int(s) for s in re.findall(r"\d+", bidx)) if bidx else None
+
+    timings = []
+    headers: Dict[str, str] = {}
+    threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
+
+    with utils.Timer() as t:
+        with MosaicBackend(mosaic_path) as mosaic:
+            values = mosaic.point(lon, lat, indexes=indexes, threads=threads)
+
+    timings.append(("Read-values", t.elapsed))
+
+    if timings:
+        headers["X-Server-Timings"] = "; ".join(
+            ["{} - {:0.2f}".format(name, time * 1000) for (name, time) in timings]
+        )
+
+    return {"coordinates": [lon, lat], "values": values}
+
+
+@router.get(
+    "/tilejson.json",
+    response_model=TileJSON,
+    responses={200: {"description": "Return a tilejson"}},
+    response_model_exclude_none=True,
+)
+def mosaic_tilejson(
+    request: Request,
+    tile_scale: int = Query(
+        1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
+    ),
+    tile_format: Optional[ImageType] = Query(
+        None, description="Output image type. Default is auto."
+    ),
+    minzoom: Optional[int] = Query(None, description="Overwrite default minzoom."),
+    maxzoom: Optional[int] = Query(None, description="Overwrite default maxzoom."),
+    mosaic_path: str = Depends(MosaicPath),
+):
+    """Create TileJSON"""
+    kwargs = {"z": "{z}", "x": "{x}", "y": "{y}", "scale": tile_scale}
+    if tile_format:
+        kwargs["format"] = tile_format
+    tiles_url = request.url_for("mosaic_tile", **kwargs).replace("\\", "")
+
+    q = dict(request.query_params)
+    q.pop("tile_format", None)
+    q.pop("tile_scale", None)
+    q.pop("minzoom", None)
+    q.pop("maxzoom", None)
+    qs = urlencode(list(q.items()))
+    tiles_url += f"?{qs}"
+
+    with MosaicBackend(mosaic_path) as mosaic:
+        tjson = TileJSON(**mosaic.metadata, tiles=[tiles_url])
+
+    return tjson
+
+
 @router.get("/WMTSCapabilities.xml", response_class=XMLResponse, tags=["OGC"])
-def wmts(
+def mosaic_wmts(
     request: Request,
     tile_format: ImageType = Query(
         ImageType.png, description="Output image type. Default is png."
@@ -275,20 +285,34 @@ def wmts(
     tile_scale: int = Query(
         1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
     ),
+    minzoom: Optional[int] = Query(None, description="Overwrite default minzoom."),
+    maxzoom: Optional[int] = Query(None, description="Overwrite default maxzoom."),
     mosaic_path: str = Depends(MosaicPath),
 ):
     """OGC WMTS endpoint."""
-    endpoint = request.url_for("read_mosaicjson")
+    kwargs = {
+        "z": "{TileMatrix}",
+        "x": "{TileCol}",
+        "y": "{TileRow}",
+        "scale": tile_scale,
+        "format": tile_format.value,
+    }
+    tiles_endpoint = request.url_for("mosaic_tile", **kwargs)
 
-    kwargs = dict(request.query_params)
-    kwargs.pop("tile_format", None)
-    kwargs.pop("tile_scale", None)
-    qs = urlencode(list(kwargs.items()))
+    q = dict(request.query_params)
+    q.pop("tile_format", None)
+    q.pop("tile_scale", None)
+    q.pop("minzoom", None)
+    q.pop("maxzoom", None)
+    q.pop("SERVICE", None)
+    q.pop("REQUEST", None)
+    qs = urlencode(list(q.items()))
+    tiles_endpoint += f"?{qs}"
 
     tms = morecantile.tms.get("WebMercatorQuad")
     with MosaicBackend(mosaic_path) as mosaic:
-        minzoom = mosaic.mosaic_def.minzoom
-        maxzoom = mosaic.mosaic_def.maxzoom
+        minzoom = minzoom or mosaic.mosaic_def.minzoom
+        maxzoom = maxzoom or mosaic.mosaic_def.maxzoom
         bounds = mosaic.mosaic_def.bounds
 
     media_type = ImageMimeTypes[tile_format.value].value
@@ -308,18 +332,16 @@ def wmts(
                 </TileMatrix>"""
         tileMatrix.append(tm)
 
-    tile_ext = f"@{tile_scale}x.{tile_format.value}"
     return templates.TemplateResponse(
         "wmts.xml",
         {
             "request": request,
-            "endpoint": endpoint,
+            "tiles_endpoint": tiles_endpoint,
             "bounds": bounds,
             "tileMatrix": tileMatrix,
             "tms": tms,
             "title": "Cloud Optimized GeoTIFF",
-            "query_string": qs,
-            "tile_format": tile_ext,
+            "layer_name": "Mosaic",
             "media_type": media_type,
         },
         media_type=MimeTypes.xml.value,
