@@ -7,7 +7,6 @@ from typing import Any, Dict
 import pytest
 import rasterio
 from rasterio.io import MemoryFile
-from rio_tiler_crs import COGReader, STACReader
 
 from starlette.testclient import TestClient
 
@@ -32,18 +31,20 @@ def app(monkeypatch) -> TestClient:
     return TestClient(app)
 
 
-def mock_reader(src_path: str, *args, **kwargs) -> COGReader:
-    """Mock rasterio.open."""
-    assert src_path.startswith("https://myurl.com/")
-    cog_path = os.path.basename(src_path)
-    return COGReader(os.path.join(DATA_DIR, cog_path), *args, **kwargs)
+def mock_RequestGet(src_path):
+    """Mock Requests."""
+    # HTTP
+    class MockResponse:
+        def __init__(self, data):
+            self.data = data
 
+        def json(self):
+            return json.loads(self.data)
 
-def mock_STACreader(src_path: str, *args, **kwargs) -> COGReader:
-    """Mock rasterio.open."""
     assert src_path.startswith("https://myurl.com/")
     stac_path = os.path.basename(src_path)
-    return STACReader(os.path.join(DATA_DIR, stac_path), *args, **kwargs)
+    with open(os.path.join(DATA_DIR, stac_path), "r") as f:
+        return MockResponse(f.read())
 
 
 def mock_rasterio_open(asset):

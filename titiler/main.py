@@ -1,12 +1,18 @@
 """titiler app."""
 import importlib
 
-from titiler import settings, version
-from titiler.db.memcache import CacheLayer
-from titiler.endpoints import cog, demo, stac, tms
-from titiler.errors import DEFAULT_STATUS_CODES, add_exception_handlers
+from rio_cogeo.cogeo import cog_info as rio_cogeo_info
+from rio_tiler_crs import STACReader
 
-from fastapi import FastAPI
+from . import settings, version
+from .db.memcache import CacheLayer
+from .dependencies import PathParams
+from .endpoints import demo, tms
+from .endpoints.factory import TilerFactory
+from .errors import DEFAULT_STATUS_CODES, add_exception_handlers
+from .models.cog import RioCogeoInfo
+
+from fastapi import Depends, FastAPI, Query
 
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.gzip import GZipMiddleware
@@ -18,26 +24,40 @@ else:
     cache = None
 
 
-def _include_extra_router(app: FastAPI, module: str, **kwargs) -> None:
-    """Helper function to add routers available through pip extras"""
-    try:
-        mod = importlib.import_module(module)
-        app.include_router(mod.router, **kwargs)  # type: ignore
-    except ModuleNotFoundError:
-        pass
-
-
 app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url="/api/v1/openapi.json",
     description="A lightweight Cloud Optimized GeoTIFF tile server",
     version=version,
 )
+
+cog = TilerFactory(router_prefix="cog")
+
+
+@cog.router.get("/validate", response_model=RioCogeoInfo)
+def cog_validate(
+    src_path: PathParams = Depends(),
+    strict: bool = Query(False, description="Treat warnings as errors"),
+):
+    """Validate a COG"""
+    return rio_cogeo_info(src_path.url, strict=strict)
+
+
 app.include_router(cog.router, prefix="/cog", tags=["Cloud Optimized GeoTIFF"])
+
+
+stac = TilerFactory(reader=STACReader, add_asset_deps=True, router_prefix="stac")
 app.include_router(stac.router, prefix="/stac", tags=["SpatioTemporal Asset Catalog"])
-_include_extra_router(
-    app, module="titiler.endpoints.mosaic", prefix="/mosaicjson", tags=["MosaicJSON"],
-)
+
+
+try:
+    fact = importlib.import_module("titiler.endpoints.factory_mosaic")
+    mosaic = fact.MosaicTilerFactory(router_prefix="mosaicjson")  # type: ignore
+    app.include_router(mosaic.router, prefix="/mosaicjson", tags=["MosaicJSON"])
+except ModuleNotFoundError:
+    pass
+
+
 app.include_router(tms.router)
 app.include_router(demo.router)
 

@@ -6,13 +6,13 @@ from unittest.mock import patch
 
 from rasterio.io import MemoryFile
 
-from ..conftest import mock_rasterio_open, mock_STACreader
+from ..conftest import mock_rasterio_open, mock_RequestGet
 
 
-@patch("titiler.endpoints.stac.STACReader")
-def test_bounds(stac_reader, app):
+@patch("rio_tiler.io.stac.requests")
+def test_bounds(requests, app):
     """test /bounds endpoint."""
-    stac_reader.side_effect = mock_STACreader
+    requests.get = mock_RequestGet
 
     response = app.get("/stac/bounds?url=https://myurl.com/item.json")
     assert response.status_code == 200
@@ -21,10 +21,10 @@ def test_bounds(stac_reader, app):
 
 
 @patch("rio_tiler.io.cogeo.rasterio")
-@patch("titiler.endpoints.stac.STACReader")
-def test_info(stac_reader, rio, app):
+@patch("rio_tiler.io.stac.requests")
+def test_info(requests, rio, app):
     """test /info endpoint."""
-    stac_reader.side_effect = mock_STACreader
+    requests.get = mock_RequestGet
     rio.open = mock_rasterio_open
 
     response = app.get("/stac/info?url=https://myurl.com/item.json")
@@ -45,10 +45,10 @@ def test_info(stac_reader, rio, app):
 
 
 @patch("rio_tiler.io.cogeo.rasterio")
-@patch("titiler.endpoints.stac.STACReader")
-def test_metadata(stac_reader, rio, app):
+@patch("rio_tiler.io.stac.requests")
+def test_metadata(requests, rio, app):
     """test /metadata endpoint."""
-    stac_reader.side_effect = mock_STACreader
+    requests.get = mock_RequestGet
     rio.open = mock_rasterio_open
 
     response = app.get("/stac/metadata?url=https://myurl.com/item.json&assets=B01")
@@ -71,14 +71,15 @@ def parse_img(content: bytes) -> Dict:
 
 
 @patch("rio_tiler.io.cogeo.rasterio")
-@patch("titiler.endpoints.stac.STACReader")
-def test_tile(stac_reader, rio, app):
+@patch("rio_tiler.io.stac.requests")
+def test_tile(requests, rio, app):
     """test tile endpoints."""
-    stac_reader.side_effect = mock_STACreader
+    requests.get = mock_RequestGet
     rio.open = mock_rasterio_open
 
+    # Missing assets
     response = app.get("/stac/tiles/9/289/207?url=https://myurl.com/item.json")
-    assert response.status_code == 404
+    assert response.status_code == 400
 
     response = app.get(
         "/stac/tiles/9/289/207?url=https://myurl.com/item.json&assets=B01&rescale=0,1000"
@@ -100,14 +101,15 @@ def test_tile(stac_reader, rio, app):
 
 
 @patch("rio_tiler.io.cogeo.rasterio")
-@patch("titiler.endpoints.stac.STACReader")
-def test_tilejson(stac_reader, rio, app):
+@patch("rio_tiler.io.stac.requests")
+def test_tilejson(requests, rio, app):
     """test /tilejson endpoint."""
-    stac_reader.side_effect = mock_STACreader
+    requests.get = mock_RequestGet
     rio.open = mock_rasterio_open
 
+    # calling tilejson without args work but tiles will fail because of missing expression or assets
     response = app.get("/stac/tilejson.json?url=https://myurl.com/item.json")
-    assert response.status_code == 400
+    assert response.status_code == 200
 
     response = app.get(
         "/stac/tilejson.json?url=https://myurl.com/item.json&assets=B01&minzoom=5&maxzoom=10"
@@ -137,14 +139,15 @@ def test_tilejson(stac_reader, rio, app):
 
 
 @patch("rio_tiler.io.cogeo.rasterio")
-@patch("titiler.endpoints.stac.STACReader")
-def test_preview(stac_reader, rio, app):
+@patch("rio_tiler.io.stac.requests")
+def test_preview(requests, rio, app):
     """test preview endpoints."""
-    stac_reader.side_effect = mock_STACreader
+    requests.get = mock_RequestGet
     rio.open = mock_rasterio_open
 
+    # Missing Assets or Expression
     response = app.get("/stac/preview?url=https://myurl.com/item.json")
-    assert response.status_code == 404
+    assert response.status_code == 400
 
     response = app.get(
         "/stac/preview?url=https://myurl.com/item.json&assets=B01&rescale=0,1000&max_size=64"
@@ -175,16 +178,17 @@ def test_preview(stac_reader, rio, app):
 
 
 @patch("rio_tiler.io.cogeo.rasterio")
-@patch("titiler.endpoints.stac.STACReader")
-def test_part(stac_reader, rio, app):
+@patch("rio_tiler.io.stac.requests")
+def test_part(requests, rio, app):
     """test crop endpoints."""
-    stac_reader.side_effect = mock_STACreader
+    requests.get = mock_RequestGet
     rio.open = mock_rasterio_open
 
+    # Missing Assets or Expression
     response = app.get(
         "/stac/crop/23.878,32.063,23.966,32.145.png?url=https://myurl.com/item.json"
     )
-    assert response.status_code == 404
+    assert response.status_code == 400
 
     response = app.get(
         "/stac/crop/23.878,32.063,23.966,32.145.png?url=https://myurl.com/item.json&assets=B01&rescale=0,1000&max_size=64"
@@ -215,14 +219,16 @@ def test_part(stac_reader, rio, app):
 
 
 @patch("rio_tiler.io.cogeo.rasterio")
-@patch("titiler.endpoints.stac.STACReader")
-def test_point(stac_reader, rio, app):
+@patch("rio_tiler.io.stac.requests")
+def test_point(requests, rio, app):
     """test crop endpoints."""
-    stac_reader.side_effect = mock_STACreader
+    requests.get = mock_RequestGet
     rio.open = mock_rasterio_open
 
+    # Missing Assets or Expression
     response = app.get("/stac/point/23.878,32.063?url=https://myurl.com/item.json")
-    assert response.status_code == 404
+    assert response.status_code == 400
+
     response = app.get(
         "/stac/point/23.878,32.063?url=https://myurl.com/item.json&assets=B01"
     )
@@ -231,13 +237,13 @@ def test_point(stac_reader, rio, app):
     assert body["coordinates"] == [23.878, 32.063]
     assert body["values"] == [[3565]]
 
-    response = app.get(
-        "/stac/point/23.878,32.063?url=https://myurl.com/item.json&assets=B01&asset_expression=b1*2"
-    )
-    assert response.status_code == 200
-    body = response.json()
-    assert body["coordinates"] == [23.878, 32.063]
-    assert body["values"] == [[7130]]
+    # response = app.get(
+    #     "/stac/point/23.878,32.063?url=https://myurl.com/item.json&assets=B01&asset_expression=b1*2"
+    # )
+    # assert response.status_code == 200
+    # body = response.json()
+    # assert body["coordinates"] == [23.878, 32.063]
+    # assert body["values"] == [[7130]]
 
     response = app.get(
         "/stac/point/23.878,32.063?url=https://myurl.com/item.json&expression=B01/B09"
@@ -249,10 +255,10 @@ def test_point(stac_reader, rio, app):
 
 
 @patch("rio_tiler.io.cogeo.rasterio")
-@patch("titiler.endpoints.stac.STACReader")
-def test_missing_asset_not_found(stac_reader, rio, app):
+@patch("rio_tiler.io.stac.requests")
+def test_missing_asset_not_found(requests, rio, app):
     """test /info endpoint."""
-    stac_reader.side_effect = mock_STACreader
+    requests.get = mock_RequestGet
     rio.open = mock_rasterio_open
 
     response = app.get(

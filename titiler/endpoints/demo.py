@@ -1,5 +1,7 @@
 """Titiler demo pages."""
 
+import pkg_resources
+
 from fastapi import APIRouter
 
 from starlette.requests import Request
@@ -7,9 +9,8 @@ from starlette.responses import HTMLResponse
 from starlette.templating import Jinja2Templates
 
 router = APIRouter()
-
-
-templates = Jinja2Templates(directory="titiler/templates")
+template_dir = pkg_resources.resource_filename("titiler", "templates")
+templates = Jinja2Templates(directory=template_dir)
 
 
 @router.get("/cog/viewer", response_class=HTMLResponse, tags=["Demo"])
