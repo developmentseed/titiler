@@ -407,13 +407,11 @@ class TilerFactory(BaseFactory):
             "/WMTSCapabilities.xml",
             response_class=XMLResponse,
             name=f"{self.router_prefix}wmts",
-            tags=["OGC"],
         )
         @self.router.get(
             "/{TileMatrixSetId}/WMTSCapabilities.xml",
             response_class=XMLResponse,
             name=f"{self.router_prefix}wmts",
-            tags=["OGC"],
         )
         def wmts(
             request: Request,

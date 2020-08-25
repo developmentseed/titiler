@@ -358,8 +358,8 @@
     <script>
         var scope = { separate: false, assets: [], metadata: {} }
 
-        const tilejson_endpoint = "{{ url_for('stac_tilejson') }}"
-        const metadata_endpoint = "{{ url_for('stac_info') }}"
+        const tilejson_endpoint = "{{ tilejson }}"
+        const metadata_endpoint = "{{ metadata }}"
 
         var map = new mapboxgl.Map({
             container: 'map',
