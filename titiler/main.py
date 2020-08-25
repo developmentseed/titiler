@@ -1,13 +1,15 @@
 """titiler app."""
+
 import importlib
 
+import pkg_resources
 from rio_cogeo.cogeo import cog_info as rio_cogeo_info
 from rio_tiler_crs import STACReader
 
 from . import settings, version
 from .db.memcache import CacheLayer
 from .dependencies import PathParams
-from .endpoints import demo, tms
+from .endpoints import tms
 from .endpoints.factory import TilerFactory
 from .errors import DEFAULT_STATUS_CODES, add_exception_handlers
 from .models.cog import RioCogeoInfo
@@ -17,6 +19,11 @@ from fastapi import Depends, FastAPI, Query
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.gzip import GZipMiddleware
 from starlette.requests import Request
+from starlette.responses import HTMLResponse
+from starlette.templating import Jinja2Templates
+
+template_dir = pkg_resources.resource_filename("titiler", "templates")
+templates = Jinja2Templates(directory=template_dir)
 
 if settings.MEMCACHE_HOST and not settings.DISABLE_CACHE:
     cache = CacheLayer.create_from_env()
@@ -31,6 +38,8 @@ app = FastAPI(
     version=version,
 )
 
+################################################################################
+# COGEO
 cog = TilerFactory(router_prefix="cog")
 
 
@@ -43,10 +52,41 @@ def cog_validate(
     return rio_cogeo_info(src_path.url, strict=strict)
 
 
+@cog.router.get("/viewer", response_class=HTMLResponse)
+def cog_demo(request: Request):
+    """COG Viewer."""
+    return templates.TemplateResponse(
+        name="cog_index.html",
+        context={
+            "request": request,
+            "tilejson": request.url_for(f"{cog.router_prefix}tilejson"),
+            "metadata": request.url_for(f"{cog.router_prefix}metadata"),
+        },
+        media_type="text/html",
+    )
+
+
 app.include_router(cog.router, prefix="/cog", tags=["Cloud Optimized GeoTIFF"])
 
-
+################################################################################
+# STAC
 stac = TilerFactory(reader=STACReader, add_asset_deps=True, router_prefix="stac")
+
+
+@stac.router.get("/viewer", response_class=HTMLResponse)
+def stac_demo(request: Request):
+    """STAC Viewer."""
+    return templates.TemplateResponse(
+        name="stac_index.html",
+        context={
+            "request": request,
+            "tilejson": request.url_for(f"{stac.router_prefix}tilejson"),
+            "metadata": request.url_for(f"{stac.router_prefix}info"),
+        },
+        media_type="text/html",
+    )
+
+
 app.include_router(stac.router, prefix="/stac", tags=["SpatioTemporal Asset Catalog"])
 
 
@@ -59,7 +99,6 @@ except ModuleNotFoundError:
 
 
 app.include_router(tms.router)
-app.include_router(demo.router)
 
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
 

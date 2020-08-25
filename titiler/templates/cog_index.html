@@ -371,8 +371,8 @@
     <script>
         var scope = { url: "", metadata: {}, config: {} }
 
-        const tilejson_endpoint = "{{ url_for('cog_tilejson') }}"
-        const metadata_endpoint = "{{ url_for('cog_metadata') }}"
+        const tilejson_endpoint = "{{ tilejson }}"
+        const metadata_endpoint = "{{ metadata }}"
 
         var map = new mapboxgl.Map({
             container: 'map',
