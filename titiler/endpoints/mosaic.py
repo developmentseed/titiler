@@ -208,7 +208,7 @@ async def mosaic_point(
     lon: float = Path(..., description="Longitude"),
     lat: float = Path(..., description="Latitude"),
     bidx: Optional[str] = Query(
-        None, title="Band indexes", description="comma (',') delimited band indexes",
+        None, title="Band indexes", description="comma (',') delimited band indexes"
     ),
     expression: Optional[str] = Query(
         None,

@@ -16,7 +16,7 @@ templates = Jinja2Templates(directory="titiler/templates")
 def cog_demo(request: Request):
     """COG Viewer."""
     return templates.TemplateResponse(
-        name="cog_index.html", context={"request": request}, media_type="text/html",
+        name="cog_index.html", context={"request": request}, media_type="text/html"
     )
 
 
@@ -24,5 +24,5 @@ def cog_demo(request: Request):
 def stac_demo(request: Request):
     """STAC Viewer."""
     return templates.TemplateResponse(
-        name="stac_index.html", context={"request": request}, media_type="text/html",
+        name="stac_index.html", context={"request": request}, media_type="text/html"
     )
