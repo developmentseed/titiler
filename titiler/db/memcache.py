@@ -3,8 +3,8 @@ from typing import Optional, Tuple
 
 from bmemcached import Client
 
-from titiler import settings
-from titiler.ressources.enums import ImageType
+from .. import settings
+from ..ressources.enums import ImageType
 
 
 class CacheLayer(object):

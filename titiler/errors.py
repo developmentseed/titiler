@@ -1,4 +1,5 @@
 """Titiler error classes."""
+
 import logging
 from typing import Callable, Dict, Type
 

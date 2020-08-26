@@ -1,4 +1,5 @@
 """app settings"""
+
 from starlette.config import Config
 
 PROJECT_NAME = "titiler"

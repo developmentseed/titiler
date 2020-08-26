@@ -31,9 +31,9 @@ This project is the descendant of [https://github.com/developmentseed/cogeo-tile
 ## Features
 
 - Multiple TileMatrixSets via [morecantile](https://github.com/developmentseed/morecantile). Default is set to WebMercatorQuad which is the usual Web Mercator projection used in most of Wep Map libraries.) (see [docs/TMS](/docs/TMS.md))
-- Cloud Optimized GeoTIFF support (see [docs/COG](/docs/COG.md))
-- SpatioTemporal Asset Catalog support (see [docs/STAC](/docs/STAC.md))
-- MosaicJSON support (Optional)
+- Cloud Optimized GeoTIFF support
+- SpatioTemporal Asset Catalog support
+- MosaicJSON support
 - OGC WMTS support
 - Caching layer for tiles (Optional)
 - AWS Lambda / ECS deployement options
@@ -57,11 +57,6 @@ $ docker-compose build
 $ docker-compose up 
 ```
 
-### Installation options
- 
-- MosaicJSON support: `pip install -e .["mosaic"]`
-
-
 ## Project structure
 
 ```
@@ -72,6 +67,7 @@ titiler/                         - titiler python module.
  │   ├── cog.py                  - COG related endpoints.
  │   ├── stac.py                 - STAC related endpoints.
  │   ├── mosaic.py               - MosaicJSON related endpoints.
+ │   ├── factory.py              - TiTiler Router Factories.
  │   └── tms.py                  - TileMatrixSets endpoints.
  ├── models/                     - pydantic models for this application.
  ├── ressources/                 - application ressources (enums, constants, ...).
