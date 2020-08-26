@@ -1,7 +1,5 @@
 """titiler app."""
 
-import pkg_resources
-
 from . import settings, version
 from .db.memcache import CacheLayer
 from .endpoints import cog, mosaic, stac, tms
@@ -12,10 +10,6 @@ from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.gzip import GZipMiddleware
 from starlette.requests import Request
-from starlette.templating import Jinja2Templates
-
-template_dir = pkg_resources.resource_filename("titiler", "templates")
-templates = Jinja2Templates(directory=template_dir)
 
 if settings.MEMCACHE_HOST and not settings.DISABLE_CACHE:
     cache = CacheLayer.create_from_env()
