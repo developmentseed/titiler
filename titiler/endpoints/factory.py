@@ -16,7 +16,7 @@ from rio_tiler.io import BaseReader
 from rio_tiler_crs import COGReader
 
 from .. import utils
-from ..db.memcache import CacheLayer
+from ..cache.memcache import CacheLayer
 from ..dependencies import (
     AssetsParams,
     DefaultDependency,
@@ -27,6 +27,7 @@ from ..dependencies import (
     PointParams,
     TileParams,
     TMSParams,
+    get_cache,
     request_hash,
 )
 from ..errors import BadRequestError, TileNotFoundError
@@ -267,7 +268,7 @@ class TilerFactory(BaseFactory):
             src_path=Depends(self.path_dependency),
             params=Depends(self.tiles_dependency),
             options=Depends(self.options),
-            cache_client: CacheLayer = Depends(utils.get_cache),
+            cache_client: CacheLayer = Depends(get_cache),
             request_id: str = Depends(request_hash),
         ):
             """Create map tile from a dataset."""
@@ -279,7 +280,7 @@ class TilerFactory(BaseFactory):
             content = None
             if cache_client:
                 try:
-                    content, ext = cache_client.get_image_from_cache(request_id)
+                    (content, ext) = cache_client.get(request_id)
                     format = ImageType[ext]
                     headers["X-Cache"] = "HIT"
                 except Exception:
@@ -332,7 +333,7 @@ class TilerFactory(BaseFactory):
                 timings.append(("Format", t.elapsed))
 
                 if cache_client and content:
-                    cache_client.set_image_cache(request_id, (content, format.value))
+                    cache_client.set(request_id, (content, format.value))
 
             if timings:
                 headers["X-Server-Timings"] = "; ".join(
@@ -878,7 +879,7 @@ class MosaicTilerFactory(BaseFactory):
             pixel_selection: PixelSelectionMethod = Query(
                 PixelSelectionMethod.first, description="Pixel selection method."
             ),
-            cache_client: CacheLayer = Depends(utils.get_cache),
+            cache_client: CacheLayer = Depends(get_cache),
             request_id: str = Depends(request_hash),
         ):
             """Create map tile from a COG."""
@@ -890,7 +891,7 @@ class MosaicTilerFactory(BaseFactory):
             content = None
             if cache_client:
                 try:
-                    content, ext = cache_client.get_image_from_cache(request_id)
+                    (content, ext) = cache_client.get(request_id)
                     format = ImageType[ext]
                     headers["X-Cache"] = "HIT"
                 except Exception:
@@ -951,7 +952,7 @@ class MosaicTilerFactory(BaseFactory):
                 timings.append(("Format", t.elapsed))
 
                 if cache_client and content:
-                    cache_client.set_image_cache(request_id, (content, format.value))
+                    cache_client.set(request_id, (content, format.value))
 
             if timings:
                 headers["X-Server-Timings"] = "; ".join(

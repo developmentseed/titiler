@@ -1,7 +1,7 @@
 """titiler app."""
 
 from . import settings, version
-from .db.memcache import CacheLayer
+from .cache.memcache import CacheLayer
 from .endpoints import cog, mosaic, stac, tms
 from .errors import DEFAULT_STATUS_CODES, add_exception_handlers
 

@@ -6,4 +6,4 @@ COPY README.md /app/README.md
 COPY titiler/ /app/titiler/
 COPY setup.py /app/setup.py
 
-RUN pip install -e /app/. --no-cache-dir
+RUN pip install -e /app/.["memcached"] --no-cache-dir

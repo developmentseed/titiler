@@ -13,6 +13,7 @@ from rio_tiler.colormap import cmap
 from rio_tiler.io import BaseReader
 
 from . import settings
+from .cache.memcache import CacheLayer
 from .custom import cmap as custom_colormap
 from .custom import tms as custom_tms
 from .utils import get_hash
@@ -53,6 +54,14 @@ MosaicTileMatrixSetNames = Enum(  # type: ignore
 async def request_hash(request: Request) -> str:
     """Create SHA224 id from reuqest."""
     return get_hash(**dict(request.query_params), **request.path_params)
+
+
+def get_cache(request: Request) -> Optional[CacheLayer]:
+    """Get cache Layer."""
+    try:
+        return request.state.cache
+    except AttributeError:
+        return None
 
 
 def TMSParams(
