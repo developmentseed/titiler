@@ -6,13 +6,13 @@ from unittest.mock import patch
 import numpy
 import pytest
 
-from ..conftest import DATA_DIR, mock_reader, parse_img
+from ..conftest import DATA_DIR, mock_rasterio_open, parse_img
 
 
-@patch("titiler.endpoints.cog.COGReader")
-def test_bounds(reader, app):
+@patch("rio_tiler.io.cogeo.rasterio")
+def test_bounds(rio, app):
     """test /bounds endpoint."""
-    reader.side_effect = mock_reader
+    rio.open = mock_rasterio_open
 
     response = app.get("/cog/bounds?url=https://myurl.com/cog.tif")
     assert response.status_code == 200
@@ -21,10 +21,10 @@ def test_bounds(reader, app):
     assert response.headers["Cache-Control"] == "public, max-age=3600"
 
 
-@patch("titiler.endpoints.cog.COGReader")
-def test_info(reader, app):
+@patch("rio_tiler.io.cogeo.rasterio")
+def test_info(rio, app):
     """test /info endpoint."""
-    reader.side_effect = mock_reader
+    rio.open = mock_rasterio_open
 
     response = app.get("/cog/info?url=https://myurl.com/cog.tif")
     assert response.status_code == 200
@@ -36,10 +36,10 @@ def test_info(reader, app):
     assert body["nodata_type"] == "None"
 
 
-@patch("titiler.endpoints.cog.COGReader")
-def test_metadata(reader, app):
+@patch("rio_tiler.io.cogeo.rasterio")
+def test_metadata(rio, app):
     """test /metadata endpoint."""
-    reader.side_effect = mock_reader
+    rio.open = mock_rasterio_open
 
     response = app.get("/cog/metadata?url=https://myurl.com/cog.tif")
     assert response.status_code == 200
@@ -74,10 +74,10 @@ def test_metadata(reader, app):
     assert len(body["statistics"]["1"]["histogram"][0]) == 5
 
 
-@patch("titiler.endpoints.cog.COGReader")
-def test_wmts(reader, app):
+@patch("rio_tiler.io.cogeo.rasterio")
+def test_wmts(rio, app):
     """test wmts endpoints."""
-    reader.side_effect = mock_reader
+    rio.open = mock_rasterio_open
 
     response = app.get("/cog/WMTSCapabilities.xml?url=https://myurl.com/cog.tif")
     assert response.status_code == 200
@@ -104,10 +104,10 @@ def test_wmts(reader, app):
     )
 
 
-@patch("titiler.endpoints.cog.COGReader")
-def test_tile(reader, app):
+@patch("rio_tiler.io.cogeo.rasterio")
+def test_tile(rio, app):
     """test tile endpoints."""
-    reader.side_effect = mock_reader
+    rio.open = mock_rasterio_open
 
     # full tile
     response = app.get(
@@ -184,10 +184,10 @@ def test_tile(reader, app):
     assert response.status_code == 422
 
 
-@patch("titiler.endpoints.cog.COGReader")
-def test_tilejson(reader, app):
+@patch("rio_tiler.io.cogeo.rasterio")
+def test_tilejson(rio, app):
     """test /tilejson endpoint."""
-    reader.side_effect = mock_reader
+    rio.open = mock_rasterio_open
 
     response = app.get("/cog/tilejson.json?url=https://myurl.com/cog.tif")
     assert response.status_code == 200
@@ -214,10 +214,10 @@ def test_tilejson(reader, app):
     )
 
 
-@patch("titiler.endpoints.cog.COGReader")
-def test_preview(reader, app):
+@patch("rio_tiler.io.cogeo.rasterio")
+def test_preview(rio, app):
     """test /preview endpoint."""
-    reader.side_effect = mock_reader
+    rio.open = mock_rasterio_open
 
     response = app.get(
         "/cog/preview?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=256"
@@ -259,10 +259,10 @@ def test_preview(reader, app):
     assert m.shape == (1024, 1021)
 
 
-@patch("titiler.endpoints.cog.COGReader")
-def test_part(reader, app):
+@patch("rio_tiler.io.cogeo.rasterio")
+def test_part(rio, app):
     """test /crop endpoint."""
-    reader.side_effect = mock_reader
+    rio.open = mock_rasterio_open
 
     response = app.get(
         "/cog/crop/-56.228,72.715,-54.547,73.188.png?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=256"
@@ -304,10 +304,10 @@ def test_part(reader, app):
     assert m.shape == (73, 256)
 
 
-@patch("titiler.endpoints.cog.COGReader")
-def test_point(reader, app):
+@patch("rio_tiler.io.cogeo.rasterio")
+def test_point(rio, app):
     """test /point endpoint."""
-    reader.side_effect = mock_reader
+    rio.open = mock_rasterio_open
 
     response = app.get("/cog/point/-56.228,72.715?url=https://myurl.com/cog.tif")
     assert response.status_code == 200
@@ -321,9 +321,10 @@ def test_file_not_found_error(app):
     assert response.status_code == 404
 
 
-@patch("titiler.endpoints.cog.COGReader")
-def test_tile_outside_bounds_error(reader, app):
-    reader.side_effect = mock_reader
+@patch("rio_tiler.io.cogeo.rasterio")
+def test_tile_outside_bounds_error(rio, app):
+    rio.open = mock_rasterio_open
+
     response = app.get("/cog/tiles/15/0/0?url=https://myurl.com/cog.tif&rescale=0,1000")
     assert response.status_code == 404
     # NOT THIS MIGHT CHANGE

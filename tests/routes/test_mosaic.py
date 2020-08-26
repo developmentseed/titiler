@@ -103,7 +103,7 @@ def test_info(app):
     body = response.json()
     assert body["minzoom"] == 7
     assert body["maxzoom"] == 9
-    assert body["name"] == MOSAICJSON_FILE
+    assert body["name"] == "mosaic"  # mosaic.name is not set
     assert body["quadkeys"] == [
         "0302300",
         "0302301",
