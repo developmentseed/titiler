@@ -4,8 +4,8 @@
 </p>
 
 <p align="center">
-  <a href="https://circleci.com/gh/developmentseed/titiler" target="_blank">
-      <img src="https://circleci.com/gh/developmentseed/titiler.svg?style=svg" alt="Test">
+  <a href="https://github.com/developmentseed/titiler/actions?query=workflow%3ACI" target="_blank">
+      <img src="https://github.com/developmentseed/titiler/workflows/CI/badge.svg" alt="Test">
   </a>
   <a href="https://codecov.io/gh/developmentseed/titiler" target="_blank">
       <img src="https://codecov.io/gh/developmentseed/titiler/branch/master/graph/badge.svg" alt="Coverage">
