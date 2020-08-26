@@ -2,11 +2,11 @@
 
 import os
 import re
-from typing import Any, Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union
 from urllib.parse import urlencode
 
 from rasterio.transform import from_bounds
-from rio_tiler.errors import InvalidBandName
+from rio_tiler.errors import MissingAssets
 from rio_tiler_crs import STACReader
 
 from titiler import utils
@@ -21,16 +21,18 @@ from titiler.dependencies import (
 )
 from titiler.models.cog import cogBounds, cogInfo, cogMetadata
 from titiler.models.mapbox import TileJSON
-from titiler.ressources.enums import ImageMimeTypes, ImageType
-from titiler.ressources.responses import ImgResponse
-from titiler.templates.factory import web_template
+from titiler.ressources.common import img_endpoint_params
+from titiler.ressources.enums import ImageMimeTypes, ImageType, MimeTypes
+from titiler.ressources.responses import XMLResponse
 
 from fastapi import APIRouter, Depends, Path, Query
 
 from starlette.requests import Request
-from starlette.responses import HTMLResponse, Response
+from starlette.responses import Response
+from starlette.templating import Jinja2Templates
 
 router = APIRouter()
+templates = Jinja2Templates(directory="titiler/templates")
 
 
 @router.get(
@@ -38,11 +40,8 @@ router = APIRouter()
     response_model=cogBounds,
     responses={200: {"description": "Return the bounds of the STAC item."}},
 )
-async def stac_bounds(
-    resp: Response, url: str = Query(..., description="STAC item URL."),
-):
+async def stac_bounds(url: str = Query(..., description="STAC item URL.")):
     """Return the bounds of the STAC item."""
-    resp.headers["Cache-Control"] = "max-age=3600"
     with STACReader(url) as stac:
         return {"bounds": stac.bounds}
 
@@ -55,17 +54,15 @@ async def stac_bounds(
     responses={200: {"description": "Return basic info for STAC item's assets"}},
 )
 async def stac_info(
-    resp: Response,
     url: str = Query(..., description="STAC item URL."),
     assets: str = Query(None, description="comma (,) separated list of asset names."),
 ):
     """Return basic info on STAC item's COG."""
-    resp.headers["Cache-Control"] = "max-age=3600"
     with STACReader(url) as stac:
         if not assets:
             return stac.assets
 
-        info = stac.info(assets.split(","))
+        info = stac.info(assets=assets.split(","))
 
     return info
 
@@ -79,7 +76,6 @@ async def stac_info(
 )
 async def stac_metadata(
     request: Request,
-    resp: Response,
     url: str = Query(..., description="STAC item URL."),
     assets: str = Query(..., description="comma (,) separated list of asset names."),
     metadata_params: CommonMetadataParams = Depends(),
@@ -87,9 +83,9 @@ async def stac_metadata(
     """Return the metadata of the COG."""
     with STACReader(url) as stac:
         info = stac.metadata(
-            assets.split(","),
             metadata_params.pmin,
             metadata_params.pmax,
+            assets=assets.split(","),
             nodata=metadata_params.nodata,
             indexes=metadata_params.indexes,
             max_size=metadata_params.max_size,
@@ -97,36 +93,19 @@ async def stac_metadata(
             bounds=metadata_params.bounds,
             **metadata_params.kwargs,
         )
-
-    resp.headers["Cache-Control"] = "max-age=3600"
     return info
 
 
-params: Dict[str, Any] = {
-    "responses": {
-        200: {
-            "content": {
-                "image/png": {},
-                "image/jpg": {},
-                "image/webp": {},
-                "image/tiff": {},
-                "application/x-binary": {},
-            },
-            "description": "Return an image.",
-        }
-    },
-    "response_class": ImgResponse,
-}
-
-
-@router.get(r"/tiles/{z}/{x}/{y}", **params)
-@router.get(r"/tiles/{z}/{x}/{y}.{format}", **params)
-@router.get(r"/tiles/{z}/{x}/{y}@{scale}x", **params)
-@router.get(r"/tiles/{z}/{x}/{y}@{scale}x.{format}", **params)
-@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}", **params)
-@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}.{format}", **params)
-@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x", **params)
-@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x.{format}", **params)
+@router.get(r"/tiles/{z}/{x}/{y}", **img_endpoint_params)
+@router.get(r"/tiles/{z}/{x}/{y}.{format}", **img_endpoint_params)
+@router.get(r"/tiles/{z}/{x}/{y}@{scale}x", **img_endpoint_params)
+@router.get(r"/tiles/{z}/{x}/{y}@{scale}x.{format}", **img_endpoint_params)
+@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}", **img_endpoint_params)
+@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}.{format}", **img_endpoint_params)
+@router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x", **img_endpoint_params)
+@router.get(
+    r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x.{format}", **img_endpoint_params
+)
 async def stac_tile(
     z: int = Path(..., ge=0, le=30, description="Mercator tiles's zoom level"),
     x: int = Path(..., description="Mercator tiles's column"),
@@ -194,7 +173,7 @@ async def stac_tile(
             content = utils.reformat(
                 tile,
                 mask,
-                img_format=format,
+                format,
                 colormap=image_params.color_map,
                 transform=dst_transform,
                 crs=tms.crs,
@@ -209,13 +188,13 @@ async def stac_tile(
             ["{} - {:0.2f}".format(name, time * 1000) for (name, time) in timings]
         )
 
-    return ImgResponse(
+    return Response(
         content, media_type=ImageMimeTypes[format.value].value, headers=headers,
     )
 
 
-@router.get(r"/preview", **params)
-@router.get(r"/preview.{format}", **params)
+@router.get(r"/preview", **img_endpoint_params)
+@router.get(r"/preview.{format}", **img_endpoint_params)
 async def stac_preview(
     format: ImageType = Query(None, description="Output image type. Default is auto."),
     url: str = Query(..., description="STAC Item URL."),
@@ -253,10 +232,7 @@ async def stac_preview(
     timings.append(("Post-process", t.elapsed))
 
     with utils.Timer() as t:
-        content = utils.reformat(
-            data, mask, img_format=format, colormap=image_params.color_map,
-        )
-    timings.append(("Format", t.elapsed))
+        content = utils.reformat(data, mask, format, colormap=image_params.color_map)
     timings.append(("Format", t.elapsed))
 
     if timings:
@@ -264,13 +240,13 @@ async def stac_preview(
             ["{} - {:0.2f}".format(name, time * 1000) for (name, time) in timings]
         )
 
-    return ImgResponse(
+    return Response(
         content, media_type=ImageMimeTypes[format.value].value, headers=headers,
     )
 
 
-# @router.get(r"/crop/{minx},{miny},{maxx},{maxy}", **params)
-@router.get(r"/crop/{minx},{miny},{maxx},{maxy}.{format}", **params)
+# @router.get(r"/crop/{minx},{miny},{maxx},{maxy}", **img_endpoint_params)
+@router.get(r"/crop/{minx},{miny},{maxx},{maxy}.{format}", **img_endpoint_params)
 async def stac_part(
     minx: float = Path(..., description="Bounding box min X"),
     miny: float = Path(..., description="Bounding box min Y"),
@@ -310,10 +286,7 @@ async def stac_part(
     timings.append(("Post-process", t.elapsed))
 
     with utils.Timer() as t:
-        content = utils.reformat(
-            data, mask, img_format=format, colormap=image_params.color_map
-        )
-    timings.append(("Format", t.elapsed))
+        content = utils.reformat(data, mask, format, colormap=image_params.color_map)
     timings.append(("Format", t.elapsed))
 
     if timings:
@@ -321,7 +294,7 @@ async def stac_part(
             ["{} - {:0.2f}".format(name, time * 1000) for (name, time) in timings]
         )
 
-    return ImgResponse(
+    return Response(
         content, media_type=ImageMimeTypes[format.value].value, headers=headers,
     )
 
@@ -390,7 +363,6 @@ async def cog_point(
 )
 async def stac_tilejson(
     request: Request,
-    response: Response,
     TileMatrixSetId: TileMatrixSetNames = Query(
         TileMatrixSetNames.WebMercatorQuad,  # type: ignore
         description="TileMatrixSet Name (default: 'WebMercatorQuad')",
@@ -412,24 +384,29 @@ async def stac_tilejson(
     maxzoom: Optional[int] = Query(None, description="Overwrite default maxzoom."),
 ):
     """Return a TileJSON document for a STAC item."""
-    scheme = request.url.scheme
-    host = request.headers["host"]
-
-    kwargs = dict(request.query_params)
-    kwargs.pop("tile_format", None)
-    kwargs.pop("tile_scale", None)
-    kwargs.pop("TileMatrixSetId", None)
-    kwargs.pop("minzoom", None)
-    kwargs.pop("maxzoom", None)
-
     if not expression and not assets:
-        raise InvalidBandName("Expression or Assets HAVE to be set in the queryString.")
+        raise MissingAssets("Expression or Assets HAVE to be set in the queryString.")
 
-    qs = urlencode(list(kwargs.items()))
+    kwargs = {
+        "z": "{z}",
+        "x": "{x}",
+        "y": "{y}",
+        "scale": tile_scale,
+        "TileMatrixSetId": TileMatrixSetId.name,
+    }
     if tile_format:
-        tile_url = f"{scheme}://{host}/stac/tiles/{TileMatrixSetId.name}/{{z}}/{{x}}/{{y}}@{tile_scale}x.{tile_format}?{qs}"
-    else:
-        tile_url = f"{scheme}://{host}/stac/tiles/{TileMatrixSetId.name}/{{z}}/{{x}}/{{y}}@{tile_scale}x?{qs}"
+        kwargs["format"] = tile_format.value
+
+    q = dict(request.query_params)
+    q.pop("tile_format", None)
+    q.pop("tile_scale", None)
+    q.pop("TileMatrixSetId", None)
+    q.pop("minzoom", None)
+    q.pop("maxzoom", None)
+    qs = urlencode(list(q.items()))
+
+    tiles_url = request.url_for("stac_tile", **kwargs).replace("\\", "")
+    tiles_url += f"?{qs}"
 
     tms = morecantile.tms.get(TileMatrixSetId.name)
     with STACReader(url, tms=tms) as stac:
@@ -442,14 +419,99 @@ async def stac_tilejson(
             "minzoom": minzoom or stac.minzoom,
             "maxzoom": maxzoom or stac.maxzoom,
             "name": os.path.basename(url),
-            "tiles": [tile_url],
+            "tiles": [tiles_url],
         }
 
-    response.headers["Cache-Control"] = "max-age=3600"
     return tjson
 
 
-@router.get("/viewer", response_class=HTMLResponse, tags=["Webpage"])
-def stac_viewer(request: Request, template=Depends(web_template)):
-    """SpatioTemporal Asset Catalog Viewer."""
-    return template(request, "stac_index.html", "stac_tilejson", "stac_info")
+@router.get("/WMTSCapabilities.xml", response_class=XMLResponse, tags=["OGC"])
+@router.get(
+    "/{TileMatrixSetId}/WMTSCapabilities.xml", response_class=XMLResponse, tags=["OGC"],
+)
+def stac_wmts(
+    request: Request,
+    TileMatrixSetId: TileMatrixSetNames = Query(
+        TileMatrixSetNames.WebMercatorQuad,  # type: ignore
+        description="TileMatrixSet Name (default: 'WebMercatorQuad')",
+    ),
+    url: str = Query(..., description="STAC Item URL."),
+    assets: str = Query("", description="comma (,) separated list of asset names."),
+    expression: Optional[str] = Query(
+        None,
+        title="Band Math expression",
+        description="rio-tiler's band math expression (e.g B1/B2)",
+    ),
+    tile_format: ImageType = Query(
+        ImageType.png, description="Output image type. Default is png."
+    ),
+    tile_scale: int = Query(
+        1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
+    ),
+    minzoom: Optional[int] = Query(None, description="Overwrite default minzoom."),
+    maxzoom: Optional[int] = Query(None, description="Overwrite default maxzoom."),
+):
+    """OGC WMTS endpoint."""
+    if not expression and not assets:
+        raise MissingAssets("Expression or Assets HAVE to be set in the queryString.")
+
+    kwargs = {
+        "z": "{TileMatrix}",
+        "x": "{TileCol}",
+        "y": "{TileRow}",
+        "scale": tile_scale,
+        "format": tile_format.value,
+        "TileMatrixSetId": TileMatrixSetId.name,
+    }
+    tiles_endpoint = request.url_for("stac_tile", **kwargs)
+    q = dict(request.query_params)
+    q.pop("TileMatrixSetId", None)
+    q.pop("tile_format", None)
+    q.pop("tile_scale", None)
+    q.pop("minzoom", None)
+    q.pop("maxzoom", None)
+    q.pop("SERVICE", None)
+    q.pop("REQUEST", None)
+    qs = urlencode(list(q.items()))
+    tiles_endpoint += f"?{qs}"
+
+    tms = morecantile.tms.get(TileMatrixSetId.name)
+    with STACReader(url, tms=tms) as stac:
+        bounds = stac.bounds
+        center = list(stac.center)
+        if minzoom:
+            center[-1] = minzoom
+        minzoom = minzoom or stac.minzoom
+        maxzoom = maxzoom or stac.maxzoom
+
+    media_type = ImageMimeTypes[tile_format.value].value
+
+    tileMatrix = []
+    for zoom in range(minzoom, maxzoom + 1):
+        matrix = tms.matrix(zoom)
+        tm = f"""
+                <TileMatrix>
+                    <ows:Identifier>{matrix.identifier}</ows:Identifier>
+                    <ScaleDenominator>{matrix.scaleDenominator}</ScaleDenominator>
+                    <TopLeftCorner>{matrix.topLeftCorner[0]} {matrix.topLeftCorner[1]}</TopLeftCorner>
+                    <TileWidth>{matrix.tileWidth}</TileWidth>
+                    <TileHeight>{matrix.tileHeight}</TileHeight>
+                    <MatrixWidth>{matrix.matrixWidth}</MatrixWidth>
+                    <MatrixHeight>{matrix.matrixHeight}</MatrixHeight>
+                </TileMatrix>"""
+        tileMatrix.append(tm)
+
+    return templates.TemplateResponse(
+        "wmts.xml",
+        {
+            "request": request,
+            "tiles_endpoint": tiles_endpoint,
+            "bounds": bounds,
+            "tileMatrix": tileMatrix,
+            "tms": tms,
+            "title": "Spatial Temporal Catalog",
+            "layer_name": "stac",
+            "media_type": media_type,
+        },
+        media_type=MimeTypes.xml.value,
+    )

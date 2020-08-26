@@ -8,7 +8,7 @@
         <ows:Operation name="GetCapabilities">
             <ows:DCP>
                 <ows:HTTP>
-                    <ows:Get xlink:href="{{ endpoint }}/{{ tms.identifier }}/WMTSCapabilities.xml?{{ query_string }}">
+                    <ows:Get xlink:href="{{ request.url }}">
                         <ows:Constraint name="GetEncoding">
                             <ows:AllowedValues>
                                 <ows:Value>RESTful</ows:Value>
@@ -21,7 +21,7 @@
         <ows:Operation name="GetTile">
             <ows:DCP>
                 <ows:HTTP>
-                    <ows:Get xlink:href="{{ endpoint }}/{{ tms.identifier }}/WMTSCapabilities.xml?{{ query_string }}">
+                    <ows:Get xlink:href="{{ request.url }}">
                         <ows:Constraint name="GetEncoding">
                             <ows:AllowedValues>
                                 <ows:Value>RESTful</ows:Value>
@@ -35,7 +35,7 @@
     <Contents>
         <Layer>
             <ows:Title>{{ title }}</ows:Title>
-            <ows:Identifier>cogeo</ows:Identifier>
+            <ows:Identifier>{{ layer_name }}</ows:Identifier>
             <ows:Abstract>{{ title }}</ows:Abstract>
             <ows:WGS84BoundingBox crs="urn:ogc:def:crs:OGC:2:84">
                 <ows:LowerCorner>{{ bounds[0] }} {{ bounds[1] }}</ows:LowerCorner>
@@ -48,7 +48,7 @@
             <TileMatrixSetLink>
                 <TileMatrixSet>{{ tms.identifier }}</TileMatrixSet>
             </TileMatrixSetLink>
-            <ResourceURL format="{{ media_type }}" resourceType="tile" template="{{ endpoint }}/tiles/{{ tms.identifier }}/{TileMatrix}/{TileCol}/{TileRow}{{ tile_format }}?{{ query_string }}" />
+            <ResourceURL format="{{ media_type }}" resourceType="tile" template="{{ tiles_endpoint }}" />
         </Layer>
         <TileMatrixSet>
             <ows:Identifier>{{ tms.identifier }}</ows:Identifier>
@@ -58,5 +58,5 @@
             {% endfor %}
         </TileMatrixSet>
     </Contents>
-    <ServiceMetadataURL xlink:href="{{ endpoint }}/{{ tms.identifier }}/WMTSCapabilities.xml?{{ query_string }}" />
+    <ServiceMetadataURL xlink:href="{{ request.url }}" />
 </Capabilities>

@@ -107,7 +107,7 @@ def test_tilejson(stac_reader, rio, app):
     rio.open = mock_rasterio_open
 
     response = app.get("/stac/tilejson.json?url=https://myurl.com/item.json")
-    assert response.status_code == 404
+    assert response.status_code == 400
 
     response = app.get(
         "/stac/tilejson.json?url=https://myurl.com/item.json&assets=B01&minzoom=5&maxzoom=10"
@@ -134,14 +134,6 @@ def test_tilejson(stac_reader, rio, app):
     assert body["tiles"][0].startswith(
         "http://testserver/stac/tiles/WebMercatorQuad/{z}/{x}/{y}@2x.png?url="
     )
-
-
-def test_viewer(app):
-    """Test STAC Viewer."""
-    response = app.get("/stac/viewer")
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "text/html; charset=utf-8"
-    assert response.headers["content-encoding"] == "gzip"
 
 
 @patch("rio_tiler.io.cogeo.rasterio")

@@ -11,19 +11,13 @@ inst_reqs = [
     "jinja2",
     "python-binary-memcached",
     "rio-color",
-    "rio-tiler-crs==3.0b2",
+    "rio-tiler>=2.0b5",
+    "rio-cogeo~=2.0a5",
+    "rio-tiler-crs==3.0b3",
 ]
 extra_reqs = {
-    "dev": [
-        "pytest",
-        "pytest-cov",
-        "pytest-asyncio",
-        "pre-commit",
-        "requests",
-        "mkdocs",
-        "mkdocs-material",
-    ],
-    "mosaic": ["cogeo-mosaic~=3.0a5"],
+    "dev": ["pytest", "pytest-cov", "pytest-asyncio", "pre-commit", "requests"],
+    "mosaic": ["cogeo-mosaic==3.0a7"],
     "server": ["uvicorn", "click==7.0"],
     "lambda": ["mangum>=0.9.0"],
     "deploy": [
@@ -37,6 +31,7 @@ extra_reqs = {
         "aws-cdk.aws_ecs_patterns",
     ],
     "test": ["pytest", "pytest-cov", "pytest-asyncio", "requests"],
+    "docs": ["mkdocs", "mkdocs-material"],
 }
 
 

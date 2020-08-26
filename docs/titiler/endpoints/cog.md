@@ -1,3 +1,0 @@
-# Cloud Optimized GeoTiff
-
-placeholder

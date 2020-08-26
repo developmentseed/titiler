@@ -1,13 +1,11 @@
-site_name: titiler
-site_description: Titiler is a lightweight service for creating map tiles from Cloud Optimized GeoTiff
+site_name: TiTiler
+site_description: TiTiler is a lightweight service for creating map tiles from Cloud Optimized GeoTiff
 
 theme:
   name: material
   palette:
     primary: indigo
     scheme: default
-
-# TODO: Add edit_uri/site_uri
 
 repo_name: "developmentseed/titiler"
 repo_url: "https://github.com/developmentseed/titiler"
@@ -21,22 +19,24 @@ extra:
 
 
 nav:
-  - Titiler: "index.md"
+  - TiTiler: "index.md"
   - Concepts:
-      - "titiler/concepts/dynamic_tiling.md"
-      - "titiler/concepts/data_formats.md"
-      - "titiler/concepts/tile_matrix_sets.md"
+      - "concepts/dynamic_tiling.md"
+      - "concepts/data_formats.md"
+      - "concepts/tile_matrix_sets.md"
   - Endpoints:
-      - "titiler/endpoints/cog.md"
-      - "titiler/endpoints/mosaic.md"
-      - "titiler/endpoints/stac.md"
+      - "endpoints/cog.md"
+      # - "endpoints/mosaic.md"
+      - "endpoints/stac.md"
+      - "endpoints/tms.md"
   - Deployment:
-      - "titiler/deployment/settings.md"
-      - "titiler/deployment/ecs.md"
-      - "titiler/deployment/lambda.md"
+      # - "deployment/settings.md"
+      - "deployment/ecs.md"
+      - "deployment/lambda.md"
   - Advanced:
-      - "titiler/advanced/custom_application.md"
-
+      - "advanced/custom_application.md"
+  - Development - Contributing: 'contributing.md'
+  - Release Notes: 'release-notes.md'
 
 # https://github.com/kylebarron/cogeo-mosaic/blob/mkdocs/mkdocs.yml#L50-L75
 markdown_extensions:

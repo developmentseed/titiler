@@ -1,4 +1,4 @@
-## Create your own app
+# Create your own app
 
 Titiler has been develloped so users can built their own app using only blocks they need. By default the titiler
 app has `/cog`, `/stac` and `/tms` endpoints for COG and STAC support but some users will just want one.

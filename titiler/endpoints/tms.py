@@ -20,30 +20,28 @@ router = APIRouter()
     response_model_exclude_none=True,
     tags=["TileMatrixSets"],
 )
-async def tms_list(request: Request):
+async def TileMatrixSet_list(request: Request):
     """
     Return list of supported TileMatrixSets.
 
     Specs: http://docs.opengeospatial.org/per/19-069.html#_tilematrixsets
     """
-    scheme = request.url.scheme
-    host = request.headers["host"]
-
-    tms_list = morecantile.tms.list()
     return {
         "tileMatrixSets": [
             {
-                "id": tms,
-                "title": morecantile.tms.get(tms).title,
+                "id": tms.name,
+                "title": morecantile.tms.get(tms.name).title,
                 "links": [
                     {
-                        "href": f"{scheme}://{host}/tileMatrixSets/{tms}",
+                        "href": request.url_for(
+                            "TileMatrixSet_info", TileMatrixSetId=tms.name
+                        ),
                         "rel": "item",
                         "type": "application/json",
                     }
                 ],
             }
-            for tms in tms_list
+            for tms in TileMatrixSetNames
         ]
     }
 
@@ -54,7 +52,7 @@ async def tms_list(request: Request):
     response_model_exclude_none=True,
     tags=["TileMatrixSets"],
 )
-async def tms_info(
+async def TileMatrixSet_info(
     TileMatrixSetId: TileMatrixSetNames = Query(..., description="TileMatrixSet Name")
 ):
     """Return TileMatrixSet JSON document."""

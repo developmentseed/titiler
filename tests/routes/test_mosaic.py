@@ -126,8 +126,8 @@ def test_tilejson(app):
     TileJSON(**body)
 
     assert (
-        body["tiles"][0]
-        == "http://testserver/mosaicjson/tiles/WebMercatorQuad/{z}/{x}/{y}@1x"
+        "http://testserver/mosaicjson/tiles/WebMercatorQuad/{z}/{x}/{y}@1x?url="
+        in body["tiles"][0]
     )
     assert body["minzoom"] == mosaicjson["minzoom"]
     assert body["maxzoom"] == mosaicjson["maxzoom"]
@@ -147,7 +147,7 @@ def test_point(app):
     assert response.status_code == 200
     body = response.json()
     assert len(body["values"]) == 1
-    assert body["values"][0] == [9943, 9127, 9603]
+    assert body["values"][0]["values"] == [9943, 9127, 9603]
 
 
 def test_tile(app):
@@ -165,6 +165,7 @@ def test_tile(app):
         )
         assert response.status_code == 200
         assert response.headers["content-type"] == "image/png"
+        assert response.headers["X-Assets"]
         meta = parse_img(response.content)
         assert meta["width"] == meta["height"] == 256
 
