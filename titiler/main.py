@@ -36,7 +36,7 @@ app = FastAPI(
 app.include_router(cog.router, prefix="/cog", tags=["Cloud Optimized GeoTIFF"])
 app.include_router(stac.router, prefix="/stac", tags=["SpatioTemporal Asset Catalog"])
 _include_extra_router(
-    app, module="titiler.endpoints.mosaic", prefix="/mosaicjson", tags=["MosaicJSON"],
+    app, module="titiler.endpoints.mosaic", prefix="/mosaicjson", tags=["MosaicJSON"]
 )
 app.include_router(tms.router)
 app.include_router(demo.router)

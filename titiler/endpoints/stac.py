@@ -189,7 +189,7 @@ async def stac_tile(
         )
 
     return Response(
-        content, media_type=ImageMimeTypes[format.value].value, headers=headers,
+        content, media_type=ImageMimeTypes[format.value].value, headers=headers
     )
 
 
@@ -241,7 +241,7 @@ async def stac_preview(
         )
 
     return Response(
-        content, media_type=ImageMimeTypes[format.value].value, headers=headers,
+        content, media_type=ImageMimeTypes[format.value].value, headers=headers
     )
 
 
@@ -295,7 +295,7 @@ async def stac_part(
         )
 
     return Response(
-        content, media_type=ImageMimeTypes[format.value].value, headers=headers,
+        content, media_type=ImageMimeTypes[format.value].value, headers=headers
     )
 
 
@@ -314,7 +314,7 @@ async def cog_point(
         description="rio-tiler's band math expression (e.g B1/B2)",
     ),
     bidx: Optional[str] = Query(
-        None, title="Band indexes", description="comma (',') delimited band indexes",
+        None, title="Band indexes", description="comma (',') delimited band indexes"
     ),
     asset_expression: Optional[str] = Query(
         None,
@@ -427,7 +427,7 @@ async def stac_tilejson(
 
 @router.get("/WMTSCapabilities.xml", response_class=XMLResponse, tags=["OGC"])
 @router.get(
-    "/{TileMatrixSetId}/WMTSCapabilities.xml", response_class=XMLResponse, tags=["OGC"],
+    "/{TileMatrixSetId}/WMTSCapabilities.xml", response_class=XMLResponse, tags=["OGC"]
 )
 def stac_wmts(
     request: Request,

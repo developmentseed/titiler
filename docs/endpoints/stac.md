@@ -1,5 +1,4 @@
-
-# SpatioTemporal Asset Catalog - STAC
+# SpatioTemporal Asset Catalog
 
 ## Tiles - GET
 
@@ -26,11 +25,13 @@
 
 ***assets** OR **expression** is required
 
-Additional parameters can be provided. See: 
+Additional parameters can be provided. See:
+
 - https://github.com/cogeotiff/rio-tiler/blob/master/rio_tiler/reader.py#L140-L151
 - https://github.com/cogeotiff/rio-tiler/blob/master/rio_tiler/reader.py#L32-L44
 
-Example: 
+Example:
+
 - `https://myendpoint/stac/tiles/1/2/3?url=https://somewhere.com/item.json&assets=B01`
 - `https://myendpoint/stac/tiles/1/2/3.jpg?url=https://somewhere.com/item.json&assets=B01`
 - `https://myendpoint/stac/tiles/WorldCRS84Quad/1/2/3@2x.png?url=https://somewhere.com/item.json&assets=B01`
@@ -59,12 +60,14 @@ Example:
 
 ***assets** OR **expression** is required
 
-Additional parameters can be provided. See: 
+Additional parameters can be provided. See:
+
 - https://github.com/cogeotiff/rio-tiler/blob/master/rio_tiler/reader.py#L32-L44
 
 Note: if `height` and `width` are provided `max_size` will be ignored.
 
-Example: 
+Example:
+
 - `https://myendpoint/stac/preview?url=https://somewhere.com/item.json&assets=B01`
 - `https://myendpoint/stac/preview.jpg?url=https://somewhere.com/item.json&assets=B01`
 - `https://myendpoint/stac/preview?url=https://somewhere.com/item.json&assets=B01&rescale=0,1000&color_map=cfastie`
@@ -93,13 +96,15 @@ Example:
 
 ***assets** OR **expression** is required
 
-Additional parameters can be provided. See: 
+Additional parameters can be provided. See:
+
 - https://github.com/cogeotiff/rio-tiler/blob/master/rio_tiler/reader.py#L140-L151
 - https://github.com/cogeotiff/rio-tiler/blob/master/rio_tiler/reader.py#L32-L44
 
 Note: if `height` and `width` are provided `max_size` will be ignored.
 
-Example: 
+Example:
+
 - `https://myendpoint/stac/crop/0,0,10,10.png?url=https://somewhere.com/item.json&assets=B01`
 - `https://myendpoint/stac/crop/0,0,10,10.png?url=https://somewhere.com/item.json&assets=B01&rescale=0,1000&color_map=cfastie`
 
@@ -119,7 +124,8 @@ Example:
 
 ***assets** OR **expression** is required
 
-Example: 
+Example:
+
 - `https://myendpoint/stac/point/0,0?url=https://somewhere.com/item.json&assets=B01`
 
 
@@ -142,7 +148,8 @@ Example:
 
 ***assets** OR **expression** is required
 
-Example: 
+Example:
+
 - `https://myendpoint/stac/tilejson.json?url=https://somewhere.com/item.json&assets=B01`
 - `https://myendpoint/stac/tilejson.json?url=https://somewhere.com/item.json&assets=B01&tile_format=png`
 - `https://myendpoint/stac/WorldCRS84Quad/tilejson.json?url=https://somewhere.com/item.json&tile_scale=2&expression=B01/B02`
@@ -154,25 +161,29 @@ Example:
 - QueryParams:
     - **url**: STAC Item URL. **REQUIRED**
 
-Example: 
+Example:
+
 - `https://myendpoint/stac/bounds?url=https://somewhere.com/item.json`
 
 
 ## Info - GET
 
 `:endpoint:/stac/info` - Return basic info on STAC item's COG.
+
 - QueryParams:
     - **url**: STAC Item URL. **REQUIRED**
     - **assets**: Comma (',') delimited asset names. OPTIONAL
 
 Note: If `assets` is not provided, `/stac/info` will return the list of assets.
 
-Example: 
+Example:
+
 - `https://myendpoint/stac/info?url=https://somewhere.com/item.json&assets=B01`
 
 ## Metadata - GET
 
 `:endpoint:/stac/metadata` - Return metadata of STAC item's COG.
+
 - QueryParams:
     - **url**: STAC Item URL. **REQUIRED**
     - **assets**: Comma (',') delimited asset names. **REQUIRED**
@@ -185,7 +196,8 @@ Example:
     - **histogram_range**: comma (',') delimited histogram bounds. OPTIONAL
     - **resampling_method**: rasterio resampling method. Default is `nearest`.
 
-Example: 
+Example:
+
 - `https://myendpoint/stac/metadata?https://somewhere.com/item.json&assets=B01`
 
 ## Demo - GET
@@ -195,6 +207,7 @@ Example:
 - QueryParams:
     - **url**: STAC Item URL. **OPTIONAL**
 
-Example: 
+Example:
+
 - `https://myendpoint/stac/viewer?url=https://somewhere.com/item.json`
 

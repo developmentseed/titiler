@@ -1,5 +1,4 @@
-
-# Cloud Optimized GeoTIFF - COG
+# Cloud Optimized GeoTiff
 
 ## Tiles - GET
 
@@ -23,11 +22,13 @@
     - **color_map**: rio-tiler color map name. OPTIONAL
     - **resampling_method**: rasterio resampling method. Default is `nearest`.
 
-Additional parameters can be provided. See: 
+Additional parameters can be provided. See:
+
 - https://github.com/cogeotiff/rio-tiler/blob/master/rio_tiler/reader.py#L140-L151
 - https://github.com/cogeotiff/rio-tiler/blob/master/rio_tiler/reader.py#L32-L44
 
-Example: 
+Example:
+
 - `https://myendpoint/cog/tiles/1/2/3?url=https://somewhere.com/mycog.tif`
 - `https://myendpoint/cog/tiles/1/2/3.jpg?url=https://somewhere.com/mycog.tif`
 - `https://myendpoint/cog/tiles/WorldCRS84Quad/1/2/3@2x.png?url=https://somewhere.com/mycog.tif`
@@ -53,12 +54,14 @@ Example:
     - **color_map**: rio-tiler color map name. OPTIONAL
     - **resampling_method**: rasterio resampling method. Default is `nearest`.
 
-Additional parameters can be provided. See: 
+Additional parameters can be provided. See:
+
 - https://github.com/cogeotiff/rio-tiler/blob/master/rio_tiler/reader.py#L32-L44
 
 Note: if `height` and `width` are provided `max_size` will be ignored.
 
-Example: 
+Example:
+
 - `https://myendpoint/cog/preview?url=https://somewhere.com/mycog.tif`
 - `https://myendpoint/cog/preview.jpg?url=https://somewhere.com/mycog.tif`
 - `https://myendpoint/cog/preview?url=https://somewhere.com/mycog.tif&bidx=1&rescale=0,1000&color_map=cfastie`
@@ -84,13 +87,15 @@ Example:
     - **color_map**: rio-tiler color map name. OPTIONAL
     - **resampling_method**: rasterio resampling method. Default is `nearest`.
 
-Additional parameters can be provided. See: 
+Additional parameters can be provided. See:
+
 - https://github.com/cogeotiff/rio-tiler/blob/master/rio_tiler/reader.py#L140-L151
 - https://github.com/cogeotiff/rio-tiler/blob/master/rio_tiler/reader.py#L32-L44
 
 Note: if `height` and `width` are provided `max_size` will be ignored.
 
-Example: 
+Example:
+
 - `https://myendpoint/cog/crop/0,0,10,10.png?url=https://somewhere.com/mycog.tif`
 - `https://myendpoint/cog/crop/0,0,10,10.png?url=https://somewhere.com/mycog.tif&bidx=1&rescale=0,1000&color_map=cfastie`
 
@@ -107,7 +112,8 @@ Example:
     - **expression**: rio-tiler's band math expression (e.g B1/B2). OPTIONAL
     - **nodata**: Overwrite internal Nodata value. OPTIONAL
 
-Example: 
+Example:
+
 - `https://myendpoint/cog/point/0,0?url=https://somewhere.com/mycog.tif`
 - `https://myendpoint/cog/point/0,0?url=https://somewhere.com/mycog.tif&bidx=1`
 
@@ -126,7 +132,8 @@ Example:
     - **maxzoom**: Overwrite default maxzoom. OPTIONAL
     - **kwargs**: Other options will be forwarded to the `tiles` url.
 
-Example: 
+Example:
+
 - `https://myendpoint/cog/tilejson.json?url=https://somewhere.com/mycog.tif`
 - `https://myendpoint/cog/tilejson.json?url=https://somewhere.com/mycog.tif&tile_format=png`
 - `https://myendpoint/cog/WorldCRS84Quad/tilejson.json?url=https://somewhere.com/mycog.tif&tile_scale=2&bidx=1,2,3`
@@ -138,7 +145,8 @@ Example:
 - QueryParams:
     - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
 
-Example: 
+Example:
+
 - `https://myendpoint/cog/bounds?url=https://somewhere.com/mycog.tif`
 
 ## Info - GET
@@ -147,7 +155,8 @@ Example:
 - QueryParams:
     - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
 
-Example: 
+Example:
+
 - `https://myendpoint/cog/info?url=https://somewhere.com/mycog.tif`
 
 ## Metadata - GET
@@ -165,7 +174,8 @@ Example:
     - **histogram_range**: Comma (',') delimited histogram bounds. OPTIONAL
     - **resampling_method**: rasterio resampling method. Default is `nearest`.
 
-Example: 
+Example:
+
 - `https://myendpoint/cog/metadata?url=https://somewhere.com/mycog.tif&bidx=1,2,3`
 
 ## Demo - GET
@@ -175,5 +185,6 @@ Example:
 - QueryParams:
     - **url**: Cloud Optimized GeoTIFF URL. **OPTIONAL**
 
-Example: 
+Example:
+
 - `https://myendpoint/cog/viewer?url=https://somewhere.com/mycog.tif`
