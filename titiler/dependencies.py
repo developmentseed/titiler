@@ -12,10 +12,10 @@ from rasterio.enums import Resampling
 from rio_tiler.colormap import cmap
 from rio_tiler.io import BaseReader
 
-from titiler import settings
-from titiler.custom import cmap as custom_colormap
-from titiler.custom import tms as custom_tms
-from titiler.utils import get_hash
+from . import settings
+from .custom import cmap as custom_colormap
+from .custom import tms as custom_tms
+from .utils import get_hash
 
 from fastapi import Query
 

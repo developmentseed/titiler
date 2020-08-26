@@ -14,9 +14,9 @@ from rio_color.utils import scale_dtype, to_math_type
 from rio_tiler.profiles import img_profiles
 from rio_tiler.utils import _chunks, linear_rescale, render
 
-from titiler.db.memcache import CacheLayer
-from titiler.ressources.common import drivers
-from titiler.ressources.enums import ImageType
+from .db.memcache import CacheLayer
+from .ressources.common import drivers
+from .ressources.enums import ImageType
 
 from starlette.requests import Request
 
