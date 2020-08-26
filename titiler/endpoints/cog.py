@@ -189,7 +189,7 @@ async def cog_tile(
         )
 
     return Response(
-        content, media_type=ImageMimeTypes[format.value].value, headers=headers,
+        content, media_type=ImageMimeTypes[format.value].value, headers=headers
     )
 
 
@@ -240,7 +240,7 @@ async def cog_preview(
         )
 
     return Response(
-        content, media_type=ImageMimeTypes[format.value].value, headers=headers,
+        content, media_type=ImageMimeTypes[format.value].value, headers=headers
     )
 
 
@@ -296,7 +296,7 @@ async def cog_part(
         )
 
     return Response(
-        content, media_type=ImageMimeTypes[format.value].value, headers=headers,
+        content, media_type=ImageMimeTypes[format.value].value, headers=headers
     )
 
 
@@ -309,7 +309,7 @@ async def cog_point(
     lat: float = Path(..., description="Latitude"),
     url: str = Query(..., description="Cloud Optimized GeoTIFF URL."),
     bidx: Optional[str] = Query(
-        None, title="Band indexes", description="comma (',') delimited band indexes",
+        None, title="Band indexes", description="comma (',') delimited band indexes"
     ),
     expression: Optional[str] = Query(
         None,
@@ -405,7 +405,7 @@ async def cog_tilejson(
 
 @router.get("/WMTSCapabilities.xml", response_class=XMLResponse, tags=["OGC"])
 @router.get(
-    "/{TileMatrixSetId}/WMTSCapabilities.xml", response_class=XMLResponse, tags=["OGC"],
+    "/{TileMatrixSetId}/WMTSCapabilities.xml", response_class=XMLResponse, tags=["OGC"]
 )
 def cog_wmts(
     request: Request,

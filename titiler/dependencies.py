@@ -34,9 +34,15 @@ cmap.register("above", custom_colormap.above_cmap)
 ################################################################################
 # DO NOT UPDATE
 # Create ENUMS with all CMAP and TMS for documentation and validation.
-ColorMapNames = Enum("ColorMapNames", [(a, a) for a in sorted(cmap.list())])  # type: ignore
-TileMatrixSetNames = Enum("TileMatrixSetNames", [(a, a) for a in sorted(morecantile.tms.list())])  # type: ignore
-ResamplingNames = Enum("ResamplingNames", [(r.name, r.name) for r in Resampling])  # type: ignore
+ColorMapNames = Enum(  # type: ignore
+    "ColorMapNames", [(a, a) for a in sorted(cmap.list())]
+)
+TileMatrixSetNames = Enum(  # type: ignore
+    "TileMatrixSetNames", [(a, a) for a in sorted(morecantile.tms.list())]
+)
+ResamplingNames = Enum(  # type: ignore
+    "ResamplingNames", [(r.name, r.name) for r in Resampling]
+)
 
 
 async def request_hash(request: Request) -> str:
@@ -51,9 +57,7 @@ class CommonTileParams:
         self,
         request: Request,
         bidx: Optional[str] = Query(
-            None,
-            title="Band indexes",
-            description="comma (',') delimited band indexes",
+            None, title="Band indexes", description="comma (',') delimited band indexes"
         ),
         expression: Optional[str] = Query(
             None,
@@ -111,9 +115,7 @@ class CommonImageParams:
         self,
         request: Request,
         bidx: Optional[str] = Query(
-            None,
-            title="Band indexes",
-            description="comma (',') delimited band indexes",
+            None, title="Band indexes", description="comma (',') delimited band indexes"
         ),
         expression: Optional[str] = Query(
             None,
@@ -182,9 +184,7 @@ class CommonMetadataParams:
         self,
         request: Request,
         bidx: Optional[str] = Query(
-            None,
-            title="Band indexes",
-            description="comma (',') delimited band indexes",
+            None, title="Band indexes", description="comma (',') delimited band indexes"
         ),
         nodata: Optional[Union[str, int, float]] = Query(
             None, title="Nodata value", description="Overwrite internal Nodata value"
