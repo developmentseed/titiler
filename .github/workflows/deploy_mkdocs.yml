@@ -1,0 +1,34 @@
+name: Publish docs via GitHub Pages
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      # Only rebuild website when docs have changed
+      - 'README.md'
+      - 'CHANGES.md'
+      - 'CONTRIBUTING.md'
+      - 'docs/**'
+
+jobs:
+  build:
+    name: Deploy docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v2
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install numpy
+          python -m pip install -e .["docs"]
+
+      - name: Deploy docs
+        run: mkdocs gh-deploy --force

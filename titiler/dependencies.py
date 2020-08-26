@@ -36,11 +36,18 @@ cmap.register("above", custom_colormap.above_cmap)
 ################################################################################
 # DO NOT UPDATE
 # Create ENUMS with all CMAP and TMS for documentation and validation.
-ColorMapNames = Enum("ColorMapNames", [(a, a) for a in sorted(cmap.list())])  # type: ignore
-TileMatrixSetNames = Enum("TileMatrixSetNames", [(a, a) for a in sorted(morecantile.tms.list())])  # type: ignore
-MosaicTileMatrixSetNames = Enum("MosaicTileMatrixSetNames", [("WebMercatorQuad", "WebMercatorQuad")])  # type: ignore
-
-ResamplingNames = Enum("ResamplingNames", [(r.name, r.name) for r in Resampling])  # type: ignore
+ColorMapNames = Enum(  # type: ignore
+    "ColorMapNames", [(a, a) for a in sorted(cmap.list())]
+)
+ResamplingNames = Enum(  # type: ignore
+    "ResamplingNames", [(r.name, r.name) for r in Resampling]
+)
+TileMatrixSetNames = Enum(  # type: ignore
+    "TileMatrixSetNames", [(a, a) for a in sorted(morecantile.tms.list())]
+)
+MosaicTileMatrixSetNames = Enum(  # type: ignore
+    "MosaicTileMatrixSetNames", [("WebMercatorQuad", "WebMercatorQuad")]
+)
 
 
 async def request_hash(request: Request) -> str:
