@@ -61,7 +61,6 @@ $ docker-compose up
 ```
 titiler/                         - titiler python module.
  ├── custom/                     - Custom colormap and TMS grids.
- ├── db/                         - db related stuff.
  ├── endpoints                   - api routes.
  │   ├── cog.py                  - COG related endpoints.
  │   ├── stac.py                 - STAC related endpoints.

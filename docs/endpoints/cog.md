@@ -1,4 +1,4 @@
-# Cloud Optimized GeoTiff
+# Cloud Optimized GeoTIFF
 
 ## Tiles - GET
 

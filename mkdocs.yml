@@ -20,21 +20,21 @@ extra:
 
 nav:
   - TiTiler: "index.md"
-  - Concepts:
-      - "concepts/dynamic_tiling.md"
-      - "concepts/data_formats.md"
-      - "concepts/tile_matrix_sets.md"
+  - Usage: 'usage.md'
   - Endpoints:
-      - "endpoints/cog.md"
-      # - "endpoints/mosaic.md"
-      - "endpoints/stac.md"
-      - "endpoints/tms.md"
+    - 'endpoints/cog.md'
+    - 'endpoints/mosaic.md'
+    - 'endpoints/stac.md'
+    - 'endpoints/tms.md'
+  - Concepts:
+    - 'concepts/tiler_factories.md'
+    - 'concepts/dynamic_tiling.md'
+    - 'concepts/data_formats.md'
+    - 'concepts/tile_matrix_sets.md'
   - Deployment:
-      # - "deployment/settings.md"
-      - "deployment/ecs.md"
-      - "deployment/lambda.md"
-  - Advanced:
-      - "advanced/custom_application.md"
+    # - 'deployment/settings.md'
+    - 'deployment/ecs.md'
+    - 'deployment/lambda.md'
   - Development - Contributing: 'contributing.md'
   - Release Notes: 'release-notes.md'
 

@@ -1,3 +1,3 @@
-# Mosaic
+# MosaicJSON
 
-TODO
+placeholder

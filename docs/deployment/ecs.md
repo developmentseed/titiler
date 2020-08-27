@@ -1,6 +1,8 @@
 # AWS ECS (Fargate) + ALB (Application Load Balancer)
 
-The stack is deployed by the [aws cdk](https://aws.amazon.com/cdk/) utility. It will handle tasks such as generating a docker image set up an application load balancer and the ECS services.
+The TiTiler [repo](https://github.com/developmentseed/titiler) has an example of [aws cdk](https://aws.amazon.com/cdk/) code to deploy TiTiler on ECS.
+
+It will handle tasks such as generating a docker image set up an application load balancer and the ECS services.
 
 
 1. Instal cdk and set up CDK in your AWS account - Only need once per account
