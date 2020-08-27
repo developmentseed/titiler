@@ -1,7 +1,6 @@
 """titiler app."""
 
 from . import settings, version
-from .db.memcache import CacheLayer
 from .endpoints import cog, mosaic, stac, tms
 from .errors import DEFAULT_STATUS_CODES, add_exception_handlers
 
@@ -10,12 +9,6 @@ from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.gzip import GZipMiddleware
 from starlette.requests import Request
-
-if settings.MEMCACHE_HOST and not settings.DISABLE_CACHE:
-    cache = CacheLayer.create_from_env()
-else:
-    cache = None
-
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -56,16 +49,6 @@ async def header_middleware(request: Request, call_next):
         and response.status_code < 500
     ):
         response.headers["Cache-Control"] = settings.DEFAULT_CACHECONTROL
-    return response
-
-
-@app.middleware("http")
-async def cache_middleware(request: Request, call_next):
-    """Add cache layer."""
-    request.state.cache = cache
-    response = await call_next(request)
-    if cache:
-        request.state.cache.client.disconnect_all()
     return response
 
 

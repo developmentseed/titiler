@@ -35,7 +35,6 @@ This project is the descendant of [https://github.com/developmentseed/cogeo-tile
 - SpatioTemporal Asset Catalog support
 - MosaicJSON support
 - OGC WMTS support
-- Caching layer for tiles (Optional)
 - AWS Lambda / ECS deployement options
 
 ## Installation

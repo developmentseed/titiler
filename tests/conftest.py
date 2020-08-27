@@ -16,7 +16,6 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), "fixtures")
 @pytest.fixture(autouse=True)
 def app(monkeypatch) -> TestClient:
     """Make sure we use monkeypatch env."""
-    monkeypatch.setenv("DISABLE_CACHE", "YESPLEASE")
     monkeypatch.setenv("AWS_ACCESS_KEY_ID", "jqt")
     monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "rde")
     monkeypatch.setenv("AWS_DEFAULT_REGION", "us-west-2")

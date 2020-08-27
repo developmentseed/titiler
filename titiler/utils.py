@@ -1,4 +1,4 @@
-"""titiler.api.utils."""
+"""TiTiler utility functions."""
 
 import hashlib
 import json
@@ -14,19 +14,8 @@ from rio_color.utils import scale_dtype, to_math_type
 from rio_tiler.profiles import img_profiles
 from rio_tiler.utils import _chunks, linear_rescale, render
 
-from .db.memcache import CacheLayer
 from .ressources.common import drivers
 from .ressources.enums import ImageType
-
-from starlette.requests import Request
-
-
-def get_cache(request: Request) -> Optional[CacheLayer]:
-    """Get Memcached Layer."""
-    try:
-        return request.state.cache
-    except AttributeError:
-        return None
 
 
 def get_hash(**kwargs: Any) -> str:

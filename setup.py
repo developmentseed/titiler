@@ -9,7 +9,6 @@ inst_reqs = [
     "email-validator",
     "fastapi==0.60.1",
     "jinja2",
-    "python-binary-memcached",
     "rio-color",
     "rio-tiler>=2.0b8",
     "rio-cogeo~=2.0a5",
