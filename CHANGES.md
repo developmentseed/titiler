@@ -23,6 +23,26 @@ stac = TilerFactory(reader=STACReader, add_asset_deps=True, router_prefix="stac"
 app.include_router(cog.router, prefix="/stac", tags=["Cloud Optimized GeoTIFF"])
 ```
 
+### Readers / TileMatrixSets
+
+The tiler factory will automatically fallback to WebMercator TMS if the `Reader` doesn't support TMS.
+
+```python
+from rio_tiler_crs import COGReader as COGReaderWithTMS
+from rio_tiler.io import COGReader as COGReaderNoTMS
+
+from titiler.endpoints import factory
+from titiler.dependencies import WebMercatorTMSParams, TMSParams
+
+app = factory.TilerFactory(reader=COGReaderWithTMS)
+assert app.reader_supports_tms
+assert app.tms_dependency == TMSParams
+
+app = factory.TilerFactory(reader=COGReaderNoTMS)
+assert not app.reader_supports_tms
+assert app.tms_dependency == WebMercatorTMSParams
+```
+
 ### Other changes
 
 * add mosaic support  (#17 author @geospatial-jeff)

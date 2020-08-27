@@ -1,6 +1,7 @@
 """TiTiler Router factories."""
 
 import abc
+import inspect
 import os
 from dataclasses import dataclass, field
 from typing import Callable, Dict, List, Optional, Type, Union
@@ -21,11 +22,11 @@ from ..dependencies import (
     DefaultDependency,
     ImageParams,
     MetadataParams,
-    MosaicTMSParams,
     PathParams,
     PointParams,
     TileParams,
     TMSParams,
+    WebMercatorTMSParams,
 )
 from ..errors import BadRequestError, TileNotFoundError
 from ..models.cog import cogBounds, cogInfo, cogMetadata
@@ -78,6 +79,13 @@ class BaseFactory(metaclass=abc.ABCMeta):
 
     def __post_init__(self):
         """Post Init: register route and configure specific options."""
+        self.reader_supports_tms = (
+            True if inspect.signature(self.reader).parameters.get("tms") else False
+        )
+        # If the reader doesn't support TileMatrixSet we fallback to only WebMercator TMS
+        if not self.reader_supports_tms:
+            self.tms_dependency = WebMercatorTMSParams
+
         self.options = AssetsParams if self.add_asset_deps else DefaultDependency
 
         if self.router_prefix:
@@ -274,7 +282,12 @@ class TilerFactory(BaseFactory):
 
             with utils.Timer() as t:
                 reader = src_path.reader or self.reader
-                with reader(src_path.url, tms=tms, **self.reader_options) as src_dst:
+                reader_options = (
+                    {**self.reader_options, "tms": tms}
+                    if self.reader_supports_tms
+                    else self.reader_options
+                )
+                with reader(src_path.url, **reader_options) as src_dst:
                     tile, mask = src_dst.tile(
                         x,
                         y,
@@ -381,7 +394,12 @@ class TilerFactory(BaseFactory):
             tiles_url += f"?{qs}"
 
             reader = src_path.reader or self.reader
-            with reader(src_path.url, tms=tms, **self.reader_options) as src_dst:
+            reader_options = (
+                {**self.reader_options, "tms": tms}
+                if self.reader_supports_tms
+                else self.reader_options
+            )
+            with reader(src_path.url, **reader_options) as src_dst:
                 center = list(src_dst.center)
                 if minzoom:
                     center[-1] = minzoom
@@ -445,7 +463,12 @@ class TilerFactory(BaseFactory):
             tiles_endpoint += f"?{qs}"
 
             reader = src_path.reader or self.reader
-            with reader(src_path.url, tms=tms, **self.reader_options) as src_dst:
+            reader_options = (
+                {**self.reader_options, "tms": tms}
+                if self.reader_supports_tms
+                else self.reader_options
+            )
+            with reader(src_path.url, **reader_options) as src_dst:
                 bounds = src_dst.bounds
                 minzoom = minzoom if minzoom is not None else src_dst.minzoom
                 maxzoom = maxzoom if maxzoom is not None else src_dst.maxzoom
@@ -673,17 +696,14 @@ class MosaicTilerFactory(BaseFactory):
     reader: BaseBackend = field(default=MosaicBackend)
     dataset_reader: BaseReader = field(default=COGReader)
 
-    tms_dependency: Callable = field(default=MosaicTMSParams)
+    # BaseBackend does not support other TMS than WebMercator
+    tms_dependency: Callable = field(default=WebMercatorTMSParams)
 
     # Add/Remove some endpoints
     add_create: bool = True
     add_update: bool = True
 
     add_asset_deps: bool = True  # We add if by default
-
-    def __post_init__(self):
-        """Post Init: inherit post init from the Parent class."""
-        super().__post_init__()
 
     def register_routes(self):
         """
@@ -868,12 +888,18 @@ class MosaicTilerFactory(BaseFactory):
 
             with utils.Timer() as t:
                 reader = src_path.reader or self.dataset_reader
-                reader_options = {**self.reader_options, "tms": tms}
+                # Mosaic BaseBackend do not support TMS other than WebMercator
+                # so we suppose the dataset_reader is also using WebMercator as fallback
+                # reader_options = (
+                #   {**self.reader_options, "tms": tms}
+                #   if self.reader_supports_tms
+                #   else self.reader_options
+                # )
 
                 threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
 
                 with self.reader(
-                    src_path.url, reader=reader, reader_options=reader_options
+                    src_path.url, reader=reader, reader_options=self.reader_options
                 ) as src_dst:
                     (data, mask), assets_used = src_dst.tile(
                         x,
@@ -987,7 +1013,7 @@ class MosaicTilerFactory(BaseFactory):
             tiles_url = request.url_for(f"{self.router_prefix}tile", **kwargs)
             tiles_url += f"?{qs}"
 
-            with self.reader(src_path.url,) as src_dst:
+            with self.reader(src_path.url) as src_dst:
                 center = list(src_dst.center)
                 if minzoom:
                     center[-1] = minzoom
