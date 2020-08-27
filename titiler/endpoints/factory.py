@@ -16,7 +16,6 @@ from rio_tiler.io import BaseReader
 from rio_tiler_crs import COGReader
 
 from .. import utils
-from ..db.memcache import CacheLayer
 from ..dependencies import (
     AssetsParams,
     DefaultDependency,
@@ -27,7 +26,6 @@ from ..dependencies import (
     PointParams,
     TileParams,
     TMSParams,
-    request_hash,
 )
 from ..errors import BadRequestError, TileNotFoundError
 from ..models.cog import cogBounds, cogInfo, cogMetadata
@@ -267,8 +265,6 @@ class TilerFactory(BaseFactory):
             src_path=Depends(self.path_dependency),
             params=Depends(self.tiles_dependency),
             options=Depends(self.options),
-            cache_client: CacheLayer = Depends(utils.get_cache),
-            request_id: str = Depends(request_hash),
         ):
             """Create map tile from a dataset."""
             timings = []
@@ -276,63 +272,48 @@ class TilerFactory(BaseFactory):
 
             tilesize = scale * 256
 
-            content = None
-            if cache_client:
-                try:
-                    content, ext = cache_client.get_image_from_cache(request_id)
-                    format = ImageType[ext]
-                    headers["X-Cache"] = "HIT"
-                except Exception:
-                    content = None
-
-            if not content:
-                with utils.Timer() as t:
-                    reader = src_path.reader or self.reader
-                    with reader(
-                        src_path.url, tms=tms, **self.reader_options
-                    ) as src_dst:
-                        tile, mask = src_dst.tile(
-                            x,
-                            y,
-                            z,
-                            tilesize=tilesize,
-                            indexes=params.indexes,
-                            expression=params.expression,
-                            nodata=params.nodata,
-                            resampling_method=params.resampling_method.name,
-                            **options.kwargs,
-                        )
-                        colormap = params.colormap or getattr(src_dst, "colormap", None)
-
-                timings.append(("Read", t.elapsed))
-
-                if not format:
-                    format = ImageType.jpg if mask.all() else ImageType.png
-
-                with utils.Timer() as t:
-                    tile = utils.postprocess(
-                        tile,
-                        mask,
-                        rescale=params.rescale,
-                        color_formula=params.color_formula,
+            with utils.Timer() as t:
+                reader = src_path.reader or self.reader
+                with reader(src_path.url, tms=tms, **self.reader_options) as src_dst:
+                    tile, mask = src_dst.tile(
+                        x,
+                        y,
+                        z,
+                        tilesize=tilesize,
+                        indexes=params.indexes,
+                        expression=params.expression,
+                        nodata=params.nodata,
+                        resampling_method=params.resampling_method.name,
+                        **options.kwargs,
                     )
-                timings.append(("Post-process", t.elapsed))
+                    colormap = params.colormap or getattr(src_dst, "colormap", None)
 
-                bounds = tms.xy_bounds(x, y, z)
-                dst_transform = from_bounds(*bounds, tilesize, tilesize)
-                with utils.Timer() as t:
-                    content = utils.reformat(
-                        tile,
-                        mask,
-                        format,
-                        colormap=colormap,
-                        transform=dst_transform,
-                        crs=tms.crs,
-                    )
-                timings.append(("Format", t.elapsed))
+            timings.append(("Read", t.elapsed))
 
-                if cache_client and content:
-                    cache_client.set_image_cache(request_id, (content, format.value))
+            if not format:
+                format = ImageType.jpg if mask.all() else ImageType.png
+
+            with utils.Timer() as t:
+                tile = utils.postprocess(
+                    tile,
+                    mask,
+                    rescale=params.rescale,
+                    color_formula=params.color_formula,
+                )
+            timings.append(("Post-process", t.elapsed))
+
+            bounds = tms.xy_bounds(x, y, z)
+            dst_transform = from_bounds(*bounds, tilesize, tilesize)
+            with utils.Timer() as t:
+                content = utils.reformat(
+                    tile,
+                    mask,
+                    format,
+                    colormap=colormap,
+                    transform=dst_transform,
+                    crs=tms.crs,
+                )
+            timings.append(("Format", t.elapsed))
 
             if timings:
                 headers["X-Server-Timings"] = "; ".join(
@@ -878,8 +859,6 @@ class MosaicTilerFactory(BaseFactory):
             pixel_selection: PixelSelectionMethod = Query(
                 PixelSelectionMethod.first, description="Pixel selection method."
             ),
-            cache_client: CacheLayer = Depends(utils.get_cache),
-            request_id: str = Depends(request_hash),
         ):
             """Create map tile from a COG."""
             timings = []
@@ -887,71 +866,58 @@ class MosaicTilerFactory(BaseFactory):
 
             tilesize = scale * 256
 
-            content = None
-            if cache_client:
-                try:
-                    content, ext = cache_client.get_image_from_cache(request_id)
-                    format = ImageType[ext]
-                    headers["X-Cache"] = "HIT"
-                except Exception:
-                    content = None
+            with utils.Timer() as t:
+                reader = src_path.reader or self.dataset_reader
+                reader_options = {**self.reader_options, "tms": tms}
 
-            if not content:
-                with utils.Timer() as t:
-                    reader = src_path.reader or self.dataset_reader
-                    reader_options = {**self.reader_options, "tms": tms}
+                threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
 
-                    threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
-
-                    with self.reader(
-                        src_path.url, reader=reader, reader_options=reader_options
-                    ) as src_dst:
-                        (data, mask), assets_used = src_dst.tile(
-                            x,
-                            y,
-                            z,
-                            pixel_selection=pixel_selection.method(),
-                            threads=threads,
-                            tilesize=tilesize,
-                            indexes=params.indexes,
-                            expression=params.expression,
-                            nodata=params.nodata,
-                            resampling_method=params.resampling_method.name,
-                            **options.kwargs,
-                        )
-
-                timings.append(("Read-tile", t.elapsed))
-
-                if data is None:
-                    raise TileNotFoundError(f"Tile {z}/{x}/{y} was not found")
-
-                if not format:
-                    format = ImageType.jpg if mask.all() else ImageType.png
-
-                with utils.Timer() as t:
-                    data = utils.postprocess(
-                        data,
-                        mask,
-                        rescale=params.rescale,
-                        color_formula=params.color_formula,
+                with self.reader(
+                    src_path.url, reader=reader, reader_options=reader_options
+                ) as src_dst:
+                    (data, mask), assets_used = src_dst.tile(
+                        x,
+                        y,
+                        z,
+                        pixel_selection=pixel_selection.method(),
+                        threads=threads,
+                        tilesize=tilesize,
+                        indexes=params.indexes,
+                        expression=params.expression,
+                        nodata=params.nodata,
+                        resampling_method=params.resampling_method.name,
+                        **options.kwargs,
                     )
-                timings.append(("Post-process", t.elapsed))
 
-                bounds = tms.xy_bounds(x, y, z)
-                dst_transform = from_bounds(*bounds, tilesize, tilesize)
-                with utils.Timer() as t:
-                    content = utils.reformat(
-                        data,
-                        mask,
-                        format,
-                        colormap=params.colormap,
-                        transform=dst_transform,
-                        crs=tms.crs,
-                    )
-                timings.append(("Format", t.elapsed))
+            timings.append(("Read-tile", t.elapsed))
 
-                if cache_client and content:
-                    cache_client.set_image_cache(request_id, (content, format.value))
+            if data is None:
+                raise TileNotFoundError(f"Tile {z}/{x}/{y} was not found")
+
+            if not format:
+                format = ImageType.jpg if mask.all() else ImageType.png
+
+            with utils.Timer() as t:
+                data = utils.postprocess(
+                    data,
+                    mask,
+                    rescale=params.rescale,
+                    color_formula=params.color_formula,
+                )
+            timings.append(("Post-process", t.elapsed))
+
+            bounds = tms.xy_bounds(x, y, z)
+            dst_transform = from_bounds(*bounds, tilesize, tilesize)
+            with utils.Timer() as t:
+                content = utils.reformat(
+                    data,
+                    mask,
+                    format,
+                    colormap=params.colormap,
+                    transform=dst_transform,
+                    crs=tms.crs,
+                )
+            timings.append(("Format", t.elapsed))
 
             if timings:
                 headers["X-Server-Timings"] = "; ".join(

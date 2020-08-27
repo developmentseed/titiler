@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 from pydantic import BaseModel, Field
 
-from titiler.ressources.enums import NodataTypes
+from ..ressources.enums import NodataTypes
 
 NumType = Union[float, int]
 BBox = Tuple[NumType, NumType, NumType, NumType]
