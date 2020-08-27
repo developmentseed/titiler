@@ -14,20 +14,18 @@ def test_TilerFactory(set_env):
     )
     from titiler.endpoints import factory
 
-    app = factory.TilerFactory(reader=COGReaderWithTMS)
+    app = factory.TMSTilerFactory(reader=COGReaderWithTMS)
     assert len(app.router.routes) == 19
 
-    assert app.reader_supports_tms
     assert app.tms_dependency == TMSParams
     assert app.options == DefaultDependency
     assert not app.router_prefix
 
     app = factory.TilerFactory(reader=COGReaderNoTMS)
-    assert not app.reader_supports_tms
     assert app.tms_dependency == WebMercatorTMSParams
 
     app = factory.TilerFactory(
-        reader=COGReaderWithTMS,
+        reader=COGReaderNoTMS,
         add_asset_deps=True,
         router_prefix="cog",
         add_preview=False,

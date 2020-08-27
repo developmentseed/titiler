@@ -1,7 +1,6 @@
 """TiTiler Router factories."""
 
 import abc
-import inspect
 import os
 from dataclasses import dataclass, field
 from typing import Callable, Dict, List, Optional, Type, Union
@@ -13,8 +12,8 @@ from cogeo_mosaic.mosaic import MosaicJSON
 from cogeo_mosaic.utils import get_footprints
 from rasterio.transform import from_bounds
 from rio_tiler.constants import MAX_THREADS
-from rio_tiler.io import BaseReader
-from rio_tiler_crs import COGReader
+from rio_tiler.io import BaseReader, COGReader, MultiBaseReader
+from rio_tiler_crs import COGReader as TMSCOGReader
 
 from .. import utils
 from ..dependencies import (
@@ -50,23 +49,26 @@ from starlette.templating import Jinja2Templates
 template_dir = pkg_resources.resource_filename("titiler", "templates")
 templates = Jinja2Templates(directory=template_dir)
 
+default_readers_type = Union[Type[BaseReader], Type[MultiBaseReader]]
+
 
 # ref: https://github.com/python/mypy/issues/5374
 @dataclass  # type: ignore
 class BaseFactory(metaclass=abc.ABCMeta):
     """BaseTiler Factory."""
 
-    reader: Type[BaseReader] = COGReader
+    reader: default_readers_type = field(default=COGReader)
     reader_options: Dict = field(default_factory=dict)
 
     # FastAPI router
     router: APIRouter = field(default_factory=APIRouter)
 
     # Endpoint Dependencies
-    tms_dependency: Callable = field(default=TMSParams)
     path_dependency: Type[PathParams] = field(default=PathParams)
     tiles_dependency: Type[TileParams] = field(default=TileParams)
     point_dependency: Type[PointParams] = field(default=PointParams)
+
+    tms_dependency: Callable = WebMercatorTMSParams
 
     # Add `assets` options in endpoint
     add_asset_deps: bool = False
@@ -79,13 +81,6 @@ class BaseFactory(metaclass=abc.ABCMeta):
 
     def __post_init__(self):
         """Post Init: register route and configure specific options."""
-        self.reader_supports_tms = (
-            True if inspect.signature(self.reader).parameters.get("tms") else False
-        )
-        # If the reader doesn't support TileMatrixSet we fallback to only WebMercator TMS
-        if not self.reader_supports_tms:
-            self.tms_dependency = WebMercatorTMSParams
-
         self.options = AssetsParams if self.add_asset_deps else DefaultDependency
 
         if self.router_prefix:
@@ -282,12 +277,7 @@ class TilerFactory(BaseFactory):
 
             with utils.Timer() as t:
                 reader = src_path.reader or self.reader
-                reader_options = (
-                    {**self.reader_options, "tms": tms}
-                    if self.reader_supports_tms
-                    else self.reader_options
-                )
-                with reader(src_path.url, **reader_options) as src_dst:
+                with reader(src_path.url, **self.reader_options) as src_dst:
                     tile, mask = src_dst.tile(
                         x,
                         y,
@@ -394,12 +384,7 @@ class TilerFactory(BaseFactory):
             tiles_url += f"?{qs}"
 
             reader = src_path.reader or self.reader
-            reader_options = (
-                {**self.reader_options, "tms": tms}
-                if self.reader_supports_tms
-                else self.reader_options
-            )
-            with reader(src_path.url, **reader_options) as src_dst:
+            with reader(src_path.url, **self.reader_options) as src_dst:
                 center = list(src_dst.center)
                 if minzoom:
                     center[-1] = minzoom
@@ -463,12 +448,7 @@ class TilerFactory(BaseFactory):
             tiles_endpoint += f"?{qs}"
 
             reader = src_path.reader or self.reader
-            reader_options = (
-                {**self.reader_options, "tms": tms}
-                if self.reader_supports_tms
-                else self.reader_options
-            )
-            with reader(src_path.url, **reader_options) as src_dst:
+            with reader(src_path.url, **self.reader_options) as src_dst:
                 bounds = src_dst.bounds
                 minzoom = minzoom if minzoom is not None else src_dst.minzoom
                 maxzoom = maxzoom if maxzoom is not None else src_dst.maxzoom
@@ -685,6 +665,271 @@ class TilerFactory(BaseFactory):
 
 
 @dataclass
+class TMSTilerFactory(TilerFactory):
+    """Tiler Factory with TMS."""
+
+    reader: default_readers_type = field(default=TMSCOGReader)
+    tms_dependency: Callable = TMSParams
+
+    ############################################################################
+    # /tiles
+    ############################################################################
+    def _tile(self):  # noqa: C901
+        tile_endpoint_params = img_endpoint_params.copy()
+        tile_endpoint_params["name"] = f"{self.router_prefix}tile"
+
+        @self.router.get(r"/tiles/{z}/{x}/{y}", **tile_endpoint_params)
+        @self.router.get(r"/tiles/{z}/{x}/{y}.{format}", **tile_endpoint_params)
+        @self.router.get(r"/tiles/{z}/{x}/{y}@{scale}x", **tile_endpoint_params)
+        @self.router.get(
+            r"/tiles/{z}/{x}/{y}@{scale}x.{format}", **tile_endpoint_params
+        )
+        @self.router.get(
+            r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}", **tile_endpoint_params
+        )
+        @self.router.get(
+            r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}.{format}", **tile_endpoint_params
+        )
+        @self.router.get(
+            r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x", **tile_endpoint_params
+        )
+        @self.router.get(
+            r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x.{format}",
+            **tile_endpoint_params,
+        )
+        def tile(
+            z: int = Path(..., ge=0, le=30, description="Mercator tiles's zoom level"),
+            x: int = Path(..., description="Mercator tiles's column"),
+            y: int = Path(..., description="Mercator tiles's row"),
+            tms=Depends(self.tms_dependency),
+            scale: int = Query(
+                1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
+            ),
+            format: ImageType = Query(
+                None, description="Output image type. Default is auto."
+            ),
+            src_path=Depends(self.path_dependency),
+            params=Depends(self.tiles_dependency),
+            options=Depends(self.options),
+        ):
+            """Create map tile from a dataset."""
+            timings = []
+            headers: Dict[str, str] = {}
+
+            tilesize = scale * 256
+
+            with utils.Timer() as t:
+                reader = src_path.reader or self.reader
+                with reader(src_path.url, tms=tms, **self.reader_options) as src_dst:
+                    tile, mask = src_dst.tile(
+                        x,
+                        y,
+                        z,
+                        tilesize=tilesize,
+                        indexes=params.indexes,
+                        expression=params.expression,
+                        nodata=params.nodata,
+                        resampling_method=params.resampling_method.name,
+                        **options.kwargs,
+                    )
+                    colormap = params.colormap or getattr(src_dst, "colormap", None)
+
+            timings.append(("Read", t.elapsed))
+
+            if not format:
+                format = ImageType.jpg if mask.all() else ImageType.png
+
+            with utils.Timer() as t:
+                tile = utils.postprocess(
+                    tile,
+                    mask,
+                    rescale=params.rescale,
+                    color_formula=params.color_formula,
+                )
+            timings.append(("Post-process", t.elapsed))
+
+            bounds = tms.xy_bounds(x, y, z)
+            dst_transform = from_bounds(*bounds, tilesize, tilesize)
+            with utils.Timer() as t:
+                content = utils.reformat(
+                    tile,
+                    mask,
+                    format,
+                    colormap=colormap,
+                    transform=dst_transform,
+                    crs=tms.crs,
+                )
+            timings.append(("Format", t.elapsed))
+
+            if timings:
+                headers["X-Server-Timings"] = "; ".join(
+                    [
+                        "{} - {:0.2f}".format(name, time * 1000)
+                        for (name, time) in timings
+                    ]
+                )
+
+            return Response(
+                content, media_type=ImageMimeTypes[format.value].value, headers=headers,
+            )
+
+        @self.router.get(
+            "/tilejson.json",
+            response_model=TileJSON,
+            responses={200: {"description": "Return a tilejson"}},
+            response_model_exclude_none=True,
+            name=f"{self.router_prefix}tilejson",
+        )
+        @self.router.get(
+            "/{TileMatrixSetId}/tilejson.json",
+            response_model=TileJSON,
+            responses={200: {"description": "Return a tilejson"}},
+            response_model_exclude_none=True,
+            name=f"{self.router_prefix}tilejson",
+        )
+        def tilejson(
+            request: Request,
+            tms=Depends(self.tms_dependency),
+            src_path=Depends(self.path_dependency),
+            tile_format: Optional[ImageType] = Query(
+                None, description="Output image type. Default is auto."
+            ),
+            tile_scale: int = Query(
+                1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
+            ),
+            minzoom: Optional[int] = Query(
+                None, description="Overwrite default minzoom."
+            ),
+            maxzoom: Optional[int] = Query(
+                None, description="Overwrite default maxzoom."
+            ),
+        ):
+            """Return TileJSON document for a dataset."""
+            kwargs = {
+                "z": "{z}",
+                "x": "{x}",
+                "y": "{y}",
+                "scale": tile_scale,
+                "TileMatrixSetId": tms.identifier,
+            }
+            if tile_format:
+                kwargs["format"] = tile_format.value
+
+            q = dict(request.query_params)
+            q.pop("TileMatrixSetId", None)
+            q.pop("tile_format", None)
+            q.pop("tile_scale", None)
+            q.pop("minzoom", None)
+            q.pop("maxzoom", None)
+            qs = urlencode(list(q.items()))
+
+            tiles_url = request.url_for(f"{self.router_prefix}tile", **kwargs)
+            tiles_url += f"?{qs}"
+
+            reader = src_path.reader or self.reader
+            with reader(src_path.url, tms=tms, **self.reader_options) as src_dst:
+                center = list(src_dst.center)
+                if minzoom:
+                    center[-1] = minzoom
+                tjson = {
+                    "bounds": src_dst.bounds,
+                    "center": tuple(center),
+                    "minzoom": minzoom if minzoom is not None else src_dst.minzoom,
+                    "maxzoom": maxzoom if maxzoom is not None else src_dst.maxzoom,
+                    "name": os.path.basename(src_path.url),
+                    "tiles": [tiles_url],
+                }
+
+            return tjson
+
+        @self.router.get(
+            "/WMTSCapabilities.xml",
+            response_class=XMLResponse,
+            name=f"{self.router_prefix}wmts",
+        )
+        @self.router.get(
+            "/{TileMatrixSetId}/WMTSCapabilities.xml",
+            response_class=XMLResponse,
+            name=f"{self.router_prefix}wmts",
+        )
+        def wmts(
+            request: Request,
+            tms=Depends(self.tms_dependency),
+            src_path=Depends(self.path_dependency),
+            tile_format: ImageType = Query(
+                ImageType.png, description="Output image type. Default is png."
+            ),
+            tile_scale: int = Query(
+                1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
+            ),
+            minzoom: Optional[int] = Query(
+                None, description="Overwrite default minzoom."
+            ),
+            maxzoom: Optional[int] = Query(
+                None, description="Overwrite default maxzoom."
+            ),
+        ):
+            """OGC WMTS endpoint."""
+            kwargs = {
+                "z": "{TileMatrix}",
+                "x": "{TileCol}",
+                "y": "{TileRow}",
+                "scale": tile_scale,
+                "format": tile_format.value,
+                "TileMatrixSetId": tms.identifier,
+            }
+            tiles_endpoint = request.url_for(f"{self.router_prefix}tile", **kwargs)
+            q = dict(request.query_params)
+            q.pop("TileMatrixSetId", None)
+            q.pop("tile_format", None)
+            q.pop("tile_scale", None)
+            q.pop("minzoom", None)
+            q.pop("maxzoom", None)
+            q.pop("SERVICE", None)
+            q.pop("REQUEST", None)
+            qs = urlencode(list(q.items()))
+            tiles_endpoint += f"?{qs}"
+
+            reader = src_path.reader or self.reader
+            with reader(src_path.url, tms=tms, **self.reader_options) as src_dst:
+                bounds = src_dst.bounds
+                minzoom = minzoom if minzoom is not None else src_dst.minzoom
+                maxzoom = maxzoom if maxzoom is not None else src_dst.maxzoom
+
+            media_type = ImageMimeTypes[tile_format.value].value
+
+            tileMatrix = []
+            for zoom in range(minzoom, maxzoom + 1):
+                matrix = tms.matrix(zoom)
+                tm = f"""
+                        <TileMatrix>
+                            <ows:Identifier>{matrix.identifier}</ows:Identifier>
+                            <ScaleDenominator>{matrix.scaleDenominator}</ScaleDenominator>
+                            <TopLeftCorner>{matrix.topLeftCorner[0]} {matrix.topLeftCorner[1]}</TopLeftCorner>
+                            <TileWidth>{matrix.tileWidth}</TileWidth>
+                            <TileHeight>{matrix.tileHeight}</TileHeight>
+                            <MatrixWidth>{matrix.matrixWidth}</MatrixWidth>
+                            <MatrixHeight>{matrix.matrixHeight}</MatrixHeight>
+                        </TileMatrix>"""
+                tileMatrix.append(tm)
+
+            return templates.TemplateResponse(
+                "wmts.xml",
+                {
+                    "request": request,
+                    "tiles_endpoint": tiles_endpoint,
+                    "bounds": bounds,
+                    "tileMatrix": tileMatrix,
+                    "tms": tms,
+                    "title": "Cloud Optimized GeoTIFF",
+                    "layer_name": "cogeo",
+                    "media_type": media_type,
+                },
+                media_type=MimeTypes.xml.value,
+            )
+
+
+@dataclass
 class MosaicTilerFactory(BaseFactory):
     """
     MosaicTiler Factory.
@@ -888,14 +1133,6 @@ class MosaicTilerFactory(BaseFactory):
 
             with utils.Timer() as t:
                 reader = src_path.reader or self.dataset_reader
-                # Mosaic BaseBackend do not support TMS other than WebMercator
-                # so we suppose the dataset_reader is also using WebMercator as fallback
-                # reader_options = (
-                #   {**self.reader_options, "tms": tms}
-                #   if self.reader_supports_tms
-                #   else self.reader_options
-                # )
-
                 threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
 
                 with self.reader(

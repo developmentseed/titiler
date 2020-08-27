@@ -3,7 +3,7 @@
 import pkg_resources
 from rio_tiler_crs import STACReader
 
-from .factory import TilerFactory
+from .factory import TMSTilerFactory
 
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
@@ -13,7 +13,7 @@ template_dir = pkg_resources.resource_filename("titiler", "templates")
 templates = Jinja2Templates(directory=template_dir)
 
 # Create Router using Tiler Factory
-stac = TilerFactory(reader=STACReader, add_asset_deps=True, router_prefix="stac")
+stac = TMSTilerFactory(reader=STACReader, add_asset_deps=True, router_prefix="stac")
 
 
 @stac.router.get("/viewer", response_class=HTMLResponse)

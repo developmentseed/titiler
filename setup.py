@@ -36,7 +36,7 @@ extra_reqs = {
 
 setup(
     name="titiler",
-    version="3.0.0",
+    version="0.1.0",
     description=u"",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -47,6 +47,7 @@ setup(
         "License :: OSI Approved :: BSD License",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
     ],
     keywords="COG STAC MosaicJSON FastAPI Serverless",
     author=u"Vincent Sarago",
