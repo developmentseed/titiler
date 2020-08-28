@@ -155,7 +155,7 @@ class TilerFactory(BaseFactory):
 
         @self.router.get(
             "/info",
-            response_model=Union[List[str], Dict[str, cogInfo]],
+            response_model=Union[List[str], Dict[str, cogInfo], cogInfo],
             response_model_exclude={"minzoom", "maxzoom", "center"},
             response_model_exclude_none=True,
             responses={200: {"description": "Return dataset's basic info."}},
@@ -215,16 +215,18 @@ class TilerFactory(BaseFactory):
             """Return metadata."""
             reader = src_path.reader or self.reader
             with reader(src_path.url, **self.reader_options) as src_dst:
+                kwargs = options.kwargs.copy()
+                if params.nodata is not None:
+                    kwargs["nodata"] = params.nodata
                 info = src_dst.metadata(
                     params.pmin,
                     params.pmax,
-                    nodata=params.nodata,
                     indexes=params.indexes,
                     max_size=params.max_size,
                     hist_options=params.hist_options,
                     bounds=params.bounds,
                     resampling_method=params.resampling_method.name,
-                    **options.kwargs,
+                    **kwargs,
                 )
             return info
 
@@ -278,6 +280,9 @@ class TilerFactory(BaseFactory):
             with utils.Timer() as t:
                 reader = src_path.reader or self.reader
                 with reader(src_path.url, **self.reader_options) as src_dst:
+                    kwargs = options.kwargs.copy()
+                    if params.nodata is not None:
+                        kwargs["nodata"] = params.nodata
                     tile, mask = src_dst.tile(
                         x,
                         y,
@@ -285,9 +290,8 @@ class TilerFactory(BaseFactory):
                         tilesize=tilesize,
                         indexes=params.indexes,
                         expression=params.expression,
-                        nodata=params.nodata,
                         resampling_method=params.resampling_method.name,
-                        **options.kwargs,
+                        **kwargs,
                     )
                     colormap = params.colormap or getattr(src_dst, "colormap", None)
 
@@ -508,13 +512,15 @@ class TilerFactory(BaseFactory):
             with utils.Timer() as t:
                 reader = src_path.reader or self.reader
                 with reader(src_path.url, **self.reader_options) as src_dst:
+                    kwargs = options.kwargs.copy()
+                    if params.nodata is not None:
+                        kwargs["nodata"] = params.nodata
                     values = src_dst.point(
                         lon,
                         lat,
                         indexes=params.indexes,
                         expression=params.expression,
-                        nodata=params.nodata,
-                        **options.kwargs,
+                        **kwargs,
                     )
             timings.append(("Read", t.elapsed))
 
@@ -552,13 +558,15 @@ class TilerFactory(BaseFactory):
             with utils.Timer() as t:
                 reader = src_path.reader or self.reader
                 with reader(src_path.url, **self.reader_options) as src_dst:
+                    kwargs = options.kwargs.copy()
+                    if params.nodata is not None:
+                        kwargs["nodata"] = params.nodata
                     data, mask = src_dst.preview(
                         height=params.height,
                         width=params.width,
                         max_size=params.max_size,
                         indexes=params.indexes,
                         expression=params.expression,
-                        nodata=params.nodata,
                         resampling_method=params.resampling_method.name,
                         **options.kwargs,
                     )
@@ -621,6 +629,9 @@ class TilerFactory(BaseFactory):
             with utils.Timer() as t:
                 reader = src_path.reader or self.reader
                 with reader(src_path.url, **self.reader_options) as src_dst:
+                    kwargs = options.kwargs.copy()
+                    if params.nodata is not None:
+                        kwargs["nodata"] = params.nodata
                     data, mask = src_dst.part(
                         [minx, miny, maxx, maxy],
                         height=params.height,
@@ -628,9 +639,8 @@ class TilerFactory(BaseFactory):
                         max_size=params.max_size,
                         indexes=params.indexes,
                         expression=params.expression,
-                        nodata=params.nodata,
                         resampling_method=params.resampling_method.name,
-                        **options.kwargs,
+                        **kwargs,
                     )
                     colormap = params.colormap or getattr(src_dst, "colormap", None)
             timings.append(("Read", t.elapsed))
@@ -721,6 +731,9 @@ class TMSTilerFactory(TilerFactory):
             with utils.Timer() as t:
                 reader = src_path.reader or self.reader
                 with reader(src_path.url, tms=tms, **self.reader_options) as src_dst:
+                    kwargs = options.kwargs.copy()
+                    if params.nodata is not None:
+                        kwargs["nodata"] = params.nodata
                     tile, mask = src_dst.tile(
                         x,
                         y,
@@ -728,9 +741,8 @@ class TMSTilerFactory(TilerFactory):
                         tilesize=tilesize,
                         indexes=params.indexes,
                         expression=params.expression,
-                        nodata=params.nodata,
                         resampling_method=params.resampling_method.name,
-                        **options.kwargs,
+                        **kwargs,
                     )
                     colormap = params.colormap or getattr(src_dst, "colormap", None)
 
@@ -1138,6 +1150,9 @@ class MosaicTilerFactory(BaseFactory):
                 with self.reader(
                     src_path.url, reader=reader, reader_options=self.reader_options
                 ) as src_dst:
+                    kwargs = options.kwargs.copy()
+                    if params.nodata is not None:
+                        kwargs["nodata"] = params.nodata
                     (data, mask), assets_used = src_dst.tile(
                         x,
                         y,
@@ -1147,9 +1162,8 @@ class MosaicTilerFactory(BaseFactory):
                         tilesize=tilesize,
                         indexes=params.indexes,
                         expression=params.expression,
-                        nodata=params.nodata,
                         resampling_method=params.resampling_method.name,
-                        **options.kwargs,
+                        **kwargs,
                     )
 
             timings.append(("Read-tile", t.elapsed))
@@ -1376,14 +1390,16 @@ class MosaicTilerFactory(BaseFactory):
                 with self.reader(
                     src_path.url, reader=reader, reader_options=self.reader_options,
                 ) as src_dst:
+                    kwargs = options.kwargs.copy()
+                    if params.nodata is not None:
+                        kwargs["nodata"] = params.nodata
                     values = src_dst.point(
                         lon,
                         lat,
                         threads=threads,
                         indexes=params.indexes,
                         expression=params.expression,
-                        nodata=params.nodata,
-                        **options.kwargs,
+                        **kwargs,
                     )
             timings.append(("Read", t.elapsed))
 

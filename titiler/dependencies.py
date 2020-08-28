@@ -225,9 +225,6 @@ class TileParams(CommonParams):
     color_map: Optional[ColorMapNames] = Query(
         None, description="rio-tiler's colormap name"
     )
-    resampling_method: ResamplingNames = Query(
-        ResamplingNames.nearest, description="Resampling method."  # type: ignore
-    )
     colormap: Optional[Dict[int, Tuple[int, int, int, int]]] = field(init=False)
 
     def __post_init__(self):
