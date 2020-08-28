@@ -42,11 +42,11 @@ ColorMapNames = Enum(  # type: ignore
 ResamplingNames = Enum(  # type: ignore
     "ResamplingNames", [(r.name, r.name) for r in Resampling]
 )
+WebMercatorTileMatrixSetName = Enum(  # type: ignore
+    "WebMercatorTileMatrixSetName", [("WebMercatorQuad", "WebMercatorQuad")]
+)
 TileMatrixSetNames = Enum(  # type: ignore
     "TileMatrixSetNames", [(a, a) for a in sorted(morecantile.tms.list())]
-)
-MosaicTileMatrixSetNames = Enum(  # type: ignore
-    "MosaicTileMatrixSetNames", [("WebMercatorQuad", "WebMercatorQuad")]
 )
 
 
@@ -55,9 +55,9 @@ async def request_hash(request: Request) -> str:
     return get_hash(**dict(request.query_params), **request.path_params)
 
 
-def TMSParams(
-    TileMatrixSetId: TileMatrixSetNames = Query(
-        TileMatrixSetNames.WebMercatorQuad,  # type: ignore
+def WebMercatorTMSParams(
+    TileMatrixSetId: WebMercatorTileMatrixSetName = Query(
+        WebMercatorTileMatrixSetName.WebMercatorQuad,  # type: ignore
         description="TileMatrixSet Name (default: 'WebMercatorQuad')",
     )
 ) -> morecantile.TileMatrixSet:
@@ -65,9 +65,9 @@ def TMSParams(
     return morecantile.tms.get(TileMatrixSetId.name)
 
 
-def MosaicTMSParams(
-    TileMatrixSetId: MosaicTileMatrixSetNames = Query(
-        MosaicTileMatrixSetNames.WebMercatorQuad,  # type: ignore
+def TMSParams(
+    TileMatrixSetId: TileMatrixSetNames = Query(
+        TileMatrixSetNames.WebMercatorQuad,  # type: ignore
         description="TileMatrixSet Name (default: 'WebMercatorQuad')",
     )
 ) -> morecantile.TileMatrixSet:
@@ -224,9 +224,6 @@ class TileParams(CommonParams):
     )
     color_map: Optional[ColorMapNames] = Query(
         None, description="rio-tiler's colormap name"
-    )
-    resampling_method: ResamplingNames = Query(
-        ResamplingNames.nearest, description="Resampling method."  # type: ignore
     )
     colormap: Optional[Dict[int, Tuple[int, int, int, int]]] = field(init=False)
 

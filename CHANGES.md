@@ -1,6 +1,6 @@
 # Release Notes
 
-## 0.0.1 (2020-08-27)
+## 0.1.0 (2020-08-27)
 
 **First release on pypi**
 
@@ -10,7 +10,7 @@ For this release we created new Tiler Factories class which handle creation of F
 
 ```python
 from titiler.endpoints.factory import TilerFactory
-from rio_tiler_crs import COGReader, STACReader
+from rio_tiler.io import COGReader, STACReader
 
 from fastapi import FastAPI
 
@@ -21,6 +21,34 @@ app.include_router(cog.router, tags=["Cloud Optimized GeoTIFF"])
 
 stac = TilerFactory(reader=STACReader, add_asset_deps=True, router_prefix="stac")
 app.include_router(cog.router, prefix="/stac", tags=["Cloud Optimized GeoTIFF"])
+```
+
+#### Readers / TileMatrixSets
+
+The `titiler.endpoints.factory.TilerFactory` class will create a tiler with `Web Mercator` as uniq supported Tile Matrix Set.
+
+For other TMS support, tiler needs to be created with `titiler.endpoints.factory.TMSTilerFactory` and with a TMS friendly reader (e.g `rio_tiler_crs.COGReader`).
+
+**Simple tiler with only Web Mercator support**
+```python
+from rio_tiler.io import COGReader
+
+from titiler.endpoints import factory
+from titiler.dependencies import WebMercatorTMSParams
+
+app = factory.TilerFactory(reader=COGReader)
+assert app.tms_dependency == WebMercatorTMSParams
+```
+
+**Tiler with more TMS support (from morecantile)**
+```python
+from rio_tiler_crs import COGReader
+
+from titiler.endpoints import factory
+from titiler.dependencies import TMSParams
+
+app = factory.TMSTilerFactory(reader=COGReader)
+assert app.tms_dependency == TMSParams
 ```
 
 ### Other changes
@@ -36,7 +64,9 @@ app.include_router(cog.router, prefix="/stac", tags=["Cloud Optimized GeoTIFF"])
 * Add 'X-Assets' in response headers for mosaic tiles (#51)
 * add cog validation via rio-cogeo (co-author with @geospatial-jeff, #37)
 
-### Breaking changes 
+### Breaking changes
+
+* default tiler to Web Mercator only
 * removed cache layer for tiles
 * updated html templates
 
