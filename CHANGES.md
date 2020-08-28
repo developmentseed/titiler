@@ -40,7 +40,7 @@ app = factory.TilerFactory(reader=COGReader)
 assert app.tms_dependency == WebMercatorTMSParams
 ```
 
-**tiler with more morecantile's TMS support**
+**Tiler with more TMS support (from morecantile)**
 ```python
 from rio_tiler_crs import COGReader
 
