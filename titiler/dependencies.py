@@ -116,12 +116,27 @@ class AssetsParams(DefaultDependency):
         title="Asset indexes",
         description="comma (',') delimited asset names (might not be an available options of some readers)",
     )
-    kwargs: dict = field(init=False, default_factory=dict)
 
     def __post_init__(self):
         """Post Init."""
         if self.assets is not None:
             self.kwargs["assets"] = self.assets.split(",")
+
+
+@dataclass
+class BandsParams(DefaultDependency):
+    """Create dataset Bands from args"""
+
+    bands: Optional[str] = Query(
+        None,
+        title="Bands indexes",
+        description="comma (',') delimited band names (might not be an available options of some readers)",
+    )
+
+    def __post_init__(self):
+        """Post Init."""
+        if self.bands is not None:
+            self.kwargs["bands"] = self.bands.split(",")
 
 
 @dataclass

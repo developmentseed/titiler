@@ -18,9 +18,6 @@ app = FastAPI()
 
 cog = TilerFactory()
 app.include_router(cog.router, tags=["Cloud Optimized GeoTIFF"])
-
-stac = TilerFactory(reader=STACReader, add_asset_deps=True, router_prefix="stac")
-app.include_router(cog.router, prefix="/stac", tags=["Cloud Optimized GeoTIFF"])
 ```
 
 #### Readers / TileMatrixSets
