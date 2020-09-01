@@ -10,6 +10,9 @@
   <a href="https://codecov.io/gh/developmentseed/titiler" target="_blank">
       <img src="https://codecov.io/gh/developmentseed/titiler/branch/master/graph/badge.svg" alt="Coverage">
   </a>
+  <a href="https://pypi.org/project/titiler" target="_blank">
+      <img src="https://img.shields.io/pypi/v/titiler?color=%2334D058&label=pypi%20package" alt="Package version">
+  </a>
   <a href="https://github.com/developmentseed/titiler/blob/master/LICENSE" target="_blank">
       <img src="https://img.shields.io/github/license/developmentseed/titiler.svg" alt="Downloads">
   </a>

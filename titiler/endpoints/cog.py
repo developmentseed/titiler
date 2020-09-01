@@ -5,7 +5,7 @@ from rio_cogeo.cogeo import cog_info as rio_cogeo_info
 from rio_tiler_crs import COGReader
 
 from ..dependencies import PathParams
-from ..models.cog import RioCogeoInfo
+from ..models.dataset import RioCogeoInfo
 from .factory import TMSTilerFactory
 
 from fastapi import Depends, Query

@@ -10,18 +10,19 @@ from ..ressources.enums import NodataTypes
 NumType = Union[float, int]
 BBox = Tuple[NumType, NumType, NumType, NumType]
 ColorTuple = Tuple[int, int, int, int]
+BandIdxType = Union[str, int]
 
 
-class cogBounds(BaseModel):
-    """Bounding box"""
+class Bounds(BaseModel):
+    """Dataset Bounding box"""
 
     bounds: BBox
 
 
-class cogInfo(cogBounds):
-    """COG Info."""
+class Info(Bounds):
+    """Dataset Info."""
 
-    band_metadata: List[Tuple[int, Dict[int, Any]]]
+    band_metadata: List[Tuple[int, Dict]]
     band_descriptions: List[Tuple[int, str]]
     dtype: str
     colorinterp: List[str]
@@ -47,10 +48,10 @@ class ImageStatistics(BaseModel):
     histogram: List[List[NumType]]
 
 
-class cogMetadata(cogInfo):
-    """COG metadata and statistics."""
+class Metadata(Info):
+    """Dataset metadata and statistics."""
 
-    statistics: Dict[int, ImageStatistics]
+    statistics: Dict[BandIdxType, ImageStatistics]
 
 
 class CogeoInfoIFD(BaseModel):
