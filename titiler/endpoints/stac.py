@@ -7,7 +7,7 @@ import pkg_resources
 from rio_tiler_crs import STACReader
 
 from ..dependencies import AssetsParams
-from ..models.cog import cogInfo, cogMetadata
+from ..models.dataset import Info, Metadata
 from .factory import TMSTilerFactory
 
 from fastapi import Depends
@@ -33,7 +33,7 @@ class STACTiler(TMSTilerFactory):
 
         @self.router.get(
             "/info",
-            response_model=Union[List[str], Dict[str, cogInfo]],
+            response_model=Union[List[str], Dict[str, Info]],
             response_model_exclude={"minzoom", "maxzoom", "center"},
             response_model_exclude_none=True,
             responses={200: {"description": "Return dataset's basic info."}},
@@ -58,7 +58,7 @@ class STACTiler(TMSTilerFactory):
 
         @self.router.get(
             "/metadata",
-            response_model=Dict[str, cogMetadata],
+            response_model=Dict[str, Metadata],
             response_model_exclude={"minzoom", "maxzoom", "center"},
             response_model_exclude_none=True,
             responses={200: {"description": "Return dataset's metadata."}},

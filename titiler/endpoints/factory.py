@@ -27,7 +27,7 @@ from ..dependencies import (
     WebMercatorTMSParams,
 )
 from ..errors import BadRequestError, TileNotFoundError
-from ..models.cog import cogBounds, cogInfo, cogMetadata
+from ..models.dataset import Bounds, Info, Metadata
 from ..models.mapbox import TileJSON
 from ..models.mosaic import CreateMosaicJSON, UpdateMosaicJSON, mosaicInfo
 from ..ressources.common import img_endpoint_params
@@ -134,7 +134,7 @@ class TilerFactory(BaseFactory):
 
         @self.router.get(
             "/bounds",
-            response_model=cogBounds,
+            response_model=Bounds,
             responses={200: {"description": "Return dataset's bounds."}},
             name=f"{self.router_prefix}bounds",
         )
@@ -152,7 +152,7 @@ class TilerFactory(BaseFactory):
 
         @self.router.get(
             "/info",
-            response_model=cogInfo,
+            response_model=Info,
             response_model_exclude={"minzoom", "maxzoom", "center"},
             response_model_exclude_none=True,
             responses={200: {"description": "Return dataset's basic info."}},
@@ -176,7 +176,7 @@ class TilerFactory(BaseFactory):
 
         @self.router.get(
             "/metadata",
-            response_model=cogMetadata,
+            response_model=Metadata,
             response_model_exclude={"minzoom", "maxzoom", "center"},
             response_model_exclude_none=True,
             responses={200: {"description": "Return dataset's metadata."}},
@@ -1047,7 +1047,7 @@ class MosaicTilerFactory(BaseFactory):
 
         @self.router.get(
             "/bounds",
-            response_model=cogBounds,
+            response_model=Bounds,
             responses={200: {"description": "Return the bounds of the MosaicJSON"}},
             name=f"{self.router_prefix}bounds",
         )
