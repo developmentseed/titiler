@@ -1,6 +1,6 @@
 # Release Notes
 
-## 0.1.0 (2020-08-27)
+## 0.1a.0 (2020-08-31)
 
 **First release on pypi**
 
