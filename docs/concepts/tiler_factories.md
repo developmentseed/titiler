@@ -1,6 +1,6 @@
 # Tiler Factories
 
-Tiler factories are helper functions that let you create a complete FastAPI router.
+Tiler factories are helper functions that let you create a customized FastAPI router.
 
 ```python
 from titiler.endpoints.factory import TilerFactory
@@ -58,10 +58,14 @@ placeholder
 placeholder
 
 
-### Custom Tiler: example of STAC Tiler
+### Custom Tiler: STAC Tiler
 
-Working with STAC is a good example why we could need a custom tiler. The default factories create endpoints that expect basic input like `indexes=1,2,3&resampling_method=nearest` but STAC needs more info.
-The STAC reader provided by rio-tiler and rio-tiler-crs needs to receive a `assets=` options to specify which STAC asset you want to read.
+While a STAC tiler is included in the default TiTiler application, it provides
+an illustrative example of why one might need a custom tiler. The default
+factories create endpoints that expect basic input like `indexes=[1, 2, 3]` and
+`resampling_method='nearest'` but STAC needs more info. The STAC reader provided
+by `rio-tiler` and `rio-tiler-crs` needs an `assets=` option to specify which
+STAC asset(s) you want to read.
 
 We can add additional dependencies to endpoint by using the `additional_dependency` options when creating the factory.
 

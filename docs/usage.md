@@ -3,7 +3,7 @@
 TiTiler comes with a default (complete) application with support of COG, STAC and MosaicJSON. You can start the application locally by doing:
 
 ```bash
-$ pip install titiler["server"]
+$ pip install titiler[server]
 $ uvicorn titiler.main:app --reload
 
 > INFO: Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
@@ -12,14 +12,14 @@ $ uvicorn titiler.main:app --reload
 
 Default endpoints documentation:
 
-* [/cog - Cloud Optimized GeoTIFF](endpoints/cog.md)
-* [/mosaicjson - MosaicJSON](endpoints/mosaic.md)
-* [/stac - Spatio Temporal Asset Catalog](endpoints/stac.md)
-* [/tms - TileMatrixSets](endpoints/tms.md)
+* [`/cog` - Cloud Optimized GeoTIFF](endpoints/cog.md)
+* [`/mosaicjson` - MosaicJSON](endpoints/mosaic.md)
+* [`/stac` - Spatio Temporal Asset Catalog](endpoints/stac.md)
+* [`/tms` - TileMatrixSets](endpoints/tms.md)
 
 # Create your own App
 
-TiTiler has been develloped so users can built their own app using only blocks they need. Using the [TilerFactories](concepts/tiler_factories.md), you can create lightweight application with only the endpoints you need.
+TiTiler has been developed so users can build their own app using only portions they need. Using [`TilerFactory`s](concepts/tiler_factories.md), you can create customized applications with only the endpoints you need.
 
 ```python
 from titiler.endpoints.factory import TilerFactory
@@ -42,4 +42,3 @@ add_exception_handlers(app, DEFAULT_STATUS_CODES)
 ```
 
 ![](img/custom_app.png)
-

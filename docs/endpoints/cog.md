@@ -17,9 +17,9 @@ app.include_router(cog.router, prefix="/cog", tags=["Cloud Optimized GeoTIFF"])
 
 - PathParams:
     - **TileMatrixSetId**: TileMatrixSet name, default is `WebMercatorQuad`. OPTIONAL
-    - **z**: Mercator tiles's zoom level.
-    - **x**: Mercator tiles's column.
-    - **y**: Mercator tiles's row.
+    - **z**: Mercator tile's zoom level.
+    - **x**: Mercator tile's column.
+    - **y**: Mercator tile's row.
     - **scale**: Tile size scale, default is set to 1 (256x256). OPTIONAL
     - **format**: Output image format, default is set to None and will be either JPEG or PNG depending on masked value. OPTIONAL
 
