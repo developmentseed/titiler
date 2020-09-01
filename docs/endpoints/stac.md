@@ -1,5 +1,17 @@
 # SpatioTemporal Asset Catalog
 
+```python
+from titiler.endpoints import stac
+
+from fastapi import FastAPI
+
+app = FastAPI()
+
+# The STAC Tiler is created with the TilerFactory with the `stac` prefix
+app.include_router(stac.router, prefix="/stac", tags=["SpatioTemporal Asset Catalog"])
+```
+
+
 ## Tiles - GET
 
 `:endpoint:/stac/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`
@@ -24,11 +36,6 @@
     - **resampling_method**: rasterio resampling method. Default is `nearest`.
 
 ***assets** OR **expression** is required
-
-Additional parameters can be provided. See:
-
-- https://github.com/cogeotiff/rio-tiler/blob/master/rio_tiler/reader.py#L140-L151
-- https://github.com/cogeotiff/rio-tiler/blob/master/rio_tiler/reader.py#L32-L44
 
 Example:
 
@@ -59,10 +66,6 @@ Example:
     - **color_map**: rio-tiler color map name. OPTIONAL
 
 ***assets** OR **expression** is required
-
-Additional parameters can be provided. See:
-
-- https://github.com/cogeotiff/rio-tiler/blob/master/rio_tiler/reader.py#L32-L44
 
 Note: if `height` and `width` are provided `max_size` will be ignored.
 
@@ -96,11 +99,6 @@ Example:
 
 ***assets** OR **expression** is required
 
-Additional parameters can be provided. See:
-
-- https://github.com/cogeotiff/rio-tiler/blob/master/rio_tiler/reader.py#L140-L151
-- https://github.com/cogeotiff/rio-tiler/blob/master/rio_tiler/reader.py#L32-L44
-
 Note: if `height` and `width` are provided `max_size` will be ignored.
 
 Example:
@@ -127,7 +125,6 @@ Example:
 Example:
 
 - `https://myendpoint/stac/point/0,0?url=https://somewhere.com/item.json&assets=B01`
-
 
 ## TilesJSON - GET
 

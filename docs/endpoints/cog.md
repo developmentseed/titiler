@@ -1,5 +1,16 @@
 # Cloud Optimized GeoTIFF
 
+```python
+from titiler.endpoints import cog
+
+from fastapi import FastAPI
+
+app = FastAPI()
+
+# The COG Tiler is created with the TilerFactory with the `cog` prefix
+app.include_router(cog.router, prefix="/cog", tags=["Cloud Optimized GeoTIFF"])
+```
+
 ## Tiles - GET
 
 `:endpoint:/cog/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`
@@ -21,11 +32,6 @@
     - **color_formula**: rio-color formula. OPTIONAL
     - **color_map**: rio-tiler color map name. OPTIONAL
     - **resampling_method**: rasterio resampling method. Default is `nearest`.
-
-Additional parameters can be provided. See:
-
-- https://github.com/cogeotiff/rio-tiler/blob/master/rio_tiler/reader.py#L140-L151
-- https://github.com/cogeotiff/rio-tiler/blob/master/rio_tiler/reader.py#L32-L44
 
 Example:
 
@@ -53,10 +59,6 @@ Example:
     - **color_formula**: rio-color formula. OPTIONAL
     - **color_map**: rio-tiler color map name. OPTIONAL
     - **resampling_method**: rasterio resampling method. Default is `nearest`.
-
-Additional parameters can be provided. See:
-
-- https://github.com/cogeotiff/rio-tiler/blob/master/rio_tiler/reader.py#L32-L44
 
 Note: if `height` and `width` are provided `max_size` will be ignored.
 
@@ -86,11 +88,6 @@ Example:
     - **color_formula**: rio-color formula. OPTIONAL
     - **color_map**: rio-tiler color map name. OPTIONAL
     - **resampling_method**: rasterio resampling method. Default is `nearest`.
-
-Additional parameters can be provided. See:
-
-- https://github.com/cogeotiff/rio-tiler/blob/master/rio_tiler/reader.py#L140-L151
-- https://github.com/cogeotiff/rio-tiler/blob/master/rio_tiler/reader.py#L32-L44
 
 Note: if `height` and `width` are provided `max_size` will be ignored.
 
@@ -188,3 +185,16 @@ Example:
 Example:
 
 - `https://myendpoint/cog/viewer?url=https://somewhere.com/mycog.tif`
+
+
+## Validate - GET
+
+`:endpoint:/cog/validate` - COG Viewer
+
+- QueryParams:
+    - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
+    - **strict**: Treat warnings as errors (bool, default is False). **OPTIONAL**
+
+Example:
+
+- `https://myendpoint/cog/validate?url=https://somewhere.com/mycog.tif`
