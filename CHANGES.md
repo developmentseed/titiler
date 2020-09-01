@@ -1,5 +1,35 @@
 # Release Notes
 
+## Next (TBD) - Master Branch
+
+* rename titiler.models.cog.py to titiler.models.dataset.py
+* remove cog* prefix to Bounds, Info and Metadata models
+* allow Union[str, int] for key in Metadata.statistics (as defined in rio-tiler-pds)
+
+e.g Create a Landsat 8 Tiler
+```python
+from titiler.endpoints.factory import TilerFactory, MosaicTilerFactory
+from titiler.dependencies import BandsParams
+
+from rio_tiler_pds.landsat.aws.landsat8 import L8Reader  # Not in TiTiler dependencies
+
+from fastapi import FastAPI
+
+app = FastAPI(title="Landsat Tiler", openapi_url="/api/v1/openapi.json")
+scene = TilerFactory(
+    reader=L8Reader, additional_dependency=BandsParams, router_prefix="scenes"
+)
+mosaic = MosaicTilerFactory(
+    dataset_reader=L8Reader,
+    additional_dependency=BandsParams,
+    add_update=False,
+    add_create=False,
+    router_prefix="mosaic",
+)
+app.include_router(scene.router, prefix="/scenes", tags=["Scenes"])
+app.include_router(mosaic.router, prefix="/mosaic", tags=["Mosaic"])
+```
+
 ## 0.1a.0 (2020-08-31)
 
 **First release on pypi**
