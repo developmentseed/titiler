@@ -1,5 +1,10 @@
 # Release Notes
 
+## 0.1.0-alpha.2 (2020-09-01)
+
+* add Transform and CRS information in `/part` GeoTIFF output
+* pin **rio-tiler-crs** to `>=3.0b4,<3.1` and **cogeo-mosaic** to `>=3.0a10,<3.1`
+
 ## 0.1.0-alpha.1 (2020-09-01)
 
 * rename titiler.models.cog.py to titiler.models.dataset.py
