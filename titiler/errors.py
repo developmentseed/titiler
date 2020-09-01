@@ -12,6 +12,7 @@ from cogeo_mosaic.errors import (
 from rasterio.errors import RasterioError, RasterioIOError
 from rio_tiler.errors import (
     InvalidAssetName,
+    InvalidBandName,
     MissingAssets,
     RioTilerError,
     TileOutsideBounds,
@@ -48,6 +49,7 @@ DEFAULT_STATUS_CODES = {
     RasterioIOError: status.HTTP_404_NOT_FOUND,
     MissingAssets: status.HTTP_400_BAD_REQUEST,
     InvalidAssetName: status.HTTP_404_NOT_FOUND,
+    InvalidBandName: status.HTTP_404_NOT_FOUND,
     MosaicError: status.HTTP_424_FAILED_DEPENDENCY,
     RasterioError: status.HTTP_500_INTERNAL_SERVER_ERROR,
     RioTilerError: status.HTTP_500_INTERNAL_SERVER_ERROR,
