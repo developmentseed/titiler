@@ -1,5 +1,9 @@
 # Release Notes
 
+## Next (TBD) - Master Branch
+
+* add Transform and CRS information in `/part` GeoTIFF output
+
 ## 0.1.0-alpha.1 (2020-09-01)
 
 * rename titiler.models.cog.py to titiler.models.dataset.py

@@ -11,7 +11,7 @@ from cogeo_mosaic.backends import BaseBackend, MosaicBackend
 from cogeo_mosaic.mosaic import MosaicJSON
 from cogeo_mosaic.utils import get_footprints
 from rasterio.transform import from_bounds
-from rio_tiler.constants import MAX_THREADS
+from rio_tiler.constants import MAX_THREADS, WGS84_CRS
 from rio_tiler.io import BaseReader, COGReader, MultiBaseReader
 from rio_tiler_crs import COGReader as TMSCOGReader
 
@@ -637,7 +637,17 @@ class TilerFactory(BaseFactory):
             timings.append(("Post-process", t.elapsed))
 
             with utils.Timer() as t:
-                content = utils.reformat(data, mask, format, colormap=colormap)
+                dst_transform = from_bounds(
+                    minx, miny, maxx, maxy, data.shape[2], data.shape[1]
+                )
+                content = utils.reformat(
+                    data,
+                    mask,
+                    format,
+                    colormap=colormap,
+                    transform=dst_transform,
+                    crs=WGS84_CRS,
+                )
             timings.append(("Format", t.elapsed))
 
             if timings:
