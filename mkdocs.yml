@@ -12,56 +12,57 @@ repo_url: "https://github.com/developmentseed/titiler"
 
 extra:
   social:
-    - icon: 'fontawesome/brands/github'
-      link: 'https://github.com/developmentseed'
-    - icon: 'fontawesome/brands/twitter'
-      link: 'https://twitter.com/developmentseed'
-
+    - icon: "fontawesome/brands/github"
+      link: "https://github.com/developmentseed"
+    - icon: "fontawesome/brands/twitter"
+      link: "https://twitter.com/developmentseed"
+    - icon: "fontawesome/brands/medium"
+      link: "https://medium.com/devseed"
 
 nav:
   - TiTiler: "index.md"
-  - Usage: 'usage.md'
+  - Usage: "usage.md"
   - Endpoints:
-    - 'endpoints/cog.md'
-    - 'endpoints/mosaic.md'
-    - 'endpoints/stac.md'
-    - 'endpoints/tms.md'
+      - "endpoints/cog.md"
+      - "endpoints/mosaic.md"
+      - "endpoints/stac.md"
+      - "endpoints/tms.md"
   - Concepts:
-    - 'concepts/tiler_factories.md'
-    - 'concepts/dynamic_tiling.md'
-    - 'concepts/data_formats.md'
-    - 'concepts/tile_matrix_sets.md'
+      - "concepts/tiler_factories.md"
+      # - "concepts/dynamic_tiling.md"
+      # - "concepts/data_formats.md"
+      # - "concepts/tile_matrix_sets.md"
   - Deployment:
-    # - 'deployment/settings.md'
-    - 'deployment/ecs.md'
-    - 'deployment/lambda.md'
-  - Development - Contributing: 'contributing.md'
-  - Release Notes: 'release-notes.md'
+      # - 'deployment/settings.md'
+      - "deployment/ecs.md"
+      - "deployment/lambda.md"
+  - Development - Contributing: "contributing.md"
+  - Release Notes: "release-notes.md"
 
 # https://github.com/kylebarron/cogeo-mosaic/blob/mkdocs/mkdocs.yml#L50-L75
 markdown_extensions:
-    - admonition
-    - attr_list
-    - codehilite:
-        guess_lang: false
-    - def_list
-    - footnotes
-    - pymdownx.arithmatex
-    - pymdownx.betterem
-    - pymdownx.caret:
-        insert: false
-    - pymdownx.details
-    - pymdownx.emoji
-    - pymdownx.escapeall:
-        hardbreak: true
-        nbsp: true
-    - pymdownx.magiclink:
-        hide_protocol: true
-        repo_url_shortener: true
-    - pymdownx.smartsymbols
-    - pymdownx.superfences
-    - pymdownx.tasklist:
-        custom_checkbox: true
-    - pymdownx.tilde
-    - toc:
-        permalink: true
+  - admonition
+  - attr_list
+  - codehilite:
+      guess_lang: false
+  - def_list
+  - footnotes
+  - pymdownx.arithmatex
+  - pymdownx.betterem
+  - pymdownx.caret:
+      insert: false
+  - pymdownx.details
+  - pymdownx.emoji
+  - pymdownx.escapeall:
+      hardbreak: true
+      nbsp: true
+  - pymdownx.magiclink:
+      hide_protocol: true
+      repo_url_shortener: true
+  - pymdownx.smartsymbols
+  - pymdownx.superfences
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+  - toc:
+      permalink: true

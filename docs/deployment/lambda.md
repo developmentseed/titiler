@@ -1,9 +1,8 @@
 # AWS Lambda
 
-The TiTiler [repo](https://github.com/developmentseed/titiler) has an example of [aws cdk](https://aws.amazon.com/cdk/) code to deploy TiTiler on AWS Lambda.
+The TiTiler [repository](https://github.com/developmentseed/titiler) includes an example that uses [AWS CDK](https://aws.amazon.com/cdk/) to deploy TiTiler on AWS Lambda, AWS' serverless compute service.
 
-TiTiler is built on top of [FastAPI](https://github.com/tiangolo/fastapi) which *is a modern, fast (high-performance), web framework for building APIs*. It doesn't work natively with AWS Lambda and API Gateway because it needs a way to handle `event` and `context` instead of raw HTML requests. This is possible by wrapping the FastAPI app with the awesome [mangum](https://github.com/erm/mangum) module.
-
+TiTiler is built on top of [FastAPI](https://github.com/tiangolo/fastapi), a modern, fast, Python web framework for building APIs. It doesn't work natively with AWS Lambda and API Gateway because FastAPI understands HTTP requests, not API Gateway's `event` and `context` JSON objects. However, we can make our FastAPI application work on Lambda by wrapping it with the awesome [`mangum`](https://github.com/erm/mangum) module, which translates API Gateway events into HTTP requests.
 
 ```python
 from mangum import Mangum
@@ -12,9 +11,9 @@ from titiler.main import app
 handler = Mangum(app, enable_lifespan=False)
 ```
 
-The Lambda stack is also deployed by the [aws cdk](https://aws.amazon.com/cdk/) utility. It will create the `package.zip` and handle the creation of the lambda function and the API Gateway HTTP endpoint.
+The Lambda stack is also deployed by the [AWS CDK](https://aws.amazon.com/cdk/) utility. Under the hood, CDK will create the deployment package required for AWS Lambda, upload it to AWS, and handle the creation of the Lambda and API Gateway resources.
 
-1. Instal cdk and set up CDK in your AWS account - Only need once per account
+1. Install CDK and connect to your AWS account. This step is only necessary once per AWS account.
 
     ```bash
     $ git clone https://github.com/developmentseed/titiler.git
@@ -50,6 +49,6 @@ The Lambda stack is also deployed by the [aws cdk](https://aws.amazon.com/cdk/) 
     ```bash
     $ cdk deploy titiler-lambda-dev # Deploys the stack(s) titiler-lambda-dev in stack/app.py
 
-    # in specific region
-    $ AWS_DEFAULT_REGION=eu-central-1 AWS_REGION=eu-central-1 cdk deploy titiler-lambda-dev 
+    # Deploy in specific region
+    $ AWS_DEFAULT_REGION=eu-central-1 AWS_REGION=eu-central-1 cdk deploy titiler-lambda-dev
     ```

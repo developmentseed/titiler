@@ -1,11 +1,10 @@
 # AWS ECS (Fargate) + ALB (Application Load Balancer)
 
-The TiTiler [repo](https://github.com/developmentseed/titiler) has an example of [aws cdk](https://aws.amazon.com/cdk/) code to deploy TiTiler on ECS.
+The TiTiler [repository](https://github.com/developmentseed/titiler) includes an example that uses [AWS CDK](https://aws.amazon.com/cdk/) to deploy TiTiler on AWS' Elastic Container Service (ECS).
 
-It will handle tasks such as generating a docker image set up an application load balancer and the ECS services.
+The example handles tasks such as generating a docker image and setting up an application load balancer (ALB) and ECS services.
 
-
-1. Instal cdk and set up CDK in your AWS account - Only need once per account
+1. Install CDK and connect to your AWS account. This step is only necessary once per AWS account.
 
     ```bash
 
@@ -20,7 +19,7 @@ It will handle tasks such as generating a docker image set up an application loa
     $ cdk bootstrap aws://${AWS_ACCOUNT_ID}/eu-central-1
     ```
 
-2. Pre-Generate CFN template
+2. Generate CloudFormation template
 
     ```bash
     $ cdk synth  # Synthesizes and prints the CloudFormation template for this stack
