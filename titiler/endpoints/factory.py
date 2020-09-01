@@ -3,7 +3,7 @@
 import abc
 import os
 from dataclasses import dataclass, field
-from typing import Callable, Dict, List, Optional, Type, Union
+from typing import Callable, Dict, Optional, Type, Union
 from urllib.parse import urlencode
 
 import pkg_resources
@@ -17,7 +17,6 @@ from rio_tiler_crs import COGReader as TMSCOGReader
 
 from .. import utils
 from ..dependencies import (
-    AssetsParams,
     DefaultDependency,
     ImageParams,
     MetadataParams,
@@ -70,8 +69,8 @@ class BaseFactory(metaclass=abc.ABCMeta):
 
     tms_dependency: Callable = WebMercatorTMSParams
 
-    # Add `assets` options in endpoint
-    add_asset_deps: bool = False
+    # provide custom dependency
+    additional_dependency: Type[DefaultDependency] = field(default=DefaultDependency)
 
     # Router Prefix is needed to find the path for /tile if the TilerFactory.router is mounted
     # with other router (multiple `.../tile` routes).
@@ -81,8 +80,6 @@ class BaseFactory(metaclass=abc.ABCMeta):
 
     def __post_init__(self):
         """Post Init: register route and configure specific options."""
-        self.options = AssetsParams if self.add_asset_deps else DefaultDependency
-
         if self.router_prefix:
             self.router_prefix = f"{self.router_prefix}_"
 
@@ -118,7 +115,7 @@ class TilerFactory(BaseFactory):
         # Default Routes
         # (/bounds, /info, /metadata, /tile, /tilejson.json, /WMTSCapabilities.xml and /point)
         self._bounds()
-        self._info_with_assets() if self.add_asset_deps else self._info()
+        self._info()
         self._metadata()
         self._tile()
         self._point()
@@ -148,49 +145,27 @@ class TilerFactory(BaseFactory):
                 return {"bounds": src_dst.bounds}
 
     ############################################################################
-    # /info - with assets
-    ############################################################################
-    def _info_with_assets(self):
-        """Register /info endpoint to router."""
-
-        @self.router.get(
-            "/info",
-            response_model=Union[List[str], Dict[str, cogInfo], cogInfo],
-            response_model_exclude={"minzoom", "maxzoom", "center"},
-            response_model_exclude_none=True,
-            responses={200: {"description": "Return dataset's basic info."}},
-            name=f"{self.router_prefix}info",
-        )
-        def info(
-            src_path=Depends(self.path_dependency), options: AssetsParams = Depends()
-        ):
-            """Return basic info."""
-            reader = src_path.reader or self.reader
-            with reader(src_path.url, **self.reader_options) as src_dst:
-                if not options.kwargs.get("assets"):
-                    return src_dst.assets
-                info = src_dst.info(**options.kwargs)
-            return info
-
-    ############################################################################
-    # /info - without assets
+    # /info
     ############################################################################
     def _info(self):
         """Register /info endpoint to router."""
 
         @self.router.get(
             "/info",
-            response_model=Union[List[str], Dict[str, cogInfo], cogInfo],
+            response_model=cogInfo,
             response_model_exclude={"minzoom", "maxzoom", "center"},
             response_model_exclude_none=True,
             responses={200: {"description": "Return dataset's basic info."}},
             name=f"{self.router_prefix}info",
         )
-        def info(src_path=Depends(self.path_dependency)):
+        def info(
+            src_path=Depends(self.path_dependency),
+            options=Depends(self.additional_dependency),
+        ):
             """Return basic info."""
             reader = src_path.reader or self.reader
             with reader(src_path.url, **self.reader_options) as src_dst:
-                info = src_dst.info()
+                info = src_dst.info(**options.kwargs)
             return info
 
     ############################################################################
@@ -201,7 +176,7 @@ class TilerFactory(BaseFactory):
 
         @self.router.get(
             "/metadata",
-            response_model=Union[cogMetadata, Dict[str, cogMetadata]],
+            response_model=cogMetadata,
             response_model_exclude={"minzoom", "maxzoom", "center"},
             response_model_exclude_none=True,
             responses={200: {"description": "Return dataset's metadata."}},
@@ -210,7 +185,7 @@ class TilerFactory(BaseFactory):
         def metadata(
             src_path=Depends(self.path_dependency),
             params=Depends(self.metadata_dependency),
-            options=Depends(self.options),
+            options=Depends(self.additional_dependency),
         ):
             """Return metadata."""
             reader = src_path.reader or self.reader
@@ -269,7 +244,7 @@ class TilerFactory(BaseFactory):
             ),
             src_path=Depends(self.path_dependency),
             params=Depends(self.tiles_dependency),
-            options=Depends(self.options),
+            options=Depends(self.additional_dependency),
         ):
             """Create map tile from a dataset."""
             timings = []
@@ -364,6 +339,8 @@ class TilerFactory(BaseFactory):
             maxzoom: Optional[int] = Query(
                 None, description="Overwrite default maxzoom."
             ),
+            params=Depends(self.tiles_dependency),  # noqa
+            options=Depends(self.additional_dependency),  # noqa
         ):
             """Return TileJSON document for a dataset."""
             kwargs = {
@@ -429,6 +406,8 @@ class TilerFactory(BaseFactory):
             maxzoom: Optional[int] = Query(
                 None, description="Overwrite default maxzoom."
             ),
+            params=Depends(self.tiles_dependency),  # noqa
+            options=Depends(self.additional_dependency),  # noqa
         ):
             """OGC WMTS endpoint."""
             kwargs = {
@@ -503,7 +482,7 @@ class TilerFactory(BaseFactory):
             lat: float = Path(..., description="Latitude"),
             src_path=Depends(self.path_dependency),
             params=Depends(self.point_dependency),
-            options=Depends(self.options),
+            options=Depends(self.additional_dependency),
         ):
             """Get Point value for a dataset."""
             timings = []
@@ -549,7 +528,7 @@ class TilerFactory(BaseFactory):
             ),
             src_path=Depends(self.path_dependency),
             params=Depends(self.img_dependency),
-            options=Depends(self.options),
+            options=Depends(self.additional_dependency),
         ):
             """Create preview of a dataset."""
             timings = []
@@ -620,7 +599,7 @@ class TilerFactory(BaseFactory):
             format: ImageType = Query(None, description="Output image type."),
             src_path=Depends(self.path_dependency),
             params=Depends(self.img_dependency),
-            options=Depends(self.options),
+            options=Depends(self.additional_dependency),
         ):
             """Create image from part of a dataset."""
             timings = []
@@ -720,7 +699,7 @@ class TMSTilerFactory(TilerFactory):
             ),
             src_path=Depends(self.path_dependency),
             params=Depends(self.tiles_dependency),
-            options=Depends(self.options),
+            options=Depends(self.additional_dependency),
         ):
             """Create map tile from a dataset."""
             timings = []
@@ -815,6 +794,8 @@ class TMSTilerFactory(TilerFactory):
             maxzoom: Optional[int] = Query(
                 None, description="Overwrite default maxzoom."
             ),
+            params=Depends(self.tiles_dependency),  # noqa
+            options=Depends(self.additional_dependency),  # noqa
         ):
             """Return TileJSON document for a dataset."""
             kwargs = {
@@ -880,6 +861,8 @@ class TMSTilerFactory(TilerFactory):
             maxzoom: Optional[int] = Query(
                 None, description="Overwrite default maxzoom."
             ),
+            params=Depends(self.tiles_dependency),  # noqa
+            options=Depends(self.additional_dependency),  # noqa
         ):
             """OGC WMTS endpoint."""
             kwargs = {
@@ -959,8 +942,6 @@ class MosaicTilerFactory(BaseFactory):
     # Add/Remove some endpoints
     add_create: bool = True
     add_update: bool = True
-
-    add_asset_deps: bool = True  # We add if by default
 
     def register_routes(self):
         """
@@ -1132,7 +1113,7 @@ class MosaicTilerFactory(BaseFactory):
             ),
             src_path=Depends(self.path_dependency),
             params=Depends(self.tiles_dependency),
-            options=Depends(self.options),
+            options=Depends(self.additional_dependency),
             pixel_selection: PixelSelectionMethod = Query(
                 PixelSelectionMethod.first, description="Pixel selection method."
             ),
@@ -1241,6 +1222,11 @@ class MosaicTilerFactory(BaseFactory):
             maxzoom: Optional[int] = Query(
                 None, description="Overwrite default maxzoom."
             ),
+            params=Depends(self.tiles_dependency),  # noqa
+            options=Depends(self.additional_dependency),  # noqa
+            pixel_selection: PixelSelectionMethod = Query(
+                PixelSelectionMethod.first, description="Pixel selection method."
+            ),  # noqa
         ):
             """Return TileJSON document for a COG."""
             kwargs = {
@@ -1305,6 +1291,11 @@ class MosaicTilerFactory(BaseFactory):
             maxzoom: Optional[int] = Query(
                 None, description="Overwrite default maxzoom."
             ),
+            params=Depends(self.tiles_dependency),  # noqa
+            options=Depends(self.additional_dependency),  # noqa
+            pixel_selection: PixelSelectionMethod = Query(
+                PixelSelectionMethod.first, description="Pixel selection method."
+            ),  # noqa
         ):
             """OGC WMTS endpoint."""
             kwargs = {
@@ -1378,7 +1369,7 @@ class MosaicTilerFactory(BaseFactory):
             lat: float = Path(..., description="Latitude"),
             src_path=Depends(self.path_dependency),
             params=Depends(self.point_dependency),
-            options=Depends(self.options),
+            options=Depends(self.additional_dependency),
         ):
             """Get Point value for a Mosaic."""
             timings = []
