@@ -1,6 +1,6 @@
 # Release Notes
 
-## Next (TBD) - Master Branch
+## 0.1.0-alpha.1 (2020-09-01)
 
 * rename titiler.models.cog.py to titiler.models.dataset.py
 * remove cog* prefix to Bounds, Info and Metadata models
@@ -30,7 +30,7 @@ app.include_router(scene.router, prefix="/scenes", tags=["Scenes"])
 app.include_router(mosaic.router, prefix="/mosaic", tags=["Mosaic"])
 ```
 
-## 0.1a.0 (2020-08-31)
+## 0.1a0 (2020-08-31)
 
 **First release on pypi**
 
