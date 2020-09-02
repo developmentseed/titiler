@@ -3,7 +3,7 @@
 import abc
 import os
 from dataclasses import dataclass, field
-from typing import Callable, Dict, Optional, Type, Union
+from typing import Any, Callable, Dict, Optional, Type, Union
 from urllib.parse import urlencode
 
 import pkg_resources
@@ -75,20 +75,24 @@ class BaseFactory(metaclass=abc.ABCMeta):
     # Router Prefix is needed to find the path for /tile if the TilerFactory.router is mounted
     # with other router (multiple `.../tile` routes).
     # e.g if you mount the route with `/cog` prefix, set router_prefix to cog and
-    # each routes will be prefixed with `cog_`, which will let starlette retrieve routes url (Reverse URL lookups)
     router_prefix: str = ""
 
     def __post_init__(self):
         """Post Init: register route and configure specific options."""
-        if self.router_prefix:
-            self.router_prefix = f"{self.router_prefix}_"
-
         self.register_routes()
 
     @abc.abstractmethod
     def register_routes(self):
         """Register Tiler Routes."""
         ...
+
+    def url_for(self, request: Request, name: str, **path_params: Any) -> str:
+        """Return full url (with prefix) for a specific endpoint."""
+        url_path = self.router.url_path_for(name, **path_params)
+        base_url = str(request.base_url)
+        if self.router_prefix:
+            base_url += self.router_prefix.lstrip("/")
+        return url_path.make_absolute_url(base_url=base_url)
 
 
 @dataclass
@@ -136,7 +140,6 @@ class TilerFactory(BaseFactory):
             "/bounds",
             response_model=Bounds,
             responses={200: {"description": "Return dataset's bounds."}},
-            name=f"{self.router_prefix}bounds",
         )
         def bounds(src_path=Depends(self.path_dependency)):
             """Return the bounds of the COG."""
@@ -156,7 +159,6 @@ class TilerFactory(BaseFactory):
             response_model_exclude={"minzoom", "maxzoom", "center"},
             response_model_exclude_none=True,
             responses={200: {"description": "Return dataset's basic info."}},
-            name=f"{self.router_prefix}info",
         )
         def info(
             src_path=Depends(self.path_dependency),
@@ -180,7 +182,6 @@ class TilerFactory(BaseFactory):
             response_model_exclude={"minzoom", "maxzoom", "center"},
             response_model_exclude_none=True,
             responses={200: {"description": "Return dataset's metadata."}},
-            name=f"{self.router_prefix}metadata",
         )
         def metadata(
             src_path=Depends(self.path_dependency),
@@ -210,7 +211,6 @@ class TilerFactory(BaseFactory):
     ############################################################################
     def _tile(self):  # noqa: C901
         tile_endpoint_params = img_endpoint_params.copy()
-        tile_endpoint_params["name"] = f"{self.router_prefix}tile"
 
         @self.router.get(r"/tiles/{z}/{x}/{y}", **tile_endpoint_params)
         @self.router.get(r"/tiles/{z}/{x}/{y}.{format}", **tile_endpoint_params)
@@ -314,14 +314,12 @@ class TilerFactory(BaseFactory):
             response_model=TileJSON,
             responses={200: {"description": "Return a tilejson"}},
             response_model_exclude_none=True,
-            name=f"{self.router_prefix}tilejson",
         )
         @self.router.get(
             "/{TileMatrixSetId}/tilejson.json",
             response_model=TileJSON,
             responses={200: {"description": "Return a tilejson"}},
             response_model_exclude_none=True,
-            name=f"{self.router_prefix}tilejson",
         )
         def tilejson(
             request: Request,
@@ -352,6 +350,7 @@ class TilerFactory(BaseFactory):
             }
             if tile_format:
                 kwargs["format"] = tile_format.value
+            tiles_url = self.url_for(request, "tile", **kwargs)
 
             q = dict(request.query_params)
             q.pop("TileMatrixSetId", None)
@@ -360,8 +359,6 @@ class TilerFactory(BaseFactory):
             q.pop("minzoom", None)
             q.pop("maxzoom", None)
             qs = urlencode(list(q.items()))
-
-            tiles_url = request.url_for(f"{self.router_prefix}tile", **kwargs)
             tiles_url += f"?{qs}"
 
             reader = src_path.reader or self.reader
@@ -380,15 +377,9 @@ class TilerFactory(BaseFactory):
 
             return tjson
 
+        @self.router.get("/WMTSCapabilities.xml", response_class=XMLResponse)
         @self.router.get(
-            "/WMTSCapabilities.xml",
-            response_class=XMLResponse,
-            name=f"{self.router_prefix}wmts",
-        )
-        @self.router.get(
-            "/{TileMatrixSetId}/WMTSCapabilities.xml",
-            response_class=XMLResponse,
-            name=f"{self.router_prefix}wmts",
+            "/{TileMatrixSetId}/WMTSCapabilities.xml", response_class=XMLResponse
         )
         def wmts(
             request: Request,
@@ -418,7 +409,8 @@ class TilerFactory(BaseFactory):
                 "format": tile_format.value,
                 "TileMatrixSetId": tms.identifier,
             }
-            tiles_endpoint = request.url_for(f"{self.router_prefix}tile", **kwargs)
+            tiles_url = self.url_for(request, "tile", **kwargs)
+
             q = dict(request.query_params)
             q.pop("TileMatrixSetId", None)
             q.pop("tile_format", None)
@@ -428,7 +420,7 @@ class TilerFactory(BaseFactory):
             q.pop("SERVICE", None)
             q.pop("REQUEST", None)
             qs = urlencode(list(q.items()))
-            tiles_endpoint += f"?{qs}"
+            tiles_url += f"?{qs}"
 
             reader = src_path.reader or self.reader
             with reader(src_path.url, **self.reader_options) as src_dst:
@@ -457,7 +449,7 @@ class TilerFactory(BaseFactory):
                 "wmts.xml",
                 {
                     "request": request,
-                    "tiles_endpoint": tiles_endpoint,
+                    "tiles_endpoint": tiles_url,
                     "bounds": bounds,
                     "tileMatrix": tileMatrix,
                     "tms": tms,
@@ -475,7 +467,6 @@ class TilerFactory(BaseFactory):
         @self.router.get(
             r"/point/{lon},{lat}",
             responses={200: {"description": "Return a value for a point"}},
-            name=f"{self.router_prefix}point",
         )
         def point(
             lon: float = Path(..., description="Longitude"),
@@ -518,7 +509,6 @@ class TilerFactory(BaseFactory):
     ############################################################################
     def _preview(self):
         prev_endpoint_params = img_endpoint_params.copy()
-        prev_endpoint_params["name"] = f"{self.router_prefix}preview"
 
         @self.router.get(r"/preview", **prev_endpoint_params)
         @self.router.get(r"/preview.{format}", **prev_endpoint_params)
@@ -585,7 +575,6 @@ class TilerFactory(BaseFactory):
     ############################################################################
     def _part(self):
         part_endpoint_params = img_endpoint_params.copy()
-        part_endpoint_params["name"] = f"{self.router_prefix}part"
 
         # @router.get(r"/crop/{minx},{miny},{maxx},{maxy}", **part_endpoint_params)
         @self.router.get(
@@ -675,7 +664,6 @@ class TMSTilerFactory(TilerFactory):
     ############################################################################
     def _tile(self):  # noqa: C901
         tile_endpoint_params = img_endpoint_params.copy()
-        tile_endpoint_params["name"] = f"{self.router_prefix}tile"
 
         @self.router.get(r"/tiles/{z}/{x}/{y}", **tile_endpoint_params)
         @self.router.get(r"/tiles/{z}/{x}/{y}.{format}", **tile_endpoint_params)
@@ -779,14 +767,12 @@ class TMSTilerFactory(TilerFactory):
             response_model=TileJSON,
             responses={200: {"description": "Return a tilejson"}},
             response_model_exclude_none=True,
-            name=f"{self.router_prefix}tilejson",
         )
         @self.router.get(
             "/{TileMatrixSetId}/tilejson.json",
             response_model=TileJSON,
             responses={200: {"description": "Return a tilejson"}},
             response_model_exclude_none=True,
-            name=f"{self.router_prefix}tilejson",
         )
         def tilejson(
             request: Request,
@@ -817,6 +803,7 @@ class TMSTilerFactory(TilerFactory):
             }
             if tile_format:
                 kwargs["format"] = tile_format.value
+            tiles_url = self.url_for(request, "tile", **kwargs)
 
             q = dict(request.query_params)
             q.pop("TileMatrixSetId", None)
@@ -825,8 +812,6 @@ class TMSTilerFactory(TilerFactory):
             q.pop("minzoom", None)
             q.pop("maxzoom", None)
             qs = urlencode(list(q.items()))
-
-            tiles_url = request.url_for(f"{self.router_prefix}tile", **kwargs)
             tiles_url += f"?{qs}"
 
             reader = src_path.reader or self.reader
@@ -845,15 +830,9 @@ class TMSTilerFactory(TilerFactory):
 
             return tjson
 
+        @self.router.get("/WMTSCapabilities.xml", response_class=XMLResponse)
         @self.router.get(
-            "/WMTSCapabilities.xml",
-            response_class=XMLResponse,
-            name=f"{self.router_prefix}wmts",
-        )
-        @self.router.get(
-            "/{TileMatrixSetId}/WMTSCapabilities.xml",
-            response_class=XMLResponse,
-            name=f"{self.router_prefix}wmts",
+            "/{TileMatrixSetId}/WMTSCapabilities.xml", response_class=XMLResponse
         )
         def wmts(
             request: Request,
@@ -883,7 +862,8 @@ class TMSTilerFactory(TilerFactory):
                 "format": tile_format.value,
                 "TileMatrixSetId": tms.identifier,
             }
-            tiles_endpoint = request.url_for(f"{self.router_prefix}tile", **kwargs)
+            tiles_url = self.url_for(request, "tile", **kwargs)
+
             q = dict(request.query_params)
             q.pop("TileMatrixSetId", None)
             q.pop("tile_format", None)
@@ -893,7 +873,7 @@ class TMSTilerFactory(TilerFactory):
             q.pop("SERVICE", None)
             q.pop("REQUEST", None)
             qs = urlencode(list(q.items()))
-            tiles_endpoint += f"?{qs}"
+            tiles_url += f"?{qs}"
 
             reader = src_path.reader or self.reader
             with reader(src_path.url, tms=tms, **self.reader_options) as src_dst:
@@ -922,7 +902,7 @@ class TMSTilerFactory(TilerFactory):
                 "wmts.xml",
                 {
                     "request": request,
-                    "tiles_endpoint": tiles_endpoint,
+                    "tiles_endpoint": tiles_url,
                     "bounds": bounds,
                     "tileMatrix": tileMatrix,
                     "tms": tms,
@@ -985,7 +965,6 @@ class MosaicTilerFactory(BaseFactory):
             response_model=MosaicJSON,
             response_model_exclude_none=True,
             responses={200: {"description": "Return MosaicJSON definition"}},
-            name=f"{self.router_prefix}read",
         )
         def read(src_path=Depends(self.path_dependency),):
             """Read a MosaicJSON"""
@@ -999,10 +978,7 @@ class MosaicTilerFactory(BaseFactory):
         """Add / - POST (create) route."""
 
         @self.router.post(
-            "",
-            response_model=MosaicJSON,
-            response_model_exclude_none=True,
-            name=f"{self.router_prefix}create",
+            "", response_model=MosaicJSON, response_model_exclude_none=True
         )
         def create(body: CreateMosaicJSON):
             """Create a MosaicJSON"""
@@ -1030,10 +1006,7 @@ class MosaicTilerFactory(BaseFactory):
         """Add / - PUT (update) route."""
 
         @self.router.put(
-            "",
-            response_model=MosaicJSON,
-            response_model_exclude_none=True,
-            name=f"{self.router_prefix}update",
+            "", response_model=MosaicJSON, response_model_exclude_none=True
         )
         def update_mosaicjson(body: UpdateMosaicJSON):
             """Update an existing MosaicJSON"""
@@ -1059,7 +1032,6 @@ class MosaicTilerFactory(BaseFactory):
             "/bounds",
             response_model=Bounds,
             responses={200: {"description": "Return the bounds of the MosaicJSON"}},
-            name=f"{self.router_prefix}bounds",
         )
         def bounds(src_path=Depends(self.path_dependency)):
             """Return the bounds of the COG."""
@@ -1076,7 +1048,6 @@ class MosaicTilerFactory(BaseFactory):
             "/info",
             response_model=mosaicInfo,
             responses={200: {"description": "Return info about the MosaicJSON"}},
-            name=f"{self.router_prefix}info",
         )
         def info(src_path=Depends(self.path_dependency)):
             """Return basic info."""
@@ -1089,7 +1060,6 @@ class MosaicTilerFactory(BaseFactory):
     ############################################################################
     def _tile(self):  # noqa: C901
         tile_endpoint_params = img_endpoint_params.copy()
-        tile_endpoint_params["name"] = f"{self.router_prefix}tile"
 
         @self.router.get(r"/tiles/{z}/{x}/{y}", **tile_endpoint_params)
         @self.router.get(r"/tiles/{z}/{x}/{y}.{format}", **tile_endpoint_params)
@@ -1207,14 +1177,12 @@ class MosaicTilerFactory(BaseFactory):
             response_model=TileJSON,
             responses={200: {"description": "Return a tilejson"}},
             response_model_exclude_none=True,
-            name=f"{self.router_prefix}tilejson",
         )
         @self.router.get(
             "/{TileMatrixSetId}/tilejson.json",
             response_model=TileJSON,
             responses={200: {"description": "Return a tilejson"}},
             response_model_exclude_none=True,
-            name=f"{self.router_prefix}tilejson",
         )
         def tilejson(
             request: Request,
@@ -1248,6 +1216,7 @@ class MosaicTilerFactory(BaseFactory):
             }
             if tile_format:
                 kwargs["format"] = tile_format.value
+            tiles_url = self.url_for(request, "tile", **kwargs)
 
             q = dict(request.query_params)
             q.pop("TileMatrixSetId", None)
@@ -1256,8 +1225,6 @@ class MosaicTilerFactory(BaseFactory):
             q.pop("minzoom", None)
             q.pop("maxzoom", None)
             qs = urlencode(list(q.items()))
-
-            tiles_url = request.url_for(f"{self.router_prefix}tile", **kwargs)
             tiles_url += f"?{qs}"
 
             with self.reader(src_path.url) as src_dst:
@@ -1275,15 +1242,9 @@ class MosaicTilerFactory(BaseFactory):
 
             return tjson
 
+        @self.router.get("/WMTSCapabilities.xml", response_class=XMLResponse)
         @self.router.get(
-            "/WMTSCapabilities.xml",
-            response_class=XMLResponse,
-            name=f"{self.router_prefix}wmts",
-        )
-        @self.router.get(
-            "/{TileMatrixSetId}/WMTSCapabilities.xml",
-            response_class=XMLResponse,
-            name=f"{self.router_prefix}wmts",
+            "/{TileMatrixSetId}/WMTSCapabilities.xml", response_class=XMLResponse
         )
         def wmts(
             request: Request,
@@ -1316,7 +1277,8 @@ class MosaicTilerFactory(BaseFactory):
                 "format": tile_format.value,
                 "TileMatrixSetId": tms.identifier,
             }
-            tiles_endpoint = request.url_for(f"{self.router_prefix}tile", **kwargs)
+            tiles_url = self.url_for(request, "tile", **kwargs)
+
             q = dict(request.query_params)
             q.pop("TileMatrixSetId", None)
             q.pop("tile_format", None)
@@ -1326,7 +1288,7 @@ class MosaicTilerFactory(BaseFactory):
             q.pop("SERVICE", None)
             q.pop("REQUEST", None)
             qs = urlencode(list(q.items()))
-            tiles_endpoint += f"?{qs}"
+            tiles_url += f"?{qs}"
 
             with self.reader(src_path.url) as src_dst:
                 bounds = src_dst.bounds
@@ -1354,7 +1316,7 @@ class MosaicTilerFactory(BaseFactory):
                 "wmts.xml",
                 {
                     "request": request,
-                    "tiles_endpoint": tiles_endpoint,
+                    "tiles_endpoint": tiles_url,
                     "bounds": bounds,
                     "tileMatrix": tileMatrix,
                     "tms": tms,
@@ -1372,7 +1334,6 @@ class MosaicTilerFactory(BaseFactory):
         @self.router.get(
             r"/point/{lon},{lat}",
             responses={200: {"description": "Return a value for a point"}},
-            name=f"{self.router_prefix}point",
         )
         def point(
             lon: float = Path(..., description="Longitude"),

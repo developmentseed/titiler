@@ -19,7 +19,6 @@ def test_TilerFactory(set_env):
 
     assert app.tms_dependency == TMSParams
     assert app.additional_dependency == DefaultDependency
-    assert not app.router_prefix
 
     app = factory.TilerFactory(reader=COGReaderNoTMS)
     assert app.tms_dependency == WebMercatorTMSParams
@@ -27,14 +26,11 @@ def test_TilerFactory(set_env):
     app = factory.TilerFactory(
         reader=COGReaderNoTMS,
         additional_dependency=AssetsParams,
-        router_prefix="cog",
         add_preview=False,
         add_part=False,
     )
     assert len(app.router.routes) == 16
     assert app.additional_dependency == AssetsParams
-    for route in app.router.routes:
-        assert route.name.startswith("cog_")
 
 
 def test_MosaicTilerFactory(set_env):

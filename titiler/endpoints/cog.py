@@ -37,8 +37,8 @@ def cog_demo(request: Request):
         name="cog_index.html",
         context={
             "request": request,
-            "tilejson": request.url_for(f"{cog.router_prefix}tilejson"),
-            "metadata": request.url_for(f"{cog.router_prefix}metadata"),
+            "tilejson": cog.url_for(request, "tilejson"),
+            "metadata": cog.url_for(request, "metadata"),
         },
         media_type="text/html",
     )
