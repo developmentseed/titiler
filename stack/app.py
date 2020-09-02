@@ -48,7 +48,7 @@ class titilerLambdaStack(core.Stack):
         memory: int = 1024,
         timeout: int = 30,
         concurrent: Optional[int] = None,
-        permissions: Optional[List[iam.PolicyStatement]] = [],
+        permissions: Optional[List[iam.PolicyStatement]] = None,
         layer_arn: Optional[str] = None,
         env: dict = {},
         code_dir: str = "./",
@@ -56,6 +56,8 @@ class titilerLambdaStack(core.Stack):
     ) -> None:
         """Define stack."""
         super().__init__(scope, id, *kwargs)
+
+        permissions = permissions or []
 
         lambda_env = DEFAULT_ENV.copy()
         lambda_env.update(env)
@@ -139,13 +141,15 @@ class titilerECSStack(core.Stack):
         memory: Union[int, float] = 512,
         mincount: int = 1,
         maxcount: int = 50,
-        permissions: Optional[List[iam.PolicyStatement]] = [],
+        permissions: Optional[List[iam.PolicyStatement]] = None,
         env: dict = {},
         code_dir: str = "./",
         **kwargs: Any,
     ) -> None:
         """Define stack."""
         super().__init__(scope, id, *kwargs)
+
+        permissions = permissions or []
 
         vpc = ec2.Vpc(self, f"{id}-vpc", max_azs=2)
 
