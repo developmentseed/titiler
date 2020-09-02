@@ -3,7 +3,6 @@
 import os
 from typing import Any, List, Optional, Union
 
-import config
 import docker
 from aws_cdk import aws_apigatewayv2 as apigw
 from aws_cdk import aws_ec2 as ec2
@@ -11,6 +10,10 @@ from aws_cdk import aws_ecs as ecs
 from aws_cdk import aws_ecs_patterns as ecs_patterns
 from aws_cdk import aws_iam as iam
 from aws_cdk import aws_lambda, core
+from config import StackSettings
+
+settings = StackSettings()
+
 
 DEFAULT_ENV = dict(
     CPL_TMPDIR="/tmp",
@@ -23,8 +26,8 @@ DEFAULT_ENV = dict(
     PYTHONWARNINGS="ignore",
     VSI_CACHE="TRUE",
     VSI_CACHE_SIZE="1000000",
-    DEFAULT_MOSAIC_BACKEND=config.DEFAULT_MOSAIC_BACKEND,
-    DEFAULT_MOSAIC_HOST=config.DEFAULT_MOSAIC_HOST,
+    DEFAULT_MOSAIC_BACKEND=settings.mosaic_backend,
+    DEFAULT_MOSAIC_HOST=settings.mosaic_host,
 )
 
 
@@ -197,53 +200,67 @@ class titilerECSStack(core.Stack):
 app = core.App()
 
 perms = []
-if config.BUCKET:
+if settings.buckets:
     perms.append(
         iam.PolicyStatement(
             actions=["s3:GetObject", "s3:HeadObject"],
-            resources=[f"arn:aws:s3:::{bucket}" for bucket in config.BUCKET],
+            resources=[f"arn:aws:s3:::{bucket}" for bucket in settings.buckets],
         )
     )
 
-if config.DEFAULT_MOSAIC_BACKEND == "s3://" and config.DEFAULT_MOSAIC_HOST:
+if settings.mosaic_backend == "s3://" and settings.mosaic_host:
     perms.append(
         iam.PolicyStatement(
             actions=["s3:GetObject", "s3:PutObject", "s3:HeadObject"],
-            resources=[f"arn:aws:s3:::{config.DEFAULT_MOSAIC_HOST}"],
+            resources=[f"arn:aws:s3:::{settings.mosaic_host}"],
+        )
+    )
+
+if settings.mosaic_backend == "dynamodb://" and settings.mosaic_host:
+    perms.append(
+        iam.PolicyStatement(
+            actions=[
+                "dynamodb:GetItem",
+                "dynamodb:PutItem",
+                "dynamodb:CreateTable",
+                "dynamodb:Scan",
+                "dynamodb:BatchWriteItem",
+            ],
+            resources=["arn:aws:dynamodb:*:*:table/*"],
         )
     )
 
 # Tag infrastructure
 for key, value in {
-    "Project": config.PROJECT_NAME,
-    "Stack": config.STAGE,
-    "Owner": os.environ.get("OWNER"),
-    "Client": os.environ.get("CLIENT"),
+    "Project": settings.project,
+    "Stack": settings.stage,
+    "Owner": settings.owner,
+    "Client": settings.client,
 }.items():
     if value:
         core.Tag.add(app, key, value)
 
-ecs_stackname = f"{config.PROJECT_NAME}-ecs-{config.STAGE}"
+ecs_stackname = f"{settings.project}-ecs-{settings.stage}"
 titilerECSStack(
     app,
     ecs_stackname,
-    cpu=config.TASK_CPU,
-    memory=config.TASK_MEMORY,
-    mincount=config.MIN_ECS_INSTANCES,
-    maxcount=config.MAX_ECS_INSTANCES,
+    cpu=settings.task_cpu,
+    memory=settings.task_memory,
+    mincount=settings.min_ecs_instances,
+    maxcount=settings.max_ecs_instances,
     permissions=perms,
-    env=config.ENV,
+    env=settings.additional_env,
 )
 
-lambda_stackname = f"{config.PROJECT_NAME}-lambda-{config.STAGE}"
+lambda_stackname = f"{settings.project}-lambda-{settings.stage}"
 titilerLambdaStack(
     app,
     lambda_stackname,
-    memory=config.MEMORY,
-    timeout=config.TIMEOUT,
-    concurrent=config.MAX_CONCURRENT,
+    memory=settings.memory,
+    timeout=settings.timeout,
+    concurrent=settings.max_concurrent,
     permissions=perms,
-    env=config.ENV,
+    env=settings.additional_env,
 )
 
 app.synth()

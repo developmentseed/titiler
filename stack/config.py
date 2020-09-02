@@ -1,47 +1,51 @@
 """STACK Configs."""
 
-import os
 from typing import Dict, List, Optional
 
-PROJECT_NAME = os.environ.get("PROJECT", "titiler")
-STAGE = os.environ.get("STAGE", "dev")
+import pydantic
 
-# Additional environement variable to set in the task/lambda
-ENV: Dict = {}
 
-# Add bucket where titiler can s3:GetObject/s3:HeadObject
-BUCKET: List = ["ds-satellite*", "*"]
+class StackSettings(pydantic.BaseSettings):
+    """Application settings"""
 
-# Mosaics
-DEFAULT_MOSAIC_BACKEND = os.getenv("DEFAULT_MOSAIC_BACKEND", "s3://")
-DEFAULT_MOSAIC_HOST = os.getenv("DEFAULT_MOSAIC_HOST", "")
+    project: str = "titiler"
+    stage: str = "production"
 
-################################################################################
-#                                                                              #
-#                                   ECS                                        #
-#                                                                              #
-################################################################################
-# Min/Max Number of ECS images
-MIN_ECS_INSTANCES: int = 5
-MAX_ECS_INSTANCES: int = 50
+    owner: Optional[str]
+    client: Optional[str]
 
-# CPU value      |   Memory value
-# 256 (.25 vCPU) | 0.5 GB, 1 GB, 2 GB
-# 512 (.5 vCPU)  | 1 GB, 2 GB, 3 GB, 4 GB
-# 1024 (1 vCPU)  | 2 GB, 3 GB, 4 GB, 5 GB, 6 GB, 7 GB, 8 GB
-# 2048 (2 vCPU)  | Between 4 GB and 16 GB in 1-GB increments
-# 4096 (4 vCPU)  | Between 8 GB and 30 GB in 1-GB increments
-TASK_CPU: int = 256
-TASK_MEMORY: int = 512
+    additional_env: Dict = {}
 
-################################################################################
-#                                                                              #
-#                                 LAMBDA                                       #
-#                                                                              #
-################################################################################
-TIMEOUT: int = 10
-MEMORY: int = 1536
+    buckets: List = []
 
-# The maximum of concurrent executions you want to reserve for the function.
-# Default: - No specific limit - account limit.
-MAX_CONCURRENT: Optional[int] = None
+    mosaic_backend: str = "s3://"
+    mosaic_host: str = ""
+
+    #########
+    # AWS ECS
+    min_ecs_instances: int = 5
+    max_ecs_instances: int = 50
+
+    # CPU value      |   Memory value
+    # 256 (.25 vCPU) | 0.5 GB, 1 GB, 2 GB
+    # 512 (.5 vCPU)  | 1 GB, 2 GB, 3 GB, 4 GB
+    # 1024 (1 vCPU)  | 2 GB, 3 GB, 4 GB, 5 GB, 6 GB, 7 GB, 8 GB
+    # 2048 (2 vCPU)  | Between 4 GB and 16 GB in 1-GB increments
+    # 4096 (4 vCPU)  | Between 8 GB and 30 GB in 1-GB increments
+    task_cpu: int = 256
+    task_memory: int = 512
+
+    ############
+    # AWS LAMBDA
+    timeout: int = 10
+    memory: int = 1536
+
+    # The maximum of concurrent executions you want to reserve for the function.
+    # Default: - No specific limit - account limit.
+    max_concurrent: Optional[int]
+
+    class Config:
+        """model config"""
+
+        env_file = ".env"
+        env_prefix = "TITILER_"

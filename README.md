@@ -42,18 +42,25 @@ This project is the descendant of [`cogeo-tiler`](https://github.com/development
 ## Installation
 
 ```bash
-$ git clone https://github.com/developmentseed/titiler.git
-
-# Install titiler dependencies and uvicorn (local web server)
-$ cd titiler && pip install -e .["server"]
-
 $ pip install -U pip
+$ pip install titiler["server"]
+
+# Or from sources
+$ git clone https://github.com/developmentseed/titiler.git
+$ cd titiler && pip install -e .["server"]
+```
+
+Launch Application
+```
 $ pip install -e .
 $ uvicorn titiler.main:app --reload
 ```
 
 Or with Docker
 ```
+$ git clone https://github.com/developmentseed/titiler.git
+$ cd titiler
+
 $ docker-compose build
 $ docker-compose up
 ```

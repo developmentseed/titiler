@@ -33,7 +33,7 @@ nav:
       # - "concepts/data_formats.md"
       # - "concepts/tile_matrix_sets.md"
   - Deployment:
-      # - 'deployment/settings.md'
+      - "deployment/settings.md"
       - "deployment/ecs.md"
       - "deployment/lambda.md"
   - Development - Contributing: "contributing.md"
