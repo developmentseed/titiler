@@ -71,6 +71,21 @@ class titilerLambdaStack(core.Stack):
             timeout=core.Duration.seconds(timeout),
             environment=lambda_env,
         )
+
+        # # If you use dynamodb backend you should add IAM roles to read/put Item and maybe create Table
+        # permissions.append(
+        #     iam.PolicyStatement(
+        #         actions=[
+        #             "dynamodb:GetItem",
+        #             "dynamodb:PutItem",
+        #             "dynamodb:CreateTable",
+        #             "dynamodb:Scan",
+        #             "dynamodb:BatchWriteItem",
+        #         ],
+        #         resources=[f"arn:aws:dynamodb:{self.region}:{self.account}:table/*"],
+        #     )
+        # )
+
         for perm in permissions:
             lambda_function.add_to_role_policy(perm)
 
@@ -167,6 +182,20 @@ class titilerECSStack(core.Stack):
             ),
         )
 
+        # # If you use dynamodb backend you should add IAM roles to read/put Item and maybe create Table
+        # permissions.append(
+        #     iam.PolicyStatement(
+        #         actions=[
+        #             "dynamodb:GetItem",
+        #             "dynamodb:PutItem",
+        #             "dynamodb:CreateTable",
+        #             "dynamodb:Scan",
+        #             "dynamodb:BatchWriteItem",
+        #         ],
+        #         resources=[f"arn:aws:dynamodb:{self.region}:{self.account}:table/*"],
+        #     )
+        # )
+
         for perm in permissions:
             fargate_service.task_definition.task_role.add_to_policy(perm)
 
@@ -213,20 +242,6 @@ if settings.mosaic_backend == "s3://" and settings.mosaic_host:
         iam.PolicyStatement(
             actions=["s3:GetObject", "s3:PutObject", "s3:HeadObject"],
             resources=[f"arn:aws:s3:::{settings.mosaic_host}"],
-        )
-    )
-
-if settings.mosaic_backend == "dynamodb://" and settings.mosaic_host:
-    perms.append(
-        iam.PolicyStatement(
-            actions=[
-                "dynamodb:GetItem",
-                "dynamodb:PutItem",
-                "dynamodb:CreateTable",
-                "dynamodb:Scan",
-                "dynamodb:BatchWriteItem",
-            ],
-            resources=["arn:aws:dynamodb:*:*:table/*"],
         )
     )
 
