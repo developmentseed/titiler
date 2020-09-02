@@ -1,5 +1,9 @@
 # Release Notes
 
+## Next (TBD) - Master
+
+* add custom `url_for` method in TilerFactory to retrieve `prefixed` endpoint URL (#95)
+
 ## 0.1.0-alpha.2 (2020-09-01)
 
 * add Transform and CRS information in `/part` GeoTIFF output
