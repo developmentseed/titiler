@@ -37,7 +37,6 @@ class STACTiler(TMSTilerFactory):
             response_model_exclude={"minzoom", "maxzoom", "center"},
             response_model_exclude_none=True,
             responses={200: {"description": "Return dataset's basic info."}},
-            name=f"{self.router_prefix}info",
         )
         def info(
             src_path=Depends(self.path_dependency),
@@ -62,7 +61,6 @@ class STACTiler(TMSTilerFactory):
             response_model_exclude={"minzoom", "maxzoom", "center"},
             response_model_exclude_none=True,
             responses={200: {"description": "Return dataset's metadata."}},
-            name=f"{self.router_prefix}metadata",
         )
         def metadata(
             src_path=Depends(self.path_dependency),
@@ -98,8 +96,8 @@ def stac_demo(request: Request):
         name="stac_index.html",
         context={
             "request": request,
-            "tilejson": request.url_for(f"{stac.router_prefix}tilejson"),
-            "metadata": request.url_for(f"{stac.router_prefix}info"),
+            "tilejson": stac.url_for(request, "tilejson"),
+            "metadata": stac.url_for(request, "info"),
         },
         media_type="text/html",
     )
