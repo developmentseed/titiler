@@ -1,6 +1,6 @@
 # Release Notes
 
-## Next (TBD) - Master
+## 0.1.0-alpha.3 (2020-09-03)
 
 * add custom `url_for` method in TilerFactory to retrieve `prefixed` endpoint URL (#95)
 * remove magic `titiler.dependencies.PathParams` mosaicid path translation, where a user could pass `url=mosaicid://` to the endpoint.
