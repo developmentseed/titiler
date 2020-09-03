@@ -10,8 +10,10 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.gzip import GZipMiddleware
 from starlette.requests import Request
 
+api_settings = settings.ApiSettings()
+
 app = FastAPI(
-    title=settings.PROJECT_NAME,
+    title=api_settings.name,
     openapi_url="/api/v1/openapi.json",
     description="A lightweight Cloud Optimized GeoTIFF tile server",
     version=version,
@@ -25,11 +27,10 @@ add_exception_handlers(app, DEFAULT_STATUS_CODES)
 
 
 # Set all CORS enabled origins
-if settings.BACKEND_CORS_ORIGINS:
-    origins = [origin.strip() for origin in settings.BACKEND_CORS_ORIGINS.split(",")]
+if api_settings.cors_origins:
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=origins,
+        allow_origins=api_settings.cors_origins,
         allow_credentials=True,
         allow_methods=["GET"],
         allow_headers=["*"],
@@ -44,11 +45,11 @@ async def header_middleware(request: Request, call_next):
     response = await call_next(request)
     if (
         not response.headers.get("Cache-Control")
-        and settings.DEFAULT_CACHECONTROL
+        and api_settings.cachecontrol
         and request.method in ["HEAD", "GET"]
         and response.status_code < 500
     ):
-        response.headers["Cache-Control"] = settings.DEFAULT_CACHECONTROL
+        response.headers["Cache-Control"] = api_settings.cachecontrol
     return response
 
 

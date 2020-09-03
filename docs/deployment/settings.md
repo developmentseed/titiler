@@ -2,22 +2,22 @@
 
 Deployment settings are managed via [pydantic.BaseSettings](https://pydantic-docs.helpmanual.io/usage/settings/) and stored in [stack.config.py](https://github.com/developmentseed/titiler/blob/master/stack/config.py). Pydantic BaseSettings can receive input to overwrite the default value from `.env` file or from environment variables.
 
-Variables in `.env` or in environment variable need to be prefixed with `TITILER_`:
+Variables in `.env` or in environment variable need to be prefixed with `STACK_`:
 
 
 ```bash
-TITILER_PROJECT="my_tiler"
-TITILER_STAGE="dev"
+STACK_NAME="my_tiler"
+STACK_STAGE="dev"
 
-TITILER_BUCKETS='["my-bucket*", "*"]'
-TITILER_MOSAIC_HOST="my-bucket/mosaics"
+STACK_BUCKETS='["my-bucket*", "*"]'
+STACK_MOSAIC_HOST="my-bucket/mosaics"
 
-TITILER_MEMORY=3008
+STACK_MEMORY=3008
 ```
 
 Default values from [stack.config.py](https://github.com/developmentseed/titiler/blob/master/stack/config.py):
 ```python
-project: str = "titiler"
+name: str = "titiler"
 stage: str = "production"
 
 owner: Optional[str]
@@ -26,9 +26,6 @@ client: Optional[str]
 additional_env: Dict = {}
 
 buckets: List = []
-
-mosaic_backend: str = "s3://"
-mosaic_host: str = ""
 
 ## ECS
 min_ecs_instances: int = 5

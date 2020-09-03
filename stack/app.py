@@ -241,7 +241,7 @@ if settings.buckets:
 
 # Tag infrastructure
 for key, value in {
-    "Project": settings.project,
+    "Project": settings.name,
     "Stack": settings.stage,
     "Owner": settings.owner,
     "Client": settings.client,
@@ -249,7 +249,7 @@ for key, value in {
     if value:
         core.Tag.add(app, key, value)
 
-ecs_stackname = f"{settings.project}-ecs-{settings.stage}"
+ecs_stackname = f"{settings.name}-ecs-{settings.stage}"
 titilerECSStack(
     app,
     ecs_stackname,
@@ -261,7 +261,7 @@ titilerECSStack(
     env=settings.additional_env,
 )
 
-lambda_stackname = f"{settings.project}-lambda-{settings.stage}"
+lambda_stackname = f"{settings.name}-lambda-{settings.stage}"
 titilerLambdaStack(
     app,
     lambda_stackname,

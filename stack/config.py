@@ -8,7 +8,7 @@ import pydantic
 class StackSettings(pydantic.BaseSettings):
     """Application settings"""
 
-    project: str = "titiler"
+    name: str = "titiler"
     stage: str = "production"
 
     owner: Optional[str]
@@ -45,4 +45,4 @@ class StackSettings(pydantic.BaseSettings):
         """model config"""
 
         env_file = ".env"
-        env_prefix = "TITILER_"
+        env_prefix = "STACK_"
