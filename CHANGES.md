@@ -4,6 +4,17 @@
 
 * add custom `url_for` method in TilerFactory to retrieve `prefixed` endpoint URL (#95)
 * remove magic `titiler.dependencies.PathParams` mosaicid path translation, where a user could pass `url=mosaicid://` to the endpoint.
+* switch to `pydantic.BaseSettings` for FastAPI application setting management.
+
+List of Settings:
+
+    ```python
+    name: str = "titiler"
+    cors_origins: str = "*"
+    cachecontrol: str = "public, max-age=3600"
+    ```
+
+API Settings can now be set by adding a `.env` file in your local project or by setting environment variables (e.g `API_CORS_ORIGIN="https://mywebsite.com/*"`)
 
 ## 0.1.0-alpha.2 (2020-09-01)
 
