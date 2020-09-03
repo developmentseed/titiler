@@ -33,15 +33,23 @@ The Lambda stack is also deployed by the [AWS CDK](https://aws.amazon.com/cdk/) 
     $ cdk synth  # Synthesizes and prints the CloudFormation template for this stack
     ```
 
-3. Edit [stack/config.py](stack/config.py)
+3. Update settings (see [settings.md](deployement/settings.md))
+
+    ```bash
+    export TITILER_PROJECT="mytiler"
+    export TITILER_STAGE="dev"
+    export TITILER_MEMORY=512
+    ```
+
+    Available settings for AWS Lambda:
 
     ```python
-    PROJECT_NAME = "titiler"
-    PROJECT_NAME = os.environ.get("PROJECT", "titiler")
-    ...
-    TIMEOUT: int = 10
-    MEMORY: int = 512
-    MAX_CONCURRENT: int = 500
+    timeout: int = 10
+    memory: int = 1536
+
+    # The maximum of concurrent executions you want to reserve for the function.
+    # Default: - No specific limit - account limit.
+    max_concurrent: Optional[int]
     ```
 
 4. Deploy

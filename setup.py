@@ -21,6 +21,7 @@ extra_reqs = {
     "lambda": ["mangum>=0.9.0"],
     "deploy": [
         "docker",
+        "python-dotenv",
         "aws-cdk.core",
         "aws-cdk.aws_lambda",
         "aws-cdk.aws_apigatewayv2",
