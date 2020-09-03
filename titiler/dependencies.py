@@ -4,7 +4,6 @@ import re
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Dict, Optional, Tuple, Type, Union
-from urllib.parse import urlparse
 
 import morecantile
 import numpy
@@ -12,7 +11,6 @@ from rasterio.enums import Resampling
 from rio_tiler.colormap import cmap
 from rio_tiler.io import BaseReader
 
-from . import settings
 from .custom import cmap as custom_colormap
 from .custom import tms as custom_tms
 from .utils import get_hash
@@ -87,24 +85,15 @@ class PathParams(DefaultDependency):
     """Create dataset path from args"""
 
     url: str = Query(..., description="Dataset URL")
-    reader: Optional[Type[BaseReader]] = field(init=False, default=None)  # Placeholder
 
-    def __post_init__(self,):
-        """Define dataset URL."""
-        parsed = urlparse(self.url)
-
-        # Placeholder in case we want to allow landsat+mosaicid
-        # by default we store the mosaicjson as a GZ compressed json (.json.gz) file
-        if parsed.scheme.split("+")[-1] == "mosaicid":
-            self.url = f"{settings.DEFAULT_MOSAIC_BACKEND}{settings.DEFAULT_MOSAIC_HOST}/{parsed.netloc}.json.gz"
-
-        # if parsed.scheme.startswith("landsat+"):
-        #     self.reader = L8Reader
-        #     self.url = self.url.replace("landsat+", "")
-        # elif parsed.scheme.startswith("sentinel2cog+"):
-        #     self.reader = Sentinel2COG
-        #     self.url = self.url.replace("sentinel2cog+", "")
-        # ....
+    # Placeholder
+    # Factory can accept a reader defined in the PathParams.
+    # This is for case where a user would want to indicate in the input url what
+    # reader to use:
+    # landsat+{landsat scene id}
+    # sentinel+{sentinel scene id}
+    # ...
+    reader: Optional[Type[BaseReader]] = field(init=False, default=None)
 
 
 @dataclass
