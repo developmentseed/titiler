@@ -22,8 +22,6 @@ def set_env(monkeypatch):
     monkeypatch.setenv("AWS_REGION", "us-west-2")
     monkeypatch.delenv("AWS_PROFILE", raising=False)
     monkeypatch.setenv("AWS_CONFIG_FILE", "/tmp/noconfigheere")
-    monkeypatch.setenv("DEFAULT_MOSAIC_BACKEND", "file://")
-    monkeypatch.setenv("DEFAULT_MOSAIC_HOST", DATA_DIR)
 
 
 @pytest.fixture(autouse=True)

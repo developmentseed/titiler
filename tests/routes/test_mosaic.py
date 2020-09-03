@@ -36,12 +36,6 @@ def test_read_mosaic(app):
     MosaicJSON(**response.json())
 
 
-def test_read_default_backend(app):
-    """test GET /mosaicjson endpoint with default backend"""
-    response = app.get("/mosaicjson", params={"url": "mosaicid://mosaic"})
-    assert response.status_code == 200
-
-
 def test_update_mosaic(app):
     """test PUT /mosaicjson endpoint"""
     mosaicjson = read_json_fixture("mosaic.json")

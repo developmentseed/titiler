@@ -18,9 +18,6 @@ class StackSettings(pydantic.BaseSettings):
 
     buckets: List = []
 
-    mosaic_backend: str = "s3://"
-    mosaic_host: str = ""
-
     #########
     # AWS ECS
     min_ecs_instances: int = 5

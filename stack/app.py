@@ -26,8 +26,6 @@ DEFAULT_ENV = dict(
     PYTHONWARNINGS="ignore",
     VSI_CACHE="TRUE",
     VSI_CACHE_SIZE="1000000",
-    DEFAULT_MOSAIC_BACKEND=settings.mosaic_backend,
-    DEFAULT_MOSAIC_HOST=settings.mosaic_host,
 )
 
 
@@ -74,7 +72,7 @@ class titilerLambdaStack(core.Stack):
             environment=lambda_env,
         )
 
-        # # If you use dynamodb backend you should add IAM roles to read/put Item and maybe create Table
+        # # If you use dynamodb mosaic backend you should add IAM roles to read/put Item and maybe create Table
         # permissions.append(
         #     iam.PolicyStatement(
         #         actions=[
@@ -186,7 +184,7 @@ class titilerECSStack(core.Stack):
             ),
         )
 
-        # # If you use dynamodb backend you should add IAM roles to read/put Item and maybe create Table
+        # # If you use dynamodb mosaic backend you should add IAM roles to read/put Item and maybe create Table
         # permissions.append(
         #     iam.PolicyStatement(
         #         actions=[
@@ -238,14 +236,6 @@ if settings.buckets:
         iam.PolicyStatement(
             actions=["s3:GetObject", "s3:HeadObject"],
             resources=[f"arn:aws:s3:::{bucket}" for bucket in settings.buckets],
-        )
-    )
-
-if settings.mosaic_backend == "s3://" and settings.mosaic_host:
-    perms.append(
-        iam.PolicyStatement(
-            actions=["s3:GetObject", "s3:PutObject", "s3:HeadObject"],
-            resources=[f"arn:aws:s3:::{settings.mosaic_host}"],
         )
     )
 
