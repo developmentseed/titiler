@@ -33,7 +33,7 @@ The Lambda stack is also deployed by the [AWS CDK](https://aws.amazon.com/cdk/) 
     $ cdk synth  # Synthesizes and prints the CloudFormation template for this stack
     ```
 
-3. Update settings (see [settings.md](deployement/settings.md))
+3. Update settings (see [settings.md](settings.md))
 
     ```bash
     export TITILER_PROJECT="mytiler"

@@ -24,7 +24,7 @@ The example handles tasks such as generating a docker image and setting up an ap
     $ cdk synth  # Synthesizes and prints the CloudFormation template for this stack
     ```
 
-3. Update settings (see [settings.md](deployement/settings.md))
+3. Update settings (see [settings.md](settings.md))
 
     ```bash
     export TITILER_PROJECT="mytiler"

@@ -1,12 +1,6 @@
 site_name: TiTiler
 site_description: TiTiler is a lightweight service for creating map tiles from Cloud Optimized GeoTiff
 
-theme:
-  name: material
-  palette:
-    primary: indigo
-    scheme: default
-
 repo_name: "developmentseed/titiler"
 repo_url: "https://github.com/developmentseed/titiler"
 
@@ -27,6 +21,9 @@ nav:
       - "endpoints/mosaic.md"
       - "endpoints/stac.md"
       - "endpoints/tms.md"
+  - Examples:
+    - COG: 'examples/Working_with_CloudOptimizedGeoTIFF.ipynb'
+    - STAC: 'examples/Working_with_STAC.ipynb'
   - Concepts:
       - "concepts/tiler_factories.md"
       # - "concepts/dynamic_tiling.md"
@@ -38,6 +35,18 @@ nav:
       - "deployment/lambda.md"
   - Development - Contributing: "contributing.md"
   - Release Notes: "release-notes.md"
+
+plugins:
+  - search
+  - mkdocs-jupyter:
+      include_source: True
+
+theme:
+  name: material
+  palette:
+    primary: indigo
+    scheme: default
+  custom_dir: 'docs/overrides'
 
 # https://github.com/kylebarron/cogeo-mosaic/blob/mkdocs/mkdocs.yml#L50-L75
 markdown_extensions:
