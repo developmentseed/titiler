@@ -18,7 +18,7 @@ def test_bounds(rio, app):
     assert response.status_code == 200
     body = response.json()
     assert len(body["bounds"]) == 4
-    assert response.headers["Cache-Control"] == "public, max-age=3600"
+    assert response.headers["Cache-Control"] == "private, max-age=3600"
 
 
 @patch("rio_tiler.io.cogeo.rasterio")
@@ -82,7 +82,7 @@ def test_wmts(rio, app):
     response = app.get("/cog/WMTSCapabilities.xml?url=https://myurl.com/cog.tif")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/xml"
-    assert response.headers["Cache-Control"] == "public, max-age=3600"
+    assert response.headers["Cache-Control"] == "private, max-age=3600"
     assert (
         "http://testserver/cog/WMTSCapabilities.xml?url=https://myurl.com/cog.tif"
         in response.content.decode()
@@ -115,7 +115,7 @@ def test_tile(rio, app):
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/jpeg"
-    assert response.headers["Cache-Control"] == "public, max-age=3600"
+    assert response.headers["Cache-Control"] == "private, max-age=3600"
     meta = parse_img(response.content)
     assert meta["width"] == 256
     assert meta["height"] == 256
@@ -328,7 +328,7 @@ def test_tile_outside_bounds_error(rio, app):
     response = app.get("/cog/tiles/15/0/0?url=https://myurl.com/cog.tif&rescale=0,1000")
     assert response.status_code == 404
     # NOT THIS MIGHT CHANGE
-    assert response.headers["Cache-Control"] == "public, max-age=3600"
+    assert response.headers["Cache-Control"] == "private, max-age=3600"
 
 
 @pytest.mark.parametrize(
