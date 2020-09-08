@@ -24,6 +24,7 @@ nav:
   - Examples:
     - COG: 'examples/Working_with_CloudOptimizedGeoTIFF.ipynb'
     - STAC: 'examples/Working_with_STAC.ipynb'
+    - MosaicJSON: 'examples/Working_with_MosaicJSON.ipynb'
   - Concepts:
       - "concepts/tiler_factories.md"
       # - "concepts/dynamic_tiling.md"

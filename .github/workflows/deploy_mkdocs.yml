@@ -10,6 +10,7 @@ on:
       - 'CHANGES.md'
       - 'CONTRIBUTING.md'
       - 'docs/**'
+      - 'mkdocs.yml'
 
 jobs:
   build:
