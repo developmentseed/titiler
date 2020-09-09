@@ -4,9 +4,9 @@ from typing import Any, Dict
 
 from starlette.responses import Response
 
-extensions = dict(JPEG="jpg", PNG="png", GTiff="tif", WEBP="webp")
+extensions = dict(JPEG="jpg", PNG="png", GTiff="tif", WEBP="webp", NPY="npy")
 
-drivers = dict(jpg="JPEG", png="PNG", tif="GTiff", webp="WEBP")
+drivers = dict(jpg="JPEG", png="PNG", tif="GTiff", webp="WEBP", npy="NPY")
 
 img_endpoint_params: Dict[str, Any] = {
     "responses": {

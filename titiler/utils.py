@@ -3,7 +3,6 @@
 import hashlib
 import json
 import time
-from io import BytesIO
 from typing import Any, Dict, Optional, Tuple
 
 import affine
@@ -65,19 +64,11 @@ def reformat(
     crs: Optional[CRS] = None,
 ):
     """Reformat image data to bytes"""
-    if img_format == ImageType.npy:
-        sio = BytesIO()
-        numpy.save(sio, (data, mask))
-        sio.seek(0)
-        content = sio.getvalue()
-    else:
-        driver = drivers[img_format.value]
-        options = img_profiles.get(driver.lower(), {})
-        if transform and crs and ImageType.tif in img_format:
-            options = {"crs": crs, "transform": transform}
-
-        content = render(data, mask, img_format=driver, colormap=colormap, **options)
-    return content
+    driver = drivers[img_format.value]
+    options = img_profiles.get(driver.lower(), {})
+    if transform and crs and ImageType.tif in img_format:
+        options = {"crs": crs, "transform": transform}
+    return render(data, mask, img_format=driver, colormap=colormap, **options)
 
 
 # This code is copied from marblecutter

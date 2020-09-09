@@ -155,9 +155,8 @@ def test_tile(rio, app):
     response = app.get("/cog/tiles/8/87/48.npy?url=https://myurl.com/cog.tif&nodata=0")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/x-binary"
-    t, m = numpy.load(BytesIO(response.content), allow_pickle=True)
-    assert t.shape == (1, 256, 256)
-    assert m.shape == (256, 256)
+    data = numpy.load(BytesIO(response.content))
+    assert data.shape == (2, 256, 256)
 
     # partial
     response = app.get(
@@ -254,9 +253,8 @@ def test_preview(rio, app):
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/x-binary"
-    t, m = numpy.load(BytesIO(response.content), allow_pickle=True)
-    assert t.shape == (1, 1024, 1021)
-    assert m.shape == (1024, 1021)
+    data = numpy.load(BytesIO(response.content))
+    assert data.shape == (2, 1024, 1021)
 
 
 @patch("rio_tiler.io.cogeo.rasterio")
@@ -299,9 +297,8 @@ def test_part(rio, app):
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/x-binary"
-    t, m = numpy.load(BytesIO(response.content), allow_pickle=True)
-    assert t.shape == (1, 73, 256)
-    assert m.shape == (73, 256)
+    data = numpy.load(BytesIO(response.content))
+    assert data.shape == (2, 73, 256)
 
 
 @patch("rio_tiler.io.cogeo.rasterio")
