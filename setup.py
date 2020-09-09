@@ -12,7 +12,7 @@ inst_reqs = [
     "python-dotenv",
     "rio-color",
     "rio-cogeo~=2.0a5",
-    "rio-tiler>=2.0b8",
+    "rio-tiler>=2.0b9",
     "rio-tiler-crs>=3.0b4,<3.1",
     "cogeo-mosaic>=3.0a10,<3.1",
 ]

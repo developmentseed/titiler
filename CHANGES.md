@@ -1,5 +1,27 @@
 # Release Notes
 
+## 0.1.0-alpha.4 (TBD)
+
+* Update `.npy` output format to follow the numpyTile format (#103)
+
+```python
+import numpy
+import requests
+from io import BytesIO
+
+endpoint = ...
+url = "https://opendata.digitalglobe.com/events/mauritius-oil-spill/post-event/2020-08-12/105001001F1B5B00/105001001F1B5B00.tif"
+
+r = requests.get(f"{endpoint}/cog/tiles/14/10818/9146.npy",
+    params = {
+        "url": url,
+    }
+)
+data = numpy.load(BytesIO(r.content))
+print(data.shape)
+> (4, 256, 256)
+```
+
 ## 0.1.0-alpha.3 (2020-09-03)
 
 * add custom `url_for` method in TilerFactory to retrieve `prefixed` endpoint URL (#95)
