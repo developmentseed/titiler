@@ -158,6 +158,14 @@ def test_tile(rio, app):
     data = numpy.load(BytesIO(response.content))
     assert data.shape == (2, 256, 256)
 
+    response = app.get(
+        "/cog/tiles/8/87/48.npy?url=https://myurl.com/cog.tif&nodata=0&return_mask=false"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/x-binary"
+    data = numpy.load(BytesIO(response.content))
+    assert data.shape == (1, 256, 256)
+
     # partial
     response = app.get(
         "/cog/tiles/8/84/47?url=https://myurl.com/cog.tif&rescale=0,1000"
@@ -181,6 +189,17 @@ def test_tile(rio, app):
         "/cog/tiles/8/53/50.png?url=https://myurl.com/above_cog.tif&bidx=1&color_map=above&resampling_method=somethingwrong"
     )
     assert response.status_code == 422
+
+    response = app.get(
+        "/cog/tiles/8/87/48@2x.tif?url=https://myurl.com/cog.tif&nodata=0&bidx=1&return_mask=false"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/tiff"
+    meta = parse_img(response.content)
+    assert meta["dtype"] == "uint16"
+    assert meta["count"] == 1
+    assert meta["width"] == 512
+    assert meta["height"] == 512
 
 
 @patch("rio_tiler.io.cogeo.rasterio")
@@ -234,6 +253,18 @@ def test_preview(rio, app):
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
     meta = parse_img(response.content)
+    assert meta["count"] == 2
+    assert meta["width"] == 256
+    assert meta["height"] == 256
+    assert meta["driver"] == "PNG"
+
+    response = app.get(
+        "/cog/preview.png?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=256&return_mask=false"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/png"
+    meta = parse_img(response.content)
+    assert meta["count"] == 1
     assert meta["width"] == 256
     assert meta["height"] == 256
     assert meta["driver"] == "PNG"
@@ -268,6 +299,18 @@ def test_part(rio, app):
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
     meta = parse_img(response.content)
+    assert meta["count"] == 2
+    assert meta["width"] == 256
+    assert meta["height"] == 73
+    assert meta["driver"] == "PNG"
+
+    response = app.get(
+        "/cog/crop/-56.228,72.715,-54.547,73.188.png?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=256&return_mask=false"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/png"
+    meta = parse_img(response.content)
+    assert meta["count"] == 1
     assert meta["width"] == 256
     assert meta["height"] == 73
     assert meta["driver"] == "PNG"

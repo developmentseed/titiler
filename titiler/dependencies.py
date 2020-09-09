@@ -230,6 +230,7 @@ class TileParams(CommonParams):
         None, description="rio-tiler's colormap name"
     )
     colormap: Optional[Dict[int, Tuple[int, int, int, int]]] = field(init=False)
+    return_mask: bool = Query(True, description="Add mask to the output data.")
 
     def __post_init__(self):
         """Post Init."""

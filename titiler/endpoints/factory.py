@@ -289,7 +289,7 @@ class TilerFactory(BaseFactory):
             with utils.Timer() as t:
                 content = utils.reformat(
                     tile,
-                    mask,
+                    mask if params.return_mask else None,
                     format,
                     colormap=colormap,
                     transform=dst_transform,
@@ -555,7 +555,12 @@ class TilerFactory(BaseFactory):
             timings.append(("Post-process", t.elapsed))
 
             with utils.Timer() as t:
-                content = utils.reformat(data, mask, format, colormap=colormap)
+                content = utils.reformat(
+                    data,
+                    mask if params.return_mask else None,
+                    format,
+                    colormap=colormap,
+                )
             timings.append(("Format", t.elapsed))
 
             if timings:
@@ -631,7 +636,7 @@ class TilerFactory(BaseFactory):
                 )
                 content = utils.reformat(
                     data,
-                    mask,
+                    mask if params.return_mask else None,
                     format,
                     colormap=colormap,
                     transform=dst_transform,
@@ -742,7 +747,7 @@ class TMSTilerFactory(TilerFactory):
             with utils.Timer() as t:
                 content = utils.reformat(
                     tile,
-                    mask,
+                    mask if params.return_mask else None,
                     format,
                     colormap=colormap,
                     transform=dst_transform,
@@ -1149,7 +1154,7 @@ class MosaicTilerFactory(BaseFactory):
             with utils.Timer() as t:
                 content = utils.reformat(
                     data,
-                    mask,
+                    mask if params.return_mask else None,
                     format,
                     colormap=params.colormap,
                     transform=dst_transform,
