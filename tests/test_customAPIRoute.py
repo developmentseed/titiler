@@ -10,7 +10,7 @@ from fastapi import APIRouter, FastAPI
 from starlette.testclient import TestClient
 
 
-def test_withoutCustomRoute(set_env, monkeypatch):
+def test_withoutCustomRoute(monkeypatch):
     """Create App."""
     monkeypatch.setenv("GDAL_DISABLE_READDIR_ON_OPEN", "something")
 
@@ -51,26 +51,23 @@ def test_withoutCustomRoute(set_env, monkeypatch):
         return {"env": res}
 
     app.include_router(router)
-
     client = TestClient(app)
+
     response = client.get("/simple")
     assert response.json()["env"] == "FALSE"
 
-    client = TestClient(app)
     response = client.get("/asimple")
     assert response.json()["env"] == "FALSE"
 
     # confirm the multi threads case doesn't work
-    client = TestClient(app)
     response = client.get("/future")
-    assert response.json()["env"] == "something"
+    assert not response.json()["env"] == "FALSE"
 
-    client = TestClient(app)
     response = client.get("/afuture")
     assert response.json()["env"] == "FALSE"
 
 
-def test_withCustomRoute(set_env, monkeypatch):
+def test_withCustomRoute(monkeypatch):
     """Create App."""
     monkeypatch.setenv("GDAL_DISABLE_READDIR_ON_OPEN", "something")
 
@@ -110,20 +107,17 @@ def test_withCustomRoute(set_env, monkeypatch):
         return {"env": res}
 
     app.include_router(router)
-
     client = TestClient(app)
+
     response = client.get("/simple")
     assert response.json()["env"] == "FALSE"
 
-    client = TestClient(app)
     response = client.get("/asimple")
     assert response.json()["env"] == "FALSE"
 
     # confirm the Custom APIRoute class fix
-    client = TestClient(app)
     response = client.get("/future")
     assert response.json()["env"] == "FALSE"
 
-    client = TestClient(app)
     response = client.get("/afuture")
     assert response.json()["env"] == "FALSE"

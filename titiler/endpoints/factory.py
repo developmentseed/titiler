@@ -53,7 +53,7 @@ templates = Jinja2Templates(directory=template_dir)
 default_readers_type = Union[Type[BaseReader], Type[MultiBaseReader]]
 
 
-def apiroute_factory(env: Optional[Dict] = None):
+def apiroute_factory(env: Optional[Dict] = None) -> Type[APIRoute]:
     """
     Create Custom API Route class with custom Env.
 
