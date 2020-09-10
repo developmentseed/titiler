@@ -7,6 +7,7 @@ from typing import Any, Callable, Dict, Optional, Type, Union
 from urllib.parse import urlencode
 
 import pkg_resources
+import rasterio
 from cogeo_mosaic.backends import BaseBackend, MosaicBackend
 from cogeo_mosaic.mosaic import MosaicJSON
 from cogeo_mosaic.utils import get_footprints
@@ -40,6 +41,7 @@ from ..ressources.enums import (  # fmt: off
 from ..ressources.responses import XMLResponse
 
 from fastapi import APIRouter, Depends, Path, Query
+from fastapi.routing import APIRoute
 
 from starlette.requests import Request
 from starlette.responses import Response
@@ -51,6 +53,35 @@ templates = Jinja2Templates(directory=template_dir)
 default_readers_type = Union[Type[BaseReader], Type[MultiBaseReader]]
 
 
+def apiroute_factory(env: Optional[Dict] = None):
+    """
+    Create Custom API Route class with custom Env.
+
+    Because we cannot create middleware for specific router we need to create
+    a custom APIRoute which add the `rasterio.Env(` block before the endpoint is
+    actually called. This way we set the env outside the threads and we make sure
+    that event multithreaded Reader will get the environment set.
+
+    """
+
+    class EnvAPIRoute(APIRoute):
+        """Custom API route with env."""
+
+        config = env or {}
+
+        def get_route_handler(self) -> Callable:
+            original_route_handler = super().get_route_handler()
+
+            async def custom_route_handler(request: Request) -> Response:
+                with rasterio.Env(**self.config):
+                    response: Response = await original_route_handler(request)
+                return response
+
+            return custom_route_handler
+
+    return EnvAPIRoute
+
+
 # ref: https://github.com/python/mypy/issues/5374
 @dataclass  # type: ignore
 class BaseFactory(metaclass=abc.ABCMeta):
@@ -60,7 +91,10 @@ class BaseFactory(metaclass=abc.ABCMeta):
     reader_options: Dict = field(default_factory=dict)
 
     # FastAPI router
-    router: APIRouter = field(default_factory=APIRouter)
+    router: APIRouter = field(init=False)
+
+    # Per Router GDAL environment variables
+    env: Dict = field(default_factory=dict)
 
     # Endpoint Dependencies
     path_dependency: Type[PathParams] = field(default=PathParams)
@@ -79,6 +113,8 @@ class BaseFactory(metaclass=abc.ABCMeta):
 
     def __post_init__(self):
         """Post Init: register route and configure specific options."""
+        route_class = apiroute_factory(self.env)
+        self.router = APIRouter(route_class=route_class)
         self.register_routes()
 
     @abc.abstractmethod
