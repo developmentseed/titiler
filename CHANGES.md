@@ -22,6 +22,29 @@ print(data.shape)
 > (4, 256, 256)
 ```
 
+* Add `titiler.custom.routing.apiroute_factory`. This function enable the creation of custom fastapi.routing.APIRoute class with `rasterio.Env()` block.
+
+```python
+from fastapi import FastAPI, APIRouter
+from rasterio._env import get_gdal_config
+from titiler.custom.routing import apiroute_factory
+
+app = FastAPI()
+route_class = apiroute_factory({"GDAL_DISABLE_READDIR_ON_OPEN": "FALSE"})
+router = APIRouter(route_class=route_class)
+
+@router.get("/simple")
+def simple():
+    """should return FALSE."""
+    res = get_gdal_config("GDAL_DISABLE_READDIR_ON_OPEN")
+    return {"env": res}
+
+app.include_router(router)
+```
+
+Note: This has only be tested for python 3.6 and 3.7.
+
+
 ## 0.1.0-alpha.3 (2020-09-03)
 
 * add custom `url_for` method in TilerFactory to retrieve `prefixed` endpoint URL (#95)
