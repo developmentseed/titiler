@@ -1,6 +1,6 @@
 # Release Notes
 
-## 0.1.0-alpha.4 (TBD)
+## 0.1.0-alpha.4 (2020-09-14)
 
 * Update `.npy` output format to follow the numpyTile format (#103)
 
