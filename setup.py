@@ -56,7 +56,7 @@ setup(
     author_email="vincent@developmentseed.org",
     url="https://github.com/developmentseed/titiler",
     license="MIT",
-    packages=find_packages(exclude=["ez_setup", "examples", "tests"]),
+    packages=find_packages(exclude=["tests*", "stack"]),
     package_data={"titiler": ["templates/*.html", "templates/*.xml"]},
     include_package_data=True,
     zip_safe=False,

@@ -1,2 +1,5 @@
 include titiler/templates/*.html
 include titiler/templates/*.xml
+
+recursive-exclude tests *
+recursive-exclude stack *

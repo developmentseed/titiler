@@ -1,5 +1,9 @@
 # Release Notes
 
+## Next (TBD) - Master
+
+* exclude `tests/` an `stack/` in titiler python package.
+
 ## 0.1.0-alpha.4 (2020-09-14)
 
 * Update `.npy` output format to follow the numpyTile format (#103)
