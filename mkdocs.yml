@@ -15,21 +15,25 @@ extra:
 
 nav:
   - TiTiler: "index.md"
-  - Usage: "usage.md"
-  - Endpoints:
-      - "endpoints/cog.md"
-      - "endpoints/mosaic.md"
-      - "endpoints/stac.md"
-      - "endpoints/tms.md"
+  - User Guide:
+    - Intro: "intro.md"
+    - Endpoints Documentation:
+        - Cloud Optimized GeoTIFF: "endpoints/cog.md"
+        - MosaicJSON: "endpoints/mosaic.md"
+        - SpatioTemporal Asset Catalog: "endpoints/stac.md"
+        - TileMatrixSets: "endpoints/tms.md"
+  - Advanced User Guide:
+      - "concepts/tiler_factories.md"
+      - "concepts/dependencies.md"
+      - "concepts/customization.md"
+      # - "concepts/dynamic_tiling.md"
+      # - "concepts/data_formats.md"
+      # - "concepts/tile_matrix_sets.md"
   - Examples:
     - COG: 'examples/Working_with_CloudOptimizedGeoTIFF.ipynb'
     - STAC: 'examples/Working_with_STAC.ipynb'
     - MosaicJSON: 'examples/Working_with_MosaicJSON.ipynb'
-  - Concepts:
-      - "concepts/tiler_factories.md"
-      # - "concepts/dynamic_tiling.md"
-      # - "concepts/data_formats.md"
-      # - "concepts/tile_matrix_sets.md"
+    - Non-WebMercator TMS: 'examples/Working_with_nonWebMercatorTMS.ipynb'
   - Deployment:
       - "deployment/settings.md"
       - "deployment/ecs.md"

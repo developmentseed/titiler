@@ -3,6 +3,7 @@
 ## Next (TBD) - Master
 
 * exclude `tests/` an `stack/` in titiler python package.
+* add `EPSG6933` in TMS
 
 ## 0.1.0-alpha.4 (2020-09-14)
 

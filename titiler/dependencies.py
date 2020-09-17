@@ -22,6 +22,7 @@ from starlette.requests import Request
 ################################################################################
 #                       CMAP AND TMS Customization
 morecantile.tms.register(custom_tms.EPSG3413)
+morecantile.tms.register(custom_tms.EPSG6933)
 # REGISTER CUSTOM TMS
 #
 # e.g morecantile.tms.register(custom_tms.my_custom_tms)
