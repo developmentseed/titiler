@@ -32,7 +32,7 @@ extra_reqs = {
         "aws-cdk.aws_ecs_patterns",
     ],
     "test": ["pytest", "pytest-cov", "pytest-asyncio", "requests"],
-    "docs": ["mkdocs", "mkdocs-material", "mkdocs-jupyter"],
+    "docs": ["mkdocs", "mkdocs-material", "mkdocs-jupyter==0.12", "pygments"],
 }
 
 

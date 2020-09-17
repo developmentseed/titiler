@@ -6,7 +6,7 @@ def test_tilematrix(app):
     response = app.get("/tileMatrixSets")
     assert response.status_code == 200
     body = response.json()
-    assert len(body["tileMatrixSets"]) == 11  # morecantile has 10 defaults
+    assert len(body["tileMatrixSets"]) == 12  # morecantile has 10 defaults
     tms = list(filter(lambda m: m["id"] == "EPSG3413", body["tileMatrixSets"]))[0]
     assert tms["links"][0]["href"] == "http://testserver/tileMatrixSets/EPSG3413"
 
