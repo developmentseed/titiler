@@ -4,50 +4,121 @@
 
 * exclude `tests/` an `stack/` in titiler python package.
 * add `EPSG6933` in TMS
+* [FACTORY] refactor dependencies to better align with rio_tiler.io.BaseReader method definition.
+
+    Example:
+
+    In the `metadata`, the `MetadataParams` will be used to pass `pmin` and `pmax` because they are the only
+    required parameters for the metadata method. All other params will be passed to a `kwargs` dict.
+
+    ```python
+    @dataclass
+    class MetadataParams(DefaultDependency):
+        """Common Metadada parameters."""
+        # Required params
+        pmin: float = Query(2.0, description="Minimum percentile")
+        pmax: float = Query(98.0, description="Maximum percentile")
+        # Optional parameters
+        bidx: Optional[str] = Query(
+            None, title="Band indexes", description="comma (',') delimited band indexes",
+        )
+        ...
+        def __post_init__(self):
+            """Post Init."""
+
+            if self.bidx is not None:
+                self.kwargs["indexes"] = tuple(
+                    int(s) for s in re.findall(r"\d+", self.bidx)
+                )
+        ...
+
+    def metadata(
+        src_path=Depends(self.path_dependency),
+        metadata_params=Depends(self.metadata_dependency),
+        kwargs=Depends(self.additional_dependency),
+    ):
+        """Return metadata."""
+        reader = src_path.reader or self.reader
+        with reader(src_path.url, **self.reader_options) as src_dst:
+            info = src_dst.metadata(
+                metadata_params.pmin,
+                metadata_params.pmax,
+                **metadata_params.kwargs,
+                **kwargs,
+            )
+        return info
+    ```
+
+**breaking changes**
+-  [FACTORY] the `additional_dependency` should be a Callable which return a dict.
+
+    ```python
+    @dataclass  # type: ignore
+    class BaseFactory(metaclass=abc.ABCMeta):
+        """BaseTiler Factory."""
+        ...
+        # provide custom dependency
+        additional_dependency: Callable[..., Dict] = field(default=lambda: dict())
+    ```
+
+    ```python
+    def AssetsParams(
+        assets: Optional[str] = Query(
+            None,
+            title="Asset indexes",
+            description="comma (',') delimited asset names (might not be an available options of some readers)",
+        )
+    ) -> Dict:
+        """Assets Dependency."""
+        kwargs = {}
+        if assets:
+            kwargs["assets"] = assets.split(",")
+        return kwargs
+    ```
 
 ## 0.1.0-alpha.4 (2020-09-14)
 
 * Update `.npy` output format to follow the numpyTile format (#103)
 
-```python
-import numpy
-import requests
-from io import BytesIO
+    ```python
+    import numpy
+    import requests
+    from io import BytesIO
 
-endpoint = ...
-url = "https://opendata.digitalglobe.com/events/mauritius-oil-spill/post-event/2020-08-12/105001001F1B5B00/105001001F1B5B00.tif"
+    endpoint = ...
+    url = "https://opendata.digitalglobe.com/events/mauritius-oil-spill/post-event/2020-08-12/105001001F1B5B00/105001001F1B5B00.tif"
 
-r = requests.get(f"{endpoint}/cog/tiles/14/10818/9146.npy",
-    params = {
-        "url": url,
-    }
-)
-data = numpy.load(BytesIO(r.content))
-print(data.shape)
-> (4, 256, 256)
-```
+    r = requests.get(f"{endpoint}/cog/tiles/14/10818/9146.npy",
+        params = {
+            "url": url,
+        }
+    )
+    data = numpy.load(BytesIO(r.content))
+    print(data.shape)
+    > (4, 256, 256)
+    ```
 
 * Add `titiler.custom.routing.apiroute_factory`. This function enable the creation of custom fastapi.routing.APIRoute class with `rasterio.Env()` block.
 
-```python
-from fastapi import FastAPI, APIRouter
-from rasterio._env import get_gdal_config
-from titiler.custom.routing import apiroute_factory
+    ```python
+    from fastapi import FastAPI, APIRouter
+    from rasterio._env import get_gdal_config
+    from titiler.custom.routing import apiroute_factory
 
-app = FastAPI()
-route_class = apiroute_factory({"GDAL_DISABLE_READDIR_ON_OPEN": "FALSE"})
-router = APIRouter(route_class=route_class)
+    app = FastAPI()
+    route_class = apiroute_factory({"GDAL_DISABLE_READDIR_ON_OPEN": "FALSE"})
+    router = APIRouter(route_class=route_class)
 
-@router.get("/simple")
-def simple():
-    """should return FALSE."""
-    res = get_gdal_config("GDAL_DISABLE_READDIR_ON_OPEN")
-    return {"env": res}
+    @router.get("/simple")
+    def simple():
+        """should return FALSE."""
+        res = get_gdal_config("GDAL_DISABLE_READDIR_ON_OPEN")
+        return {"env": res}
 
-app.include_router(router)
-```
+    app.include_router(router)
+    ```
 
-Note: This has only be tested for python 3.6 and 3.7.
+    Note: This has only be tested for python 3.6 and 3.7.
 
 
 ## 0.1.0-alpha.3 (2020-09-03)
@@ -56,7 +127,7 @@ Note: This has only be tested for python 3.6 and 3.7.
 * remove magic `titiler.dependencies.PathParams` mosaicid path translation, where a user could pass `url=mosaicid://` to the endpoint.
 * switch to `pydantic.BaseSettings` for FastAPI application setting management.
 
-List of Settings:
+    List of Settings:
 
     ```python
     name: str = "titiler"

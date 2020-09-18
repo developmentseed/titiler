@@ -97,42 +97,55 @@ class PathParams(DefaultDependency):
     reader: Optional[Type[BaseReader]] = field(init=False, default=None)
 
 
-@dataclass
-class AssetsParams(DefaultDependency):
-    """Create dataset path from args"""
+def IndexesParams(
+    bidx: Optional[str] = Query(
+        None, title="Band indexes", description="comma (',') delimited band indexes",
+    )
+) -> Dict:
+    """Indexes Dependency."""
+    kwargs = {}
+    if bidx:
+        kwargs["indexes"] = tuple(int(s) for s in re.findall(r"\d+", bidx))
+    return kwargs
 
+
+def AssetsParams(
     assets: Optional[str] = Query(
         None,
         title="Asset indexes",
         description="comma (',') delimited asset names (might not be an available options of some readers)",
     )
+) -> Dict:
+    """Assets Dependency."""
+    kwargs = {}
+    if assets:
+        kwargs["assets"] = assets.split(",")
+    return kwargs
 
-    def __post_init__(self):
-        """Post Init."""
-        if self.assets is not None:
-            self.kwargs["assets"] = self.assets.split(",")
 
-
-@dataclass
-class BandsParams(DefaultDependency):
-    """Create dataset Bands from args"""
-
+def BandsParams(
     bands: Optional[str] = Query(
         None,
-        title="Bands indexes",
+        title="Bands names",
         description="comma (',') delimited band names (might not be an available options of some readers)",
     )
-
-    def __post_init__(self):
-        """Post Init."""
-        if self.bands is not None:
-            self.kwargs["bands"] = self.bands.split(",")
+) -> Dict:
+    """Assets Dependency."""
+    kwargs = {}
+    if bands:
+        kwargs["bands"] = bands.split(",")
+    return kwargs
 
 
 @dataclass
-class CommonParams(DefaultDependency):
-    """Common Reader params."""
+class MetadataParams(DefaultDependency):
+    """Common Metadada parameters."""
 
+    # Required params
+    pmin: float = Query(2.0, description="Minimum percentile")
+    pmax: float = Query(98.0, description="Maximum percentile")
+
+    # rio_tiler.reader._read Options
     bidx: Optional[str] = Query(
         None, title="Band indexes", description="comma (',') delimited band indexes",
     )
@@ -143,22 +156,10 @@ class CommonParams(DefaultDependency):
         ResamplingNames.nearest, description="Resampling method."  # type: ignore
     )
 
-    def __post_init__(self):
-        """Post Init."""
-        self.indexes = (
-            tuple(int(s) for s in re.findall(r"\d+", self.bidx)) if self.bidx else None
-        )
-        if self.nodata is not None:
-            self.nodata = numpy.nan if self.nodata == "nan" else float(self.nodata)
-
-
-@dataclass
-class MetadataParams(CommonParams):
-    """Common Metadada parameters."""
-
-    pmin: float = Query(2.0, description="Minimum percentile")
-    pmax: float = Query(98.0, description="Maximum percentile")
-    max_size: int = Query(1024, description="Maximum image size to read onto.")
+    # Optional params
+    max_size: Optional[int] = Query(
+        None, description="Maximum image size to read onto."
+    )
     histogram_bins: Optional[int] = Query(None, description="Histogram bins.")
     histogram_range: Optional[str] = Query(
         None, description="comma (',') delimited Min,Max histogram bounds"
@@ -167,20 +168,102 @@ class MetadataParams(CommonParams):
         None,
         descriptions="comma (',') delimited Bounding box coordinates from which to calculate image statistics.",
     )
-    hist_options: dict = field(init=False, default_factory=dict)
+
+    def __post_init__(self):
+        """Post Init."""
+        if self.nodata is not None:
+            self.kwargs["nodata"] = (
+                numpy.nan if self.nodata == "nan" else float(self.nodata)
+            )
+
+        if self.bidx is not None:
+            self.kwargs["indexes"] = tuple(
+                int(s) for s in re.findall(r"\d+", self.bidx)
+            )
+
+        if self.resampling_method is not None:
+            self.kwargs["resampling_method"] = self.resampling_method.name
+
+        if self.max_size is not None:
+            self.kwargs["max_size"] = self.max_size
+
+        if self.bounds:
+            self.kwargs["bounds"] = tuple(map(float, self.bounds.split(",")))
+
+        hist_options = {}
+        if self.histogram_bins:
+            hist_options.update(dict(bins=self.histogram_bins))
+        if self.histogram_range:
+            hist_options.update(
+                dict(range=list(map(float, self.histogram_range.split(","))))
+            )
+        if hist_options:
+            self.kwargs["hist_options"] = hist_options
+
+
+@dataclass
+class TileParams(DefaultDependency):
+    """Common Tile parameters."""
+
+    bidx: Optional[str] = Query(
+        None, title="Band indexes", description="comma (',') delimited band indexes",
+    )
+    expression: Optional[str] = Query(
+        None,
+        title="Band Math expression",
+        description="rio-tiler's band math expression (e.g B1/B2)",
+    )
+    nodata: Optional[Union[str, int, float]] = Query(
+        None, title="Nodata value", description="Overwrite internal Nodata value"
+    )
+    resampling_method: ResamplingNames = Query(
+        ResamplingNames.nearest, description="Resampling method."  # type: ignore
+    )
+
+    def __post_init__(self):
+        """Post Init."""
+        if self.bidx is not None:
+            self.kwargs["indexes"] = tuple(
+                int(s) for s in re.findall(r"\d+", self.bidx)
+            )
+
+        if self.expression is not None:
+            self.kwargs["expression"] = self.expression
+
+        if self.nodata is not None:
+            self.kwargs["nodata"] = (
+                numpy.nan if self.nodata == "nan" else float(self.nodata)
+            )
+
+        if self.resampling_method is not None:
+            self.kwargs["resampling_method"] = self.resampling_method.name
+
+
+@dataclass
+class ImageParams(TileParams):
+    """Common Preview/Crop parameters."""
+
+    max_size: Optional[int] = Query(
+        1024, description="Maximum image size to read onto."
+    )
+    height: Optional[int] = Query(None, description="Force output image height.")
+    width: Optional[int] = Query(None, description="Force output image width.")
 
     def __post_init__(self):
         """Post Init."""
         super().__post_init__()
 
-        if self.histogram_bins:
-            self.hist_options.update(dict(bins=self.histogram_bins))
-        if self.histogram_range:
-            self.hist_options.update(
-                dict(range=list(map(float, self.histogram_range.split(","))))
-            )
-        if self.bounds:
-            self.bounds = tuple(map(float, self.bounds.split(",")))
+        if self.width and self.height:
+            self.max_size = None
+
+        if self.width is not None:
+            self.kwargs["width"] = self.width
+
+        if self.height is not None:
+            self.kwargs["height"] = self.height
+
+        if self.max_size is not None:
+            self.kwargs["max_size"] = self.max_size
 
 
 @dataclass
@@ -201,22 +284,24 @@ class PointParams(DefaultDependency):
 
     def __post_init__(self):
         """Post Init."""
-        self.indexes = (
-            tuple(int(s) for s in re.findall(r"\d+", self.bidx)) if self.bidx else None
-        )
+        if self.bidx is not None:
+            self.kwargs["indexes"] = tuple(
+                int(s) for s in re.findall(r"\d+", self.bidx)
+            )
+
+        if self.expression is not None:
+            self.kwargs["expression"] = self.expression
+
         if self.nodata is not None:
-            self.nodata = numpy.nan if self.nodata == "nan" else float(self.nodata)
+            self.kwargs["nodata"] = (
+                numpy.nan if self.nodata == "nan" else float(self.nodata)
+            )
 
 
 @dataclass
-class TileParams(CommonParams):
-    """Common Tile parameters."""
+class RenderParams(DefaultDependency):
+    """Image Rendering options."""
 
-    expression: Optional[str] = Query(
-        None,
-        title="Band Math expression",
-        description="rio-tiler's band math expression (e.g B1/B2)",
-    )
     rescale: Optional[str] = Query(
         None,
         title="Min/Max data Rescaling",
@@ -230,29 +315,9 @@ class TileParams(CommonParams):
     color_map: Optional[ColorMapNames] = Query(
         None, description="rio-tiler's colormap name"
     )
-    colormap: Optional[Dict[int, Tuple[int, int, int, int]]] = field(init=False)
     return_mask: bool = Query(True, description="Add mask to the output data.")
+    colormap: Optional[Dict[int, Tuple[int, int, int, int]]] = field(init=False)
 
     def __post_init__(self):
         """Post Init."""
-        super().__post_init__()
-
         self.colormap = cmap.get(self.color_map.value) if self.color_map else None
-
-
-@dataclass
-class ImageParams(TileParams):
-    """Common Image parameters."""
-
-    max_size: Optional[int] = Query(
-        1024, description="Maximum image size to read onto."
-    )
-    height: Optional[int] = Query(None, description="Force output image height.")
-    width: Optional[int] = Query(None, description="Force output image width.")
-
-    def __post_init__(self):
-        """Post Init."""
-        super().__post_init__()
-
-        if self.width and self.height:
-            self.max_size = None
