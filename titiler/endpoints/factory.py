@@ -17,11 +17,11 @@ from rio_tiler_crs import COGReader as TMSCOGReader
 
 from .. import utils
 from ..dependencies import (
-    DefaultDependency,
     ImageParams,
     MetadataParams,
     PathParams,
     PointParams,
+    RenderParams,
     TileParams,
     TMSParams,
     WebMercatorTMSParams,
@@ -69,8 +69,10 @@ class BaseFactory(metaclass=abc.ABCMeta):
 
     tms_dependency: Callable = WebMercatorTMSParams
 
+    img_render_dependency: Type[RenderParams] = field(default=RenderParams)
+
     # provide custom dependency
-    additional_dependency: Type[DefaultDependency] = field(default=DefaultDependency)
+    additional_dependency: Callable[..., Dict] = field(default=lambda: dict())
 
     # Router Prefix is needed to find the path for /tile if the TilerFactory.router is mounted
     # with other router (multiple `.../tile` routes).
@@ -162,12 +164,12 @@ class TilerFactory(BaseFactory):
         )
         def info(
             src_path=Depends(self.path_dependency),
-            options=Depends(self.additional_dependency),
+            kwargs=Depends(self.additional_dependency),
         ):
             """Return basic info."""
             reader = src_path.reader or self.reader
             with reader(src_path.url, **self.reader_options) as src_dst:
-                info = src_dst.info(**options.kwargs)
+                info = src_dst.info(**kwargs)
             return info
 
     ############################################################################
@@ -185,23 +187,16 @@ class TilerFactory(BaseFactory):
         )
         def metadata(
             src_path=Depends(self.path_dependency),
-            params=Depends(self.metadata_dependency),
-            options=Depends(self.additional_dependency),
+            metadata_params=Depends(self.metadata_dependency),
+            kwargs=Depends(self.additional_dependency),
         ):
             """Return metadata."""
             reader = src_path.reader or self.reader
             with reader(src_path.url, **self.reader_options) as src_dst:
-                kwargs = options.kwargs.copy()
-                if params.nodata is not None:
-                    kwargs["nodata"] = params.nodata
                 info = src_dst.metadata(
-                    params.pmin,
-                    params.pmax,
-                    indexes=params.indexes,
-                    max_size=params.max_size,
-                    hist_options=params.hist_options,
-                    bounds=params.bounds,
-                    resampling_method=params.resampling_method.name,
+                    metadata_params.pmin,
+                    metadata_params.pmax,
+                    **metadata_params.kwargs,
                     **kwargs,
                 )
             return info
@@ -243,8 +238,9 @@ class TilerFactory(BaseFactory):
                 None, description="Output image type. Default is auto."
             ),
             src_path=Depends(self.path_dependency),
-            params=Depends(self.tiles_dependency),
-            options=Depends(self.additional_dependency),
+            tile_params=Depends(self.tiles_dependency),
+            render_params=Depends(self.img_render_dependency),
+            kwargs=Depends(self.additional_dependency),
         ):
             """Create map tile from a dataset."""
             timings = []
@@ -255,20 +251,12 @@ class TilerFactory(BaseFactory):
             with utils.Timer() as t:
                 reader = src_path.reader or self.reader
                 with reader(src_path.url, **self.reader_options) as src_dst:
-                    kwargs = options.kwargs.copy()
-                    if params.nodata is not None:
-                        kwargs["nodata"] = params.nodata
                     tile, mask = src_dst.tile(
-                        x,
-                        y,
-                        z,
-                        tilesize=tilesize,
-                        indexes=params.indexes,
-                        expression=params.expression,
-                        resampling_method=params.resampling_method.name,
-                        **kwargs,
+                        x, y, z, tilesize=tilesize, **tile_params.kwargs, **kwargs,
                     )
-                    colormap = params.colormap or getattr(src_dst, "colormap", None)
+                    colormap = render_params.colormap or getattr(
+                        src_dst, "colormap", None
+                    )
 
             timings.append(("Read", t.elapsed))
 
@@ -279,8 +267,8 @@ class TilerFactory(BaseFactory):
                 tile = utils.postprocess(
                     tile,
                     mask,
-                    rescale=params.rescale,
-                    color_formula=params.color_formula,
+                    rescale=render_params.rescale,
+                    color_formula=render_params.color_formula,
                 )
             timings.append(("Post-process", t.elapsed))
 
@@ -289,7 +277,7 @@ class TilerFactory(BaseFactory):
             with utils.Timer() as t:
                 content = utils.reformat(
                     tile,
-                    mask if params.return_mask else None,
+                    mask if render_params.return_mask else None,
                     format,
                     colormap=colormap,
                     transform=dst_transform,
@@ -338,10 +326,11 @@ class TilerFactory(BaseFactory):
                 None, description="Overwrite default maxzoom."
             ),
             params=Depends(self.tiles_dependency),  # noqa
-            options=Depends(self.additional_dependency),  # noqa
+            render_params=Depends(self.img_render_dependency),  # noqa
+            kwargs=Depends(self.additional_dependency),  # noqa
         ):
             """Return TileJSON document for a dataset."""
-            kwargs = {
+            route_params = {
                 "z": "{z}",
                 "x": "{x}",
                 "y": "{y}",
@@ -349,8 +338,8 @@ class TilerFactory(BaseFactory):
                 "TileMatrixSetId": tms.identifier,
             }
             if tile_format:
-                kwargs["format"] = tile_format.value
-            tiles_url = self.url_for(request, "tile", **kwargs)
+                route_params["format"] = tile_format.value
+            tiles_url = self.url_for(request, "tile", **route_params)
 
             q = dict(request.query_params)
             q.pop("TileMatrixSetId", None)
@@ -398,10 +387,11 @@ class TilerFactory(BaseFactory):
                 None, description="Overwrite default maxzoom."
             ),
             params=Depends(self.tiles_dependency),  # noqa
-            options=Depends(self.additional_dependency),  # noqa
+            render_params=Depends(self.img_render_dependency),  # noqa
+            kwargs=Depends(self.additional_dependency),  # noqa
         ):
             """OGC WMTS endpoint."""
-            kwargs = {
+            route_params = {
                 "z": "{TileMatrix}",
                 "x": "{TileCol}",
                 "y": "{TileRow}",
@@ -409,7 +399,7 @@ class TilerFactory(BaseFactory):
                 "format": tile_format.value,
                 "TileMatrixSetId": tms.identifier,
             }
-            tiles_url = self.url_for(request, "tile", **kwargs)
+            tiles_url = self.url_for(request, "tile", **route_params)
 
             q = dict(request.query_params)
             q.pop("TileMatrixSetId", None)
@@ -472,8 +462,8 @@ class TilerFactory(BaseFactory):
             lon: float = Path(..., description="Longitude"),
             lat: float = Path(..., description="Latitude"),
             src_path=Depends(self.path_dependency),
-            params=Depends(self.point_dependency),
-            options=Depends(self.additional_dependency),
+            point_params=Depends(self.point_dependency),
+            kwargs=Depends(self.additional_dependency),
         ):
             """Get Point value for a dataset."""
             timings = []
@@ -482,16 +472,7 @@ class TilerFactory(BaseFactory):
             with utils.Timer() as t:
                 reader = src_path.reader or self.reader
                 with reader(src_path.url, **self.reader_options) as src_dst:
-                    kwargs = options.kwargs.copy()
-                    if params.nodata is not None:
-                        kwargs["nodata"] = params.nodata
-                    values = src_dst.point(
-                        lon,
-                        lat,
-                        indexes=params.indexes,
-                        expression=params.expression,
-                        **kwargs,
-                    )
+                    values = src_dst.point(lon, lat, **point_params.kwargs, **kwargs)
             timings.append(("Read", t.elapsed))
 
             if timings:
@@ -517,8 +498,9 @@ class TilerFactory(BaseFactory):
                 None, description="Output image type. Default is auto."
             ),
             src_path=Depends(self.path_dependency),
-            params=Depends(self.img_dependency),
-            options=Depends(self.additional_dependency),
+            img_params=Depends(self.img_dependency),
+            render_params=Depends(self.img_render_dependency),
+            kwargs=Depends(self.additional_dependency),
         ):
             """Create preview of a dataset."""
             timings = []
@@ -527,19 +509,10 @@ class TilerFactory(BaseFactory):
             with utils.Timer() as t:
                 reader = src_path.reader or self.reader
                 with reader(src_path.url, **self.reader_options) as src_dst:
-                    kwargs = options.kwargs.copy()
-                    if params.nodata is not None:
-                        kwargs["nodata"] = params.nodata
-                    data, mask = src_dst.preview(
-                        height=params.height,
-                        width=params.width,
-                        max_size=params.max_size,
-                        indexes=params.indexes,
-                        expression=params.expression,
-                        resampling_method=params.resampling_method.name,
-                        **options.kwargs,
+                    data, mask = src_dst.preview(**img_params.kwargs, **kwargs)
+                    colormap = render_params.colormap or getattr(
+                        src_dst, "colormap", None
                     )
-                    colormap = params.colormap or getattr(src_dst, "colormap", None)
             timings.append(("Read", t.elapsed))
 
             if not format:
@@ -549,15 +522,15 @@ class TilerFactory(BaseFactory):
                 data = utils.postprocess(
                     data,
                     mask,
-                    rescale=params.rescale,
-                    color_formula=params.color_formula,
+                    rescale=render_params.rescale,
+                    color_formula=render_params.color_formula,
                 )
             timings.append(("Post-process", t.elapsed))
 
             with utils.Timer() as t:
                 content = utils.reformat(
                     data,
-                    mask if params.return_mask else None,
+                    mask if render_params.return_mask else None,
                     format,
                     colormap=colormap,
                 )
@@ -592,8 +565,9 @@ class TilerFactory(BaseFactory):
             maxy: float = Path(..., description="Bounding box max Y"),
             format: ImageType = Query(None, description="Output image type."),
             src_path=Depends(self.path_dependency),
-            params=Depends(self.img_dependency),
-            options=Depends(self.additional_dependency),
+            image_params=Depends(self.img_dependency),
+            render_params=Depends(self.img_render_dependency),
+            kwargs=Depends(self.additional_dependency),
         ):
             """Create image from part of a dataset."""
             timings = []
@@ -602,20 +576,12 @@ class TilerFactory(BaseFactory):
             with utils.Timer() as t:
                 reader = src_path.reader or self.reader
                 with reader(src_path.url, **self.reader_options) as src_dst:
-                    kwargs = options.kwargs.copy()
-                    if params.nodata is not None:
-                        kwargs["nodata"] = params.nodata
                     data, mask = src_dst.part(
-                        [minx, miny, maxx, maxy],
-                        height=params.height,
-                        width=params.width,
-                        max_size=params.max_size,
-                        indexes=params.indexes,
-                        expression=params.expression,
-                        resampling_method=params.resampling_method.name,
-                        **kwargs,
+                        [minx, miny, maxx, maxy], **image_params.kwargs, **kwargs,
                     )
-                    colormap = params.colormap or getattr(src_dst, "colormap", None)
+                    colormap = render_params.colormap or getattr(
+                        src_dst, "colormap", None
+                    )
             timings.append(("Read", t.elapsed))
 
             if not format:
@@ -625,8 +591,8 @@ class TilerFactory(BaseFactory):
                 data = utils.postprocess(
                     data,
                     mask,
-                    rescale=params.rescale,
-                    color_formula=params.color_formula,
+                    rescale=render_params.rescale,
+                    color_formula=render_params.color_formula,
                 )
             timings.append(("Post-process", t.elapsed))
 
@@ -636,7 +602,7 @@ class TilerFactory(BaseFactory):
                 )
                 content = utils.reformat(
                     data,
-                    mask if params.return_mask else None,
+                    mask if render_params.return_mask else None,
                     format,
                     colormap=colormap,
                     transform=dst_transform,
@@ -701,8 +667,9 @@ class TMSTilerFactory(TilerFactory):
                 None, description="Output image type. Default is auto."
             ),
             src_path=Depends(self.path_dependency),
-            params=Depends(self.tiles_dependency),
-            options=Depends(self.additional_dependency),
+            tile_params=Depends(self.tiles_dependency),
+            render_params=Depends(self.img_render_dependency),
+            kwargs=Depends(self.additional_dependency),
         ):
             """Create map tile from a dataset."""
             timings = []
@@ -713,20 +680,12 @@ class TMSTilerFactory(TilerFactory):
             with utils.Timer() as t:
                 reader = src_path.reader or self.reader
                 with reader(src_path.url, tms=tms, **self.reader_options) as src_dst:
-                    kwargs = options.kwargs.copy()
-                    if params.nodata is not None:
-                        kwargs["nodata"] = params.nodata
                     tile, mask = src_dst.tile(
-                        x,
-                        y,
-                        z,
-                        tilesize=tilesize,
-                        indexes=params.indexes,
-                        expression=params.expression,
-                        resampling_method=params.resampling_method.name,
-                        **kwargs,
+                        x, y, z, tilesize=tilesize, **tile_params.kwargs, **kwargs,
                     )
-                    colormap = params.colormap or getattr(src_dst, "colormap", None)
+                    colormap = render_params.colormap or getattr(
+                        src_dst, "colormap", None
+                    )
 
             timings.append(("Read", t.elapsed))
 
@@ -737,8 +696,8 @@ class TMSTilerFactory(TilerFactory):
                 tile = utils.postprocess(
                     tile,
                     mask,
-                    rescale=params.rescale,
-                    color_formula=params.color_formula,
+                    rescale=render_params.rescale,
+                    color_formula=render_params.color_formula,
                 )
             timings.append(("Post-process", t.elapsed))
 
@@ -747,7 +706,7 @@ class TMSTilerFactory(TilerFactory):
             with utils.Timer() as t:
                 content = utils.reformat(
                     tile,
-                    mask if params.return_mask else None,
+                    mask if render_params.return_mask else None,
                     format,
                     colormap=colormap,
                     transform=dst_transform,
@@ -795,11 +754,12 @@ class TMSTilerFactory(TilerFactory):
             maxzoom: Optional[int] = Query(
                 None, description="Overwrite default maxzoom."
             ),
-            params=Depends(self.tiles_dependency),  # noqa
-            options=Depends(self.additional_dependency),  # noqa
+            tile_params=Depends(self.tiles_dependency),  # noqa
+            render_params=Depends(self.img_render_dependency),  # noqa
+            kwargs=Depends(self.additional_dependency),  # noqa
         ):
             """Return TileJSON document for a dataset."""
-            kwargs = {
+            route_params = {
                 "z": "{z}",
                 "x": "{x}",
                 "y": "{y}",
@@ -807,8 +767,8 @@ class TMSTilerFactory(TilerFactory):
                 "TileMatrixSetId": tms.identifier,
             }
             if tile_format:
-                kwargs["format"] = tile_format.value
-            tiles_url = self.url_for(request, "tile", **kwargs)
+                route_params["format"] = tile_format.value
+            tiles_url = self.url_for(request, "tile", **route_params)
 
             q = dict(request.query_params)
             q.pop("TileMatrixSetId", None)
@@ -855,11 +815,12 @@ class TMSTilerFactory(TilerFactory):
             maxzoom: Optional[int] = Query(
                 None, description="Overwrite default maxzoom."
             ),
-            params=Depends(self.tiles_dependency),  # noqa
-            options=Depends(self.additional_dependency),  # noqa
+            tile_params=Depends(self.tiles_dependency),  # noqa
+            render_params=Depends(self.img_render_dependency),  # noqa
+            kwargs=Depends(self.additional_dependency),  # noqa
         ):
             """OGC WMTS endpoint."""
-            kwargs = {
+            route_params = {
                 "z": "{TileMatrix}",
                 "x": "{TileCol}",
                 "y": "{TileRow}",
@@ -867,7 +828,7 @@ class TMSTilerFactory(TilerFactory):
                 "format": tile_format.value,
                 "TileMatrixSetId": tms.identifier,
             }
-            tiles_url = self.url_for(request, "tile", **kwargs)
+            tiles_url = self.url_for(request, "tile", **route_params)
 
             q = dict(request.query_params)
             q.pop("TileMatrixSetId", None)
@@ -1097,11 +1058,12 @@ class MosaicTilerFactory(BaseFactory):
                 None, description="Output image type. Default is auto."
             ),
             src_path=Depends(self.path_dependency),
-            params=Depends(self.tiles_dependency),
-            options=Depends(self.additional_dependency),
+            tile_params=Depends(self.tiles_dependency),
+            render_params=Depends(self.img_render_dependency),
             pixel_selection: PixelSelectionMethod = Query(
                 PixelSelectionMethod.first, description="Pixel selection method."
             ),
+            kwargs=Depends(self.additional_dependency),
         ):
             """Create map tile from a COG."""
             timings = []
@@ -1116,9 +1078,6 @@ class MosaicTilerFactory(BaseFactory):
                 with self.reader(
                     src_path.url, reader=reader, reader_options=self.reader_options
                 ) as src_dst:
-                    kwargs = options.kwargs.copy()
-                    if params.nodata is not None:
-                        kwargs["nodata"] = params.nodata
                     (data, mask), assets_used = src_dst.tile(
                         x,
                         y,
@@ -1126,9 +1085,7 @@ class MosaicTilerFactory(BaseFactory):
                         pixel_selection=pixel_selection.method(),
                         threads=threads,
                         tilesize=tilesize,
-                        indexes=params.indexes,
-                        expression=params.expression,
-                        resampling_method=params.resampling_method.name,
+                        **tile_params.kwargs,
                         **kwargs,
                     )
 
@@ -1144,8 +1101,8 @@ class MosaicTilerFactory(BaseFactory):
                 data = utils.postprocess(
                     data,
                     mask,
-                    rescale=params.rescale,
-                    color_formula=params.color_formula,
+                    rescale=render_params.rescale,
+                    color_formula=render_params.color_formula,
                 )
             timings.append(("Post-process", t.elapsed))
 
@@ -1154,9 +1111,9 @@ class MosaicTilerFactory(BaseFactory):
             with utils.Timer() as t:
                 content = utils.reformat(
                     data,
-                    mask if params.return_mask else None,
+                    mask if render_params.return_mask else None,
                     format,
-                    colormap=params.colormap,
+                    colormap=render_params.colormap,
                     transform=dst_transform,
                     crs=tms.crs,
                 )
@@ -1205,14 +1162,15 @@ class MosaicTilerFactory(BaseFactory):
             maxzoom: Optional[int] = Query(
                 None, description="Overwrite default maxzoom."
             ),
-            params=Depends(self.tiles_dependency),  # noqa
-            options=Depends(self.additional_dependency),  # noqa
+            tile_params=Depends(self.tiles_dependency),  # noqa
+            render_params=Depends(self.img_render_dependency),  # noqa
             pixel_selection: PixelSelectionMethod = Query(
                 PixelSelectionMethod.first, description="Pixel selection method."
             ),  # noqa
+            kwargs=Depends(self.additional_dependency),  # noqa
         ):
             """Return TileJSON document for a COG."""
-            kwargs = {
+            route_params = {
                 "z": "{z}",
                 "x": "{x}",
                 "y": "{y}",
@@ -1220,8 +1178,8 @@ class MosaicTilerFactory(BaseFactory):
                 "TileMatrixSetId": tms.identifier,
             }
             if tile_format:
-                kwargs["format"] = tile_format.value
-            tiles_url = self.url_for(request, "tile", **kwargs)
+                route_params["format"] = tile_format.value
+            tiles_url = self.url_for(request, "tile", **route_params)
 
             q = dict(request.query_params)
             q.pop("TileMatrixSetId", None)
@@ -1267,14 +1225,15 @@ class MosaicTilerFactory(BaseFactory):
             maxzoom: Optional[int] = Query(
                 None, description="Overwrite default maxzoom."
             ),
-            params=Depends(self.tiles_dependency),  # noqa
-            options=Depends(self.additional_dependency),  # noqa
+            tile_params=Depends(self.tiles_dependency),  # noqa
+            render_params=Depends(self.img_render_dependency),  # noqa
             pixel_selection: PixelSelectionMethod = Query(
                 PixelSelectionMethod.first, description="Pixel selection method."
             ),  # noqa
+            kwargs=Depends(self.additional_dependency),  # noqa
         ):
             """OGC WMTS endpoint."""
-            kwargs = {
+            route_params = {
                 "z": "{TileMatrix}",
                 "x": "{TileCol}",
                 "y": "{TileRow}",
@@ -1282,7 +1241,7 @@ class MosaicTilerFactory(BaseFactory):
                 "format": tile_format.value,
                 "TileMatrixSetId": tms.identifier,
             }
-            tiles_url = self.url_for(request, "tile", **kwargs)
+            tiles_url = self.url_for(request, "tile", **route_params)
 
             q = dict(request.query_params)
             q.pop("TileMatrixSetId", None)
@@ -1344,8 +1303,8 @@ class MosaicTilerFactory(BaseFactory):
             lon: float = Path(..., description="Longitude"),
             lat: float = Path(..., description="Latitude"),
             src_path=Depends(self.path_dependency),
-            params=Depends(self.point_dependency),
-            options=Depends(self.additional_dependency),
+            point_params=Depends(self.point_dependency),
+            kwargs=Depends(self.additional_dependency),
         ):
             """Get Point value for a Mosaic."""
             timings = []
@@ -1357,16 +1316,8 @@ class MosaicTilerFactory(BaseFactory):
                 with self.reader(
                     src_path.url, reader=reader, reader_options=self.reader_options,
                 ) as src_dst:
-                    kwargs = options.kwargs.copy()
-                    if params.nodata is not None:
-                        kwargs["nodata"] = params.nodata
                     values = src_dst.point(
-                        lon,
-                        lat,
-                        threads=threads,
-                        indexes=params.indexes,
-                        expression=params.expression,
-                        **kwargs,
+                        lon, lat, threads=threads, **point_params.kwargs, **kwargs,
                     )
             timings.append(("Read", t.elapsed))
 
