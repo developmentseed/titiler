@@ -30,10 +30,10 @@ nav:
       # - "concepts/data_formats.md"
       # - "concepts/tile_matrix_sets.md"
   - Examples:
-    - COG: 'examples/Working_with_CloudOptimizedGeoTIFF.ipynb'
-    - STAC: 'examples/Working_with_STAC.ipynb'
-    - MosaicJSON: 'examples/Working_with_MosaicJSON.ipynb'
-    - Non-WebMercator TMS: 'examples/Working_with_nonWebMercatorTMS.ipynb'
+    - COG: "examples/Working_with_CloudOptimizedGeoTIFF.ipynb"
+    - STAC: "examples/Working_with_STAC.ipynb"
+    - MosaicJSON: "examples/Working_with_MosaicJSON.ipynb"
+    - Non-WebMercator TMS: "examples/Working_with_nonWebMercatorTMS.ipynb"
   - Deployment:
       - "deployment/settings.md"
       - "deployment/ecs.md"

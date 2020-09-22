@@ -5,8 +5,9 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Dict, Optional, Tuple, Type, Union
 
-import morecantile
 import numpy
+from morecantile import tms as DefaultTileMatrixSets
+from morecantile.models import TileMatrixSet
 from rasterio.enums import Resampling
 from rio_tiler.colormap import cmap
 from rio_tiler.io import BaseReader
@@ -21,11 +22,11 @@ from starlette.requests import Request
 
 ################################################################################
 #                       CMAP AND TMS Customization
-morecantile.tms.register(custom_tms.EPSG3413)
-morecantile.tms.register(custom_tms.EPSG6933)
+DefaultTileMatrixSets.register(custom_tms.EPSG3413)
+DefaultTileMatrixSets.register(custom_tms.EPSG6933)
 # REGISTER CUSTOM TMS
 #
-# e.g morecantile.tms.register(custom_tms.my_custom_tms)
+# e.g DefaultTileMatrixSets.register(custom_tms.my_custom_tms)
 
 cmap.register("above", custom_colormap.above_cmap)
 # REGISTER CUSTOM COLORMAP HERE
@@ -45,7 +46,7 @@ WebMercatorTileMatrixSetName = Enum(  # type: ignore
     "WebMercatorTileMatrixSetName", [("WebMercatorQuad", "WebMercatorQuad")]
 )
 TileMatrixSetNames = Enum(  # type: ignore
-    "TileMatrixSetNames", [(a, a) for a in sorted(morecantile.tms.list())]
+    "TileMatrixSetNames", [(a, a) for a in sorted(DefaultTileMatrixSets.list())]
 )
 
 
@@ -59,9 +60,9 @@ def WebMercatorTMSParams(
         WebMercatorTileMatrixSetName.WebMercatorQuad,  # type: ignore
         description="TileMatrixSet Name (default: 'WebMercatorQuad')",
     )
-) -> morecantile.TileMatrixSet:
+) -> TileMatrixSet:
     """TileMatrixSet Dependency."""
-    return morecantile.tms.get(TileMatrixSetId.name)
+    return DefaultTileMatrixSets.get(TileMatrixSetId.name)
 
 
 def TMSParams(
@@ -69,9 +70,9 @@ def TMSParams(
         TileMatrixSetNames.WebMercatorQuad,  # type: ignore
         description="TileMatrixSet Name (default: 'WebMercatorQuad')",
     )
-) -> morecantile.TileMatrixSet:
+) -> TileMatrixSet:
     """TileMatrixSet Dependency."""
-    return morecantile.tms.get(TileMatrixSetId.name)
+    return DefaultTileMatrixSets.get(TileMatrixSetId.name)
 
 
 @dataclass
@@ -82,7 +83,7 @@ class DefaultDependency:
 
 
 @dataclass
-class PathParams(DefaultDependency):
+class PathParams:
     """Create dataset path from args"""
 
     url: str = Query(..., description="Dataset URL")
@@ -97,44 +98,44 @@ class PathParams(DefaultDependency):
     reader: Optional[Type[BaseReader]] = field(init=False, default=None)
 
 
-def IndexesParams(
+@dataclass
+class BidxParams(DefaultDependency):
+    """Band Indexes parameters."""
+
     bidx: Optional[str] = Query(
         None, title="Band indexes", description="comma (',') delimited band indexes",
     )
-) -> Dict:
-    """Indexes Dependency."""
-    kwargs = {}
-    if bidx:
-        kwargs["indexes"] = tuple(int(s) for s in re.findall(r"\d+", bidx))
-    return kwargs
+
+    def __post_init__(self):
+        """Post Init."""
+        if self.bidx is not None:
+            self.kwargs["indexes"] = tuple(
+                int(s) for s in re.findall(r"\d+", self.bidx)
+            )
 
 
-def AssetsParams(
-    assets: Optional[str] = Query(
-        None,
-        title="Asset indexes",
-        description="comma (',') delimited asset names (might not be an available options of some readers)",
+@dataclass
+class BidxExprParams(DefaultDependency):
+    """Band Indexes and Expression parameters."""
+
+    bidx: Optional[str] = Query(
+        None, title="Band indexes", description="comma (',') delimited band indexes",
     )
-) -> Dict:
-    """Assets Dependency."""
-    kwargs = {}
-    if assets:
-        kwargs["assets"] = assets.split(",")
-    return kwargs
-
-
-def BandsParams(
-    bands: Optional[str] = Query(
+    expression: Optional[str] = Query(
         None,
-        title="Bands names",
-        description="comma (',') delimited band names (might not be an available options of some readers)",
+        title="Band Math expression",
+        description="rio-tiler's band math expression (e.g B1/B2)",
     )
-) -> Dict:
-    """Assets Dependency."""
-    kwargs = {}
-    if bands:
-        kwargs["bands"] = bands.split(",")
-    return kwargs
+
+    def __post_init__(self):
+        """Post Init."""
+        if self.bidx is not None:
+            self.kwargs["indexes"] = tuple(
+                int(s) for s in re.findall(r"\d+", self.bidx)
+            )
+
+        if self.expression is not None:
+            self.kwargs["expression"] = self.expression
 
 
 @dataclass
@@ -144,17 +145,6 @@ class MetadataParams(DefaultDependency):
     # Required params
     pmin: float = Query(2.0, description="Minimum percentile")
     pmax: float = Query(98.0, description="Maximum percentile")
-
-    # rio_tiler.reader._read Options
-    bidx: Optional[str] = Query(
-        None, title="Band indexes", description="comma (',') delimited band indexes",
-    )
-    nodata: Optional[Union[str, int, float]] = Query(
-        None, title="Nodata value", description="Overwrite internal Nodata value"
-    )
-    resampling_method: ResamplingNames = Query(
-        ResamplingNames.nearest, description="Resampling method."  # type: ignore
-    )
 
     # Optional params
     max_size: Optional[int] = Query(
@@ -171,19 +161,6 @@ class MetadataParams(DefaultDependency):
 
     def __post_init__(self):
         """Post Init."""
-        if self.nodata is not None:
-            self.kwargs["nodata"] = (
-                numpy.nan if self.nodata == "nan" else float(self.nodata)
-            )
-
-        if self.bidx is not None:
-            self.kwargs["indexes"] = tuple(
-                int(s) for s in re.findall(r"\d+", self.bidx)
-            )
-
-        if self.resampling_method is not None:
-            self.kwargs["resampling_method"] = self.resampling_method.name
-
         if self.max_size is not None:
             self.kwargs["max_size"] = self.max_size
 
@@ -202,45 +179,7 @@ class MetadataParams(DefaultDependency):
 
 
 @dataclass
-class TileParams(DefaultDependency):
-    """Common Tile parameters."""
-
-    bidx: Optional[str] = Query(
-        None, title="Band indexes", description="comma (',') delimited band indexes",
-    )
-    expression: Optional[str] = Query(
-        None,
-        title="Band Math expression",
-        description="rio-tiler's band math expression (e.g B1/B2)",
-    )
-    nodata: Optional[Union[str, int, float]] = Query(
-        None, title="Nodata value", description="Overwrite internal Nodata value"
-    )
-    resampling_method: ResamplingNames = Query(
-        ResamplingNames.nearest, description="Resampling method."  # type: ignore
-    )
-
-    def __post_init__(self):
-        """Post Init."""
-        if self.bidx is not None:
-            self.kwargs["indexes"] = tuple(
-                int(s) for s in re.findall(r"\d+", self.bidx)
-            )
-
-        if self.expression is not None:
-            self.kwargs["expression"] = self.expression
-
-        if self.nodata is not None:
-            self.kwargs["nodata"] = (
-                numpy.nan if self.nodata == "nan" else float(self.nodata)
-            )
-
-        if self.resampling_method is not None:
-            self.kwargs["resampling_method"] = self.resampling_method.name
-
-
-@dataclass
-class ImageParams(TileParams):
+class ImageParams(DefaultDependency):
     """Common Preview/Crop parameters."""
 
     max_size: Optional[int] = Query(
@@ -251,8 +190,6 @@ class ImageParams(TileParams):
 
     def __post_init__(self):
         """Post Init."""
-        super().__post_init__()
-
         if self.width and self.height:
             self.max_size = None
 
@@ -267,35 +204,33 @@ class ImageParams(TileParams):
 
 
 @dataclass
-class PointParams(DefaultDependency):
-    """Point Parameters."""
+class DatasetParams(DefaultDependency):
+    """Low level WarpedVRT Optional parameters."""
 
-    bidx: Optional[str] = Query(
-        None, title="Band indexes", description="comma (',') delimited band indexes",
-    )
     nodata: Optional[Union[str, int, float]] = Query(
         None, title="Nodata value", description="Overwrite internal Nodata value"
     )
-    expression: Optional[str] = Query(
+    unscale: Optional[bool] = Query(
         None,
-        title="Band Math expression",
-        description="rio-tiler's band math expression (e.g B1/B2)",
+        title="Apply internal Scale/Offset",
+        description="Apply internal Scale/Offset",
+    )
+    resampling_method: ResamplingNames = Query(
+        ResamplingNames.nearest, description="Resampling method."  # type: ignore
     )
 
     def __post_init__(self):
         """Post Init."""
-        if self.bidx is not None:
-            self.kwargs["indexes"] = tuple(
-                int(s) for s in re.findall(r"\d+", self.bidx)
-            )
-
-        if self.expression is not None:
-            self.kwargs["expression"] = self.expression
-
         if self.nodata is not None:
             self.kwargs["nodata"] = (
                 numpy.nan if self.nodata == "nan" else float(self.nodata)
             )
+
+        if self.unscale is not None:
+            self.kwargs["unscale"] = self.unscale
+
+        if self.resampling_method is not None:
+            self.kwargs["resampling_method"] = self.resampling_method.name
 
 
 @dataclass

@@ -6,7 +6,7 @@ from rio_tiler_crs import COGReader as COGReaderWithTMS
 
 def test_TilerFactory(set_env):
     """Test TilerFactory class."""
-    from titiler.dependencies import AssetsParams, TMSParams, WebMercatorTMSParams
+    from titiler.dependencies import TMSParams, WebMercatorTMSParams
     from titiler.endpoints import factory
 
     app = factory.TMSTilerFactory(reader=COGReaderWithTMS)
@@ -18,10 +18,7 @@ def test_TilerFactory(set_env):
     assert app.tms_dependency == WebMercatorTMSParams
 
     app = factory.TilerFactory(
-        reader=COGReaderNoTMS,
-        additional_dependency=AssetsParams,
-        add_preview=False,
-        add_part=False,
+        reader=COGReaderNoTMS, add_preview=False, add_part=False,
     )
     assert len(app.router.routes) == 16
 
