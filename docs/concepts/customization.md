@@ -134,8 +134,7 @@ class STACTiler(TMSTilerFactory):
             kwargs: Dict = Depends(self.additional_dependency),
         ):
             """Return basic info."""
-            reader = src_path.reader or self.reader
-            with reader(src_path.url, **self.reader_options) as src_dst:
+            with self.reader(src_path.url, **self.reader_options) as src_dst:
                 # `Assets` is a required options for `info`,
                 # if not set we return the list of assets
                 if not asset_params.assets:
@@ -164,8 +163,7 @@ class STACTiler(TMSTilerFactory):
             kwargs: Dict = Depends(self.additional_dependency),
         ):
             """Return metadata."""
-            reader = src_path.reader or self.reader
-            with reader(src_path.url, **self.reader_options) as src_dst:
+            with self.reader(src_path.url, **self.reader_options) as src_dst:
                 info = src_dst.metadata(
                     metadata_params.pmin,
                     metadata_params.pmax,
@@ -203,10 +201,9 @@ class PathParams(DefaultDependency):
 
     mosaic: str = Query(..., description="mosaic name")
 
-    # We need url and reader to match default PathParams signature
+    # We need url to match default PathParams signature
     # Because we set `init=False` those params won't appear in OpenAPI docs.
     url: Optional[str] = field(init=False, default=None)
-    reader: Optional[Type[BaseReader]] = field(init=False, default=None)  # Placeholder
 
     def __post_init__(self,):
         """Define dataset URL."""

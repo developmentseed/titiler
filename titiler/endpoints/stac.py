@@ -99,9 +99,8 @@ class STACTiler(TMSTilerFactory):
             kwargs: Dict = Depends(self.additional_dependency),
         ):
             """Return basic info."""
-            reader = src_path.reader or self.reader
-            with reader(src_path.url, **self.reader_options) as src_dst:
-                if not asset_params.kwargs.get("assets"):
+            with self.reader(src_path.url, **self.reader_options) as src_dst:
+                if not asset_params.assets:
                     return src_dst.assets
                 info = src_dst.info(**asset_params.kwargs, **kwargs)
             return info
@@ -125,8 +124,7 @@ class STACTiler(TMSTilerFactory):
             kwargs: Dict = Depends(self.additional_dependency),
         ):
             """Return metadata."""
-            reader = src_path.reader or self.reader
-            with reader(src_path.url, **self.reader_options) as src_dst:
+            with self.reader(src_path.url, **self.reader_options) as src_dst:
                 info = src_dst.metadata(
                     metadata_params.pmin,
                     metadata_params.pmax,

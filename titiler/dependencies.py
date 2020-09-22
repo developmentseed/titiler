@@ -3,14 +3,13 @@
 import re
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, Optional, Tuple, Type, Union
+from typing import Dict, Optional, Tuple, Union
 
 import numpy
 from morecantile import tms as DefaultTileMatrixSets
 from morecantile.models import TileMatrixSet
 from rasterio.enums import Resampling
 from rio_tiler.colormap import cmap
-from rio_tiler.io import BaseReader
 
 from .custom import cmap as custom_colormap
 from .custom import tms as custom_tms
@@ -87,15 +86,6 @@ class PathParams:
     """Create dataset path from args"""
 
     url: str = Query(..., description="Dataset URL")
-
-    # Placeholder
-    # Factory can accept a reader defined in the PathParams.
-    # This is for case where a user would want to indicate in the input url what
-    # reader to use:
-    # landsat+{landsat scene id}
-    # sentinel+{sentinel scene id}
-    # ...
-    reader: Optional[Type[BaseReader]] = field(init=False, default=None)
 
 
 @dataclass
