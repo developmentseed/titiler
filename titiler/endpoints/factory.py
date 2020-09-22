@@ -10,6 +10,7 @@ import pkg_resources
 from cogeo_mosaic.backends import BaseBackend, MosaicBackend
 from cogeo_mosaic.mosaic import MosaicJSON
 from cogeo_mosaic.utils import get_footprints
+from morecantile import TileMatrixSet
 from rasterio.transform import from_bounds
 from rio_tiler.constants import MAX_THREADS, WGS84_CRS
 from rio_tiler.io import BaseReader, COGReader, MultiBaseReader
@@ -17,12 +18,14 @@ from rio_tiler_crs import COGReader as TMSCOGReader
 
 from .. import utils
 from ..dependencies import (
+    BidxExprParams,
+    BidxParams,
+    DatasetParams,
+    DefaultDependency,
     ImageParams,
     MetadataParams,
     PathParams,
-    PointParams,
     RenderParams,
-    TileParams,
     TMSParams,
     WebMercatorTMSParams,
 )
@@ -49,6 +52,7 @@ template_dir = pkg_resources.resource_filename("titiler", "templates")
 templates = Jinja2Templates(directory=template_dir)
 
 default_readers_type = Union[Type[BaseReader], Type[MultiBaseReader]]
+default_deps_type = Type[DefaultDependency]
 
 
 # ref: https://github.com/python/mypy/issues/5374
@@ -62,14 +66,20 @@ class BaseFactory(metaclass=abc.ABCMeta):
     # FastAPI router
     router: APIRouter = field(default_factory=APIRouter)
 
-    # Endpoint Dependencies
+    # Path Dependency
     path_dependency: Type[PathParams] = field(default=PathParams)
-    tiles_dependency: Type[TileParams] = field(default=TileParams)
-    point_dependency: Type[PointParams] = field(default=PointParams)
 
-    tms_dependency: Callable = WebMercatorTMSParams
+    # Rasterio Dataset Options (nodata, unscale, resampling)
+    dataset_dependency: default_deps_type = field(default=DatasetParams)
 
-    img_render_dependency: Type[RenderParams] = field(default=RenderParams)
+    # Indexes/Expression Dependencies
+    layer_dependency: default_deps_type = field(default=BidxExprParams)
+
+    # Image rendering Dependencies
+    render_dependency: default_deps_type = field(default=RenderParams)
+
+    # TileMatrixSet dependency
+    tms_dependency: Callable[..., TileMatrixSet] = WebMercatorTMSParams
 
     # provide custom dependency
     additional_dependency: Callable[..., Dict] = field(default=lambda: dict())
@@ -102,8 +112,8 @@ class TilerFactory(BaseFactory):
     """Tiler Factory."""
 
     # Endpoint Dependencies
-    metadata_dependency: Type[MetadataParams] = MetadataParams
-    img_dependency: Type[ImageParams] = ImageParams
+    metadata_dependency: default_deps_type = MetadataParams
+    img_dependency: default_deps_type = ImageParams
 
     # Add/Remove some endpoints
     add_preview: bool = True
@@ -120,23 +130,23 @@ class TilerFactory(BaseFactory):
         """
         # Default Routes
         # (/bounds, /info, /metadata, /tile, /tilejson.json, /WMTSCapabilities.xml and /point)
-        self._bounds()
-        self._info()
-        self._metadata()
-        self._tile()
-        self._point()
+        self.bounds()
+        self.info()
+        self.metadata()
+        self.tile()
+        self.point()
 
         if self.add_preview:
-            self._preview()
+            self.preview()
 
         if self.add_part:
-            self._part()
+            self.part()
 
     ############################################################################
     # /bounds
     ############################################################################
-    def _bounds(self):
-        """Register /bounds endpoint to router."""
+    def bounds(self):
+        """Register /bounds endpoint."""
 
         @self.router.get(
             "/bounds",
@@ -152,8 +162,8 @@ class TilerFactory(BaseFactory):
     ############################################################################
     # /info
     ############################################################################
-    def _info(self):
-        """Register /info endpoint to router."""
+    def info(self):
+        """Register /info endpoint."""
 
         @self.router.get(
             "/info",
@@ -164,7 +174,7 @@ class TilerFactory(BaseFactory):
         )
         def info(
             src_path=Depends(self.path_dependency),
-            kwargs=Depends(self.additional_dependency),
+            kwargs: Dict = Depends(self.additional_dependency),
         ):
             """Return basic info."""
             reader = src_path.reader or self.reader
@@ -175,8 +185,8 @@ class TilerFactory(BaseFactory):
     ############################################################################
     # /metadata
     ############################################################################
-    def _metadata(self):
-        """Register /metadata endpoint to router."""
+    def metadata(self):
+        """Register /metadata endpoint"""
 
         @self.router.get(
             "/metadata",
@@ -188,7 +198,9 @@ class TilerFactory(BaseFactory):
         def metadata(
             src_path=Depends(self.path_dependency),
             metadata_params=Depends(self.metadata_dependency),
-            kwargs=Depends(self.additional_dependency),
+            layer_params=Depends(BidxParams),
+            dataset_params=Depends(self.dataset_dependency),
+            kwargs: Dict = Depends(self.additional_dependency),
         ):
             """Return metadata."""
             reader = src_path.reader or self.reader
@@ -196,7 +208,9 @@ class TilerFactory(BaseFactory):
                 info = src_dst.metadata(
                     metadata_params.pmin,
                     metadata_params.pmax,
+                    **layer_params.kwargs,
                     **metadata_params.kwargs,
+                    **dataset_params.kwargs,
                     **kwargs,
                 )
             return info
@@ -204,7 +218,8 @@ class TilerFactory(BaseFactory):
     ############################################################################
     # /tiles
     ############################################################################
-    def _tile(self):  # noqa: C901
+    def tile(self):  # noqa: C901
+        """Register /tiles endpoints."""
         tile_endpoint_params = img_endpoint_params.copy()
 
         @self.router.get(r"/tiles/{z}/{x}/{y}", **tile_endpoint_params)
@@ -230,7 +245,7 @@ class TilerFactory(BaseFactory):
             z: int = Path(..., ge=0, le=30, description="Mercator tiles's zoom level"),
             x: int = Path(..., description="Mercator tiles's column"),
             y: int = Path(..., description="Mercator tiles's row"),
-            tms=Depends(self.tms_dependency),
+            tms: TileMatrixSet = Depends(self.tms_dependency),
             scale: int = Query(
                 1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
             ),
@@ -238,9 +253,10 @@ class TilerFactory(BaseFactory):
                 None, description="Output image type. Default is auto."
             ),
             src_path=Depends(self.path_dependency),
-            tile_params=Depends(self.tiles_dependency),
-            render_params=Depends(self.img_render_dependency),
-            kwargs=Depends(self.additional_dependency),
+            layer_params=Depends(self.layer_dependency),
+            dataset_params=Depends(self.dataset_dependency),
+            render_params=Depends(self.render_dependency),
+            kwargs: Dict = Depends(self.additional_dependency),
         ):
             """Create map tile from a dataset."""
             timings = []
@@ -252,7 +268,13 @@ class TilerFactory(BaseFactory):
                 reader = src_path.reader or self.reader
                 with reader(src_path.url, **self.reader_options) as src_dst:
                     tile, mask = src_dst.tile(
-                        x, y, z, tilesize=tilesize, **tile_params.kwargs, **kwargs,
+                        x,
+                        y,
+                        z,
+                        tilesize=tilesize,
+                        **layer_params.kwargs,
+                        **dataset_params.kwargs,
+                        **kwargs,
                     )
                     colormap = render_params.colormap or getattr(
                         src_dst, "colormap", None
@@ -311,7 +333,7 @@ class TilerFactory(BaseFactory):
         )
         def tilejson(
             request: Request,
-            tms=Depends(self.tms_dependency),
+            tms: TileMatrixSet = Depends(self.tms_dependency),
             src_path=Depends(self.path_dependency),
             tile_format: Optional[ImageType] = Query(
                 None, description="Output image type. Default is auto."
@@ -325,9 +347,10 @@ class TilerFactory(BaseFactory):
             maxzoom: Optional[int] = Query(
                 None, description="Overwrite default maxzoom."
             ),
-            params=Depends(self.tiles_dependency),  # noqa
-            render_params=Depends(self.img_render_dependency),  # noqa
-            kwargs=Depends(self.additional_dependency),  # noqa
+            layer_params=Depends(self.layer_dependency),  # noqa
+            dataset_params=Depends(self.dataset_dependency),  # noqa
+            render_params=Depends(self.render_dependency),  # noqa
+            kwargs: Dict = Depends(self.additional_dependency),  # noqa
         ):
             """Return TileJSON document for a dataset."""
             route_params = {
@@ -372,7 +395,7 @@ class TilerFactory(BaseFactory):
         )
         def wmts(
             request: Request,
-            tms=Depends(self.tms_dependency),
+            tms: TileMatrixSet = Depends(self.tms_dependency),
             src_path=Depends(self.path_dependency),
             tile_format: ImageType = Query(
                 ImageType.png, description="Output image type. Default is png."
@@ -386,9 +409,10 @@ class TilerFactory(BaseFactory):
             maxzoom: Optional[int] = Query(
                 None, description="Overwrite default maxzoom."
             ),
-            params=Depends(self.tiles_dependency),  # noqa
-            render_params=Depends(self.img_render_dependency),  # noqa
-            kwargs=Depends(self.additional_dependency),  # noqa
+            layer_params=Depends(self.layer_dependency),  # noqa
+            dataset_params=Depends(self.dataset_dependency),  # noqa
+            render_params=Depends(self.render_dependency),  # noqa
+            kwargs: Dict = Depends(self.additional_dependency),  # noqa
         ):
             """OGC WMTS endpoint."""
             route_params = {
@@ -453,7 +477,9 @@ class TilerFactory(BaseFactory):
     ############################################################################
     # /point
     ############################################################################
-    def _point(self):
+    def point(self):
+        """Register /point endpoints."""
+
         @self.router.get(
             r"/point/{lon},{lat}",
             responses={200: {"description": "Return a value for a point"}},
@@ -462,8 +488,9 @@ class TilerFactory(BaseFactory):
             lon: float = Path(..., description="Longitude"),
             lat: float = Path(..., description="Latitude"),
             src_path=Depends(self.path_dependency),
-            point_params=Depends(self.point_dependency),
-            kwargs=Depends(self.additional_dependency),
+            layer_params=Depends(self.layer_dependency),
+            dataset_params=Depends(self.dataset_dependency),
+            kwargs: Dict = Depends(self.additional_dependency),
         ):
             """Get Point value for a dataset."""
             timings = []
@@ -472,7 +499,13 @@ class TilerFactory(BaseFactory):
             with utils.Timer() as t:
                 reader = src_path.reader or self.reader
                 with reader(src_path.url, **self.reader_options) as src_dst:
-                    values = src_dst.point(lon, lat, **point_params.kwargs, **kwargs)
+                    values = src_dst.point(
+                        lon,
+                        lat,
+                        **layer_params.kwargs,
+                        **dataset_params.kwargs,
+                        **kwargs,
+                    )
             timings.append(("Read", t.elapsed))
 
             if timings:
@@ -488,7 +521,8 @@ class TilerFactory(BaseFactory):
     ############################################################################
     # /preview (Optional)
     ############################################################################
-    def _preview(self):
+    def preview(self):
+        """Register /preview endpoint."""
         prev_endpoint_params = img_endpoint_params.copy()
 
         @self.router.get(r"/preview", **prev_endpoint_params)
@@ -498,9 +532,11 @@ class TilerFactory(BaseFactory):
                 None, description="Output image type. Default is auto."
             ),
             src_path=Depends(self.path_dependency),
+            layer_params=Depends(self.layer_dependency),
             img_params=Depends(self.img_dependency),
-            render_params=Depends(self.img_render_dependency),
-            kwargs=Depends(self.additional_dependency),
+            dataset_params=Depends(self.dataset_dependency),
+            render_params=Depends(self.render_dependency),
+            kwargs: Dict = Depends(self.additional_dependency),
         ):
             """Create preview of a dataset."""
             timings = []
@@ -509,7 +545,12 @@ class TilerFactory(BaseFactory):
             with utils.Timer() as t:
                 reader = src_path.reader or self.reader
                 with reader(src_path.url, **self.reader_options) as src_dst:
-                    data, mask = src_dst.preview(**img_params.kwargs, **kwargs)
+                    data, mask = src_dst.preview(
+                        **layer_params.kwargs,
+                        **img_params.kwargs,
+                        **dataset_params.kwargs,
+                        **kwargs,
+                    )
                     colormap = render_params.colormap or getattr(
                         src_dst, "colormap", None
                     )
@@ -551,7 +592,8 @@ class TilerFactory(BaseFactory):
     ############################################################################
     # /crop (Optional)
     ############################################################################
-    def _part(self):
+    def part(self):
+        """Register /crop endpoint."""
         part_endpoint_params = img_endpoint_params.copy()
 
         # @router.get(r"/crop/{minx},{miny},{maxx},{maxy}", **part_endpoint_params)
@@ -565,9 +607,11 @@ class TilerFactory(BaseFactory):
             maxy: float = Path(..., description="Bounding box max Y"),
             format: ImageType = Query(None, description="Output image type."),
             src_path=Depends(self.path_dependency),
+            layer_params=Depends(self.layer_dependency),
             image_params=Depends(self.img_dependency),
-            render_params=Depends(self.img_render_dependency),
-            kwargs=Depends(self.additional_dependency),
+            dataset_params=Depends(self.dataset_dependency),
+            render_params=Depends(self.render_dependency),
+            kwargs: Dict = Depends(self.additional_dependency),
         ):
             """Create image from part of a dataset."""
             timings = []
@@ -577,7 +621,11 @@ class TilerFactory(BaseFactory):
                 reader = src_path.reader or self.reader
                 with reader(src_path.url, **self.reader_options) as src_dst:
                     data, mask = src_dst.part(
-                        [minx, miny, maxx, maxy], **image_params.kwargs, **kwargs,
+                        [minx, miny, maxx, maxy],
+                        **layer_params.kwargs,
+                        **image_params.kwargs,
+                        **dataset_params.kwargs,
+                        **kwargs,
                     )
                     colormap = render_params.colormap or getattr(
                         src_dst, "colormap", None
@@ -628,12 +676,15 @@ class TMSTilerFactory(TilerFactory):
     """Tiler Factory with TMS."""
 
     reader: default_readers_type = field(default=TMSCOGReader)
-    tms_dependency: Callable = TMSParams
+
+    # TileMatrixSet dependency
+    tms_dependency: Callable[..., TileMatrixSet] = TMSParams
 
     ############################################################################
     # /tiles
     ############################################################################
-    def _tile(self):  # noqa: C901
+    def tile(self):  # noqa: C901
+        """Register /tiles endpoints."""
         tile_endpoint_params = img_endpoint_params.copy()
 
         @self.router.get(r"/tiles/{z}/{x}/{y}", **tile_endpoint_params)
@@ -659,7 +710,7 @@ class TMSTilerFactory(TilerFactory):
             z: int = Path(..., ge=0, le=30, description="Mercator tiles's zoom level"),
             x: int = Path(..., description="Mercator tiles's column"),
             y: int = Path(..., description="Mercator tiles's row"),
-            tms=Depends(self.tms_dependency),
+            tms: TileMatrixSet = Depends(self.tms_dependency),
             scale: int = Query(
                 1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
             ),
@@ -667,9 +718,10 @@ class TMSTilerFactory(TilerFactory):
                 None, description="Output image type. Default is auto."
             ),
             src_path=Depends(self.path_dependency),
-            tile_params=Depends(self.tiles_dependency),
-            render_params=Depends(self.img_render_dependency),
-            kwargs=Depends(self.additional_dependency),
+            layer_params=Depends(self.layer_dependency),
+            dataset_params=Depends(self.dataset_dependency),
+            render_params=Depends(self.render_dependency),
+            kwargs: Dict = Depends(self.additional_dependency),
         ):
             """Create map tile from a dataset."""
             timings = []
@@ -681,7 +733,13 @@ class TMSTilerFactory(TilerFactory):
                 reader = src_path.reader or self.reader
                 with reader(src_path.url, tms=tms, **self.reader_options) as src_dst:
                     tile, mask = src_dst.tile(
-                        x, y, z, tilesize=tilesize, **tile_params.kwargs, **kwargs,
+                        x,
+                        y,
+                        z,
+                        tilesize=tilesize,
+                        **layer_params.kwargs,
+                        **dataset_params.kwargs,
+                        **kwargs,
                     )
                     colormap = render_params.colormap or getattr(
                         src_dst, "colormap", None
@@ -740,7 +798,7 @@ class TMSTilerFactory(TilerFactory):
         )
         def tilejson(
             request: Request,
-            tms=Depends(self.tms_dependency),
+            tms: TileMatrixSet = Depends(self.tms_dependency),
             src_path=Depends(self.path_dependency),
             tile_format: Optional[ImageType] = Query(
                 None, description="Output image type. Default is auto."
@@ -754,9 +812,10 @@ class TMSTilerFactory(TilerFactory):
             maxzoom: Optional[int] = Query(
                 None, description="Overwrite default maxzoom."
             ),
-            tile_params=Depends(self.tiles_dependency),  # noqa
-            render_params=Depends(self.img_render_dependency),  # noqa
-            kwargs=Depends(self.additional_dependency),  # noqa
+            layer_params=Depends(self.layer_dependency),  # noqa
+            dataset_params=Depends(self.dataset_dependency),  # noqa
+            render_params=Depends(self.render_dependency),  # noqa
+            kwargs: Dict = Depends(self.additional_dependency),  # noqa
         ):
             """Return TileJSON document for a dataset."""
             route_params = {
@@ -801,7 +860,7 @@ class TMSTilerFactory(TilerFactory):
         )
         def wmts(
             request: Request,
-            tms=Depends(self.tms_dependency),
+            tms: TileMatrixSet = Depends(self.tms_dependency),
             src_path=Depends(self.path_dependency),
             tile_format: ImageType = Query(
                 ImageType.png, description="Output image type. Default is png."
@@ -815,9 +874,10 @@ class TMSTilerFactory(TilerFactory):
             maxzoom: Optional[int] = Query(
                 None, description="Overwrite default maxzoom."
             ),
-            tile_params=Depends(self.tiles_dependency),  # noqa
-            render_params=Depends(self.img_render_dependency),  # noqa
-            kwargs=Depends(self.additional_dependency),  # noqa
+            layer_params=Depends(self.layer_dependency),  # noqa
+            dataset_params=Depends(self.dataset_dependency),  # noqa
+            render_params=Depends(self.render_dependency),  # noqa
+            kwargs: Dict = Depends(self.additional_dependency),  # noqa
         ):
             """OGC WMTS endpoint."""
             route_params = {
@@ -893,7 +953,7 @@ class MosaicTilerFactory(BaseFactory):
     dataset_reader: BaseReader = field(default=COGReader)
 
     # BaseBackend does not support other TMS than WebMercator
-    tms_dependency: Callable = field(default=WebMercatorTMSParams)
+    tms_dependency: Callable[..., TileMatrixSet] = WebMercatorTMSParams
 
     # Add/Remove some endpoints
     add_create: bool = True
@@ -909,22 +969,22 @@ class MosaicTilerFactory(BaseFactory):
 
         """
 
-        self._read()
+        self.read()
         if self.add_create:
-            self._create()
+            self.create()
         if self.add_update:
-            self._update()
+            self.update()
 
-        self._bounds()
-        self._info()
-        self._tile()
-        self._point()
+        self.bounds()
+        self.info()
+        self.tile()
+        self.point()
 
     ############################################################################
     # /read
     ############################################################################
-    def _read(self):
-        """Add / - GET (Read) route."""
+    def read(self):
+        """Register / (Get) Read endpoint."""
 
         @self.router.get(
             "",
@@ -940,8 +1000,8 @@ class MosaicTilerFactory(BaseFactory):
     ############################################################################
     # /create
     ############################################################################
-    def _create(self):
-        """Add / - POST (create) route."""
+    def create(self):
+        """Register / (POST) Create endpoint."""
 
         @self.router.post(
             "", response_model=MosaicJSON, response_model_exclude_none=True
@@ -968,8 +1028,8 @@ class MosaicTilerFactory(BaseFactory):
     ############################################################################
     # /update
     ############################################################################
-    def _update(self):
-        """Add / - PUT (update) route."""
+    def update(self):
+        """Register / (PUST) Update endpoint."""
 
         @self.router.put(
             "", response_model=MosaicJSON, response_model_exclude_none=True
@@ -991,8 +1051,8 @@ class MosaicTilerFactory(BaseFactory):
     ############################################################################
     # /bounds
     ############################################################################
-    def _bounds(self):
-        """Register /bounds endpoint to router."""
+    def bounds(self):
+        """Register /bounds endpoint."""
 
         @self.router.get(
             "/bounds",
@@ -1007,8 +1067,8 @@ class MosaicTilerFactory(BaseFactory):
     ############################################################################
     # /info
     ############################################################################
-    def _info(self):
-        """Register /info endpoint to router."""
+    def info(self):
+        """Register /info endpoint"""
 
         @self.router.get(
             "/info",
@@ -1024,7 +1084,8 @@ class MosaicTilerFactory(BaseFactory):
     ############################################################################
     # /tiles
     ############################################################################
-    def _tile(self):  # noqa: C901
+    def tile(self):  # noqa: C901
+        """Register /tiles endpoints."""
         tile_endpoint_params = img_endpoint_params.copy()
 
         @self.router.get(r"/tiles/{z}/{x}/{y}", **tile_endpoint_params)
@@ -1050,7 +1111,7 @@ class MosaicTilerFactory(BaseFactory):
             z: int = Path(..., ge=0, le=30, description="Mercator tiles's zoom level"),
             x: int = Path(..., description="Mercator tiles's column"),
             y: int = Path(..., description="Mercator tiles's row"),
-            tms=Depends(self.tms_dependency),
+            tms: TileMatrixSet = Depends(self.tms_dependency),
             scale: int = Query(
                 1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
             ),
@@ -1058,12 +1119,13 @@ class MosaicTilerFactory(BaseFactory):
                 None, description="Output image type. Default is auto."
             ),
             src_path=Depends(self.path_dependency),
-            tile_params=Depends(self.tiles_dependency),
-            render_params=Depends(self.img_render_dependency),
+            layer_params=Depends(self.layer_dependency),
+            dataset_params=Depends(self.dataset_dependency),
+            render_params=Depends(self.render_dependency),
             pixel_selection: PixelSelectionMethod = Query(
                 PixelSelectionMethod.first, description="Pixel selection method."
             ),
-            kwargs=Depends(self.additional_dependency),
+            kwargs: Dict = Depends(self.additional_dependency),
         ):
             """Create map tile from a COG."""
             timings = []
@@ -1085,7 +1147,8 @@ class MosaicTilerFactory(BaseFactory):
                         pixel_selection=pixel_selection.method(),
                         threads=threads,
                         tilesize=tilesize,
-                        **tile_params.kwargs,
+                        **layer_params.kwargs,
+                        **dataset_params.kwargs,
                         **kwargs,
                     )
 
@@ -1148,7 +1211,7 @@ class MosaicTilerFactory(BaseFactory):
         )
         def tilejson(
             request: Request,
-            tms=Depends(self.tms_dependency),
+            tms: TileMatrixSet = Depends(self.tms_dependency),
             src_path=Depends(self.path_dependency),
             tile_format: Optional[ImageType] = Query(
                 None, description="Output image type. Default is auto."
@@ -1162,12 +1225,13 @@ class MosaicTilerFactory(BaseFactory):
             maxzoom: Optional[int] = Query(
                 None, description="Overwrite default maxzoom."
             ),
-            tile_params=Depends(self.tiles_dependency),  # noqa
-            render_params=Depends(self.img_render_dependency),  # noqa
+            layer_params=Depends(self.layer_dependency),  # noqa
+            dataset_params=Depends(self.dataset_dependency),  # noqa
+            render_params=Depends(self.render_dependency),  # noqa
             pixel_selection: PixelSelectionMethod = Query(
                 PixelSelectionMethod.first, description="Pixel selection method."
             ),  # noqa
-            kwargs=Depends(self.additional_dependency),  # noqa
+            kwargs: Dict = Depends(self.additional_dependency),  # noqa
         ):
             """Return TileJSON document for a COG."""
             route_params = {
@@ -1211,7 +1275,7 @@ class MosaicTilerFactory(BaseFactory):
         )
         def wmts(
             request: Request,
-            tms=Depends(self.tms_dependency),
+            tms: TileMatrixSet = Depends(self.tms_dependency),
             src_path=Depends(self.path_dependency),
             tile_format: ImageType = Query(
                 ImageType.png, description="Output image type. Default is png."
@@ -1225,12 +1289,13 @@ class MosaicTilerFactory(BaseFactory):
             maxzoom: Optional[int] = Query(
                 None, description="Overwrite default maxzoom."
             ),
-            tile_params=Depends(self.tiles_dependency),  # noqa
-            render_params=Depends(self.img_render_dependency),  # noqa
+            layer_params=Depends(self.layer_dependency),  # noqa
+            dataset_params=Depends(self.dataset_dependency),  # noqa
+            render_params=Depends(self.render_dependency),  # noqa
             pixel_selection: PixelSelectionMethod = Query(
                 PixelSelectionMethod.first, description="Pixel selection method."
             ),  # noqa
-            kwargs=Depends(self.additional_dependency),  # noqa
+            kwargs: Dict = Depends(self.additional_dependency),  # noqa
         ):
             """OGC WMTS endpoint."""
             route_params = {
@@ -1294,7 +1359,9 @@ class MosaicTilerFactory(BaseFactory):
     ############################################################################
     # /point (Optional)
     ############################################################################
-    def _point(self):
+    def point(self):
+        """Register /point endpoint."""
+
         @self.router.get(
             r"/point/{lon},{lat}",
             responses={200: {"description": "Return a value for a point"}},
@@ -1303,8 +1370,9 @@ class MosaicTilerFactory(BaseFactory):
             lon: float = Path(..., description="Longitude"),
             lat: float = Path(..., description="Latitude"),
             src_path=Depends(self.path_dependency),
-            point_params=Depends(self.point_dependency),
-            kwargs=Depends(self.additional_dependency),
+            layer_params=Depends(self.layer_dependency),
+            dataset_params=Depends(self.dataset_dependency),
+            kwargs: Dict = Depends(self.additional_dependency),
         ):
             """Get Point value for a Mosaic."""
             timings = []
@@ -1317,7 +1385,12 @@ class MosaicTilerFactory(BaseFactory):
                     src_path.url, reader=reader, reader_options=self.reader_options,
                 ) as src_dst:
                     values = src_dst.point(
-                        lon, lat, threads=threads, **point_params.kwargs, **kwargs,
+                        lon,
+                        lat,
+                        threads=threads,
+                        **layer_params.kwargs,
+                        **dataset_params.kwargs,
+                        **kwargs,
                     )
             timings.append(("Read", t.elapsed))
 

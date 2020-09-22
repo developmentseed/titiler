@@ -4,6 +4,34 @@
 
 * exclude `tests/` an `stack/` in titiler python package.
 * add `EPSG6933` in TMS
+
+**breaking changes**
+* [FACTORY] the `additional_dependency` should be a Callable which return a dict.
+
+    ```python
+    @dataclass  # type: ignore
+    class BaseFactory(metaclass=abc.ABCMeta):
+        """BaseTiler Factory."""
+        ...
+        # provide custom dependency
+        additional_dependency: Callable[..., Dict] = field(default=lambda: dict())
+    ```
+
+    ```python
+    def AssetsParams(
+        assets: Optional[str] = Query(
+            None,
+            title="Asset indexes",
+            description="comma (',') delimited asset names (might not be an available options of some readers)",
+        )
+    ) -> Dict:
+        """Assets Dependency."""
+        kwargs = {}
+        if assets:
+            kwargs["assets"] = assets.split(",")
+        return kwargs
+    ```
+* [FACTORY] remove `_` prefix in factory methods (e.g `_tile` -> `tile`)
 * [FACTORY] refactor dependencies to better align with rio_tiler.io.BaseReader method definition.
 
     Example:
@@ -32,10 +60,11 @@
                 )
         ...
 
+    # metadata method in factory
     def metadata(
         src_path=Depends(self.path_dependency),
         metadata_params=Depends(self.metadata_dependency),
-        kwargs=Depends(self.additional_dependency),
+        kwargs: Dict = Depends(self.additional_dependency),
     ):
         """Return metadata."""
         reader = src_path.reader or self.reader
@@ -48,32 +77,35 @@
             )
         return info
     ```
-
-**breaking changes**
--  [FACTORY] the `additional_dependency` should be a Callable which return a dict.
-
+* [FACTORY] refactor dependencies definition
     ```python
     @dataclass  # type: ignore
     class BaseFactory(metaclass=abc.ABCMeta):
         """BaseTiler Factory."""
-        ...
+
+        reader: default_readers_type = field(default=COGReader)
+        reader_options: Dict = field(default_factory=dict)
+
+        # FastAPI router
+        router: APIRouter = field(default_factory=APIRouter)
+
+        # Path Dependency
+        path_dependency: Type[PathParams] = field(default=PathParams)
+
+        # Rasterio Dataset Options (nodata, unscale, resampling)
+        dataset_dependency: default_deps_type = field(default=DatasetParams)
+
+        # Indexes/Expression Dependencies
+        layer_dependency: default_deps_type = field(default=BidxExprParams)
+
+        # Image rendering Dependencies
+        render_dependency: default_deps_type = field(default=RenderParams)
+
+        # TileMatrixSet dependency
+        tms_dependency: Callable[..., TileMatrixSet] = WebMercatorTMSParams
+
         # provide custom dependency
         additional_dependency: Callable[..., Dict] = field(default=lambda: dict())
-    ```
-
-    ```python
-    def AssetsParams(
-        assets: Optional[str] = Query(
-            None,
-            title="Asset indexes",
-            description="comma (',') delimited asset names (might not be an available options of some readers)",
-        )
-    ) -> Dict:
-        """Assets Dependency."""
-        kwargs = {}
-        if assets:
-            kwargs["assets"] = assets.split(",")
-        return kwargs
     ```
 
 ## 0.1.0-alpha.4 (2020-09-14)
