@@ -1,6 +1,6 @@
 # Release Notes
 
-## Next (TBD) - Master
+## 0.1.0-alpha.5 (2020-09-22)
 
 * exclude `tests/` an `stack/` in titiler python package.
 * add `EPSG6933` in TMS
@@ -107,6 +107,16 @@
         # provide custom dependency
         additional_dependency: Callable[..., Dict] = field(default=lambda: dict())
     ```
+
+* remove `PathParams.reader` attribute. This option was not used and would have been technically difficult to use.
+    ```python
+    @dataclass
+    class PathParams:
+        """Create dataset path from args"""
+
+        url: str = Query(..., description="Dataset URL")
+    ```
+
 
 ## 0.1.0-alpha.4 (2020-09-14)
 

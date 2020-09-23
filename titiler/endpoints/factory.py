@@ -155,8 +155,7 @@ class TilerFactory(BaseFactory):
         )
         def bounds(src_path=Depends(self.path_dependency)):
             """Return the bounds of the COG."""
-            reader = src_path.reader or self.reader
-            with reader(src_path.url, **self.reader_options) as src_dst:
+            with self.reader(src_path.url, **self.reader_options) as src_dst:
                 return {"bounds": src_dst.bounds}
 
     ############################################################################
@@ -177,8 +176,7 @@ class TilerFactory(BaseFactory):
             kwargs: Dict = Depends(self.additional_dependency),
         ):
             """Return basic info."""
-            reader = src_path.reader or self.reader
-            with reader(src_path.url, **self.reader_options) as src_dst:
+            with self.reader(src_path.url, **self.reader_options) as src_dst:
                 info = src_dst.info(**kwargs)
             return info
 
@@ -203,8 +201,7 @@ class TilerFactory(BaseFactory):
             kwargs: Dict = Depends(self.additional_dependency),
         ):
             """Return metadata."""
-            reader = src_path.reader or self.reader
-            with reader(src_path.url, **self.reader_options) as src_dst:
+            with self.reader(src_path.url, **self.reader_options) as src_dst:
                 info = src_dst.metadata(
                     metadata_params.pmin,
                     metadata_params.pmax,
@@ -265,8 +262,7 @@ class TilerFactory(BaseFactory):
             tilesize = scale * 256
 
             with utils.Timer() as t:
-                reader = src_path.reader or self.reader
-                with reader(src_path.url, **self.reader_options) as src_dst:
+                with self.reader(src_path.url, **self.reader_options) as src_dst:
                     tile, mask = src_dst.tile(
                         x,
                         y,
@@ -373,8 +369,7 @@ class TilerFactory(BaseFactory):
             qs = urlencode(list(q.items()))
             tiles_url += f"?{qs}"
 
-            reader = src_path.reader or self.reader
-            with reader(src_path.url, **self.reader_options) as src_dst:
+            with self.reader(src_path.url, **self.reader_options) as src_dst:
                 center = list(src_dst.center)
                 if minzoom:
                     center[-1] = minzoom
@@ -436,8 +431,7 @@ class TilerFactory(BaseFactory):
             qs = urlencode(list(q.items()))
             tiles_url += f"?{qs}"
 
-            reader = src_path.reader or self.reader
-            with reader(src_path.url, **self.reader_options) as src_dst:
+            with self.reader(src_path.url, **self.reader_options) as src_dst:
                 bounds = src_dst.bounds
                 minzoom = minzoom if minzoom is not None else src_dst.minzoom
                 maxzoom = maxzoom if maxzoom is not None else src_dst.maxzoom
@@ -497,8 +491,7 @@ class TilerFactory(BaseFactory):
             headers: Dict[str, str] = {}
 
             with utils.Timer() as t:
-                reader = src_path.reader or self.reader
-                with reader(src_path.url, **self.reader_options) as src_dst:
+                with self.reader(src_path.url, **self.reader_options) as src_dst:
                     values = src_dst.point(
                         lon,
                         lat,
@@ -543,8 +536,7 @@ class TilerFactory(BaseFactory):
             headers: Dict[str, str] = {}
 
             with utils.Timer() as t:
-                reader = src_path.reader or self.reader
-                with reader(src_path.url, **self.reader_options) as src_dst:
+                with self.reader(src_path.url, **self.reader_options) as src_dst:
                     data, mask = src_dst.preview(
                         **layer_params.kwargs,
                         **img_params.kwargs,
@@ -618,8 +610,7 @@ class TilerFactory(BaseFactory):
             headers: Dict[str, str] = {}
 
             with utils.Timer() as t:
-                reader = src_path.reader or self.reader
-                with reader(src_path.url, **self.reader_options) as src_dst:
+                with self.reader(src_path.url, **self.reader_options) as src_dst:
                     data, mask = src_dst.part(
                         [minx, miny, maxx, maxy],
                         **layer_params.kwargs,
@@ -730,8 +721,9 @@ class TMSTilerFactory(TilerFactory):
             tilesize = scale * 256
 
             with utils.Timer() as t:
-                reader = src_path.reader or self.reader
-                with reader(src_path.url, tms=tms, **self.reader_options) as src_dst:
+                with self.reader(
+                    src_path.url, tms=tms, **self.reader_options
+                ) as src_dst:
                     tile, mask = src_dst.tile(
                         x,
                         y,
@@ -838,8 +830,7 @@ class TMSTilerFactory(TilerFactory):
             qs = urlencode(list(q.items()))
             tiles_url += f"?{qs}"
 
-            reader = src_path.reader or self.reader
-            with reader(src_path.url, tms=tms, **self.reader_options) as src_dst:
+            with self.reader(src_path.url, tms=tms, **self.reader_options) as src_dst:
                 center = list(src_dst.center)
                 if minzoom:
                     center[-1] = minzoom
@@ -901,8 +892,7 @@ class TMSTilerFactory(TilerFactory):
             qs = urlencode(list(q.items()))
             tiles_url += f"?{qs}"
 
-            reader = src_path.reader or self.reader
-            with reader(src_path.url, tms=tms, **self.reader_options) as src_dst:
+            with self.reader(src_path.url, tms=tms, **self.reader_options) as src_dst:
                 bounds = src_dst.bounds
                 minzoom = minzoom if minzoom is not None else src_dst.minzoom
                 maxzoom = maxzoom if maxzoom is not None else src_dst.maxzoom
@@ -1015,8 +1005,9 @@ class MosaicTilerFactory(BaseFactory):
                 max_threads=body.max_threads,
             )
             src_path = self.path_dependency(body.url)
-            reader = src_path.reader or self.dataset_reader
-            with self.reader(src_path.url, mosaic_def=mosaic, reader=reader) as mosaic:
+            with self.reader(
+                src_path.url, mosaic_def=mosaic, reader=self.dataset_reader
+            ) as mosaic:
                 try:
                     mosaic.write()
                 except NotImplementedError:
@@ -1037,8 +1028,7 @@ class MosaicTilerFactory(BaseFactory):
         def update_mosaicjson(body: UpdateMosaicJSON):
             """Update an existing MosaicJSON"""
             src_path = self.path_dependency(body.url)
-            reader = src_path.reader or self.dataset_reader
-            with self.reader(src_path.url, reader=reader) as mosaic:
+            with self.reader(src_path.url, reader=self.dataset_reader) as mosaic:
                 features = get_footprints(body.files, max_threads=body.max_threads)
                 try:
                     mosaic.update(features, add_first=body.add_first, quiet=True)
@@ -1134,11 +1124,12 @@ class MosaicTilerFactory(BaseFactory):
             tilesize = scale * 256
 
             with utils.Timer() as t:
-                reader = src_path.reader or self.dataset_reader
                 threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
 
                 with self.reader(
-                    src_path.url, reader=reader, reader_options=self.reader_options
+                    src_path.url,
+                    reader=self.dataset_reader,
+                    reader_options=self.reader_options,
                 ) as src_dst:
                     (data, mask), assets_used = src_dst.tile(
                         x,
@@ -1380,9 +1371,10 @@ class MosaicTilerFactory(BaseFactory):
             threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
 
             with utils.Timer() as t:
-                reader = src_path.reader or self.dataset_reader
                 with self.reader(
-                    src_path.url, reader=reader, reader_options=self.reader_options,
+                    src_path.url,
+                    reader=self.dataset_reader,
+                    reader_options=self.reader_options,
                 ) as src_dst:
                     values = src_dst.point(
                         lon,

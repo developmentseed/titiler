@@ -45,15 +45,6 @@ The `factories` allow users to set multiple default dependencies. Here is the li
         """Create dataset path from args"""
 
         url: str = Query(..., description="Dataset URL")
-
-        # Placeholder
-        # Factory can accept a reader defined in the PathParams.
-        # This is for case where a user would want to indicate in the input url what
-        # reader to use:
-        # landsat+{landsat scene id}
-        # sentinel+{sentinel scene id}
-        # ...
-        reader: Optional[Type[BaseReader]] = field(init=False, default=None)
     ```
 
 * **tms_dependency**: The TMS dependency set the available TMS for a tile endpoint.
