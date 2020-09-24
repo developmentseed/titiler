@@ -6,13 +6,17 @@ Variables in `.env` or in environment variable need to be prefixed with `STACK_`
 
 
 ```bash
-STACK_NAME="my_tiler"
+STACK_NAME="my-tiler"
 STACK_STAGE="dev"
 
 STACK_BUCKETS='["my-bucket*", "*"]'
 STACK_MOSAIC_HOST="my-bucket/mosaics"
 
 STACK_MEMORY=3008
+
+# Uncomment to allow lambda to access content on requester-payer
+# buckets
+#STACK_ADDITIONAL_ENV='{"AWS_REQUEST_PAYER":"requester"}'
 ```
 
 Default values from [stack.config.py](https://github.com/developmentseed/titiler/blob/master/stack/config.py):
