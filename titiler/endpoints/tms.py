@@ -4,10 +4,10 @@ import json
 
 from morecantile.models import TileMatrixSet
 
-from titiler.dependencies import TileMatrixSetNames, morecantile
+from titiler.dependencies import TileMatrixSetNames, TMSParams
 from titiler.models.OGC import TileMatrixSetList
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends
 
 from starlette.requests import Request
 
@@ -30,7 +30,7 @@ async def TileMatrixSet_list(request: Request):
         "tileMatrixSets": [
             {
                 "id": tms.name,
-                "title": morecantile.tms.get(tms.name).title,
+                "title": tms.name,
                 "links": [
                     {
                         "href": request.url_for(
@@ -52,9 +52,6 @@ async def TileMatrixSet_list(request: Request):
     response_model_exclude_none=True,
     tags=["TileMatrixSets"],
 )
-async def TileMatrixSet_info(
-    TileMatrixSetId: TileMatrixSetNames = Query(..., description="TileMatrixSet Name")
-):
+async def TileMatrixSet_info(tms=Depends(TMSParams)):
     """Return TileMatrixSet JSON document."""
-    tms = morecantile.tms.get(TileMatrixSetId.name)
     return json.loads(tms.json(exclude_none=True))
