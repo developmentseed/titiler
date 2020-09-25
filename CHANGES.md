@@ -1,5 +1,18 @@
 # Release Notes
 
+## Next (TBD) - Master
+
+* refactor CacheControl Middleware
+* add `X-Total-Time (ms)` in response header, using new `titiler.middleware.TotalTimeMiddleware` middleware (113)
+
+```python
+from titiler.middleware import CacheControlMiddleware, TotalTimeMiddleware
+from fastapi import FastAPI
+
+app.add_middleware(CacheControlMiddleware, cachecontrol="public, max-age=3600")
+app.add_middleware(TotalTimeMiddleware)
+```
+
 ## 0.1.0-alpha.5 (2020-09-22)
 
 * exclude `tests/` an `stack/` in titiler python package.
