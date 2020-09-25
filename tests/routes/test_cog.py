@@ -119,6 +119,10 @@ def test_tile(rio, app):
     meta = parse_img(response.content)
     assert meta["width"] == 256
     assert meta["height"] == 256
+    timing = response.headers["server-timing"]
+    assert "dataread;dur" in timing
+    assert "postprocess;dur" in timing
+    assert "format;dur" in timing
 
     response = app.get(
         "/cog/tiles/8/87/48@2x?url=https://myurl.com/cog.tif&rescale=0,1000&color_formula=Gamma R 3"
@@ -246,6 +250,10 @@ def test_preview(rio, app):
     assert meta["width"] == 256
     assert meta["height"] == 256
     assert meta["driver"] == "JPEG"
+    timing = response.headers["server-timing"]
+    assert "dataread;dur" in timing
+    assert "postprocess;dur" in timing
+    assert "format;dur" in timing
 
     response = app.get(
         "/cog/preview.png?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=256"
@@ -303,6 +311,10 @@ def test_part(rio, app):
     assert meta["width"] == 256
     assert meta["height"] == 73
     assert meta["driver"] == "PNG"
+    timing = response.headers["server-timing"]
+    assert "dataread;dur" in timing
+    assert "postprocess;dur" in timing
+    assert "format;dur" in timing
 
     response = app.get(
         "/cog/crop/-56.228,72.715,-54.547,73.188.png?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=256&return_mask=false"
@@ -354,6 +366,8 @@ def test_point(rio, app):
     assert response.headers["content-type"] == "application/json"
     body = response.json()
     assert body["coordinates"] == [-56.228, 72.715]
+    timing = response.headers["server-timing"]
+    assert "dataread;dur" in timing
 
 
 def test_file_not_found_error(app):
