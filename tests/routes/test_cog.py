@@ -120,7 +120,7 @@ def test_tile(rio, app):
     assert meta["width"] == 256
     assert meta["height"] == 256
     timing = response.headers["server-timing"]
-    assert "read;dur" in timing
+    assert "dataread;dur" in timing
     assert "postprocess;dur" in timing
     assert "format;dur" in timing
 
@@ -251,7 +251,7 @@ def test_preview(rio, app):
     assert meta["height"] == 256
     assert meta["driver"] == "JPEG"
     timing = response.headers["server-timing"]
-    assert "read;dur" in timing
+    assert "dataread;dur" in timing
     assert "postprocess;dur" in timing
     assert "format;dur" in timing
 
@@ -312,7 +312,7 @@ def test_part(rio, app):
     assert meta["height"] == 73
     assert meta["driver"] == "PNG"
     timing = response.headers["server-timing"]
-    assert "read;dur" in timing
+    assert "dataread;dur" in timing
     assert "postprocess;dur" in timing
     assert "format;dur" in timing
 
@@ -367,7 +367,7 @@ def test_point(rio, app):
     body = response.json()
     assert body["coordinates"] == [-56.228, 72.715]
     timing = response.headers["server-timing"]
-    assert "read;dur" in timing
+    assert "dataread;dur" in timing
 
 
 def test_file_not_found_error(app):

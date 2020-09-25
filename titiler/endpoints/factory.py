@@ -275,7 +275,7 @@ class TilerFactory(BaseFactory):
                     colormap = render_params.colormap or getattr(
                         src_dst, "colormap", None
                     )
-            timings.append(("read", round(t.elapsed * 1000, 2)))
+            timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
             if not format:
                 format = ImageType.jpg if mask.all() else ImageType.png
@@ -495,7 +495,7 @@ class TilerFactory(BaseFactory):
                         **dataset_params.kwargs,
                         **kwargs,
                     )
-            timings.append(("read", round(t.elapsed * 1000, 2)))
+            timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
             if timings:
                 response.headers["Server-Timing"] = ", ".join(
@@ -539,7 +539,7 @@ class TilerFactory(BaseFactory):
                     colormap = render_params.colormap or getattr(
                         src_dst, "colormap", None
                     )
-            timings.append(("read", round(t.elapsed * 1000, 2)))
+            timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
             if not format:
                 format = ImageType.jpg if mask.all() else ImageType.png
@@ -611,7 +611,7 @@ class TilerFactory(BaseFactory):
                     colormap = render_params.colormap or getattr(
                         src_dst, "colormap", None
                     )
-            timings.append(("read", round(t.elapsed * 1000, 2)))
+            timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
             if not format:
                 format = ImageType.jpg if mask.all() else ImageType.png
@@ -723,7 +723,7 @@ class TMSTilerFactory(TilerFactory):
                     colormap = render_params.colormap or getattr(
                         src_dst, "colormap", None
                     )
-            timings.append(("read", round(t.elapsed * 1000, 2)))
+            timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
             if not format:
                 format = ImageType.jpg if mask.all() else ImageType.png
@@ -1126,7 +1126,7 @@ class MosaicTilerFactory(BaseFactory):
                         **dataset_params.kwargs,
                         **kwargs,
                     )
-            timings.append(("read", round(t.elapsed * 1000, 2)))
+            timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
             if data is None:
                 raise TileNotFoundError(f"Tile {z}/{x}/{y} was not found")
@@ -1365,7 +1365,7 @@ class MosaicTilerFactory(BaseFactory):
                         **dataset_params.kwargs,
                         **kwargs,
                     )
-            timings.append(("read", round(t.elapsed * 1000, 2)))
+            timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
             if timings:
                 response.headers["Server-Timing"] = ", ".join(

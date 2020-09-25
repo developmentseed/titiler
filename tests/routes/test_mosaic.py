@@ -144,7 +144,7 @@ def test_point(app):
     assert body["values"][0]["values"] == [9943, 9127, 9603]
     timing = response.headers["server-timing"]
     assert "mosaicread;dur" in timing
-    assert "read;dur" in timing
+    assert "dataread;dur" in timing
     assert "total;dur" in timing
 
 
@@ -168,7 +168,7 @@ def test_tile(app):
         assert meta["width"] == meta["height"] == 256
         timing = response.headers["server-timing"]
         assert "mosaicread;dur" in timing
-        assert "read;dur" in timing
+        assert "dataread;dur" in timing
         assert "postprocess;dur" in timing
         assert "format;dur" in timing
         assert "total;dur" in timing
