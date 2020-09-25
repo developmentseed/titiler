@@ -30,11 +30,13 @@ nav:
       # - "concepts/data_formats.md"
       # - "concepts/tile_matrix_sets.md"
   - Examples:
-    - COG: "examples/Working_with_CloudOptimizedGeoTIFF.ipynb"
-    - STAC: "examples/Working_with_STAC.ipynb"
+    - COG: "examples/Working_with_CloudOptimizedGeoTIFF_simple.ipynb"
+    - COG at scale: "examples/Working_with_CloudOptimizedGeoTIFF.ipynb"
+    - STAC: "examples/Working_with_STAC_simple.ipynb"
+    - STAC at scale: "examples/Working_with_STAC.ipynb"
     - MosaicJSON: "examples/Working_with_MosaicJSON.ipynb"
     - Non-WebMercator TMS: "examples/Working_with_nonWebMercatorTMS.ipynb"
-    - Custom Sentinel 2 Tiler: "Create_CustomSentinel2Tiler.ipynb"
+    - Custom Sentinel 2 Tiler: "examples/Create_CustomSentinel2Tiler.ipynb"
   - Deployment:
       - "deployment/settings.md"
       - "deployment/ecs.md"
