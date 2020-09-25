@@ -3,8 +3,7 @@
 from . import settings, version
 from .endpoints import cog, mosaic, stac, tms
 from .errors import DEFAULT_STATUS_CODES, add_exception_handlers
-from .middleware import (CacheControlMiddleware, CompressMiddleware,
-                         TotalTimeMiddleware)
+from .middleware import CacheControlMiddleware, CompressMiddleware, TotalTimeMiddleware
 
 from fastapi import FastAPI
 

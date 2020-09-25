@@ -49,6 +49,7 @@ class TotalTimeMiddleware(BaseHTTPMiddleware):
         )
         return response
 
+
 class BrotliMode:
     """Brotli available modes."""
 
@@ -92,6 +93,8 @@ class CompressMiddleware:
         self.lgblock = lgblock
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        """Select Brotli or Gzip responders as needed
+        """
         if scope["type"] == "http":
             headers = Headers(scope=scope)
             if "br" in headers.get("Accept-Encoding", ""):
