@@ -34,6 +34,7 @@ nav:
     - STAC: "examples/Working_with_STAC.ipynb"
     - MosaicJSON: "examples/Working_with_MosaicJSON.ipynb"
     - Non-WebMercator TMS: "examples/Working_with_nonWebMercatorTMS.ipynb"
+    - Custom Sentinel 2 Tiler: "Create_CustomSentinel2Tiler.ipynb"
   - Deployment:
       - "deployment/settings.md"
       - "deployment/ecs.md"
