@@ -3,7 +3,8 @@
 ## Next (TBD) - Master
 
 * refactor CacheControl Middleware
-* add `X-Total-Time (ms)` in response header, using new `titiler.middleware.TotalTimeMiddleware` middleware (113)
+* rename headers value `X-Server-Timings` to `Server-Timing`.
+* add `total;dur={}` in response header `Server-Timing`, using new `titiler.middleware.TotalTimeMiddleware` middleware (113)
 
 ```python
 from titiler.middleware import CacheControlMiddleware, TotalTimeMiddleware

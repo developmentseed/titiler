@@ -37,5 +37,9 @@ class TotalTimeMiddleware(BaseHTTPMiddleware):
         start_time = time.time()
         response = await call_next(request)
         process_time = time.time() - start_time
-        response.headers["X-Total-Time (ms)"] = str(round(process_time * 1000, 2))
+        timings = response.headers.get("Server-Timing")
+        app_time = "total;dur={}".format(round(process_time * 1000, 2))
+        response.headers["Server-Timing"] = (
+            f"{timings}, {app_time}" if timings else app_time
+        )
         return response

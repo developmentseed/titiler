@@ -91,3 +91,8 @@ class Timer(object):
         """Stops timer."""
         self.end = time.time()
         self.elapsed = self.end - self.start
+
+    @property
+    def from_start(self):
+        """Return time elapsed from start."""
+        return time.time() - self.start

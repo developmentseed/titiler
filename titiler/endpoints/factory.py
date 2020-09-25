@@ -275,8 +275,7 @@ class TilerFactory(BaseFactory):
                     colormap = render_params.colormap or getattr(
                         src_dst, "colormap", None
                     )
-
-            timings.append(("Read", t.elapsed))
+            timings.append(("read", round(t.elapsed * 1000, 2)))
 
             if not format:
                 format = ImageType.jpg if mask.all() else ImageType.png
@@ -288,7 +287,7 @@ class TilerFactory(BaseFactory):
                     rescale=render_params.rescale,
                     color_formula=render_params.color_formula,
                 )
-            timings.append(("Post-process", t.elapsed))
+            timings.append(("postprocess", round(t.elapsed * 1000, 2)))
 
             bounds = tms.xy_bounds(x, y, z)
             dst_transform = from_bounds(*bounds, tilesize, tilesize)
@@ -301,14 +300,11 @@ class TilerFactory(BaseFactory):
                     transform=dst_transform,
                     crs=tms.crs,
                 )
-            timings.append(("Format", t.elapsed))
+            timings.append(("format", round(t.elapsed * 1000, 2)))
 
             if timings:
-                headers["X-Server-Timings"] = "; ".join(
-                    [
-                        "{} - {:0.2f}".format(name, time * 1000)
-                        for (name, time) in timings
-                    ]
+                headers["Server-Timing"] = ", ".join(
+                    [f"{name};dur={time}" for (name, time) in timings]
                 )
 
             return Response(
@@ -479,6 +475,7 @@ class TilerFactory(BaseFactory):
             responses={200: {"description": "Return a value for a point"}},
         )
         def point(
+            response: Response,
             lon: float = Path(..., description="Longitude"),
             lat: float = Path(..., description="Latitude"),
             src_path=Depends(self.path_dependency),
@@ -488,7 +485,6 @@ class TilerFactory(BaseFactory):
         ):
             """Get Point value for a dataset."""
             timings = []
-            headers: Dict[str, str] = {}
 
             with utils.Timer() as t:
                 with self.reader(src_path.url, **self.reader_options) as src_dst:
@@ -499,14 +495,11 @@ class TilerFactory(BaseFactory):
                         **dataset_params.kwargs,
                         **kwargs,
                     )
-            timings.append(("Read", t.elapsed))
+            timings.append(("read", round(t.elapsed * 1000, 2)))
 
             if timings:
-                headers["X-Server-Timings"] = "; ".join(
-                    [
-                        "{} - {:0.2f}".format(name, time * 1000)
-                        for (name, time) in timings
-                    ]
+                response.headers["Server-Timing"] = ", ".join(
+                    [f"{name};dur={time}" for (name, time) in timings]
                 )
 
             return {"coordinates": [lon, lat], "values": values}
@@ -546,7 +539,7 @@ class TilerFactory(BaseFactory):
                     colormap = render_params.colormap or getattr(
                         src_dst, "colormap", None
                     )
-            timings.append(("Read", t.elapsed))
+            timings.append(("read", round(t.elapsed * 1000, 2)))
 
             if not format:
                 format = ImageType.jpg if mask.all() else ImageType.png
@@ -558,7 +551,7 @@ class TilerFactory(BaseFactory):
                     rescale=render_params.rescale,
                     color_formula=render_params.color_formula,
                 )
-            timings.append(("Post-process", t.elapsed))
+            timings.append(("postprocess", round(t.elapsed * 1000, 2)))
 
             with utils.Timer() as t:
                 content = utils.reformat(
@@ -567,14 +560,11 @@ class TilerFactory(BaseFactory):
                     format,
                     colormap=colormap,
                 )
-            timings.append(("Format", t.elapsed))
+            timings.append(("format", round(t.elapsed * 1000, 2)))
 
             if timings:
-                headers["X-Server-Timings"] = "; ".join(
-                    [
-                        "{} - {:0.2f}".format(name, time * 1000)
-                        for (name, time) in timings
-                    ]
+                headers["Server-Timing"] = ", ".join(
+                    [f"{name};dur={time}" for (name, time) in timings]
                 )
 
             return Response(
@@ -621,7 +611,7 @@ class TilerFactory(BaseFactory):
                     colormap = render_params.colormap or getattr(
                         src_dst, "colormap", None
                     )
-            timings.append(("Read", t.elapsed))
+            timings.append(("read", round(t.elapsed * 1000, 2)))
 
             if not format:
                 format = ImageType.jpg if mask.all() else ImageType.png
@@ -633,7 +623,7 @@ class TilerFactory(BaseFactory):
                     rescale=render_params.rescale,
                     color_formula=render_params.color_formula,
                 )
-            timings.append(("Post-process", t.elapsed))
+            timings.append(("postprocess", round(t.elapsed * 1000, 2)))
 
             with utils.Timer() as t:
                 dst_transform = from_bounds(
@@ -647,14 +637,11 @@ class TilerFactory(BaseFactory):
                     transform=dst_transform,
                     crs=WGS84_CRS,
                 )
-            timings.append(("Format", t.elapsed))
+            timings.append(("format", round(t.elapsed * 1000, 2)))
 
             if timings:
-                headers["X-Server-Timings"] = "; ".join(
-                    [
-                        "{} - {:0.2f}".format(name, time * 1000)
-                        for (name, time) in timings
-                    ]
+                headers["Server-Timing"] = ", ".join(
+                    [f"{name};dur={time}" for (name, time) in timings]
                 )
 
             return Response(
@@ -736,8 +723,7 @@ class TMSTilerFactory(TilerFactory):
                     colormap = render_params.colormap or getattr(
                         src_dst, "colormap", None
                     )
-
-            timings.append(("Read", t.elapsed))
+            timings.append(("read", round(t.elapsed * 1000, 2)))
 
             if not format:
                 format = ImageType.jpg if mask.all() else ImageType.png
@@ -749,7 +735,7 @@ class TMSTilerFactory(TilerFactory):
                     rescale=render_params.rescale,
                     color_formula=render_params.color_formula,
                 )
-            timings.append(("Post-process", t.elapsed))
+            timings.append(("postprocess", round(t.elapsed * 1000, 2)))
 
             bounds = tms.xy_bounds(x, y, z)
             dst_transform = from_bounds(*bounds, tilesize, tilesize)
@@ -762,14 +748,11 @@ class TMSTilerFactory(TilerFactory):
                     transform=dst_transform,
                     crs=tms.crs,
                 )
-            timings.append(("Format", t.elapsed))
+            timings.append(("format", round(t.elapsed * 1000, 2)))
 
             if timings:
-                headers["X-Server-Timings"] = "; ".join(
-                    [
-                        "{} - {:0.2f}".format(name, time * 1000)
-                        for (name, time) in timings
-                    ]
+                headers["Server-Timing"] = ", ".join(
+                    [f"{name};dur={time}" for (name, time) in timings]
                 )
 
             return Response(
@@ -1123,14 +1106,15 @@ class MosaicTilerFactory(BaseFactory):
 
             tilesize = scale * 256
 
+            threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
             with utils.Timer() as t:
-                threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
-
                 with self.reader(
                     src_path.url,
                     reader=self.dataset_reader,
                     reader_options=self.reader_options,
                 ) as src_dst:
+                    timings.append(("mosaicread", round(t.from_start * 1000, 2)))
+
                     (data, mask), assets_used = src_dst.tile(
                         x,
                         y,
@@ -1142,8 +1126,7 @@ class MosaicTilerFactory(BaseFactory):
                         **dataset_params.kwargs,
                         **kwargs,
                     )
-
-            timings.append(("Read-tile", t.elapsed))
+            timings.append(("read", round(t.elapsed * 1000, 2)))
 
             if data is None:
                 raise TileNotFoundError(f"Tile {z}/{x}/{y} was not found")
@@ -1158,7 +1141,7 @@ class MosaicTilerFactory(BaseFactory):
                     rescale=render_params.rescale,
                     color_formula=render_params.color_formula,
                 )
-            timings.append(("Post-process", t.elapsed))
+            timings.append(("postprocess", round(t.elapsed * 1000, 2)))
 
             bounds = tms.xy_bounds(x, y, z)
             dst_transform = from_bounds(*bounds, tilesize, tilesize)
@@ -1171,14 +1154,11 @@ class MosaicTilerFactory(BaseFactory):
                     transform=dst_transform,
                     crs=tms.crs,
                 )
-            timings.append(("Format", t.elapsed))
+            timings.append(("format", round(t.elapsed * 1000, 2)))
 
             if timings:
-                headers["X-Server-Timings"] = "; ".join(
-                    [
-                        "{} - {:0.2f}".format(name, time * 1000)
-                        for (name, time) in timings
-                    ]
+                headers["Server-Timing"] = ", ".join(
+                    [f"{name};dur={time}" for (name, time) in timings]
                 )
 
             if assets_used:
@@ -1358,6 +1338,7 @@ class MosaicTilerFactory(BaseFactory):
             responses={200: {"description": "Return a value for a point"}},
         )
         def point(
+            response: Response,
             lon: float = Path(..., description="Longitude"),
             lat: float = Path(..., description="Latitude"),
             src_path=Depends(self.path_dependency),
@@ -1367,7 +1348,6 @@ class MosaicTilerFactory(BaseFactory):
         ):
             """Get Point value for a Mosaic."""
             timings = []
-            headers: Dict[str, str] = {}
             threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
 
             with utils.Timer() as t:
@@ -1376,6 +1356,7 @@ class MosaicTilerFactory(BaseFactory):
                     reader=self.dataset_reader,
                     reader_options=self.reader_options,
                 ) as src_dst:
+                    timings.append(("mosaicread", round(t.from_start * 1000, 2)))
                     values = src_dst.point(
                         lon,
                         lat,
@@ -1384,14 +1365,11 @@ class MosaicTilerFactory(BaseFactory):
                         **dataset_params.kwargs,
                         **kwargs,
                     )
-            timings.append(("Read", t.elapsed))
+            timings.append(("read", round(t.elapsed * 1000, 2)))
 
             if timings:
-                headers["X-Server-Timings"] = "; ".join(
-                    [
-                        "{} - {:0.2f}".format(name, time * 1000)
-                        for (name, time) in timings
-                    ]
+                response.headers["Server-Timing"] = ", ".join(
+                    [f"{name};dur={time}" for (name, time) in timings]
                 )
 
             return {"coordinates": [lon, lat], "values": values}
