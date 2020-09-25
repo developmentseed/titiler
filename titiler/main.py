@@ -3,11 +3,11 @@
 from . import settings, version
 from .endpoints import cog, mosaic, stac, tms
 from .errors import DEFAULT_STATUS_CODES, add_exception_handlers
+from .middleware.compress import CompressMiddleware
 
 from fastapi import FastAPI
 
 from starlette.middleware.cors import CORSMiddleware
-from starlette.middleware.gzip import GZipMiddleware
 from starlette.requests import Request
 
 api_settings = settings.ApiSettings()
@@ -36,7 +36,7 @@ if api_settings.cors_origins:
         allow_headers=["*"],
     )
 
-app.add_middleware(GZipMiddleware, minimum_size=0)
+app.add_middleware(CompressMiddleware, minimum_size=0)
 
 
 @app.middleware("http")
