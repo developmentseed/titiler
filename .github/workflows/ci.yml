@@ -1,6 +1,6 @@
 name: CI
 
-on: [push]
+on: [push, pull_request_target]
 
 jobs:
   tests:
@@ -15,21 +15,21 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           python -m pip install tox codecov pre-commit
-      
+
       # Run tox using the version of Python in `PATH`
       - name: Run Tox
         run: tox -e py
-      
+
       # Run pre-commit (only for python-3.7)
       - name: run pre-commit
         if: matrix.python-version == 3.7
         run: pre-commit run --all-files
-      
+
       - name: Upload Results
         if: success()
         uses: codecov/codecov-action@v1
@@ -48,13 +48,13 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v1
         with:
-          python-version: "3.x" 
-     
+          python-version: "3.x"
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           python -m pip install tox
-      
+
       - name: Set tag version
         id: tag
         # https://stackoverflow.com/questions/58177786/get-the-current-pushed-tag-in-github-actions
@@ -64,7 +64,7 @@ jobs:
         id: module
         # https://stackoverflow.com/questions/58177786/get-the-current-pushed-tag-in-github-actions
         run: echo ::set-output name=version::$(python setup.py --version)
-      
+
       - name: Build and publish
         if: steps.tag.outputs.tag == steps.module.outputs.version
         env:
