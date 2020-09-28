@@ -16,6 +16,9 @@
   <a href="https://github.com/developmentseed/titiler/blob/master/LICENSE" target="_blank">
       <img src="https://img.shields.io/github/license/developmentseed/titiler.svg" alt="Downloads">
   </a>
+  <a href="https://mybinder.org/v2/gh/developmentseed/titiler/master" target="_blank">
+      <img src="https://mybinder.org/badge_logo.svg" alt="Downloads">
+  </a>
 </p>
 
 ---
