@@ -3,7 +3,7 @@
 import time
 from typing import Optional
 
-from brotli import MODE_FONT, MODE_GENERIC, MODE_TEXT  # type: ignore
+from brotli import MODE_GENERIC  # type: ignore
 from brotli_middleware import BrotliResponder
 
 from starlette.datastructures import Headers
@@ -11,6 +11,13 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.gzip import GZipResponder
 from starlette.requests import Request
 from starlette.types import ASGIApp, Receive, Scope, Send
+
+DEFAULT_BROTLI_CONFIG = {
+    "quality": 4,
+    "mode": MODE_GENERIC,
+    "lgwin": 22,
+    "lgblock": 0,
+}
 
 
 class CacheControlMiddleware(BaseHTTPMiddleware):
@@ -50,47 +57,30 @@ class TotalTimeMiddleware(BaseHTTPMiddleware):
         return response
 
 
-class BrotliMode:
-    """Brotli available modes."""
-
-    generic = MODE_GENERIC
-    text = MODE_TEXT
-    font = MODE_FONT
-
-
 class CompressMiddleware:
     """Brotli middleware public interface."""
 
-    def __init__(
-        self,
-        app: ASGIApp,
-        quality: int = 4,
-        mode: str = "text",
-        lgwin: int = 22,
-        lgblock: int = 0,
-        minimum_size: int = 400,
-    ) -> None:
+    def __init__(self, app: ASGIApp, minimum_size: int = 400, **kwargs) -> None:
         """
         Arguments.
-        mode: The compression mode can be:
-            generic (default), text (for UTF-8 format text input)
-            or font (for WOFF 2.0).
-        quality: Controls the compression-speed vs compression-
-            density tradeoff. The higher the quality, the slower the compression.
-            Range is 0 to 11.
-        lgwin: Base 2 logarithm of the sliding window size. Range
-            is 10 to 24.
-        lgblock: Base 2 logarithm of the maximum input block size.
-            Range is 16 to 24. If set to 0, the value will be set based on the
-            quality.
-        minimum_size: Only compress responses that are bigger than this value in bytes.
+        minimum_size: Only compress responses that are bigger than this value in bytes. Used for both brotli and gzip compression.
+
+        kwargs: arguments to be passed on to brotli encoder
+            mode: The compression mode can be:
+                brotli.MODE_GENERIC (default), brotli.MODE_TEXT (for UTF-8
+                format text input) or brotli.MODE_FONT (for WOFF 2.0).
+            quality: Controls the compression-speed vs compression-
+                density tradeoff. The higher the quality, the slower the compression.
+                Range is 0 to 11.
+            lgwin: Base 2 logarithm of the sliding window size. Range
+                is 10 to 24.
+            lgblock: Base 2 logarithm of the maximum input block size.
+                Range is 16 to 24. If set to 0, the value will be set based on the
+                quality.
         """
         self.app = app
-        self.quality = quality
-        self.mode = getattr(BrotliMode, mode)
         self.minimum_size = minimum_size
-        self.lgwin = lgwin
-        self.lgblock = lgblock
+        self.brotli_kwargs = {**DEFAULT_BROTLI_CONFIG, **kwargs}
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         """Select Brotli or Gzip responders as needed
@@ -99,12 +89,7 @@ class CompressMiddleware:
             headers = Headers(scope=scope)
             if "br" in headers.get("Accept-Encoding", ""):
                 responder = BrotliResponder(
-                    self.app,
-                    self.quality,
-                    self.mode,
-                    self.lgwin,
-                    self.lgblock,
-                    self.minimum_size,
+                    self.app, minimum_size=self.minimum_size, **self.brotli_kwargs
                 )
                 await responder(scope, receive, send)
                 return
