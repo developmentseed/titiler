@@ -1,6 +1,6 @@
 # Release Notes
 
-## Next (TBD) - Master
+## 0.1.0-alpha.6 (2020-09-29)
 
 * refactor CacheControl Middleware
 * rename headers value `X-Server-Timings` to `Server-Timing`.
@@ -13,6 +13,8 @@ from fastapi import FastAPI
 app.add_middleware(CacheControlMiddleware, cachecontrol="public, max-age=3600")
 app.add_middleware(TotalTimeMiddleware)
 ```
+
+* Add Brotli compression support by creating a custom `titiler.middleware.CompressMiddleware` (#116, author @kylebarron)
 
 ## 0.1.0-alpha.5 (2020-09-22)
 
