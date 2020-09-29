@@ -32,6 +32,25 @@ class StackSettings(pydantic.BaseSettings):
     task_cpu: int = 256
     task_memory: int = 512
 
+    # GUNICORN configuration
+    # Ref: https://github.com/developmentseed/titiler/issues/119
+
+    # WORKERS_PER_CORE
+    # This image will check how many CPU cores are available in the current server running your container.
+    # It will set the number of workers to the number of CPU cores multiplied by this value.
+    workers_per_core: int = 1
+
+    # MAX_WORKERS
+    # You can use it to let the image compute the number of workers automatically but making sure it's limited to a maximum.
+    # should depends on `task_cpu`
+    max_workers: int = 1
+
+    # WEB_CONCURRENCY
+    # Override the automatic definition of number of workers.
+    # Set to the number of CPU cores in the current server multiplied by the environment variable WORKERS_PER_CORE.
+    # So, in a server with 2 cores, by default it will be set to 2.
+    web_concurrency: Optional[int]
+
     ############
     # AWS LAMBDA
     timeout: int = 10
