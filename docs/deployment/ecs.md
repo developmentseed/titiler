@@ -1,6 +1,7 @@
 # AWS ECS (Fargate) + ALB (Application Load Balancer)
 
-**⚠** When using Fargate or vanilla ECS, you should set the number of worker carefully (https://github.com/developmentseed/titiler/issues/119 and https://github.com/tiangolo/fastapi/issues/253).
+!!! warning
+        When using Fargate or vanilla ECS, you should set the number of worker carefully. Setting too high a number of workers could lead to extra charges due to a bug in fastapi (https://github.com/developmentseed/titiler/issues/119, https://github.com/tiangolo/fastapi/issues/253).
 
 The TiTiler [repository](https://github.com/developmentseed/titiler) includes an example that uses [AWS CDK](https://aws.amazon.com/cdk/) to deploy TiTiler on AWS' Elastic Container Service (ECS).
 
