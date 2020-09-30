@@ -155,13 +155,17 @@ class titilerECSStack(core.Stack):
 
         task_env = DEFAULT_ENV.copy()
         task_env.update(
-            dict(
-                MODULE_NAME="titiler.main",
-                VARIABLE_NAME="app",
-                WORKERS_PER_CORE="1",
-                LOG_LEVEL="error",
-            )
+            dict(MODULE_NAME="titiler.main", VARIABLE_NAME="app", LOG_LEVEL="error",)
         )
+
+        # GUNICORN configuration
+        if settings.workers_per_core:
+            task_env.update({"WORKERS_PER_CORE": settings.workers_per_core})
+        if settings.max_workers:
+            task_env.update({"MAX_WORKERS": settings.max_workers})
+        if settings.web_concurrency:
+            task_env.update({"WEB_CONCURRENCY": settings.web_concurrency})
+
         task_env.update(env)
 
         fargate_service = ecs_patterns.ApplicationLoadBalancedFargateService(
