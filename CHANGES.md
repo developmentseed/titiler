@@ -14,8 +14,6 @@ app.add_middleware(CacheControlMiddleware, cachecontrol="public, max-age=3600")
 app.add_middleware(TotalTimeMiddleware)
 ```
 
-* Add Brotli compression support by creating a custom `titiler.middleware.CompressMiddleware` (#116, author @kylebarron)
-
 ## 0.1.0-alpha.5 (2020-09-22)
 
 * exclude `tests/` an `stack/` in titiler python package.

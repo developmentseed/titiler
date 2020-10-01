@@ -6,7 +6,6 @@ with open("README.md") as f:
     long_description = f.read()
 
 inst_reqs = [
-    "brotli-middleware",
     "email-validator",
     "fastapi==0.60.1",
     "jinja2",
