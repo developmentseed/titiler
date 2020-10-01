@@ -96,7 +96,6 @@ class titilerLambdaStack(core.Stack):
                 )
             )
 
-        # defines an API Gateway Http API resource backed by our "dynamoLambda" function.
         api = apigw.HttpApi(
             self,
             f"{id}-endpoint",
