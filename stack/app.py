@@ -112,13 +112,13 @@ class titilerLambdaStack(core.Stack):
         client.images.build(
             path=code_dir,
             dockerfile="Dockerfiles/lambda/Dockerfile",
-            tag="lambda:latest",
+            tag="titiler-lambda:latest",
             rm=True,
         )
 
         print("Copying package.zip ...")
         client.containers.run(
-            image="lambda:latest",
+            image="titiler-lambda:latest",
             command="/bin/sh -c 'cp /tmp/package.zip /local/package.zip'",
             remove=True,
             volumes={os.path.abspath(code_dir): {"bind": "/local/", "mode": "rw"}},
