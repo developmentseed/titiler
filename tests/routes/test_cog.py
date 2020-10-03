@@ -170,25 +170,23 @@ def test_tile(rio, app):
     data = numpy.load(BytesIO(response.content))
     assert data.shape == (1, 256, 256)
 
-    # We keep those tests for latter
-    # ref: https://github.com/developmentseed/titiler/issues/121
-    # # Test brotli compression
-    # headers = {"Accept-Encoding": "br, gzip"}
-    # response = app.get(
-    #     "/cog/tiles/8/87/48.npy?url=https://myurl.com/cog.tif&nodata=0&return_mask=false",
-    #     headers=headers,
-    # )
-    # assert response.status_code == 200
-    # assert response.headers["content-encoding"] == "br"
+    # Test brotli compression
+    headers = {"Accept-Encoding": "br, gzip"}
+    response = app.get(
+        "/cog/tiles/8/87/48.npy?url=https://myurl.com/cog.tif&nodata=0&return_mask=false",
+        headers=headers,
+    )
+    assert response.status_code == 200
+    assert response.headers["content-encoding"] == "br"
 
-    # # Test gzip fallback
-    # headers = {"Accept-Encoding": "gzip"}
-    # response = app.get(
-    #     "/cog/tiles/8/87/48.npy?url=https://myurl.com/cog.tif&nodata=0&return_mask=false",
-    #     headers=headers,
-    # )
-    # assert response.status_code == 200
-    # assert response.headers["content-encoding"] == "gzip"
+    # Test gzip fallback
+    headers = {"Accept-Encoding": "gzip"}
+    response = app.get(
+        "/cog/tiles/8/87/48.npy?url=https://myurl.com/cog.tif&nodata=0&return_mask=false",
+        headers=headers,
+    )
+    assert response.status_code == 200
+    assert response.headers["content-encoding"] == "gzip"
 
     # partial
     response = app.get(
