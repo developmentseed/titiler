@@ -35,10 +35,10 @@ This project is the descendant of [`cogeo-tiler`](https://github.com/development
 
 ## Features
 
-- Multiple TileMatrixSets via [`morecantile`](https://github.com/developmentseed/morecantile). By default, output map tiles are in the standard Web Mercator projection used by most mapping libraries, but [support for alternative projections](/docs/TMS.md) is available.
 - [Cloud Optimized GeoTIFF](http://www.cogeo.org/) support
 - [SpatioTemporal Asset Catalog](https://stacspec.org) support
 - Mosaic support (via [MosaicJSON](https://github.com/developmentseed/mosaicjson-spec/))
+- Multiple tiling projections ([TileMatrixSets](https://www.ogc.org/standards/tms)) via [`morecantile`](https://github.com/developmentseed/morecantile). By default, output map tiles are in the standard Web Mercator projection used by most mapping libraries, but [support for alternative projections](/docs/TMS.md) is available.
 - OGC WMTS support
 - AWS Lambda / ECS deployment options
 
@@ -64,6 +64,8 @@ Or with Docker
 $ git clone https://github.com/developmentseed/titiler.git
 $ cd titiler
 
+$ export AWS_ACCESS_KEY_ID=...
+$ export AWS_SECRET_ACCESS_KEY=...
 $ docker-compose build
 $ docker-compose up
 ```

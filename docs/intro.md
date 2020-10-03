@@ -17,7 +17,7 @@ Default endpoints documentation:
 * [`/stac` - Spatio Temporal Asset Catalog](endpoints/stac.md)
 * [`/tms` - TileMatrixSets](endpoints/tms.md)
 
-# Create your own App
+## Customized, minimal app
 
 TiTiler has been developed so users can build their own app using only portions they need. Using [`TilerFactory`s](concepts/tiler_factories.md), you can create customized applications with only the endpoints you need.
 
@@ -42,3 +42,19 @@ add_exception_handlers(app, DEFAULT_STATUS_CODES)
 ```
 
 ![](img/custom_app.png)
+
+## Extending the app
+
+If you want to include all of Titiler's built-in endpoints, but also include
+customized endpoints, you can import and extend the app directly:
+
+```py
+from titiler.main import app
+
+# Import custom endpoint
+from . import CustomTiler
+app.include_router(
+    CustomTiler.router,
+    prefix="/custom/prefix",
+    tags=["Custom Tiler"])
+```
