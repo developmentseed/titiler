@@ -20,7 +20,7 @@ inst_reqs = [
 extra_reqs = {
     "dev": ["pytest", "pytest-cov", "pytest-asyncio", "pre-commit", "requests"],
     "server": ["uvicorn", "click==7.0"],
-    "lambda": ["mangum>=0.9.0"],
+    "lambda": ["mangum>=0.10.0"],
     "deploy": [
         "docker",
         "python-dotenv",
