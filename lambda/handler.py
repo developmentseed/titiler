@@ -4,4 +4,4 @@ from mangum import Mangum
 
 from titiler.main import app
 
-handler = Mangum(app, enable_lifespan=False, log_level="error")
+handler = Mangum(app, lifespan="auto", log_level="error")
