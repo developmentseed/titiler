@@ -113,6 +113,7 @@ class titilerLambdaStack(core.Stack):
             path=code_dir,
             dockerfile="Dockerfiles/lambda/Dockerfile",
             tag="lambda:latest",
+            rm=True,
         )
 
         print("Copying package.zip ...")
