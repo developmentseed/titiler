@@ -1,5 +1,7 @@
 """titiler app."""
 
+from brotli_asgi import BrotliMiddleware
+
 from . import settings, version
 from .endpoints import cog, mosaic, stac, tms
 from .errors import DEFAULT_STATUS_CODES, add_exception_handlers
@@ -8,7 +10,6 @@ from .middleware import CacheControlMiddleware, TotalTimeMiddleware
 from fastapi import FastAPI
 
 from starlette.middleware.cors import CORSMiddleware
-from starlette.middleware.gzip import GZipMiddleware
 
 api_settings = settings.ApiSettings()
 
@@ -35,7 +36,7 @@ if api_settings.cors_origins:
         allow_headers=["*"],
     )
 
-app.add_middleware(GZipMiddleware, minimum_size=0)
+app.add_middleware(BrotliMiddleware, minimum_size=0, gzip_fallback=True)
 app.add_middleware(CacheControlMiddleware, cachecontrol=api_settings.cachecontrol)
 app.add_middleware(TotalTimeMiddleware)
 

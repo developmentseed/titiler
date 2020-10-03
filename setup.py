@@ -6,6 +6,7 @@ with open("README.md") as f:
     long_description = f.read()
 
 inst_reqs = [
+    "brotli-asgi>=1.0.0",
     "email-validator",
     "fastapi==0.60.1",
     "jinja2",
@@ -19,7 +20,7 @@ inst_reqs = [
 extra_reqs = {
     "dev": ["pytest", "pytest-cov", "pytest-asyncio", "pre-commit", "requests"],
     "server": ["uvicorn", "click==7.0"],
-    "lambda": ["mangum>=0.9.0"],
+    "lambda": ["mangum>=0.10.0"],
     "deploy": [
         "docker",
         "python-dotenv",
