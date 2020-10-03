@@ -1,5 +1,5 @@
 site_name: TiTiler
-site_description: TiTiler is a lightweight service for creating map tiles from Cloud Optimized GeoTiff
+site_description: A lightweight service for creating map tiles from Cloud-Optimized GeoTiff
 
 repo_name: "developmentseed/titiler"
 repo_url: "https://github.com/developmentseed/titiler"
