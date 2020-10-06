@@ -1113,7 +1113,8 @@ class MosaicTilerFactory(BaseFactory):
                     reader=self.dataset_reader,
                     reader_options=self.reader_options,
                 ) as src_dst:
-                    timings.append(("mosaicread", round(t.from_start * 1000, 2)))
+                    mosaic_read = t.from_start
+                    timings.append(("mosaicread", round(mosaic_read * 1000, 2)))
 
                     (data, mask), assets_used = src_dst.tile(
                         x,
@@ -1126,7 +1127,7 @@ class MosaicTilerFactory(BaseFactory):
                         **dataset_params.kwargs,
                         **kwargs,
                     )
-            timings.append(("dataread", round(t.elapsed * 1000, 2)))
+            timings.append(("dataread", round((t.elapsed - mosaic_read) * 1000, 2)))
 
             if data is None:
                 raise TileNotFoundError(f"Tile {z}/{x}/{y} was not found")
@@ -1356,7 +1357,8 @@ class MosaicTilerFactory(BaseFactory):
                     reader=self.dataset_reader,
                     reader_options=self.reader_options,
                 ) as src_dst:
-                    timings.append(("mosaicread", round(t.from_start * 1000, 2)))
+                    mosaic_read = t.from_start
+                    timings.append(("mosaicread", round(mosaic_read * 1000, 2)))
                     values = src_dst.point(
                         lon,
                         lat,
@@ -1365,7 +1367,7 @@ class MosaicTilerFactory(BaseFactory):
                         **dataset_params.kwargs,
                         **kwargs,
                     )
-            timings.append(("dataread", round(t.elapsed * 1000, 2)))
+            timings.append(("dataread", round((t.elapsed - mosaic_read) * 1000, 2)))
 
             if timings:
                 response.headers["Server-Timing"] = ", ".join(

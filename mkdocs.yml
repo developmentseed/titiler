@@ -26,6 +26,7 @@ nav:
       - "concepts/tiler_factories.md"
       - "concepts/dependencies.md"
       - "concepts/customization.md"
+      - "concepts/APIRoute_and_environment_variables.md"
       # - "concepts/dynamic_tiling.md"
       # - "concepts/data_formats.md"
       # - "concepts/tile_matrix_sets.md"
