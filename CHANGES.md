@@ -1,6 +1,6 @@
 # Release Notes
 
-## 0.1.0-alpha.6 (TBD)
+## 0.1.0-alpha.6 (2020-10-05)
 
 * refactor CacheControl Middleware
 * rename headers value `X-Server-Timings` to `Server-Timing`.
