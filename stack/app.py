@@ -239,7 +239,7 @@ if settings.buckets:
     perms.append(
         iam.PolicyStatement(
             actions=["s3:GetObject", "s3:HeadObject"],
-            resources=[f"arn:aws:s3:::{bucket}" for bucket in settings.buckets],
+            resources=[f"arn:aws:s3:::{bucket}*" for bucket in settings.buckets],
         )
     )
 
