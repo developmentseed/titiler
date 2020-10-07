@@ -1,21 +1,17 @@
 """TiTiler COG Demo endpoint."""
 
-import pkg_resources
 from rio_cogeo.cogeo import cog_info as rio_cogeo_info
 from rio_tiler_crs import COGReader
 
 from ..dependencies import PathParams
 from ..models.dataset import RioCogeoInfo
+from ..templates import templates
 from .factory import TMSTilerFactory
 
 from fastapi import Depends, Query
 
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
-from starlette.templating import Jinja2Templates
-
-template_dir = pkg_resources.resource_filename("titiler", "templates")
-templates = Jinja2Templates(directory=template_dir)
 
 # Create Router using Tiler Factory
 cog = TMSTilerFactory(reader=COGReader, router_prefix="cog")
