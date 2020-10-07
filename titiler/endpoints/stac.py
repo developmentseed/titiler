@@ -4,21 +4,17 @@ import re
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Type, Union
 
-import pkg_resources
 from rio_tiler_crs import STACReader
 
 from ..dependencies import DefaultDependency
 from ..models.dataset import Info, Metadata
+from ..templates import templates
 from .factory import TMSTilerFactory
 
 from fastapi import Depends, Query
 
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
-from starlette.templating import Jinja2Templates
-
-template_dir = pkg_resources.resource_filename("titiler", "templates")
-templates = Jinja2Templates(directory=template_dir)
 
 
 @dataclass

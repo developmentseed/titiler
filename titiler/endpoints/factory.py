@@ -6,7 +6,6 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, Optional, Type, Union
 from urllib.parse import urlencode
 
-import pkg_resources
 from cogeo_mosaic.backends import BaseBackend, MosaicBackend
 from cogeo_mosaic.mosaic import MosaicJSON
 from cogeo_mosaic.utils import get_footprints
@@ -41,15 +40,12 @@ from ..ressources.enums import (  # fmt: off
     PixelSelectionMethod,
 )
 from ..ressources.responses import XMLResponse
+from ..templates import templates
 
 from fastapi import APIRouter, Depends, Path, Query
 
 from starlette.requests import Request
 from starlette.responses import Response
-from starlette.templating import Jinja2Templates
-
-template_dir = pkg_resources.resource_filename("titiler", "templates")
-templates = Jinja2Templates(directory=template_dir)
 
 default_readers_type = Union[Type[BaseReader], Type[MultiBaseReader]]
 default_deps_type = Type[DefaultDependency]

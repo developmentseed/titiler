@@ -1,5 +1,9 @@
 # Release Notes
 
+## next (TBD)
+
+* remove `pkg_resources` (https://github.com/pypa/setuptools/issues/510)
+
 ## 0.1.0-alpha.6 (2020-10-05)
 
 * refactor CacheControl Middleware
