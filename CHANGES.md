@@ -1,6 +1,6 @@
 # Release Notes
 
-## next (TBD)
+## 0.1.0-alpha.7 (2020-10-13)
 
 * remove `pkg_resources` (https://github.com/pypa/setuptools/issues/510)
 
