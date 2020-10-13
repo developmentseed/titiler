@@ -1,8 +1,9 @@
 # Release Notes
 
-## 0.1.0a8 (TBD)
+## 0.1.0a8 (2020-10-13)
 
 * update for rio-tiler 2.0.0b17, which now support TMS (morecantile) by default.
+* update fastapi minimum version to 0.61
 
 **breaking changes**
 
