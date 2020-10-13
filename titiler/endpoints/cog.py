@@ -1,12 +1,12 @@
 """TiTiler COG Demo endpoint."""
 
 from rio_cogeo.cogeo import cog_info as rio_cogeo_info
-from rio_tiler_crs import COGReader
+from rio_tiler.io import COGReader
 
 from ..dependencies import PathParams
 from ..models.dataset import RioCogeoInfo
 from ..templates import templates
-from .factory import TMSTilerFactory
+from .factory import TilerFactory
 
 from fastapi import Depends, Query
 
@@ -14,7 +14,7 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse
 
 # Create Router using Tiler Factory
-cog = TMSTilerFactory(reader=COGReader, router_prefix="cog")
+cog = TilerFactory(reader=COGReader, router_prefix="cog")
 
 
 @cog.router.get("/validate", response_model=RioCogeoInfo)
