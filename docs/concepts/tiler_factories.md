@@ -45,10 +45,6 @@ Router created with the Tiler Factories will have basic routes:
 
 placeholder
 
-### TMSTilerFactory
-
-placeholder
-
 ### MosaicTilerFactory
 
 placeholder

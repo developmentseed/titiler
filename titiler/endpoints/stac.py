@@ -4,12 +4,12 @@ import re
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Type, Union
 
-from rio_tiler_crs import STACReader
+from rio_tiler.io import STACReader
 
 from ..dependencies import DefaultDependency
 from ..models.dataset import Info, Metadata
 from ..templates import templates
-from .factory import TMSTilerFactory
+from .factory import TilerFactory
 
 from fastapi import Depends, Query
 
@@ -71,7 +71,7 @@ class AssetsBidxExprParams(DefaultDependency):
 
 
 @dataclass
-class STACTiler(TMSTilerFactory):
+class STACTiler(TilerFactory):
     """Custom Tiler Class for STAC."""
 
     reader: Type[STACReader] = STACReader

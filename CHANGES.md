@@ -1,5 +1,15 @@
 # Release Notes
 
+## 0.1.0a8 (TBD)
+
+* update for rio-tiler 2.0.0b17, which now support TMS (morecantile) by default.
+
+**breaking changes**
+
+* removed TMSTilerFactory (because default reader built with rio_tiler BaseReader should support TMS).
+
+Note: We changed the versioning scheme to `{major}.{minor}.{path}{pre}{prenum}`
+
 ## 0.1.0-alpha.7 (2020-10-13)
 
 * remove `pkg_resources` (https://github.com/pypa/setuptools/issues/510)
