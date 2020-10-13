@@ -8,7 +8,7 @@ with open("README.md") as f:
 inst_reqs = [
     "brotli-asgi>=1.0.0",
     "email-validator",
-    "fastapi==0.60.1",
+    "fastapi~=0.61",
     "jinja2",
     "python-dotenv",
     "rio-color",
