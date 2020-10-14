@@ -1,5 +1,9 @@
 # Release Notes
 
+## Next (TBD)
+
+* avoid changing mutable TMS and Colormap list by using deepcopy.
+
 ## 0.1.0a8 (2020-10-13)
 
 * update for rio-tiler 2.0.0b17, which now support TMS (morecantile) by default.
