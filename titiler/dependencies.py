@@ -29,7 +29,7 @@ tms.register(custom_tms.EPSG3413)
 tms.register(custom_tms.EPSG6933)
 # REGISTER CUSTOM TMS
 #
-# e.g DefaultTileMatrixSets.register(custom_tms.my_custom_tms)
+# e.g tms.register(custom_tms.my_custom_tms)
 
 cmap.register("above", custom_colormap.above_cmap)
 # REGISTER CUSTOM COLORMAP HERE
@@ -65,7 +65,7 @@ def WebMercatorTMSParams(
     )
 ) -> TileMatrixSet:
     """TileMatrixSet Dependency."""
-    return DefaultTileMatrixSets.get(TileMatrixSetId.name)
+    return tms.get(TileMatrixSetId.name)
 
 
 def TMSParams(
@@ -75,7 +75,7 @@ def TMSParams(
     )
 ) -> TileMatrixSet:
     """TileMatrixSet Dependency."""
-    return DefaultTileMatrixSets.get(TileMatrixSetId.name)
+    return tms.get(TileMatrixSetId.name)
 
 
 @dataclass
