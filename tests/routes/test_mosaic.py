@@ -98,17 +98,7 @@ def test_info(app):
     assert body["minzoom"] == 7
     assert body["maxzoom"] == 9
     assert body["name"] == "mosaic"  # mosaic.name is not set
-    assert body["quadkeys"] == [
-        "0302300",
-        "0302301",
-        "0302310",
-        "0302302",
-        "0302303",
-        "0302312",
-        "0302320",
-        "0302321",
-        "0302330",
-    ]
+    assert body["quadkeys"] == []
 
 
 def test_tilejson(app):
