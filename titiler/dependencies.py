@@ -1,5 +1,6 @@
 """Common dependency."""
 
+import copy
 import re
 from dataclasses import dataclass, field
 from enum import Enum
@@ -9,7 +10,7 @@ import numpy
 from morecantile import tms as DefaultTileMatrixSets
 from morecantile.models import TileMatrixSet
 from rasterio.enums import Resampling
-from rio_tiler.colormap import cmap
+from rio_tiler.colormap import cmap as DefaultColorMap
 
 from .custom import cmap as custom_colormap
 from .custom import tms as custom_tms
@@ -19,13 +20,16 @@ from fastapi import Query
 
 from starlette.requests import Request
 
+tms = copy.deepcopy(DefaultTileMatrixSets)
+cmap = copy.deepcopy(DefaultColorMap)
+
 ################################################################################
 #                       CMAP AND TMS Customization
-DefaultTileMatrixSets.register(custom_tms.EPSG3413)
-DefaultTileMatrixSets.register(custom_tms.EPSG6933)
+tms.register(custom_tms.EPSG3413)
+tms.register(custom_tms.EPSG6933)
 # REGISTER CUSTOM TMS
 #
-# e.g DefaultTileMatrixSets.register(custom_tms.my_custom_tms)
+# e.g tms.register(custom_tms.my_custom_tms)
 
 cmap.register("above", custom_colormap.above_cmap)
 # REGISTER CUSTOM COLORMAP HERE
@@ -45,7 +49,7 @@ WebMercatorTileMatrixSetName = Enum(  # type: ignore
     "WebMercatorTileMatrixSetName", [("WebMercatorQuad", "WebMercatorQuad")]
 )
 TileMatrixSetNames = Enum(  # type: ignore
-    "TileMatrixSetNames", [(a, a) for a in sorted(DefaultTileMatrixSets.list())]
+    "TileMatrixSetNames", [(a, a) for a in sorted(tms.list())]
 )
 
 
@@ -61,7 +65,7 @@ def WebMercatorTMSParams(
     )
 ) -> TileMatrixSet:
     """TileMatrixSet Dependency."""
-    return DefaultTileMatrixSets.get(TileMatrixSetId.name)
+    return tms.get(TileMatrixSetId.name)
 
 
 def TMSParams(
@@ -71,7 +75,7 @@ def TMSParams(
     )
 ) -> TileMatrixSet:
     """TileMatrixSet Dependency."""
-    return DefaultTileMatrixSets.get(TileMatrixSetId.name)
+    return tms.get(TileMatrixSetId.name)
 
 
 @dataclass
