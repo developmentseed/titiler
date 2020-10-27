@@ -72,20 +72,6 @@ class titilerLambdaStack(core.Stack):
             environment=lambda_env,
         )
 
-        # # If you use dynamodb mosaic backend you should add IAM roles to read/put Item and maybe create Table
-        # permissions.append(
-        #     iam.PolicyStatement(
-        #         actions=[
-        #             "dynamodb:GetItem",
-        #             "dynamodb:PutItem",
-        #             "dynamodb:CreateTable",
-        #             "dynamodb:Scan",
-        #             "dynamodb:BatchWriteItem",
-        #         ],
-        #         resources=[f"arn:aws:dynamodb:{self.region}:{self.account}:table/*"],
-        #     )
-        # )
-
         for perm in permissions:
             lambda_function.add_to_role_policy(perm)
 
@@ -188,20 +174,6 @@ class titilerECSStack(core.Stack):
             ),
         )
 
-        # # If you use dynamodb mosaic backend you should add IAM roles to read/put Item and maybe create Table
-        # permissions.append(
-        #     iam.PolicyStatement(
-        #         actions=[
-        #             "dynamodb:GetItem",
-        #             "dynamodb:PutItem",
-        #             "dynamodb:CreateTable",
-        #             "dynamodb:Scan",
-        #             "dynamodb:BatchWriteItem",
-        #         ],
-        #         resources=[f"arn:aws:dynamodb:{self.region}:{self.account}:table/*"],
-        #     )
-        # )
-
         for perm in permissions:
             fargate_service.task_definition.task_role.add_to_policy(perm)
 
@@ -242,6 +214,22 @@ if settings.buckets:
             resources=[f"arn:aws:s3:::{bucket}*" for bucket in settings.buckets],
         )
     )
+
+# # If you use dynamodb mosaic backend you should add IAM roles to read/put Item and maybe create Table
+# stack = core.Stack()
+# perms.append(
+#     iam.PolicyStatement(
+#         actions=[
+#             "dynamodb:GetItem",
+#             "dynamodb:PutItem",
+#             "dynamodb:CreateTable",
+#             "dynamodb:Scan",
+#             "dynamodb:BatchWriteItem",
+#         ],
+#         resources=[f"arn:aws:dynamodb:{stack.region}:{stack.account}:table/*"],
+#     )
+# )
+
 
 # Tag infrastructure
 for key, value in {

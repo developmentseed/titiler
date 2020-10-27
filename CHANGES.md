@@ -1,8 +1,10 @@
 # Release Notes
 
-## Next (TBD)
+## 0.1.0a9 (2020-10-26)
 
 * avoid changing mutable TMS and Colormap list by using deepcopy.
+* quiet/turn off logs
+* add logger middleware (https://github.com/developmentseed/titiler/pull/139)
 
 ## 0.1.0a8 (2020-10-13)
 
