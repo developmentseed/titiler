@@ -161,7 +161,8 @@ The `factories` allow users to set multiple default dependencies. Here is the li
     additional_dependency: Callable[..., Dict] = field(default=lambda: dict())
     ```
 
-For `TMSTilerFactory` and `TilerFactory`
+For `TilerFactory`:
+
 * **metadata_dependency**: `rio_tiler.io.BaseReader.metadata()` methods options
     ```python
     @dataclass
