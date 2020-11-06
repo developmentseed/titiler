@@ -30,7 +30,7 @@ def test_info(rio, app):
     assert response.status_code == 200
     body = response.json()
     assert len(body["bounds"]) == 4
-    assert body["band_descriptions"] == [[1, "band1"]]
+    assert body["band_descriptions"] == [["1", ""]]
     assert body["dtype"] == "uint16"
     assert body["colorinterp"] == ["gray"]
     assert body["nodata_type"] == "None"
@@ -47,7 +47,7 @@ def test_metadata(rio, app):
     assert len(body["bounds"]) == 4
     assert body["statistics"]
     assert len(body["statistics"]["1"]["histogram"][0]) == 10
-    assert body["band_descriptions"] == [[1, "band1"]]
+    assert body["band_descriptions"] == [["1", ""]]
     assert body["dtype"] == "uint16"
     assert body["colorinterp"] == ["gray"]
     assert body["nodata_type"] == "None"

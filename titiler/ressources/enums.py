@@ -4,6 +4,9 @@ from enum import Enum
 from types import DynamicClassAttribute
 
 from rio_tiler.mosaic.methods import defaults
+from rio_tiler.profiles import img_profiles
+
+from .common import drivers
 
 
 class ImageType(str, Enum):
@@ -14,6 +17,16 @@ class ImageType(str, Enum):
     tif = "tif"
     jpg = "jpg"
     webp = "webp"
+
+    @DynamicClassAttribute
+    def profile(self):
+        """Return rio-tiler image default profile."""
+        return img_profiles.get(self.driver.lower(), {})
+
+    @DynamicClassAttribute
+    def driver(self):
+        """Return rio-tiler image default profile."""
+        return drivers[self._name_]
 
 
 class ImageMimeTypes(str, Enum):
@@ -39,16 +52,6 @@ class MimeTypes(str, Enum):
     json = "application/json"
     html = "text/html"
     text = "text/plain"
-
-
-class NodataTypes(str, Enum):
-    """rio-tiler Nodata types."""
-
-    Alpha = "Alpha"
-    Mask = "Mask"
-    Internal = "Internal"
-    Nodata = "Nodata"
-    Empty = "None"
 
 
 class PixelSelectionMethod(str, Enum):
