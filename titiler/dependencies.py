@@ -1,16 +1,15 @@
 """Common dependency."""
 
-import copy
 import re
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy
-from morecantile import tms as DefaultTileMatrixSets
+from morecantile import tms
 from morecantile.models import TileMatrixSet
 from rasterio.enums import Resampling
-from rio_tiler.colormap import cmap as DefaultColorMap
+from rio_tiler.colormap import cmap
 
 from .custom import cmap as custom_colormap
 from .custom import tms as custom_tms
@@ -20,21 +19,11 @@ from fastapi import Query
 
 from starlette.requests import Request
 
-tms = copy.deepcopy(DefaultTileMatrixSets)
-cmap = copy.deepcopy(DefaultColorMap)
-
 ################################################################################
 #                       CMAP AND TMS Customization
-tms.register(custom_tms.EPSG3413)
-tms.register(custom_tms.EPSG6933)
-# REGISTER CUSTOM TMS
-#
-# e.g tms.register(custom_tms.my_custom_tms)
+tms = tms.register([custom_tms.EPSG3413, custom_tms.EPSG6933])
 
-cmap.register("above", custom_colormap.above_cmap)
-# REGISTER CUSTOM COLORMAP HERE
-#
-# e.g cmap.register("customRed", custom_colormap.custom_red)
+cmap = cmap.register({"above": custom_colormap.above_cmap})
 
 ################################################################################
 # DO NOT UPDATE
@@ -245,8 +234,13 @@ class RenderParams(DefaultDependency):
         None, description="rio-tiler's colormap name"
     )
     return_mask: bool = Query(True, description="Add mask to the output data.")
+
     colormap: Optional[Dict[int, Tuple[int, int, int, int]]] = field(init=False)
+    rescale_range: Optional[List[Union[float, int]]] = field(init=False)
 
     def __post_init__(self):
         """Post Init."""
         self.colormap = cmap.get(self.color_map.value) if self.color_map else None
+        self.rescale_range = (
+            list(map(float, self.rescale.split(","))) if self.rescale else None
+        )

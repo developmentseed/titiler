@@ -1,6 +1,6 @@
 "Titiler mosaic models"
 
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
 from pydantic import BaseModel
 
@@ -24,14 +24,3 @@ class UpdateMosaicJSON(_MosaicJSONCommon):
     """Request body for updating an existing MosaicJSON"""
 
     add_first: bool = True
-
-
-class mosaicInfo(BaseModel):
-    """MosaicJSON info."""
-
-    bounds: Tuple[float, float, float, float]
-    center: Tuple[float, float, int]
-    minzoom: int
-    maxzoom: int
-    name: str
-    quadkeys: List[str]
