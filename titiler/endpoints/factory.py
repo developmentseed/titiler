@@ -386,7 +386,9 @@ class TilerFactory(BaseFactory):
             return tjson
 
     def wmts(self):  # noqa: C901
-        """Register /wmts endpoint."""
+        """
+        Register /wmts endpoint.
+        """
 
         @self.router.get("/WMTSCapabilities.xml", response_class=XMLResponse)
         @self.router.get(
