@@ -4,7 +4,7 @@ from rio_cogeo.cogeo import cog_info as rio_cogeo_info
 from rio_tiler.io import COGReader
 
 from ..dependencies import PathParams
-from ..models.dataset import RioCogeoInfo
+from ..models.cogeo import Info
 from ..templates import templates
 from .factory import TilerFactory
 
@@ -17,7 +17,7 @@ from starlette.responses import HTMLResponse
 cog = TilerFactory(reader=COGReader, router_prefix="cog")
 
 
-@cog.router.get("/validate", response_model=RioCogeoInfo)
+@cog.router.get("/validate", response_model=Info)
 def cog_validate(
     src_path: PathParams = Depends(),
     strict: bool = Query(False, description="Treat warnings as errors"),

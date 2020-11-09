@@ -5,9 +5,9 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional, Type, Union
 
 from rio_tiler.io import STACReader
+from rio_tiler.models import Info, Metadata
 
 from ..dependencies import DefaultDependency
-from ..models.dataset import Info, Metadata
 from ..templates import templates
 from .factory import TilerFactory
 
@@ -76,7 +76,7 @@ class STACTiler(TilerFactory):
 
     reader: Type[STACReader] = STACReader
 
-    layer_dependency: Type[DefaultDependency] = AssetsBidxExprParams
+    layer_dependency: Type[AssetsBidxExprParams] = AssetsBidxExprParams
 
     # Overwrite _info method to return the list of assets when no assets is passed.
     def info(self):
@@ -98,8 +98,7 @@ class STACTiler(TilerFactory):
             with self.reader(src_path.url, **self.reader_options) as src_dst:
                 if not asset_params.assets:
                     return src_dst.assets
-                info = src_dst.info(**asset_params.kwargs, **kwargs)
-            return info
+                return src_dst.info(**asset_params.kwargs, **kwargs)
 
     # Overwrite _metadata method because the STACTiler output model is different
     # cogMetadata -> Dict[str, cogMetadata]
@@ -121,14 +120,13 @@ class STACTiler(TilerFactory):
         ):
             """Return metadata."""
             with self.reader(src_path.url, **self.reader_options) as src_dst:
-                info = src_dst.metadata(
+                return src_dst.metadata(
                     metadata_params.pmin,
                     metadata_params.pmax,
                     **asset_params.kwargs,
                     **metadata_params.kwargs,
                     **kwargs,
                 )
-            return info
 
 
 stac = STACTiler(router_prefix="stac")

@@ -7,12 +7,13 @@ from typing import Any, Callable, Dict, Optional, Type, Union
 from urllib.parse import urlencode
 
 from cogeo_mosaic.backends import BaseBackend, MosaicBackend
+from cogeo_mosaic.models import Info as mosaicInfo
 from cogeo_mosaic.mosaic import MosaicJSON
 from cogeo_mosaic.utils import get_footprints
 from morecantile import TileMatrixSet
-from rasterio.transform import from_bounds
-from rio_tiler.constants import MAX_THREADS, WGS84_CRS
+from rio_tiler.constants import MAX_THREADS
 from rio_tiler.io import BaseReader, COGReader, MultiBaseReader
+from rio_tiler.models import Bounds, Info, Metadata
 
 from .. import utils
 from ..dependencies import (
@@ -28,9 +29,8 @@ from ..dependencies import (
     WebMercatorTMSParams,
 )
 from ..errors import BadRequestError, TileNotFoundError
-from ..models.dataset import Bounds, Info, Metadata
 from ..models.mapbox import TileJSON
-from ..models.mosaic import CreateMosaicJSON, UpdateMosaicJSON, mosaicInfo
+from ..models.mosaic import CreateMosaicJSON, UpdateMosaicJSON
 from ..ressources.common import img_endpoint_params
 from ..ressources.enums import (  # fmt: off
     ImageMimeTypes,
@@ -177,8 +177,7 @@ class TilerFactory(BaseFactory):
         ):
             """Return basic info."""
             with self.reader(src_path.url, **self.reader_options) as src_dst:
-                info = src_dst.info(**kwargs)
-            return info
+                return src_dst.info(**kwargs)
 
     ############################################################################
     # /metadata
@@ -202,7 +201,7 @@ class TilerFactory(BaseFactory):
         ):
             """Return metadata."""
             with self.reader(src_path.url, **self.reader_options) as src_dst:
-                info = src_dst.metadata(
+                return src_dst.metadata(
                     metadata_params.pmin,
                     metadata_params.pmax,
                     **layer_params.kwargs,
@@ -210,7 +209,6 @@ class TilerFactory(BaseFactory):
                     **dataset_params.kwargs,
                     **kwargs,
                 )
-            return info
 
     ############################################################################
     # /tiles
@@ -265,7 +263,7 @@ class TilerFactory(BaseFactory):
                 with self.reader(
                     src_path.url, tms=tms, **self.reader_options
                 ) as src_dst:
-                    tile, mask = src_dst.tile(
+                    data = src_dst.tile(
                         x,
                         y,
                         z,
@@ -280,27 +278,21 @@ class TilerFactory(BaseFactory):
             timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
             if not format:
-                format = ImageType.jpg if mask.all() else ImageType.png
+                format = ImageType.jpg if data.mask.all() else ImageType.png
 
             with utils.Timer() as t:
-                tile = utils.postprocess(
-                    tile,
-                    mask,
-                    rescale=render_params.rescale,
+                image = data.post_process(
+                    in_range=render_params.rescale_range,
                     color_formula=render_params.color_formula,
                 )
             timings.append(("postprocess", round(t.elapsed * 1000, 2)))
 
-            bounds = tms.xy_bounds(x, y, z)
-            dst_transform = from_bounds(*bounds, tilesize, tilesize)
             with utils.Timer() as t:
-                content = utils.reformat(
-                    tile,
-                    mask if render_params.return_mask else None,
-                    format,
+                content = image.render(
+                    add_mask=render_params.return_mask,
+                    img_format=format.driver,
                     colormap=colormap,
-                    transform=dst_transform,
-                    crs=tms.crs,
+                    **format.profile,
                 )
             timings.append(("format", round(t.elapsed * 1000, 2)))
 
@@ -538,7 +530,7 @@ class TilerFactory(BaseFactory):
 
             with utils.Timer() as t:
                 with self.reader(src_path.url, **self.reader_options) as src_dst:
-                    data, mask = src_dst.preview(
+                    data = src_dst.preview(
                         **layer_params.kwargs,
                         **img_params.kwargs,
                         **dataset_params.kwargs,
@@ -550,23 +542,21 @@ class TilerFactory(BaseFactory):
             timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
             if not format:
-                format = ImageType.jpg if mask.all() else ImageType.png
+                format = ImageType.jpg if data.mask.all() else ImageType.png
 
             with utils.Timer() as t:
-                data = utils.postprocess(
-                    data,
-                    mask,
-                    rescale=render_params.rescale,
+                image = data.post_process(
+                    in_range=render_params.rescale_range,
                     color_formula=render_params.color_formula,
                 )
             timings.append(("postprocess", round(t.elapsed * 1000, 2)))
 
             with utils.Timer() as t:
-                content = utils.reformat(
-                    data,
-                    mask if render_params.return_mask else None,
-                    format,
+                content = image.render(
+                    add_mask=render_params.return_mask,
+                    img_format=format.driver,
                     colormap=colormap,
+                    **format.profile,
                 )
             timings.append(("format", round(t.elapsed * 1000, 2)))
 
@@ -609,7 +599,7 @@ class TilerFactory(BaseFactory):
 
             with utils.Timer() as t:
                 with self.reader(src_path.url, **self.reader_options) as src_dst:
-                    data, mask = src_dst.part(
+                    data = src_dst.part(
                         [minx, miny, maxx, maxy],
                         **layer_params.kwargs,
                         **image_params.kwargs,
@@ -622,28 +612,21 @@ class TilerFactory(BaseFactory):
             timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
             if not format:
-                format = ImageType.jpg if mask.all() else ImageType.png
+                format = ImageType.jpg if data.mask.all() else ImageType.png
 
             with utils.Timer() as t:
-                data = utils.postprocess(
-                    data,
-                    mask,
-                    rescale=render_params.rescale,
+                image = data.post_process(
+                    in_range=render_params.rescale_range,
                     color_formula=render_params.color_formula,
                 )
             timings.append(("postprocess", round(t.elapsed * 1000, 2)))
 
             with utils.Timer() as t:
-                dst_transform = from_bounds(
-                    minx, miny, maxx, maxy, data.shape[2], data.shape[1]
-                )
-                content = utils.reformat(
-                    data,
-                    mask if render_params.return_mask else None,
-                    format,
+                content = image.render(
+                    add_mask=render_params.return_mask,
+                    img_format=format.driver,
                     colormap=colormap,
-                    transform=dst_transform,
-                    crs=WGS84_CRS,
+                    **format.profile,
                 )
             timings.append(("format", round(t.elapsed * 1000, 2)))
 
@@ -667,7 +650,7 @@ class MosaicTilerFactory(BaseFactory):
     """
 
     reader: BaseBackend = field(default=MosaicBackend)
-    dataset_reader: BaseReader = field(default=COGReader)
+    dataset_reader: Type[BaseReader] = field(default=COGReader)
 
     # BaseBackend does not support other TMS than WebMercator
     tms_dependency: Callable[..., TileMatrixSet] = WebMercatorTMSParams
@@ -860,7 +843,7 @@ class MosaicTilerFactory(BaseFactory):
                     mosaic_read = t.from_start
                     timings.append(("mosaicread", round(mosaic_read * 1000, 2)))
 
-                    (data, mask), assets_used = src_dst.tile(
+                    data, _ = src_dst.tile(
                         x,
                         y,
                         z,
@@ -873,31 +856,25 @@ class MosaicTilerFactory(BaseFactory):
                     )
             timings.append(("dataread", round((t.elapsed - mosaic_read) * 1000, 2)))
 
-            if data is None:
+            if not data.assets:
                 raise TileNotFoundError(f"Tile {z}/{x}/{y} was not found")
 
             if not format:
-                format = ImageType.jpg if mask.all() else ImageType.png
+                format = ImageType.jpg if data.mask.all() else ImageType.png
 
             with utils.Timer() as t:
-                data = utils.postprocess(
-                    data,
-                    mask,
-                    rescale=render_params.rescale,
+                image = data.post_process(
+                    in_range=render_params.rescale_range,
                     color_formula=render_params.color_formula,
                 )
             timings.append(("postprocess", round(t.elapsed * 1000, 2)))
 
-            bounds = tms.xy_bounds(x, y, z)
-            dst_transform = from_bounds(*bounds, tilesize, tilesize)
             with utils.Timer() as t:
-                content = utils.reformat(
-                    data,
-                    mask if render_params.return_mask else None,
-                    format,
+                content = image.render(
+                    add_mask=render_params.return_mask,
+                    img_format=format.driver,
                     colormap=render_params.colormap,
-                    transform=dst_transform,
-                    crs=tms.crs,
+                    **format.profile,
                 )
             timings.append(("format", round(t.elapsed * 1000, 2)))
 
@@ -906,8 +883,7 @@ class MosaicTilerFactory(BaseFactory):
                     [f"{name};dur={time}" for (name, time) in timings]
                 )
 
-            if assets_used:
-                headers["X-Assets"] = ",".join(assets_used)
+            headers["X-Assets"] = ",".join(data.assets)
 
             return Response(
                 content, media_type=ImageMimeTypes[format.value].value, headers=headers,
