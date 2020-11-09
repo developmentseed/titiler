@@ -15,6 +15,7 @@ inst_reqs = [
     "rio-cogeo~=2.0a5",
     "rio-tiler>=2.0.0b17",
     "cogeo-mosaic>=3.0.0a13,<3.1",
+    "starlette==0.13.6",
 ]
 extra_reqs = {
     "dev": ["pytest", "pytest-cov", "pytest-asyncio", "pre-commit", "requests"],
