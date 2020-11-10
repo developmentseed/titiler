@@ -1,8 +1,9 @@
 # Release Notes
 
-## 0.1.0a10 (TBD)
+## 0.1.0a10 (2020-11-09)
 
 * update for rio-tiler==2.0.0rc1, cogeo-mosaic==3.0.0a17 and morecantile==2.0
+* split `tile()` factory method (ref: https://github.com/developmentseed/titiler/issues/141, author @fredliporace)
 
 ## 0.1.0a9 (2020-10-26)
 
