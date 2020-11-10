@@ -132,6 +132,8 @@ class TilerFactory(BaseFactory):
         self.info()
         self.metadata()
         self.tile()
+        self.tilejson()
+        self.wmts()
         self.point()
 
         if self.add_preview:
@@ -212,7 +214,7 @@ class TilerFactory(BaseFactory):
     # /tiles
     ############################################################################
     def tile(self):  # noqa: C901
-        """Register /tiles endpoints."""
+        """Register /tiles endpoint."""
         tile_endpoint_params = img_endpoint_params.copy()
 
         @self.router.get(r"/tiles/{z}/{x}/{y}", **tile_endpoint_params)
@@ -303,6 +305,9 @@ class TilerFactory(BaseFactory):
                 content, media_type=ImageMimeTypes[format.value].value, headers=headers,
             )
 
+    def tilejson(self):  # noqa: C901
+        """Register /tilejson.json endpoint."""
+
         @self.router.get(
             "/tilejson.json",
             response_model=TileJSON,
@@ -371,6 +376,9 @@ class TilerFactory(BaseFactory):
                 }
 
             return tjson
+
+    def wmts(self):  # noqa: C901
+        """Register /wmts endpoint."""
 
         @self.router.get("/WMTSCapabilities.xml", response_class=XMLResponse)
         @self.router.get(
