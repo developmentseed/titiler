@@ -17,19 +17,18 @@ nav:
   - TiTiler: "index.md"
   - User Guide:
     - Intro: "intro.md"
+    - Dynamic Tiling: "concepts/dynamic_tiling.md"
+    - TileMatrixSets: "concepts/tile_matrix_sets.md"
     - Endpoints Documentation:
         - Cloud Optimized GeoTIFF: "endpoints/cog.md"
         - MosaicJSON: "endpoints/mosaic.md"
         - SpatioTemporal Asset Catalog: "endpoints/stac.md"
         - TileMatrixSets: "endpoints/tms.md"
   - Advanced User Guide:
-      - "concepts/tiler_factories.md"
-      - "concepts/dependencies.md"
-      - "concepts/customization.md"
-      - "concepts/APIRoute_and_environment_variables.md"
-      # - "concepts/dynamic_tiling.md"
-      # - "concepts/data_formats.md"
-      # - "concepts/tile_matrix_sets.md"
+      - Tiler Factories: "concepts/tiler_factories.md"
+      - Dependencies: "concepts/dependencies.md"
+      - Customization: "concepts/customization.md"
+      - APIRoute and environment variables: "concepts/APIRoute_and_environment_variables.md"
   - Examples:
     - COG: "examples/Working_with_CloudOptimizedGeoTIFF_simple.ipynb"
     - COG at scale: "examples/Working_with_CloudOptimizedGeoTIFF.ipynb"
