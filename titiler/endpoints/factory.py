@@ -678,6 +678,8 @@ class MosaicTilerFactory(BaseFactory):
         self.bounds()
         self.info()
         self.tile()
+        self.tilejson()
+        self.wmts()
         self.point()
 
     ############################################################################
@@ -889,6 +891,9 @@ class MosaicTilerFactory(BaseFactory):
                 content, media_type=ImageMimeTypes[format.value].value, headers=headers,
             )
 
+    def tilejson(self):  # noqa: C901
+        """Add tilejson endpoint."""
+
         @self.router.get(
             "/tilejson.json",
             response_model=TileJSON,
@@ -960,6 +965,9 @@ class MosaicTilerFactory(BaseFactory):
                 }
 
             return tjson
+
+    def wmts(self):  # noqa: C901
+        """Add wmts endpoint."""
 
         @self.router.get("/WMTSCapabilities.xml", response_class=XMLResponse)
         @self.router.get(
