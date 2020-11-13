@@ -1,5 +1,15 @@
 # Release Notes
 
+## 0.1.0a11.post1 (2020-11-12)
+
+* relax version for rio-tiler and cogeo-mosaic
+
+```python
+"rio-cogeo~=2.0"
+"rio-tiler>=2.0.0rc1,<2.1"
+"cogeo-mosaic>=3.0.0a17,<3.1"
+```
+
 ## 0.1.0a11 (2020-11-12)
 
 * split `tile()` for `MosaicTilerFactory` method (ref: https://github.com/developmentseed/titiler/issues/147)

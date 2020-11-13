@@ -14,9 +14,9 @@ inst_reqs = [
     "email-validator",
     "jinja2",
     "python-dotenv",
-    "rio-cogeo==2.0",
-    "rio-tiler==2.0.0rc1",
-    "cogeo-mosaic==3.0.0a17",
+    "rio-cogeo~=2.0",
+    "rio-tiler>=2.0.0rc1,<2.1",
+    "cogeo-mosaic>=3.0.0a17,<3.1",
 ]
 extra_reqs = {
     "dev": ["pytest", "pytest-cov", "pytest-asyncio", "pre-commit", "requests"],
@@ -40,7 +40,7 @@ extra_reqs = {
 
 setup(
     name="titiler",
-    version="0.1.0a11",
+    version="0.1.0a11.post1",
     description=u"",
     long_description=long_description,
     long_description_content_type="text/markdown",
