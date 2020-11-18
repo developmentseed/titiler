@@ -12,7 +12,7 @@ Default output types/extensions are:
 * `.jp2`: image/jp2
 * `.png`: image/png
 * `.pngraw`: image/png
-* `.jpeg`: image/jpeg
+* `.jpg`: image/jpeg
 * `.webp`: image/webp
 * `.npy`: application/x-binary
 
