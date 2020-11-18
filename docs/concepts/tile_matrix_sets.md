@@ -35,4 +35,4 @@ Supported TMS:
 You can easily add more TileMatrixSet support, see [custom-tms](concepts/customization/#custom-tms).
 
 
-Example: [Notebook](examples/Working_with_nonWebMercatorTMS.ipynb)
+Example: [Notebook](/examples/Working_with_nonWebMercatorTMS.ipynb)

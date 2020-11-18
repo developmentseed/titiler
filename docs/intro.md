@@ -1,6 +1,11 @@
-# Default App
 
-TiTiler comes with a default (complete) application with support of COG, STAC and MosaicJSON. You can start the application locally by doing:
+`TiTiler` is a python module, which goal is to help user creating dynamic tile server. To learn more about `dynamic tiling` please refer to the [docs](/docs/concepts/dynamic_tiling.md).
+
+User can choose to extend or use `Titiler` as it is.
+
+## Defaults
+
+`TiTiler` comes with a default (complete) application with support of COG, STAC and MosaicJSON. You can start the application locally by doing:
 
 ```bash
 $ pip install titiler[server]
@@ -10,7 +15,7 @@ $ uvicorn titiler.main:app --reload
 > INFO: Started reloader process [45592]
 ```
 
-Default endpoints documentation:
+See default endpoints documentation pages:
 
 * [`/cog` - Cloud Optimized GeoTIFF](endpoints/cog.md)
 * [`/mosaicjson` - MosaicJSON](endpoints/mosaic.md)
@@ -19,7 +24,7 @@ Default endpoints documentation:
 
 ## Customized, minimal app
 
-TiTiler has been developed so users can build their own app using only portions they need. Using [`TilerFactory`s](concepts/tiler_factories.md), you can create customized applications with only the endpoints you need.
+`TiTiler` has been developed so users can build their own app using only portions they need. Using [`TilerFactory`s](concepts/tiler_factories.md), users can create a fully customized applications with only the endpoints you need.
 
 ```python
 from titiler.endpoints.factory import TilerFactory
@@ -43,7 +48,7 @@ add_exception_handlers(app, DEFAULT_STATUS_CODES)
 
 ![](img/custom_app.png)
 
-## Extending the app
+## Extending TiTiler's app
 
 If you want to include all of Titiler's built-in endpoints, but also include
 customized endpoints, you can import and extend the app directly:
@@ -51,10 +56,18 @@ customized endpoints, you can import and extend the app directly:
 ```py
 from titiler.main import app
 
-# Import custom endpoint
-from . import CustomTiler
+from fastapi import FastAPI, APIRouter
+from titiler.custom.routing import apiroute_factory
+from titiler.endpoints.factory import TilerFactory
+
+# Create a custom Tiler (see: https://github.com/developmentseed/titiler-pds/blob/master/app/routes/naip.py)
+route_class = apiroute_factory({"AWS_REQUEST_PAYER": "requester"})
+router = APIRouter(route_class=route_class)
+tiler = TilerFactory(router=router, prefix="private/cog")
+
 app.include_router(
-    CustomTiler.router,
-    prefix="/custom/prefix",
-    tags=["Custom Tiler"])
+    tiler.router,
+    prefix="/private/cog",
+    tags=["Custom Tiler"]
+)
 ```

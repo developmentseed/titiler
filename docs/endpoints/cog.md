@@ -1,5 +1,7 @@
 # Cloud Optimized GeoTIFF
 
+Read Info/Metadata and create Web map Tiles from a **single** COG.
+
 ```python
 from titiler.endpoints import cog
 
@@ -11,7 +13,7 @@ app = FastAPI()
 app.include_router(cog.router, prefix="/cog", tags=["Cloud Optimized GeoTIFF"])
 ```
 
-## Tiles - GET
+## Tiles
 
 `:endpoint:/cog/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`
 
@@ -40,7 +42,7 @@ Example:
 - `https://myendpoint/cog/tiles/WorldCRS84Quad/1/2/3@2x.png?url=https://somewhere.com/mycog.tif`
 - `https://myendpoint/cog/tiles/WorldCRS84Quad/1/2/3?url=https://somewhere.com/mycog.tif&bidx=1&rescale=0,1000&color_map=cfastie`
 
-## Preview - GET
+## Preview
 
 `:endpoint:/cog/preview[.{format}]`
 
@@ -68,7 +70,7 @@ Example:
 - `https://myendpoint/cog/preview.jpg?url=https://somewhere.com/mycog.tif`
 - `https://myendpoint/cog/preview?url=https://somewhere.com/mycog.tif&bidx=1&rescale=0,1000&color_map=cfastie`
 
-## Crop / Part - GET
+## Crop / Part
 
 `:endpoint:/cog/crop/{minx},{miny},{maxx},{maxy}.{format}`
 
@@ -96,7 +98,7 @@ Example:
 - `https://myendpoint/cog/crop/0,0,10,10.png?url=https://somewhere.com/mycog.tif`
 - `https://myendpoint/cog/crop/0,0,10,10.png?url=https://somewhere.com/mycog.tif&bidx=1&rescale=0,1000&color_map=cfastie`
 
-## Point - GET
+## Point
 
 `:endpoint:/cog/point/{lon},{lat}`
 
@@ -114,9 +116,9 @@ Example:
 - `https://myendpoint/cog/point/0,0?url=https://somewhere.com/mycog.tif`
 - `https://myendpoint/cog/point/0,0?url=https://somewhere.com/mycog.tif&bidx=1`
 
-## TilesJSON - GET
+## TilesJSON
 
-`:endpoint:/cog/[{TileMatrixSetId}]/tilejson.json` - Get tileJSON document
+`:endpoint:/cog/[{TileMatrixSetId}]/tilejson.json` tileJSON document
 
 - PathParams:
     - **TileMatrixSetId**: TileMatrixSet name, default is `WebMercatorQuad`. OPTIONAL
@@ -135,9 +137,9 @@ Example:
 - `https://myendpoint/cog/tilejson.json?url=https://somewhere.com/mycog.tif&tile_format=png`
 - `https://myendpoint/cog/WorldCRS84Quad/tilejson.json?url=https://somewhere.com/mycog.tif&tile_scale=2&bidx=1,2,3`
 
-## Bounds - GET
+## Bounds
 
-`:endpoint:/cog/bounds` - Get general image bounds
+`:endpoint:/cog/bounds` general image bounds
 
 - QueryParams:
     - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
@@ -146,9 +148,9 @@ Example:
 
 - `https://myendpoint/cog/bounds?url=https://somewhere.com/mycog.tif`
 
-## Info - GET
+## Info
 
-`:endpoint:/cog/info` - Get general raster info
+`:endpoint:/cog/info` general raster info
 - QueryParams:
     - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
 
@@ -156,9 +158,9 @@ Example:
 
 - `https://myendpoint/cog/info?url=https://somewhere.com/mycog.tif`
 
-## Metadata - GET
+## Metadata
 
-`:endpoint:/cog/metadata` - Get raster statistics
+`:endpoint:/cog/metadata` raster statistics
 
 - QueryParams:
     - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
@@ -175,7 +177,7 @@ Example:
 
 - `https://myendpoint/cog/metadata?url=https://somewhere.com/mycog.tif&bidx=1,2,3`
 
-## Demo - GET
+## Demo
 
 `:endpoint:/cog/viewer` - COG Viewer
 
@@ -187,7 +189,7 @@ Example:
 - `https://myendpoint/cog/viewer?url=https://somewhere.com/mycog.tif`
 
 
-## Validate - GET
+## Validate
 
 `:endpoint:/cog/validate` - COG Viewer
 

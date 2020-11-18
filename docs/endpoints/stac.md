@@ -1,5 +1,7 @@
 # SpatioTemporal Asset Catalog
 
+Read Info/Metadata and create Web map Tiles from a **single** STAC Item.
+
 ```python
 from titiler.endpoints import stac
 
@@ -12,7 +14,7 @@ app.include_router(stac.router, prefix="/stac", tags=["SpatioTemporal Asset Cata
 ```
 
 
-## Tiles - GET
+## Tiles
 
 `:endpoint:/stac/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`
 
@@ -45,7 +47,7 @@ Example:
 - `https://myendpoint/stac/tiles/WorldCRS84Quad/1/2/3?url=https://somewhere.com/item.json&expression=B01/B02&rescale=0,1000&color_map=cfastie`
 
 
-## Preview - GET
+## Preview
 
 `:endpoint:/stac/preview[.{format}]`
 
@@ -75,7 +77,7 @@ Example:
 - `https://myendpoint/stac/preview.jpg?url=https://somewhere.com/item.json&assets=B01`
 - `https://myendpoint/stac/preview?url=https://somewhere.com/item.json&assets=B01&rescale=0,1000&color_map=cfastie`
 
-## Crop / Part - GET
+## Crop / Part
 
 `:endpoint:/stac/crop/{minx},{miny},{maxx},{maxy}.{format}`
 
@@ -106,7 +108,7 @@ Example:
 - `https://myendpoint/stac/crop/0,0,10,10.png?url=https://somewhere.com/item.json&assets=B01`
 - `https://myendpoint/stac/crop/0,0,10,10.png?url=https://somewhere.com/item.json&assets=B01&rescale=0,1000&color_map=cfastie`
 
-## Point - GET
+## Point
 
 `:endpoint:/cog/point/{lon},{lat}`
 
@@ -126,9 +128,9 @@ Example:
 
 - `https://myendpoint/stac/point/0,0?url=https://somewhere.com/item.json&assets=B01`
 
-## TilesJSON - GET
+## TilesJSON
 
-`:endpoint:/stac/[{TileMatrixSetId}]/tilejson.json` - Get tileJSON document
+`:endpoint:/stac/[{TileMatrixSetId}]/tilejson.json` tileJSON document
 
 - PathParams:
     - **TileMatrixSetId**: TileMatrixSet name, default is `WebMercatorQuad`. OPTIONAL
@@ -151,7 +153,7 @@ Example:
 - `https://myendpoint/stac/tilejson.json?url=https://somewhere.com/item.json&assets=B01&tile_format=png`
 - `https://myendpoint/stac/WorldCRS84Quad/tilejson.json?url=https://somewhere.com/item.json&tile_scale=2&expression=B01/B02`
 
-## Bounds - GET
+## Bounds
 
 `:endpoint:/stac/bounds` - Return the bounds of the STAC item.
 
@@ -163,7 +165,7 @@ Example:
 - `https://myendpoint/stac/bounds?url=https://somewhere.com/item.json`
 
 
-## Info - GET
+## Info
 
 `:endpoint:/stac/info` - Return basic info on STAC item's COG.
 
@@ -177,7 +179,7 @@ Example:
 
 - `https://myendpoint/stac/info?url=https://somewhere.com/item.json&assets=B01`
 
-## Metadata - GET
+## Metadata
 
 `:endpoint:/stac/metadata` - Return metadata of STAC item's COG.
 
@@ -197,7 +199,7 @@ Example:
 
 - `https://myendpoint/stac/metadata?https://somewhere.com/item.json&assets=B01`
 
-## Demo - GET
+## Demo
 
 `:endpoint:/stac/viewer` - STAC viewer
 

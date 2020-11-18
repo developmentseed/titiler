@@ -18,6 +18,7 @@ nav:
   - User Guide:
     - Intro: "intro.md"
     - Dynamic Tiling: "concepts/dynamic_tiling.md"
+    - Mosaics: "concepts/mosaics.md"
     - TileMatrixSets: "concepts/tile_matrix_sets.md"
     - Endpoints Documentation:
         - Cloud Optimized GeoTIFF: "endpoints/cog.md"
@@ -25,6 +26,7 @@ nav:
         - SpatioTemporal Asset Catalog: "endpoints/stac.md"
         - TileMatrixSets: "endpoints/tms.md"
   - Advanced User Guide:
+      - Ouput data format: "concepts/output_format.md"
       - Tiler Factories: "concepts/tiler_factories.md"
       - Dependencies: "concepts/dependencies.md"
       - Customization: "concepts/customization.md"
@@ -37,10 +39,12 @@ nav:
     - MosaicJSON: "examples/Working_with_MosaicJSON.ipynb"
     - Non-WebMercator TMS: "examples/Working_with_nonWebMercatorTMS.ipynb"
     - Custom Sentinel 2 Tiler: "examples/Create_CustomSentinel2Tiler.ipynb"
+    - NumpyTile: "examples/Working_with_NumpyTile.ipynb"
   - Deployment:
       - "deployment/settings.md"
       - "deployment/ecs.md"
       - "deployment/lambda.md"
+  - External links: "external_links.md"
   - Development - Contributing: "contributing.md"
   - Release Notes: "release-notes.md"
 

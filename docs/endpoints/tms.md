@@ -1,9 +1,12 @@
 
 # TileMatrixSets
 
+
+## List TMS
+
 `:endpoint:/tileMatrixSets` - Get the list of supported TileMatrixSet
 
-```
+```bash
 $ curl https://myendpoint/tileMatrixSets | jq
 
 {
@@ -24,12 +27,14 @@ $ curl https://myendpoint/tileMatrixSets | jq
 }
 ```
 
+## Get TMS info
+
 `:endpoint:/tileMatrixSets/{TileMatrixSetId}` - Get the TileMatrixSet JSON document
 
 - PathParams:
     - **TileMatrixSetId**: TileMatrixSet name
 
-```
+```bash
 $ curl http://127.0.0.1:8000/tileMatrixSets/WebMercatorQuad | jq
 
 {
