@@ -1,10 +1,16 @@
 # Release Notes
 
-## 0.1.0a12 (TBD)
+## 0.1.0a12 (2020-11-18)
 
 * require `rio-tiler>=2.0.0rc2`
 * update Enums for Image types. (**breaking**)
 * Add more output datatype (jpeg2000, pngraw)
+* add `width/height` in `/crop` endpoint path
+
+```
+/crop/{minx},{miny},{maxx},{maxy}.{format}
+/crop/{minx},{miny},{maxx},{maxy}/{width}x{height}.{format}
+```
 
 ## 0.1.0a11.post1 (2020-11-12)
 
