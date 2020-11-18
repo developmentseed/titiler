@@ -3,6 +3,7 @@
 Read Info/Metadata and create Web map Tiles from a **single** COG.
 
 ```python
+# Minimal FastAPI app with COG support
 from titiler.endpoints import cog
 
 from fastapi import FastAPI
@@ -13,7 +14,25 @@ app = FastAPI()
 app.include_router(cog.router, prefix="/cog", tags=["Cloud Optimized GeoTIFF"])
 ```
 
-## Tiles
+## API
+
+| Method | URL                                                                 | Output    | Description
+| ------ | ------------------------------------------------------------------- |---------- |--------------
+| `GET`  | `/cog/bounds`                                                       | JSON      | return bounds info for a dataset
+| `GET`  | `/cog/info`                                                         | JSON      | return basic info for a dataset
+| `GET`  | `/cog/metadata`                                                     | JSON      | return info and statistics for a dataset
+| `GET`  | `/cog/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`  | image/bin | create a web map tile image from a dataset
+| `GET`  | `/cog/[{TileMatrixSetId}]/tilejson.json`                            | JSON      | return a Mapbox TileJSON document
+| `GET`  | `/cog/{TileMatrixSetId}/WMTSCapabilities.xml`                       | XML       | return OGC WMTS Get Capabilities
+| `GET`  | `/cog/point/{lon},{lat}`                                            | JSON      | return pixel value from a dataset
+| `GET`  | `/cog/preview[.{format}]`                                           | image/bin | create a preview image from a dataset
+| `GET`  | `/cog/crop/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin | create an image from part of a dataset
+| `GET`  | `/cog/validate`                                                     | JSON      | validate a COG and return dataset info
+| `GET`  | `/cog/viewer`                                                       | HTML      | demo webpage
+
+## Description
+
+### Tiles
 
 `:endpoint:/cog/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`
 
@@ -42,7 +61,7 @@ Example:
 - `https://myendpoint/cog/tiles/WorldCRS84Quad/1/2/3@2x.png?url=https://somewhere.com/mycog.tif`
 - `https://myendpoint/cog/tiles/WorldCRS84Quad/1/2/3?url=https://somewhere.com/mycog.tif&bidx=1&rescale=0,1000&color_map=cfastie`
 
-## Preview
+### Preview
 
 `:endpoint:/cog/preview[.{format}]`
 
@@ -70,13 +89,16 @@ Example:
 - `https://myendpoint/cog/preview.jpg?url=https://somewhere.com/mycog.tif`
 - `https://myendpoint/cog/preview?url=https://somewhere.com/mycog.tif&bidx=1&rescale=0,1000&color_map=cfastie`
 
-## Crop / Part
+### Crop / Part
 
 `:endpoint:/cog/crop/{minx},{miny},{maxx},{maxy}.{format}`
+`:endpoint:/cog/crop/{minx},{miny},{maxx},{maxy}/{width}x{height}.{format}`
 
 - PathParams:
     - **minx,miny,maxx,maxy**: Comma (',') delimited bounding box in WGS84.
     - **format**: Output image format
+    - **height**: Force output image height. OPTIONAL
+    - **width**: Force output image width. OPTIONAL
 
 - QueryParams:
     - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
@@ -84,8 +106,6 @@ Example:
     - **expression**: rio-tiler's band math expression (e.g B1/B2). OPTIONAL
     - **nodata**: Overwrite internal Nodata value. OPTIONAL
     - **max_size**: Max image size, default is 1024. OPTIONAL
-    - **height**: Force output image height. OPTIONAL
-    - **width**: Force output image width. OPTIONAL
     - **rescale**: Comma (',') delimited Min,Max bounds. OPTIONAL
     - **color_formula**: rio-color formula. OPTIONAL
     - **color_map**: rio-tiler color map name. OPTIONAL
@@ -98,7 +118,7 @@ Example:
 - `https://myendpoint/cog/crop/0,0,10,10.png?url=https://somewhere.com/mycog.tif`
 - `https://myendpoint/cog/crop/0,0,10,10.png?url=https://somewhere.com/mycog.tif&bidx=1&rescale=0,1000&color_map=cfastie`
 
-## Point
+### Point
 
 `:endpoint:/cog/point/{lon},{lat}`
 
@@ -116,7 +136,7 @@ Example:
 - `https://myendpoint/cog/point/0,0?url=https://somewhere.com/mycog.tif`
 - `https://myendpoint/cog/point/0,0?url=https://somewhere.com/mycog.tif&bidx=1`
 
-## TilesJSON
+### TilesJSON
 
 `:endpoint:/cog/[{TileMatrixSetId}]/tilejson.json` tileJSON document
 
@@ -137,7 +157,7 @@ Example:
 - `https://myendpoint/cog/tilejson.json?url=https://somewhere.com/mycog.tif&tile_format=png`
 - `https://myendpoint/cog/WorldCRS84Quad/tilejson.json?url=https://somewhere.com/mycog.tif&tile_scale=2&bidx=1,2,3`
 
-## Bounds
+### Bounds
 
 `:endpoint:/cog/bounds` general image bounds
 
@@ -148,7 +168,7 @@ Example:
 
 - `https://myendpoint/cog/bounds?url=https://somewhere.com/mycog.tif`
 
-## Info
+### Info
 
 `:endpoint:/cog/info` general raster info
 - QueryParams:
@@ -158,7 +178,7 @@ Example:
 
 - `https://myendpoint/cog/info?url=https://somewhere.com/mycog.tif`
 
-## Metadata
+### Metadata
 
 `:endpoint:/cog/metadata` raster statistics
 
@@ -177,7 +197,7 @@ Example:
 
 - `https://myendpoint/cog/metadata?url=https://somewhere.com/mycog.tif&bidx=1,2,3`
 
-## Demo
+### Demo
 
 `:endpoint:/cog/viewer` - COG Viewer
 
@@ -189,7 +209,7 @@ Example:
 - `https://myendpoint/cog/viewer?url=https://somewhere.com/mycog.tif`
 
 
-## Validate
+### Validate
 
 `:endpoint:/cog/validate` - COG Viewer
 

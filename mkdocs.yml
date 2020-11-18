@@ -20,13 +20,13 @@ nav:
     - Dynamic Tiling: "concepts/dynamic_tiling.md"
     - Mosaics: "concepts/mosaics.md"
     - TileMatrixSets: "concepts/tile_matrix_sets.md"
-    - Endpoints Documentation:
-        - Cloud Optimized GeoTIFF: "endpoints/cog.md"
-        - MosaicJSON: "endpoints/mosaic.md"
-        - SpatioTemporal Asset Catalog: "endpoints/stac.md"
-        - TileMatrixSets: "endpoints/tms.md"
+    - Ouput data format: "concepts/output_format.md"
+  - Default Endpoints:
+    - /cog: "endpoints/cog.md"
+    - /stac: "endpoints/stac.md"
+    - /mosaicjson: "endpoints/mosaic.md"
+    - /tileMatrixSets: "endpoints/tms.md"
   - Advanced User Guide:
-      - Ouput data format: "concepts/output_format.md"
       - Tiler Factories: "concepts/tiler_factories.md"
       - Dependencies: "concepts/dependencies.md"
       - Customization: "concepts/customization.md"

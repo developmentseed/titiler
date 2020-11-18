@@ -3,6 +3,7 @@
 Read Info/Metadata and create Web map Tiles from a **single** STAC Item.
 
 ```python
+# Minimal FastAPI app with COG support
 from titiler.endpoints import stac
 
 from fastapi import FastAPI
@@ -13,8 +14,24 @@ app = FastAPI()
 app.include_router(stac.router, prefix="/stac", tags=["SpatioTemporal Asset Catalog"])
 ```
 
+## API
 
-## Tiles
+| Method | URL                                                                 | Output    | Description
+| ------ | ------------------------------------------------------------------- |---------- |--------------
+| `GET`  | `/stac/bounds`                                                       | JSON      | return bounds info for a dataset
+| `GET`  | `/stac/info`                                                         | JSON      | return basic info for a dataset
+| `GET`  | `/stac/metadata`                                                     | JSON      | return info and statistics for a dataset
+| `GET`  | `/stac/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`  | image/bin | create a web map tile image from a dataset
+| `GET`  | `/stac/[{TileMatrixSetId}]/tilejson.json`                            | JSON      | return a Mapbox TileJSON document
+| `GET`  | `/stac/{TileMatrixSetId}/WMTSCapabilities.xml`                       | XML       | return OGC WMTS Get Capabilities
+| `GET`  | `/stac/point/{lon},{lat}`                                            | JSON      | return pixel value from a dataset
+| `GET`  | `/stac/preview[.{format}]`                                           | image/bin | create a preview image from a dataset
+| `GET`  | `/stac/crop/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin | create an image from part of a dataset
+| `GET`  | `/stac/viewer`                                                       | HTML      | demo webpage
+
+## Description
+
+### Tiles
 
 `:endpoint:/stac/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`
 
@@ -47,7 +64,7 @@ Example:
 - `https://myendpoint/stac/tiles/WorldCRS84Quad/1/2/3?url=https://somewhere.com/item.json&expression=B01/B02&rescale=0,1000&color_map=cfastie`
 
 
-## Preview
+### Preview
 
 `:endpoint:/stac/preview[.{format}]`
 
@@ -77,13 +94,16 @@ Example:
 - `https://myendpoint/stac/preview.jpg?url=https://somewhere.com/item.json&assets=B01`
 - `https://myendpoint/stac/preview?url=https://somewhere.com/item.json&assets=B01&rescale=0,1000&color_map=cfastie`
 
-## Crop / Part
+### Crop / Part
 
 `:endpoint:/stac/crop/{minx},{miny},{maxx},{maxy}.{format}`
+`:endpoint:/stac/crop/{minx},{miny},{maxx},{maxy}/{width}x{height}.{format}`
 
 - PathParams:
     - **minx,miny,maxx,maxy**: Comma (',') delimited bounding box in WGS84.
     - **format**: Output image format
+    - **height**: Force output image height. OPTIONAL
+    - **width**: Force output image width. OPTIONAL
 
 - QueryParams:
     - **url**: STAC Item URL. **REQUIRED**
@@ -91,9 +111,7 @@ Example:
     - **expression**: rio-tiler's band math expression (e.g B1/B2). OPTIONAL
     - **bidx**: Comma (',') delimited band indexes. OPTIONAL
     - **nodata**: Overwrite internal Nodata value. OPTIONAL
-    - **max_size**: Max image size, default is 1024. OPTIONAL
-    - **height**: Force output image height. OPTIONAL
-    - **width**: Force output image width. OPTIONAL
+
     - **rescale**: Comma (',') delimited Min,Max bounds. OPTIONAL
     - **color_formula**: rio-color formula. OPTIONAL
     - **color_map**: rio-tiler color map name. OPTIONAL
@@ -108,7 +126,7 @@ Example:
 - `https://myendpoint/stac/crop/0,0,10,10.png?url=https://somewhere.com/item.json&assets=B01`
 - `https://myendpoint/stac/crop/0,0,10,10.png?url=https://somewhere.com/item.json&assets=B01&rescale=0,1000&color_map=cfastie`
 
-## Point
+### Point
 
 `:endpoint:/cog/point/{lon},{lat}`
 
@@ -128,7 +146,7 @@ Example:
 
 - `https://myendpoint/stac/point/0,0?url=https://somewhere.com/item.json&assets=B01`
 
-## TilesJSON
+### TilesJSON
 
 `:endpoint:/stac/[{TileMatrixSetId}]/tilejson.json` tileJSON document
 
@@ -153,7 +171,7 @@ Example:
 - `https://myendpoint/stac/tilejson.json?url=https://somewhere.com/item.json&assets=B01&tile_format=png`
 - `https://myendpoint/stac/WorldCRS84Quad/tilejson.json?url=https://somewhere.com/item.json&tile_scale=2&expression=B01/B02`
 
-## Bounds
+### Bounds
 
 `:endpoint:/stac/bounds` - Return the bounds of the STAC item.
 
@@ -165,7 +183,7 @@ Example:
 - `https://myendpoint/stac/bounds?url=https://somewhere.com/item.json`
 
 
-## Info
+### Info
 
 `:endpoint:/stac/info` - Return basic info on STAC item's COG.
 
@@ -179,7 +197,7 @@ Example:
 
 - `https://myendpoint/stac/info?url=https://somewhere.com/item.json&assets=B01`
 
-## Metadata
+### Metadata
 
 `:endpoint:/stac/metadata` - Return metadata of STAC item's COG.
 
@@ -199,7 +217,7 @@ Example:
 
 - `https://myendpoint/stac/metadata?https://somewhere.com/item.json&assets=B01`
 
-## Demo
+### Demo
 
 `:endpoint:/stac/viewer` - STAC viewer
 

@@ -1,63 +1,35 @@
 
-Tiler factories (`titiler.endpoints.factory.TilerFactory|MosaicTilerFactory`) are helper functions that let users create FastAPI router (`fastapi.APIRouter`).
+Tiler factories (`titiler.endpoints.factory.TilerFactory|MosaicTilerFactory`) are helper functions that let users create FastAPI router (`fastapi.APIRouter`) with minimal set of endpoints.
 
-```python
-from titiler.endpoints.factory import TilerFactory
+#### TilerFactory
 
-tiler = TilerFactory()
+| Method | URL                                                             | Output    | Description
+| ------ | --------------------------------------------------------------- |---------- |--------------
+| `GET`  | `/bounds`                                                       | JSON      | return bounds info for a dataset
+| `GET`  | `/info`                                                         | JSON      | return basic info for a dataset
+| `GET`  | `/metadata`                                                     | JSON      | return info and statistics for a dataset
+| `GET`  | `/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`  | image/bin | create a web map tile image from a dataset
+| `GET`  | `/[{TileMatrixSetId}]/tilejson.json`                            | JSON      | return a Mapbox TileJSON document
+| `GET`  | `/{TileMatrixSetId}/WMTSCapabilities.xml`                       | XML       | return OGC WMTS Get Capabilities
+| `GET`  | `/point/{lon},{lat}`                                            | JSON      | return pixel value from a dataset
+| `GET`  | `/preview[.{format}]`                                           | image/bin | **Optional** - create a preview image from a dataset
+| `GET`  | `/crop/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin | **Optional** - create an image from part of a dataset
 
-# Print defaults routes
-print([r.path for r in tiler.router.routes])
-> [
-    '/bounds',
-    '/info',
-    '/metadata',
-    '/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x.{format}',
-    '/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x',
-    '/tiles/{TileMatrixSetId}/{z}/{x}/{y}.{format}',
-    '/tiles/{TileMatrixSetId}/{z}/{x}/{y}',
-    '/tiles/{z}/{x}/{y}@{scale}x.{format}',
-    '/tiles/{z}/{x}/{y}@{scale}x',
-    '/tiles/{z}/{x}/{y}.{format}',
-    '/tiles/{z}/{x}/{y}',
-    '/{TileMatrixSetId}/tilejson.json',
-    '/tilejson.json',
-    '/{TileMatrixSetId}/WMTSCapabilities.xml',
-    '/WMTSCapabilities.xml',
-    '/point/{lon},{lat}',
-    '/preview.{format}',
-    '/preview',
-]
-```
+#### MosaicTilerFactory
 
-## Factories
-
-All **factories** share a minimal route definition:
-
-* `/bounds`: return dataset bounds
-* `/info`: return dataset info (using `rio_tiler.models.Info` model)
-* `/tiles/[{TileMatrixSetId}/]{z}/{x}/{y}[@{scale}x.{format}]`: return tile images
-* `/tilesjon.json`: return a mapbox TileJSON document
-* `/WMTSCapabilities.xml`: return a OGC compatible WMTS document
-* `/point/{lon},{lat}`: return a pixel value for the input dataset
-
-### TilerFactory
-
-* `/metadata`: return dataset statistics
-
-##### Optional
-
-* `/preview[.{format}]`: return a preview from the input dataset
-* `/crop/{minx},{miny},{maxx},{maxy}.{format}`: return a part of the input dataset
-
-### MosaicTilerFactory
-
-##### Optional
-
-* `/` (POST): Create and Write a MosaicJSON document
-* `/` (PUT): Update a MosaicJSON document
+| Method | URL                                                             | Output    | Description
+| ------ | --------------------------------------------------------------- |---------- |--------------
+| `GET`  | `/`                                                             | JSON      | return a MosaicJSON document
+| `POST` | `/`                                                             | JSON      | create a MosaicJSON from a list of files
+| `PUT`  | `/`                                                             | JSON      | update a MosaicJSON from a list of files
+| `GET`  | `/bounds`                                                       | JSON      | return bounds info for a MosaicJSON
+| `GET`  | `/info`                                                         | JSON      | return basic info for a MosaicJSON
+| `GET`  | `/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`  | image/bin | create a web map tile image from a MosaicJSON
+| `GET`  | `/[{TileMatrixSetId}]/tilejson.json`                            | JSON      | return a Mapbox TileJSON document
+| `GET`  | `/{TileMatrixSetId}/WMTSCapabilities.xml`                       | XML       | return OGC WMTS Get Capabilities
+| `GET`  | `/point/{lon},{lat}`                                            | JSON      | return pixel value from a MosaicJSON dataset
 
 
-## Readers
+**Factories** are built around [`rio_tiler.io.BaseReader`](https://cogeotiff.github.io/rio-tiler/advanced/custom_readers/), which define basics method to access datasets (e.g COG or STAC). The default reader is `COGReader` for `TilerFactory` and `MosaicBackend` for `MosaicTilerFactory`.
 
-**Factories** are built on top of [`rio_tiler.io.BaseReader`](https://cogeotiff.github.io/rio-tiler/advanced/custom_readers/), which define basics method to access to a dataset.
+Factories classes use [dependencies injection](dependencies.md) to define most of the endpoint options.

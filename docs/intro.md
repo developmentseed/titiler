@@ -71,3 +71,5 @@ app.include_router(
     tags=["Custom Tiler"]
 )
 ```
+
+More on [customization](/concepts/customization/)

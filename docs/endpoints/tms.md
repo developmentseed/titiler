@@ -1,8 +1,27 @@
 
 # TileMatrixSets
 
+```python
+from titiler.endpoints import tms
 
-## List TMS
+from fastapi import FastAPI
+
+app = FastAPI()
+
+app.include_router(tms.router, tags=["TileMatrixSet"])
+```
+
+## API
+
+| Method | URL                                 | Output    | Description
+| ------ | ----------------------------------- |---------- |--------------
+| `GET`  | `/tileMatrixSets`                   | JSON      | return the list of supported TileMatrixSe
+| `GET`  | `/tileMatrixSets/{TileMatrixSetId}` | JSON      | return the TileMatrixSet JSON document
+
+## Description
+
+
+### List TMS
 
 `:endpoint:/tileMatrixSets` - Get the list of supported TileMatrixSet
 
@@ -27,7 +46,7 @@ $ curl https://myendpoint/tileMatrixSets | jq
 }
 ```
 
-## Get TMS info
+### Get TMS info
 
 `:endpoint:/tileMatrixSets/{TileMatrixSetId}` - Get the TileMatrixSet JSON document
 
