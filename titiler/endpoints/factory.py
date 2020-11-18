@@ -571,16 +571,19 @@ class TilerFactory(BaseFactory):
     def part(self):
         """Register /crop endpoint."""
 
-        # @router.get(r"/crop/{minx},{miny},{maxx},{maxy}", **part_endpoint_params)
         @self.router.get(
             r"/crop/{minx},{miny},{maxx},{maxy}.{format}", **img_endpoint_params,
+        )
+        @self.router.get(
+            r"/crop/{minx},{miny},{maxx},{maxy}/{width}x{height}.{format}",
+            **img_endpoint_params,
         )
         def part(
             minx: float = Path(..., description="Bounding box min X"),
             miny: float = Path(..., description="Bounding box min Y"),
             maxx: float = Path(..., description="Bounding box max X"),
             maxy: float = Path(..., description="Bounding box max Y"),
-            format: ImageType = Query(None, description="Output image type."),
+            format: ImageType = Query(..., description="Output image type."),
             src_path=Depends(self.path_dependency),
             layer_params=Depends(self.layer_dependency),
             image_params=Depends(self.img_dependency),
@@ -605,9 +608,6 @@ class TilerFactory(BaseFactory):
                         src_dst, "colormap", None
                     )
             timings.append(("dataread", round(t.elapsed * 1000, 2)))
-
-            if not format:
-                format = ImageType.jpeg if data.mask.all() else ImageType.png
 
             with utils.Timer() as t:
                 image = data.post_process(

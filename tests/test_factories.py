@@ -9,7 +9,7 @@ def test_TilerFactory(set_env):
     from titiler.endpoints import factory
 
     app = factory.TilerFactory(reader=COGReader)
-    assert len(app.router.routes) == 19
+    assert len(app.router.routes) == 20
     assert app.tms_dependency == TMSParams
 
     app = factory.TilerFactory(reader=COGReader, add_preview=False, add_part=False)

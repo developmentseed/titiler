@@ -335,25 +335,25 @@ def test_part(rio, app):
     assert "format;dur" in timing
 
     response = app.get(
-        "/cog/crop/-56.228,72.715,-54.547,73.188.png?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=256&return_mask=false"
+        "/cog/crop/-56.228,72.715,-54.547,73.188.jpg?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=256&return_mask=false"
     )
     assert response.status_code == 200
-    assert response.headers["content-type"] == "image/png"
+    assert response.headers["content-type"] == "image/jpeg"
     meta = parse_img(response.content)
     assert meta["count"] == 1
     assert meta["width"] == 256
     assert meta["height"] == 73
-    assert meta["driver"] == "PNG"
+    assert meta["driver"] == "JPEG"
 
-    # response = app.get(
-    #     "/cog/crop/-56.228,72.715,-54.547,73.188?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=256"
-    # )
-    # assert response.status_code == 200
-    # assert response.headers["content-type"] == "image/png"
-    # meta = parse_img(response.content)
-    # assert meta["width"] == 256
-    # assert meta["height"] == 73
-    # assert meta["driver"] == "PNG"
+    response = app.get(
+        "/cog/crop/-56.228,72.715,-54.547,73.188/128x128.png?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=256"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/png"
+    meta = parse_img(response.content)
+    assert meta["width"] == 128
+    assert meta["height"] == 128
+    assert meta["driver"] == "PNG"
 
     response = app.get(
         "/cog/crop/-56.228,72.715,-54.547,73.188.png?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=256&width=512&height=512"
