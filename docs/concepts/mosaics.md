@@ -1,5 +1,5 @@
 
-![](/img/africa_mosaic.png)
+![](../img/africa_mosaic.png)
 
 `Titiler` has a native support for reading and creating web map tile from **MosaicJSON**.
 
