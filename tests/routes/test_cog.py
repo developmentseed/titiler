@@ -149,7 +149,7 @@ def test_tile(rio, app):
         "/cog/tiles/8/87/48@2x.tif?url=https://myurl.com/cog.tif&nodata=0&bidx=1"
     )
     assert response.status_code == 200
-    assert response.headers["content-type"] == "image/tiff"
+    assert response.headers["content-type"] == "image/tiff; application=geotiff"
     meta = parse_img(response.content)
     assert meta["dtype"] == "uint16"
     assert meta["count"] == 2
@@ -216,7 +216,7 @@ def test_tile(rio, app):
         "/cog/tiles/8/87/48@2x.tif?url=https://myurl.com/cog.tif&nodata=0&bidx=1&return_mask=false"
     )
     assert response.status_code == 200
-    assert response.headers["content-type"] == "image/tiff"
+    assert response.headers["content-type"] == "image/tiff; application=geotiff"
     meta = parse_img(response.content)
     assert meta["dtype"] == "uint16"
     assert meta["count"] == 1

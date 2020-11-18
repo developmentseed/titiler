@@ -15,7 +15,7 @@ inst_reqs = [
     "jinja2",
     "python-dotenv",
     "rio-cogeo~=2.0",
-    "rio-tiler>=2.0.0rc1,<2.1",
+    "rio-tiler>=2.0.0rc2,<2.1",
     "cogeo-mosaic>=3.0.0a17,<3.1",
 ]
 extra_reqs = {
