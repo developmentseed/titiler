@@ -28,16 +28,10 @@ from ..dependencies import (
     TMSParams,
     WebMercatorTMSParams,
 )
-from ..errors import BadRequestError, TileNotFoundError
+from ..errors import BadRequestError
 from ..models.mapbox import TileJSON
 from ..models.mosaic import CreateMosaicJSON, UpdateMosaicJSON
-from ..ressources.common import img_endpoint_params
-from ..ressources.enums import (  # fmt: off
-    ImageMimeTypes,
-    ImageType,
-    MimeTypes,
-    PixelSelectionMethod,
-)
+from ..ressources.enums import ImageType, MimeTypes, PixelSelectionMethod
 from ..ressources.responses import XMLResponse
 from ..templates import templates
 
@@ -48,6 +42,22 @@ from starlette.responses import Response
 
 default_readers_type = Union[Type[BaseReader], Type[MultiBaseReader]]
 default_deps_type = Type[DefaultDependency]
+img_endpoint_params: Dict[str, Any] = {
+    "responses": {
+        200: {
+            "content": {
+                "image/png": {},
+                "image/jpeg": {},
+                "image/webp": {},
+                "image/jp2": {},
+                "image/tiff; application=geotiff": {},
+                "application/x-binary": {},
+            },
+            "description": "Return an image.",
+        }
+    },
+    "response_class": Response,
+}
 
 
 # ref: https://github.com/python/mypy/issues/5374
@@ -215,26 +225,21 @@ class TilerFactory(BaseFactory):
     ############################################################################
     def tile(self):  # noqa: C901
         """Register /tiles endpoint."""
-        tile_endpoint_params = img_endpoint_params.copy()
 
-        @self.router.get(r"/tiles/{z}/{x}/{y}", **tile_endpoint_params)
-        @self.router.get(r"/tiles/{z}/{x}/{y}.{format}", **tile_endpoint_params)
-        @self.router.get(r"/tiles/{z}/{x}/{y}@{scale}x", **tile_endpoint_params)
+        @self.router.get(r"/tiles/{z}/{x}/{y}", **img_endpoint_params)
+        @self.router.get(r"/tiles/{z}/{x}/{y}.{format}", **img_endpoint_params)
+        @self.router.get(r"/tiles/{z}/{x}/{y}@{scale}x", **img_endpoint_params)
+        @self.router.get(r"/tiles/{z}/{x}/{y}@{scale}x.{format}", **img_endpoint_params)
+        @self.router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}", **img_endpoint_params)
         @self.router.get(
-            r"/tiles/{z}/{x}/{y}@{scale}x.{format}", **tile_endpoint_params
+            r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}.{format}", **img_endpoint_params
         )
         @self.router.get(
-            r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}", **tile_endpoint_params
-        )
-        @self.router.get(
-            r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}.{format}", **tile_endpoint_params
-        )
-        @self.router.get(
-            r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x", **tile_endpoint_params
+            r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x", **img_endpoint_params
         )
         @self.router.get(
             r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x.{format}",
-            **tile_endpoint_params,
+            **img_endpoint_params,
         )
         def tile(
             z: int = Path(..., ge=0, le=30, description="Mercator tiles's zoom level"),
@@ -278,7 +283,7 @@ class TilerFactory(BaseFactory):
             timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
             if not format:
-                format = ImageType.jpg if data.mask.all() else ImageType.png
+                format = ImageType.jpeg if data.mask.all() else ImageType.png
 
             with utils.Timer() as t:
                 image = data.post_process(
@@ -296,14 +301,11 @@ class TilerFactory(BaseFactory):
                 )
             timings.append(("format", round(t.elapsed * 1000, 2)))
 
-            if timings:
-                headers["Server-Timing"] = ", ".join(
-                    [f"{name};dur={time}" for (name, time) in timings]
-                )
-
-            return Response(
-                content, media_type=ImageMimeTypes[format.value].value, headers=headers,
+            headers["Server-Timing"] = ", ".join(
+                [f"{name};dur={time}" for (name, time) in timings]
             )
+
+            return Response(content, media_type=format.mimetype, headers=headers)
 
     def tilejson(self):  # noqa: C901
         """Register /tilejson.json endpoint."""
@@ -432,8 +434,6 @@ class TilerFactory(BaseFactory):
                 minzoom = minzoom if minzoom is not None else src_dst.minzoom
                 maxzoom = maxzoom if maxzoom is not None else src_dst.maxzoom
 
-            media_type = ImageMimeTypes[tile_format.value].value
-
             tileMatrix = []
             for zoom in range(minzoom, maxzoom + 1):
                 matrix = tms.matrix(zoom)
@@ -459,7 +459,7 @@ class TilerFactory(BaseFactory):
                     "tms": tms,
                     "title": "Cloud Optimized GeoTIFF",
                     "layer_name": "cogeo",
-                    "media_type": media_type,
+                    "media_type": tile_format.mimetype,
                 },
                 media_type=MimeTypes.xml.value,
             )
@@ -497,10 +497,9 @@ class TilerFactory(BaseFactory):
                     )
             timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
-            if timings:
-                response.headers["Server-Timing"] = ", ".join(
-                    [f"{name};dur={time}" for (name, time) in timings]
-                )
+            response.headers["Server-Timing"] = ", ".join(
+                [f"{name};dur={time}" for (name, time) in timings]
+            )
 
             return {"coordinates": [lon, lat], "values": values}
 
@@ -509,10 +508,9 @@ class TilerFactory(BaseFactory):
     ############################################################################
     def preview(self):
         """Register /preview endpoint."""
-        prev_endpoint_params = img_endpoint_params.copy()
 
-        @self.router.get(r"/preview", **prev_endpoint_params)
-        @self.router.get(r"/preview.{format}", **prev_endpoint_params)
+        @self.router.get(r"/preview", **img_endpoint_params)
+        @self.router.get(r"/preview.{format}", **img_endpoint_params)
         def preview(
             format: ImageType = Query(
                 None, description="Output image type. Default is auto."
@@ -542,7 +540,7 @@ class TilerFactory(BaseFactory):
             timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
             if not format:
-                format = ImageType.jpg if data.mask.all() else ImageType.png
+                format = ImageType.jpeg if data.mask.all() else ImageType.png
 
             with utils.Timer() as t:
                 image = data.post_process(
@@ -565,20 +563,17 @@ class TilerFactory(BaseFactory):
                     [f"{name};dur={time}" for (name, time) in timings]
                 )
 
-            return Response(
-                content, media_type=ImageMimeTypes[format.value].value, headers=headers,
-            )
+            return Response(content, media_type=format.mimetype, headers=headers)
 
     ############################################################################
     # /crop (Optional)
     ############################################################################
     def part(self):
         """Register /crop endpoint."""
-        part_endpoint_params = img_endpoint_params.copy()
 
         # @router.get(r"/crop/{minx},{miny},{maxx},{maxy}", **part_endpoint_params)
         @self.router.get(
-            r"/crop/{minx},{miny},{maxx},{maxy}.{format}", **part_endpoint_params,
+            r"/crop/{minx},{miny},{maxx},{maxy}.{format}", **img_endpoint_params,
         )
         def part(
             minx: float = Path(..., description="Bounding box min X"),
@@ -612,7 +607,7 @@ class TilerFactory(BaseFactory):
             timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
             if not format:
-                format = ImageType.jpg if data.mask.all() else ImageType.png
+                format = ImageType.jpeg if data.mask.all() else ImageType.png
 
             with utils.Timer() as t:
                 image = data.post_process(
@@ -635,9 +630,7 @@ class TilerFactory(BaseFactory):
                     [f"{name};dur={time}" for (name, time) in timings]
                 )
 
-            return Response(
-                content, media_type=ImageMimeTypes[format.value].value, headers=headers,
-            )
+            return Response(content, media_type=format.mimetype, headers=headers)
 
 
 @dataclass
@@ -780,34 +773,28 @@ class MosaicTilerFactory(BaseFactory):
         def info(src_path=Depends(self.path_dependency)):
             """Return basic info."""
             with self.reader(src_path.url) as src_dst:
-                info = src_dst.info()
-            return info
+                return src_dst.info()
 
     ############################################################################
     # /tiles
     ############################################################################
     def tile(self):  # noqa: C901
         """Register /tiles endpoints."""
-        tile_endpoint_params = img_endpoint_params.copy()
 
-        @self.router.get(r"/tiles/{z}/{x}/{y}", **tile_endpoint_params)
-        @self.router.get(r"/tiles/{z}/{x}/{y}.{format}", **tile_endpoint_params)
-        @self.router.get(r"/tiles/{z}/{x}/{y}@{scale}x", **tile_endpoint_params)
+        @self.router.get(r"/tiles/{z}/{x}/{y}", **img_endpoint_params)
+        @self.router.get(r"/tiles/{z}/{x}/{y}.{format}", **img_endpoint_params)
+        @self.router.get(r"/tiles/{z}/{x}/{y}@{scale}x", **img_endpoint_params)
+        @self.router.get(r"/tiles/{z}/{x}/{y}@{scale}x.{format}", **img_endpoint_params)
+        @self.router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}", **img_endpoint_params)
         @self.router.get(
-            r"/tiles/{z}/{x}/{y}@{scale}x.{format}", **tile_endpoint_params
+            r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}.{format}", **img_endpoint_params
         )
         @self.router.get(
-            r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}", **tile_endpoint_params
-        )
-        @self.router.get(
-            r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}.{format}", **tile_endpoint_params
-        )
-        @self.router.get(
-            r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x", **tile_endpoint_params
+            r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x", **img_endpoint_params
         )
         @self.router.get(
             r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x.{format}",
-            **tile_endpoint_params,
+            **img_endpoint_params,
         )
         def tile(
             z: int = Path(..., ge=0, le=30, description="Mercator tiles's zoom level"),
@@ -858,11 +845,8 @@ class MosaicTilerFactory(BaseFactory):
                     )
             timings.append(("dataread", round((t.elapsed - mosaic_read) * 1000, 2)))
 
-            if not data.assets:
-                raise TileNotFoundError(f"Tile {z}/{x}/{y} was not found")
-
             if not format:
-                format = ImageType.jpg if data.mask.all() else ImageType.png
+                format = ImageType.jpeg if data.mask.all() else ImageType.png
 
             with utils.Timer() as t:
                 image = data.post_process(
@@ -880,16 +864,13 @@ class MosaicTilerFactory(BaseFactory):
                 )
             timings.append(("format", round(t.elapsed * 1000, 2)))
 
-            if timings:
-                headers["Server-Timing"] = ", ".join(
-                    [f"{name};dur={time}" for (name, time) in timings]
-                )
+            headers["Server-Timing"] = ", ".join(
+                [f"{name};dur={time}" for (name, time) in timings]
+            )
 
             headers["X-Assets"] = ",".join(data.assets)
 
-            return Response(
-                content, media_type=ImageMimeTypes[format.value].value, headers=headers,
-            )
+            return Response(content, media_type=format.mimetype, headers=headers)
 
     def tilejson(self):  # noqa: C901
         """Add tilejson endpoint."""
@@ -1024,8 +1005,6 @@ class MosaicTilerFactory(BaseFactory):
                 minzoom = minzoom if minzoom is not None else src_dst.minzoom
                 maxzoom = maxzoom if maxzoom is not None else src_dst.maxzoom
 
-            media_type = ImageMimeTypes[tile_format.value].value
-
             tileMatrix = []
             for zoom in range(minzoom, maxzoom + 1):
                 matrix = tms.matrix(zoom)
@@ -1051,7 +1030,7 @@ class MosaicTilerFactory(BaseFactory):
                     "tms": tms,
                     "title": "Cloud Optimized GeoTIFF",
                     "layer_name": "cogeo",
-                    "media_type": media_type,
+                    "media_type": tile_format.mimetype,
                 },
                 media_type=MimeTypes.xml.value,
             )
@@ -1097,9 +1076,8 @@ class MosaicTilerFactory(BaseFactory):
                     )
             timings.append(("dataread", round((t.elapsed - mosaic_read) * 1000, 2)))
 
-            if timings:
-                response.headers["Server-Timing"] = ", ".join(
-                    [f"{name};dur={time}" for (name, time) in timings]
-                )
+            response.headers["Server-Timing"] = ", ".join(
+                [f"{name};dur={time}" for (name, time) in timings]
+            )
 
             return {"coordinates": [lon, lat], "values": values}

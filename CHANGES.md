@@ -1,5 +1,11 @@
 # Release Notes
 
+## 0.1.0a12 (TBD)
+
+* require `rio-tiler>=2.0.0rc2`
+* update Enums for Image types. (**breaking**)
+* Add more output datatype (jpeg2000, pngraw)
+
 ## 0.1.0a11.post1 (2020-11-12)
 
 * relax version for rio-tiler and cogeo-mosaic

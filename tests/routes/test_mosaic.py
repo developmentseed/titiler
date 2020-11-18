@@ -177,7 +177,7 @@ def test_tile(app):
             params={"url": MOSAICJSON_FILE},
         )
         assert response.status_code == 200
-        assert response.headers["content-type"] == "image/tiff"
+        assert response.headers["content-type"] == "image/tiff; application=geotiff"
         meta = parse_img(response.content)
         assert meta["width"] == meta["height"] == 256
         assert meta["crs"] == 3857
@@ -187,7 +187,7 @@ def test_tile(app):
             params={"url": MOSAICJSON_FILE, "nodata": 0, "bidx": 1},
         )
         assert response.status_code == 200
-        assert response.headers["content-type"] == "image/tiff"
+        assert response.headers["content-type"] == "image/tiff; application=geotiff"
         meta = parse_img(response.content)
         assert meta["dtype"] == "uint16"
         assert meta["count"] == 2
@@ -219,7 +219,7 @@ def test_tile(app):
             params={"url": MOSAICJSON_FILE, "resampling_method": "bilinear"},
         )
         assert response.status_code == 200
-        assert response.headers["content-type"] == "image/tiff"
+        assert response.headers["content-type"] == "image/tiff; application=geotiff"
 
 
 def test_wmts(app):
