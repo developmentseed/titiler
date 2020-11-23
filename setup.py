@@ -33,7 +33,7 @@ extra_reqs = {
         "aws-cdk.aws_autoscaling",
         "aws-cdk.aws_ecs_patterns",
     ],
-    "test": ["pytest", "pytest-cov", "pytest-asyncio", "requests"],
+    "test": ["pytest", "pytest-cov", "pytest-asyncio", "requests", "rio-viz~=0.4.1"],
     "docs": ["nbconvert", "mkdocs", "mkdocs-material", "mkdocs-jupyter", "pygments"],
 }
 
