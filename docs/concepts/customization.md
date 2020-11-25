@@ -235,7 +235,7 @@ EPSG6933 = morecantile.TileMatrixSet.custom(
 )
 
 # 2. Register TMS
-morecantile.tms.register(custom_tms.EPSG6933)
+morecantile.tms.register(custom_tms=EPSG6933)
 
 # 3. Create ENUM with available TMS
 TileMatrixSetNames = Enum(  # type: ignore
