@@ -12,7 +12,7 @@ We can add additional dependencies to endpoint by using the `additional_dependen
 
 ```python
 from dataclasses import dataclass
-from titiler.endpoints.factory import TMSTilerFactory
+from titiler.endpoints.factory import TilerFactory
 from rio_tiler_crs import STACReader
 from titiler.dependencies import DefaultDependency
 
@@ -32,7 +32,7 @@ class AssetsParams(DefaultDependency):
             self.kwargs["assets"] = self.assets.split(",")
 
 
-stac = TMSTilerFactory(
+stac = TilerFactory(
     reader=STACReader,
     additional_dependency=AssetsParams,
     router_prefix="stac",
@@ -45,7 +45,7 @@ While this is good, it's not enough. STACTiler `metadata()` and `info()` methods
 
 ```python
 from titiler.dependencies import DefaultDependency
-from titiler.endpoint.factory import TMSTilerFactory
+from titiler.endpoint.factory import TilerFactory
 from titiler.models.cog import cogInfo, cogMetadata
 
 
@@ -102,9 +102,9 @@ class AssetsBidxExprParams(DefaultDependency):
             )
 
 
-# We create a Sub-Class from the TMSTilerFactory and update 2 methods.
+# We create a Sub-Class from the TilerFactory and update 2 methods.
 @dataclass
-class STACTiler(TMSTilerFactory):
+class STACTiler(TilerFactory):
     """Custom Tiler Class for STAC."""
 
     reader: Type[STACReader] = STACReader  # We set the Reader to STACReader by default
@@ -224,7 +224,7 @@ class PathParams(DefaultDependency):
 import morecantile
 from rasterio.crs import CRS
 
-from titiler.endpoint.factory import TMSTilerFactory
+from titiler.endpoint.factory import TilerFactory
 
 # 1. Create Custom TMS
 EPSG6933 = morecantile.TileMatrixSet.custom(
@@ -253,7 +253,7 @@ def TMSParams(
     return morecantile.tms.get(TileMatrixSetId.name)
 
 # 5. Create Tiler
-COGTilerWithCustomTMS = TMSTilerFactory(
+COGTilerWithCustomTMS = TilerFactory(
     reader=COGReader,
     tms_dependency=TMSParams,
 )

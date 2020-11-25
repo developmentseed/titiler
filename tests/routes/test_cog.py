@@ -30,7 +30,7 @@ def test_info(rio, app):
     assert response.status_code == 200
     body = response.json()
     assert len(body["bounds"]) == 4
-    assert body["band_descriptions"] == [[1, "band1"]]
+    assert body["band_descriptions"] == [["1", ""]]
     assert body["dtype"] == "uint16"
     assert body["colorinterp"] == ["gray"]
     assert body["nodata_type"] == "None"
@@ -47,7 +47,7 @@ def test_metadata(rio, app):
     assert len(body["bounds"]) == 4
     assert body["statistics"]
     assert len(body["statistics"]["1"]["histogram"][0]) == 10
-    assert body["band_descriptions"] == [[1, "band1"]]
+    assert body["band_descriptions"] == [["1", ""]]
     assert body["dtype"] == "uint16"
     assert body["colorinterp"] == ["gray"]
     assert body["nodata_type"] == "None"
@@ -119,6 +119,10 @@ def test_tile(rio, app):
     meta = parse_img(response.content)
     assert meta["width"] == 256
     assert meta["height"] == 256
+    timing = response.headers["server-timing"]
+    assert "dataread;dur" in timing
+    assert "postprocess;dur" in timing
+    assert "format;dur" in timing
 
     response = app.get(
         "/cog/tiles/8/87/48@2x?url=https://myurl.com/cog.tif&rescale=0,1000&color_formula=Gamma R 3"
@@ -145,7 +149,7 @@ def test_tile(rio, app):
         "/cog/tiles/8/87/48@2x.tif?url=https://myurl.com/cog.tif&nodata=0&bidx=1"
     )
     assert response.status_code == 200
-    assert response.headers["content-type"] == "image/tiff"
+    assert response.headers["content-type"] == "image/tiff; application=geotiff"
     meta = parse_img(response.content)
     assert meta["dtype"] == "uint16"
     assert meta["count"] == 2
@@ -165,6 +169,24 @@ def test_tile(rio, app):
     assert response.headers["content-type"] == "application/x-binary"
     data = numpy.load(BytesIO(response.content))
     assert data.shape == (1, 256, 256)
+
+    # Test brotli compression
+    headers = {"Accept-Encoding": "br, gzip"}
+    response = app.get(
+        "/cog/tiles/8/87/48.npy?url=https://myurl.com/cog.tif&nodata=0&return_mask=false",
+        headers=headers,
+    )
+    assert response.status_code == 200
+    assert response.headers["content-encoding"] == "br"
+
+    # Test gzip fallback
+    headers = {"Accept-Encoding": "gzip"}
+    response = app.get(
+        "/cog/tiles/8/87/48.npy?url=https://myurl.com/cog.tif&nodata=0&return_mask=false",
+        headers=headers,
+    )
+    assert response.status_code == 200
+    assert response.headers["content-encoding"] == "gzip"
 
     # partial
     response = app.get(
@@ -194,7 +216,7 @@ def test_tile(rio, app):
         "/cog/tiles/8/87/48@2x.tif?url=https://myurl.com/cog.tif&nodata=0&bidx=1&return_mask=false"
     )
     assert response.status_code == 200
-    assert response.headers["content-type"] == "image/tiff"
+    assert response.headers["content-type"] == "image/tiff; application=geotiff"
     meta = parse_img(response.content)
     assert meta["dtype"] == "uint16"
     assert meta["count"] == 1
@@ -217,7 +239,7 @@ def test_tilejson(rio, app):
     assert body["tiles"][0].startswith(
         "http://testserver/cog/tiles/WebMercatorQuad/{z}/{x}/{y}@1x?url=https"
     )
-    assert body["minzoom"] == 5
+    assert body["minzoom"] == 4
     assert body["maxzoom"] == 8
     assert body["bounds"]
     assert body["center"]
@@ -246,6 +268,10 @@ def test_preview(rio, app):
     assert meta["width"] == 256
     assert meta["height"] == 256
     assert meta["driver"] == "JPEG"
+    timing = response.headers["server-timing"]
+    assert "dataread;dur" in timing
+    assert "postprocess;dur" in timing
+    assert "format;dur" in timing
 
     response = app.get(
         "/cog/preview.png?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=256"
@@ -303,27 +329,31 @@ def test_part(rio, app):
     assert meta["width"] == 256
     assert meta["height"] == 73
     assert meta["driver"] == "PNG"
+    timing = response.headers["server-timing"]
+    assert "dataread;dur" in timing
+    assert "postprocess;dur" in timing
+    assert "format;dur" in timing
 
     response = app.get(
-        "/cog/crop/-56.228,72.715,-54.547,73.188.png?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=256&return_mask=false"
+        "/cog/crop/-56.228,72.715,-54.547,73.188.jpg?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=256&return_mask=false"
     )
     assert response.status_code == 200
-    assert response.headers["content-type"] == "image/png"
+    assert response.headers["content-type"] == "image/jpeg"
     meta = parse_img(response.content)
     assert meta["count"] == 1
     assert meta["width"] == 256
     assert meta["height"] == 73
-    assert meta["driver"] == "PNG"
+    assert meta["driver"] == "JPEG"
 
-    # response = app.get(
-    #     "/cog/crop/-56.228,72.715,-54.547,73.188?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=256"
-    # )
-    # assert response.status_code == 200
-    # assert response.headers["content-type"] == "image/png"
-    # meta = parse_img(response.content)
-    # assert meta["width"] == 256
-    # assert meta["height"] == 73
-    # assert meta["driver"] == "PNG"
+    response = app.get(
+        "/cog/crop/-56.228,72.715,-54.547,73.188/128x128.png?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=256"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/png"
+    meta = parse_img(response.content)
+    assert meta["width"] == 128
+    assert meta["height"] == 128
+    assert meta["driver"] == "PNG"
 
     response = app.get(
         "/cog/crop/-56.228,72.715,-54.547,73.188.png?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=256&width=512&height=512"
@@ -354,6 +384,8 @@ def test_point(rio, app):
     assert response.headers["content-type"] == "application/json"
     body = response.json()
     assert body["coordinates"] == [-56.228, 72.715]
+    timing = response.headers["server-timing"]
+    assert "dataread;dur" in timing
 
 
 def test_file_not_found_error(app):

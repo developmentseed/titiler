@@ -98,17 +98,7 @@ def test_info(app):
     assert body["minzoom"] == 7
     assert body["maxzoom"] == 9
     assert body["name"] == "mosaic"  # mosaic.name is not set
-    assert body["quadkeys"] == [
-        "0302300",
-        "0302301",
-        "0302310",
-        "0302302",
-        "0302303",
-        "0302312",
-        "0302320",
-        "0302321",
-        "0302330",
-    ]
+    assert body["quadkeys"] == []
 
 
 def test_tilejson(app):
@@ -142,6 +132,10 @@ def test_point(app):
     body = response.json()
     assert len(body["values"]) == 1
     assert body["values"][0]["values"] == [9943, 9127, 9603]
+    timing = response.headers["server-timing"]
+    assert "mosaicread;dur" in timing
+    assert "dataread;dur" in timing
+    assert "total;dur" in timing
 
 
 def test_tile(app):
@@ -162,6 +156,12 @@ def test_tile(app):
         assert response.headers["X-Assets"]
         meta = parse_img(response.content)
         assert meta["width"] == meta["height"] == 256
+        timing = response.headers["server-timing"]
+        assert "mosaicread;dur" in timing
+        assert "dataread;dur" in timing
+        assert "postprocess;dur" in timing
+        assert "format;dur" in timing
+        assert "total;dur" in timing
 
         response = app.get(
             f"/mosaicjson/tiles/{tile.z}/{tile.x}/{tile.y}@2x",
@@ -177,7 +177,7 @@ def test_tile(app):
             params={"url": MOSAICJSON_FILE},
         )
         assert response.status_code == 200
-        assert response.headers["content-type"] == "image/tiff"
+        assert response.headers["content-type"] == "image/tiff; application=geotiff"
         meta = parse_img(response.content)
         assert meta["width"] == meta["height"] == 256
         assert meta["crs"] == 3857
@@ -187,7 +187,7 @@ def test_tile(app):
             params={"url": MOSAICJSON_FILE, "nodata": 0, "bidx": 1},
         )
         assert response.status_code == 200
-        assert response.headers["content-type"] == "image/tiff"
+        assert response.headers["content-type"] == "image/tiff; application=geotiff"
         meta = parse_img(response.content)
         assert meta["dtype"] == "uint16"
         assert meta["count"] == 2
@@ -219,7 +219,7 @@ def test_tile(app):
             params={"url": MOSAICJSON_FILE, "resampling_method": "bilinear"},
         )
         assert response.status_code == 200
-        assert response.headers["content-type"] == "image/tiff"
+        assert response.headers["content-type"] == "image/tiff; application=geotiff"
 
 
 def test_wmts(app):

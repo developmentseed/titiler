@@ -1,6 +1,6 @@
 <p align="center">
   <img src="https://user-images.githubusercontent.com/10407788/84913491-99c3ac80-b088-11ea-846d-75db9e3ab31c.jpg"/>
-  <p align="center">A lightweight Cloud Optimized GeoTIFF dynamic tile server.</p>
+  <p align="center">A lightweight dynamic tile server.</p>
 </p>
 
 <p align="center">
@@ -16,6 +16,9 @@
   <a href="https://github.com/developmentseed/titiler/blob/master/LICENSE" target="_blank">
       <img src="https://img.shields.io/github/license/developmentseed/titiler.svg" alt="Downloads">
   </a>
+  <a href="https://mybinder.org/v2/gh/developmentseed/titiler/master" target="_blank">
+      <img src="https://mybinder.org/badge_logo.svg" alt="Downloads">
+  </a>
 </p>
 
 ---
@@ -26,18 +29,20 @@
 
 ---
 
-Titiler, pronounced **tee-tiler** (*ti* is the diminutive version of the french *petit* which means small), is a lightweight server to create map tiles dynamically from Cloud Optimized GeoTIFF ([COG](https://cogeo.org)).
+`Titiler`, pronounced **tee-tiler** (*ti* is the diminutive version of the french *petit* which means small), is a lightweight application (FastAPI) focused on creating web map tiles dynamically from [Cloud Optimized GeoTIFF](https://cogeo.org), [STAC](https://stacspec.org) or [MosaicJSON](https://github.com/developmentseed/mosaicjson-spec/).
 
-This project is the descendant of [`cogeo-tiler`](https://github.com/developmentseed/cogeo-tiler) and [`cogeo-mosaic-tiler`](https://github.com/developmentseed/cogeo-mosaic-tiler).
+Note: This project is the descendant of [`cogeo-tiler`](https://github.com/developmentseed/cogeo-tiler) and [`cogeo-mosaic-tiler`](https://github.com/developmentseed/cogeo-mosaic-tiler).
 
 ## Features
 
-- Multiple TileMatrixSets via [`morecantile`](https://github.com/developmentseed/morecantile). By default, output map tiles are in the standard Web Mercator projection used by most mapping libraries, but [support for alternative projections](/docs/TMS.md) is available.
 - [Cloud Optimized GeoTIFF](http://www.cogeo.org/) support
 - [SpatioTemporal Asset Catalog](https://stacspec.org) support
-- Mosaic support (via [MosaicJSON](https://github.com/developmentseed/mosaicjson-spec/))
+- Virtual mosaic support (via [MosaicJSON](https://github.com/developmentseed/mosaicjson-spec/))
+- Multiple projections (see [TileMatrixSets](https://www.ogc.org/standards/tms)) via [`morecantile`](https://github.com/developmentseed/morecantile).
+- JPEG / JP2 / PNG / WEBP / GTIFF / NumpyTile output format support
 - OGC WMTS support
-- AWS Lambda / ECS deployment options
+- Automatic OpenAPI documentation (FastAPI builtin)
+- Example of AWS Lambda / ECS deployment (via CDK)
 
 ## Installation
 
@@ -51,8 +56,7 @@ $ cd titiler && pip install -e .["server"]
 ```
 
 Launch Application
-```
-$ pip install -e .
+```bash
 $ uvicorn titiler.main:app --reload
 ```
 
@@ -61,6 +65,8 @@ Or with Docker
 $ git clone https://github.com/developmentseed/titiler.git
 $ cd titiler
 
+$ export AWS_ACCESS_KEY_ID=...
+$ export AWS_SECRET_ACCESS_KEY=...
 $ docker-compose build
 $ docker-compose up
 ```

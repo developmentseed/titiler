@@ -1,22 +1,29 @@
 """titiler app."""
 
-from . import settings, version
+import logging
+
+from brotli_asgi import BrotliMiddleware
+
+from . import __version__ as titiler_version
+from . import settings
 from .endpoints import cog, mosaic, stac, tms
 from .errors import DEFAULT_STATUS_CODES, add_exception_handlers
+from .middleware import CacheControlMiddleware, LoggerMiddleware, TotalTimeMiddleware
 
 from fastapi import FastAPI
 
 from starlette.middleware.cors import CORSMiddleware
-from starlette.middleware.gzip import GZipMiddleware
-from starlette.requests import Request
+
+logging.getLogger("botocore.credentials").disabled = True
+logging.getLogger("botocore.utils").disabled = True
+logging.getLogger("rio-tiler").setLevel(logging.ERROR)
 
 api_settings = settings.ApiSettings()
 
 app = FastAPI(
     title=api_settings.name,
-    openapi_url="/api/v1/openapi.json",
     description="A lightweight Cloud Optimized GeoTIFF tile server",
-    version=version,
+    version=titiler_version,
 )
 
 app.include_router(cog.router, prefix="/cog", tags=["Cloud Optimized GeoTIFF"])
@@ -36,21 +43,11 @@ if api_settings.cors_origins:
         allow_headers=["*"],
     )
 
-app.add_middleware(GZipMiddleware, minimum_size=0)
-
-
-@app.middleware("http")
-async def header_middleware(request: Request, call_next):
-    """Add custom header."""
-    response = await call_next(request)
-    if (
-        not response.headers.get("Cache-Control")
-        and api_settings.cachecontrol
-        and request.method in ["HEAD", "GET"]
-        and response.status_code < 500
-    ):
-        response.headers["Cache-Control"] = api_settings.cachecontrol
-    return response
+app.add_middleware(BrotliMiddleware, minimum_size=0, gzip_fallback=True)
+app.add_middleware(CacheControlMiddleware, cachecontrol=api_settings.cachecontrol)
+app.add_middleware(TotalTimeMiddleware)
+if api_settings.debug:
+    app.add_middleware(LoggerMiddleware)
 
 
 @app.get("/ping", description="Health Check", tags=["Health Check"])

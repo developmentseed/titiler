@@ -72,20 +72,6 @@ class titilerLambdaStack(core.Stack):
             environment=lambda_env,
         )
 
-        # # If you use dynamodb mosaic backend you should add IAM roles to read/put Item and maybe create Table
-        # permissions.append(
-        #     iam.PolicyStatement(
-        #         actions=[
-        #             "dynamodb:GetItem",
-        #             "dynamodb:PutItem",
-        #             "dynamodb:CreateTable",
-        #             "dynamodb:Scan",
-        #             "dynamodb:BatchWriteItem",
-        #         ],
-        #         resources=[f"arn:aws:dynamodb:{self.region}:{self.account}:table/*"],
-        #     )
-        # )
-
         for perm in permissions:
             lambda_function.add_to_role_policy(perm)
 
@@ -96,7 +82,6 @@ class titilerLambdaStack(core.Stack):
                 )
             )
 
-        # defines an API Gateway Http API resource backed by our "dynamoLambda" function.
         api = apigw.HttpApi(
             self,
             f"{id}-endpoint",
@@ -113,12 +98,13 @@ class titilerLambdaStack(core.Stack):
         client.images.build(
             path=code_dir,
             dockerfile="Dockerfiles/lambda/Dockerfile",
-            tag="lambda:latest",
+            tag="titiler-lambda:latest",
+            rm=True,
         )
 
         print("Copying package.zip ...")
         client.containers.run(
-            image="lambda:latest",
+            image="titiler-lambda:latest",
             command="/bin/sh -c 'cp /tmp/package.zip /local/package.zip'",
             remove=True,
             volumes={os.path.abspath(code_dir): {"bind": "/local/", "mode": "rw"}},
@@ -155,13 +141,17 @@ class titilerECSStack(core.Stack):
 
         task_env = DEFAULT_ENV.copy()
         task_env.update(
-            dict(
-                MODULE_NAME="titiler.main",
-                VARIABLE_NAME="app",
-                WORKERS_PER_CORE="1",
-                LOG_LEVEL="error",
-            )
+            dict(MODULE_NAME="titiler.main", VARIABLE_NAME="app", LOG_LEVEL="error",)
         )
+
+        # GUNICORN configuration
+        if settings.workers_per_core:
+            task_env.update({"WORKERS_PER_CORE": str(settings.workers_per_core)})
+        if settings.max_workers:
+            task_env.update({"MAX_WORKERS": str(settings.max_workers)})
+        if settings.web_concurrency:
+            task_env.update({"WEB_CONCURRENCY": str(settings.web_concurrency)})
+
         task_env.update(env)
 
         fargate_service = ecs_patterns.ApplicationLoadBalancedFargateService(
@@ -183,20 +173,6 @@ class titilerECSStack(core.Stack):
                 environment=task_env,
             ),
         )
-
-        # # If you use dynamodb mosaic backend you should add IAM roles to read/put Item and maybe create Table
-        # permissions.append(
-        #     iam.PolicyStatement(
-        #         actions=[
-        #             "dynamodb:GetItem",
-        #             "dynamodb:PutItem",
-        #             "dynamodb:CreateTable",
-        #             "dynamodb:Scan",
-        #             "dynamodb:BatchWriteItem",
-        #         ],
-        #         resources=[f"arn:aws:dynamodb:{self.region}:{self.account}:table/*"],
-        #     )
-        # )
 
         for perm in permissions:
             fargate_service.task_definition.task_role.add_to_policy(perm)
@@ -235,9 +211,25 @@ if settings.buckets:
     perms.append(
         iam.PolicyStatement(
             actions=["s3:GetObject", "s3:HeadObject"],
-            resources=[f"arn:aws:s3:::{bucket}" for bucket in settings.buckets],
+            resources=[f"arn:aws:s3:::{bucket}*" for bucket in settings.buckets],
         )
     )
+
+# # If you use dynamodb mosaic backend you should add IAM roles to read/put Item and maybe create Table
+# stack = core.Stack()
+# perms.append(
+#     iam.PolicyStatement(
+#         actions=[
+#             "dynamodb:GetItem",
+#             "dynamodb:PutItem",
+#             "dynamodb:CreateTable",
+#             "dynamodb:Scan",
+#             "dynamodb:BatchWriteItem",
+#         ],
+#         resources=[f"arn:aws:dynamodb:{stack.region}:{stack.account}:table/*"],
+#     )
+# )
+
 
 # Tag infrastructure
 for key, value in {

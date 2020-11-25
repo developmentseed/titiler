@@ -4,21 +4,17 @@ import re
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Type, Union
 
-import pkg_resources
-from rio_tiler_crs import STACReader
+from rio_tiler.io import STACReader
+from rio_tiler.models import Info, Metadata
 
 from ..dependencies import DefaultDependency
-from ..models.dataset import Info, Metadata
-from .factory import TMSTilerFactory
+from ..templates import templates
+from .factory import TilerFactory
 
 from fastapi import Depends, Query
 
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
-from starlette.templating import Jinja2Templates
-
-template_dir = pkg_resources.resource_filename("titiler", "templates")
-templates = Jinja2Templates(directory=template_dir)
 
 
 @dataclass
@@ -75,12 +71,12 @@ class AssetsBidxExprParams(DefaultDependency):
 
 
 @dataclass
-class STACTiler(TMSTilerFactory):
+class STACTiler(TilerFactory):
     """Custom Tiler Class for STAC."""
 
     reader: Type[STACReader] = STACReader
 
-    layer_dependency: Type[DefaultDependency] = AssetsBidxExprParams
+    layer_dependency: Type[AssetsBidxExprParams] = AssetsBidxExprParams
 
     # Overwrite _info method to return the list of assets when no assets is passed.
     def info(self):
@@ -102,8 +98,7 @@ class STACTiler(TMSTilerFactory):
             with self.reader(src_path.url, **self.reader_options) as src_dst:
                 if not asset_params.assets:
                     return src_dst.assets
-                info = src_dst.info(**asset_params.kwargs, **kwargs)
-            return info
+                return src_dst.info(**asset_params.kwargs, **kwargs)
 
     # Overwrite _metadata method because the STACTiler output model is different
     # cogMetadata -> Dict[str, cogMetadata]
@@ -125,14 +120,13 @@ class STACTiler(TMSTilerFactory):
         ):
             """Return metadata."""
             with self.reader(src_path.url, **self.reader_options) as src_dst:
-                info = src_dst.metadata(
+                return src_dst.metadata(
                     metadata_params.pmin,
                     metadata_params.pmax,
                     **asset_params.kwargs,
                     **metadata_params.kwargs,
                     **kwargs,
                 )
-            return info
 
 
 stac = STACTiler(router_prefix="stac")
