@@ -1,8 +1,8 @@
 """
 Titiler Custom colormaps.
 
-Custom colormaps needs to be register in titiler/api/deps.py
-e.g `cmap.register("above", custom_colormap.above_cmap)`
+Custom colormaps needs to be register in titiler/dependencies.py
+e.g `cmap = cmap.register({"above": custom_colormap.above_cmap})`
 
 """
 

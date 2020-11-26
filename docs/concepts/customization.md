@@ -221,13 +221,13 @@ class PathParams(DefaultDependency):
 
 ```python
 
-import morecantile
+from morecantile import tms, TileMatrixSet
 from rasterio.crs import CRS
 
 from titiler.endpoint.factory import TilerFactory
 
 # 1. Create Custom TMS
-EPSG6933 = morecantile.TileMatrixSet.custom(
+EPSG6933 = TileMatrixSet.custom(
     (-17357881.81713629, -7324184.56362408, 17357881.81713629, 7324184.56362408),
     CRS.from_epsg(6933),
     identifier="EPSG6933",
@@ -235,11 +235,11 @@ EPSG6933 = morecantile.TileMatrixSet.custom(
 )
 
 # 2. Register TMS
-morecantile.tms.register(custom_tms.EPSG6933)
+tms = tms.register([EPSG6933])
 
 # 3. Create ENUM with available TMS
 TileMatrixSetNames = Enum(  # type: ignore
-    "TileMatrixSetNames", [(a, a) for a in sorted(morecantile.tms.list())]
+    "TileMatrixSetNames", [(a, a) for a in sorted(tms.list())]
 )
 
 # 4. Create Custom TMS dependency
@@ -248,9 +248,9 @@ def TMSParams(
         TileMatrixSetNames.WebMercatorQuad,  # type: ignore
         description="TileMatrixSet Name (default: 'WebMercatorQuad')",
     )
-) -> morecantile.TileMatrixSet:
+) -> TileMatrixSet:
     """TileMatrixSet Dependency."""
-    return morecantile.tms.get(TileMatrixSetId.name)
+    return tms.get(TileMatrixSetId.name)
 
 # 5. Create Tiler
 COGTilerWithCustomTMS = TilerFactory(
