@@ -17,6 +17,11 @@ inst_reqs = [
     "rio-cogeo~=2.0",
     "rio-tiler>=2.0.0rc2,<2.1",
     "cogeo-mosaic>=3.0.0a17,<3.1",
+    "rasterio",
+    "pydantic",
+    "numpy",
+    "morecantile",
+    "dataclasses;python_version<'3.7'",
 ]
 extra_reqs = {
     "dev": ["pytest", "pytest-cov", "pytest-asyncio", "pre-commit", "requests"],
