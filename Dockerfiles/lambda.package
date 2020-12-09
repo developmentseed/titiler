@@ -1,8 +1,10 @@
-FROM lambci/lambda:build-python3.7
+FROM lambci/lambda:build-python3.8
 
 WORKDIR /tmp
 
-# We install titiler and mangum
+# In order to install rio-tiler, which depends on rio-color we need to install numpy first
+# ref: https://github.com/mapbox/rio-color/pull/67
+RUN pip install numpy
 
 COPY README.md /app/README.md
 COPY titiler/ /app/titiler/

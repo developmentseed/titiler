@@ -4,7 +4,6 @@ services:
   titiler:
     build:
       context: .
-      dockerfile: Dockerfiles/ecs/Dockerfile
     ports:
       - "8000:8000"
     environment:

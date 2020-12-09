@@ -5,6 +5,7 @@ from typing import Any, List, Optional, Union
 
 import docker
 from aws_cdk import aws_apigatewayv2 as apigw
+from aws_cdk import aws_apigatewayv2_integrations as apigw_integrations
 from aws_cdk import aws_ec2 as ec2
 from aws_cdk import aws_ecs as ecs
 from aws_cdk import aws_ecs_patterns as ecs_patterns
@@ -45,6 +46,7 @@ class titilerLambdaStack(core.Stack):
         id: str,
         memory: int = 1024,
         timeout: int = 30,
+        runtime: aws_lambda.Runtime = aws_lambda.Runtime.PYTHON_3_8,
         concurrent: Optional[int] = None,
         permissions: Optional[List[iam.PolicyStatement]] = None,
         layer_arn: Optional[str] = None,
@@ -63,7 +65,7 @@ class titilerLambdaStack(core.Stack):
         lambda_function = aws_lambda.Function(
             self,
             f"{id}-lambda",
-            runtime=aws_lambda.Runtime.PYTHON_3_7,
+            runtime=runtime,
             code=self.create_package(code_dir),
             handler="handler.handler",
             memory_size=memory,
@@ -85,7 +87,9 @@ class titilerLambdaStack(core.Stack):
         api = apigw.HttpApi(
             self,
             f"{id}-endpoint",
-            default_integration=apigw.LambdaProxyIntegration(handler=lambda_function),
+            default_integration=apigw_integrations.LambdaProxyIntegration(
+                handler=lambda_function
+            ),
         )
         core.CfnOutput(self, "Endpoint", value=api.url)
 
@@ -97,7 +101,7 @@ class titilerLambdaStack(core.Stack):
         print("Building docker image...")
         client.images.build(
             path=code_dir,
-            dockerfile="Dockerfiles/lambda/Dockerfile",
+            dockerfile="Dockerfiles/lambda.package",
             tag="titiler-lambda:latest",
             rm=True,
         )
@@ -221,10 +225,11 @@ if settings.buckets:
 #     iam.PolicyStatement(
 #         actions=[
 #             "dynamodb:GetItem",
-#             "dynamodb:PutItem",
-#             "dynamodb:CreateTable",
 #             "dynamodb:Scan",
-#             "dynamodb:BatchWriteItem",
+#             "dynamodb:PutItem",         # Write
+#             "dynamodb:CreateTable",     # Write
+#             "dynamodb:BatchWriteItem",  # Write
+#             "dynamodb:DescribeTable",   # Write
 #         ],
 #         resources=[f"arn:aws:dynamodb:{stack.region}:{stack.account}:table/*"],
 #     )
