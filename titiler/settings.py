@@ -11,6 +11,10 @@ class ApiSettings(pydantic.BaseSettings):
     cachecontrol: str = "public, max-age=3600"
     debug: bool = False
 
+    disable_cog: bool = False
+    disable_stac: bool = False
+    disable_mosaic: bool = False
+
     @pydantic.validator("cors_origins")
     def parse_cors_origin(cls, v):
         """Parse CORS origins."""

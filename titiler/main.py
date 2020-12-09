@@ -26,9 +26,17 @@ app = FastAPI(
     version=titiler_version,
 )
 
-app.include_router(cog.router, prefix="/cog", tags=["Cloud Optimized GeoTIFF"])
-app.include_router(stac.router, prefix="/stac", tags=["SpatioTemporal Asset Catalog"])
-app.include_router(mosaic.router, prefix="/mosaicjson", tags=["MosaicJSON"])
+if not api_settings.disable_cog:
+    app.include_router(cog.router, prefix="/cog", tags=["Cloud Optimized GeoTIFF"])
+
+if not api_settings.disable_stac:
+    app.include_router(
+        stac.router, prefix="/stac", tags=["SpatioTemporal Asset Catalog"]
+    )
+
+if not api_settings.disable_mosaic:
+    app.include_router(mosaic.router, prefix="/mosaicjson", tags=["MosaicJSON"])
+
 app.include_router(tms.router)
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
 
