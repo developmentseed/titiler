@@ -1,3 +1,10 @@
+!!! important
+    This has been deprecated. You can now pass `gdal_config={"GDAL_DISABLE_READDIR_ON_OPEN":"FALSE"}` to the Tiler Factory. This will be passed to a `rasterio.Env()` context manager on top of all gdal related blocks.
+
+    ```python
+    from titiler.factory import TilerFactory
+    cog = TilerFactory(reader=COGReader, router_prefix="cog", gdal_config={"GDAL_DISABLE_READDIR_ON_OPEN":"FALSE"})
+    ```
 
 Sometime, specifically when using GDAL, it can be usefull to have environment variables set for some endpoints
 (e.g when using Landsat data on AWS you need `GDAL_DISABLE_READDIR_ON_OPEN=FALSE` but you don't want this for your other endpoints). To be able to do this

@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, Optional, Type, Union
 from urllib.parse import urlencode
 
+import rasterio
 from cogeo_mosaic.backends import BaseBackend, MosaicBackend
 from cogeo_mosaic.models import Info as mosaicInfo
 from cogeo_mosaic.mosaic import MosaicJSON
@@ -94,6 +95,9 @@ class BaseFactory(metaclass=abc.ABCMeta):
     # e.g if you mount the route with `/cog` prefix, set router_prefix to cog and
     router_prefix: str = ""
 
+    # Add specific GDAL environement (e.g {"AWS_REQUEST_PAYER": "requester"})
+    gdal_config: Dict = field(default_factory=dict)
+
     def __post_init__(self):
         """Post Init: register route and configure specific options."""
         self.register_routes()
@@ -165,8 +169,9 @@ class TilerFactory(BaseFactory):
         )
         def bounds(src_path=Depends(self.path_dependency)):
             """Return the bounds of the COG."""
-            with self.reader(src_path.url, **self.reader_options) as src_dst:
-                return {"bounds": src_dst.bounds}
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                    return {"bounds": src_dst.bounds}
 
     ############################################################################
     # /info
@@ -186,8 +191,9 @@ class TilerFactory(BaseFactory):
             kwargs: Dict = Depends(self.additional_dependency),
         ):
             """Return basic info."""
-            with self.reader(src_path.url, **self.reader_options) as src_dst:
-                return src_dst.info(**kwargs)
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                    return src_dst.info(**kwargs)
 
     ############################################################################
     # /metadata
@@ -210,15 +216,16 @@ class TilerFactory(BaseFactory):
             kwargs: Dict = Depends(self.additional_dependency),
         ):
             """Return metadata."""
-            with self.reader(src_path.url, **self.reader_options) as src_dst:
-                return src_dst.metadata(
-                    metadata_params.pmin,
-                    metadata_params.pmax,
-                    **layer_params.kwargs,
-                    **metadata_params.kwargs,
-                    **dataset_params.kwargs,
-                    **kwargs,
-                )
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                    return src_dst.metadata(
+                        metadata_params.pmin,
+                        metadata_params.pmax,
+                        **layer_params.kwargs,
+                        **metadata_params.kwargs,
+                        **dataset_params.kwargs,
+                        **kwargs,
+                    )
 
     ############################################################################
     # /tiles
@@ -265,21 +272,22 @@ class TilerFactory(BaseFactory):
             tilesize = scale * 256
 
             with utils.Timer() as t:
-                with self.reader(
-                    src_path.url, tms=tms, **self.reader_options
-                ) as src_dst:
-                    data = src_dst.tile(
-                        x,
-                        y,
-                        z,
-                        tilesize=tilesize,
-                        **layer_params.kwargs,
-                        **dataset_params.kwargs,
-                        **kwargs,
-                    )
-                    colormap = render_params.colormap or getattr(
-                        src_dst, "colormap", None
-                    )
+                with rasterio.Env(**self.gdal_config):
+                    with self.reader(
+                        src_path.url, tms=tms, **self.reader_options
+                    ) as src_dst:
+                        data = src_dst.tile(
+                            x,
+                            y,
+                            z,
+                            tilesize=tilesize,
+                            **layer_params.kwargs,
+                            **dataset_params.kwargs,
+                            **kwargs,
+                        )
+                        colormap = render_params.colormap or getattr(
+                            src_dst, "colormap", None
+                        )
             timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
             if not format:
@@ -364,18 +372,21 @@ class TilerFactory(BaseFactory):
             qs = urlencode(list(q.items()))
             tiles_url += f"?{qs}"
 
-            with self.reader(src_path.url, tms=tms, **self.reader_options) as src_dst:
-                center = list(src_dst.center)
-                if minzoom:
-                    center[-1] = minzoom
-                tjson = {
-                    "bounds": src_dst.bounds,
-                    "center": tuple(center),
-                    "minzoom": minzoom if minzoom is not None else src_dst.minzoom,
-                    "maxzoom": maxzoom if maxzoom is not None else src_dst.maxzoom,
-                    "name": os.path.basename(src_path.url),
-                    "tiles": [tiles_url],
-                }
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(
+                    src_path.url, tms=tms, **self.reader_options
+                ) as src_dst:
+                    center = list(src_dst.center)
+                    if minzoom:
+                        center[-1] = minzoom
+                    tjson = {
+                        "bounds": src_dst.bounds,
+                        "center": tuple(center),
+                        "minzoom": minzoom if minzoom is not None else src_dst.minzoom,
+                        "maxzoom": maxzoom if maxzoom is not None else src_dst.maxzoom,
+                        "name": os.path.basename(src_path.url),
+                        "tiles": [tiles_url],
+                    }
 
             return tjson
 
@@ -429,10 +440,13 @@ class TilerFactory(BaseFactory):
             qs = urlencode(list(q.items()))
             tiles_url += f"?{qs}"
 
-            with self.reader(src_path.url, tms=tms, **self.reader_options) as src_dst:
-                bounds = src_dst.bounds
-                minzoom = minzoom if minzoom is not None else src_dst.minzoom
-                maxzoom = maxzoom if maxzoom is not None else src_dst.maxzoom
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(
+                    src_path.url, tms=tms, **self.reader_options
+                ) as src_dst:
+                    bounds = src_dst.bounds
+                    minzoom = minzoom if minzoom is not None else src_dst.minzoom
+                    maxzoom = maxzoom if maxzoom is not None else src_dst.maxzoom
 
             tileMatrix = []
             for zoom in range(minzoom, maxzoom + 1):
@@ -487,14 +501,15 @@ class TilerFactory(BaseFactory):
             timings = []
 
             with utils.Timer() as t:
-                with self.reader(src_path.url, **self.reader_options) as src_dst:
-                    values = src_dst.point(
-                        lon,
-                        lat,
-                        **layer_params.kwargs,
-                        **dataset_params.kwargs,
-                        **kwargs,
-                    )
+                with rasterio.Env(**self.gdal_config):
+                    with self.reader(src_path.url, **self.reader_options) as src_dst:
+                        values = src_dst.point(
+                            lon,
+                            lat,
+                            **layer_params.kwargs,
+                            **dataset_params.kwargs,
+                            **kwargs,
+                        )
             timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
             response.headers["Server-Timing"] = ", ".join(
@@ -527,16 +542,17 @@ class TilerFactory(BaseFactory):
             headers: Dict[str, str] = {}
 
             with utils.Timer() as t:
-                with self.reader(src_path.url, **self.reader_options) as src_dst:
-                    data = src_dst.preview(
-                        **layer_params.kwargs,
-                        **img_params.kwargs,
-                        **dataset_params.kwargs,
-                        **kwargs,
-                    )
-                    colormap = render_params.colormap or getattr(
-                        src_dst, "colormap", None
-                    )
+                with rasterio.Env(**self.gdal_config):
+                    with self.reader(src_path.url, **self.reader_options) as src_dst:
+                        data = src_dst.preview(
+                            **layer_params.kwargs,
+                            **img_params.kwargs,
+                            **dataset_params.kwargs,
+                            **kwargs,
+                        )
+                        colormap = render_params.colormap or getattr(
+                            src_dst, "colormap", None
+                        )
             timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
             if not format:
@@ -596,17 +612,18 @@ class TilerFactory(BaseFactory):
             headers: Dict[str, str] = {}
 
             with utils.Timer() as t:
-                with self.reader(src_path.url, **self.reader_options) as src_dst:
-                    data = src_dst.part(
-                        [minx, miny, maxx, maxy],
-                        **layer_params.kwargs,
-                        **image_params.kwargs,
-                        **dataset_params.kwargs,
-                        **kwargs,
-                    )
-                    colormap = render_params.colormap or getattr(
-                        src_dst, "colormap", None
-                    )
+                with rasterio.Env(**self.gdal_config):
+                    with self.reader(src_path.url, **self.reader_options) as src_dst:
+                        data = src_dst.part(
+                            [minx, miny, maxx, maxy],
+                            **layer_params.kwargs,
+                            **image_params.kwargs,
+                            **dataset_params.kwargs,
+                            **kwargs,
+                        )
+                        colormap = render_params.colormap or getattr(
+                            src_dst, "colormap", None
+                        )
             timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
             with utils.Timer() as t:
@@ -710,16 +727,17 @@ class MosaicTilerFactory(BaseFactory):
                 max_threads=body.max_threads,
             )
             src_path = self.path_dependency(body.url)
-            with self.reader(
-                src_path.url, mosaic_def=mosaic, reader=self.dataset_reader
-            ) as mosaic:
-                try:
-                    mosaic.write(overwrite=body.overwrite)
-                except NotImplementedError:
-                    raise BadRequestError(
-                        f"{mosaic.__class__.__name__} does not support write operations"
-                    )
-                return mosaic.mosaic_def
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(
+                    src_path.url, mosaic_def=mosaic, reader=self.dataset_reader
+                ) as mosaic:
+                    try:
+                        mosaic.write(overwrite=body.overwrite)
+                    except NotImplementedError:
+                        raise BadRequestError(
+                            f"{mosaic.__class__.__name__} does not support write operations"
+                        )
+                    return mosaic.mosaic_def
 
     ############################################################################
     # /update
@@ -733,15 +751,16 @@ class MosaicTilerFactory(BaseFactory):
         def update_mosaicjson(body: UpdateMosaicJSON):
             """Update an existing MosaicJSON"""
             src_path = self.path_dependency(body.url)
-            with self.reader(src_path.url, reader=self.dataset_reader) as mosaic:
-                features = get_footprints(body.files, max_threads=body.max_threads)
-                try:
-                    mosaic.update(features, add_first=body.add_first, quiet=True)
-                except NotImplementedError:
-                    raise BadRequestError(
-                        f"{mosaic.__class__.__name__} does not support update operations"
-                    )
-                return mosaic.mosaic_def
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path.url, reader=self.dataset_reader) as mosaic:
+                    features = get_footprints(body.files, max_threads=body.max_threads)
+                    try:
+                        mosaic.update(features, add_first=body.add_first, quiet=True)
+                    except NotImplementedError:
+                        raise BadRequestError(
+                            f"{mosaic.__class__.__name__} does not support update operations"
+                        )
+                    return mosaic.mosaic_def
 
     ############################################################################
     # /bounds
@@ -756,8 +775,9 @@ class MosaicTilerFactory(BaseFactory):
         )
         def bounds(src_path=Depends(self.path_dependency)):
             """Return the bounds of the COG."""
-            with self.reader(src_path.url) as src_dst:
-                return {"bounds": src_dst.bounds}
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path.url) as src_dst:
+                    return {"bounds": src_dst.bounds}
 
     ############################################################################
     # /info
@@ -824,25 +844,26 @@ class MosaicTilerFactory(BaseFactory):
 
             threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
             with utils.Timer() as t:
-                with self.reader(
-                    src_path.url,
-                    reader=self.dataset_reader,
-                    reader_options=self.reader_options,
-                ) as src_dst:
-                    mosaic_read = t.from_start
-                    timings.append(("mosaicread", round(mosaic_read * 1000, 2)))
+                with rasterio.Env(**self.gdal_config):
+                    with self.reader(
+                        src_path.url,
+                        reader=self.dataset_reader,
+                        reader_options=self.reader_options,
+                    ) as src_dst:
+                        mosaic_read = t.from_start
+                        timings.append(("mosaicread", round(mosaic_read * 1000, 2)))
 
-                    data, _ = src_dst.tile(
-                        x,
-                        y,
-                        z,
-                        pixel_selection=pixel_selection.method(),
-                        threads=threads,
-                        tilesize=tilesize,
-                        **layer_params.kwargs,
-                        **dataset_params.kwargs,
-                        **kwargs,
-                    )
+                        data, _ = src_dst.tile(
+                            x,
+                            y,
+                            z,
+                            pixel_selection=pixel_selection.method(),
+                            threads=threads,
+                            tilesize=tilesize,
+                            **layer_params.kwargs,
+                            **dataset_params.kwargs,
+                            **kwargs,
+                        )
             timings.append(("dataread", round((t.elapsed - mosaic_read) * 1000, 2)))
 
             if not format:
@@ -1059,21 +1080,22 @@ class MosaicTilerFactory(BaseFactory):
             threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
 
             with utils.Timer() as t:
-                with self.reader(
-                    src_path.url,
-                    reader=self.dataset_reader,
-                    reader_options=self.reader_options,
-                ) as src_dst:
-                    mosaic_read = t.from_start
-                    timings.append(("mosaicread", round(mosaic_read * 1000, 2)))
-                    values = src_dst.point(
-                        lon,
-                        lat,
-                        threads=threads,
-                        **layer_params.kwargs,
-                        **dataset_params.kwargs,
-                        **kwargs,
-                    )
+                with rasterio.Env(**self.gdal_config):
+                    with self.reader(
+                        src_path.url,
+                        reader=self.dataset_reader,
+                        reader_options=self.reader_options,
+                    ) as src_dst:
+                        mosaic_read = t.from_start
+                        timings.append(("mosaicread", round(mosaic_read * 1000, 2)))
+                        values = src_dst.point(
+                            lon,
+                            lat,
+                            threads=threads,
+                            **layer_params.kwargs,
+                            **dataset_params.kwargs,
+                            **kwargs,
+                        )
             timings.append(("dataread", round((t.elapsed - mosaic_read) * 1000, 2)))
 
             response.headers["Server-Timing"] = ", ".join(
