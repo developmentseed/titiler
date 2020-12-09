@@ -1,6 +1,7 @@
 """TiTiler Router factories."""
 
 import abc
+import json
 import os
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, Optional, Type, Union
@@ -184,7 +185,12 @@ class TilerFactory(BaseFactory):
             response_model=Union[Info, Dict],
             response_model_exclude={"minzoom", "maxzoom", "center"},
             response_model_exclude_none=True,
-            responses={200: {"description": "Return dataset's basic info."}},
+            responses={
+                200: {
+                    "content": {"application/json": {}, "application/geo+json": {}},
+                    "description": "Return dataset's basic info.",
+                }
+            },
         )
         def info(
             src_path=Depends(self.path_dependency),
@@ -200,7 +206,7 @@ class TilerFactory(BaseFactory):
                         bounds = info.pop("bounds", None)
                         info.pop("center", None)
                         info["dataset"] = src_path.url
-                        info = {
+                        geojson = {
                             "geometry": {
                                 "type": "Polygon",
                                 "coordinates": [
@@ -216,6 +222,9 @@ class TilerFactory(BaseFactory):
                             "properties": info,
                             "type": "Feature",
                         }
+                        return Response(
+                            json.dumps(geojson), media_type=JsonType.geojson.value
+                        )
 
                     return info
 
