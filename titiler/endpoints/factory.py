@@ -714,7 +714,7 @@ class MosaicTilerFactory(BaseFactory):
                 src_path.url, mosaic_def=mosaic, reader=self.dataset_reader
             ) as mosaic:
                 try:
-                    mosaic.write()
+                    mosaic.write(overwrite=body.overwrite)
                 except NotImplementedError:
                     raise BadRequestError(
                         f"{mosaic.__class__.__name__} does not support write operations"
