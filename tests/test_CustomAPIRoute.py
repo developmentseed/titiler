@@ -78,7 +78,8 @@ def test_withCustomRoute(monkeypatch):
     app = FastAPI()
 
     env = dict(GDAL_DISABLE_READDIR_ON_OPEN="FALSE")
-    route_class = apiroute_factory(env)
+    with pytest.warns(DeprecationWarning):
+        route_class = apiroute_factory(env)
     router = APIRouter(route_class=route_class)
 
     def f(r):
