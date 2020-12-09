@@ -1,5 +1,9 @@
 # Release Notes
 
+## Next (TBD)
+
+* allow `API_DISABLE_{COG/STAC/MOSAIC}` environment variables to control default endpoints in titiler main app (ref: https://github.com/developmentseed/titiler/issues/156)
+
 ## 0.1.0a12 (2020-11-18)
 
 * require `rio-tiler>=2.0.0rc2`
