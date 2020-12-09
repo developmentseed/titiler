@@ -19,6 +19,7 @@ class MimeTypes(str, Enum):
     npy = "application/x-binary"
     xml = "application/xml"
     json = "application/json"
+    geojson = "application/geo+json"
     html = "text/html"
     text = "text/plain"
 
@@ -76,3 +77,10 @@ class PixelSelectionMethod(str, Enum):
     def method(self):
         """Return rio-tiler-mosaic pixel selection class"""
         return getattr(defaults, f"{self._value_.title()}Method")
+
+
+class JsonType(str, Enum):
+    """JSON or GeoJSON mimetypes."""
+
+    json = "application/json"
+    geojson = "application/geo+json"

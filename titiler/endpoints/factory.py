@@ -32,11 +32,11 @@ from ..dependencies import (
 from ..errors import BadRequestError
 from ..models.mapbox import TileJSON
 from ..models.mosaic import CreateMosaicJSON, UpdateMosaicJSON
-from ..ressources.enums import ImageType, MimeTypes, PixelSelectionMethod
+from ..ressources.enums import ImageType, JsonType, MimeTypes, PixelSelectionMethod
 from ..ressources.responses import XMLResponse
 from ..templates import templates
 
-from fastapi import APIRouter, Depends, Path, Query
+from fastapi import APIRouter, Depends, Header, Path, Query
 
 from starlette.requests import Request
 from starlette.responses import Response
@@ -181,19 +181,83 @@ class TilerFactory(BaseFactory):
 
         @self.router.get(
             "/info",
-            response_model=Info,
+            response_model=Union[Info, Dict],
             response_model_exclude={"minzoom", "maxzoom", "center"},
             response_model_exclude_none=True,
             responses={200: {"description": "Return dataset's basic info."}},
         )
         def info(
             src_path=Depends(self.path_dependency),
+            accept: Optional[JsonType] = Header(None),
             kwargs: Dict = Depends(self.additional_dependency),
         ):
             """Return basic info."""
             with rasterio.Env(**self.gdal_config):
                 with self.reader(src_path.url, **self.reader_options) as src_dst:
-                    return src_dst.info(**kwargs)
+                    info = src_dst.info(**kwargs)
+                    if accept == MimeTypes.geojson.value:
+                        info = info.dict(exclude_none=True)
+                        bounds = info.pop("bounds", None)
+                        info.pop("center", None)
+                        info["dataset"] = src_path.url
+                        info = {
+                            "geometry": {
+                                "type": "Polygon",
+                                "coordinates": [
+                                    [
+                                        [bounds[0], bounds[3]],
+                                        [bounds[0], bounds[1]],
+                                        [bounds[2], bounds[1]],
+                                        [bounds[2], bounds[3]],
+                                        [bounds[0], bounds[3]],
+                                    ]
+                                ],
+                            },
+                            "properties": info,
+                            "type": "Feature",
+                        }
+
+                    return info
+
+    ############################################################################
+    # /info.geojson
+    ############################################################################
+    def info_feature(self):
+        """Register /info endpoint."""
+
+        @self.router.get(
+            "/info.geojson",
+            responses={
+                200: {"description": "Return dataset's basic info as geojson feature."}
+            },
+        )
+        def info_geojson(
+            src_path=Depends(self.path_dependency),
+            kwargs: Dict = Depends(self.additional_dependency),
+        ):
+            """Return basic info."""
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                    info = src_dst.info(**kwargs).dict(exclude_none=True)
+                    bounds = info.pop("bounds", None)
+                    info.pop("center", None)
+                    info["dataset"] = src_path.url
+                    return {
+                        "geometry": {
+                            "type": "Polygon",
+                            "coordinates": [
+                                [
+                                    [bounds[0], bounds[3]],
+                                    [bounds[0], bounds[1]],
+                                    [bounds[2], bounds[1]],
+                                    [bounds[2], bounds[3]],
+                                    [bounds[0], bounds[3]],
+                                ]
+                            ],
+                        },
+                        "properties": info,
+                        "type": "Feature",
+                    }
 
     ############################################################################
     # /metadata
