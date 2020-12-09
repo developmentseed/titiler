@@ -3,6 +3,7 @@
 ## Next (TBD)
 
 * allow `API_DISABLE_{COG/STAC/MOSAIC}` environment variables to control default endpoints in titiler main app (ref: https://github.com/developmentseed/titiler/issues/156)
+* add `overwriting=False/True` on MosaicJSON creation (ref: https://github.com/developmentseed/titiler/issues/164)
 
 ## 0.1.0a12 (2020-11-18)
 
