@@ -47,7 +47,7 @@ jobs:
   publish:
     needs: [tests]
     runs-on: ubuntu-latest
-    if: contains(github.ref, 'tags')
+    if: contains(github.ref, 'tags') && github.event_name == 'push'
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
