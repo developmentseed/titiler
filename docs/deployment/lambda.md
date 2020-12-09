@@ -19,7 +19,7 @@ The Lambda stack is also deployed by the [AWS CDK](https://aws.amazon.com/cdk/) 
     $ git clone https://github.com/developmentseed/titiler.git
     $ cd titiler && pip install -e .["deploy"]
 
-    $ npm install cdk -g
+    $ npm install aws-cdk@1.76.0 -g
 
     $ cdk bootstrap # Deploys the CDK toolkit stack into an AWS environment
 
