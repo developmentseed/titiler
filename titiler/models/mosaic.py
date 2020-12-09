@@ -18,6 +18,7 @@ class CreateMosaicJSON(_MosaicJSONCommon):
 
     minzoom: Optional[int] = None
     maxzoom: Optional[int] = None
+    overwrite: bool = False
 
 
 class UpdateMosaicJSON(_MosaicJSONCommon):
