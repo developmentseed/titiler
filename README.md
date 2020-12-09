@@ -48,6 +48,10 @@ Note: This project is the descendant of [`cogeo-tiler`](https://github.com/devel
 
 ```bash
 $ pip install -U pip
+# For rio-color, we need to install numpy before installing titiler
+$ pip install numpy
+
+# From Pypi
 $ pip install titiler["server"]
 
 # Or from sources
