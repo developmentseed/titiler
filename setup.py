@@ -22,6 +22,7 @@ inst_reqs = [
     "numpy",
     "morecantile",
     "dataclasses;python_version<'3.7'",
+    "geojson-pydantic",
 ]
 extra_reqs = {
     "dev": ["pytest", "pytest-cov", "pytest-asyncio", "pre-commit", "requests"],

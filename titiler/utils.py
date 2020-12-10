@@ -3,7 +3,9 @@
 import hashlib
 import json
 import time
-from typing import Any
+from typing import Any, Dict, Optional, Tuple
+
+from geojson_pydantic.features import Feature
 
 
 def get_hash(**kwargs: Any) -> str:
@@ -36,3 +38,27 @@ class Timer(object):
     def from_start(self):
         """Return time elapsed from start."""
         return time.time() - self.start
+
+
+def bbox_to_feature(
+    bbox: Tuple[float, float, float, float], properties: Optional[Dict] = None,
+) -> Feature:
+    """Create a GeoJSON feature polygon from a bounding box."""
+    return Feature(
+        **{
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [bbox[0], bbox[3]],
+                        [bbox[0], bbox[1]],
+                        [bbox[2], bbox[1]],
+                        [bbox[2], bbox[3]],
+                        [bbox[0], bbox[3]],
+                    ]
+                ],
+            },
+            "properties": {} or properties,
+            "type": "Feature",
+        }
+    )

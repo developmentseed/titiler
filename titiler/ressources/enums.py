@@ -19,6 +19,7 @@ class MimeTypes(str, Enum):
     npy = "application/x-binary"
     xml = "application/xml"
     json = "application/json"
+    geojson = "application/geo+json"
     html = "text/html"
     text = "text/plain"
 

@@ -4,10 +4,14 @@ import re
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Type, Union
 
+import rasterio
+from geojson_pydantic.features import Feature
 from rio_tiler.io import STACReader
 from rio_tiler.models import Info, Metadata
 
+from .. import utils
 from ..dependencies import DefaultDependency
+from ..ressources.responses import GeoJSONResponse
 from ..templates import templates
 from .factory import TilerFactory
 
@@ -95,10 +99,45 @@ class STACTiler(TilerFactory):
             kwargs: Dict = Depends(self.additional_dependency),
         ):
             """Return basic info."""
-            with self.reader(src_path.url, **self.reader_options) as src_dst:
-                if not asset_params.assets:
-                    return src_dst.assets
-                return src_dst.info(**asset_params.kwargs, **kwargs)
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                    if not asset_params.assets:
+                        return src_dst.assets
+                    return src_dst.info(**asset_params.kwargs, **kwargs)
+
+        @self.router.get(
+            "/info.geojson",
+            response_model=Feature,
+            response_model_exclude_none=True,
+            response_class=GeoJSONResponse,
+            responses={
+                200: {
+                    "content": {"application/geo+json": {}},
+                    "description": "Return dataset's basic info as a GeoJSON feature.",
+                }
+            },
+        )
+        def info_geojson(
+            src_path=Depends(self.path_dependency),
+            asset_params=Depends(AssetsBidxParams),
+            kwargs: Dict = Depends(self.additional_dependency),
+        ):
+            """Return dataset's basic info as a GeoJSON feature."""
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                    if not asset_params.assets:
+                        info = {"available_assets": src_dst.assets}
+                    else:
+                        info = {"dataset": src_path.url}
+                        info["assets"] = {
+                            asset: meta.dict(exclude_none=True)
+                            for asset, meta in src_dst.info(
+                                **asset_params.kwargs, **kwargs
+                            ).items()
+                        }
+                    geojson = utils.bbox_to_feature(src_dst.bounds, properties=info)
+
+            return geojson
 
     # Overwrite _metadata method because the STACTiler output model is different
     # cogMetadata -> Dict[str, cogMetadata]
@@ -119,14 +158,15 @@ class STACTiler(TilerFactory):
             kwargs: Dict = Depends(self.additional_dependency),
         ):
             """Return metadata."""
-            with self.reader(src_path.url, **self.reader_options) as src_dst:
-                return src_dst.metadata(
-                    metadata_params.pmin,
-                    metadata_params.pmax,
-                    **asset_params.kwargs,
-                    **metadata_params.kwargs,
-                    **kwargs,
-                )
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                    return src_dst.metadata(
+                        metadata_params.pmin,
+                        metadata_params.pmax,
+                        **asset_params.kwargs,
+                        **metadata_params.kwargs,
+                        **kwargs,
+                    )
 
 
 stac = STACTiler(router_prefix="stac")

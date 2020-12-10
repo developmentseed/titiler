@@ -43,6 +43,21 @@ def test_info(requests, rio, app):
     assert body["B01"]
     assert body["B09"]
 
+    response = app.get("/stac/info.geojson?url=https://myurl.com/item.json")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/geo+json"
+    body = response.json()
+    assert body["geometry"]
+    assert len(body["properties"]["available_assets"]) == 17
+
+    response = app.get("/stac/info.geojson?url=https://myurl.com/item.json&assets=B01")
+    assert response.status_code == 200
+    body = response.json()
+    assert response.headers["content-type"] == "application/geo+json"
+    body = response.json()
+    assert body["geometry"]
+    assert body["properties"]["assets"]["B01"]
+
 
 @patch("rio_tiler.io.cogeo.rasterio")
 @patch("rio_tiler.io.stac.requests")

@@ -11,6 +11,7 @@ from cogeo_mosaic.backends import BaseBackend, MosaicBackend
 from cogeo_mosaic.models import Info as mosaicInfo
 from cogeo_mosaic.mosaic import MosaicJSON
 from cogeo_mosaic.utils import get_footprints
+from geojson_pydantic.features import Feature
 from morecantile import TileMatrixSet
 from rio_tiler.constants import MAX_THREADS
 from rio_tiler.io import BaseReader, COGReader, MultiBaseReader
@@ -33,7 +34,7 @@ from ..errors import BadRequestError
 from ..models.mapbox import TileJSON
 from ..models.mosaic import CreateMosaicJSON, UpdateMosaicJSON
 from ..ressources.enums import ImageType, MimeTypes, PixelSelectionMethod
-from ..ressources.responses import XMLResponse
+from ..ressources.responses import GeoJSONResponse, XMLResponse
 from ..templates import templates
 
 from fastapi import APIRouter, Depends, Path, Query
@@ -190,10 +191,37 @@ class TilerFactory(BaseFactory):
             src_path=Depends(self.path_dependency),
             kwargs: Dict = Depends(self.additional_dependency),
         ):
-            """Return basic info."""
+            """Return dataset's basic info."""
             with rasterio.Env(**self.gdal_config):
                 with self.reader(src_path.url, **self.reader_options) as src_dst:
                     return src_dst.info(**kwargs)
+
+        @self.router.get(
+            "/info.geojson",
+            response_model=Feature,
+            response_model_exclude_none=True,
+            response_class=GeoJSONResponse,
+            responses={
+                200: {
+                    "content": {"application/geo+json": {}},
+                    "description": "Return dataset's basic info as a GeoJSON feature.",
+                }
+            },
+        )
+        def info_geojson(
+            src_path=Depends(self.path_dependency),
+            kwargs: Dict = Depends(self.additional_dependency),
+        ):
+            """Return dataset's basic info as a GeoJSON feature."""
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                    info = src_dst.info(**kwargs).dict(exclude_none=True)
+                    bounds = info.pop("bounds", None)
+                    info.pop("center", None)
+                    info["dataset"] = src_path.url
+                    geojson = utils.bbox_to_feature(bounds, properties=info)
+
+            return geojson
 
     ############################################################################
     # /metadata
@@ -794,6 +822,33 @@ class MosaicTilerFactory(BaseFactory):
             """Return basic info."""
             with self.reader(src_path.url) as src_dst:
                 return src_dst.info()
+
+        @self.router.get(
+            "/info.geojson",
+            response_model=Feature,
+            response_model_exclude_none=True,
+            response_class=GeoJSONResponse,
+            responses={
+                200: {
+                    "content": {"application/geo+json": {}},
+                    "description": "Return mosaic's basic info as a GeoJSON feature.",
+                }
+            },
+        )
+        def info_geojson(
+            src_path=Depends(self.path_dependency),
+            kwargs: Dict = Depends(self.additional_dependency),
+        ):
+            """Return mosaic's basic info as a GeoJSON feature."""
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                    info = src_dst.info(**kwargs).dict(exclude_none=True)
+                    bounds = info.pop("bounds", None)
+                    info.pop("center", None)
+                    info["dataset"] = src_path.url
+                    geojson = utils.bbox_to_feature(bounds, properties=info)
+
+            return geojson
 
     ############################################################################
     # /tiles
