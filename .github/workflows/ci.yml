@@ -80,6 +80,7 @@ jobs:
 
   publish-docker:
     needs: [tests]
+    if: github.ref == 'refs/heads/master' || contains(github.ref, 'tags')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
