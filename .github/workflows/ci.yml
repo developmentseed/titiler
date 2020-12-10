@@ -98,17 +98,31 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        id: aws_creds
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+      # - name: Configure AWS Credentials
+      #   uses: aws-actions/configure-aws-credentials@v1
+      #   id: aws_creds
+      #   with:
+      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     aws-region: us-east-1
 
-      - name: Login to ECR-PUBLIC
-        id: ecr_docker_login
-        run: aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/developmentseed
+      # - name: Login to ECR-PUBLIC
+      #   id: ecr_docker_login
+      #   run: aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/developmentseed
+
+      - name: Get ECR password
+        id: ecr_login
+        run: |
+          ECR_PASSWORD="$(docker run -i --rm -e ${{ secrets.AWS_ACCESS_KEY_ID }} -e ${{ secrets.AWS_SECRET_ACCESS_KEY }} -e us-east-1 amazon/aws-cli ecr-public get-login-password)"
+          echo "::add-mask::$ECR_PASSWORD"
+          echo "::set-output name=ecr-login-password::$ECR_PASSWORD"
+
+      - name: Login to ECR public
+        uses: docker/login-action@v1
+        with:
+          username: AWS
+          password: ${{ steps.ecr_login.outputs.ecr-login-password }}
+          registry: public.ecr.aws
 
       - name: Set tag version
         id: tag
