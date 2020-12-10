@@ -224,7 +224,7 @@
     </div>
 
     <div id='menu' class='flex-child w240 w360-ml absolute bg-gray-faint z2 off'>
-        <div id='asset-section' class='px6 py6 wmax-full'> 
+        <div id='asset-section' class='px6 py6 wmax-full'>
             <div class='txt-h5 mb6 color-black'><svg class='icon icon--l inline-block'><use xlink:href='#icon-layers' /></svg>Assets</div>
             <div class='select-container'>
                 <select id='asset-selector' class='select select--s select--stroke pl6 wmax-full'></select>
@@ -313,7 +313,7 @@
                     <input id="max-value" class='input input--s wmax60 inline-block align-center color-black' value='1000' />
                 </div>
             </div>
-            
+
             <div id='cformula-section' class='px6 py6'>
                 <div class='txt-h5 mb6 color-black'>Color Formula</div>
                 <input id="ColorFormulaValue" class='input input--s w-full color-black' value='' />
@@ -356,7 +356,7 @@
     </div>
 
     <script>
-        var scope = { separate: false, assets: [], metadata: {} }
+        var scope = { merge_assets: false, assets: [], metadata: {} }
 
         const tilejson_endpoint = "{{ tilejson }}"
         const metadata_endpoint = "{{ metadata }}"
@@ -393,7 +393,7 @@
             }
 
             const active_layer = document.getElementById('layer-selector')[document.getElementById('layer-selector').selectedIndex]
-            indexes = active_layer.getAttribute('data-indexes')
+            indexes = active_layer.getAttribute('band')
             params.bidx = indexes
 
             if (['uint8', 'int8', 'byte'].indexOf(scope.metadata[params.assets].dtype) === -1) {
@@ -401,7 +401,7 @@
                 const maxV = parseFloat(document.getElementById('max-value').value)
                 params.rescale = `${minV},${maxV}`
             }
- 
+
             if (document.getElementById('ColorFormulaValue').value !== '') {
                 params.color_formula = document.getElementById('ColorFormulaValue').value
             }
@@ -417,16 +417,16 @@
         }
 
         const set3bViz = () => {
-            const r = document.getElementById('r-selector').value
-            const g = document.getElementById('g-selector').value
-            const b = document.getElementById('b-selector').value
+            const r = document.getElementById('r-selector').selectedOptions[0].getAttribute("band")
+            const g = document.getElementById('g-selector').selectedOptions[0].getAttribute("band")
+            const b = document.getElementById('b-selector').selectedOptions[0].getAttribute("band")
 
             params = {
                 url: scope.url,
                 resampling_method: document.getElementById('resamp-selector').querySelector("input[name='toggle-resamp']:checked").value
             }
 
-            if (scope.separate === true) {
+            if (scope.merge_assets === true) {
                 params.assets = `${r},${g},${b}`
                 params.bidx = 1
                 const minV = parseFloat(document.getElementById('min-value').value)
@@ -472,7 +472,7 @@
             }
         }
 
-       
+
         document.getElementById('btn-hide').addEventListener('click', () => {
             document.getElementById('hide-arrow').classList.toggle('off')
             document.getElementById('menu').classList.toggle('off')
@@ -503,7 +503,7 @@
         document.getElementById('colormap-selector').addEventListener('change', () => {
             switchViz()
         })
-        
+
         document.getElementById('updateColor').addEventListener('click', () => {
             switchViz()
         })
@@ -572,7 +572,7 @@
 
         const updateUI = () => {
             const is_checked = document.getElementById("compose-switch").checked
-            scope.separate = is_checked
+            scope.merge_assets = is_checked
 
             document.getElementById('loader').classList.remove('off')
 
@@ -583,7 +583,7 @@
             const gList = document.getElementById('g-selector')
             gList.innerHTML = ''
 
-            if (scope.separate === true) {
+            if (scope.merge_assets === true) {
                 document.getElementById('asset-selector').classList.add('disabled')
                 document.getElementById("asset-selector").disabled = true
 
@@ -593,14 +593,14 @@
 
                 document.getElementById('1b').classList.remove('active')
                 document.getElementById('1b').classList.add('disabled')
-                document.getElementById('1b-section').classList.remove('active')                
-                
+                document.getElementById('1b-section').classList.remove('active')
+
                 const nbands = scope.assets.length
 
                 for (var i = 0; i < nbands; i++) {
                     let l = document.createElement('option')
                     l.value = scope.assets[i]
-                    l.setAttribute('data-indexes', i.toString())
+                    l.setAttribute('band', scope.assets[i])
                     l.text = scope.assets[i]
                     if (i === 0) l.selected = "selected"
                     rList.appendChild(l)
@@ -609,7 +609,7 @@
                 for (var i = 0; i < nbands; i++) {
                     let l = document.createElement('option')
                     l.value = scope.assets[i]
-                    l.setAttribute('data-indexes', i.toString())
+                    l.setAttribute('band', scope.assets[i])
                     l.text = scope.assets[i]
                     if (i === 1) l.selected = "selected"
                     gList.appendChild(l)
@@ -618,7 +618,7 @@
                 for (var i = 0; i < nbands; i++) {
                     let l = document.createElement('option')
                     l.value = scope.assets[i]
-                    l.setAttribute('data-indexes', i.toString())
+                    l.setAttribute('band', scope.assets[i])
                     l.text = scope.assets[i]
                     l.selected = "selected"
                     bList.appendChild(l)
@@ -634,43 +634,55 @@
                 layerList.innerHTML = ''
 
                 const asset = document.getElementById('asset-selector').value
-                console.log(asset)
                 const metadata = scope.metadata[asset]
+                const band_descr = metadata.band_descriptions
+                const nbands = band_descr.length
 
                 //1 band
-                for (var i = 0; i < metadata.band_descriptions.length; i++) {
+                for (var i = 0; i < nbands; i++) {
                     let l = document.createElement('option')
-                    l.value = metadata.band_descriptions[i][0]
-                    l.setAttribute('data-indexes', metadata.band_descriptions[i][0].toString())
-                    l.text = metadata.band_descriptions[i][1]
+                    l.setAttribute('band', band_descr[i][0])
+                    let name = band_descr[i][1] || band_descr[i][0]
+                    l.setAttribute('name', name)
+                    l.text = name
                     layerList.appendChild(l)
                 }
 
-                // 3 bands
-                for (var i = 0; i < metadata.band_descriptions.length; i++) {
+                //RGB
+                const rList = document.getElementById('r-selector')
+                for (var i = 0; i < nbands; i++) {
                     let l = document.createElement('option')
-                    l.value = metadata.band_descriptions[i][0]
-                    l.setAttribute('data-indexes', metadata.band_descriptions[i][0].toString())
-                    l.text = metadata.band_descriptions[i][1]
+                    l.setAttribute('band', band_descr[i][0])
+                    let name = band_descr[i][1] || band_descr[i][0]
+                    l.setAttribute('name', name)
+                    l.text = name
                     if (i === 0) l.selected = "selected"
                     rList.appendChild(l)
                 }
 
-                for (var i = 0; i < metadata.band_descriptions.length; i++) {
+                const gList = document.getElementById('g-selector')
+                for (var i = 0; i < nbands; i++) {
                     let l = document.createElement('option')
-                    l.value = metadata.band_descriptions[i][0]
-                    l.setAttribute('data-indexes', metadata.band_descriptions[i][0].toString())
-                    l.text = metadata.band_descriptions[i][1]
+                    l.setAttribute('band', band_descr[i][0])
+                    let name = band_descr[i][1] || band_descr[i][0]
+                    l.setAttribute('name', name)
+                    l.text = name
                     if (i === 1) l.selected = "selected"
                     gList.appendChild(l)
                 }
 
-                for (var i = 0; i < metadata.band_descriptions.length; i++) {
+                const bList = document.getElementById('b-selector')
+                for (var i = 0; i < nbands; i++) {
                     let l = document.createElement('option')
-                    l.value = metadata.band_descriptions[i][0]
-                    l.setAttribute('data-indexes', metadata.band_descriptions[i][0].toString())
-                    l.text = metadata.band_descriptions[i][1]
-                    l.selected = "selected"
+                    l.setAttribute('band', band_descr[i][0])
+                    let name = band_descr[i][1] || band_descr[i][0]
+                    l.setAttribute('name', name)
+                    l.text = name
+                    if (band_descr.length > 2 && i === 2) {
+                        l.selected = "selected"
+                    } else {
+                        l.selected = "selected"
+                    }
                     bList.appendChild(l)
                 }
 
@@ -684,7 +696,7 @@
                 map.fitBounds([[bounds[0], bounds[1]], [bounds[2], bounds[3]]])
                 addAOI(bounds)
 
-                if (metadata.band_descriptions.length === 1) {
+                if (nbands === 1) {
                     document.getElementById('3b').classList.add('disabled')
                     document.getElementById('3b').classList.remove('active')
                     document.getElementById('3b-section').classList.remove('active')
@@ -697,9 +709,9 @@
 
             switchViz()
         }
-        
+
         const loadInfo = (assets) => {
-            return fetch(`${metadata_endpoint}?url=${scope.url}&assets=${assets}`)
+            return fetch(`${metadata_endpoint}?url=${scope.url}&assets=${assets}&max_size=256`)
                 .then(res => {
                     if (res.ok) return res.json()
                     throw new Error('Network response was not ok.')
@@ -711,12 +723,12 @@
                 })
                 .catch(err => {
                     console.warn(err)
-                })            
-            
+                })
+
         }
 
         const loadStac = () => {
-            return fetch(`${metadata_endpoint}?url=${scope.url}`)
+            return fetch(`${metadata_endpoint}?url=${scope.url}&max_size=256`)
                 .then(res => {
                     if (res.ok) return res.json()
                     throw new Error('Network response was not ok.')
@@ -746,9 +758,9 @@
                 })
                 .catch(err => {
                     console.warn(err)
-                })            
+                })
         }
-  
+
         document.getElementById('launch').addEventListener('click', () => {
             scope.url = document.getElementById('stac').value
             document.getElementById('selector').classList.toggle('none')

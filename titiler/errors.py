@@ -11,6 +11,7 @@ from cogeo_mosaic.errors import (
 )
 from rasterio.errors import RasterioError, RasterioIOError
 from rio_tiler.errors import (
+    EmptyMosaicError,
     InvalidAssetName,
     InvalidBandName,
     MissingAssets,
@@ -44,6 +45,7 @@ DEFAULT_STATUS_CODES = {
     MosaicAuthError: status.HTTP_401_UNAUTHORIZED,
     TileOutsideBounds: status.HTTP_404_NOT_FOUND,
     TileNotFoundError: status.HTTP_404_NOT_FOUND,
+    EmptyMosaicError: status.HTTP_404_NOT_FOUND,
     MosaicNotFoundError: status.HTTP_404_NOT_FOUND,
     NoAssetFoundError: status.HTTP_404_NOT_FOUND,
     RasterioIOError: status.HTTP_404_NOT_FOUND,

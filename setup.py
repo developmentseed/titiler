@@ -6,31 +6,38 @@ with open("README.md") as f:
     long_description = f.read()
 
 inst_reqs = [
+    # There is a breaking change in starlette 0.14 which is not compatible with fastapi 0.61
+    # Fastapi requires 0.13.6 but brotli-asgi ask for >=0.13.4 which results in starlette 0.14 being installed
+    # we put fastapi as the first requirement to make sure starlette version is define by fastapi.
+    "fastapi~=0.61",
     "brotli-asgi>=1.0.0",
     "email-validator",
-    "fastapi==0.60.1",
     "jinja2",
     "python-dotenv",
-    "rio-color",
-    "rio-cogeo~=2.0a5",
-    "rio-tiler>=2.0b9",
-    "rio-tiler-crs>=3.0b4,<3.1",
-    "cogeo-mosaic>=3.0a10,<3.1",
+    "rio-cogeo~=2.0",
+    "rio-tiler>=2.0.0rc2,<2.1",
+    "cogeo-mosaic>=3.0.0a17,<3.1",
+    "rasterio",
+    "pydantic",
+    "numpy",
+    "morecantile",
+    "dataclasses;python_version<'3.7'",
 ]
 extra_reqs = {
     "dev": ["pytest", "pytest-cov", "pytest-asyncio", "pre-commit", "requests"],
-    "server": ["uvicorn", "click==7.0"],
+    "server": ["uvicorn"],
     "lambda": ["mangum>=0.10.0"],
     "deploy": [
         "docker",
         "python-dotenv",
-        "aws-cdk.core",
-        "aws-cdk.aws_lambda",
-        "aws-cdk.aws_apigatewayv2",
-        "aws-cdk.aws_ecs",
-        "aws-cdk.aws_ec2",
-        "aws-cdk.aws_autoscaling",
-        "aws-cdk.aws_ecs_patterns",
+        "aws-cdk.core==1.76.0",
+        "aws-cdk.aws_lambda==1.76.0",
+        "aws-cdk.aws_apigatewayv2==1.76.0",
+        "aws-cdk.aws_apigatewayv2_integrations==1.76.0",
+        "aws-cdk.aws_ecs==1.76.0",
+        "aws-cdk.aws_ec2==1.76.0",
+        "aws-cdk.aws_autoscaling==1.76.0",
+        "aws-cdk.aws_ecs_patterns==1.76.0",
     ],
     "test": ["pytest", "pytest-cov", "pytest-asyncio", "requests"],
     "docs": ["nbconvert", "mkdocs", "mkdocs-material", "mkdocs-jupyter", "pygments"],
@@ -39,7 +46,7 @@ extra_reqs = {
 
 setup(
     name="titiler",
-    version="0.1.0-alpha.6",
+    version="0.1.0a12",
     description=u"",
     long_description=long_description,
     long_description_content_type="text/markdown",

@@ -1,6 +1,64 @@
 # Release Notes
 
-## 0.1.0-alpha.6 (TBD)
+## Next (TBD)
+
+* allow `API_DISABLE_{COG/STAC/MOSAIC}` environment variables to control default endpoints in titiler main app (ref: https://github.com/developmentseed/titiler/issues/156)
+* add `overwriting=False/True` on MosaicJSON creation (ref: https://github.com/developmentseed/titiler/issues/164)
+* add `gdal_config` option to Tiler factories to replace custom `APIRoute` class (ref: https://github.com/developmentseed/titiler/issues/168)
+
+## 0.1.0a12 (2020-11-18)
+
+* require `rio-tiler>=2.0.0rc2`
+* update Enums for Image types. (**breaking**)
+* Add more output datatype (jpeg2000, pngraw)
+* add `width/height` in `/crop` endpoint path
+
+```
+/crop/{minx},{miny},{maxx},{maxy}.{format}
+/crop/{minx},{miny},{maxx},{maxy}/{width}x{height}.{format}
+```
+
+## 0.1.0a11.post1 (2020-11-12)
+
+* relax version for rio-tiler and cogeo-mosaic
+
+```python
+"rio-cogeo~=2.0"
+"rio-tiler>=2.0.0rc1,<2.1"
+"cogeo-mosaic>=3.0.0a17,<3.1"
+```
+
+## 0.1.0a11 (2020-11-12)
+
+* split `tile()` for `MosaicTilerFactory` method (ref: https://github.com/developmentseed/titiler/issues/147)
+
+## 0.1.0a10 (2020-11-09)
+
+* update for rio-tiler==2.0.0rc1, cogeo-mosaic==3.0.0a17 and morecantile==2.0
+* split `tile()` factory method (ref: https://github.com/developmentseed/titiler/issues/141, author @fredliporace)
+
+## 0.1.0a9 (2020-10-26)
+
+* avoid changing mutable TMS and Colormap list by using deepcopy.
+* quiet/turn off logs
+* add logger middleware (https://github.com/developmentseed/titiler/pull/139)
+
+## 0.1.0a8 (2020-10-13)
+
+* update for rio-tiler 2.0.0b17, which now support TMS (morecantile) by default.
+* update fastapi minimum version to 0.61
+
+**breaking changes**
+
+* removed TMSTilerFactory (because default reader built with rio_tiler BaseReader should support TMS).
+
+Note: We changed the versioning scheme to `{major}.{minor}.{path}{pre}{prenum}`
+
+## 0.1.0-alpha.7 (2020-10-13)
+
+* remove `pkg_resources` (https://github.com/pypa/setuptools/issues/510)
+
+## 0.1.0-alpha.6 (2020-10-05)
 
 * refactor CacheControl Middleware
 * rename headers value `X-Server-Timings` to `Server-Timing`.
@@ -13,6 +71,9 @@ from fastapi import FastAPI
 app.add_middleware(CacheControlMiddleware, cachecontrol="public, max-age=3600")
 app.add_middleware(TotalTimeMiddleware)
 ```
+
+* Add Brotli compression support (#126, author @kylebarron)
+* Numerous fix to CDK app.py (co-author @kylebarron)
 
 ## 0.1.0-alpha.5 (2020-09-22)
 

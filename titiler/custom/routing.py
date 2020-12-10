@@ -1,5 +1,6 @@
 """Custom routing classes."""
 
+import warnings
 from typing import Callable, Dict, Optional, Type
 
 import rasterio
@@ -22,6 +23,11 @@ def apiroute_factory(env: Optional[Dict] = None) -> Type[APIRoute]:
     Note: This has been tested in python 3.6 and 3.7 only.
 
     """
+    warnings.warn(
+        "'apiroute_factory' has been deprecated and will be removed"
+        "in titiler 0.1.0. Please see `gdal_config` option in endpoint factories.",
+        DeprecationWarning,
+    )
 
     class EnvAPIRoute(APIRoute):
         """Custom API route with env."""

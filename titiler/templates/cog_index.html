@@ -403,8 +403,9 @@
             }
 
             const active_layer = document.getElementById('layer-selector')[document.getElementById('layer-selector').selectedIndex]
-            indexes = active_layer.getAttribute('data-indexes')
+            indexes = active_layer.getAttribute('band')
             params.bidx = indexes
+
             if (document.getElementById('histcut-selector').querySelector("input[name='toggle-histo']:checked").value !== 'none') {
                 const minV = scope.config[indexes].min
                 const maxV = scope.config[indexes].max
@@ -415,14 +416,15 @@
 
             const url_params = Object.keys(params).map(i => `${i}=${params[i]}`).join('&')
             let url = `${tilejson_endpoint}?${url_params}`
+
             map.addSource('raster', { type: 'raster', url: url, tileSize: 256 })
             addLayer()
         }
 
         const set3bViz = () => {
-            const r = document.getElementById('r-selector').value
-            const g = document.getElementById('g-selector').value
-            const b = document.getElementById('b-selector').value
+            const r = document.getElementById('r-selector').selectedOptions[0].getAttribute("band")
+            const g = document.getElementById('g-selector').selectedOptions[0].getAttribute("band")
+            const b = document.getElementById('b-selector').selectedOptions[0].getAttribute("band")
 
             let params = {
                 url: scope.url,
@@ -441,6 +443,7 @@
             }
             const url_params = Object.keys(params).map(i => `${i}=${params[i]}`).join('&')
             let url = `${tilejson_endpoint}?${url_params}`
+
             map.addSource('raster', { type: 'raster', url: url, tileSize: 256 })
             map.addLayer({ id: 'raster', type: 'raster', source: 'raster' })
             addHisto3Bands()
@@ -474,9 +477,9 @@
         }
 
         const addHisto3Bands = () => {
-            const r = document.getElementById('r-selector').value
-            const g = document.getElementById('g-selector').value
-            const b = document.getElementById('b-selector').value
+            const r = document.getElementById('r-selector').selectedOptions[0].getAttribute("name")
+            const g = document.getElementById('g-selector').selectedOptions[0].getAttribute("name")
+            const b = document.getElementById('b-selector').selectedOptions[0].getAttribute("name")
 
             const rStats = scope.metadata.statistics[r]
             const gStats = scope.metadata.statistics[g]
@@ -485,11 +488,24 @@
             const minV = Math.min(...[rStats.min, gStats.min, bStats.min])
             const maxV = Math.max(...[rStats.max, gStats.max, bStats.max])
 
-            const rCounts = rStats.histogram[0]
-            const gCounts = rStats.histogram[0]
-            const bCounts = rStats.histogram[0]
+            let rCounts = rStats.histogram[0]
+            let gCounts = gStats.histogram[0]
+            let bCounts = bStats.histogram[0]
 
-            const h = Math.max(...[].concat.apply([], [rCounts, gCounts, bCounts]))
+            const rValues = rStats.histogram[1]
+            const gValues = gStats.histogram[1]
+            const bValues = bStats.histogram[1]
+
+            const add = (a, b) => a + b
+
+            const sumR = rCounts.reduce(add)
+            const sumG = gCounts.reduce(add)
+            const sumB = bCounts.reduce(add)
+
+            rCounts = rCounts.map((e) => { return e / sumR * 100 })
+            gCounts = gCounts.map((e) => { return e / sumG * 100 })
+            bCounts = bCounts.map((e) => { return e / sumB * 100 })
+            const maxH = Math.max(...rCounts, ...gCounts, ...bCounts)
 
             const bbox = d3.select('#histogram3b').node().getBoundingClientRect()
 
@@ -518,17 +534,14 @@
 
             // Y axis: scale and draw:
             var y = d3.scaleLinear().range([height, 0])
-            y.domain([0, h])
+            y.domain([0, maxH + 5])
             svg.append('g').call(d3.axisLeft(y))
 
-            const addLine = (stats, color) => {
+            const addLine = (counts, values, color) => {
                 //Draw Red line
                 const data = []
-                for (var i = 0; i < stats.histogram[0].length; i++) {
-                    data.push({
-                        count: stats.histogram[0][i],
-                        value: stats.histogram[1][i]
-                    })
+                for (var i = 0; i < counts.length; i++) {
+                    data.push({ count: counts[i], value: values[i] })
                 }
                 var guide = d3.line()
                     .x(function (d) { return x(d.value) })
@@ -538,14 +551,14 @@
                     .attr('d', guide)
                     .attr('class', `line-${color}`);
             }
-            addLine(rStats, "red")
-            addLine(gStats, "green")
-            addLine(bStats, "blue")
+            addLine(rCounts, rValues, "red")
+            addLine(gCounts, gValues, "green")
+            addLine(bCounts, bValues, "blue")
 
             //Draw axes
             svg.append("g")
                 .attr("class", "x axis")
-                .attr("transform", "translate(0," + h + ")")
+                .attr("transform", "translate(0," + maxH + 5 + ")")
                 .call(x);
 
             svg.append("g")
@@ -560,10 +573,15 @@
 
         const addHisto1Band = () => {
             const active_layer = document.getElementById('layer-selector')[document.getElementById('layer-selector').selectedIndex]
-            const indexes = active_layer.getAttribute('data-indexes')
-            const stats = scope.metadata.statistics[indexes]
+            const stats = scope.metadata.statistics[active_layer.getAttribute('band')]
 
-            const counts = stats.histogram[0]
+            let counts = stats.histogram[0]
+            const sum = counts.reduce(function (a, b) {
+                return a + b;
+            }, 0);
+            counts = counts.map((e) => { return e / sum * 100 })
+            const maxH = Math.max(...counts)
+
             const values = stats.histogram[1]
             const bbox = d3.select('#histogram1b').node().getBoundingClientRect()
 
@@ -595,7 +613,7 @@
 
             // Y axis: scale and draw:
             var y = d3.scaleLinear().range([height, 0])
-            y.domain([0, d3.max(counts)])
+            y.domain([0, maxH])
             svg.append('g').call(d3.axisLeft(y))
 
             const bins = []
@@ -653,6 +671,9 @@
         }
 
         document.getElementById('histcut-selector').addEventListener('change', (e) => {
+            if (map.getLayer('raster')) map.removeLayer('raster')
+            if (map.getSource('raster')) map.removeSource('raster')
+
             let pmin = 0
             let pmax = 100
 
@@ -668,7 +689,7 @@
                     pmax = 95.0
                     break
             }
-            fetch(`${metadata_endpoint}?url=${scope.url}&pmin=${pmin}&pmax=${pmax}`)
+            fetch(`${metadata_endpoint}?url=${scope.url}&pmin=${pmin}&pmax=${pmax}&max_size=256`)
                 .then(res => {
                     if (res.ok) return res.json()
                     throw new Error('Network response was not ok.')
@@ -676,7 +697,7 @@
                 .then(data => {
                     scope.metadata.statistics = data.statistics
                     Object.entries(scope.metadata.statistics).forEach(entry => {
-                        scope.config[entry[0]] = { "min": entry[1].pc[0], "max": entry[1].pc[1] }
+                        scope.config[entry[0]] = { "min": entry[1].percentiles[0], "max": entry[1].percentiles[1] }
                     })
                     const rasterType = document.getElementById('toolbar').querySelector(".active").id
                     switchViz()
@@ -731,7 +752,7 @@
         }
 
         const addCogeo = () => {
-            fetch(`${metadata_endpoint}?url=${scope.url}`)
+            fetch(`${metadata_endpoint}?url=${scope.url}&max_size=256`)
                 .then(res => {
                     if (res.ok) return res.json()
                     throw new Error('Network response was not ok.')
@@ -740,7 +761,7 @@
                     console.log(data)
                     scope.metadata = data
 
-                    if (scope.metadata.dtype !== "uint8") {
+                    if (['uint8', 'int8'].indexOf(scope.metadata.dtype) === -1) {
                         document.getElementById('histcut-selector').querySelector("input[value='minmax']").checked = true
                     }
 
@@ -749,48 +770,51 @@
                         scope.config[entry[0]] = { "min": entry[1].min, "max": entry[1].max }
                     })
 
+                    const band_descr = scope.metadata.band_descriptions
+                    const nbands = band_descr.length
+
                     //1 band
                     const layerList = document.getElementById('layer-selector')
-                    for (var i = 0; i < scope.metadata.band_descriptions.length; i++) {
+                    for (var i = 0; i < nbands; i++) {
                         let l = document.createElement('option')
-                        l.value = scope.metadata.band_descriptions[i][1]
-                        l.setAttribute('data-indexes', scope.metadata.band_descriptions[i][0].toString())
-                        l.text = scope.metadata.band_descriptions[i][1]
+                        l.setAttribute('band', band_descr[i][0])
+                        let name = band_descr[i][1] || band_descr[i][0]
+                        l.setAttribute('name', name)
+                        l.text = name
                         layerList.appendChild(l)
                     }
 
                     //RGB
-                    const nbands = scope.metadata.band_descriptions.length
                     const rList = document.getElementById('r-selector')
-                    for (var i = 0; i < scope.metadata.band_descriptions.length; i++) {
+                    for (var i = 0; i < nbands; i++) {
                         let l = document.createElement('option')
-                        let val = scope.metadata.band_descriptions[i][0]
-                        l.value = val
-                        l.setAttribute('data-indexes', val.toString())
-                        l.text = scope.metadata.band_descriptions[i][1]
+                        l.setAttribute('band', band_descr[i][0])
+                        let name = band_descr[i][1] || band_descr[i][0]
+                        l.setAttribute('name', name)
+                        l.text = name
                         if (i === 0) l.selected = "selected"
                         rList.appendChild(l)
                     }
 
                     const gList = document.getElementById('g-selector')
-                    for (var i = 0; i < scope.metadata.band_descriptions.length; i++) {
+                    for (var i = 0; i < nbands; i++) {
                         let l = document.createElement('option')
-                        let val = scope.metadata.band_descriptions[i][0]
-                        l.value = val
-                        l.setAttribute('data-indexes', val.toString())
-                        l.text = scope.metadata.band_descriptions[i][1]
+                        l.setAttribute('band', band_descr[i][0])
+                        let name = band_descr[i][1] || band_descr[i][0]
+                        l.setAttribute('name', name)
+                        l.text = name
                         if (i === 1) l.selected = "selected"
                         gList.appendChild(l)
                     }
 
                     const bList = document.getElementById('b-selector')
-                    for (var i = 0; i < scope.metadata.band_descriptions.length; i++) {
+                    for (var i = 0; i < nbands; i++) {
                         let l = document.createElement('option')
-                        let val = scope.metadata.band_descriptions[i][0]
-                        l.value = val
-                        l.setAttribute('data-indexes', val.toString())
-                        l.text = scope.metadata.band_descriptions[i][1]
-                        if (nbands > 2 && i === 2) {
+                        l.setAttribute('band', band_descr[i][0])
+                        let name = band_descr[i][1] || band_descr[i][0]
+                        l.setAttribute('name', name)
+                        l.text = name
+                        if (band_descr.length > 2 && i === 2) {
                             l.selected = "selected"
                         } else {
                             l.selected = "selected"

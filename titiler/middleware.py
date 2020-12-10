@@ -1,7 +1,10 @@
 """Titiler middlewares."""
 
+import logging
 import time
 from typing import Optional
+
+from fastapi.logger import logger
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
@@ -42,4 +45,31 @@ class TotalTimeMiddleware(BaseHTTPMiddleware):
         response.headers["Server-Timing"] = (
             f"{timings}, {app_time}" if timings else app_time
         )
+        return response
+
+
+class LoggerMiddleware(BaseHTTPMiddleware):
+    """MiddleWare to add logging."""
+
+    def __init__(
+        self, app: ASGIApp, querystrings: bool = False, headers: bool = False,
+    ) -> None:
+        """Init Middleware."""
+        super().__init__(app)
+        self.logger = logger
+        logger.setLevel(logging.DEBUG)
+
+        self.querystrings = querystrings
+        self.headers = headers
+
+    async def dispatch(self, request: Request, call_next):
+        """Add logs."""
+        self.logger.debug(str(request.url))
+        qs = dict(request.query_params)
+        if qs and self.querystrings:
+            self.logger.debug(qs)
+        if self.headers:
+            self.logger.debug(dict(request.headers))
+
+        response = await call_next(request)
         return response

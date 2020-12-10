@@ -1,27 +1,42 @@
 """titiler app."""
 
+import logging
+
 from brotli_asgi import BrotliMiddleware
 
-from . import settings, version
+from . import __version__ as titiler_version
+from . import settings
 from .endpoints import cog, mosaic, stac, tms
 from .errors import DEFAULT_STATUS_CODES, add_exception_handlers
-from .middleware import CacheControlMiddleware, TotalTimeMiddleware
+from .middleware import CacheControlMiddleware, LoggerMiddleware, TotalTimeMiddleware
 
 from fastapi import FastAPI
 
 from starlette.middleware.cors import CORSMiddleware
+
+logging.getLogger("botocore.credentials").disabled = True
+logging.getLogger("botocore.utils").disabled = True
+logging.getLogger("rio-tiler").setLevel(logging.ERROR)
 
 api_settings = settings.ApiSettings()
 
 app = FastAPI(
     title=api_settings.name,
     description="A lightweight Cloud Optimized GeoTIFF tile server",
-    version=version,
+    version=titiler_version,
 )
 
-app.include_router(cog.router, prefix="/cog", tags=["Cloud Optimized GeoTIFF"])
-app.include_router(stac.router, prefix="/stac", tags=["SpatioTemporal Asset Catalog"])
-app.include_router(mosaic.router, prefix="/mosaicjson", tags=["MosaicJSON"])
+if not api_settings.disable_cog:
+    app.include_router(cog.router, prefix="/cog", tags=["Cloud Optimized GeoTIFF"])
+
+if not api_settings.disable_stac:
+    app.include_router(
+        stac.router, prefix="/stac", tags=["SpatioTemporal Asset Catalog"]
+    )
+
+if not api_settings.disable_mosaic:
+    app.include_router(mosaic.router, prefix="/mosaicjson", tags=["MosaicJSON"])
+
 app.include_router(tms.router)
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
 
@@ -39,6 +54,8 @@ if api_settings.cors_origins:
 app.add_middleware(BrotliMiddleware, minimum_size=0, gzip_fallback=True)
 app.add_middleware(CacheControlMiddleware, cachecontrol=api_settings.cachecontrol)
 app.add_middleware(TotalTimeMiddleware)
+if api_settings.debug:
+    app.add_middleware(LoggerMiddleware)
 
 
 @app.get("/ping", description="Health Check", tags=["Health Check"])

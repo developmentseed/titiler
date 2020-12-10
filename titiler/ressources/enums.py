@@ -4,51 +4,62 @@ from enum import Enum
 from types import DynamicClassAttribute
 
 from rio_tiler.mosaic.methods import defaults
-
-
-class ImageType(str, Enum):
-    """Image Type Enums."""
-
-    png = "png"
-    npy = "npy"
-    tif = "tif"
-    jpg = "jpg"
-    webp = "webp"
-
-
-class ImageMimeTypes(str, Enum):
-    """Image MineTypes."""
-
-    geotiff = "image/tiff; application=geotiff"
-    tiff = "image/tiff"
-    tif = "image/tiff"
-    cog = "image/geo+tiff; application=geotiff; profile=cloud-optimized"
-    jp2 = "image/jp2"
-    png = "image/png"
-    jpeg = "image/jpeg"
-    jpg = "image/jpeg"
-    webp = "image/webp"
-    binnary = "application/x-binary"
-    npy = "application/x-binary"
+from rio_tiler.profiles import img_profiles
 
 
 class MimeTypes(str, Enum):
     """Responses MineTypes."""
 
+    tif = "image/tiff; application=geotiff"
+    jp2 = "image/jp2"
+    png = "image/png"
+    pngraw = "image/png"
+    jpeg = "image/jpeg"
+    webp = "image/webp"
+    npy = "application/x-binary"
     xml = "application/xml"
     json = "application/json"
     html = "text/html"
     text = "text/plain"
 
 
-class NodataTypes(str, Enum):
-    """rio-tiler Nodata types."""
+class ImageDrivers(str, Enum):
+    """Rio-tiler supported output drivers."""
 
-    Alpha = "Alpha"
-    Mask = "Mask"
-    Internal = "Internal"
-    Nodata = "Nodata"
-    Empty = "None"
+    jpeg = "JPEG"
+    png = "PNG"
+    pngraw = "PNG"
+    tif = "GTiff"
+    webp = "WEBP"
+    jp2 = "JP2OpenJPEG"
+    npy = "NPY"
+
+
+class ImageType(str, Enum):
+    """Available Output image type."""
+
+    png = "png"
+    npy = "npy"
+    tif = "tif"
+    jpeg = "jpg"
+    jp2 = "jp2"
+    webp = "webp"
+    pngraw = "pngraw"
+
+    @DynamicClassAttribute
+    def profile(self):
+        """Return rio-tiler image default profile."""
+        return img_profiles.get(self._name_, {})
+
+    @DynamicClassAttribute
+    def driver(self):
+        """Return rio-tiler image default profile."""
+        return ImageDrivers[self._name_].value
+
+    @DynamicClassAttribute
+    def mimetype(self):
+        """Return image mimetype."""
+        return MimeTypes[self._name_].value
 
 
 class PixelSelectionMethod(str, Enum):
