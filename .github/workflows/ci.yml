@@ -136,7 +136,7 @@ jobs:
           push: true
           tags: |
             developmentseed/titiler:latest
-            public.ecr.aws/${{ secret.AWS_ECR_PUBLIC_REPO }}/titiler:latest
+            public.ecr.aws/${{ secrets.AWS_ECR_PUBLIC_REPO }}/titiler:latest
 
       # Push `{VERSION}` when pushing a new tag
       - name: Build and push
@@ -148,4 +148,4 @@ jobs:
           push: true
           tags: |
             developmentseed/titiler:${{ steps.module.outputs.version }}
-            public.ecr.aws/${{ secret.AWS_ECR_PUBLIC_REPO }}/titiler:${{ steps.module.outputs.version }}
+            public.ecr.aws/${{ secrets.AWS_ECR_PUBLIC_REPO }}/titiler:${{ steps.module.outputs.version }}
