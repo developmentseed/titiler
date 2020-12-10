@@ -20,6 +20,7 @@ app.include_router(stac.router, prefix="/stac", tags=["SpatioTemporal Asset Cata
 | ------ | ------------------------------------------------------------------- |---------- |--------------
 | `GET`  | `/stac/bounds`                                                       | JSON      | return bounds info for a dataset
 | `GET`  | `/stac/info`                                                         | JSON      | return basic info for a dataset
+| `GET`  | `/stac/info.geojson`                                                 | GeoJSON   | return basic info for a dataset as a GeoJSON feature
 | `GET`  | `/stac/metadata`                                                     | JSON      | return info and statistics for a dataset
 | `GET`  | `/stac/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`  | image/bin | create a web map tile image from a dataset
 | `GET`  | `/stac/[{TileMatrixSetId}]/tilejson.json`                            | JSON      | return a Mapbox TileJSON document
@@ -196,6 +197,19 @@ Note: If `assets` is not provided, `/stac/info` will return the list of assets.
 Example:
 
 - `https://myendpoint/stac/info?url=https://somewhere.com/item.json&assets=B01`
+
+`:endpoint:/stac/info.geojson` - Return basic info on STAC item's COG as a GeoJSON feature
+
+- QueryParams:
+    - **url**: STAC Item URL. **REQUIRED**
+    - **assets**: Comma (',') delimited asset names. OPTIONAL
+
+Note: If `assets` is not provided, `/stac/info.geojson` will return the list of assets in the properties.
+
+Example:
+
+- `https://myendpoint/stac/info.geojson?url=https://somewhere.com/item.json&assets=B01`
+
 
 ### Metadata
 

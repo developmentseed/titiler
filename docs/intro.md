@@ -56,14 +56,14 @@ customized endpoints, you can import and extend the app directly:
 ```py
 from titiler.main import app
 
-from fastapi import FastAPI, APIRouter
-from titiler.custom.routing import apiroute_factory
 from titiler.endpoints.factory import TilerFactory
 
 # Create a custom Tiler (see: https://github.com/developmentseed/titiler-pds/blob/master/app/routes/naip.py)
-route_class = apiroute_factory({"AWS_REQUEST_PAYER": "requester"})
-router = APIRouter(route_class=route_class)
-tiler = TilerFactory(router=router, prefix="private/cog")
+tiler = TilerFactory(
+    router=router,
+    prefix="private/cog",
+    gdal_config={"AWS_REQUEST_PAYER": "requester"},
+)
 
 app.include_router(
     tiler.router,

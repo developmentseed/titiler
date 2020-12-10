@@ -23,6 +23,7 @@ app.include_router(mosaic.router, prefix="/mosaicjson", tags=["MosaicJSON"])
 | `PUT`  | `/mosaicjson/`                                                             | JSON      | update a MosaicJSON from a list of files
 | `GET`  | `/mosaicjson/bounds`                                                       | JSON      | return bounds info for a MosaicJSON
 | `GET`  | `/mosaicjson/info`                                                         | JSON      | return basic info for a MosaicJSON
+| `GET`  | `/mosaicjson/info.geojson`                                                 | GeoJSON   | return basic info for a MosaicJSON as a GeoJSON feature
 | `GET`  | `/mosaicjson/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`  | image/bin | create a web map tile image from a MosaicJSON
 | `GET`  | `/mosaicjson/[{TileMatrixSetId}]/tilejson.json`                            | JSON      | return a Mapbox TileJSON document
 | `GET`  | `/mosaicjson/{TileMatrixSetId}/WMTSCapabilities.xml`                       | XML       | return OGC WMTS Get Capabilities
