@@ -1,7 +1,5 @@
 """TMS Api."""
 
-import json
-
 from morecantile.models import TileMatrixSet
 
 from titiler.dependencies import TileMatrixSetNames, TMSParams
@@ -54,4 +52,4 @@ async def TileMatrixSet_list(request: Request):
 )
 async def TileMatrixSet_info(tms=Depends(TMSParams)):
     """Return TileMatrixSet JSON document."""
-    return json.loads(tms.json(exclude_none=True))
+    return tms
