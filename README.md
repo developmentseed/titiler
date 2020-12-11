@@ -123,6 +123,8 @@ See [LICENSE](https://github.com/developmentseed/titiler/blob/master/LICENSE)
 
 Created by [Development Seed](<http://developmentseed.org>)
 
+See [contributors](https://github.com/developmentseed/titiler/graphs/contributors) for a listing of individual contributors.
+
 ## Changes
 
 See [CHANGES.md](https://github.com/developmentseed/titiler/blob/master/CHANGES.md).
