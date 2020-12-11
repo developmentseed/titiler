@@ -7,6 +7,7 @@ Tiler factories (`titiler.endpoints.factory.TilerFactory|MosaicTilerFactory`) ar
 | ------ | --------------------------------------------------------------- |---------- |--------------
 | `GET`  | `/bounds`                                                       | JSON      | return bounds info for a dataset
 | `GET`  | `/info`                                                         | JSON      | return basic info for a dataset
+| `GET`  | `/info.geojson`                                                 | GeoJSON   | return basic info for a dataset as a GeoJSON feature
 | `GET`  | `/metadata`                                                     | JSON      | return info and statistics for a dataset
 | `GET`  | `/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`  | image/bin | create a web map tile image from a dataset
 | `GET`  | `/[{TileMatrixSetId}]/tilejson.json`                            | JSON      | return a Mapbox TileJSON document
@@ -24,6 +25,7 @@ Tiler factories (`titiler.endpoints.factory.TilerFactory|MosaicTilerFactory`) ar
 | `PUT`  | `/`                                                             | JSON      | update a MosaicJSON from a list of files
 | `GET`  | `/bounds`                                                       | JSON      | return bounds info for a MosaicJSON
 | `GET`  | `/info`                                                         | JSON      | return basic info for a MosaicJSON
+| `GET`  | `/info.geojson`                                                 | GeoJSON   | return basic info for a MosaicJSON as a GeoJSON feature
 | `GET`  | `/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`  | image/bin | create a web map tile image from a MosaicJSON
 | `GET`  | `/[{TileMatrixSetId}]/tilejson.json`                            | JSON      | return a Mapbox TileJSON document
 | `GET`  | `/{TileMatrixSetId}/WMTSCapabilities.xml`                       | XML       | return OGC WMTS Get Capabilities

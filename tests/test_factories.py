@@ -9,11 +9,11 @@ def test_TilerFactory(set_env):
     from titiler.endpoints import factory
 
     app = factory.TilerFactory(reader=COGReader)
-    assert len(app.router.routes) == 20
+    assert len(app.router.routes) == 21
     assert app.tms_dependency == TMSParams
 
     app = factory.TilerFactory(reader=COGReader, add_preview=False, add_part=False)
-    assert len(app.router.routes) == 16
+    assert len(app.router.routes) == 17
 
 
 def test_MosaicTilerFactory(set_env):
@@ -22,8 +22,8 @@ def test_MosaicTilerFactory(set_env):
     from titiler.endpoints import factory
 
     app = factory.MosaicTilerFactory()
-    assert len(app.router.routes) == 18
+    assert len(app.router.routes) == 19
     assert app.tms_dependency == WebMercatorTMSParams
 
     app = factory.MosaicTilerFactory(add_create=False, add_update=False)
-    assert len(app.router.routes) == 16
+    assert len(app.router.routes) == 17

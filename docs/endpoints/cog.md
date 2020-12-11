@@ -20,6 +20,7 @@ app.include_router(cog.router, prefix="/cog", tags=["Cloud Optimized GeoTIFF"])
 | ------ | ------------------------------------------------------------------- |---------- |--------------
 | `GET`  | `/cog/bounds`                                                       | JSON      | return bounds info for a dataset
 | `GET`  | `/cog/info`                                                         | JSON      | return basic info for a dataset
+| `GET`  | `/cog/info.geojson`                                                 | GeoJSON   | return basic info for a dataset as a GeoJSON feature
 | `GET`  | `/cog/metadata`                                                     | JSON      | return info and statistics for a dataset
 | `GET`  | `/cog/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`  | image/bin | create a web map tile image from a dataset
 | `GET`  | `/cog/[{TileMatrixSetId}]/tilejson.json`                            | JSON      | return a Mapbox TileJSON document
@@ -177,6 +178,15 @@ Example:
 Example:
 
 - `https://myendpoint/cog/info?url=https://somewhere.com/mycog.tif`
+
+`:endpoint:/cog/info.geojson` general raster info as a GeoJSON feature
+- QueryParams:
+    - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
+
+Example:
+
+- `https://myendpoint/cog/info.geojson?url=https://somewhere.com/mycog.tif`
+
 
 ### Metadata
 

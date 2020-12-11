@@ -89,6 +89,7 @@ titiler/                         - titiler python module.
  ├── models/                     - pydantic models for this application.
  ├── ressources/                 - application resources (enums, constants, etc.).
  ├── templates/                  - html/xml models.
+ ├── middleware.py               - Custom Starlette middlewares.
  ├── dependencies.py             - API dependencies.
  ├── errors.py                   - API custom error handling.
  ├── main.py                     - FastAPI application creation and configuration.
@@ -100,10 +101,9 @@ stack/
  ├── config.py                   - Optional parameters for the stack definition [EDIT THIS]
  │
 Dockerfiles/
- ├── ecs/
- │   └── Dockerfile              - Dockerfile to build the ECS service image.
- ├── lambda/
- │   └── Dockerfile              - Dockerfile to build the Lambda service image.
+ ├── Dockerfile                  - Dockerfile to build the ECS service image.
+ ├── lambda.package              - Dockerfile to build the Lambda service package.
+ ├── lambda.container            - Dockerfile to build the Lambda service container.
  │
 lambda/
  │   └── handler.py              - Mangum adaptor for AWS Lambda.
