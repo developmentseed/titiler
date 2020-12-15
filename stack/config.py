@@ -16,6 +16,7 @@ class StackSettings(pydantic.BaseSettings):
 
     additional_env: Dict = {}
 
+    # add S3 bucket where TiTiler could do HEAD and GET Requests
     buckets: List = []
 
     #########

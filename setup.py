@@ -29,8 +29,6 @@ extra_reqs = {
     "server": ["uvicorn"],
     "lambda": ["mangum>=0.10.0"],
     "deploy": [
-        "docker",
-        "python-dotenv",
         "aws-cdk.core==1.76.0",
         "aws-cdk.aws_lambda==1.76.0",
         "aws-cdk.aws_apigatewayv2==1.76.0",

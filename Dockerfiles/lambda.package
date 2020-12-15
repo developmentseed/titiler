@@ -20,7 +20,4 @@ RUN find /var/task -type d -a -name 'tests' -print0 | xargs -0 rm -rf
 RUN rm -rdf /var/task/numpy/doc/
 RUN rm -rdf /var/task/stack
 
-RUN cd /var/task && zip -r9q /tmp/package.zip *
-
-COPY lambda/handler.py handler.py
-RUN zip -r9q /tmp/package.zip handler.py
+COPY lambda/handler.py /var/task/handler.py
