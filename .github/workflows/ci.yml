@@ -5,6 +5,8 @@ on:
   push:
     branches:
     - master
+    tags:
+    - '*'
   pull_request:
 
 jobs:
@@ -47,7 +49,7 @@ jobs:
   publish:
     needs: [tests]
     runs-on: ubuntu-latest
-    if: contains(github.ref, 'tags') && github.event_name == 'push'
+    if: startsWith(github.event.ref, 'refs/tags') || github.event_name == 'release'
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
@@ -80,7 +82,7 @@ jobs:
 
   publish-docker:
     needs: [tests]
-    if: github.ref == 'refs/heads/master' || contains(github.ref, 'tags')
+    if: github.ref == 'refs/heads/master' || startsWith(github.event.ref, 'refs/tags') || github.event_name == 'release'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -140,7 +142,7 @@ jobs:
 
       # Push `{VERSION}` when pushing a new tag
       - name: Build and push
-        if: contains(github.ref, 'tags')
+        if: startsWith(github.event.ref, 'refs/tags') || github.event_name == 'release'
         uses: docker/build-push-action@v2
         with:
           context: .
