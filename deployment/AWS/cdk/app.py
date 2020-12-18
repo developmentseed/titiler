@@ -117,9 +117,7 @@ class titilerECSStack(core.Stack):
         cluster = ecs.Cluster(self, f"{id}-cluster", vpc=vpc)
 
         task_env = deepcopy(DEFAULT_ENV)
-        task_env.update(
-            dict(MODULE_NAME="titiler.main", VARIABLE_NAME="app", LOG_LEVEL="error",)
-        )
+        task_env.update(dict(LOG_LEVEL="error"))
 
         # GUNICORN configuration
         if settings.workers_per_core:
