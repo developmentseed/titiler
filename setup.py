@@ -27,17 +27,6 @@ inst_reqs = [
 extra_reqs = {
     "dev": ["pytest", "pytest-cov", "pytest-asyncio", "pre-commit", "requests"],
     "server": ["uvicorn"],
-    "lambda": ["mangum>=0.10.0"],
-    "deploy": [
-        "aws-cdk.core==1.76.0",
-        "aws-cdk.aws_lambda==1.76.0",
-        "aws-cdk.aws_apigatewayv2==1.76.0",
-        "aws-cdk.aws_apigatewayv2_integrations==1.76.0",
-        "aws-cdk.aws_ecs==1.76.0",
-        "aws-cdk.aws_ec2==1.76.0",
-        "aws-cdk.aws_autoscaling==1.76.0",
-        "aws-cdk.aws_ecs_patterns==1.76.0",
-    ],
     "test": ["pytest", "pytest-cov", "pytest-asyncio", "requests"],
     "docs": ["nbconvert", "mkdocs", "mkdocs-material", "mkdocs-jupyter", "pygments"],
 }

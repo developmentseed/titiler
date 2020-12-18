@@ -1,7 +1,5 @@
 # AWS Lambda
 
-The TiTiler [repository](https://github.com/developmentseed/titiler) includes an example that uses [AWS CDK](https://aws.amazon.com/cdk/) to deploy TiTiler on AWS Lambda, AWS' serverless compute service.
-
 TiTiler is built on top of [FastAPI](https://github.com/tiangolo/fastapi), a modern, fast, Python web framework for building APIs. It doesn't work natively with AWS Lambda and API Gateway because FastAPI understands HTTP requests, not API Gateway's `event` and `context` JSON objects. However, we can make our FastAPI application work on Lambda by wrapping it with the awesome [`mangum`](https://github.com/erm/mangum) module, which translates API Gateway events into HTTP requests.
 
 ```python
@@ -11,14 +9,18 @@ from titiler.main import app
 handler = Mangum(app, enable_lifespan=False)
 ```
 
+## Deploy
+
 The Lambda stack is also deployed by the [AWS CDK](https://aws.amazon.com/cdk/) utility. Under the hood, CDK will create the deployment package required for AWS Lambda, upload it to AWS, and handle the creation of the Lambda and API Gateway resources.
 
 1. Install CDK and connect to your AWS account. This step is only necessary once per AWS account.
 
     ```bash
+    # Download titiler repo
     $ git clone https://github.com/developmentseed/titiler.git
-    $ cd titiler && pip install -e .["deploy"]
 
+    # install cdk dependencies
+    $ cd titiler/deployment/aws && pip install -r requirements.txt
     $ npm install aws-cdk@1.76.0 -g
 
     $ cdk bootstrap # Deploys the CDK toolkit stack into an AWS environment
@@ -33,7 +35,7 @@ The Lambda stack is also deployed by the [AWS CDK](https://aws.amazon.com/cdk/) 
     $ cdk synth  # Synthesizes and prints the CloudFormation template for this stack
     ```
 
-3. Update settings (see [settings.md](settings.md))
+3. Update settings (see [intro.md](intro.md))
 
     ```bash
     export TITILER_PROJECT="mytiler"
@@ -55,8 +57,8 @@ The Lambda stack is also deployed by the [AWS CDK](https://aws.amazon.com/cdk/) 
 4. Deploy
 
     ```bash
-    $ cdk deploy titiler-lambda-dev # Deploys the stack(s) titiler-lambda-dev in stack/app.py
+    $ cdk deploy mytiler-lambda-dev # Deploys the stack(s) titiler-lambda-dev in cdk/app.py
 
     # Deploy in specific region
-    $ AWS_DEFAULT_REGION=eu-central-1 AWS_REGION=eu-central-1 cdk deploy titiler-lambda-dev
+    $ AWS_DEFAULT_REGION=eu-central-1 AWS_REGION=eu-central-1 cdk deploy mytiler-lambda-dev
     ```
