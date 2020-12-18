@@ -120,7 +120,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: Dockerfiles/Dockerfile
+          file: Dockerfile
           push: true
           tags: |
             developmentseed/titiler:latest
@@ -132,7 +132,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: Dockerfiles/Dockerfile
+          file: Dockerfile
           push: true
           tags: |
             developmentseed/titiler:${{ steps.module.outputs.version }}
