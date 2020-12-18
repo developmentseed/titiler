@@ -1,0 +1,41 @@
+# Default values for titiler.
+replicaCount: 1
+
+image:
+  repository: public.ecr.aws/s2n1v5w1/titiler
+  tag: latest
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  port: 80
+
+
+env:
+  PORT: 80
+  CPL_TMPDIR: /tmp
+  GDAL_CACHEMAX: 75%
+  VSI_CACHE: TRUE
+  VSI_CACHE_SIZE: 1000000
+  GDAL_DISABLE_READDIR_ON_OPEN: EMPTY_DIR
+  GDAL_HTTP_MERGE_CONSECUTIVE_RANGES: YES
+  GDAL_HTTP_MULTIPLEX: YES
+  GDAL_HTTP_VERSION: 2
+  PYTHONWARNINGS: ignore
+
+resources:
+   limits:
+    cpu: 256m
+    memory: 512Mi
+   requests:
+    cpu: 256m
+    memory: 512Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
