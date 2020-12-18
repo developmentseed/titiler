@@ -15,7 +15,6 @@ service:
 
 
 env:
-  MODULE_NAME: titiler.main
   PORT: 80
   CPL_TMPDIR: /tmp
   GDAL_CACHEMAX: 75%
