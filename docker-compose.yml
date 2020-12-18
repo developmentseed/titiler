@@ -4,7 +4,7 @@ services:
   titiler:
     build:
       context: .
-      dockerfile: Dockerfiles/Dockerfile
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
     environment:
@@ -23,3 +23,6 @@ services:
       - VSI_CACHE=TRUE
       - VSI_CACHE_SIZE=536870912
       - WORKERS_PER_CORE=1
+      # - API_DISABLE_STAC=TRUE
+      # - API_DISABLE_MOSAIC=TRUE
+      # - API_DISABLE_COG=TRUE
