@@ -6,11 +6,7 @@ WORKDIR /tmp
 # ref: https://github.com/mapbox/rio-color/pull/67
 RUN pip install numpy
 
-COPY README.md /app/README.md
-COPY titiler/ /app/titiler/
-COPY setup.py /app/setup.py
-
-RUN pip install /app/.["lambda"] -t /var/task --no-binary numpy,pydantic
+RUN pip install titiler mangum>=0.10.0 -t /var/task --no-binary numpy,pydantic
 
 # Reduce package size and remove useless files
 RUN cd /var/task && find . -type f -name '*.pyc' | while read f; do n=$(echo $f | sed 's/__pycache__\///' | sed 's/.cpython-[2-3][0-9]//'); cp $f $n; done;
@@ -20,7 +16,4 @@ RUN find /var/task -type d -a -name 'tests' -print0 | xargs -0 rm -rf
 RUN rm -rdf /var/task/numpy/doc/
 RUN rm -rdf /var/task/stack
 
-RUN cd /var/task && zip -r9q /tmp/package.zip *
-
-COPY lambda/handler.py handler.py
-RUN zip -r9q /tmp/package.zip handler.py
+COPY lambda/handler.py /var/task/handler.py

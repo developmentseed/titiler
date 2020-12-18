@@ -2,10 +2,10 @@
 
 ## Next (TBD)
 
-* allow `API_DISABLE_{COG/STAC/MOSAIC}` environment variables to control default endpoints in titiler main app (ref: https://github.com/developmentseed/titiler/issues/156)
-* add `overwriting=False/True` on MosaicJSON creation (ref: https://github.com/developmentseed/titiler/issues/164)
-* add `gdal_config` option to Tiler factories to replace custom `APIRoute` class (ref: https://github.com/developmentseed/titiler/issues/168)
-* add `info.json` endpoint to return dataset info as a GeoJSON feature (ref: https://github.com/developmentseed/titiler/issues/166)
+* allow `API_DISABLE_{COG/STAC/MOSAIC}` environment variables to control default endpoints in titiler main app (https://github.com/developmentseed/titiler/issues/156)
+* add `overwriting=False/True` on MosaicJSON creation (https://github.com/developmentseed/titiler/issues/164)
+* add `gdal_config` option to Tiler factories to replace custom `APIRoute` class (https://github.com/developmentseed/titiler/issues/168)
+* add `info.geojson` endpoint to return dataset info as a GeoJSON feature (https://github.com/developmentseed/titiler/issues/166)
 
 
 ## 0.1.0a12 (2020-11-18)
@@ -32,12 +32,12 @@
 
 ## 0.1.0a11 (2020-11-12)
 
-* split `tile()` for `MosaicTilerFactory` method (ref: https://github.com/developmentseed/titiler/issues/147)
+* split `tile()` for `MosaicTilerFactory` method (https://github.com/developmentseed/titiler/issues/147)
 
 ## 0.1.0a10 (2020-11-09)
 
 * update for rio-tiler==2.0.0rc1, cogeo-mosaic==3.0.0a17 and morecantile==2.0
-* split `tile()` factory method (ref: https://github.com/developmentseed/titiler/issues/141, author @fredliporace)
+* split `tile()` factory method (https://github.com/developmentseed/titiler/issues/141, author @fredliporace)
 
 ## 0.1.0a9 (2020-10-26)
 

@@ -2,3 +2,5 @@
 cdk.out
 .history
 .tox
+.git
+.vscode

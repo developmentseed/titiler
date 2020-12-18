@@ -3,16 +3,20 @@
 !!! warning
         When using Fargate or vanilla ECS, you should set the number of worker carefully. Setting too high a number of workers could lead to extra charges due to a bug in fastapi (https://github.com/developmentseed/titiler/issues/119, https://github.com/tiangolo/fastapi/issues/253).
 
-The TiTiler [repository](https://github.com/developmentseed/titiler) includes an example that uses [AWS CDK](https://aws.amazon.com/cdk/) to deploy TiTiler on AWS' Elastic Container Service (ECS).
+
+## Deploy
 
 The example handles tasks such as generating a docker image and setting up an application load balancer (ALB) and ECS services.
+
 
 1. Install CDK and connect to your AWS account. This step is only necessary once per AWS account.
 
     ```bash
+    # Download titiler repo
     $ git clone https://github.com/developmentseed/titiler.git
-    $ cd titiler && pip install -e .["deploy"]
 
+    # install cdk dependencies
+    $ cd titiler/deployment/aws && pip install -r requirements.txt
     $ npm install aws-cdk@1.76.0 -g
 
     $ cdk bootstrap # Deploys the CDK toolkit stack into an AWS environment
@@ -27,7 +31,7 @@ The example handles tasks such as generating a docker image and setting up an ap
     $ cdk synth  # Synthesizes and prints the CloudFormation template for this stack
     ```
 
-3. Update settings (see [settings.md](settings.md))
+3. Update settings (see [intro.md](intro.md))
 
     ```bash
     export TITILER_PROJECT="mytiler"
@@ -73,6 +77,6 @@ The example handles tasks such as generating a docker image and setting up an ap
 4. Deploy
 
     ```bash
-    # Deploys the stack(s) titiler-ecs-dev in stack/app.py
-    $ cdk deploy titiler-ecs-dev
+    # Deploys the stack(s) mytiler-ecs-dev in cdk/app.py
+    $ cdk deploy mytiler-ecs-dev
     ```

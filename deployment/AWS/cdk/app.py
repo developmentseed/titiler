@@ -1,9 +1,9 @@
 """Construct App."""
 
 import os
+from copy import deepcopy
 from typing import Any, List, Optional, Union
 
-import docker
 from aws_cdk import aws_apigatewayv2 as apigw
 from aws_cdk import aws_apigatewayv2_integrations as apigw_integrations
 from aws_cdk import aws_ec2 as ec2
@@ -49,7 +49,6 @@ class titilerLambdaStack(core.Stack):
         runtime: aws_lambda.Runtime = aws_lambda.Runtime.PYTHON_3_8,
         concurrent: Optional[int] = None,
         permissions: Optional[List[iam.PolicyStatement]] = None,
-        layer_arn: Optional[str] = None,
         env: dict = {},
         code_dir: str = "./",
         **kwargs: Any,
@@ -59,30 +58,28 @@ class titilerLambdaStack(core.Stack):
 
         permissions = permissions or []
 
-        lambda_env = DEFAULT_ENV.copy()
-        lambda_env.update(env)
-
         lambda_function = aws_lambda.Function(
             self,
             f"{id}-lambda",
             runtime=runtime,
-            code=self.create_package(code_dir),
+            code=aws_lambda.Code.from_asset(
+                path=os.path.abspath(code_dir),
+                bundling=core.BundlingOptions(
+                    image=core.BundlingDockerImage.from_asset(
+                        os.path.abspath(code_dir), file="lambda/Dockerfile",
+                    ),
+                    command=["bash", "-c", "cp -R /var/task/. /asset-output/."],
+                ),
+            ),
             handler="handler.handler",
             memory_size=memory,
             reserved_concurrent_executions=concurrent,
             timeout=core.Duration.seconds(timeout),
-            environment=lambda_env,
+            environment={**DEFAULT_ENV, **env},
         )
 
         for perm in permissions:
             lambda_function.add_to_role_policy(perm)
-
-        if layer_arn:
-            lambda_function.add_layers(
-                aws_lambda.LayerVersion.from_layer_version_arn(
-                    self, layer_arn.split(":")[-2], layer_arn
-                )
-            )
 
         api = apigw.HttpApi(
             self,
@@ -92,30 +89,6 @@ class titilerLambdaStack(core.Stack):
             ),
         )
         core.CfnOutput(self, "Endpoint", value=api.url)
-
-    def create_package(self, code_dir: str) -> aws_lambda.Code:
-        """Build docker image and create package."""
-        print("Creating lambda package [running in Docker]...")
-        client = docker.from_env()
-
-        print("Building docker image...")
-        client.images.build(
-            path=code_dir,
-            dockerfile="Dockerfiles/lambda.package",
-            tag="titiler-lambda:latest",
-            rm=True,
-        )
-
-        print("Copying package.zip ...")
-        client.containers.run(
-            image="titiler-lambda:latest",
-            command="/bin/sh -c 'cp /tmp/package.zip /local/package.zip'",
-            remove=True,
-            volumes={os.path.abspath(code_dir): {"bind": "/local/", "mode": "rw"}},
-            user=0,
-        )
-
-        return aws_lambda.Code.asset(os.path.join(code_dir, "package.zip"))
 
 
 class titilerECSStack(core.Stack):
@@ -143,10 +116,8 @@ class titilerECSStack(core.Stack):
 
         cluster = ecs.Cluster(self, f"{id}-cluster", vpc=vpc)
 
-        task_env = DEFAULT_ENV.copy()
-        task_env.update(
-            dict(MODULE_NAME="titiler.main", VARIABLE_NAME="app", LOG_LEVEL="error",)
-        )
+        task_env = deepcopy(DEFAULT_ENV)
+        task_env.update(dict(LOG_LEVEL="error"))
 
         # GUNICORN configuration
         if settings.workers_per_core:
@@ -167,16 +138,15 @@ class titilerECSStack(core.Stack):
             desired_count=mincount,
             public_load_balancer=True,
             listener_port=80,
-            task_image_options=dict(
-                image=ecs.ContainerImage.from_asset(
-                    code_dir,
-                    exclude=["cdk.out", ".git"],
-                    file="Dockerfiles/ecs/Dockerfile",
+            task_image_options=ecs_patterns.ApplicationLoadBalancedTaskImageOptions(
+                image=ecs.ContainerImage.from_registry(
+                    f"public.ecr.aws/s2n1v5w1/titiler:{settings.image_version}",
                 ),
                 container_port=80,
                 environment=task_env,
             ),
         )
+        fargate_service.target_group.configure_health_check(path="/ping")
 
         for perm in permissions:
             fargate_service.task_definition.task_role.add_to_policy(perm)
@@ -204,7 +174,7 @@ class titilerECSStack(core.Stack):
                 string_representation="All port 80",
                 from_port=80,
             ),
-            description="Allows traffic on port 80 from NLB",
+            description="Allows traffic on port 80 from ALB",
         )
 
 
@@ -219,7 +189,23 @@ if settings.buckets:
         )
     )
 
-# # If you use dynamodb mosaic backend you should add IAM roles to read/put Item and maybe create Table
+################################################################################
+# MOSAIC - By default TiTiler has endpoints for write/read mosaics,
+# If you are planning to use thoses your need to add policies for your mosaic backend.
+#
+# AWS S3 backend
+# perms.append(
+#     iam.PolicyStatement(
+#         actions=[
+#             "s3:PutObject", # Write
+#             "s3:HeadObject",
+#             "s3:GetObject"
+#         ],
+#         resources=["arn:aws:s3:::{YOUR-BUCKET}*"],
+#     )
+# )
+#
+# AWS DynamoDB backend
 # stack = core.Stack()
 # perms.append(
 #     iam.PolicyStatement(

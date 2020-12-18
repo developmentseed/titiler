@@ -16,6 +16,7 @@ class StackSettings(pydantic.BaseSettings):
 
     additional_env: Dict = {}
 
+    # add S3 bucket where TiTiler could do HEAD and GET Requests
     buckets: List = []
 
     #########
@@ -51,10 +52,13 @@ class StackSettings(pydantic.BaseSettings):
     # So, in a server with 2 cores, by default it will be set to 2.
     web_concurrency: Optional[int]
 
+    image_version: str = "latest"
+
     ############
     # AWS LAMBDA
     timeout: int = 10
     memory: int = 1536
+    # more about lambda config: https://www.sentiatechblog.com/aws-re-invent-2020-day-3-optimizing-lambda-cost-with-multi-threading
 
     # The maximum of concurrent executions you want to reserve for the function.
     # Default: - No specific limit - account limit.

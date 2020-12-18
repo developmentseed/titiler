@@ -5,6 +5,8 @@ on:
   push:
     branches:
     - master
+    tags:
+    - '*'
   pull_request:
 
 jobs:
@@ -47,7 +49,7 @@ jobs:
   publish:
     needs: [tests]
     runs-on: ubuntu-latest
-    if: contains(github.ref, 'tags') && github.event_name == 'push'
+    if: startsWith(github.event.ref, 'refs/tags') || github.event_name == 'release'
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
@@ -80,7 +82,7 @@ jobs:
 
   publish-docker:
     needs: [tests]
-    if: github.ref == 'refs/heads/master' || contains(github.ref, 'tags')
+    if: github.ref == 'refs/heads/master' || startsWith(github.event.ref, 'refs/tags') || github.event_name == 'release'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -98,28 +100,14 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        id: aws_creds
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      # ref https://github.com/developmentseed/titiler/issues/45#issuecomment-742778808
-      - name: Get ECR password
-        id: ecr_login
-        run: |
-          ECR_PASSWORD="$(docker run -i --rm -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_REGION amazon/aws-cli ecr-public get-login-password)"
-          echo "::add-mask::$ECR_PASSWORD"
-          echo "::set-output name=ecr-login-password::$ECR_PASSWORD"
-
-      - name: Login to ECR public
+      - name: Login to Public ECR
         uses: docker/login-action@v1
         with:
-          username: AWS
-          password: ${{ steps.ecr_login.outputs.ecr-login-password }}
           registry: public.ecr.aws
+          username: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          password: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        env:
+          AWS_REGION: us-east-1
 
       - name: Set tag version
         id: tag
@@ -132,7 +120,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: Dockerfiles/Dockerfile
+          file: Dockerfile
           push: true
           tags: |
             developmentseed/titiler:latest
@@ -140,11 +128,11 @@ jobs:
 
       # Push `{VERSION}` when pushing a new tag
       - name: Build and push
-        if: contains(github.ref, 'tags')
+        if: startsWith(github.event.ref, 'refs/tags') || github.event_name == 'release'
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: Dockerfiles/Dockerfile
+          file: Dockerfile
           push: true
           tags: |
             developmentseed/titiler:${{ steps.module.outputs.version }}

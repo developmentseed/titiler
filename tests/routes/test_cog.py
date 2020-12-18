@@ -249,8 +249,8 @@ def test_tilejson(rio, app):
     assert body["tiles"][0].startswith(
         "http://testserver/cog/tiles/WebMercatorQuad/{z}/{x}/{y}@1x?url=https"
     )
-    assert body["minzoom"] == 4
-    assert body["maxzoom"] == 8
+    assert body["minzoom"] == 5
+    assert body["maxzoom"] == 9
     assert body["bounds"]
     assert body["center"]
 

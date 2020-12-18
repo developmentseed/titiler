@@ -19,6 +19,9 @@
   <a href="https://mybinder.org/v2/gh/developmentseed/titiler/master" target="_blank">
       <img src="https://mybinder.org/badge_logo.svg" alt="Downloads">
   </a>
+  <a href="https://hub.docker.com/r/developmentseed/titiler" target="_blank">
+      <img src="https://img.shields.io/docker/v/developmentseed/titiler?color=%2334D058&label=docker%20hub" alt="Docker">
+  </a>
 </p>
 
 ---
@@ -74,6 +77,32 @@ $ export AWS_SECRET_ACCESS_KEY=...
 $ docker-compose build
 $ docker-compose up
 ```
+
+## Docker
+
+Ready to use/deploy images can be found on Docker Hub and AWS public ECR registery.
+
+- Docker Hub: https://hub.docker.com/repository/docker/developmentseed/titiler
+
+```bash
+docker run --name titiler \
+    -p 8000:8000 \
+    --env PORT=8000 \
+    --env WORKERS_PER_CORE=1 \
+    --rm -it developmentseed/titiler
+```
+
+- AWS ECR: https://gallery.ecr.aws/s2n1v5w1/titiler
+
+```bash
+docker run --name titiler \
+    -p 8000:8000 \
+    --env PORT=8000 \
+    --env WORKERS_PER_CORE=1 \
+    --rm -it public.ecr.aws/s2n1v5w1/titiler
+```
+
+Some options can be set via environement variables, see: https://github.com/tiangolo/uvicorn-gunicorn-docker#advanced-usage
 
 ## Project structure
 
