@@ -66,7 +66,7 @@ class titilerLambdaStack(core.Stack):
                 path=os.path.abspath(code_dir),
                 bundling=core.BundlingOptions(
                     image=core.BundlingDockerImage.from_asset(
-                        os.path.abspath(code_dir), file="Dockerfiles/lambda.package",
+                        os.path.abspath(code_dir), file="lambda/Dockerfile",
                     ),
                     command=["bash", "-c", "cp -R /var/task/. /asset-output/."],
                 ),
@@ -141,13 +141,14 @@ class titilerECSStack(core.Stack):
             public_load_balancer=True,
             listener_port=80,
             task_image_options=ecs_patterns.ApplicationLoadBalancedTaskImageOptions(
-                image=ecs.ContainerImage.from_asset(
-                    os.path.abspath(code_dir), file="Dockerfiles/Dockerfile",
+                image=ecs.ContainerImage.from_registry(
+                    f"public.ecr.aws/s2n1v5w1/titiler:{settings.image_version}",
                 ),
                 container_port=80,
                 environment=task_env,
             ),
         )
+        fargate_service.target_group.configure_health_check(path="/ping")
 
         for perm in permissions:
             fargate_service.task_definition.task_role.add_to_policy(perm)
@@ -175,7 +176,7 @@ class titilerECSStack(core.Stack):
                 string_representation="All port 80",
                 from_port=80,
             ),
-            description="Allows traffic on port 80 from NLB",
+            description="Allows traffic on port 80 from ALB",
         )
 
 
