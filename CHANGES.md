@@ -1,12 +1,12 @@
 # Release Notes
 
-## Next (TBD)
+## 0.1.0a13 (2020-12-20)
 
 * allow `API_DISABLE_{COG/STAC/MOSAIC}` environment variables to control default endpoints in titiler main app (https://github.com/developmentseed/titiler/issues/156)
 * add `overwriting=False/True` on MosaicJSON creation (https://github.com/developmentseed/titiler/issues/164)
 * add `gdal_config` option to Tiler factories to replace custom `APIRoute` class (https://github.com/developmentseed/titiler/issues/168)
 * add `info.geojson` endpoint to return dataset info as a GeoJSON feature (https://github.com/developmentseed/titiler/issues/166)
-
+* update `rio-tiler`, `cogeo-mosaic` and optional dependencies
 
 ## 0.1.0a12 (2020-11-18)
 
