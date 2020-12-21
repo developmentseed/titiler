@@ -135,5 +135,5 @@ jobs:
           file: Dockerfile
           push: true
           tags: |
-            developmentseed/titiler:${{ steps.module.outputs.version }}
-            public.ecr.aws/${{ secrets.AWS_ECR_PUBLIC_REPO }}/titiler:${{ steps.module.outputs.version }}
+            developmentseed/titiler:${{ steps.tag.outputs.tag }}
+            public.ecr.aws/${{ secrets.AWS_ECR_PUBLIC_REPO }}/titiler:${{ steps.tag.outputs.tag }}
