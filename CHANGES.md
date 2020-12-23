@@ -1,5 +1,9 @@
 # Release Notes
 
+## NEXT (TBD)
+
+* add `rio_tiler.errors.MissingBands` in known errors.
+
 ## 0.1.0a13 (2020-12-20)
 
 * allow `API_DISABLE_{COG/STAC/MOSAIC}` environment variables to control default endpoints in titiler main app (https://github.com/developmentseed/titiler/issues/156)

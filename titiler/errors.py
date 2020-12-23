@@ -15,6 +15,7 @@ from rio_tiler.errors import (
     InvalidAssetName,
     InvalidBandName,
     MissingAssets,
+    MissingBands,
     RioTilerError,
     TileOutsideBounds,
 )
@@ -49,6 +50,7 @@ DEFAULT_STATUS_CODES = {
     MosaicNotFoundError: status.HTTP_404_NOT_FOUND,
     NoAssetFoundError: status.HTTP_404_NOT_FOUND,
     RasterioIOError: status.HTTP_404_NOT_FOUND,
+    MissingBands: status.HTTP_400_BAD_REQUEST,
     MissingAssets: status.HTTP_400_BAD_REQUEST,
     InvalidAssetName: status.HTTP_404_NOT_FOUND,
     InvalidBandName: status.HTTP_404_NOT_FOUND,
