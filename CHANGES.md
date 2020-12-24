@@ -3,6 +3,7 @@
 ## NEXT (TBD)
 
 * add `rio_tiler.errors.MissingBands` in known errors.
+* add `titiler.endpoints.factory.TMSFactory` to enable custom TMS endpoints.
 
 ## 0.1.0a13 (2020-12-20)
 
