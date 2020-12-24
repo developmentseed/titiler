@@ -27,12 +27,14 @@ from ..dependencies import (
     MetadataParams,
     PathParams,
     RenderParams,
+    TileMatrixSetNames,
     TMSParams,
     WebMercatorTMSParams,
 )
 from ..errors import BadRequestError
 from ..models.mapbox import TileJSON
 from ..models.mosaic import CreateMosaicJSON, UpdateMosaicJSON
+from ..models.OGC import TileMatrixSetList
 from ..ressources.enums import ImageType, MimeTypes, PixelSelectionMethod
 from ..ressources.responses import GeoJSONResponse, XMLResponse
 from ..templates import templates
@@ -64,7 +66,7 @@ img_endpoint_params: Dict[str, Any] = {
 
 # ref: https://github.com/python/mypy/issues/5374
 @dataclass  # type: ignore
-class BaseFactory(metaclass=abc.ABCMeta):
+class BaseTilerFactory(metaclass=abc.ABCMeta):
     """BaseTiler Factory."""
 
     reader: default_readers_type = field(default=COGReader)
@@ -118,7 +120,7 @@ class BaseFactory(metaclass=abc.ABCMeta):
 
 
 @dataclass
-class TilerFactory(BaseFactory):
+class TilerFactory(BaseTilerFactory):
     """Tiler Factory."""
 
     # Endpoint Dependencies
@@ -679,7 +681,7 @@ class TilerFactory(BaseFactory):
 
 
 @dataclass
-class MosaicTilerFactory(BaseFactory):
+class MosaicTilerFactory(BaseTilerFactory):
     """
     MosaicTiler Factory.
 
@@ -1158,3 +1160,78 @@ class MosaicTilerFactory(BaseFactory):
             )
 
             return {"coordinates": [lon, lat], "values": values}
+
+
+@dataclass
+class TMSFactory:
+    """TileMatrixSet endpoints Factory."""
+
+    # Enum of supported TMS
+    supported_tms: Type[TileMatrixSetNames] = TileMatrixSetNames
+
+    # TileMatrixSet dependency
+    tms_dependency: Callable[..., TileMatrixSet] = TMSParams
+
+    # FastAPI router
+    router: APIRouter = field(default_factory=APIRouter)
+
+    # Router Prefix is needed to find the path for /tile if the TilerFactory.router is mounted
+    # with other router (multiple `.../tile` routes).
+    # e.g if you mount the route with `/cog` prefix, set router_prefix to cog and
+    router_prefix: str = ""
+
+    def __post_init__(self):
+        """Post Init: register route and configure specific options."""
+        self.register_routes()
+
+    def url_for(self, request: Request, name: str, **path_params: Any) -> str:
+        """Return full url (with prefix) for a specific endpoint."""
+        url_path = self.router.url_path_for(name, **path_params)
+        base_url = str(request.base_url)
+        if self.router_prefix:
+            base_url += self.router_prefix.lstrip("/")
+        return url_path.make_absolute_url(base_url=base_url)
+
+    def register_routes(self):
+        """Register TMS endpoint routes."""
+
+        @self.router.get(
+            r"/tileMatrixSets",
+            response_model=TileMatrixSetList,
+            response_model_exclude_none=True,
+        )
+        async def TileMatrixSet_list(request: Request):
+            """
+            Return list of supported TileMatrixSets.
+
+            Specs: http://docs.opengeospatial.org/per/19-069.html#_tilematrixsets
+            """
+            return {
+                "tileMatrixSets": [
+                    {
+                        "id": tms.name,
+                        "title": tms.name,
+                        "links": [
+                            {
+                                "href": self.url_for(
+                                    request,
+                                    "TileMatrixSet_info",
+                                    TileMatrixSetId=tms.name,
+                                ),
+                                "rel": "item",
+                                "type": "application/json",
+                            }
+                        ],
+                    }
+                    for tms in self.supported_tms
+                ]
+            }
+
+        @self.router.get(
+            r"/tileMatrixSets/{TileMatrixSetId}",
+            response_model=TileMatrixSet,
+            response_model_exclude_none=True,
+        )
+        async def TileMatrixSet_info(tms: TileMatrixSet = Depends(self.tms_dependency)):
+            """Return TileMatrixSet JSON document."""
+            return tms

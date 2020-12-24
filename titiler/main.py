@@ -37,7 +37,7 @@ if not api_settings.disable_stac:
 if not api_settings.disable_mosaic:
     app.include_router(mosaic.router, prefix="/mosaicjson", tags=["MosaicJSON"])
 
-app.include_router(tms.router)
+app.include_router(tms.router, tags=["TileMatrixSets"])
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
 
 
