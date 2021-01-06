@@ -5,6 +5,7 @@
 * add `rio_tiler.errors.MissingBands` in known errors.
 * add `titiler.endpoints.factory.TMSFactory` to enable custom TMS endpoints.
 * **breaking** rename `BaseFactory` to `BaseTilerFactory` in `titiler.endpoints.factory`
+* add `ingress` template in k8s deployment
 
 ## 0.1.0a13 (2020-12-20)
 
