@@ -104,3 +104,4 @@ ENV/
 .mypy_cache/
 
 cdk.out/
+deployment/k8s/titiler/values-test.yaml
