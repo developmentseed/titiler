@@ -6,16 +6,11 @@ with open("README.md") as f:
     long_description = f.read()
 
 inst_reqs = [
-    # There is a breaking change in starlette 0.14 which is not compatible with fastapi 0.61
-    # Fastapi requires 0.13.6 but brotli-asgi ask for >=0.13.4 which results in starlette 0.14 being installed
-    # we put fastapi as the first requirement to make sure starlette version is define by fastapi.
-    "fastapi~=0.61",
+    "fastapi[all]",
     "brotli-asgi>=1.0.0",
-    "email-validator",
-    "jinja2",
     "python-dotenv",
     "morecantile",
-    "rio-cogeo",
+    "rio-cogeo>=2.1,<2.2",
     "rio-tiler>=2.0.0rc4,<2.1",
     "cogeo-mosaic>=3.0.0b1,<3.1",
     "rasterio",
@@ -26,7 +21,6 @@ inst_reqs = [
 ]
 extra_reqs = {
     "dev": ["pytest", "pytest-cov", "pytest-asyncio", "pre-commit", "requests"],
-    "server": ["uvicorn"],
     "test": ["pytest", "pytest-cov", "pytest-asyncio", "requests"],
     "docs": ["nbconvert", "mkdocs", "mkdocs-material", "mkdocs-jupyter", "pygments"],
 }
@@ -47,12 +41,12 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
     ],
-    keywords="COG STAC MosaicJSON FastAPI Serverless",
+    keywords="COG STAC MosaicJSON FastAPI",
     author=u"Vincent Sarago",
     author_email="vincent@developmentseed.org",
     url="https://github.com/developmentseed/titiler",
     license="MIT",
-    packages=find_packages(exclude=["tests*", "stack"]),
+    packages=find_packages(exclude=["tests*"]),
     package_data={"titiler": ["templates/*.html", "templates/*.xml"]},
     include_package_data=True,
     zip_safe=False,
