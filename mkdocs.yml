@@ -3,6 +3,8 @@ site_description: A lightweight service for creating map tiles from Cloud-Optimi
 
 repo_name: "developmentseed/titiler"
 repo_url: "https://github.com/developmentseed/titiler"
+edit_uri: "blob/master/docs/"
+site_url: "https://developmentseed.org/titiler/"
 
 extra:
   social:
