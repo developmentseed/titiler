@@ -100,7 +100,7 @@ docker run --name titiler \
     --rm -it public.ecr.aws/s2n1v5w1/titiler
 ```
 
-Some options can be set via environement variables, see: https://github.com/tiangolo/uvicorn-gunicorn-docker#advanced-usage
+Some options can be set via environment variables, see: https://github.com/tiangolo/uvicorn-gunicorn-docker#advanced-usage
 
 ## Project structure
 
