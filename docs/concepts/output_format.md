@@ -4,7 +4,7 @@
 While some format (e.g PNG) are able to encode Uint16 or Float datatypes, most web browser only supports 8 bytes data (meaning that it has to be between 0 and 255).
 It's on the user to know what datatype is the input source (COG), and what kind of `post processing` there is to do to create a valid web map tile.
 
-`TiTiler` has also support for more complex output data format, such as JPEG2000 or GeoTIFF. While it might not be useful for FrontEnd display (most broswer can't decode GeoTIFF natively), some user could want to transmit the data as `raw` values to some applications (non-web display).
+`TiTiler` has also support for more complex output data format, such as JPEG2000 or GeoTIFF. While it might not be useful for FrontEnd display (most browsers can't decode GeoTIFF natively), some users could want to transmit the data as `raw` values to some applications (non-web display).
 
 Default output types/extensions are:
 
