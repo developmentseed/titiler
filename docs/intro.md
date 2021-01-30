@@ -1,11 +1,11 @@
 
-`TiTiler` is a python module, which goal is to help user creating dynamic tile server. To learn more about `dynamic tiling` please refer to the [docs](/docs/concepts/dynamic_tiling.md).
+`TiTiler` is a python module, whose goal is to help users in creating a dynamic tile server. To learn more about `dynamic tiling` please refer to the [docs](/docs/concepts/dynamic_tiling.md).
 
-User can choose to extend or use `Titiler` as it is.
+Users can choose to extend or use `Titiler` as it is.
 
 ## Defaults
 
-`TiTiler` comes with a default (complete) application with support of COG, STAC and MosaicJSON. You can start the application locally by doing:
+`TiTiler` comes with a default (complete) application with support for COG, STAC and MosaicJSON. You can start the application locally by doing:
 
 ```bash
 $ pip install titiler[server]
@@ -24,7 +24,7 @@ See default endpoints documentation pages:
 
 ## Customized, minimal app
 
-`TiTiler` has been developed so users can build their own app using only portions they need. Using [`TilerFactory`s](concepts/tiler_factories.md), users can create a fully customized applications with only the endpoints you need.
+`TiTiler` has been developed so users can build their own app using only the portions they need. Using [`TilerFactory`s](concepts/tiler_factories.md), users can create a fully customized application with only the endpoints needed.
 
 ```python
 from titiler.endpoints.factory import TilerFactory
