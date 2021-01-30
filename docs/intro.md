@@ -72,4 +72,4 @@ app.include_router(
 )
 ```
 
-More on [customization](/concepts/customization/)
+More on [customization](concepts/customization.md)
