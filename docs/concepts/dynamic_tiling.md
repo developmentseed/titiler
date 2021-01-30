@@ -1,18 +1,18 @@
 
-TiTiler first goal is to create lightweight but performante dynamic tile server... but what do we mean by this.
+TiTiler's first goal is to create lightweight but performant dynamic tile server... but what do we mean by this.
 
-When you zoom/pan on a web map, you are visualizing either vector or raster data which are loaded by your web client (e.g Chrome). Vector Tiles are rendered `On the Fly`, meaning the map library (e.g MapgoxGL) will apply colors or width on the vector it receives to create a visual representation on the map. This is possible because we can encode and compress `vector` data very efficently, which each tile being only couple of kilo octets.
+When you zoom/pan on a web map, you are visualizing either vector or raster data that is loaded by your web client (e.g Chrome). Vector Tiles are rendered `On the Fly`, meaning the map library (e.g MapgoxGL) will apply colors or width on the vector it receives to create a visual representation on the map. This is possible because we can encode and compress `vector` data very efficently, which each tile being only couple of kilo octets.
 
 On the other side, raster data is a really dense format, a `256 x 256 x 3` tile (True color image) needs to encode `196 608` values, and depending on the data type (Integer, Float, Complex), a raster tile can be really heavy. Note, if the original data is stored in `Float`, to be able to obtain a visual representation we need to `rescale` the initial data to a `Byte` range of 0 to 255 values.
 
 ## Static tiling steps
 
-Before, to be able to visualize a raster data on a web map, we need to:
+Before, to be able to visualize raster data on a web map, we needed to:
 
 * rescale the data to integer (0 -> 255)
 * reproject the data to Web Mercator (or the projection of the web map application)
 * split the data in tiles (256x256 or 512x512) and create different zoom levels (ref: https://gdal.org/programs/gdal2tiles.html)
-* create a tile server which will read the tiles from a directoy/cloud storage
+* create a tile server which reads the tiles from a directory/cloud storage
 
 
 ## Dynamic tiling steps
@@ -28,7 +28,7 @@ The goal of the `Dynamic Tiling` process is to get rid of all the pre-processing
 ![](https://user-images.githubusercontent.com/10407788/98711823-7f4de080-2353-11eb-9c8a-8a46550651ae.png)
 
 
-With `Static` tile generation you are often limited because you are visualizing a data that is fixed and stored somewhere on a disk. With `Dynamic tiling`, the user has the possibility to apply its own choice of processing (e.g rescaling, masking) before creating the `image`.
+With `Static` tile generation you are often limited because you are visualizing data that is fixed and stored somewhere on a disk. With `Dynamic tiling`, the user has the possibility to apply their own choice of processing (e.g rescaling, masking) before creating the `image`.
 
 ### Dynamic Tiling features
 
