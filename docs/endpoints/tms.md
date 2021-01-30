@@ -15,7 +15,7 @@ app.include_router(tms.router, tags=["TileMatrixSet"])
 
 | Method | URL                                 | Output    | Description
 | ------ | ----------------------------------- |---------- |--------------
-| `GET`  | `/tileMatrixSets`                   | JSON      | return the list of supported TileMatrixSe
+| `GET`  | `/tileMatrixSets`                   | JSON      | return the list of supported TileMatrixSet
 | `GET`  | `/tileMatrixSets/{TileMatrixSetId}` | JSON      | return the TileMatrixSet JSON document
 
 ## Description
