@@ -1,5 +1,5 @@
 
-`TiTiler` is a python module, whose goal is to help users in creating a dynamic tile server. To learn more about `dynamic tiling` please refer to the [docs](/docs/concepts/dynamic_tiling.md).
+`TiTiler` is a python module whose goal is to help users in creating a dynamic tile server. To learn more about `dynamic tiling` please refer to the [docs](/docs/concepts/dynamic_tiling.md).
 
 Users can choose to extend or use `Titiler` as it is.
 
