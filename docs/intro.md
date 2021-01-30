@@ -24,7 +24,7 @@ See default endpoints documentation pages:
 
 ## Customized, minimal app
 
-`TiTiler` has been developed so users can build their own app using only the portions they need. Using [`TilerFactory`s](concepts/tiler_factories.md), users can create a fully customized applications with only the endpoints needed.
+`TiTiler` has been developed so users can build their own app using only the portions they need. Using [`TilerFactory`s](concepts/tiler_factories.md), users can create a fully customized application with only the endpoints needed.
 
 ```python
 from titiler.endpoints.factory import TilerFactory
