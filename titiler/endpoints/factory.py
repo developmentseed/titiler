@@ -721,6 +721,7 @@ class MosaicTilerFactory(BaseTilerFactory):
         self.tilejson()
         self.wmts()
         self.point()
+        self.validate()
 
     ############################################################################
     # /read
@@ -1160,6 +1161,14 @@ class MosaicTilerFactory(BaseTilerFactory):
             )
 
             return {"coordinates": [lon, lat], "values": values}
+
+    def validate(self):
+        """Register /validate endpoint."""
+
+        @self.router.post("/validate")
+        def validate(body: MosaicJSON):
+            """Validate a MosaicJSON"""
+            return True
 
 
 @dataclass
