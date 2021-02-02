@@ -1,5 +1,5 @@
 
-TiTiler's first goal is to create lightweight but performant dynamic tile server... but what do we mean by this.
+TiTiler's first goal is to create a lightweight but performant dynamic tile server... but what do we mean by this?
 
 When you zoom/pan on a web map, you are visualizing either vector or raster data that is loaded by your web client (e.g Chrome). Vector Tiles are rendered `On the Fly`, meaning the map library (e.g MapgoxGL) will apply colors or width on the vector it receives to create a visual representation on the map. This is possible because we can encode and compress `vector` data very efficently, which each tile being only couple of kilo octets.
 
