@@ -1,0 +1,1699 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A lightweight service for creating map tiles from Cloud-Optimized GeoTiff">
+      
+      
+      
+      
+        <link rel="canonical" href="https://developmentseed.org/titiler/release-notes/">
+      
+      <link rel="shortcut icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-6.2.7">
+    
+    
+      
+        <title>Release Notes - TiTiler</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.cb6bc1d0.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.39b8e14a.min.css">
+        
+          
+          
+          <meta name="theme-color" content="#4051b5">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>body,input{font-family:"Roboto",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono",SFMono-Regular,Consolas,Menlo,monospace}</style>
+      
+    
+    
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="">
+      
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#release-notes" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid" aria-label="Header">
+    <a href="https://developmentseed.org/titiler/" title="TiTiler" class="md-header-nav__button md-logo" aria-label="TiTiler">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 003-3 3 3 0 00-3-3 3 3 0 00-3 3 3 3 0 003 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header-nav__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header-nav__title" data-md-component="header-title">
+      <div class="md-header-nav__ellipsis">
+        <div class="md-header-nav__topic">
+          <span class="md-ellipsis">
+            TiTiler
+          </span>
+        </div>
+        <div class="md-header-nav__topic">
+          <span class="md-ellipsis">
+            
+              Release Notes
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      <label class="md-header-nav__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" data-md-component="search-reset" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header-nav__source">
+        
+<a href="https://github.com/developmentseed/titiler/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    developmentseed/titiler
+  </div>
+</a>
+      </div>
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="https://developmentseed.org/titiler/" title="TiTiler" class="md-nav__button md-logo" aria-label="TiTiler">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 003-3 3 3 0 00-3-3 3 3 0 00-3 3 3 3 0 003 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    TiTiler
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/developmentseed/titiler/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    developmentseed/titiler
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        TiTiler
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2" >
+      
+      <label class="md-nav__link" for="nav-2">
+        User Guide
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="User Guide" data-md-level="1">
+        <label class="md-nav__title" for="nav-2">
+          <span class="md-nav__icon md-icon"></span>
+          User Guide
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../intro/" class="md-nav__link">
+        Intro
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts/dynamic_tiling/" class="md-nav__link">
+        Dynamic Tiling
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts/mosaics/" class="md-nav__link">
+        Mosaics
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts/tile_matrix_sets/" class="md-nav__link">
+        TileMatrixSets
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts/output_format/" class="md-nav__link">
+        Output data format
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3" >
+      
+      <label class="md-nav__link" for="nav-3">
+        Default Endpoints
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Default Endpoints" data-md-level="1">
+        <label class="md-nav__title" for="nav-3">
+          <span class="md-nav__icon md-icon"></span>
+          Default Endpoints
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../endpoints/cog/" class="md-nav__link">
+        /cog
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../endpoints/stac/" class="md-nav__link">
+        /stac
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../endpoints/mosaic/" class="md-nav__link">
+        /mosaicjson
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../endpoints/tms/" class="md-nav__link">
+        /tileMatrixSets
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4" >
+      
+      <label class="md-nav__link" for="nav-4">
+        Advanced User Guide
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Advanced User Guide" data-md-level="1">
+        <label class="md-nav__title" for="nav-4">
+          <span class="md-nav__icon md-icon"></span>
+          Advanced User Guide
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts/tiler_factories/" class="md-nav__link">
+        Tiler Factories
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts/dependencies/" class="md-nav__link">
+        Dependencies
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts/customization/" class="md-nav__link">
+        Customization
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts/APIRoute_and_environment_variables/" class="md-nav__link">
+        APIRoute and environment variables
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5" >
+      
+      <label class="md-nav__link" for="nav-5">
+        Examples
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Examples" data-md-level="1">
+        <label class="md-nav__title" for="nav-5">
+          <span class="md-nav__icon md-icon"></span>
+          Examples
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/Working_with_CloudOptimizedGeoTIFF_simple/" class="md-nav__link">
+        COG
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/Working_with_CloudOptimizedGeoTIFF/" class="md-nav__link">
+        COG at scale
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/Working_with_STAC_simple/" class="md-nav__link">
+        STAC
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/Working_with_STAC/" class="md-nav__link">
+        STAC at scale
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/Working_with_MosaicJSON/" class="md-nav__link">
+        MosaicJSON
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/Working_with_nonWebMercatorTMS/" class="md-nav__link">
+        Non-WebMercator TMS
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/Create_CustomSentinel2Tiler/" class="md-nav__link">
+        Custom Sentinel 2 Tiler
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/Working_with_NumpyTile/" class="md-nav__link">
+        NumpyTile
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6" >
+      
+      <label class="md-nav__link" for="nav-6">
+        Deployment
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Deployment" data-md-level="1">
+        <label class="md-nav__title" for="nav-6">
+          <span class="md-nav__icon md-icon"></span>
+          Deployment
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-6-1" type="checkbox" id="nav-6-1" >
+      
+      <label class="md-nav__link" for="nav-6-1">
+        Amazon Web Services
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Amazon Web Services" data-md-level="2">
+        <label class="md-nav__title" for="nav-6-1">
+          <span class="md-nav__icon md-icon"></span>
+          Amazon Web Services
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment/aws/intro/" class="md-nav__link">
+        Intro
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment/aws/ecs/" class="md-nav__link">
+        ECS
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment/aws/lambda/" class="md-nav__link">
+        Lambda
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../external_links/" class="md-nav__link">
+        External links
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/" class="md-nav__link">
+        Development - Contributing
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Release Notes
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Release Notes
+      </a>
+      
+        
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#010-tbd" class="md-nav__link">
+    0.1.0 (TBD)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010a14-2021-01-05" class="md-nav__link">
+    0.1.0a14 (2021-01-05)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010a13-2020-12-20" class="md-nav__link">
+    0.1.0a13 (2020-12-20)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010a12-2020-11-18" class="md-nav__link">
+    0.1.0a12 (2020-11-18)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010a11post1-2020-11-12" class="md-nav__link">
+    0.1.0a11.post1 (2020-11-12)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010a11-2020-11-12" class="md-nav__link">
+    0.1.0a11 (2020-11-12)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010a10-2020-11-09" class="md-nav__link">
+    0.1.0a10 (2020-11-09)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010a9-2020-10-26" class="md-nav__link">
+    0.1.0a9 (2020-10-26)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010a8-2020-10-13" class="md-nav__link">
+    0.1.0a8 (2020-10-13)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010-alpha7-2020-10-13" class="md-nav__link">
+    0.1.0-alpha.7 (2020-10-13)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010-alpha6-2020-10-05" class="md-nav__link">
+    0.1.0-alpha.6 (2020-10-05)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010-alpha5-2020-09-22" class="md-nav__link">
+    0.1.0-alpha.5 (2020-09-22)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010-alpha4-2020-09-14" class="md-nav__link">
+    0.1.0-alpha.4 (2020-09-14)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010-alpha3-2020-09-03" class="md-nav__link">
+    0.1.0-alpha.3 (2020-09-03)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010-alpha2-2020-09-01" class="md-nav__link">
+    0.1.0-alpha.2 (2020-09-01)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010-alpha1-2020-09-01" class="md-nav__link">
+    0.1.0-alpha.1 (2020-09-01)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#01a0-2020-08-31" class="md-nav__link">
+    0.1a0 (2020-08-31)
+  </a>
+  
+    <nav class="md-nav" aria-label="0.1a0 (2020-08-31)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tiler-factory" class="md-nav__link">
+    Tiler Factory
+  </a>
+  
+    <nav class="md-nav" aria-label="Tiler Factory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#readers-tilematrixsets" class="md-nav__link">
+    Readers / TileMatrixSets
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#other-changes" class="md-nav__link">
+    Other changes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#breaking-changes" class="md-nav__link">
+    Breaking changes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pre-pypi-releases" class="md-nav__link">
+    Pre Pypi releases
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#212-2020-06-24" class="md-nav__link">
+    2.1.2 (2020-06-24)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#211-2020-06-22" class="md-nav__link">
+    2.1.1 (2020-06-22)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#210-2020-06-11" class="md-nav__link">
+    2.1.0 (2020-06-11)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#200-2020-06-09" class="md-nav__link">
+    2.0.0 (2020-06-09)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#100-2020-06-04" class="md-nav__link">
+    1.0.0 (2020-06-04)
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#010-tbd" class="md-nav__link">
+    0.1.0 (TBD)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010a14-2021-01-05" class="md-nav__link">
+    0.1.0a14 (2021-01-05)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010a13-2020-12-20" class="md-nav__link">
+    0.1.0a13 (2020-12-20)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010a12-2020-11-18" class="md-nav__link">
+    0.1.0a12 (2020-11-18)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010a11post1-2020-11-12" class="md-nav__link">
+    0.1.0a11.post1 (2020-11-12)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010a11-2020-11-12" class="md-nav__link">
+    0.1.0a11 (2020-11-12)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010a10-2020-11-09" class="md-nav__link">
+    0.1.0a10 (2020-11-09)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010a9-2020-10-26" class="md-nav__link">
+    0.1.0a9 (2020-10-26)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010a8-2020-10-13" class="md-nav__link">
+    0.1.0a8 (2020-10-13)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010-alpha7-2020-10-13" class="md-nav__link">
+    0.1.0-alpha.7 (2020-10-13)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010-alpha6-2020-10-05" class="md-nav__link">
+    0.1.0-alpha.6 (2020-10-05)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010-alpha5-2020-09-22" class="md-nav__link">
+    0.1.0-alpha.5 (2020-09-22)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010-alpha4-2020-09-14" class="md-nav__link">
+    0.1.0-alpha.4 (2020-09-14)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010-alpha3-2020-09-03" class="md-nav__link">
+    0.1.0-alpha.3 (2020-09-03)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010-alpha2-2020-09-01" class="md-nav__link">
+    0.1.0-alpha.2 (2020-09-01)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010-alpha1-2020-09-01" class="md-nav__link">
+    0.1.0-alpha.1 (2020-09-01)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#01a0-2020-08-31" class="md-nav__link">
+    0.1a0 (2020-08-31)
+  </a>
+  
+    <nav class="md-nav" aria-label="0.1a0 (2020-08-31)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tiler-factory" class="md-nav__link">
+    Tiler Factory
+  </a>
+  
+    <nav class="md-nav" aria-label="Tiler Factory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#readers-tilematrixsets" class="md-nav__link">
+    Readers / TileMatrixSets
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#other-changes" class="md-nav__link">
+    Other changes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#breaking-changes" class="md-nav__link">
+    Breaking changes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pre-pypi-releases" class="md-nav__link">
+    Pre Pypi releases
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#212-2020-06-24" class="md-nav__link">
+    2.1.2 (2020-06-24)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#211-2020-06-22" class="md-nav__link">
+    2.1.1 (2020-06-22)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#210-2020-06-11" class="md-nav__link">
+    2.1.0 (2020-06-11)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#200-2020-06-09" class="md-nav__link">
+    2.0.0 (2020-06-09)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#100-2020-06-04" class="md-nav__link">
+    1.0.0 (2020-06-04)
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+
+
+
+                
+                  <a href="https://github.com/developmentseed/titiler/blob/master/docs/release-notes.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                <h1 id="release-notes">Release Notes<a class="headerlink" href="#release-notes" title="Permanent link">&para;</a></h1>
+<h2 id="010-tbd">0.1.0 (TBD)<a class="headerlink" href="#010-tbd" title="Permanent link">&para;</a></h2>
+<ul>
+<li>update FastAPI requirements</li>
+</ul>
+<h2 id="010a14-2021-01-05">0.1.0a14 (2021-01-05)<a class="headerlink" href="#010a14-2021-01-05" title="Permanent link">&para;</a></h2>
+<ul>
+<li>add <code>rio_tiler.errors.MissingBands</code> in known errors.</li>
+<li>add <code>titiler.endpoints.factory.TMSFactory</code> to enable custom TMS endpoints.</li>
+<li><strong>breaking</strong> rename <code>BaseFactory</code> to <code>BaseTilerFactory</code> in <code>titiler.endpoints.factory</code></li>
+</ul>
+<h2 id="010a13-2020-12-20">0.1.0a13 (2020-12-20)<a class="headerlink" href="#010a13-2020-12-20" title="Permanent link">&para;</a></h2>
+<ul>
+<li>allow <code>API_DISABLE_{COG/STAC/MOSAIC}</code> environment variables to control default endpoints in titiler main app (<a class="magiclink magiclink-github magiclink-issue" href="https://github.com/developmentseed/titiler/issues/156" title="GitHub Issue: developmentseed/titiler#156">developmentseed/titiler#156</a>)</li>
+<li>add <code>overwriting=False/True</code> on MosaicJSON creation (<a class="magiclink magiclink-github magiclink-issue" href="https://github.com/developmentseed/titiler/issues/164" title="GitHub Issue: developmentseed/titiler#164">developmentseed/titiler#164</a>)</li>
+<li>add <code>gdal_config</code> option to Tiler factories to replace custom <code>APIRoute</code> class (<a class="magiclink magiclink-github magiclink-issue" href="https://github.com/developmentseed/titiler/issues/168" title="GitHub Issue: developmentseed/titiler#168">developmentseed/titiler#168</a>)</li>
+<li>add <code>info.geojson</code> endpoint to return dataset info as a GeoJSON feature (<a class="magiclink magiclink-github magiclink-issue" href="https://github.com/developmentseed/titiler/issues/166" title="GitHub Issue: developmentseed/titiler#166">developmentseed/titiler#166</a>)</li>
+<li>update <code>rio-tiler</code>, <code>cogeo-mosaic</code> and optional dependencies</li>
+</ul>
+<h2 id="010a12-2020-11-18">0.1.0a12 (2020-11-18)<a class="headerlink" href="#010a12-2020-11-18" title="Permanent link">&para;</a></h2>
+<ul>
+<li>require <code>rio-tiler&gt;=2.0.0rc2</code></li>
+<li>update Enums for Image types. (<strong>breaking</strong>)</li>
+<li>Add more output datatype (jpeg2000, pngraw)</li>
+<li>add <code>width/height</code> in <code>/crop</code> endpoint path</li>
+</ul>
+<div class="highlight"><pre><span></span><code>/crop/{minx},{miny},{maxx},{maxy}.{format}
+/crop/{minx},{miny},{maxx},{maxy}/{width}x{height}.{format}
+</code></pre></div>
+<h2 id="010a11post1-2020-11-12">0.1.0a11.post1 (2020-11-12)<a class="headerlink" href="#010a11post1-2020-11-12" title="Permanent link">&para;</a></h2>
+<ul>
+<li>relax version for rio-tiler and cogeo-mosaic</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="s2">&quot;rio-cogeo~=2.0&quot;</span>
+<span class="s2">&quot;rio-tiler&gt;=2.0.0rc1,&lt;2.1&quot;</span>
+<span class="s2">&quot;cogeo-mosaic&gt;=3.0.0a17,&lt;3.1&quot;</span>
+</code></pre></div>
+<h2 id="010a11-2020-11-12">0.1.0a11 (2020-11-12)<a class="headerlink" href="#010a11-2020-11-12" title="Permanent link">&para;</a></h2>
+<ul>
+<li>split <code>tile()</code> for <code>MosaicTilerFactory</code> method (<a class="magiclink magiclink-github magiclink-issue" href="https://github.com/developmentseed/titiler/issues/147" title="GitHub Issue: developmentseed/titiler#147">developmentseed/titiler#147</a>)</li>
+</ul>
+<h2 id="010a10-2020-11-09">0.1.0a10 (2020-11-09)<a class="headerlink" href="#010a10-2020-11-09" title="Permanent link">&para;</a></h2>
+<ul>
+<li>update for rio-tiler==2.0.0rc1, cogeo-mosaic==3.0.0a17 and morecantile==2.0</li>
+<li>split <code>tile()</code> factory method (<a class="magiclink magiclink-github magiclink-issue" href="https://github.com/developmentseed/titiler/issues/141" title="GitHub Issue: developmentseed/titiler#141">developmentseed/titiler#141</a>, author @fredliporace)</li>
+</ul>
+<h2 id="010a9-2020-10-26">0.1.0a9 (2020-10-26)<a class="headerlink" href="#010a9-2020-10-26" title="Permanent link">&para;</a></h2>
+<ul>
+<li>avoid changing mutable TMS and Colormap list by using deepcopy.</li>
+<li>quiet/turn off logs</li>
+<li>add logger middleware (<a class="magiclink magiclink-github magiclink-pull" href="https://github.com/developmentseed/titiler/pull/139" title="GitHub Pull Request: developmentseed/titiler!139">developmentseed/titiler!139</a>)</li>
+</ul>
+<h2 id="010a8-2020-10-13">0.1.0a8 (2020-10-13)<a class="headerlink" href="#010a8-2020-10-13" title="Permanent link">&para;</a></h2>
+<ul>
+<li>update for rio-tiler 2.0.0b17, which now support TMS (morecantile) by default.</li>
+<li>update fastapi minimum version to 0.61</li>
+</ul>
+<p><strong>breaking changes</strong></p>
+<ul>
+<li>removed TMSTilerFactory (because default reader built with rio_tiler BaseReader should support TMS).</li>
+</ul>
+<p>Note: We changed the versioning scheme to <code>{major}.{minor}.{path}{pre}{prenum}</code></p>
+<h2 id="010-alpha7-2020-10-13">0.1.0-alpha.7 (2020-10-13)<a class="headerlink" href="#010-alpha7-2020-10-13" title="Permanent link">&para;</a></h2>
+<ul>
+<li>remove <code>pkg_resources</code> (<a class="magiclink magiclink-github magiclink-issue" href="https://github.com/pypa/setuptools/issues/510" title="GitHub Issue: pypa/setuptools#510">pypa/setuptools#510</a>)</li>
+</ul>
+<h2 id="010-alpha6-2020-10-05">0.1.0-alpha.6 (2020-10-05)<a class="headerlink" href="#010-alpha6-2020-10-05" title="Permanent link">&para;</a></h2>
+<ul>
+<li>refactor CacheControl Middleware</li>
+<li>rename headers value <code>X-Server-Timings</code> to <code>Server-Timing</code>.</li>
+<li>add <code>total;dur={}</code> in response header <code>Server-Timing</code>, using new <code>titiler.middleware.TotalTimeMiddleware</code> middleware (113)</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">titiler.middleware</span> <span class="kn">import</span> <span class="n">CacheControlMiddleware</span><span class="p">,</span> <span class="n">TotalTimeMiddleware</span>
+<span class="kn">from</span> <span class="nn">fastapi</span> <span class="kn">import</span> <span class="n">FastAPI</span>
+
+<span class="n">app</span><span class="o">.</span><span class="n">add_middleware</span><span class="p">(</span><span class="n">CacheControlMiddleware</span><span class="p">,</span> <span class="n">cachecontrol</span><span class="o">=</span><span class="s2">&quot;public, max-age=3600&quot;</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">add_middleware</span><span class="p">(</span><span class="n">TotalTimeMiddleware</span><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li>Add Brotli compression support (#126, author @kylebarron)</li>
+<li>Numerous fix to CDK app.py (co-author @kylebarron)</li>
+</ul>
+<h2 id="010-alpha5-2020-09-22">0.1.0-alpha.5 (2020-09-22)<a class="headerlink" href="#010-alpha5-2020-09-22" title="Permanent link">&para;</a></h2>
+<ul>
+<li>exclude <code>tests/</code> an <code>stack/</code> in titiler python package.</li>
+<li>add <code>EPSG6933</code> in TMS</li>
+</ul>
+<p><strong>breaking changes</strong>
+* [FACTORY] the <code>additional_dependency</code> should be a Callable which return a dict.</p>
+<div class="codehilite"><pre><span></span><code>```python
+@dataclass  # type: ignore
+class BaseFactory(metaclass=abc.ABCMeta):
+    &quot;&quot;&quot;BaseTiler Factory.&quot;&quot;&quot;
+    ...
+    # provide custom dependency
+    additional_dependency: Callable[..., Dict] = field(default=lambda: dict())
+```
+
+```python
+def AssetsParams(
+    assets: Optional[str] = Query(
+        None,
+        title=&quot;Asset indexes&quot;,
+        description=&quot;comma (&#39;,&#39;) delimited asset names (might not be an available options of some readers)&quot;,
+    )
+) -&gt; Dict:
+    &quot;&quot;&quot;Assets Dependency.&quot;&quot;&quot;
+    kwargs = {}
+    if assets:
+        kwargs[&quot;assets&quot;] = assets.split(&quot;,&quot;)
+    return kwargs
+```
+</code></pre></div>
+
+<ul>
+<li>[FACTORY] remove <code>_</code> prefix in factory methods (e.g <code>_tile</code> -&gt; <code>tile</code>)</li>
+<li>
+<p>[FACTORY] refactor dependencies to better align with rio_tiler.io.BaseReader method definition.</p>
+<p>Example:</p>
+<p>In the <code>metadata</code>, the <code>MetadataParams</code> will be used to pass <code>pmin</code> and <code>pmax</code> because they are the only
+required parameters for the metadata method. All other params will be passed to a <code>kwargs</code> dict.</p>
+<p><div class="highlight"><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">MetadataParams</span><span class="p">(</span><span class="n">DefaultDependency</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Common Metadada parameters.&quot;&quot;&quot;</span>
+    <span class="c1"># Required params</span>
+    <span class="n">pmin</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Minimum percentile&quot;</span><span class="p">)</span>
+    <span class="n">pmax</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="mf">98.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Maximum percentile&quot;</span><span class="p">)</span>
+    <span class="c1"># Optional parameters</span>
+    <span class="n">bidx</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Band indexes&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;comma (&#39;,&#39;) delimited band indexes&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="o">...</span>
+    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Post Init.&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bidx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;indexes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+                <span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\d+&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bidx</span><span class="p">)</span>
+            <span class="p">)</span>
+    <span class="o">...</span>
+
+<span class="c1"># metadata method in factory</span>
+<span class="k">def</span> <span class="nf">metadata</span><span class="p">(</span>
+    <span class="n">src_path</span><span class="o">=</span><span class="n">Depends</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_dependency</span><span class="p">),</span>
+    <span class="n">metadata_params</span><span class="o">=</span><span class="n">Depends</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata_dependency</span><span class="p">),</span>
+    <span class="n">kwargs</span><span class="p">:</span> <span class="n">Dict</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">additional_dependency</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return metadata.&quot;&quot;&quot;</span>
+    <span class="n">reader</span> <span class="o">=</span> <span class="n">src_path</span><span class="o">.</span><span class="n">reader</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span>
+    <span class="k">with</span> <span class="n">reader</span><span class="p">(</span><span class="n">src_path</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">reader_options</span><span class="p">)</span> <span class="k">as</span> <span class="n">src_dst</span><span class="p">:</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">src_dst</span><span class="o">.</span><span class="n">metadata</span><span class="p">(</span>
+            <span class="n">metadata_params</span><span class="o">.</span><span class="n">pmin</span><span class="p">,</span>
+            <span class="n">metadata_params</span><span class="o">.</span><span class="n">pmax</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">metadata_params</span><span class="o">.</span><span class="n">kwargs</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">info</span>
+</code></pre></div>
+* [FACTORY] refactor dependencies definition
+<div class="highlight"><pre><span></span><code><span class="nd">@dataclass</span>  <span class="c1"># type: ignore</span>
+<span class="k">class</span> <span class="nc">BaseFactory</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;BaseTiler Factory.&quot;&quot;&quot;</span>
+
+    <span class="n">reader</span><span class="p">:</span> <span class="n">default_readers_type</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">COGReader</span><span class="p">)</span>
+    <span class="n">reader_options</span><span class="p">:</span> <span class="n">Dict</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+
+    <span class="c1"># FastAPI router</span>
+    <span class="n">router</span><span class="p">:</span> <span class="n">APIRouter</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">APIRouter</span><span class="p">)</span>
+
+    <span class="c1"># Path Dependency</span>
+    <span class="n">path_dependency</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">PathParams</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">PathParams</span><span class="p">)</span>
+
+    <span class="c1"># Rasterio Dataset Options (nodata, unscale, resampling)</span>
+    <span class="n">dataset_dependency</span><span class="p">:</span> <span class="n">default_deps_type</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">DatasetParams</span><span class="p">)</span>
+
+    <span class="c1"># Indexes/Expression Dependencies</span>
+    <span class="n">layer_dependency</span><span class="p">:</span> <span class="n">default_deps_type</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">BidxExprParams</span><span class="p">)</span>
+
+    <span class="c1"># Image rendering Dependencies</span>
+    <span class="n">render_dependency</span><span class="p">:</span> <span class="n">default_deps_type</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">RenderParams</span><span class="p">)</span>
+
+    <span class="c1"># TileMatrixSet dependency</span>
+    <span class="n">tms_dependency</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">TileMatrixSet</span><span class="p">]</span> <span class="o">=</span> <span class="n">WebMercatorTMSParams</span>
+
+    <span class="c1"># provide custom dependency</span>
+    <span class="n">additional_dependency</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="nb">dict</span><span class="p">())</span>
+</code></pre></div></p>
+</li>
+<li>
+<p>remove <code>PathParams.reader</code> attribute. This option was not used and would have been technically difficult to use.
+    <div class="highlight"><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">PathParams</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Create dataset path from args&quot;&quot;&quot;</span>
+
+    <span class="n">url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Dataset URL&quot;</span><span class="p">)</span>
+</code></pre></div></p>
+</li>
+</ul>
+<h2 id="010-alpha4-2020-09-14">0.1.0-alpha.4 (2020-09-14)<a class="headerlink" href="#010-alpha4-2020-09-14" title="Permanent link">&para;</a></h2>
+<ul>
+<li>
+<p>Update <code>.npy</code> output format to follow the numpyTile format (#103)</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
+
+<span class="n">endpoint</span> <span class="o">=</span> <span class="o">...</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://opendata.digitalglobe.com/events/mauritius-oil-spill/post-event/2020-08-12/105001001F1B5B00/105001001F1B5B00.tif&quot;</span>
+
+<span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">endpoint</span><span class="si">}</span><span class="s2">/cog/tiles/14/10818/9146.npy&quot;</span><span class="p">,</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="n">url</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="o">&gt;</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">)</span>
+</code></pre></div>
+</li>
+<li>
+<p>Add <code>titiler.custom.routing.apiroute_factory</code>. This function enable the creation of custom fastapi.routing.APIRoute class with <code>rasterio.Env()</code> block.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">fastapi</span> <span class="kn">import</span> <span class="n">FastAPI</span><span class="p">,</span> <span class="n">APIRouter</span>
+<span class="kn">from</span> <span class="nn">rasterio._env</span> <span class="kn">import</span> <span class="n">get_gdal_config</span>
+<span class="kn">from</span> <span class="nn">titiler.custom.routing</span> <span class="kn">import</span> <span class="n">apiroute_factory</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+<span class="n">route_class</span> <span class="o">=</span> <span class="n">apiroute_factory</span><span class="p">({</span><span class="s2">&quot;GDAL_DISABLE_READDIR_ON_OPEN&quot;</span><span class="p">:</span> <span class="s2">&quot;FALSE&quot;</span><span class="p">})</span>
+<span class="n">router</span> <span class="o">=</span> <span class="n">APIRouter</span><span class="p">(</span><span class="n">route_class</span><span class="o">=</span><span class="n">route_class</span><span class="p">)</span>
+
+<span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/simple&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">simple</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;should return FALSE.&quot;&quot;&quot;</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">get_gdal_config</span><span class="p">(</span><span class="s2">&quot;GDAL_DISABLE_READDIR_ON_OPEN&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;env&quot;</span><span class="p">:</span> <span class="n">res</span><span class="p">}</span>
+
+<span class="n">app</span><span class="o">.</span><span class="n">include_router</span><span class="p">(</span><span class="n">router</span><span class="p">)</span>
+</code></pre></div>
+<p>Note: This has only be tested for python 3.6 and 3.7.</p>
+</li>
+</ul>
+<h2 id="010-alpha3-2020-09-03">0.1.0-alpha.3 (2020-09-03)<a class="headerlink" href="#010-alpha3-2020-09-03" title="Permanent link">&para;</a></h2>
+<ul>
+<li>add custom <code>url_for</code> method in TilerFactory to retrieve <code>prefixed</code> endpoint URL (#95)</li>
+<li>remove magic <code>titiler.dependencies.PathParams</code> mosaicid path translation, where a user could pass <code>url=mosaicid://</code> to the endpoint.</li>
+<li>
+<p>switch to <code>pydantic.BaseSettings</code> for FastAPI application setting management.</p>
+<p>List of Settings:</p>
+<div class="highlight"><pre><span></span><code><span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;titiler&quot;</span>
+<span class="n">cors_origins</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;*&quot;</span>
+<span class="n">cachecontrol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;public, max-age=3600&quot;</span>
+</code></pre></div>
+</li>
+</ul>
+<p>API Settings can now be set by adding a <code>.env</code> file in your local project or by setting environment variables (e.g <code>API_CORS_ORIGIN="https://mywebsite.com/*"</code>)</p>
+<h2 id="010-alpha2-2020-09-01">0.1.0-alpha.2 (2020-09-01)<a class="headerlink" href="#010-alpha2-2020-09-01" title="Permanent link">&para;</a></h2>
+<ul>
+<li>add Transform and CRS information in <code>/part</code> GeoTIFF output</li>
+<li>pin <strong>rio-tiler-crs</strong> to <code>&gt;=3.0b4,&lt;3.1</code> and <strong>cogeo-mosaic</strong> to <code>&gt;=3.0a10,&lt;3.1</code></li>
+</ul>
+<h2 id="010-alpha1-2020-09-01">0.1.0-alpha.1 (2020-09-01)<a class="headerlink" href="#010-alpha1-2020-09-01" title="Permanent link">&para;</a></h2>
+<ul>
+<li>rename titiler.models.cog.py to titiler.models.dataset.py</li>
+<li>remove cog* prefix to Bounds, Info and Metadata models</li>
+<li>allow Union[str, int] for key in Metadata.statistics (as defined in rio-tiler-pds)</li>
+</ul>
+<p>e.g Create a Landsat 8 Tiler
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">titiler.endpoints.factory</span> <span class="kn">import</span> <span class="n">TilerFactory</span><span class="p">,</span> <span class="n">MosaicTilerFactory</span>
+<span class="kn">from</span> <span class="nn">titiler.dependencies</span> <span class="kn">import</span> <span class="n">BandsParams</span>
+
+<span class="kn">from</span> <span class="nn">rio_tiler_pds.landsat.aws.landsat8</span> <span class="kn">import</span> <span class="n">L8Reader</span>  <span class="c1"># Not in TiTiler dependencies</span>
+
+<span class="kn">from</span> <span class="nn">fastapi</span> <span class="kn">import</span> <span class="n">FastAPI</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Landsat Tiler&quot;</span><span class="p">,</span> <span class="n">openapi_url</span><span class="o">=</span><span class="s2">&quot;/api/v1/openapi.json&quot;</span><span class="p">)</span>
+<span class="n">scene</span> <span class="o">=</span> <span class="n">TilerFactory</span><span class="p">(</span>
+    <span class="n">reader</span><span class="o">=</span><span class="n">L8Reader</span><span class="p">,</span> <span class="n">additional_dependency</span><span class="o">=</span><span class="n">BandsParams</span><span class="p">,</span> <span class="n">router_prefix</span><span class="o">=</span><span class="s2">&quot;scenes&quot;</span>
+<span class="p">)</span>
+<span class="n">mosaic</span> <span class="o">=</span> <span class="n">MosaicTilerFactory</span><span class="p">(</span>
+    <span class="n">dataset_reader</span><span class="o">=</span><span class="n">L8Reader</span><span class="p">,</span>
+    <span class="n">additional_dependency</span><span class="o">=</span><span class="n">BandsParams</span><span class="p">,</span>
+    <span class="n">add_update</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">add_create</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">router_prefix</span><span class="o">=</span><span class="s2">&quot;mosaic&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">include_router</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">router</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;/scenes&quot;</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Scenes&quot;</span><span class="p">])</span>
+<span class="n">app</span><span class="o">.</span><span class="n">include_router</span><span class="p">(</span><span class="n">mosaic</span><span class="o">.</span><span class="n">router</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;/mosaic&quot;</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Mosaic&quot;</span><span class="p">])</span>
+</code></pre></div></p>
+<h2 id="01a0-2020-08-31">0.1a0 (2020-08-31)<a class="headerlink" href="#01a0-2020-08-31" title="Permanent link">&para;</a></h2>
+<p><strong>First release on pypi</strong></p>
+<h3 id="tiler-factory">Tiler Factory<a class="headerlink" href="#tiler-factory" title="Permanent link">&para;</a></h3>
+<p>For this release we created new Tiler Factories class which handle creation of FastAPI routers for a given rio_tiler <strong>Readers</strong>.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">titiler.endpoints.factory</span> <span class="kn">import</span> <span class="n">TilerFactory</span>
+<span class="kn">from</span> <span class="nn">rio_tiler.io</span> <span class="kn">import</span> <span class="n">COGReader</span><span class="p">,</span> <span class="n">STACReader</span>
+
+<span class="kn">from</span> <span class="nn">fastapi</span> <span class="kn">import</span> <span class="n">FastAPI</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+
+<span class="n">cog</span> <span class="o">=</span> <span class="n">TilerFactory</span><span class="p">()</span>
+<span class="n">app</span><span class="o">.</span><span class="n">include_router</span><span class="p">(</span><span class="n">cog</span><span class="o">.</span><span class="n">router</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Cloud Optimized GeoTIFF&quot;</span><span class="p">])</span>
+</code></pre></div>
+<h4 id="readers-tilematrixsets">Readers / TileMatrixSets<a class="headerlink" href="#readers-tilematrixsets" title="Permanent link">&para;</a></h4>
+<p>The <code>titiler.endpoints.factory.TilerFactory</code> class will create a tiler with <code>Web Mercator</code> as uniq supported Tile Matrix Set.</p>
+<p>For other TMS support, tiler needs to be created with <code>titiler.endpoints.factory.TMSTilerFactory</code> and with a TMS friendly reader (e.g <code>rio_tiler_crs.COGReader</code>).</p>
+<p><strong>Simple tiler with only Web Mercator support</strong>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">rio_tiler.io</span> <span class="kn">import</span> <span class="n">COGReader</span>
+
+<span class="kn">from</span> <span class="nn">titiler.endpoints</span> <span class="kn">import</span> <span class="n">factory</span>
+<span class="kn">from</span> <span class="nn">titiler.dependencies</span> <span class="kn">import</span> <span class="n">WebMercatorTMSParams</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">TilerFactory</span><span class="p">(</span><span class="n">reader</span><span class="o">=</span><span class="n">COGReader</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">app</span><span class="o">.</span><span class="n">tms_dependency</span> <span class="o">==</span> <span class="n">WebMercatorTMSParams</span>
+</code></pre></div></p>
+<p><strong>Tiler with more TMS support (from morecantile)</strong>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">rio_tiler_crs</span> <span class="kn">import</span> <span class="n">COGReader</span>
+
+<span class="kn">from</span> <span class="nn">titiler.endpoints</span> <span class="kn">import</span> <span class="n">factory</span>
+<span class="kn">from</span> <span class="nn">titiler.dependencies</span> <span class="kn">import</span> <span class="n">TMSParams</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">TMSTilerFactory</span><span class="p">(</span><span class="n">reader</span><span class="o">=</span><span class="n">COGReader</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">app</span><span class="o">.</span><span class="n">tms_dependency</span> <span class="o">==</span> <span class="n">TMSParams</span>
+</code></pre></div></p>
+<h3 id="other-changes">Other changes<a class="headerlink" href="#other-changes" title="Permanent link">&para;</a></h3>
+<ul>
+<li>add mosaic support  (#17 author @geospatial-jeff)</li>
+<li>update to rio-tiler-crs&gt;=3.0b* and rio-tiler&gt;=2.0b*</li>
+<li>Pin fastapi version to 0.60.1</li>
+<li>Remove titiler.core in favor of starlette settings (#55, author @geospatial-jeff)</li>
+<li>Add fastapi exception handlers (#56, author @geospatial-jeff)</li>
+<li>Remove intermediary routers (#57, author @geospatial-jeff)</li>
+<li>Remove /titiler/api submodule (e.g titiler.api.utils -&gt; titiler.utils)</li>
+<li>Add Cache-Control middleware. Endpoints do not define any cache-control headers. (part of #43, co-author with @geospatial-jeff)</li>
+<li>Add 'X-Assets' in response headers for mosaic tiles (#51)</li>
+<li>add cog validation via rio-cogeo (co-author with @geospatial-jeff, #37)</li>
+</ul>
+<h3 id="breaking-changes">Breaking changes<a class="headerlink" href="#breaking-changes" title="Permanent link">&para;</a></h3>
+<ul>
+<li>default tiler to Web Mercator only</li>
+<li>removed cache layer for tiles</li>
+<li>updated html templates</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="n">template_dir</span> <span class="o">=</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">resource_filename</span><span class="p">(</span><span class="s2">&quot;titiler&quot;</span><span class="p">,</span> <span class="s2">&quot;templates&quot;</span><span class="p">)</span>
+<span class="n">templates</span> <span class="o">=</span> <span class="n">Jinja2Templates</span><span class="p">(</span><span class="n">directory</span><span class="o">=</span><span class="n">template_dir</span><span class="p">)</span>
+
+<span class="n">cog_template</span> <span class="o">=</span> <span class="n">templates</span><span class="o">.</span><span class="n">TemplateResponse</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;cog_index.html&quot;</span><span class="p">,</span>
+    <span class="n">context</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;request&quot;</span><span class="p">:</span> <span class="n">request</span><span class="p">,</span>
+        <span class="s2">&quot;tilejson&quot;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">url_for</span><span class="p">(</span><span class="s2">&quot;cog_tilejson&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;metadata&quot;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">url_for</span><span class="p">(</span><span class="s2">&quot;cog_metadata&quot;</span><span class="p">),</span>
+    <span class="p">},</span>
+    <span class="n">media_type</span><span class="o">=</span><span class="s2">&quot;text/html&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">stac_template</span> <span class="o">=</span> <span class="n">templates</span><span class="o">.</span><span class="n">TemplateResponse</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;stac_index.html&quot;</span><span class="p">,</span>
+    <span class="n">context</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;request&quot;</span><span class="p">:</span> <span class="n">request</span><span class="p">,</span>
+        <span class="s2">&quot;tilejson&quot;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">url_for</span><span class="p">(</span><span class="s2">&quot;stac_tilejson&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;metadata&quot;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">url_for</span><span class="p">(</span><span class="s2">&quot;stac_info&quot;</span><span class="p">),</span>
+    <span class="p">},</span>
+    <span class="n">media_type</span><span class="o">=</span><span class="s2">&quot;text/html&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<h2 id="pre-pypi-releases">Pre Pypi releases<a class="headerlink" href="#pre-pypi-releases" title="Permanent link">&para;</a></h2>
+<h2 id="212-2020-06-24">2.1.2 (2020-06-24)<a class="headerlink" href="#212-2020-06-24" title="Permanent link">&para;</a></h2>
+<ul>
+<li>add <code>width</code> &amp; <code>height</code> parameters in API docs to force output size for part/preview endpoints.</li>
+<li>add <code>resampling_method</code> in API docs.</li>
+</ul>
+<p>link: <a class="magiclink magiclink-github magiclink-commit" href="https://github.com/developmentseed/titiler/commit/725da5fa1bc56d8e192ae8ff0ad107493ca93378" title="GitHub Commit: developmentseed/titiler@725da5f">developmentseed/titiler@725da5f</a></p>
+<h2 id="211-2020-06-22">2.1.1 (2020-06-22)<a class="headerlink" href="#211-2020-06-22" title="Permanent link">&para;</a></h2>
+<ul>
+<li>add minimum fastapi version (0.54.0) and update docker config</li>
+</ul>
+<p>link: <a class="magiclink magiclink-github magiclink-commit" href="https://github.com/developmentseed/titiler/commit/95b98a32ffb3274d546dd52f99a3920091029b4c" title="GitHub Commit: developmentseed/titiler@95b98a3">developmentseed/titiler@95b98a3</a></p>
+<h2 id="210-2020-06-11">2.1.0 (2020-06-11)<a class="headerlink" href="#210-2020-06-11" title="Permanent link">&para;</a></h2>
+<ul>
+<li>add <code>/preview</code>, <code>/crop</code>, <code>/point</code> endpoints</li>
+</ul>
+<p>link: <a class="magiclink magiclink-github magiclink-commit" href="https://github.com/developmentseed/titiler/commit/8b63fc6b6141b9c9361c95d80897d77b5e2d47c3" title="GitHub Commit: developmentseed/titiler@8b63fc6">developmentseed/titiler@8b63fc6</a></p>
+<h2 id="200-2020-06-09">2.0.0 (2020-06-09)<a class="headerlink" href="#200-2020-06-09" title="Permanent link">&para;</a></h2>
+<ul>
+<li>support STAC items (#16)</li>
+<li>better API documentation via response models</li>
+<li>update UI (<code>/stac/viewer</code>, <code>/cog/viewer</code>)</li>
+<li>re-order OpenAPI route tags</li>
+<li>update documentation</li>
+</ul>
+<p>link: <a class="magiclink magiclink-github magiclink-commit" href="https://github.com/developmentseed/titiler/commit/fa2cb78906b0fd88506b89bace8174969be8cd4f" title="GitHub Commit: developmentseed/titiler@fa2cb78">developmentseed/titiler@fa2cb78</a></p>
+<h2 id="100-2020-06-04">1.0.0 (2020-06-04)<a class="headerlink" href="#100-2020-06-04" title="Permanent link">&para;</a></h2>
+<p>Initial release</p>
+<p>link: <a class="magiclink magiclink-github magiclink-commit" href="https://github.com/developmentseed/titiler/commit/f4fdc02ea0235470589eeb34a4da8e5aae74e696" title="GitHub Commit: developmentseed/titiler@f4fdc02">developmentseed/titiler@f4fdc02</a></p>
+                
+              
+
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
+        
+          <a href="../contributing/" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Development - Contributing
+              </div>
+            </div>
+          </a>
+        
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+      </div>
+      
+  <div class="md-footer-social">
+    
+      
+      
+        
+        
+      
+      <a href="https://github.com/developmentseed" target="_blank" rel="noopener" title="github.com" class="md-footer-social__link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+      </a>
+    
+      
+      
+        
+        
+      
+      <a href="https://twitter.com/developmentseed" target="_blank" rel="noopener" title="twitter.com" class="md-footer-social__link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+      </a>
+    
+      
+      
+        
+        
+      
+      <a href="https://medium.com/devseed" target="_blank" rel="noopener" title="medium.com" class="md-footer-social__link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M0 32v448h448V32H0zm372.2 106.1l-24 23c-2.1 1.6-3.1 4.2-2.7 6.7v169.3c-.4 2.6.6 5.2 2.7 6.7l23.5 23v5.1h-118V367l24.3-23.6c2.4-2.4 2.4-3.1 2.4-6.7V199.8l-67.6 171.6h-9.1L125 199.8v115c-.7 4.8 1 9.7 4.4 13.2l31.6 38.3v5.1H71.2v-5.1l31.6-38.3c3.4-3.5 4.9-8.4 4.1-13.2v-133c.4-3.7-1-7.3-3.8-9.8L75 138.1V133h87.3l67.4 148L289 133.1h83.2v5z"/></svg>
+      </a>
+    
+  </div>
+
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../assets/javascripts/vendor.53cc9318.min.js"></script>
+      <script src="../assets/javascripts/bundle.e9c9f54f.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}</script>
+      
+      <script>
+        app = initialize({
+          base: "..",
+          features: [],
+          search: Object.assign({
+            worker: "../assets/javascripts/worker/search.9c0e82ba.min.js"
+          }, typeof search !== "undefined" && search)
+        })
+      </script>
+      
+    
+  </body>
+</html>
