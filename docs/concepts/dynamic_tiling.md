@@ -12,7 +12,7 @@ Before, to be able to visualize raster data on a web map, we needed to:
 * rescale the data to integer (0 -> 255)
 * reproject the data to Web Mercator (or the projection of the web map application)
 * split the data in tiles (256x256 or 512x512) and create different zoom levels (ref: https://gdal.org/programs/gdal2tiles.html)
-* create a tile server which reads the tiles from a directory/cloud storage
+* create a tile server that reads the tiles from a directory/cloud storage
 
 
 ## Dynamic tiling steps
