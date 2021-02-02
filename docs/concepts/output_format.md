@@ -18,7 +18,7 @@ Default output types/extensions are:
 
 ## NumpyTile
 
-While `.tif` could be interesting, decoding the `GeoTIFF` format requires non-native/default libraries. Recently, in colaboration with Planet, we started exploring the use of Python [`Numpy Format`](https://numpy.org/devdocs/reference/generated/numpy.lib.format.html#format-version-1-0) to encode the data array.
+While `.tif` could be interesting, decoding the `GeoTIFF` format requires non-native/default libraries. Recently, in collaboration with Planet, we started exploring the use of a [`Numpy-native format`](https://numpy.org/devdocs/reference/generated/numpy.lib.format.html#format-version-1-0) to encode the data array.
 
 https://github.com/planetlabs/numpytiles-spec
 
