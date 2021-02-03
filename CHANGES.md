@@ -4,6 +4,7 @@
 
 * update FastAPI requirements
 * add `validate` in `MosaicTilerFactory` (https://github.com/developmentseed/titiler/pull/206, author @drnextgis)
+* rename `ressources` package to `resources` (https://github.com/developmentseed/titiler/pull/210, author @drnextgis)
 
 ## 0.1.0a14 (2021-01-05)
 
