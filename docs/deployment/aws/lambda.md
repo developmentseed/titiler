@@ -20,7 +20,7 @@ The Lambda stack is also deployed by the [AWS CDK](https://aws.amazon.com/cdk/) 
     $ git clone https://github.com/developmentseed/titiler.git
 
     # install cdk dependencies
-    $ cd titiler/deployment/AWS && pip install -r requirements.txt
+    $ cd titiler/deployment/aws && pip install -r requirements.txt
     $ npm install aws-cdk@1.76.0 -g
 
     $ cdk bootstrap # Deploys the CDK toolkit stack into an AWS environment
@@ -38,9 +38,9 @@ The Lambda stack is also deployed by the [AWS CDK](https://aws.amazon.com/cdk/) 
 3. Update settings (see [intro.md](intro.md))
 
     ```bash
-    export STACK_NAME="mytiler"
-    export STACK_STAGE="dev"
-    export STACK_MEMORY=512
+    export TITILER_STACK_NAME="mytiler"
+    export TITILER_STACK_STAGE="dev"
+    export TITILER_STACK_MEMORY=512
     ```
 
     Available settings for AWS Lambda:

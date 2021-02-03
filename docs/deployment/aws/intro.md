@@ -6,23 +6,23 @@ Example of of AWS deployments can be found in https://github.com/developmentseed
 
 Deployment settings are managed via [pydantic.BaseSettings](https://pydantic-docs.helpmanual.io/usage/settings/) and stored in [config.py](https://github.com/developmentseed/titiler/blob/master/stack/config.py). Pydantic BaseSettings can receive input to overwrite the default value from `.env` file or from environment variables.
 
-Variables in `.env` or in environment variable need to be prefixed with `STACK_`:
+Variables in `.env` or in environment variable need to be prefixed with `TITILER_STACK_`:
 
 
 ```bash
-STACK_NAME="my-tiler"
-STACK_STAGE="dev"
+TITILER_STACK_NAME="my-tiler"
+TITILER_STACK_STAGE="dev"
 
-STACK_BUCKETS='["my-bucket*", "*"]'
-STACK_MOSAIC_HOST="my-bucket/mosaics"
+TITILER_STACK_BUCKETS='["my-bucket*", "*"]'
+TITILER_STACK_MOSAIC_HOST="my-bucket/mosaics"
 
-STACK_MEMORY=3008
+TITILER_STACK_MEMORY=3008
 
 # Uncomment to allow lambda to access content on requester-payer buckets
-# STACK_ADDITIONAL_ENV='{"AWS_REQUEST_PAYER":"requester"}'
+# TITILER_STACK_ADDITIONAL_ENV='{"AWS_REQUEST_PAYER":"requester"}'
 
 # Uncomment if you only on the /cog endpoint
-# STACK_ADDITIONAL_ENV='{"API_DISABLE_STAC": "TRUE", "API_DISABLE_MOSAIC": "TRUE"}'
+# TITILER_STACK_ADDITIONAL_ENV='{"TITILER_API_DISABLE_STAC": "TRUE", "TITILER_API_DISABLE_MOSAIC": "TRUE"}'
 ```
 
 Default values from [config.py](https://github.com/developmentseed/titiler/blob/master/deployment/aws/cdk/config.py):

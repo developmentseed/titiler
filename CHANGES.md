@@ -5,6 +5,7 @@
 * update FastAPI requirements
 * add `validate` in `MosaicTilerFactory` (https://github.com/developmentseed/titiler/pull/206, author @drnextgis)
 * rename `ressources` package to `resources` (https://github.com/developmentseed/titiler/pull/210, author @drnextgis)
+* ```TITILER_STACK``` as prefix to CDK; ```TITILER_API``` as prefix to API (https://github.com/developmentseed/titiler/pull/211, author @fredliporace)
 
 ## 0.1.0a14 (2021-01-05)
 

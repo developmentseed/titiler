@@ -24,4 +24,4 @@ class ApiSettings(pydantic.BaseSettings):
         """model config"""
 
         env_file = ".env"
-        env_prefix = "API_"
+        env_prefix = "TITILER_API_"
