@@ -3,7 +3,7 @@
 import pytest
 from rio_tiler.profiles import img_profiles
 
-from titiler.ressources.enums import ImageType
+from titiler.resources.enums import ImageType
 
 
 @pytest.mark.parametrize(

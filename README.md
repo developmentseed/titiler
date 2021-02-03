@@ -114,7 +114,7 @@ titiler/                         - titiler python module.
  │   ├── factory.py              - TiTiler Router Factories.
  │   └── tms.py                  - TileMatrixSets endpoints.
  ├── models/                     - pydantic models for this application.
- ├── ressources/                 - application resources (enums, constants, etc.).
+ ├── resources/                  - application resources (enums, constants, etc.).
  ├── templates/                  - html/xml models.
  ├── middleware.py               - Custom Starlette middlewares.
  ├── dependencies.py             - API dependencies.
