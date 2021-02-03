@@ -9,10 +9,13 @@ from . import settings
 from .endpoints import cog, mosaic, stac, tms
 from .errors import DEFAULT_STATUS_CODES, add_exception_handlers
 from .middleware import CacheControlMiddleware, LoggerMiddleware, TotalTimeMiddleware
+from .templates import templates
 
 from fastapi import FastAPI
 
 from starlette.middleware.cors import CORSMiddleware
+from starlette.requests import Request
+from starlette.responses import HTMLResponse
 
 logging.getLogger("botocore.credentials").disabled = True
 logging.getLogger("botocore.utils").disabled = True
@@ -58,7 +61,15 @@ if api_settings.debug:
     app.add_middleware(LoggerMiddleware)
 
 
-@app.get("/ping", description="Health Check", tags=["Health Check"])
+@app.get("/healthz", description="Health Check", tags=["Health Check"])
 def ping():
     """Health check."""
     return {"ping": "pong!"}
+
+
+@app.get("/", response_class=HTMLResponse, include_in_schema=False)
+def landing(request: Request):
+    """TiTiler Landing page"""
+    return templates.TemplateResponse(
+        name="index.html", context={"request": request}, media_type="text/html",
+    )

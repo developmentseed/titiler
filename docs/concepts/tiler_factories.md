@@ -1,5 +1,5 @@
 
-Tiler factories (`titiler.endpoints.factory.TilerFactory|MosaicTilerFactory`) are helper functions that let users create FastAPI router (`fastapi.APIRouter`) with minimal set of endpoints.
+Tiler factories (`titiler.endpoints.factory.TilerFactory|MosaicTilerFactory`) are helper functions that let users create a FastAPI router (`fastapi.APIRouter`) with a minimal set of endpoints.
 
 #### TilerFactory
 
@@ -32,6 +32,6 @@ Tiler factories (`titiler.endpoints.factory.TilerFactory|MosaicTilerFactory`) ar
 | `GET`  | `/point/{lon},{lat}`                                            | JSON      | return pixel value from a MosaicJSON dataset
 
 
-**Factories** are built around [`rio_tiler.io.BaseReader`](https://cogeotiff.github.io/rio-tiler/advanced/custom_readers/), which define basics method to access datasets (e.g COG or STAC). The default reader is `COGReader` for `TilerFactory` and `MosaicBackend` for `MosaicTilerFactory`.
+**Factories** are built around [`rio_tiler.io.BaseReader`](https://cogeotiff.github.io/rio-tiler/advanced/custom_readers/), which defines basic methods to access datasets (e.g COG or STAC). The default reader is `COGReader` for `TilerFactory` and `MosaicBackend` for `MosaicTilerFactory`.
 
 Factories classes use [dependencies injection](dependencies.md) to define most of the endpoint options.

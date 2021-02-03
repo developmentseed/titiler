@@ -3,6 +3,8 @@ site_description: A lightweight service for creating map tiles from Cloud-Optimi
 
 repo_name: "developmentseed/titiler"
 repo_url: "https://github.com/developmentseed/titiler"
+edit_uri: "blob/master/docs/"
+site_url: "https://developmentseed.org/titiler/"
 
 extra:
   social:
@@ -20,7 +22,7 @@ nav:
     - Dynamic Tiling: "concepts/dynamic_tiling.md"
     - Mosaics: "concepts/mosaics.md"
     - TileMatrixSets: "concepts/tile_matrix_sets.md"
-    - Ouput data format: "concepts/output_format.md"
+    - Output data format: "concepts/output_format.md"
 
   - Default Endpoints:
     - /cog: "endpoints/cog.md"

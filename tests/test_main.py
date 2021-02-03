@@ -2,8 +2,8 @@
 
 
 def test_health(app):
-    """Test /ping endpoint."""
-    response = app.get("/ping")
+    """Test /healthz endpoint."""
+    response = app.get("/healthz")
     assert response.status_code == 200
     assert response.json() == {"ping": "pong!"}
     assert response.headers["server-timing"]

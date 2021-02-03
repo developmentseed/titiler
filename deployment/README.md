@@ -1,5 +1,5 @@
 ## Deployment
 
-**Amazon Web Services** - [/AWS](/deployment/AWS)
+**Amazon Web Services** - [/aws](/deployment/aws)
 
 **Kubernetes/Helm** - [k8s](/deployment/k8s)

@@ -35,8 +35,8 @@ from ..errors import BadRequestError
 from ..models.mapbox import TileJSON
 from ..models.mosaic import CreateMosaicJSON, UpdateMosaicJSON
 from ..models.OGC import TileMatrixSetList
-from ..ressources.enums import ImageType, MimeTypes, PixelSelectionMethod
-from ..ressources.responses import GeoJSONResponse, XMLResponse
+from ..resources.enums import ImageType, MimeTypes, PixelSelectionMethod
+from ..resources.responses import GeoJSONResponse, XMLResponse
 from ..templates import templates
 
 from fastapi import APIRouter, Depends, Path, Query
@@ -721,6 +721,7 @@ class MosaicTilerFactory(BaseTilerFactory):
         self.tilejson()
         self.wmts()
         self.point()
+        self.validate()
 
     ############################################################################
     # /read
@@ -1160,6 +1161,14 @@ class MosaicTilerFactory(BaseTilerFactory):
             )
 
             return {"coordinates": [lon, lat], "values": values}
+
+    def validate(self):
+        """Register /validate endpoint."""
+
+        @self.router.post("/validate")
+        def validate(body: MosaicJSON):
+            """Validate a MosaicJSON"""
+            return True
 
 
 @dataclass

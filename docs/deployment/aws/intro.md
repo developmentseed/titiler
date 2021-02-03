@@ -1,6 +1,6 @@
 # Amazon Web Services deployments
 
-Example of of AWS deployments can be found in https://github.com/developmentseed/titiler/tree/master/deployment/AWS. Those examples use [AWS Cloud Development Kit](https://aws.amazon.com/cdk/) to define stacks using python code.
+Example of of AWS deployments can be found in https://github.com/developmentseed/titiler/tree/master/deployment/aws. Those examples use [AWS Cloud Development Kit](https://aws.amazon.com/cdk/) to define stacks using python code.
 
 # Configuration/Settings
 

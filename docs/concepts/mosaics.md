@@ -1,7 +1,7 @@
 
 ![](../img/africa_mosaic.png)
 
-`Titiler` has a native support for reading and creating web map tile from **MosaicJSON**.
+`Titiler` has native support for reading and creating web map tiles from **MosaicJSON**.
 
 > MosaicJSON is an open standard for representing metadata about a mosaic of Cloud-Optimized GeoTIFF (COG) files.
 

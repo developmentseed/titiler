@@ -1,10 +1,10 @@
 
 `TiTiler` supports the common output format for map tiles: JPEG, PNG and WEBP.
 
-While some format (e.g PNG) are able to encode Uint16 or Float datatypes, most web browser only supports 8 bytes data (meaning that it has to be between 0 and 255).
+While some formats (e.g PNG) are able to encode Uint16 or Float datatypes, most web browsers only supports 8 bit data (meaning that it has to be between 0 and 255).
 It's on the user to know what datatype is the input source (COG), and what kind of `post processing` there is to do to create a valid web map tile.
 
-`TiTiler` has also support for more complex output data format, such as JPEG2000 or GeoTIFF. While it might not be useful for FrontEnd display (most broswer can't decode GeoTIFF natively), some user could want to transmit the data as `raw` values to some applications (non-web display).
+`TiTiler` also has support for more complex output data formats, such as JPEG2000 or GeoTIFF. While it might not be useful for FrontEnd display (most browsers can't decode GeoTIFF natively), some users could want to transmit the data as `raw` values to some applications (non-web display).
 
 Default output types/extensions are:
 
@@ -18,7 +18,7 @@ Default output types/extensions are:
 
 ## NumpyTile
 
-While `.tif` could be interesting, decoding the `GeoTIFF` format in requires non-native/default libraries. Recently, in colaboration with Planet, we started exploring the use of Python [`Numpy Format`](https://numpy.org/devdocs/reference/generated/numpy.lib.format.html#format-version-1-0) to encode the data array.
+While `.tif` could be interesting, decoding the `GeoTIFF` format requires non-native/default libraries. Recently, in collaboration with Planet, we started exploring the use of a [`Numpy-native format`](https://numpy.org/devdocs/reference/generated/numpy.lib.format.html#format-version-1-0) to encode the data array.
 
 https://github.com/planetlabs/numpytiles-spec
 
@@ -47,4 +47,3 @@ data, mask = data[0:-1], data[-1]
 ```
 
 See the notebook: [/examples/Working_with_NumpyTile.ipynb](/examples/Working_with_NumpyTile)
-

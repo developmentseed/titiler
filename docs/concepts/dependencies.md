@@ -1,7 +1,7 @@
 
-If you are new the concept of **Dependency Injection**, please checkout this awesome tutorial: https://fastapi.tiangolo.com/tutorial/dependencies/
+If you are new to the concept of **Dependency Injection**, please read this awesome tutorial: https://fastapi.tiangolo.com/tutorial/dependencies/
 
-In titiler `Factories`, we use the dependencies to define the inputs for each endpoints (and thus the OpenAPI documention).
+In titiler `Factories`, we use the dependencies to define the inputs for each endpoint (and thus the OpenAPI documention).
 
 Example:
 ```python
@@ -47,7 +47,7 @@ The `factories` allow users to set multiple default dependencies. Here is the li
         url: str = Query(..., description="Dataset URL")
     ```
 
-* **tms_dependency**: The TMS dependency set the available TMS for a tile endpoint.
+* **tms_dependency**: The TMS dependency sets the available TMS for a tile endpoint.
     ```python
     # Allow all morecantile TMS
     def TMSParams(
@@ -97,7 +97,7 @@ The `factories` allow users to set multiple default dependencies. Here is the li
                 self.kwargs["expression"] = self.expression
     ```
 
-* **dataset_dependency**: Overwride nodata value, apply rescaling or change default resampling.
+* **dataset_dependency**: Overwrite nodata value, apply rescaling or change default resampling.
     ```python
     @dataclass
     class DatasetParams(DefaultDependency):
@@ -155,7 +155,7 @@ The `factories` allow users to set multiple default dependencies. Here is the li
             self.colormap = cmap.get(self.color_map.value) if self.color_map else None
     ```
 
-* **additional_dependency**: Default dependency, will be passed are `**kwargs` to all endpoints.
+* **additional_dependency**: Default dependency, will be passed as `**kwargs` to all endpoints.
 
     ```python
     additional_dependency: Callable[..., Dict] = field(default=lambda: dict())

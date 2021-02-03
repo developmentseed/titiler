@@ -53,11 +53,11 @@ Note: This project is the descendant of [`cogeo-tiler`](https://github.com/devel
 $ pip install -U pip
 
 # From Pypi
-$ pip install titiler["server"]
+$ pip install titiler
 
 # Or from sources
 $ git clone https://github.com/developmentseed/titiler.git
-$ cd titiler && pip install -e .["server"]
+$ cd titiler && pip install -e .
 ```
 
 Launch Application
@@ -100,7 +100,7 @@ docker run --name titiler \
     --rm -it public.ecr.aws/s2n1v5w1/titiler
 ```
 
-Some options can be set via environement variables, see: https://github.com/tiangolo/uvicorn-gunicorn-docker#advanced-usage
+Some options can be set via environment variables, see: https://github.com/tiangolo/uvicorn-gunicorn-docker#advanced-usage
 
 ## Project structure
 
@@ -114,28 +114,15 @@ titiler/                         - titiler python module.
  │   ├── factory.py              - TiTiler Router Factories.
  │   └── tms.py                  - TileMatrixSets endpoints.
  ├── models/                     - pydantic models for this application.
- ├── ressources/                 - application resources (enums, constants, etc.).
+ ├── resources/                  - application resources (enums, constants, etc.).
  ├── templates/                  - html/xml models.
  ├── middleware.py               - Custom Starlette middlewares.
  ├── dependencies.py             - API dependencies.
  ├── errors.py                   - API custom error handling.
  ├── main.py                     - FastAPI application creation and configuration.
  ├── settings.py                 - application configuration.
- ├── utils.py                    - utility functions.
- │
-stack/
- ├── app.py                      - AWS Stack definition (vpc, cluster, ecs, alb ...)
- ├── config.py                   - Optional parameters for the stack definition [EDIT THIS]
- │
-Dockerfiles/
- ├── Dockerfile                  - Dockerfile to build the ECS service image.
- ├── lambda.package              - Dockerfile to build the Lambda service package.
- ├── lambda.container            - Dockerfile to build the Lambda service container.
- │
-lambda/
- │   └── handler.py              - Mangum adaptor for AWS Lambda.
- │
-docs/                            - Project documentation.
+ └── utils.py                    - utility functions.
+
 ```
 
 ## Contribution & Development
