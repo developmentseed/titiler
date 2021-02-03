@@ -35,8 +35,8 @@ from ..errors import BadRequestError
 from ..models.mapbox import TileJSON
 from ..models.mosaic import CreateMosaicJSON, UpdateMosaicJSON
 from ..models.OGC import TileMatrixSetList
-from ..ressources.enums import ImageType, MimeTypes, PixelSelectionMethod
-from ..ressources.responses import GeoJSONResponse, XMLResponse
+from ..resources.enums import ImageType, MimeTypes, PixelSelectionMethod
+from ..resources.responses import GeoJSONResponse, XMLResponse
 from ..templates import templates
 
 from fastapi import APIRouter, Depends, Path, Query

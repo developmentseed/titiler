@@ -11,7 +11,7 @@ from rio_tiler.models import Info, Metadata
 
 from .. import utils
 from ..dependencies import DefaultDependency
-from ..ressources.responses import GeoJSONResponse
+from ..resources.responses import GeoJSONResponse
 from ..templates import templates
 from .factory import TilerFactory
 
