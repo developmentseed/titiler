@@ -38,9 +38,9 @@ The Lambda stack is also deployed by the [AWS CDK](https://aws.amazon.com/cdk/) 
 3. Update settings (see [intro.md](intro.md))
 
     ```bash
-    export TITILER_PROJECT="mytiler"
-    export TITILER_STAGE="dev"
-    export TITILER_MEMORY=512
+    export TITILER_STACK_NAME="mytiler"
+    export TITILER_STACK_STAGE="dev"
+    export TITILER_STACK_MEMORY=512
     ```
 
     Available settings for AWS Lambda:

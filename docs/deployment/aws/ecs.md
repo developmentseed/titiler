@@ -34,9 +34,9 @@ The example handles tasks such as generating a docker image and setting up an ap
 3. Update settings (see [intro.md](intro.md))
 
     ```bash
-    export TITILER_PROJECT="mytiler"
-    export TITILER_STAGE="dev"
-    export TITILER_MIN_ECS_INSTANCES=10
+    export TITILER_STACK_NAME="mytiler"
+    export TITILER_STACK_STAGE="dev"
+    export TITILER_STACK_MIN_ECS_INSTANCES=10
     ```
 
     Available settings for ECS:
