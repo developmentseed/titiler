@@ -11,7 +11,7 @@ inst_reqs = [
     "python-dotenv",
     "morecantile",
     "rio-cogeo>=2.1,<2.2",
-    "rio-tiler>=2.0.0rc4,<2.1",
+    "rio-tiler>=2.0.0,<2.1",
     "cogeo-mosaic>=3.0.0b1,<3.1",
     "rasterio",
     "pydantic",
