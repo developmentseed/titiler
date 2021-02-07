@@ -20,19 +20,20 @@ The Lambda stack is also deployed by the [AWS CDK](https://aws.amazon.com/cdk/) 
     $ git clone https://github.com/developmentseed/titiler.git
 
     # install cdk dependencies
-    $ cd titiler/deployment/aws && pip install -r requirements.txt
-    $ npm install aws-cdk@1.76.0 -g
+    $ cd titiler/deployment/aws
+    $ pip install -r requirements.txt
+    $ npm install
 
-    $ cdk bootstrap # Deploys the CDK toolkit stack into an AWS environment
+    $ npm run cdk bootstrap # Deploys the CDK toolkit stack into an AWS environment
 
     # in specific region
-    $ cdk bootstrap aws://${AWS_ACCOUNT_ID}/eu-central-1
+    $ npm run cdk bootstrap aws://${AWS_ACCOUNT_ID}/eu-central-1
     ```
 
 2. Pre-Generate CFN template
 
     ```bash
-    $ cdk synth  # Synthesizes and prints the CloudFormation template for this stack
+    $ npm run cdk synth  # Synthesizes and prints the CloudFormation template for this stack
     ```
 
 3. Update settings (see [intro.md](intro.md))
@@ -57,8 +58,8 @@ The Lambda stack is also deployed by the [AWS CDK](https://aws.amazon.com/cdk/) 
 4. Deploy
 
     ```bash
-    $ cdk deploy mytiler-lambda-dev # Deploys the stack(s) titiler-lambda-dev in cdk/app.py
+    $ npm run cdk deploy mytiler-lambda-dev # Deploys the stack(s) titiler-lambda-dev in cdk/app.py
 
     # Deploy in specific region
-    $ AWS_DEFAULT_REGION=eu-central-1 AWS_REGION=eu-central-1 cdk deploy mytiler-lambda-dev
+    $ AWS_DEFAULT_REGION=eu-central-1 AWS_REGION=eu-central-1 npm run cdk deploy mytiler-lambda-dev
     ```
