@@ -1,0 +1,13 @@
+{
+  "name": "cdk-deploy",
+  "version": "0.1.0",
+  "description": "Dependencies for CDK deployment",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "cdk": "1.76.0"
+  },
+  "scripts": {
+    "cdk": "cdk"
+  }
+}
