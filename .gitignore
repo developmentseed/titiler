@@ -1,3 +1,5 @@
+node_modules
+
 # Lambda deployment package
 package.zip
 
