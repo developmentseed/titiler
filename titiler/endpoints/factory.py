@@ -702,6 +702,7 @@ class MosaicTilerFactory(BaseTilerFactory):
 
         """
 
+        self.read()
         self.bounds()
         self.info()
         self.tile()

@@ -300,6 +300,7 @@ class CustomMosaicFactory(MosaicTilerFactory):
 
     def register_routes(self):
         """Update the class method to add create/update"""
+        self.read()
         self.bounds()
         self.info()
         self.tile()
