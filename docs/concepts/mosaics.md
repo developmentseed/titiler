@@ -9,6 +9,7 @@ Ref: https://github.com/developmentseed/mosaicjson-spec
 
 [TODO]
 
+
 ### Links
 
 - https://medium.com/devseed/cog-talk-part-2-mosaics-bbbf474e66df

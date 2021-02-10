@@ -189,38 +189,6 @@ if settings.buckets:
         )
     )
 
-################################################################################
-# MOSAIC - By default TiTiler has endpoints for write/read mosaics,
-# If you are planning to use thoses your need to add policies for your mosaic backend.
-#
-# AWS S3 backend
-# perms.append(
-#     iam.PolicyStatement(
-#         actions=[
-#             "s3:PutObject", # Write
-#             "s3:HeadObject",
-#             "s3:GetObject"
-#         ],
-#         resources=["arn:aws:s3:::{YOUR-BUCKET}*"],
-#     )
-# )
-#
-# AWS DynamoDB backend
-# stack = core.Stack()
-# perms.append(
-#     iam.PolicyStatement(
-#         actions=[
-#             "dynamodb:GetItem",
-#             "dynamodb:Scan",
-#             "dynamodb:PutItem",         # Write
-#             "dynamodb:CreateTable",     # Write
-#             "dynamodb:BatchWriteItem",  # Write
-#             "dynamodb:DescribeTable",   # Write
-#         ],
-#         resources=[f"arn:aws:dynamodb:{stack.region}:{stack.account}:table/*"],
-#     )
-# )
-
 
 # Tag infrastructure
 for key, value in {

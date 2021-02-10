@@ -10,7 +10,6 @@ import rasterio
 from cogeo_mosaic.backends import BaseBackend, MosaicBackend
 from cogeo_mosaic.models import Info as mosaicInfo
 from cogeo_mosaic.mosaic import MosaicJSON
-from cogeo_mosaic.utils import get_footprints
 from geojson_pydantic.features import Feature
 from morecantile import TileMatrixSet
 from rio_tiler.constants import MAX_THREADS
@@ -31,9 +30,7 @@ from ..dependencies import (
     TMSParams,
     WebMercatorTMSParams,
 )
-from ..errors import BadRequestError
 from ..models.mapbox import TileJSON
-from ..models.mosaic import CreateMosaicJSON, UpdateMosaicJSON
 from ..models.OGC import TileMatrixSetList
 from ..resources.enums import ImageType, MimeTypes, PixelSelectionMethod
 from ..resources.responses import GeoJSONResponse, XMLResponse
@@ -695,10 +692,6 @@ class MosaicTilerFactory(BaseTilerFactory):
     # BaseBackend does not support other TMS than WebMercator
     tms_dependency: Callable[..., TileMatrixSet] = WebMercatorTMSParams
 
-    # Add/Remove some endpoints
-    add_create: bool = True
-    add_update: bool = True
-
     def register_routes(self):
         """
         This Method register routes to the router.
@@ -708,12 +701,6 @@ class MosaicTilerFactory(BaseTilerFactory):
         the class method and register them after the class initialisation.
 
         """
-
-        self.read()
-        if self.add_create:
-            self.create()
-        if self.add_update:
-            self.update()
 
         self.bounds()
         self.info()
@@ -739,59 +726,6 @@ class MosaicTilerFactory(BaseTilerFactory):
             """Read a MosaicJSON"""
             with self.reader(src_path.url) as mosaic:
                 return mosaic.mosaic_def
-
-    ############################################################################
-    # /create
-    ############################################################################
-    def create(self):
-        """Register / (POST) Create endpoint."""
-
-        @self.router.post(
-            "", response_model=MosaicJSON, response_model_exclude_none=True
-        )
-        def create(body: CreateMosaicJSON):
-            """Create a MosaicJSON"""
-            mosaic = MosaicJSON.from_urls(
-                body.files,
-                minzoom=body.minzoom,
-                maxzoom=body.maxzoom,
-                max_threads=body.max_threads,
-            )
-            src_path = self.path_dependency(body.url)
-            with rasterio.Env(**self.gdal_config):
-                with self.reader(
-                    src_path.url, mosaic_def=mosaic, reader=self.dataset_reader
-                ) as mosaic:
-                    try:
-                        mosaic.write(overwrite=body.overwrite)
-                    except NotImplementedError:
-                        raise BadRequestError(
-                            f"{mosaic.__class__.__name__} does not support write operations"
-                        )
-                    return mosaic.mosaic_def
-
-    ############################################################################
-    # /update
-    ############################################################################
-    def update(self):
-        """Register / (PUST) Update endpoint."""
-
-        @self.router.put(
-            "", response_model=MosaicJSON, response_model_exclude_none=True
-        )
-        def update_mosaicjson(body: UpdateMosaicJSON):
-            """Update an existing MosaicJSON"""
-            src_path = self.path_dependency(body.url)
-            with rasterio.Env(**self.gdal_config):
-                with self.reader(src_path.url, reader=self.dataset_reader) as mosaic:
-                    features = get_footprints(body.files, max_threads=body.max_threads)
-                    try:
-                        mosaic.update(features, add_first=body.add_first, quiet=True)
-                    except NotImplementedError:
-                        raise BadRequestError(
-                            f"{mosaic.__class__.__name__} does not support update operations"
-                        )
-                    return mosaic.mosaic_def
 
     ############################################################################
     # /bounds
