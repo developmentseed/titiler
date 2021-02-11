@@ -19,8 +19,6 @@ app.include_router(mosaic.router, prefix="/mosaicjson", tags=["MosaicJSON"])
 | Method | URL                                                             | Output    | Description
 | ------ | --------------------------------------------------------------- |---------- |--------------
 | `GET`  | `/mosaicjson/`                                                             | JSON      | return a MosaicJSON document
-| `POST` | `/mosaicjson/`                                                             | JSON      | create a MosaicJSON from a list of files
-| `PUT`  | `/mosaicjson/`                                                             | JSON      | update a MosaicJSON from a list of files
 | `GET`  | `/mosaicjson/bounds`                                                       | JSON      | return bounds info for a MosaicJSON
 | `GET`  | `/mosaicjson/info`                                                         | JSON      | return basic info for a MosaicJSON
 | `GET`  | `/mosaicjson/info.geojson`                                                 | GeoJSON   | return basic info for a MosaicJSON as a GeoJSON feature

@@ -258,3 +258,114 @@ COGTilerWithCustomTMS = TilerFactory(
     tms_dependency=TMSParams,
 )
 ```
+
+### Add a MosaicJSON creation endpoint
+```python
+
+from dataclasses import dataclass
+from typing import List, Optional
+
+from titiler.endpoints.factory import MosaicTilerFactory
+from titiler.errors import BadRequestError
+from cogeo_mosaic.mosaic import MosaicJSON
+from cogeo_mosaic.utils import get_footprints
+import rasterio
+
+from pydantic import BaseModel
+
+
+# Models from POST/PUT Body
+class CreateMosaicJSON(BaseModel):
+    """Request body for MosaicJSON creation"""
+
+    files: List[str]              # Files to add to the mosaic
+    url: str                      # path where to save the mosaicJSON
+    minzoom: Optional[int] = None
+    maxzoom: Optional[int] = None
+    max_threads: int = 20
+    overwrite: bool = False
+
+
+class UpdateMosaicJSON(BaseModel):
+    """Request body for updating an existing MosaicJSON"""
+
+    files: List[str]              # Files to add to the mosaic
+    url: str                      # path where to save the mosaicJSON
+    max_threads: int = 20
+    add_first: bool = True
+
+
+@dataclass
+class CustomMosaicFactory(MosaicTilerFactory):
+
+    def register_routes(self):
+        """Update the class method to add create/update"""
+        self.read()
+        self.bounds()
+        self.info()
+        self.tile()
+        self.tilejson()
+        self.wmts()
+        self.point()
+        self.validate()
+        # new methods/endpoint
+        self.create()
+        self.update()
+
+    def create(self):
+        """Register / (POST) Create endpoint."""
+
+        @self.router.post(
+            "", response_model=MosaicJSON, response_model_exclude_none=True
+        )
+        def create(body: CreateMosaicJSON):
+            """Create a MosaicJSON"""
+            # Write can write to either a local path, a S3 path...
+            # See https://developmentseed.org/cogeo-mosaic/advanced/backends/ for the list of supported backends
+
+            # Create a MosaicJSON file from a list of URL
+            mosaic = MosaicJSON.from_urls(
+                body.files,
+                minzoom=body.minzoom,
+                maxzoom=body.maxzoom,
+                max_threads=body.max_threads,
+            )
+
+            # Write the MosaicJSON using a cogeo-mosaic backend
+            src_path = self.path_dependency(body.url)
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(
+                    src_path.url, mosaic_def=mosaic, reader=self.dataset_reader
+                ) as mosaic:
+                    try:
+                        mosaic.write(overwrite=body.overwrite)
+                    except NotImplementedError:
+                        raise BadRequestError(
+                            f"{mosaic.__class__.__name__} does not support write operations"
+                        )
+                    return mosaic.mosaic_def
+
+     ############################################################################
+     # /update
+     ############################################################################
+    def update(self):
+        """Register / (PUST) Update endpoint."""
+
+        @self.router.put(
+            "", response_model=MosaicJSON, response_model_exclude_none=True
+        )
+        def update_mosaicjson(body: UpdateMosaicJSON):
+            """Update an existing MosaicJSON"""
+            src_path = self.path_dependency(body.url)
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path.url, reader=self.dataset_reader) as mosaic:
+                    features = get_footprints(body.files, max_threads=body.max_threads)
+                    try:
+                        mosaic.update(features, add_first=body.add_first, quiet=True)
+                    except NotImplementedError:
+                        raise BadRequestError(
+                            f"{mosaic.__class__.__name__} does not support update operations"
+                        )
+                    return mosaic.mosaic_def
+
+```

@@ -1,4 +1,5 @@
-import json
+"""Test Mosaic endpoints."""
+
 import os
 from typing import Callable
 from unittest.mock import patch
@@ -34,50 +35,6 @@ def test_read_mosaic(app):
     response = app.get("/mosaicjson", params={"url": MOSAICJSON_FILE})
     assert response.status_code == 200
     MosaicJSON(**response.json())
-
-
-def test_update_mosaic(app):
-    """test PUT /mosaicjson endpoint"""
-    mosaicjson = read_json_fixture("mosaic.json")
-    original_qk = json.dumps(mosaicjson["tiles"], sort_keys=True)
-
-    # Remove `cog1.tif` from the mosaic
-    for qk in mosaicjson["tiles"]:
-        mosaicjson["tiles"][qk].pop(mosaicjson["tiles"][qk].index("cog1.tif"))
-
-    # Save to file to pass to api
-    mosaic_file = os.path.join(DATA_DIR, "mosaicjson_temp.json")
-    with open(mosaic_file, "w") as f:
-        json.dump(mosaicjson, f)
-
-    body = {"files": [os.path.join(DATA_DIR, "cog1.tif")], "url": mosaic_file}
-    response = app.put("/mosaicjson", json=body)
-    assert response.status_code == 200
-
-    body = response.json()
-    # Updating the tilejson adds full path, remove to match the original file
-    for qk in body["tiles"]:
-        body["tiles"][qk] = [os.path.split(f)[-1] for f in body["tiles"][qk]]
-
-    assert json.dumps(body["tiles"], sort_keys=True) == original_qk
-
-    # Cleanup
-    os.remove(mosaic_file)
-
-
-def test_create_mosaic(app):
-    """test POST /mosaicjson endpoint"""
-    output_mosaic = os.path.join(DATA_DIR, "test_create_mosaic.json")
-    body = {
-        "files": [os.path.join(DATA_DIR, fname) for fname in ["cog1.tif", "cog2.tif"]],
-        "url": output_mosaic,
-    }
-    response = app.post("/mosaicjson", json=body)
-    assert response.status_code == 200
-    assert os.path.exists(output_mosaic)
-
-    # cleanup
-    os.remove(output_mosaic)
 
 
 def test_bounds(app):
