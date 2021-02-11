@@ -98,7 +98,8 @@ def test_point(app):
     assert response.status_code == 200
     body = response.json()
     assert len(body["values"]) == 1
-    assert body["values"][0]["values"] == [9943, 9127, 9603]
+    assert body["values"][0][0].endswith(".tif")
+    assert body["values"][0][1] == [9943, 9127, 9603]
     timing = response.headers["server-timing"]
     assert "mosaicread;dur" in timing
     assert "dataread;dur" in timing
