@@ -6,6 +6,9 @@
 * add `validate` in `MosaicTilerFactory` (https://github.com/developmentseed/titiler/pull/206, author @drnextgis)
 * rename `ressources` package to `resources` (https://github.com/developmentseed/titiler/pull/210, author @drnextgis)
 * renamed environment variables prefixes for API and STACK configurations: `TITILER_STACK` as prefix to CDK and `TITILER_API` as prefix to API (https://github.com/developmentseed/titiler/pull/211, author @fredliporace)
+* remove MosaicTilerFactory `create` and `update` endpoints (https://github.com/developmentseed/titiler/pull/218)
+* deleted `titiler.models.mosaics` because the models are not used anymore (https://github.com/developmentseed/titiler/pull/221)
+* update rio-tiler and cogeo-mosaic minimal versions (https://github.com/developmentseed/titiler/pull/220, https://github.com/developmentseed/titiler/pull/213)
 
 ## 0.1.0a14 (2021-01-05)
 
