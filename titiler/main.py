@@ -56,8 +56,8 @@ if api_settings.cors_origins:
 
 app.add_middleware(BrotliMiddleware, minimum_size=0, gzip_fallback=True)
 app.add_middleware(CacheControlMiddleware, cachecontrol=api_settings.cachecontrol)
-app.add_middleware(TotalTimeMiddleware)
 if api_settings.debug:
+    app.add_middleware(TotalTimeMiddleware)
     app.add_middleware(LoggerMiddleware)
 
 

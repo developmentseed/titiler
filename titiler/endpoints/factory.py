@@ -98,6 +98,9 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
     # Add specific GDAL environement (e.g {"AWS_REQUEST_PAYER": "requester"})
     gdal_config: Dict = field(default_factory=dict)
 
+    # add info (e.g timings) to the response headers
+    debug: bool = field(default=False)
+
     def __post_init__(self):
         """Post Init: register route and configure specific options."""
         self.register_routes()
@@ -336,9 +339,10 @@ class TilerFactory(BaseTilerFactory):
                 )
             timings.append(("format", round(t.elapsed * 1000, 2)))
 
-            headers["Server-Timing"] = ", ".join(
-                [f"{name};dur={time}" for (name, time) in timings]
-            )
+            if self.debug:
+                headers["Server-Timing"] = ", ".join(
+                    [f"{name};dur={time}" for (name, time) in timings]
+                )
 
             return Response(content, media_type=format.mimetype, headers=headers)
 
@@ -539,9 +543,10 @@ class TilerFactory(BaseTilerFactory):
                         )
             timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
-            response.headers["Server-Timing"] = ", ".join(
-                [f"{name};dur={time}" for (name, time) in timings]
-            )
+            if self.debug:
+                response.headers["Server-Timing"] = ", ".join(
+                    [f"{name};dur={time}" for (name, time) in timings]
+                )
 
             return {"coordinates": [lon, lat], "values": values}
 
@@ -601,7 +606,7 @@ class TilerFactory(BaseTilerFactory):
                 )
             timings.append(("format", round(t.elapsed * 1000, 2)))
 
-            if timings:
+            if self.debug:
                 headers["Server-Timing"] = ", ".join(
                     [f"{name};dur={time}" for (name, time) in timings]
                 )
@@ -669,7 +674,7 @@ class TilerFactory(BaseTilerFactory):
                 )
             timings.append(("format", round(t.elapsed * 1000, 2)))
 
-            if timings:
+            if self.debug:
                 headers["Server-Timing"] = ", ".join(
                     [f"{name};dur={time}" for (name, time) in timings]
                 )
@@ -878,11 +883,11 @@ class MosaicTilerFactory(BaseTilerFactory):
                 )
             timings.append(("format", round(t.elapsed * 1000, 2)))
 
-            headers["Server-Timing"] = ", ".join(
-                [f"{name};dur={time}" for (name, time) in timings]
-            )
-
-            headers["X-Assets"] = ",".join(data.assets)
+            if self.debug:
+                headers["Server-Timing"] = ", ".join(
+                    [f"{name};dur={time}" for (name, time) in timings]
+                )
+                headers["X-Assets"] = ",".join(data.assets)
 
             return Response(content, media_type=format.mimetype, headers=headers)
 
@@ -1091,9 +1096,10 @@ class MosaicTilerFactory(BaseTilerFactory):
                         )
             timings.append(("dataread", round((t.elapsed - mosaic_read) * 1000, 2)))
 
-            response.headers["Server-Timing"] = ", ".join(
-                [f"{name};dur={time}" for (name, time) in timings]
-            )
+            if self.debug:
+                response.headers["Server-Timing"] = ", ".join(
+                    [f"{name};dur={time}" for (name, time) in timings]
+                )
 
             return {"coordinates": [lon, lat], "values": values}
 
