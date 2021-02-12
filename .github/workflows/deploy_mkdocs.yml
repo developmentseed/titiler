@@ -30,6 +30,19 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install numpy
           python -m pip install -e .["docs"]
+          python -m pip install git+https://github.com/timothycrosley/pdocs
+
+      - name: update API docs
+        run: |
+          pdocs as_markdown \
+            --output_dir docs/api/ \
+            --exclude_source \
+            --overwrite \
+            titiler.dependencies \
+            titiler.endpoints.factory \
+            titiler.middleware \
+            titiler.utils \
+            titiler.resources.enums
 
       - name: Deploy docs
         run: mkdocs gh-deploy --force
