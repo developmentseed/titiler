@@ -38,3 +38,15 @@ Actions deploys automatically for new commits.):
 ```bash
 $ mkdocs gh-deploy
 ```
+
+```bash
+pdocs as_markdown \
+   --output_dir docs/api/ \
+   --exclude_source \
+   --overwrite \
+   titiler.dependencies \
+   titiler.endpoints.factory \
+   titiler.middleware \
+   titiler.utils \
+   titiler.resources.enums
+```

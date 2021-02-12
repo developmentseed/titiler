@@ -46,6 +46,13 @@ nav:
     - Custom Sentinel 2 Tiler: "examples/Create_CustomSentinel2Tiler.ipynb"
     - NumpyTile: "examples/Working_with_NumpyTile.ipynb"
 
+  - API:
+      - dependencies: api/titiler/dependencies.md
+      - factory: api/titiler/endpoints/factory.md
+      - middleware: api/titiler/middleware.md
+      - utils: api/titiler/utils.md
+      - enums: api/titiler/resources/enums.md
+
   - Deployment:
     - Amazon Web Services:
       - Intro: "deployment/aws/intro.md"
