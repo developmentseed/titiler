@@ -1,8 +1,7 @@
 """TiTiler STAC Demo endpoint."""
 
-import re
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Type, Union
+from typing import Dict, List, Type, Union
 
 import rasterio
 from geojson_pydantic.features import Feature
@@ -10,76 +9,35 @@ from rio_tiler.io import STACReader
 from rio_tiler.models import Info, Metadata
 
 from .. import utils
-from ..dependencies import DefaultDependency
+from ..dependencies import AssetsBidxExprParams, AssetsBidxParams
 from ..resources.responses import GeoJSONResponse
 from ..templates import templates
 from .factory import TilerFactory
 
-from fastapi import Depends, Query
+from fastapi import Depends
 
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
 
 
 @dataclass
-class AssetsBidxParams(DefaultDependency):
-    """Asset and Band indexes parameters."""
-
-    assets: Optional[str] = Query(
-        None,
-        title="Asset indexes",
-        description="comma (',') delimited asset names (might not be an available options of some readers)",
-    )
-    bidx: Optional[str] = Query(
-        None, title="Band indexes", description="comma (',') delimited band indexes",
-    )
-
-    def __post_init__(self):
-        """Post Init."""
-        if self.assets is not None:
-            self.kwargs["assets"] = self.assets.split(",")
-        if self.bidx is not None:
-            self.kwargs["indexes"] = tuple(
-                int(s) for s in re.findall(r"\d+", self.bidx)
-            )
-
-
-@dataclass
-class AssetsBidxExprParams(DefaultDependency):
-    """Assets, Band Indexes and Expression parameters."""
-
-    assets: Optional[str] = Query(
-        None,
-        title="Asset indexes",
-        description="comma (',') delimited asset names (might not be an available options of some readers)",
-    )
-    expression: Optional[str] = Query(
-        None,
-        title="Band Math expression",
-        description="rio-tiler's band math expression (e.g B1/B2)",
-    )
-    bidx: Optional[str] = Query(
-        None, title="Band indexes", description="comma (',') delimited band indexes",
-    )
-
-    def __post_init__(self):
-        """Post Init."""
-        if self.assets is not None:
-            self.kwargs["assets"] = self.assets.split(",")
-        if self.expression is not None:
-            self.kwargs["expression"] = self.expression
-        if self.bidx is not None:
-            self.kwargs["indexes"] = tuple(
-                int(s) for s in re.findall(r"\d+", self.bidx)
-            )
-
-
-@dataclass
 class STACTiler(TilerFactory):
-    """Custom Tiler Class for STAC."""
+    """Custom Tiler Class for STAC.
+
+    Note:
+        To be able to use the rio_tiler.io.STACReader we need to be able to pass a `assets`
+        argument to most of its methods. By using the `AssetsBidxExprParams` for the `layer_dependency`, the
+        .tile(), .point(), .preview() and the .part() methods will receive assets, expression or indexes arguments.
+
+        The rio_tiler.io.STACReader  `.info()` and `.metadata()` have `assets` as
+        a requirement arguments (https://github.com/cogeotiff/rio-tiler/blob/master/rio_tiler/io/base.py#L365).
+        This means we have to update the /info and /metadata endpoints in order to add the `assets` dependency.
+
+    """
 
     reader: Type[STACReader] = STACReader
 
+    # Assets,Indexes/Expression Dependencies
     layer_dependency: Type[AssetsBidxExprParams] = AssetsBidxExprParams
 
     # Overwrite _info method to return the list of assets when no assets is passed.
