@@ -48,6 +48,7 @@ def test_info(requests, rio, app):
     assert response.headers["content-type"] == "application/geo+json"
     body = response.json()
     assert body["geometry"]
+    assert body["properties"]["dataset"] == "https://myurl.com/item.json"
     assert len(body["properties"]["available_assets"]) == 17
 
     response = app.get("/stac/info.geojson?url=https://myurl.com/item.json&assets=B01")
@@ -56,6 +57,7 @@ def test_info(requests, rio, app):
     assert response.headers["content-type"] == "application/geo+json"
     body = response.json()
     assert body["geometry"]
+    assert body["properties"]["dataset"] == "https://myurl.com/item.json"
     assert body["properties"]["assets"]["B01"]
 
 

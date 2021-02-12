@@ -3,7 +3,7 @@
 import abc
 import os
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, Optional, Type, Union
+from typing import Any, Callable, Dict, List, Optional, Type, Union
 from urllib.parse import urlencode
 
 import rasterio
@@ -13,11 +13,15 @@ from cogeo_mosaic.mosaic import MosaicJSON
 from geojson_pydantic.features import Feature
 from morecantile import TileMatrixSet
 from rio_tiler.constants import MAX_THREADS
-from rio_tiler.io import BaseReader, COGReader, MultiBaseReader
+from rio_tiler.io import BaseReader, COGReader, MultiBandReader, MultiBaseReader
 from rio_tiler.models import Bounds, Info, Metadata
 
 from .. import utils
 from ..dependencies import (
+    AssetsBidxExprParams,
+    AssetsBidxParams,
+    BandsExprParams,
+    BandsParams,
     BidxExprParams,
     BidxParams,
     DatasetParams,
@@ -41,7 +45,6 @@ from fastapi import APIRouter, Depends, Path, Query
 from starlette.requests import Request
 from starlette.responses import Response
 
-default_readers_type = Union[Type[BaseReader], Type[MultiBaseReader]]
 default_deps_type = Type[DefaultDependency]
 img_endpoint_params: Dict[str, Any] = {
     "responses": {
@@ -66,7 +69,7 @@ img_endpoint_params: Dict[str, Any] = {
 class BaseTilerFactory(metaclass=abc.ABCMeta):
     """BaseTiler Factory."""
 
-    reader: default_readers_type = field(default=COGReader)
+    reader: Type[BaseReader] = field(default=COGReader)
     reader_options: Dict = field(default_factory=dict)
 
     # FastAPI router
@@ -675,6 +678,225 @@ class TilerFactory(BaseTilerFactory):
                 )
 
             return Response(content, media_type=format.mimetype, headers=headers)
+
+
+@dataclass
+class MultiBaseTilerFactory(TilerFactory):
+    """Custom Tiler Factory for MultiBaseReader classes.
+
+    Note:
+        To be able to use the rio_tiler.io.MultiBaseReader we need to be able to pass a `assets`
+        argument to most of its methods. By using the `AssetsBidxExprParams` for the `layer_dependency`, the
+        .tile(), .point(), .preview() and the .part() methods will receive assets, expression or indexes arguments.
+
+        The rio_tiler.io.MultiBaseReader  `.info()` and `.metadata()` have `assets` as
+        a requirement arguments (https://github.com/cogeotiff/rio-tiler/blob/master/rio_tiler/io/base.py#L365).
+        This means we have to update the /info and /metadata endpoints in order to add the `assets` dependency.
+
+    """
+
+    reader: Type[MultiBaseReader] = field()
+
+    # Assets/Indexes/Expression Dependencies
+    layer_dependency: default_deps_type = AssetsBidxExprParams
+
+    # Overwrite the `/info` endpoint to return the list of assets when no assets is passed.
+    def info(self):
+        """Register /info endpoint."""
+
+        @self.router.get(
+            "/info",
+            response_model=Union[List[str], Dict[str, Info]],
+            response_model_exclude={"minzoom", "maxzoom", "center"},
+            response_model_exclude_none=True,
+            responses={
+                200: {
+                    "description": "Return dataset's basic info or the list of available assets."
+                }
+            },
+        )
+        def info(
+            src_path=Depends(self.path_dependency),
+            asset_params=Depends(AssetsBidxParams),
+            kwargs: Dict = Depends(self.additional_dependency),
+        ):
+            """Return dataset's basic info or the list of available assets."""
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                    if not asset_params.assets:
+                        return src_dst.assets
+                    return src_dst.info(**asset_params.kwargs, **kwargs)
+
+        @self.router.get(
+            "/info.geojson",
+            response_model=Feature,
+            response_model_exclude_none=True,
+            response_class=GeoJSONResponse,
+            responses={
+                200: {
+                    "content": {"application/geo+json": {}},
+                    "description": "Return dataset's basic info as a GeoJSON feature.",
+                }
+            },
+        )
+        def info_geojson(
+            src_path=Depends(self.path_dependency),
+            asset_params=Depends(AssetsBidxParams),
+            kwargs: Dict = Depends(self.additional_dependency),
+        ):
+            """Return dataset's basic info as a GeoJSON feature."""
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                    info = {"dataset": src_path.url}
+                    if not asset_params.assets:
+                        info["available_assets"] = src_dst.assets
+                    else:
+                        info["assets"] = {
+                            asset: meta.dict(exclude_none=True)
+                            for asset, meta in src_dst.info(
+                                **asset_params.kwargs, **kwargs
+                            ).items()
+                        }
+                    geojson = utils.bbox_to_feature(src_dst.bounds, properties=info)
+
+            return geojson
+
+    # Overwrite the `/metadata` endpoint because the MultiBaseReader output model is different (Dict[str, cogMetadata])
+    # and MultiBaseReader.metadata() method also has `assets` as a requirement arguments.
+    def metadata(self):
+        """Register /metadata endpoint."""
+
+        @self.router.get(
+            "/metadata",
+            response_model=Dict[str, Metadata],
+            response_model_exclude={"minzoom", "maxzoom", "center"},
+            response_model_exclude_none=True,
+            responses={200: {"description": "Return dataset's metadata."}},
+        )
+        def metadata(
+            src_path=Depends(self.path_dependency),
+            asset_params=Depends(AssetsBidxParams),
+            metadata_params=Depends(self.metadata_dependency),
+            kwargs: Dict = Depends(self.additional_dependency),
+        ):
+            """Return metadata."""
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                    return src_dst.metadata(
+                        metadata_params.pmin,
+                        metadata_params.pmax,
+                        **asset_params.kwargs,
+                        **metadata_params.kwargs,
+                        **kwargs,
+                    )
+
+
+@dataclass
+class MultiBandTilerFactory(TilerFactory):
+    """Custom Tiler Factory for MultiBandReader classes.
+
+    Note:
+        To be able to use the rio_tiler.io.MultiBandReader we need to be able to pass a `bands`
+        argument to most of its methods. By using the `BandsExprParams` for the `layer_dependency`, the
+        .tile(), .point(), .preview() and the .part() methods will receive bands or expression arguments.
+
+        The rio_tiler.io.MultiBandReader  `.info()` and `.metadata()` have `bands` as
+        a requirement arguments (https://github.com/cogeotiff/rio-tiler/blob/master/rio_tiler/io/base.py#L775).
+        This means we have to update the /info and /metadata endpoints in order to add the `bands` dependency.
+
+        For implementation example see https://github.com/developmentseed/titiler-pds
+
+    """
+
+    reader: Type[MultiBandReader] = field()
+
+    # Assets/Expression Dependencies
+    layer_dependency: default_deps_type = BandsExprParams
+
+    def info(self):
+        """Register /info endpoint."""
+
+        @self.router.get(
+            "/info",
+            response_model=Union[List[str], Info],
+            response_model_exclude={"minzoom", "maxzoom", "center"},
+            response_model_exclude_none=True,
+            responses={
+                200: {
+                    "description": "Return dataset's basic info or the list of available bands."
+                }
+            },
+        )
+        def info(
+            src_path=Depends(self.path_dependency),
+            bands_params=Depends(BandsParams),
+            kwargs: Dict = Depends(self.additional_dependency),
+        ):
+            """Return dataset's basic info or the list of available bands."""
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                    if not bands_params.bands:
+                        return src_dst.bands
+                    return src_dst.info(**bands_params.kwargs, **kwargs)
+
+        @self.router.get(
+            "/info.geojson",
+            response_model=Feature,
+            response_model_exclude_none=True,
+            response_class=GeoJSONResponse,
+            responses={
+                200: {
+                    "content": {"application/geo+json": {}},
+                    "description": "Return dataset's basic info as a GeoJSON feature.",
+                }
+            },
+        )
+        def info_geojson(
+            src_path=Depends(self.path_dependency),
+            bands_params=Depends(BandsParams),
+            kwargs: Dict = Depends(self.additional_dependency),
+        ):
+            """Return dataset's basic info as a GeoJSON feature."""
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                    info = {"dataset": src_path.url}
+                    if not bands_params.bands:
+                        info["available_bands"] = src_dst.bands
+                    else:
+                        info["bands"] = {
+                            band: meta.dict(exclude_none=True)
+                            for band, meta in src_dst.info(
+                                **bands_params.kwargs, **kwargs
+                            ).items()
+                        }
+                    return utils.bbox_to_feature(src_dst.bounds, properties=info)
+
+    def metadata(self):
+        """Register /metadata endpoint."""
+
+        @self.router.get(
+            "/metadata",
+            response_model=Metadata,
+            response_model_exclude={"minzoom", "maxzoom", "center"},
+            response_model_exclude_none=True,
+            responses={200: {"description": "Return dataset's metadata."}},
+        )
+        def metadata(
+            src_path=Depends(self.path_dependency),
+            bands_params=Depends(BandsParams),
+            metadata_params=Depends(self.metadata_dependency),
+            kwargs: Dict = Depends(self.additional_dependency),
+        ):
+            """Return metadata."""
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                    return src_dst.metadata(
+                        metadata_params.pmin,
+                        metadata_params.pmax,
+                        **bands_params.kwargs,
+                        **metadata_params.kwargs,
+                        **kwargs,
+                    )
 
 
 @dataclass
