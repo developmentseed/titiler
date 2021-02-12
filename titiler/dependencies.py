@@ -176,6 +176,41 @@ class AssetsBidxExprParams(DefaultDependency):
             )
 
 
+# Dependencies for  MultiBandReader
+@dataclass
+class BandsParams(DefaultDependency):
+    """Band names parameters."""
+
+    bands: str = Query(
+        ..., title="bands names", description="comma (',') delimited bands names.",
+    )
+
+    def __post_init__(self):
+        """Post Init."""
+        self.kwargs["bands"] = self.bands.split(",")
+
+
+@dataclass
+class BandsExprParams(DefaultDependency):
+    """Band names and Expression parameters."""
+
+    bands: Optional[str] = Query(
+        None, title="bands names", description="comma (',') delimited bands names.",
+    )
+    expression: Optional[str] = Query(
+        None,
+        title="Band Math expression",
+        description="rio-tiler's band math expression.",
+    )
+
+    def __post_init__(self):
+        """Post Init."""
+        if self.bands is not None:
+            self.kwargs["bands"] = self.bands.split(",")
+        if self.expression is not None:
+            self.kwargs["expression"] = self.expression
+
+
 @dataclass
 class MetadataParams(DefaultDependency):
     """Common Metadada parameters."""

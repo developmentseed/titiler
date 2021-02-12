@@ -10,6 +10,7 @@
 * deleted `titiler.models.mosaics` because the models are not used anymore (https://github.com/developmentseed/titiler/pull/221)
 * update rio-tiler and cogeo-mosaic minimal versions (https://github.com/developmentseed/titiler/pull/220, https://github.com/developmentseed/titiler/pull/213)
 * move STAC related dependencies to `titiler.dependencies (https://github.com/developmentseed/titiler/pull/225)
+* add `rio_tiler.io.MultiBandReader` bands dependencies (https://github.com/developmentseed/titiler/pull/226)
 
 ## 0.1.0a14 (2021-01-05)
 
