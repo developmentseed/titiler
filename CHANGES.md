@@ -9,6 +9,7 @@
 * remove MosaicTilerFactory `create` and `update` endpoints (https://github.com/developmentseed/titiler/pull/218)
 * deleted `titiler.models.mosaics` because the models are not used anymore (https://github.com/developmentseed/titiler/pull/221)
 * update rio-tiler and cogeo-mosaic minimal versions (https://github.com/developmentseed/titiler/pull/220, https://github.com/developmentseed/titiler/pull/213)
+* move STAC related dependencies to `titiler.dependencies (https://github.com/developmentseed/titiler/pull/225)
 
 ## 0.1.0a14 (2021-01-05)
 

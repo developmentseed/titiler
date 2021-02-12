@@ -81,6 +81,7 @@ class PathParams:
     url: str = Query(..., description="Dataset URL")
 
 
+# Dependencies for simple BaseReader (e.g COGReader)
 @dataclass
 class BidxParams(DefaultDependency):
     """Band Indexes parameters."""
@@ -119,6 +120,60 @@ class BidxExprParams(DefaultDependency):
 
         if self.expression is not None:
             self.kwargs["expression"] = self.expression
+
+
+# Dependencies for  MultiBaseReader (e.g STACReader)
+@dataclass
+class AssetsBidxParams(DefaultDependency):
+    """Asset and Band indexes parameters."""
+
+    assets: Optional[str] = Query(
+        None,
+        title="Asset indexes",
+        description="comma (',') delimited asset names (might not be an available options of some readers)",
+    )
+    bidx: Optional[str] = Query(
+        None, title="Band indexes", description="comma (',') delimited band indexes",
+    )
+
+    def __post_init__(self):
+        """Post Init."""
+        if self.assets is not None:
+            self.kwargs["assets"] = self.assets.split(",")
+        if self.bidx is not None:
+            self.kwargs["indexes"] = tuple(
+                int(s) for s in re.findall(r"\d+", self.bidx)
+            )
+
+
+@dataclass
+class AssetsBidxExprParams(DefaultDependency):
+    """Assets, Band Indexes and Expression parameters."""
+
+    assets: Optional[str] = Query(
+        None,
+        title="Asset indexes",
+        description="comma (',') delimited asset names (might not be an available options of some readers)",
+    )
+    expression: Optional[str] = Query(
+        None,
+        title="Band Math expression",
+        description="rio-tiler's band math expression (e.g B1/B2)",
+    )
+    bidx: Optional[str] = Query(
+        None, title="Band indexes", description="comma (',') delimited band indexes",
+    )
+
+    def __post_init__(self):
+        """Post Init."""
+        if self.assets is not None:
+            self.kwargs["assets"] = self.assets.split(",")
+        if self.expression is not None:
+            self.kwargs["expression"] = self.expression
+        if self.bidx is not None:
+            self.kwargs["indexes"] = tuple(
+                int(s) for s in re.findall(r"\d+", self.bidx)
+            )
 
 
 @dataclass
