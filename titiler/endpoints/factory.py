@@ -697,6 +697,9 @@ class MosaicTilerFactory(BaseTilerFactory):
     # BaseBackend does not support other TMS than WebMercator
     tms_dependency: Callable[..., TileMatrixSet] = WebMercatorTMSParams
 
+    # Add X-Assets in response headers
+    add_assets_in_headers: bool = False
+
     def register_routes(self):
         """
         This Method register routes to the router.
@@ -887,6 +890,8 @@ class MosaicTilerFactory(BaseTilerFactory):
                 headers["Server-Timing"] = ", ".join(
                     [f"{name};dur={time}" for (name, time) in timings]
                 )
+
+            if self.add_assets_in_headers:
                 headers["X-Assets"] = ",".join(data.assets)
 
             return Response(content, media_type=format.mimetype, headers=headers)

@@ -85,7 +85,9 @@ def tmpmosaic():
 
 def test_MosaicTilerFactory():
     """Test MosaicTilerFactory class."""
-    mosaic = factory.MosaicTilerFactory(debug=True, router_prefix="mosaic")
+    mosaic = factory.MosaicTilerFactory(
+        debug=True, add_assets_in_headers=True, router_prefix="mosaic",
+    )
     assert len(mosaic.router.routes) == 18
     assert mosaic.tms_dependency == WebMercatorTMSParams
 
