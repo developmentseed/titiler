@@ -22,5 +22,5 @@ def test_MosaicTilerFactory(set_env):
     from titiler.endpoints import factory
 
     app = factory.MosaicTilerFactory()
-    assert len(app.router.routes) == 18
+    assert len(app.router.routes) == 19
     assert app.tms_dependency == WebMercatorTMSParams
