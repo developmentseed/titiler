@@ -10,6 +10,7 @@ from morecantile import tms
 from morecantile.models import TileMatrixSet
 from rasterio.enums import Resampling
 from rio_tiler.colormap import cmap
+from rio_tiler.errors import MissingAssets, MissingBands
 
 from .custom import cmap as custom_colormap
 from .custom import tms as custom_tms
@@ -128,9 +129,7 @@ class AssetsBidxParams(DefaultDependency):
     """Asset and Band indexes parameters."""
 
     assets: Optional[str] = Query(
-        None,
-        title="Asset indexes",
-        description="comma (',') delimited asset names (might not be an available options of some readers)",
+        ..., title="Asset indexes", description="comma (',') delimited asset names.",
     )
     bidx: Optional[str] = Query(
         None, title="Band indexes", description="comma (',') delimited band indexes",
@@ -151,9 +150,7 @@ class AssetsBidxExprParams(DefaultDependency):
     """Assets, Band Indexes and Expression parameters."""
 
     assets: Optional[str] = Query(
-        None,
-        title="Asset indexes",
-        description="comma (',') delimited asset names (might not be an available options of some readers)",
+        None, title="Asset indexes", description="comma (',') delimited asset names.",
     )
     expression: Optional[str] = Query(
         None,
@@ -166,6 +163,11 @@ class AssetsBidxExprParams(DefaultDependency):
 
     def __post_init__(self):
         """Post Init."""
+        if not self.assets and not self.expression:
+            raise MissingAssets(
+                "assets must be defined either via expression or assets options."
+            )
+
         if self.assets is not None:
             self.kwargs["assets"] = self.assets.split(",")
         if self.expression is not None:
@@ -205,6 +207,11 @@ class BandsExprParams(DefaultDependency):
 
     def __post_init__(self):
         """Post Init."""
+        if not self.bands and not self.expression:
+            raise MissingBands(
+                "bands must be defined either via expression or bands options."
+            )
+
         if self.bands is not None:
             self.kwargs["bands"] = self.bands.split(",")
         if self.expression is not None:

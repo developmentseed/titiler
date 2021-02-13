@@ -27,7 +27,7 @@ def test_info(requests, rio, app):
     requests.get = mock_RequestGet
     rio.open = mock_rasterio_open
 
-    response = app.get("/stac/info?url=https://myurl.com/item.json")
+    response = app.get("/stac/assets?url=https://myurl.com/item.json")
     assert response.status_code == 200
     body = response.json()
     assert len(body) == 17
@@ -42,14 +42,6 @@ def test_info(requests, rio, app):
     body = response.json()
     assert body["B01"]
     assert body["B09"]
-
-    response = app.get("/stac/info.geojson?url=https://myurl.com/item.json")
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "application/geo+json"
-    body = response.json()
-    assert body["geometry"]
-    assert body["properties"]["dataset"] == "https://myurl.com/item.json"
-    assert len(body["properties"]["available_assets"]) == 17
 
     response = app.get("/stac/info.geojson?url=https://myurl.com/item.json&assets=B01")
     assert response.status_code == 200
@@ -124,9 +116,8 @@ def test_tilejson(requests, rio, app):
     requests.get = mock_RequestGet
     rio.open = mock_rasterio_open
 
-    # calling tilejson without args work but tiles will fail because of missing expression or assets
     response = app.get("/stac/tilejson.json?url=https://myurl.com/item.json")
-    assert response.status_code == 200
+    assert response.status_code == 400
 
     response = app.get(
         "/stac/tilejson.json?url=https://myurl.com/item.json&assets=B01&minzoom=5&maxzoom=10"

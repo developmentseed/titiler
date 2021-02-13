@@ -3,7 +3,7 @@
 import abc
 import os
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, Type, Union
+from typing import Any, Callable, Dict, List, Optional, Type
 from urllib.parse import urlencode
 
 import rasterio
@@ -706,7 +706,7 @@ class MultiBaseTilerFactory(TilerFactory):
 
         @self.router.get(
             "/info",
-            response_model=Union[List[str], Dict[str, Info]],
+            response_model=Dict[str, Info],
             response_model_exclude={"minzoom", "maxzoom", "center"},
             response_model_exclude_none=True,
             responses={
@@ -723,8 +723,6 @@ class MultiBaseTilerFactory(TilerFactory):
             """Return dataset's basic info or the list of available assets."""
             with rasterio.Env(**self.gdal_config):
                 with self.reader(src_path.url, **self.reader_options) as src_dst:
-                    if not asset_params.assets:
-                        return src_dst.assets
                     return src_dst.info(**asset_params.kwargs, **kwargs)
 
         @self.router.get(
@@ -748,18 +746,29 @@ class MultiBaseTilerFactory(TilerFactory):
             with rasterio.Env(**self.gdal_config):
                 with self.reader(src_path.url, **self.reader_options) as src_dst:
                     info = {"dataset": src_path.url}
-                    if not asset_params.assets:
-                        info["available_assets"] = src_dst.assets
-                    else:
-                        info["assets"] = {
-                            asset: meta.dict(exclude_none=True)
-                            for asset, meta in src_dst.info(
-                                **asset_params.kwargs, **kwargs
-                            ).items()
-                        }
+                    info["assets"] = {
+                        asset: meta.dict(exclude_none=True)
+                        for asset, meta in src_dst.info(
+                            **asset_params.kwargs, **kwargs
+                        ).items()
+                    }
                     geojson = utils.bbox_to_feature(src_dst.bounds, properties=info)
 
             return geojson
+
+        @self.router.get(
+            "/assets",
+            response_model=List[str],
+            responses={200: {"description": "Return a list of supported assets."}},
+        )
+        def available_assets(
+            src_path=Depends(self.path_dependency),
+            kwargs: Dict = Depends(self.additional_dependency),
+        ):
+            """Return a list of supported assets."""
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                    return src_dst.assets
 
     # Overwrite the `/metadata` endpoint because the MultiBaseReader output model is different (Dict[str, cogMetadata])
     # and MultiBaseReader.metadata() method also has `assets` as a requirement arguments.
@@ -818,7 +827,7 @@ class MultiBandTilerFactory(TilerFactory):
 
         @self.router.get(
             "/info",
-            response_model=Union[List[str], Info],
+            response_model=Info,
             response_model_exclude={"minzoom", "maxzoom", "center"},
             response_model_exclude_none=True,
             responses={
@@ -835,8 +844,6 @@ class MultiBandTilerFactory(TilerFactory):
             """Return dataset's basic info or the list of available bands."""
             with rasterio.Env(**self.gdal_config):
                 with self.reader(src_path.url, **self.reader_options) as src_dst:
-                    if not bands_params.bands:
-                        return src_dst.bands
                     return src_dst.info(**bands_params.kwargs, **kwargs)
 
         @self.router.get(
@@ -860,16 +867,27 @@ class MultiBandTilerFactory(TilerFactory):
             with rasterio.Env(**self.gdal_config):
                 with self.reader(src_path.url, **self.reader_options) as src_dst:
                     info = {"dataset": src_path.url}
-                    if not bands_params.bands:
-                        info["available_bands"] = src_dst.bands
-                    else:
-                        info["bands"] = {
-                            band: meta.dict(exclude_none=True)
-                            for band, meta in src_dst.info(
-                                **bands_params.kwargs, **kwargs
-                            ).items()
-                        }
+                    info["bands"] = {
+                        band: meta.dict(exclude_none=True)
+                        for band, meta in src_dst.info(
+                            **bands_params.kwargs, **kwargs
+                        ).items()
+                    }
                     return utils.bbox_to_feature(src_dst.bounds, properties=info)
+
+        @self.router.get(
+            "/bands",
+            response_model=List[str],
+            responses={200: {"description": "Return a list of supported bands."}},
+        )
+        def available_bands(
+            src_path=Depends(self.path_dependency),
+            kwargs: Dict = Depends(self.additional_dependency),
+        ):
+            """Return a list of supported bands."""
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                    return src_dst.bands
 
     def metadata(self):
         """Register /metadata endpoint."""
