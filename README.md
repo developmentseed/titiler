@@ -90,14 +90,14 @@ docker run --name titiler \
     --rm -it developmentseed/titiler
 ```
 
-- AWS ECR: https://gallery.ecr.aws/s2n1v5w1/titiler
+- AWS ECR: https://gallery.ecr.aws/developmentseed/titiler
 
 ```bash
 docker run --name titiler \
     -p 8000:8000 \
     --env PORT=8000 \
     --env WORKERS_PER_CORE=1 \
-    --rm -it public.ecr.aws/s2n1v5w1/titiler
+    --rm -it public.ecr.aws/developmentseed/titiler
 ```
 
 Some options can be set via environment variables, see: https://github.com/tiangolo/uvicorn-gunicorn-docker#advanced-usage
