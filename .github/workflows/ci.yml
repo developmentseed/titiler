@@ -7,6 +7,18 @@ on:
     - master
     tags:
     - '*'
+    paths:
+      # Only run test and docker publish if somde code have changed
+      - 'setup.py'
+      - 'setup.cfg'
+      - 'titiler/**'
+      - 'tests/**'
+      - 'tests/**'
+      - '.pre-commit-config.yaml'
+      - 'codecov.yml'
+      - 'Dockerfile'
+      - 'MANIFEST.in'
+      - 'tox.ini'
   pull_request:
 
 jobs:
