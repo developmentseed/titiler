@@ -29,7 +29,7 @@ def test_TilerFactory():
     assert len(cog.router.routes) == 17
 
     app = FastAPI()
-    cog = factory.TilerFactory(debug=True)
+    cog = factory.TilerFactory(add_timing_headers=True)
     app.include_router(cog.router)
     client = TestClient(app)
 
@@ -86,9 +86,9 @@ def tmpmosaic():
 def test_MosaicTilerFactory():
     """Test MosaicTilerFactory class."""
     mosaic = factory.MosaicTilerFactory(
-        debug=True, add_assets_in_headers=True, router_prefix="mosaic",
+        add_timing_headers=True, add_assets_headers=True, router_prefix="mosaic",
     )
-    assert len(mosaic.router.routes) == 18
+    assert len(mosaic.router.routes) == 19
     assert mosaic.tms_dependency == WebMercatorTMSParams
 
     app = FastAPI()

@@ -358,6 +358,7 @@
     <script>
         var scope = { merge_assets: false, assets: [], metadata: {} }
 
+        const assets_endpoint = "{{ get_assets }}"
         const tilejson_endpoint = "{{ tilejson }}"
         const metadata_endpoint = "{{ metadata }}"
 
@@ -710,25 +711,8 @@
             switchViz()
         }
 
-        const loadInfo = (assets) => {
-            return fetch(`${metadata_endpoint}?url=${scope.url}&assets=${assets}&max_size=256`)
-                .then(res => {
-                    if (res.ok) return res.json()
-                    throw new Error('Network response was not ok.')
-                })
-                .then(data => {
-                    console.log(data)
-                    scope.metadata = data
-                    return
-                })
-                .catch(err => {
-                    console.warn(err)
-                })
-
-        }
-
         const loadStac = () => {
-            return fetch(`${metadata_endpoint}?url=${scope.url}&max_size=256`)
+            return fetch(`${assets_endpoint}?url=${scope.url}`)
                 .then(res => {
                     if (res.ok) return res.json()
                     throw new Error('Network response was not ok.')
@@ -751,7 +735,15 @@
                     return scope.assets.join(",")
                 })
                 .then((assets) => {
-                    return loadInfo(assets)
+                    return fetch(`${metadata_endpoint}?url=${scope.url}&assets=${assets}&max_size=256`)
+                })
+                .then(res => {
+                    if (res.ok) return res.json()
+                    throw new Error('Network response was not ok.')
+                })
+                .then(data => {
+                    scope.metadata = data
+                    return
                 })
                 .then(() => {
                     return updateUI()

@@ -3,7 +3,7 @@
 import abc
 import os
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, Optional, Type, Union
+from typing import Any, Callable, Dict, List, Optional, Type
 from urllib.parse import urlencode
 
 import rasterio
@@ -13,11 +13,15 @@ from cogeo_mosaic.mosaic import MosaicJSON
 from geojson_pydantic.features import Feature
 from morecantile import TileMatrixSet
 from rio_tiler.constants import MAX_THREADS
-from rio_tiler.io import BaseReader, COGReader, MultiBaseReader
+from rio_tiler.io import BaseReader, COGReader, MultiBandReader, MultiBaseReader
 from rio_tiler.models import Bounds, Info, Metadata
 
 from .. import utils
 from ..dependencies import (
+    AssetsBidxExprParams,
+    AssetsBidxParams,
+    BandsExprParams,
+    BandsParams,
     BidxExprParams,
     BidxParams,
     DatasetParams,
@@ -41,8 +45,6 @@ from fastapi import APIRouter, Depends, Path, Query
 from starlette.requests import Request
 from starlette.responses import Response
 
-default_readers_type = Union[Type[BaseReader], Type[MultiBaseReader]]
-default_deps_type = Type[DefaultDependency]
 img_endpoint_params: Dict[str, Any] = {
     "responses": {
         200: {
@@ -66,29 +68,29 @@ img_endpoint_params: Dict[str, Any] = {
 class BaseTilerFactory(metaclass=abc.ABCMeta):
     """BaseTiler Factory."""
 
-    reader: default_readers_type = field(default=COGReader)
+    reader: Type[BaseReader]
     reader_options: Dict = field(default_factory=dict)
 
     # FastAPI router
     router: APIRouter = field(default_factory=APIRouter)
 
     # Path Dependency
-    path_dependency: Type[PathParams] = field(default=PathParams)
+    path_dependency: Type[PathParams] = PathParams
 
     # Rasterio Dataset Options (nodata, unscale, resampling)
-    dataset_dependency: default_deps_type = field(default=DatasetParams)
+    dataset_dependency: Type[DefaultDependency] = DatasetParams
 
     # Indexes/Expression Dependencies
-    layer_dependency: default_deps_type = field(default=BidxExprParams)
+    layer_dependency: Type[DefaultDependency] = BidxExprParams
 
     # Image rendering Dependencies
-    render_dependency: default_deps_type = field(default=RenderParams)
+    render_dependency: Type[DefaultDependency] = RenderParams
 
     # TileMatrixSet dependency
     tms_dependency: Callable[..., TileMatrixSet] = WebMercatorTMSParams
 
     # provide custom dependency
-    additional_dependency: Callable[..., Dict] = field(default=lambda: dict())
+    additional_dependency: Callable[..., Dict] = lambda: dict()
 
     # Router Prefix is needed to find the path for /tile if the TilerFactory.router is mounted
     # with other router (multiple `.../tile` routes).
@@ -98,8 +100,8 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
     # Add specific GDAL environement (e.g {"AWS_REQUEST_PAYER": "requester"})
     gdal_config: Dict = field(default_factory=dict)
 
-    # add info (e.g timings) to the response headers
-    debug: bool = field(default=False)
+    # add 'Server-Timing' to the response headers
+    add_timing_headers: bool = False
 
     def __post_init__(self):
         """Post Init: register route and configure specific options."""
@@ -123,9 +125,12 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
 class TilerFactory(BaseTilerFactory):
     """Tiler Factory."""
 
+    # Default reader is set to COGReader
+    reader: Type[BaseReader] = COGReader
+
     # Endpoint Dependencies
-    metadata_dependency: default_deps_type = MetadataParams
-    img_dependency: default_deps_type = ImageParams
+    metadata_dependency: Type[DefaultDependency] = MetadataParams
+    img_dependency: Type[DefaultDependency] = ImageParams
 
     # TileMatrixSet dependency
     tms_dependency: Callable[..., TileMatrixSet] = TMSParams
@@ -339,7 +344,7 @@ class TilerFactory(BaseTilerFactory):
                 )
             timings.append(("format", round(t.elapsed * 1000, 2)))
 
-            if self.debug:
+            if self.add_timing_headers:
                 headers["Server-Timing"] = ", ".join(
                     [f"{name};dur={time}" for (name, time) in timings]
                 )
@@ -543,7 +548,7 @@ class TilerFactory(BaseTilerFactory):
                         )
             timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
-            if self.debug:
+            if self.add_timing_headers:
                 response.headers["Server-Timing"] = ", ".join(
                     [f"{name};dur={time}" for (name, time) in timings]
                 )
@@ -606,7 +611,7 @@ class TilerFactory(BaseTilerFactory):
                 )
             timings.append(("format", round(t.elapsed * 1000, 2)))
 
-            if self.debug:
+            if self.add_timing_headers:
                 headers["Server-Timing"] = ", ".join(
                     [f"{name};dur={time}" for (name, time) in timings]
                 )
@@ -674,12 +679,249 @@ class TilerFactory(BaseTilerFactory):
                 )
             timings.append(("format", round(t.elapsed * 1000, 2)))
 
-            if self.debug:
+            if self.add_timing_headers:
                 headers["Server-Timing"] = ", ".join(
                     [f"{name};dur={time}" for (name, time) in timings]
                 )
 
             return Response(content, media_type=format.mimetype, headers=headers)
+
+
+@dataclass
+class MultiBaseTilerFactory(TilerFactory):
+    """Custom Tiler Factory for MultiBaseReader classes.
+
+    Note:
+        To be able to use the rio_tiler.io.MultiBaseReader we need to be able to pass a `assets`
+        argument to most of its methods. By using the `AssetsBidxExprParams` for the `layer_dependency`, the
+        .tile(), .point(), .preview() and the .part() methods will receive assets, expression or indexes arguments.
+
+        The rio_tiler.io.MultiBaseReader  `.info()` and `.metadata()` have `assets` as
+        a requirement arguments (https://github.com/cogeotiff/rio-tiler/blob/master/rio_tiler/io/base.py#L365).
+        This means we have to update the /info and /metadata endpoints in order to add the `assets` dependency.
+
+    """
+
+    reader: Type[MultiBaseReader]
+
+    # Assets/Indexes/Expression Dependencies
+    layer_dependency: Type[DefaultDependency] = AssetsBidxExprParams
+
+    # Overwrite the `/info` endpoint to return the list of assets when no assets is passed.
+    def info(self):
+        """Register /info endpoint."""
+
+        @self.router.get(
+            "/info",
+            response_model=Dict[str, Info],
+            response_model_exclude={"minzoom", "maxzoom", "center"},
+            response_model_exclude_none=True,
+            responses={
+                200: {
+                    "description": "Return dataset's basic info or the list of available assets."
+                }
+            },
+        )
+        def info(
+            src_path=Depends(self.path_dependency),
+            asset_params=Depends(AssetsBidxParams),
+            kwargs: Dict = Depends(self.additional_dependency),
+        ):
+            """Return dataset's basic info or the list of available assets."""
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                    return src_dst.info(**asset_params.kwargs, **kwargs)
+
+        @self.router.get(
+            "/info.geojson",
+            response_model=Feature,
+            response_model_exclude_none=True,
+            response_class=GeoJSONResponse,
+            responses={
+                200: {
+                    "content": {"application/geo+json": {}},
+                    "description": "Return dataset's basic info as a GeoJSON feature.",
+                }
+            },
+        )
+        def info_geojson(
+            src_path=Depends(self.path_dependency),
+            asset_params=Depends(AssetsBidxParams),
+            kwargs: Dict = Depends(self.additional_dependency),
+        ):
+            """Return dataset's basic info as a GeoJSON feature."""
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                    info = {"dataset": src_path.url}
+                    info["assets"] = {
+                        asset: meta.dict(exclude_none=True)
+                        for asset, meta in src_dst.info(
+                            **asset_params.kwargs, **kwargs
+                        ).items()
+                    }
+                    geojson = utils.bbox_to_feature(src_dst.bounds, properties=info)
+
+            return geojson
+
+        @self.router.get(
+            "/assets",
+            response_model=List[str],
+            responses={200: {"description": "Return a list of supported assets."}},
+        )
+        def available_assets(
+            src_path=Depends(self.path_dependency),
+            kwargs: Dict = Depends(self.additional_dependency),
+        ):
+            """Return a list of supported assets."""
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                    return src_dst.assets
+
+    # Overwrite the `/metadata` endpoint because the MultiBaseReader output model is different (Dict[str, cogMetadata])
+    # and MultiBaseReader.metadata() method also has `assets` as a requirement arguments.
+    def metadata(self):
+        """Register /metadata endpoint."""
+
+        @self.router.get(
+            "/metadata",
+            response_model=Dict[str, Metadata],
+            response_model_exclude={"minzoom", "maxzoom", "center"},
+            response_model_exclude_none=True,
+            responses={200: {"description": "Return dataset's metadata."}},
+        )
+        def metadata(
+            src_path=Depends(self.path_dependency),
+            asset_params=Depends(AssetsBidxParams),
+            metadata_params=Depends(self.metadata_dependency),
+            kwargs: Dict = Depends(self.additional_dependency),
+        ):
+            """Return metadata."""
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                    return src_dst.metadata(
+                        metadata_params.pmin,
+                        metadata_params.pmax,
+                        **asset_params.kwargs,
+                        **metadata_params.kwargs,
+                        **kwargs,
+                    )
+
+
+@dataclass
+class MultiBandTilerFactory(TilerFactory):
+    """Custom Tiler Factory for MultiBandReader classes.
+
+    Note:
+        To be able to use the rio_tiler.io.MultiBandReader we need to be able to pass a `bands`
+        argument to most of its methods. By using the `BandsExprParams` for the `layer_dependency`, the
+        .tile(), .point(), .preview() and the .part() methods will receive bands or expression arguments.
+
+        The rio_tiler.io.MultiBandReader  `.info()` and `.metadata()` have `bands` as
+        a requirement arguments (https://github.com/cogeotiff/rio-tiler/blob/master/rio_tiler/io/base.py#L775).
+        This means we have to update the /info and /metadata endpoints in order to add the `bands` dependency.
+
+        For implementation example see https://github.com/developmentseed/titiler-pds
+
+    """
+
+    reader: Type[MultiBandReader]
+
+    # Assets/Expression Dependencies
+    layer_dependency: Type[DefaultDependency] = BandsExprParams
+
+    def info(self):
+        """Register /info endpoint."""
+
+        @self.router.get(
+            "/info",
+            response_model=Info,
+            response_model_exclude={"minzoom", "maxzoom", "center"},
+            response_model_exclude_none=True,
+            responses={
+                200: {
+                    "description": "Return dataset's basic info or the list of available bands."
+                }
+            },
+        )
+        def info(
+            src_path=Depends(self.path_dependency),
+            bands_params=Depends(BandsParams),
+            kwargs: Dict = Depends(self.additional_dependency),
+        ):
+            """Return dataset's basic info or the list of available bands."""
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                    return src_dst.info(**bands_params.kwargs, **kwargs)
+
+        @self.router.get(
+            "/info.geojson",
+            response_model=Feature,
+            response_model_exclude_none=True,
+            response_class=GeoJSONResponse,
+            responses={
+                200: {
+                    "content": {"application/geo+json": {}},
+                    "description": "Return dataset's basic info as a GeoJSON feature.",
+                }
+            },
+        )
+        def info_geojson(
+            src_path=Depends(self.path_dependency),
+            bands_params=Depends(BandsParams),
+            kwargs: Dict = Depends(self.additional_dependency),
+        ):
+            """Return dataset's basic info as a GeoJSON feature."""
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                    info = {"dataset": src_path.url}
+                    info["bands"] = {
+                        band: meta.dict(exclude_none=True)
+                        for band, meta in src_dst.info(
+                            **bands_params.kwargs, **kwargs
+                        ).items()
+                    }
+                    return utils.bbox_to_feature(src_dst.bounds, properties=info)
+
+        @self.router.get(
+            "/bands",
+            response_model=List[str],
+            responses={200: {"description": "Return a list of supported bands."}},
+        )
+        def available_bands(
+            src_path=Depends(self.path_dependency),
+            kwargs: Dict = Depends(self.additional_dependency),
+        ):
+            """Return a list of supported bands."""
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                    return src_dst.bands
+
+    def metadata(self):
+        """Register /metadata endpoint."""
+
+        @self.router.get(
+            "/metadata",
+            response_model=Metadata,
+            response_model_exclude={"minzoom", "maxzoom", "center"},
+            response_model_exclude_none=True,
+            responses={200: {"description": "Return dataset's metadata."}},
+        )
+        def metadata(
+            src_path=Depends(self.path_dependency),
+            bands_params=Depends(BandsParams),
+            metadata_params=Depends(self.metadata_dependency),
+            kwargs: Dict = Depends(self.additional_dependency),
+        ):
+            """Return metadata."""
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                    return src_dst.metadata(
+                        metadata_params.pmin,
+                        metadata_params.pmax,
+                        **bands_params.kwargs,
+                        **metadata_params.kwargs,
+                        **kwargs,
+                    )
 
 
 @dataclass
@@ -691,14 +933,14 @@ class MosaicTilerFactory(BaseTilerFactory):
     needs a reader (MosaicBackend) and a dataset_reader (BaseReader).
     """
 
-    reader: BaseBackend = field(default=MosaicBackend)
-    dataset_reader: Type[BaseReader] = field(default=COGReader)
+    reader: Type[BaseBackend] = MosaicBackend
+    dataset_reader: Type[BaseReader] = COGReader
 
     # BaseBackend does not support other TMS than WebMercator
     tms_dependency: Callable[..., TileMatrixSet] = WebMercatorTMSParams
 
     # Add X-Assets in response headers
-    add_assets_in_headers: bool = False
+    add_assets_headers: bool = False
 
     def register_routes(self):
         """
@@ -727,6 +969,13 @@ class MosaicTilerFactory(BaseTilerFactory):
 
         @self.router.get(
             "",
+            response_model=MosaicJSON,
+            response_model_exclude_none=True,
+            responses={200: {"description": "Return MosaicJSON definition"}},
+            deprecated=True,
+        )
+        @self.router.get(
+            "/",
             response_model=MosaicJSON,
             response_model_exclude_none=True,
             responses={200: {"description": "Return MosaicJSON definition"}},
@@ -886,12 +1135,12 @@ class MosaicTilerFactory(BaseTilerFactory):
                 )
             timings.append(("format", round(t.elapsed * 1000, 2)))
 
-            if self.debug:
+            if self.add_timing_headers:
                 headers["Server-Timing"] = ", ".join(
                     [f"{name};dur={time}" for (name, time) in timings]
                 )
 
-            if self.add_assets_in_headers:
+            if self.add_assets_headers:
                 headers["X-Assets"] = ",".join(data.assets)
 
             return Response(content, media_type=format.mimetype, headers=headers)
@@ -1101,7 +1350,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                         )
             timings.append(("dataread", round((t.elapsed - mosaic_read) * 1000, 2)))
 
-            if self.debug:
+            if self.add_timing_headers:
                 response.headers["Server-Timing"] = ", ".join(
                     [f"{name};dur={time}" for (name, time) in timings]
                 )

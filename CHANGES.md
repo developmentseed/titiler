@@ -11,6 +11,15 @@
 * update rio-tiler and cogeo-mosaic minimal versions (https://github.com/developmentseed/titiler/pull/220, https://github.com/developmentseed/titiler/pull/213)
 * move STAC related dependencies to `titiler.dependencies (https://github.com/developmentseed/titiler/pull/225)
 * add `rio_tiler.io.MultiBandReader` bands dependencies (https://github.com/developmentseed/titiler/pull/226)
+* add `MultiBaseTilerFactory` and `MultiBandTilerFactory` custom tiler factories (https://github.com/developmentseed/titiler/pull/230)
+* Update STAC tiler to use the new `MultiBaseTilerFactory` factory
+* depreciate *empty* GET endpoint for MosaicTilerFactory read (https://github.com/developmentseed/titiler/pull/232)
+
+**breaking change**
+
+* update `titiler.dependencies.AssetsBidxParams` to make `asset` a required parameter (https://github.com/developmentseed/titiler/pull/230
+* the STAC `/info` endpoint now expect the `assets` parameter to be passed. To ge the list of available assets we added a new `/assets` endpoint within the tiler factory
+* remove `COGReader` as default `reader` in `titiler.endpoints.factory.BaseTilerFactory`
 
 ## 0.1.0a14 (2021-01-05)
 
