@@ -21,8 +21,6 @@ Tiler factories (`titiler.endpoints.factory.TilerFactory|MosaicTilerFactory`) ar
 | Method | URL                                                             | Output    | Description
 | ------ | --------------------------------------------------------------- |---------- |--------------
 | `GET`  | `/`                                                             | JSON      | return a MosaicJSON document
-| `POST` | `/`                                                             | JSON      | create a MosaicJSON from a list of files
-| `PUT`  | `/`                                                             | JSON      | update a MosaicJSON from a list of files
 | `GET`  | `/bounds`                                                       | JSON      | return bounds info for a MosaicJSON
 | `GET`  | `/info`                                                         | JSON      | return basic info for a MosaicJSON
 | `GET`  | `/info.geojson`                                                 | GeoJSON   | return basic info for a MosaicJSON as a GeoJSON feature

@@ -722,6 +722,13 @@ class MosaicTilerFactory(BaseTilerFactory):
             response_model=MosaicJSON,
             response_model_exclude_none=True,
             responses={200: {"description": "Return MosaicJSON definition"}},
+            deprecated=True,
+        )
+        @self.router.get(
+            "/",
+            response_model=MosaicJSON,
+            response_model_exclude_none=True,
+            responses={200: {"description": "Return MosaicJSON definition"}},
         )
         def read(src_path=Depends(self.path_dependency),):
             """Read a MosaicJSON"""
