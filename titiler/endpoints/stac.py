@@ -20,6 +20,7 @@ def stac_demo(request: Request):
             "request": request,
             "tilejson": stac.url_for(request, "tilejson"),
             "metadata": stac.url_for(request, "info"),
+            "get_assets": stac.url_for(request, "available_assets"),
         },
         media_type="text/html",
     )
