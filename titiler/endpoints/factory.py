@@ -68,7 +68,7 @@ img_endpoint_params: Dict[str, Any] = {
 class BaseTilerFactory(metaclass=abc.ABCMeta):
     """BaseTiler Factory."""
 
-    reader: Type[BaseReader] = COGReader
+    reader: Type[BaseReader]
     reader_options: Dict = field(default_factory=dict)
 
     # FastAPI router
@@ -121,6 +121,9 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
 @dataclass
 class TilerFactory(BaseTilerFactory):
     """Tiler Factory."""
+
+    # Default reader is set to COGReader
+    reader: Type[BaseReader] = COGReader
 
     # Endpoint Dependencies
     metadata_dependency: Type[DefaultDependency] = MetadataParams
@@ -925,7 +928,7 @@ class MosaicTilerFactory(BaseTilerFactory):
     needs a reader (MosaicBackend) and a dataset_reader (BaseReader).
     """
 
-    reader: BaseBackend = MosaicBackend
+    reader: Type[BaseBackend] = MosaicBackend
     dataset_reader: Type[BaseReader] = COGReader
 
     # BaseBackend does not support other TMS than WebMercator
