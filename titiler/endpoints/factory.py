@@ -45,7 +45,6 @@ from fastapi import APIRouter, Depends, Path, Query
 from starlette.requests import Request
 from starlette.responses import Response
 
-default_deps_type = Type[DefaultDependency]
 img_endpoint_params: Dict[str, Any] = {
     "responses": {
         200: {
@@ -69,29 +68,29 @@ img_endpoint_params: Dict[str, Any] = {
 class BaseTilerFactory(metaclass=abc.ABCMeta):
     """BaseTiler Factory."""
 
-    reader: Type[BaseReader] = field(default=COGReader)
+    reader: Type[BaseReader] = COGReader
     reader_options: Dict = field(default_factory=dict)
 
     # FastAPI router
     router: APIRouter = field(default_factory=APIRouter)
 
     # Path Dependency
-    path_dependency: Type[PathParams] = field(default=PathParams)
+    path_dependency: Type[PathParams] = PathParams
 
     # Rasterio Dataset Options (nodata, unscale, resampling)
-    dataset_dependency: default_deps_type = field(default=DatasetParams)
+    dataset_dependency: Type[DefaultDependency] = DatasetParams
 
     # Indexes/Expression Dependencies
-    layer_dependency: default_deps_type = field(default=BidxExprParams)
+    layer_dependency: Type[DefaultDependency] = BidxExprParams
 
     # Image rendering Dependencies
-    render_dependency: default_deps_type = field(default=RenderParams)
+    render_dependency: Type[DefaultDependency] = RenderParams
 
     # TileMatrixSet dependency
     tms_dependency: Callable[..., TileMatrixSet] = WebMercatorTMSParams
 
     # provide custom dependency
-    additional_dependency: Callable[..., Dict] = field(default=lambda: dict())
+    additional_dependency: Callable[..., Dict] = lambda: dict()
 
     # Router Prefix is needed to find the path for /tile if the TilerFactory.router is mounted
     # with other router (multiple `.../tile` routes).
@@ -124,8 +123,8 @@ class TilerFactory(BaseTilerFactory):
     """Tiler Factory."""
 
     # Endpoint Dependencies
-    metadata_dependency: default_deps_type = MetadataParams
-    img_dependency: default_deps_type = ImageParams
+    metadata_dependency: Type[DefaultDependency] = MetadataParams
+    img_dependency: Type[DefaultDependency] = ImageParams
 
     # TileMatrixSet dependency
     tms_dependency: Callable[..., TileMatrixSet] = TMSParams
@@ -695,10 +694,10 @@ class MultiBaseTilerFactory(TilerFactory):
 
     """
 
-    reader: Type[MultiBaseReader] = field()
+    reader: Type[MultiBaseReader]
 
     # Assets/Indexes/Expression Dependencies
-    layer_dependency: default_deps_type = AssetsBidxExprParams
+    layer_dependency: Type[DefaultDependency] = AssetsBidxExprParams
 
     # Overwrite the `/info` endpoint to return the list of assets when no assets is passed.
     def info(self):
@@ -817,10 +816,10 @@ class MultiBandTilerFactory(TilerFactory):
 
     """
 
-    reader: Type[MultiBandReader] = field()
+    reader: Type[MultiBandReader]
 
     # Assets/Expression Dependencies
-    layer_dependency: default_deps_type = BandsExprParams
+    layer_dependency: Type[DefaultDependency] = BandsExprParams
 
     def info(self):
         """Register /info endpoint."""
@@ -926,8 +925,8 @@ class MosaicTilerFactory(BaseTilerFactory):
     needs a reader (MosaicBackend) and a dataset_reader (BaseReader).
     """
 
-    reader: BaseBackend = field(default=MosaicBackend)
-    dataset_reader: Type[BaseReader] = field(default=COGReader)
+    reader: BaseBackend = MosaicBackend
+    dataset_reader: Type[BaseReader] = COGReader
 
     # BaseBackend does not support other TMS than WebMercator
     tms_dependency: Callable[..., TileMatrixSet] = WebMercatorTMSParams
