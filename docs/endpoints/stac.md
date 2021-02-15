@@ -19,6 +19,7 @@ app.include_router(stac.router, prefix="/stac", tags=["SpatioTemporal Asset Cata
 | Method | URL                                                                 | Output    | Description
 | ------ | ------------------------------------------------------------------- |---------- |--------------
 | `GET`  | `/stac/bounds`                                                       | JSON      | return bounds info for a dataset
+| `GET`  | `/stac/assets`                                                       | JSON      | return the list of available assets
 | `GET`  | `/stac/info`                                                         | JSON      | return basic info for a dataset
 | `GET`  | `/stac/info.geojson`                                                 | GeoJSON   | return basic info for a dataset as a GeoJSON feature
 | `GET`  | `/stac/metadata`                                                     | JSON      | return info and statistics for a dataset
@@ -190,9 +191,7 @@ Example:
 
 - QueryParams:
     - **url**: STAC Item URL. **REQUIRED**
-    - **assets**: Comma (',') delimited asset names. OPTIONAL
-
-Note: If `assets` is not provided, `/stac/info` will return the list of assets.
+    - **assets**: Comma (',') delimited asset names. **REQUIRED**
 
 Example:
 
@@ -202,13 +201,18 @@ Example:
 
 - QueryParams:
     - **url**: STAC Item URL. **REQUIRED**
-    - **assets**: Comma (',') delimited asset names. OPTIONAL
-
-Note: If `assets` is not provided, `/stac/info.geojson` will return the list of assets in the properties.
+    - **assets**: Comma (',') delimited asset names. **REQUIRED**
 
 Example:
 
 - `https://myendpoint/stac/info.geojson?url=https://somewhere.com/item.json&assets=B01`
+
+
+`:endpoint:/stac/assets` - Return the list of available assets
+
+Example:
+
+- `https://myendpoint/stac/assets?url=https://somewhere.com/item.json`
 
 
 ### Metadata
