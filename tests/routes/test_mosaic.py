@@ -105,10 +105,6 @@ def test_point(app):
     assert len(body["values"]) == 1
     assert body["values"][0][0].endswith(".tif")
     assert body["values"][0][1] == [9943, 9127, 9603]
-    timing = response.headers["server-timing"]
-    assert "mosaicread;dur" in timing
-    assert "dataread;dur" in timing
-    assert "total;dur" in timing
 
 
 def test_tile(app):
@@ -126,15 +122,8 @@ def test_tile(app):
         )
         assert response.status_code == 200
         assert response.headers["content-type"] == "image/png"
-        assert response.headers["X-Assets"]
         meta = parse_img(response.content)
         assert meta["width"] == meta["height"] == 256
-        timing = response.headers["server-timing"]
-        assert "mosaicread;dur" in timing
-        assert "dataread;dur" in timing
-        assert "postprocess;dur" in timing
-        assert "format;dur" in timing
-        assert "total;dur" in timing
 
         response = app.get(
             f"/mosaicjson/tiles/{tile.z}/{tile.x}/{tile.y}@2x",

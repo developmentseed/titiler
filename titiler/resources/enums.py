@@ -77,3 +77,10 @@ class PixelSelectionMethod(str, Enum):
     def method(self):
         """Return rio-tiler-mosaic pixel selection class"""
         return getattr(defaults, f"{self._value_.title()}Method")
+
+
+class OptionalHeaders(str, Enum):
+    """Optional Headers in responses."""
+
+    server_timing = "Server-Timing"
+    x_assets = "X-Assets"
