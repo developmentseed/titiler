@@ -36,7 +36,12 @@ from ..dependencies import (
 )
 from ..models.mapbox import TileJSON
 from ..models.OGC import TileMatrixSetList
-from ..resources.enums import ImageType, MimeTypes, PixelSelectionMethod
+from ..resources.enums import (
+    ImageType,
+    MimeTypes,
+    OptionalHeaders,
+    PixelSelectionMethod,
+)
 from ..resources.responses import GeoJSONResponse, XMLResponse
 from ..templates import templates
 
@@ -100,8 +105,8 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
     # Add specific GDAL environement (e.g {"AWS_REQUEST_PAYER": "requester"})
     gdal_config: Dict = field(default_factory=dict)
 
-    # add 'Server-Timing' to the response headers
-    add_timing_headers: bool = False
+    # add additional headers in response
+    optional_headers: List[OptionalHeaders] = field(default_factory=list)
 
     def __post_init__(self):
         """Post Init: register route and configure specific options."""
@@ -344,7 +349,7 @@ class TilerFactory(BaseTilerFactory):
                 )
             timings.append(("format", round(t.elapsed * 1000, 2)))
 
-            if self.add_timing_headers:
+            if OptionalHeaders.server_timing in self.optional_headers:
                 headers["Server-Timing"] = ", ".join(
                     [f"{name};dur={time}" for (name, time) in timings]
                 )
@@ -548,7 +553,7 @@ class TilerFactory(BaseTilerFactory):
                         )
             timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
-            if self.add_timing_headers:
+            if OptionalHeaders.server_timing in self.optional_headers:
                 response.headers["Server-Timing"] = ", ".join(
                     [f"{name};dur={time}" for (name, time) in timings]
                 )
@@ -611,7 +616,7 @@ class TilerFactory(BaseTilerFactory):
                 )
             timings.append(("format", round(t.elapsed * 1000, 2)))
 
-            if self.add_timing_headers:
+            if OptionalHeaders.server_timing in self.optional_headers:
                 headers["Server-Timing"] = ", ".join(
                     [f"{name};dur={time}" for (name, time) in timings]
                 )
@@ -679,7 +684,7 @@ class TilerFactory(BaseTilerFactory):
                 )
             timings.append(("format", round(t.elapsed * 1000, 2)))
 
-            if self.add_timing_headers:
+            if OptionalHeaders.server_timing in self.optional_headers:
                 headers["Server-Timing"] = ", ".join(
                     [f"{name};dur={time}" for (name, time) in timings]
                 )
@@ -1135,12 +1140,12 @@ class MosaicTilerFactory(BaseTilerFactory):
                 )
             timings.append(("format", round(t.elapsed * 1000, 2)))
 
-            if self.add_timing_headers:
+            if OptionalHeaders.server_timing in self.optional_headers:
                 headers["Server-Timing"] = ", ".join(
                     [f"{name};dur={time}" for (name, time) in timings]
                 )
 
-            if self.add_assets_headers:
+            if OptionalHeaders.x_assets in self.optional_headers:
                 headers["X-Assets"] = ",".join(data.assets)
 
             return Response(content, media_type=format.mimetype, headers=headers)
@@ -1350,7 +1355,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                         )
             timings.append(("dataread", round((t.elapsed - mosaic_read) * 1000, 2)))
 
-            if self.add_timing_headers:
+            if OptionalHeaders.server_timing in self.optional_headers:
                 response.headers["Server-Timing"] = ", ".join(
                     [f"{name};dur={time}" for (name, time) in timings]
                 )
