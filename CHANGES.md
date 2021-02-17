@@ -1,6 +1,6 @@
 # Release Notes
 
-## 0.1.0 (TBD)
+## 0.1.0 (2021-02-17)
 
 * update FastAPI requirements
 * add `validate` in `MosaicTilerFactory` (https://github.com/developmentseed/titiler/pull/206, author @drnextgis)
