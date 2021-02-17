@@ -14,6 +14,7 @@
 * add `MultiBaseTilerFactory` and `MultiBandTilerFactory` custom tiler factories (https://github.com/developmentseed/titiler/pull/230)
 * Update STAC tiler to use the new `MultiBaseTilerFactory` factory
 * depreciate *empty* GET endpoint for MosaicTilerFactory read (https://github.com/developmentseed/titiler/pull/232)
+* better `debug` configuration and make reponse headers metadata optional (https://github.com/developmentseed/titiler/pull/232)
 
 **breaking change**
 
