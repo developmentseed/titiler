@@ -944,9 +944,6 @@ class MosaicTilerFactory(BaseTilerFactory):
     # BaseBackend does not support other TMS than WebMercator
     tms_dependency: Callable[..., TileMatrixSet] = WebMercatorTMSParams
 
-    # Add X-Assets in response headers
-    add_assets_headers: bool = False
-
     def register_routes(self):
         """
         This Method register routes to the router.
