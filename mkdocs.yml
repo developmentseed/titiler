@@ -54,6 +54,7 @@ nav:
       - enums: api/titiler/resources/enums.md
 
   - Deployment:
+    - GDAL Configuration: "deployment/gdal_config.md"
     - Amazon Web Services:
       - Intro: "deployment/aws/intro.md"
       - ECS: "deployment/aws/ecs.md"
