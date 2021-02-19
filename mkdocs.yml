@@ -30,7 +30,8 @@ nav:
     - /mosaicjson: "endpoints/mosaic.md"
     - /tileMatrixSets: "endpoints/tms.md"
 
-  - Advanced User Guide:
+  - Advanced Concepts:
+      - Performance Tuning: "concepts/performance_tuning.md"
       - Tiler Factories: "concepts/tiler_factories.md"
       - Dependencies: "concepts/dependencies.md"
       - Customization: "concepts/customization.md"
@@ -54,7 +55,6 @@ nav:
       - enums: api/titiler/resources/enums.md
 
   - Deployment:
-    - GDAL Configuration: "deployment/gdal_config.md"
     - Amazon Web Services:
       - Intro: "deployment/aws/intro.md"
       - ECS: "deployment/aws/ecs.md"
