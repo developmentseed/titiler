@@ -8,7 +8,7 @@ an overview of relevant settings. Full documentation from GDAL is available
 
 [gdal]: https://gdal.org/
 [rasterio]: https://rasterio.readthedocs.io/
-[gdal_config_docs]: https://trac.osgeo.org/gdal/wiki/ConfigOptions
+[gdal_config_docs]: https://gdal.org/user/configoptions.html
 
 ## Setting a config variable
 
