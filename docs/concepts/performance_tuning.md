@@ -1,4 +1,6 @@
-# GDAL Configuration
+# Performance Tuning
+
+## Overview
 
 Titiler makes use of several great underlying libraries, including [GDAL][gdal]
 and [Python bindings to GDAL][rasterio]. An effective deployment of titiler
@@ -10,7 +12,9 @@ an overview of relevant settings. Full documentation from GDAL is available
 [rasterio]: https://rasterio.readthedocs.io/
 [gdal_config_docs]: https://gdal.org/user/configoptions.html
 
-## Setting a config variable
+## GDAL Configuration
+
+### Setting a config variable
 
 GDAL configuration is modified using environment variables. Thus in order to
 change a setting you'll need to set environment variables through your
@@ -21,14 +25,35 @@ environment variable in bash:
 export GDAL_HTTP_MULTIPLEX=YES
 ```
 
-## Available configuration settings
+### Available configuration settings
 
-#### `GDAL_HTTP_MULTIPLEX`
+#### `GDAL_HTTP_MERGE_CONSECUTIVE_RANGES`
 
-When set to `YES`, this attempts to download multiple range requests in
-parallel, reusing the same TCP connection. Note this is only possible when the
-server supports HTTP2, which many servers don't yet support. However there's no
-downside to setting `YES` here.
+When set to `YES`, this tells GDAL to merge adjacent range requests. Instead of
+making two requests for byte ranges `1-5` and `6-10`, it would make a single
+request for `1-10`. This should always be set to `YES`.
+
+#### `GDAL_DISABLE_READDIR_ON_OPEN`
+
+This is a very important setting to control the number of requests GDAL makes.
+
+This setting has two options: `FALSE` and `EMPTY_DIR`. `FALSE` (the default)
+causes GDAL to try to establish a list of all the available files in the
+directory. `EMPTY_DIR` tells GDAL to imagine that the directory is empty except
+for the requested file.
+
+When reading datasets with necessary external sidecar files, it's imperative to
+set `FALSE`. For example, the `landsat-pds` bucket on AWS S3 contains GeoTIFF
+images where overviews are in external `.ovr` files. If set to `EMPTY_DIR`, GDAL
+won't find the `.ovr` files.
+
+However, in all other cases, it's much better to set `EMPTY_DIR` because this
+prevents GDAL from making a `LIST` request.
+
+This setting also has cost implications for reading data from requester-pays
+buckets. When set to `FALSE`, GDAL makes a `LIST` request every time it opens a
+file. Since `LIST` requests are much more expensive than `GET` requests, this
+can bring unexpected costs.
 
 #### `CPL_VSIL_CURL_ALLOWED_EXTENSIONS`
 
@@ -40,10 +65,6 @@ GeoTIFFs exposed through an API endpoint that don't have a `.tif` suffix.
 Note that you also need to include extensions of external overview files. For
 example, the `landsat-pds` bucket on AWS S3 has external overviews in `.ovr`
 files, so if you wished to read this data, you'd want
-
-```bash
-CPL_VSIL_CURL_ALLOWED_EXTENSIONS=.tif,.TIF,.ovr
-```
 
 #### `GDAL_INGESTED_BYTES_AT_OPEN`
 
@@ -85,39 +106,7 @@ It's wise to inspect the header sizes of your data sources, and set
 number of bytes will be read for every image, so you don't want to make the
 value too large.
 
-#### `GDAL_DISABLE_READDIR_ON_OPEN`
-
-This is a very important setting to control the number of requests GDAL makes.
-
-This setting has two options: `FALSE` and `EMPTY_DIR`. `FALSE` (the default)
-causes GDAL to try to establish a list of all the available files in the
-directory. `EMPTY_DIR` tells GDAL to imagine that the directory is empty except
-for the requested file.
-
-When reading datasets with necessary external sidecar files, it's imperative to
-set `FALSE`. For example, the `landsat-pds` bucket on AWS S3 contains GeoTIFF
-images where overviews are in external `.ovr` files. If set to `EMPTY_DIR`, GDAL
-won't find the `.ovr` files.
-
-However, in all other cases, it's much better to set `EMPTY_DIR` because this
-prevents GDAL from making a `LIST` request.
-
-This setting also has cost implications for reading data from requester-pays
-buckets. When set to `FALSE`, GDAL makes a `LIST` request every time it opens a
-file. Since `LIST` requests are much more expensive than `GET` requests, this
-can bring unexpected costs.
-
-#### `GDAL_HTTP_MERGE_CONSECUTIVE_RANGES`
-
-When set to `YES`, this tells GDAL to merge adjacent range requests. Instead of
-making two requests for byte ranges `1-5` and `6-10`, it would make a single
-request for `1-10`. This should always be set to `YES`.
-
 #### `GDAL_CACHEMAX`
-
-#### `GDAL_DATA`
-
-#### `PROJ_LIB`
 
 #### `VSI_CACHE`
 
@@ -127,3 +116,24 @@ strongly recommended to set this to `TRUE`.
 #### `VSI_CACHE_SIZE`
 
 The size of the above VSI cache in bytes.
+
+#### `PROJ_NETWORK`
+
+#### `GDAL_HTTP_MULTIPLEX`
+
+When set to `YES`, this attempts to download multiple range requests in
+parallel, reusing the same TCP connection. Note this is only possible when the
+server supports HTTP2, which many servers don't yet support. However there's no
+downside to setting `YES` here.
+
+```bash
+CPL_VSIL_CURL_ALLOWED_EXTENSIONS=.tif,.TIF,.ovr
+```
+
+#### `GDAL_DATA`
+
+#### `PROJ_LIB`
+
+## AWS Configuration
+
+#### `AWS_REQUEST_PAYER`
