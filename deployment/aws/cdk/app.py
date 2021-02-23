@@ -140,7 +140,7 @@ class titilerECSStack(core.Stack):
             listener_port=80,
             task_image_options=ecs_patterns.ApplicationLoadBalancedTaskImageOptions(
                 image=ecs.ContainerImage.from_registry(
-                    f"public.ecr.aws/s2n1v5w1/titiler:{settings.image_version}",
+                    f"public.ecr.aws/developmentseed/titiler:{settings.image_version}",
                 ),
                 container_port=80,
                 environment=task_env,
