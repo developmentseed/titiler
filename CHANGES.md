@@ -1,5 +1,9 @@
 # Release Notes
 
+## 0.2.0 (TBD)
+
+* adapt for cogeo-mosaic `3.0.0rc2` and add `backend_options` attribute in MosaicTilerFactory (https://github.com/developmentseed/titiler/pull/247)
+
 ## 0.1.0 (2021-02-17)
 
 * update FastAPI requirements
