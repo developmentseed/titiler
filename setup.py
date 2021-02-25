@@ -12,7 +12,7 @@ inst_reqs = [
     "morecantile",
     "rio-cogeo>=2.1,<2.2",
     "rio-tiler>=2.0.1,<2.1",
-    "cogeo-mosaic>=3.0.0rc1,<3.1",
+    "cogeo-mosaic>=3.0.0rc2,<3.1",
     "rasterio",
     "pydantic",
     "numpy",

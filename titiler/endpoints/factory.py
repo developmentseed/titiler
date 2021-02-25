@@ -944,6 +944,8 @@ class MosaicTilerFactory(BaseTilerFactory):
     # BaseBackend does not support other TMS than WebMercator
     tms_dependency: Callable[..., TileMatrixSet] = WebMercatorTMSParams
 
+    backend_options: Dict = field(default_factory=dict)
+
     def register_routes(self):
         """
         This Method register routes to the router.
@@ -984,7 +986,7 @@ class MosaicTilerFactory(BaseTilerFactory):
         )
         def read(src_path=Depends(self.path_dependency),):
             """Read a MosaicJSON"""
-            with self.reader(src_path.url) as mosaic:
+            with self.reader(src_path.url, **self.backend_options) as mosaic:
                 return mosaic.mosaic_def
 
     ############################################################################
@@ -1001,7 +1003,7 @@ class MosaicTilerFactory(BaseTilerFactory):
         def bounds(src_path=Depends(self.path_dependency)):
             """Return the bounds of the COG."""
             with rasterio.Env(**self.gdal_config):
-                with self.reader(src_path.url) as src_dst:
+                with self.reader(src_path.url, **self.backend_options) as src_dst:
                     return {"bounds": src_dst.bounds}
 
     ############################################################################
@@ -1017,7 +1019,7 @@ class MosaicTilerFactory(BaseTilerFactory):
         )
         def info(src_path=Depends(self.path_dependency)):
             """Return basic info."""
-            with self.reader(src_path.url) as src_dst:
+            with self.reader(src_path.url, **self.backend_options) as src_dst:
                 return src_dst.info()
 
         @self.router.get(
@@ -1038,7 +1040,7 @@ class MosaicTilerFactory(BaseTilerFactory):
         ):
             """Return mosaic's basic info as a GeoJSON feature."""
             with rasterio.Env(**self.gdal_config):
-                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                with self.reader(src_path.url, **self.backend_options) as src_dst:
                     info = src_dst.info(**kwargs).dict(exclude_none=True)
                     bounds = info.pop("bounds", None)
                     info.pop("center", None)
@@ -1101,6 +1103,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                         src_path.url,
                         reader=self.dataset_reader,
                         reader_options=self.reader_options,
+                        **self.backend_options,
                     ) as src_dst:
                         mosaic_read = t.from_start
                         timings.append(("mosaicread", round(mosaic_read * 1000, 2)))
@@ -1110,8 +1113,8 @@ class MosaicTilerFactory(BaseTilerFactory):
                             y,
                             z,
                             pixel_selection=pixel_selection.method(),
-                            threads=threads,
                             tilesize=tilesize,
+                            threads=threads,
                             **layer_params.kwargs,
                             **dataset_params.kwargs,
                             **kwargs,
@@ -1207,11 +1210,11 @@ class MosaicTilerFactory(BaseTilerFactory):
             qs = urlencode(list(q.items()))
             tiles_url += f"?{qs}"
 
-            with self.reader(src_path.url) as src_dst:
+            with self.reader(src_path.url, **self.backend_options) as src_dst:
                 center = list(src_dst.center)
                 if minzoom:
                     center[-1] = minzoom
-                tjson = {
+                return {
                     "bounds": src_dst.bounds,
                     "center": tuple(center),
                     "minzoom": minzoom if minzoom is not None else src_dst.minzoom,
@@ -1219,8 +1222,6 @@ class MosaicTilerFactory(BaseTilerFactory):
                     "name": os.path.basename(src_path.url),
                     "tiles": [tiles_url],
                 }
-
-            return tjson
 
     def wmts(self):  # noqa: C901
         """Add wmts endpoint."""
@@ -1275,7 +1276,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             qs = urlencode(list(q.items()))
             tiles_url += f"?{qs}"
 
-            with self.reader(src_path.url) as src_dst:
+            with self.reader(src_path.url, **self.backend_options) as src_dst:
                 bounds = src_dst.bounds
                 minzoom = minzoom if minzoom is not None else src_dst.minzoom
                 maxzoom = maxzoom if maxzoom is not None else src_dst.maxzoom
@@ -1339,6 +1340,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                         src_path.url,
                         reader=self.dataset_reader,
                         reader_options=self.reader_options,
+                        **self.backend_options,
                     ) as src_dst:
                         mosaic_read = t.from_start
                         timings.append(("mosaicread", round(mosaic_read * 1000, 2)))

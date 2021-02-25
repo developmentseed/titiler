@@ -44,9 +44,9 @@ jobs:
       - name: Run Tox
         run: tox -e py
 
-      # Run pre-commit (only for python-3.7)
+      # Run pre-commit (only for python-3.8)
       - name: run pre-commit
-        if: matrix.python-version == 3.7
+        if: matrix.python-version == 3.8
         run: pre-commit run --all-files
 
       - name: Upload Results
