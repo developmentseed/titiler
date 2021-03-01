@@ -3,6 +3,8 @@
 ## 0.2.0 (TBD)
 
 * adapt for cogeo-mosaic `3.0.0rc2` and add `backend_options` attribute in MosaicTilerFactory (https://github.com/developmentseed/titiler/pull/247)
+* update FastAPI requirements
+* update minimal python version to 3.6
 
 ## 0.1.0 (2021-02-17)
 
