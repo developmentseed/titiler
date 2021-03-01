@@ -21,8 +21,8 @@ inst_reqs = [
     "uvicorn[standard]>=0.12.0,<0.14.0",
     # Additional requirements for python 3.6
     "dataclasses;python_version<'3.7'",
-    "async_exit_stack>=1.0.1,<2.0.0;python_version<'3.7",
-    "async_generator>=1.10,<2.0.0;python_version<'3.7",
+    "async_exit_stack>=1.0.1,<2.0.0;python_version<'3.7'",
+    "async_generator>=1.10,<2.0.0;python_version<'3.7'",
 ]
 extra_reqs = {
     "dev": ["pytest", "pytest-cov", "pytest-asyncio", "pre-commit", "requests"],
