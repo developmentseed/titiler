@@ -14,13 +14,26 @@ class StackSettings(pydantic.BaseSettings):
     owner: Optional[str]
     client: Optional[str]
 
-    additional_env: Dict = {}
+    # Default options are optimized for CloudOptimized GeoTIFF
+    # For more information on GDAL env see: https://gdal.org/user/configoptions.html
+    env: Dict = {
+        "CPL_VSIL_CURL_ALLOWED_EXTENSIONS": ".tif,.TIF,.tiff",
+        "GDAL_CACHEMAX": "200",  # 200 mb
+        "GDAL_DISABLE_READDIR_ON_OPEN": "EMPTY_DIR",
+        "GDAL_HTTP_MERGE_CONSECUTIVE_RANGES": "YES",
+        "GDAL_HTTP_MULTIPLEX": "YES",
+        "GDAL_HTTP_VERSION": "2",
+        "PYTHONWARNINGS": "ignore",
+        "VSI_CACHE": "TRUE",
+        "VSI_CACHE_SIZE": "5000000",  # 5 MB (per file-handle)
+    }
 
     # add S3 bucket where TiTiler could do HEAD and GET Requests
     buckets: List = []
 
-    #########
+    ###########################################################################
     # AWS ECS
+    # The following settings only apply to AWS ECS deployment
     min_ecs_instances: int = 5
     max_ecs_instances: int = 50
 
@@ -54,8 +67,9 @@ class StackSettings(pydantic.BaseSettings):
 
     image_version: str = "latest"
 
-    ############
+    ###########################################################################
     # AWS LAMBDA
+    # The following settings only apply to AWS Lambda deployment
     timeout: int = 10
     memory: int = 1536
     # more about lambda config: https://www.sentiatechblog.com/aws-re-invent-2020-day-3-optimizing-lambda-cost-with-multi-threading
