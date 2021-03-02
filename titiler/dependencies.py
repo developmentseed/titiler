@@ -3,7 +3,7 @@
 import re
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Union
 
 import numpy
 from morecantile import tms
@@ -66,6 +66,15 @@ def TMSParams(
 ) -> TileMatrixSet:
     """TileMatrixSet Dependency."""
     return tms.get(TileMatrixSetId.name)
+
+
+def ColorMapParams(
+    color_map: ColorMapNames = Query(None, description="Colormap name",)
+) -> Optional[Dict]:
+    """Colormap Dependency."""
+    if color_map:
+        return cmap.get(color_map.value)
+    return None
 
 
 @dataclass
@@ -332,12 +341,10 @@ class RenderParams(DefaultDependency):
     )
     return_mask: bool = Query(True, description="Add mask to the output data.")
 
-    colormap: Optional[Dict[int, Tuple[int, int, int, int]]] = field(init=False)
     rescale_range: Optional[List[Union[float, int]]] = field(init=False)
 
     def __post_init__(self):
         """Post Init."""
-        self.colormap = cmap.get(self.color_map.value) if self.color_map else None
         self.rescale_range = (
             list(map(float, self.rescale.split(","))) if self.rescale else None
         )
