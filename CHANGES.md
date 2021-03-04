@@ -6,6 +6,10 @@
 * update FastAPI requirements
 * update minimal python version to 3.6
 
+**breaking change**
+
+* renamed `OptionalHeader`, `MimeTypes` and `ImageDrivers` to the singular form.
+
 ## 0.1.0 (2021-02-17)
 
 * update FastAPI requirements
