@@ -8,7 +8,7 @@
 
 **breaking change**
 
-* renamed `OptionalHeader`, `MimeTypes` and `ImageDrivers` to the singular form.
+* renamed `OptionalHeaders`, `MimeTypes` and `ImageDrivers` to the singular form.
 
 ## 0.1.0 (2021-02-17)
 
