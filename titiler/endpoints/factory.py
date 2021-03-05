@@ -24,6 +24,7 @@ from ..dependencies import (
     BandsParams,
     BidxExprParams,
     BidxParams,
+    ColorMapParams,
     DatasetParams,
     DefaultDependency,
     ImageParams,
@@ -85,6 +86,8 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
 
     # Image rendering Dependencies
     render_dependency: Type[DefaultDependency] = RenderParams
+
+    colormap_dependency: Callable[..., Optional[Dict]] = ColorMapParams
 
     # TileMatrixSet dependency
     tms_dependency: Callable[..., TileMatrixSet] = WebMercatorTMSParams
@@ -298,6 +301,7 @@ class TilerFactory(BaseTilerFactory):
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             render_params=Depends(self.render_dependency),
+            colormap=Depends(self.colormap_dependency),
             kwargs: Dict = Depends(self.additional_dependency),
         ):
             """Create map tile from a dataset."""
@@ -338,7 +342,7 @@ class TilerFactory(BaseTilerFactory):
                 content = image.render(
                     add_mask=render_params.return_mask,
                     img_format=format.driver,
-                    colormap=render_params.colormap or dst_colormap,
+                    colormap=colormap or dst_colormap,
                     **format.profile,
                     **render_params.kwargs,
                 )
@@ -385,6 +389,7 @@ class TilerFactory(BaseTilerFactory):
             layer_params=Depends(self.layer_dependency),  # noqa
             dataset_params=Depends(self.dataset_dependency),  # noqa
             render_params=Depends(self.render_dependency),  # noqa
+            colormap=Depends(self.colormap_dependency),  # noqa
             kwargs: Dict = Depends(self.additional_dependency),  # noqa
         ):
             """Return TileJSON document for a dataset."""
@@ -452,6 +457,7 @@ class TilerFactory(BaseTilerFactory):
             layer_params=Depends(self.layer_dependency),  # noqa
             dataset_params=Depends(self.dataset_dependency),  # noqa
             render_params=Depends(self.render_dependency),  # noqa
+            colormap=Depends(self.colormap_dependency),  # noqa
             kwargs: Dict = Depends(self.additional_dependency),  # noqa
         ):
             """OGC WMTS endpoint."""
@@ -572,6 +578,7 @@ class TilerFactory(BaseTilerFactory):
             img_params=Depends(self.img_dependency),
             dataset_params=Depends(self.dataset_dependency),
             render_params=Depends(self.render_dependency),
+            colormap=Depends(self.colormap_dependency),
             kwargs: Dict = Depends(self.additional_dependency),
         ):
             """Create preview of a dataset."""
@@ -587,9 +594,7 @@ class TilerFactory(BaseTilerFactory):
                             **dataset_params.kwargs,
                             **kwargs,
                         )
-                        colormap = render_params.colormap or getattr(
-                            src_dst, "colormap", None
-                        )
+                        colormap = colormap or getattr(src_dst, "colormap", None)
             timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
             if not format:
@@ -643,6 +648,7 @@ class TilerFactory(BaseTilerFactory):
             image_params=Depends(self.img_dependency),
             dataset_params=Depends(self.dataset_dependency),
             render_params=Depends(self.render_dependency),
+            colormap=Depends(self.colormap_dependency),
             kwargs: Dict = Depends(self.additional_dependency),
         ):
             """Create image from part of a dataset."""
@@ -659,9 +665,7 @@ class TilerFactory(BaseTilerFactory):
                             **dataset_params.kwargs,
                             **kwargs,
                         )
-                        colormap = render_params.colormap or getattr(
-                            src_dst, "colormap", None
-                        )
+                        colormap = colormap or getattr(src_dst, "colormap", None)
             timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
             with utils.Timer() as t:
@@ -1082,6 +1086,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             render_params=Depends(self.render_dependency),
+            colormap=Depends(self.colormap_dependency),
             pixel_selection: PixelSelectionMethod = Query(
                 PixelSelectionMethod.first, description="Pixel selection method."
             ),
@@ -1132,7 +1137,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                 content = image.render(
                     add_mask=render_params.return_mask,
                     img_format=format.driver,
-                    colormap=render_params.colormap,
+                    colormap=colormap,
                     **format.profile,
                     **render_params.kwargs,
                 )
@@ -1182,6 +1187,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             layer_params=Depends(self.layer_dependency),  # noqa
             dataset_params=Depends(self.dataset_dependency),  # noqa
             render_params=Depends(self.render_dependency),  # noqa
+            colormap=Depends(self.colormap_dependency),  # noqa
             pixel_selection: PixelSelectionMethod = Query(
                 PixelSelectionMethod.first, description="Pixel selection method."
             ),  # noqa
@@ -1247,6 +1253,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             layer_params=Depends(self.layer_dependency),  # noqa
             dataset_params=Depends(self.dataset_dependency),  # noqa
             render_params=Depends(self.render_dependency),  # noqa
+            colormap=Depends(self.colormap_dependency),  # noqa
             pixel_selection: PixelSelectionMethod = Query(
                 PixelSelectionMethod.first, description="Pixel selection method."
             ),  # noqa

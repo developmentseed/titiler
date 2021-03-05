@@ -11,6 +11,7 @@
 
 * renamed `OptionalHeaders`, `MimeTypes` and `ImageDrivers` enums to the singular form. (https://github.com/developmentseed/titiler/pull/258)
 * renamed `MimeType` to `MediaType` (https://github.com/developmentseed/titiler/pull/258)
+* add `ColorMapParams` dependency to ease the creation of custom colormap dependency (https://github.com/developmentseed/titiler/pull/252)
 
 ## 0.1.0 (2021-02-17)
 
