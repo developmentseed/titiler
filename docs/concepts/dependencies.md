@@ -5,9 +5,10 @@ In titiler `Factories`, we use the dependencies to define the inputs for each en
 
 Example:
 ```python
+# Custom Dependency
 @dataclass
 class ImageParams:
-    """Common Image parameters."""
+    """Common Preview/Crop parameters."""
 
     max_size: Optional[int] = Query(
         1024, description="Maximum image size to read onto."
@@ -15,26 +16,43 @@ class ImageParams:
     height: Optional[int] = Query(None, description="Force output image height.")
     width: Optional[int] = Query(None, description="Force output image width.")
 
+    kwargs: Dict = field(init=False, default_factory=dict)
+
     def __post_init__(self):
         """Post Init."""
-        super().__post_init__()
-
         if self.width and self.height:
             self.max_size = None
 
+        if self.width is not None:
+            self.kwargs["width"] = self.width
 
-@router.get(r"/preview.png")
+        if self.height is not None:
+            self.kwargs["height"] = self.height
+
+        if self.max_size is not None:
+            self.kwargs["max_size"] = self.max_size
+
+
+# Simple preview endpoint
+@router.get("/preview.png")
 def preview(
-    url: str = Query(..., description="data set URL"), params: ImageParams = Depends(),
+    url: str = Query(..., description="data set URL"),
+    params: ImageParams = Depends(),
 ):
 
     with COGReader(url) as cog:
-        data, mask = cog.preview(
-            max_size=params.max_size,
-            width=params.width,
-            height=params.height,
-        )
+        img = cog.preview(**params.kwargs)
+    ...
 ```
+
+!!! important
+
+    In the example above, we create a custom `ImageParams` dependency which will then be injected to the `preview` endpoint to add  **max_size**, **height** and **width** querystring parameters. As for most of `titiler` dependencies, the `ImageParams` class will host the input querystrings to a `kwargs` dictionary, which will then be used to pass the options to the `cog.preview()` methods.
+
+    Note: when calling the `cog.preview()` method, we use the `**` operator to pass the dictionary key/value pairs as keyword arguments.
+
+
+### TiTiler Dependencies
 
 The `factories` allow users to set multiple default dependencies. Here is the list of common dependencies and their default values:
 
