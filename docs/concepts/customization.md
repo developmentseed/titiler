@@ -177,7 +177,7 @@ class STACTiler(TilerFactory):
 stac = STACTiler(router_prefix="stac")
 ```
 
-### Custom PathParams for `path_dependency`
+### Custom DatasetPathParams for `path_dependency`
 
 One common customization could be to create your own `path_dependency` (used in all endpoints).
 
@@ -195,26 +195,18 @@ MOSAIC_BACKEND = os.getenv("TITILER_MOSAIC_BACKEND")
 MOSAIC_HOST = os.getenv("TITILER_MOSAIC_HOST")
 
 
-@dataclass
-class PathParams(DefaultDependency):
-    """Create dataset path from args"""
-
+def MosaicPathParams(
     mosaic: str = Query(..., description="mosaic name")
+) -> str:
+    """Create dataset path from args"""
+    # mosaic name should be in form of `{user}.{layername}`
+    if not re.match(self.mosaic, r"^[a-zA-Z0-9-_]{1,32}\.[a-zA-Z0-9-_]{1,32}$"):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid mosaic name {self.mosaic}.",
+        )
 
-    # We need url to match default PathParams signature
-    # Because we set `init=False` those params won't appear in OpenAPI docs.
-    url: Optional[str] = field(init=False, default=None)
-
-    def __post_init__(self,):
-        """Define dataset URL."""
-        # mosaic name should be in form of `{user}.{layername}`
-        if not re.match(self.mosaic, r"^[a-zA-Z0-9-_]{1,32}\.[a-zA-Z0-9-_]{1,32}$"):
-            raise HTTPException(
-                status_code=400,
-                detail=f"Invalid mosaic name {self.mosaic}.",
-            )
-
-        self.url = f"{MOSAIC_BACKEND}{MOSAIC_HOST}/{self.mosaic}.json.gz"
+    return f"{MOSAIC_BACKEND}{MOSAIC_HOST}/{self.mosaic}.json.gz"
 ```
 
 ### Custom TMS
@@ -335,7 +327,7 @@ class CustomMosaicFactory(MosaicTilerFactory):
             src_path = self.path_dependency(body.url)
             with rasterio.Env(**self.gdal_config):
                 with self.reader(
-                    src_path.url, mosaic_def=mosaic, reader=self.dataset_reader
+                    src_path, mosaic_def=mosaic, reader=self.dataset_reader
                 ) as mosaic:
                     try:
                         mosaic.write(overwrite=body.overwrite)
@@ -358,7 +350,7 @@ class CustomMosaicFactory(MosaicTilerFactory):
             """Update an existing MosaicJSON"""
             src_path = self.path_dependency(body.url)
             with rasterio.Env(**self.gdal_config):
-                with self.reader(src_path.url, reader=self.dataset_reader) as mosaic:
+                with self.reader(src_path, reader=self.dataset_reader) as mosaic:
                     features = get_footprints(body.files, max_threads=body.max_threads)
                     try:
                         mosaic.update(features, add_first=body.add_first, quiet=True)

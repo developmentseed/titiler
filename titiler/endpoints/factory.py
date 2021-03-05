@@ -26,10 +26,10 @@ from ..dependencies import (
     BidxParams,
     ColorMapParams,
     DatasetParams,
+    DatasetPathParams,
     DefaultDependency,
     ImageParams,
     MetadataParams,
-    PathParams,
     RenderParams,
     TileMatrixSetNames,
     TMSParams,
@@ -76,7 +76,7 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
     router: APIRouter = field(default_factory=APIRouter)
 
     # Path Dependency
-    path_dependency: Type[PathParams] = PathParams
+    path_dependency: Callable[..., str] = DatasetPathParams
 
     # Rasterio Dataset Options (nodata, unscale, resampling)
     dataset_dependency: Type[DefaultDependency] = DatasetParams
@@ -181,7 +181,7 @@ class TilerFactory(BaseTilerFactory):
         def bounds(src_path=Depends(self.path_dependency)):
             """Return the bounds of the COG."""
             with rasterio.Env(**self.gdal_config):
-                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                with self.reader(src_path, **self.reader_options) as src_dst:
                     return {"bounds": src_dst.bounds}
 
     ############################################################################
@@ -203,7 +203,7 @@ class TilerFactory(BaseTilerFactory):
         ):
             """Return dataset's basic info."""
             with rasterio.Env(**self.gdal_config):
-                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                with self.reader(src_path, **self.reader_options) as src_dst:
                     return src_dst.info(**kwargs)
 
         @self.router.get(
@@ -224,11 +224,11 @@ class TilerFactory(BaseTilerFactory):
         ):
             """Return dataset's basic info as a GeoJSON feature."""
             with rasterio.Env(**self.gdal_config):
-                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                with self.reader(src_path, **self.reader_options) as src_dst:
                     info = src_dst.info(**kwargs).dict(exclude_none=True)
                     bounds = info.pop("bounds", None)
                     info.pop("center", None)
-                    info["dataset"] = src_path.url
+                    info["dataset"] = src_path
                     geojson = utils.bbox_to_feature(bounds, properties=info)
 
             return geojson
@@ -255,7 +255,7 @@ class TilerFactory(BaseTilerFactory):
         ):
             """Return metadata."""
             with rasterio.Env(**self.gdal_config):
-                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                with self.reader(src_path, **self.reader_options) as src_dst:
                     return src_dst.metadata(
                         metadata_params.pmin,
                         metadata_params.pmax,
@@ -313,7 +313,7 @@ class TilerFactory(BaseTilerFactory):
             with utils.Timer() as t:
                 with rasterio.Env(**self.gdal_config):
                     with self.reader(
-                        src_path.url, tms=tms, **self.reader_options
+                        src_path, tms=tms, **self.reader_options
                     ) as src_dst:
                         data = src_dst.tile(
                             x,
@@ -414,9 +414,7 @@ class TilerFactory(BaseTilerFactory):
             tiles_url += f"?{qs}"
 
             with rasterio.Env(**self.gdal_config):
-                with self.reader(
-                    src_path.url, tms=tms, **self.reader_options
-                ) as src_dst:
+                with self.reader(src_path, tms=tms, **self.reader_options) as src_dst:
                     center = list(src_dst.center)
                     if minzoom:
                         center[-1] = minzoom
@@ -425,7 +423,7 @@ class TilerFactory(BaseTilerFactory):
                         "center": tuple(center),
                         "minzoom": minzoom if minzoom is not None else src_dst.minzoom,
                         "maxzoom": maxzoom if maxzoom is not None else src_dst.maxzoom,
-                        "name": os.path.basename(src_path.url),
+                        "name": os.path.basename(src_path),
                         "tiles": [tiles_url],
                     }
 
@@ -483,9 +481,7 @@ class TilerFactory(BaseTilerFactory):
             tiles_url += f"?{qs}"
 
             with rasterio.Env(**self.gdal_config):
-                with self.reader(
-                    src_path.url, tms=tms, **self.reader_options
-                ) as src_dst:
+                with self.reader(src_path, tms=tms, **self.reader_options) as src_dst:
                     bounds = src_dst.bounds
                     minzoom = minzoom if minzoom is not None else src_dst.minzoom
                     maxzoom = maxzoom if maxzoom is not None else src_dst.maxzoom
@@ -544,7 +540,7 @@ class TilerFactory(BaseTilerFactory):
 
             with utils.Timer() as t:
                 with rasterio.Env(**self.gdal_config):
-                    with self.reader(src_path.url, **self.reader_options) as src_dst:
+                    with self.reader(src_path, **self.reader_options) as src_dst:
                         values = src_dst.point(
                             lon,
                             lat,
@@ -587,7 +583,7 @@ class TilerFactory(BaseTilerFactory):
 
             with utils.Timer() as t:
                 with rasterio.Env(**self.gdal_config):
-                    with self.reader(src_path.url, **self.reader_options) as src_dst:
+                    with self.reader(src_path, **self.reader_options) as src_dst:
                         data = src_dst.preview(
                             **layer_params.kwargs,
                             **img_params.kwargs,
@@ -657,7 +653,7 @@ class TilerFactory(BaseTilerFactory):
 
             with utils.Timer() as t:
                 with rasterio.Env(**self.gdal_config):
-                    with self.reader(src_path.url, **self.reader_options) as src_dst:
+                    with self.reader(src_path, **self.reader_options) as src_dst:
                         data = src_dst.part(
                             [minx, miny, maxx, maxy],
                             **layer_params.kwargs,
@@ -735,7 +731,7 @@ class MultiBaseTilerFactory(TilerFactory):
         ):
             """Return dataset's basic info or the list of available assets."""
             with rasterio.Env(**self.gdal_config):
-                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                with self.reader(src_path, **self.reader_options) as src_dst:
                     return src_dst.info(**asset_params.kwargs, **kwargs)
 
         @self.router.get(
@@ -757,8 +753,8 @@ class MultiBaseTilerFactory(TilerFactory):
         ):
             """Return dataset's basic info as a GeoJSON feature."""
             with rasterio.Env(**self.gdal_config):
-                with self.reader(src_path.url, **self.reader_options) as src_dst:
-                    info = {"dataset": src_path.url}
+                with self.reader(src_path, **self.reader_options) as src_dst:
+                    info = {"dataset": src_path}
                     info["assets"] = {
                         asset: meta.dict(exclude_none=True)
                         for asset, meta in src_dst.info(
@@ -780,7 +776,7 @@ class MultiBaseTilerFactory(TilerFactory):
         ):
             """Return a list of supported assets."""
             with rasterio.Env(**self.gdal_config):
-                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                with self.reader(src_path, **self.reader_options) as src_dst:
                     return src_dst.assets
 
     # Overwrite the `/metadata` endpoint because the MultiBaseReader output model is different (Dict[str, cogMetadata])
@@ -803,7 +799,7 @@ class MultiBaseTilerFactory(TilerFactory):
         ):
             """Return metadata."""
             with rasterio.Env(**self.gdal_config):
-                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                with self.reader(src_path, **self.reader_options) as src_dst:
                     return src_dst.metadata(
                         metadata_params.pmin,
                         metadata_params.pmax,
@@ -856,7 +852,7 @@ class MultiBandTilerFactory(TilerFactory):
         ):
             """Return dataset's basic info or the list of available bands."""
             with rasterio.Env(**self.gdal_config):
-                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                with self.reader(src_path, **self.reader_options) as src_dst:
                     return src_dst.info(**bands_params.kwargs, **kwargs)
 
         @self.router.get(
@@ -878,8 +874,8 @@ class MultiBandTilerFactory(TilerFactory):
         ):
             """Return dataset's basic info as a GeoJSON feature."""
             with rasterio.Env(**self.gdal_config):
-                with self.reader(src_path.url, **self.reader_options) as src_dst:
-                    info = {"dataset": src_path.url}
+                with self.reader(src_path, **self.reader_options) as src_dst:
+                    info = {"dataset": src_path}
                     info["bands"] = {
                         band: meta.dict(exclude_none=True)
                         for band, meta in src_dst.info(
@@ -899,7 +895,7 @@ class MultiBandTilerFactory(TilerFactory):
         ):
             """Return a list of supported bands."""
             with rasterio.Env(**self.gdal_config):
-                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                with self.reader(src_path, **self.reader_options) as src_dst:
                     return src_dst.bands
 
     def metadata(self):
@@ -920,7 +916,7 @@ class MultiBandTilerFactory(TilerFactory):
         ):
             """Return metadata."""
             with rasterio.Env(**self.gdal_config):
-                with self.reader(src_path.url, **self.reader_options) as src_dst:
+                with self.reader(src_path, **self.reader_options) as src_dst:
                     return src_dst.metadata(
                         metadata_params.pmin,
                         metadata_params.pmax,
@@ -987,7 +983,7 @@ class MosaicTilerFactory(BaseTilerFactory):
         )
         def read(src_path=Depends(self.path_dependency),):
             """Read a MosaicJSON"""
-            with self.reader(src_path.url, **self.backend_options) as mosaic:
+            with self.reader(src_path, **self.backend_options) as mosaic:
                 return mosaic.mosaic_def
 
     ############################################################################
@@ -1004,7 +1000,7 @@ class MosaicTilerFactory(BaseTilerFactory):
         def bounds(src_path=Depends(self.path_dependency)):
             """Return the bounds of the COG."""
             with rasterio.Env(**self.gdal_config):
-                with self.reader(src_path.url, **self.backend_options) as src_dst:
+                with self.reader(src_path, **self.backend_options) as src_dst:
                     return {"bounds": src_dst.bounds}
 
     ############################################################################
@@ -1020,7 +1016,7 @@ class MosaicTilerFactory(BaseTilerFactory):
         )
         def info(src_path=Depends(self.path_dependency)):
             """Return basic info."""
-            with self.reader(src_path.url, **self.backend_options) as src_dst:
+            with self.reader(src_path, **self.backend_options) as src_dst:
                 return src_dst.info()
 
         @self.router.get(
@@ -1041,11 +1037,11 @@ class MosaicTilerFactory(BaseTilerFactory):
         ):
             """Return mosaic's basic info as a GeoJSON feature."""
             with rasterio.Env(**self.gdal_config):
-                with self.reader(src_path.url, **self.backend_options) as src_dst:
+                with self.reader(src_path, **self.backend_options) as src_dst:
                     info = src_dst.info(**kwargs).dict(exclude_none=True)
                     bounds = info.pop("bounds", None)
                     info.pop("center", None)
-                    info["dataset"] = src_path.url
+                    info["dataset"] = src_path
                     geojson = utils.bbox_to_feature(bounds, properties=info)
 
             return geojson
@@ -1102,7 +1098,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             with utils.Timer() as t:
                 with rasterio.Env(**self.gdal_config):
                     with self.reader(
-                        src_path.url,
+                        src_path,
                         reader=self.dataset_reader,
                         reader_options=self.reader_options,
                         **self.backend_options,
@@ -1214,7 +1210,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             qs = urlencode(list(q.items()))
             tiles_url += f"?{qs}"
 
-            with self.reader(src_path.url, **self.backend_options) as src_dst:
+            with self.reader(src_path, **self.backend_options) as src_dst:
                 center = list(src_dst.center)
                 if minzoom:
                     center[-1] = minzoom
@@ -1223,7 +1219,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                     "center": tuple(center),
                     "minzoom": minzoom if minzoom is not None else src_dst.minzoom,
                     "maxzoom": maxzoom if maxzoom is not None else src_dst.maxzoom,
-                    "name": os.path.basename(src_path.url),
+                    "name": os.path.basename(src_path),
                     "tiles": [tiles_url],
                 }
 
@@ -1281,7 +1277,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             qs = urlencode(list(q.items()))
             tiles_url += f"?{qs}"
 
-            with self.reader(src_path.url, **self.backend_options) as src_dst:
+            with self.reader(src_path, **self.backend_options) as src_dst:
                 bounds = src_dst.bounds
                 minzoom = minzoom if minzoom is not None else src_dst.minzoom
                 maxzoom = maxzoom if maxzoom is not None else src_dst.maxzoom
@@ -1342,7 +1338,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             with utils.Timer() as t:
                 with rasterio.Env(**self.gdal_config):
                     with self.reader(
-                        src_path.url,
+                        src_path,
                         reader=self.dataset_reader,
                         reader_options=self.reader_options,
                         **self.backend_options,
