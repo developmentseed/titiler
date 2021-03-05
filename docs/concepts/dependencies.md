@@ -162,15 +162,27 @@ The `factories` allow users to set multiple default dependencies. Here is the li
             title="Color Formula",
             description="rio-color formula (info: https://github.com/mapbox/rio-color)",
         )
-        color_map: Optional[ColorMapNames] = Query(
-            None, description="rio-tiler's colormap name"
-        )
         return_mask: bool = Query(True, description="Add mask to the output data.")
-        colormap: Optional[Dict[int, Tuple[int, int, int, int]]] = field(init=False)
+
+        rescale_range: Optional[List[Union[float, int]]] = field(init=False)
 
         def __post_init__(self):
             """Post Init."""
-            self.colormap = cmap.get(self.color_map.value) if self.color_map else None
+            self.rescale_range = (
+                list(map(float, self.rescale.split(","))) if self.rescale else None
+            )
+    ```
+
+* **colormap_dependency**: colormap options.
+
+    ```python
+    def ColorMapParams(
+        color_map: ColorMapNames = Query(None, description="Colormap name",)
+    ) -> Optional[Dict]:
+        """Colormap Dependency."""
+        if color_map:
+            return cmap.get(color_map.value)
+        return None
     ```
 
 * **additional_dependency**: Default dependency, will be passed as `**kwargs` to all endpoints.

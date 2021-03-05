@@ -336,9 +336,6 @@ class RenderParams(DefaultDependency):
         title="Color Formula",
         description="rio-color formula (info: https://github.com/mapbox/rio-color)",
     )
-    color_map: Optional[ColorMapNames] = Query(
-        None, description="rio-tiler's colormap name"
-    )
     return_mask: bool = Query(True, description="Add mask to the output data.")
 
     rescale_range: Optional[List[Union[float, int]]] = field(init=False)
