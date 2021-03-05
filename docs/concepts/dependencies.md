@@ -58,11 +58,11 @@ The `factories` allow users to set multiple default dependencies. Here is the li
 
 * **path_dependency**: Set dataset path (url).
     ```python
-    @dataclass
-    class PathParams(DefaultDependency):
-        """Create dataset path from args"""
-
+    def DatasetPathParams(
         url: str = Query(..., description="Dataset URL")
+    ) -> str:
+        """Create dataset path from args"""
+        return url
     ```
 
 * **tms_dependency**: The TMS dependency sets the available TMS for a tile endpoint.

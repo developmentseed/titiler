@@ -3,7 +3,7 @@
 from rio_cogeo.cogeo import cog_info as rio_cogeo_info
 from rio_tiler.io import COGReader
 
-from ..dependencies import PathParams
+from ..dependencies import DatasetPathParams
 from ..models.cogeo import Info
 from ..templates import templates
 from .factory import TilerFactory
@@ -19,11 +19,11 @@ cog = TilerFactory(reader=COGReader, router_prefix="cog")
 
 @cog.router.get("/validate", response_model=Info)
 def cog_validate(
-    src_path: PathParams = Depends(),
+    src_path: str = Depends(DatasetPathParams),
     strict: bool = Query(False, description="Treat warnings as errors"),
 ):
     """Validate a COG"""
-    return rio_cogeo_info(src_path.url, strict=strict)
+    return rio_cogeo_info(src_path, strict=strict)
 
 
 @cog.router.get("/viewer", response_class=HTMLResponse)

@@ -77,18 +77,16 @@ def ColorMapParams(
     return None
 
 
+def DatasetPathParams(url: str = Query(..., description="Dataset URL")) -> str:
+    """Create dataset path from args"""
+    return url
+
+
 @dataclass
 class DefaultDependency:
     """Dependency Base Class"""
 
     kwargs: Dict = field(init=False, default_factory=dict)
-
-
-@dataclass
-class PathParams:
-    """Create dataset path from args"""
-
-    url: str = Query(..., description="Dataset URL")
 
 
 # Dependencies for simple BaseReader (e.g COGReader)
