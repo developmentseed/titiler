@@ -9,7 +9,8 @@
 
 **breaking change**
 
-* renamed `OptionalHeaders`, `MimeTypes` and `ImageDrivers` enums to the singular form. (https://github.com/developmentseed/titiler/pull/258)
+* renamed `OptionalHeaders`, `MimeTypes` and `ImageDrivers` enums to the singular form (https://github.com/developmentseed/titiler/pull/258)
+* renamed titiler.dependencies's Enums (`ColorMapName`, `ResamplingName` and `TileMatrixSetName`) to the singular form (https://github.com/developmentseed/titiler/pull/260)
 * renamed `MimeType` to `MediaType` (https://github.com/developmentseed/titiler/pull/258)
 * add `ColorMapParams` dependency to ease the creation of custom colormap dependency (https://github.com/developmentseed/titiler/pull/252)
 * renamed `PathParams` to `DatasetPathParams` and also made it a simple callable (https://github.com/developmentseed/titiler/pull/260)

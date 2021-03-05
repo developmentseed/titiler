@@ -31,7 +31,7 @@ from ..dependencies import (
     ImageParams,
     MetadataParams,
     RenderParams,
-    TileMatrixSetNames,
+    TileMatrixSetName,
     TMSParams,
     WebMercatorTMSParams,
 )
@@ -1376,7 +1376,7 @@ class TMSFactory:
     """TileMatrixSet endpoints Factory."""
 
     # Enum of supported TMS
-    supported_tms: Type[TileMatrixSetNames] = TileMatrixSetNames
+    supported_tms: Type[TileMatrixSetName] = TileMatrixSetName
 
     # TileMatrixSet dependency
     tms_dependency: Callable[..., TileMatrixSet] = TMSParams
