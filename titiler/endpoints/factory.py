@@ -36,12 +36,7 @@ from ..dependencies import (
 )
 from ..models.mapbox import TileJSON
 from ..models.OGC import TileMatrixSetList
-from ..resources.enums import (
-    ImageType,
-    MimeTypes,
-    OptionalHeaders,
-    PixelSelectionMethod,
-)
+from ..resources.enums import ImageType, MediaType, OptionalHeader, PixelSelectionMethod
 from ..resources.responses import GeoJSONResponse, XMLResponse
 from ..templates import templates
 
@@ -106,7 +101,7 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
     gdal_config: Dict = field(default_factory=dict)
 
     # add additional headers in response
-    optional_headers: List[OptionalHeaders] = field(default_factory=list)
+    optional_headers: List[OptionalHeader] = field(default_factory=list)
 
     def __post_init__(self):
         """Post Init: register route and configure specific options."""
@@ -349,12 +344,12 @@ class TilerFactory(BaseTilerFactory):
                 )
             timings.append(("format", round(t.elapsed * 1000, 2)))
 
-            if OptionalHeaders.server_timing in self.optional_headers:
+            if OptionalHeader.server_timing in self.optional_headers:
                 headers["Server-Timing"] = ", ".join(
                     [f"{name};dur={time}" for (name, time) in timings]
                 )
 
-            return Response(content, media_type=format.mimetype, headers=headers)
+            return Response(content, media_type=format.mediatype, headers=headers)
 
     def tilejson(self):  # noqa: C901
         """Register /tilejson.json endpoint."""
@@ -514,9 +509,9 @@ class TilerFactory(BaseTilerFactory):
                     "tms": tms,
                     "title": "Cloud Optimized GeoTIFF",
                     "layer_name": "cogeo",
-                    "media_type": tile_format.mimetype,
+                    "media_type": tile_format.mediatype,
                 },
-                media_type=MimeTypes.xml.value,
+                media_type=MediaType.xml.value,
             )
 
     ############################################################################
@@ -553,7 +548,7 @@ class TilerFactory(BaseTilerFactory):
                         )
             timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
-            if OptionalHeaders.server_timing in self.optional_headers:
+            if OptionalHeader.server_timing in self.optional_headers:
                 response.headers["Server-Timing"] = ", ".join(
                     [f"{name};dur={time}" for (name, time) in timings]
                 )
@@ -617,12 +612,12 @@ class TilerFactory(BaseTilerFactory):
                 )
             timings.append(("format", round(t.elapsed * 1000, 2)))
 
-            if OptionalHeaders.server_timing in self.optional_headers:
+            if OptionalHeader.server_timing in self.optional_headers:
                 headers["Server-Timing"] = ", ".join(
                     [f"{name};dur={time}" for (name, time) in timings]
                 )
 
-            return Response(content, media_type=format.mimetype, headers=headers)
+            return Response(content, media_type=format.mediatype, headers=headers)
 
     ############################################################################
     # /crop (Optional)
@@ -686,12 +681,12 @@ class TilerFactory(BaseTilerFactory):
                 )
             timings.append(("format", round(t.elapsed * 1000, 2)))
 
-            if OptionalHeaders.server_timing in self.optional_headers:
+            if OptionalHeader.server_timing in self.optional_headers:
                 headers["Server-Timing"] = ", ".join(
                     [f"{name};dur={time}" for (name, time) in timings]
                 )
 
-            return Response(content, media_type=format.mimetype, headers=headers)
+            return Response(content, media_type=format.mediatype, headers=headers)
 
 
 @dataclass
@@ -1143,15 +1138,15 @@ class MosaicTilerFactory(BaseTilerFactory):
                 )
             timings.append(("format", round(t.elapsed * 1000, 2)))
 
-            if OptionalHeaders.server_timing in self.optional_headers:
+            if OptionalHeader.server_timing in self.optional_headers:
                 headers["Server-Timing"] = ", ".join(
                     [f"{name};dur={time}" for (name, time) in timings]
                 )
 
-            if OptionalHeaders.x_assets in self.optional_headers:
+            if OptionalHeader.x_assets in self.optional_headers:
                 headers["X-Assets"] = ",".join(data.assets)
 
-            return Response(content, media_type=format.mimetype, headers=headers)
+            return Response(content, media_type=format.mediatype, headers=headers)
 
     def tilejson(self):  # noqa: C901
         """Add tilejson endpoint."""
@@ -1309,9 +1304,9 @@ class MosaicTilerFactory(BaseTilerFactory):
                     "tms": tms,
                     "title": "Cloud Optimized GeoTIFF",
                     "layer_name": "cogeo",
-                    "media_type": tile_format.mimetype,
+                    "media_type": tile_format.mediatype,
                 },
-                media_type=MimeTypes.xml.value,
+                media_type=MediaType.xml.value,
             )
 
     ############################################################################
@@ -1357,7 +1352,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                         )
             timings.append(("dataread", round((t.elapsed - mosaic_read) * 1000, 2)))
 
-            if OptionalHeaders.server_timing in self.optional_headers:
+            if OptionalHeader.server_timing in self.optional_headers:
                 response.headers["Server-Timing"] = ", ".join(
                     [f"{name};dur={time}" for (name, time) in timings]
                 )

@@ -9,7 +9,7 @@ from cogeo_mosaic.mosaic import MosaicJSON
 
 from titiler.dependencies import TMSParams, WebMercatorTMSParams
 from titiler.endpoints import factory
-from titiler.resources.enums import OptionalHeaders
+from titiler.resources.enums import OptionalHeader
 
 from .conftest import DATA_DIR
 
@@ -30,7 +30,7 @@ def test_TilerFactory():
     assert len(cog.router.routes) == 17
 
     app = FastAPI()
-    cog = factory.TilerFactory(optional_headers=[OptionalHeaders.server_timing])
+    cog = factory.TilerFactory(optional_headers=[OptionalHeader.server_timing])
     app.include_router(cog.router)
     client = TestClient(app)
 
@@ -87,7 +87,7 @@ def tmpmosaic():
 def test_MosaicTilerFactory():
     """Test MosaicTilerFactory class."""
     mosaic = factory.MosaicTilerFactory(
-        optional_headers=[OptionalHeaders.server_timing, OptionalHeaders.x_assets],
+        optional_headers=[OptionalHeader.server_timing, OptionalHeader.x_assets],
         router_prefix="mosaic",
     )
     assert len(mosaic.router.routes) == 19
