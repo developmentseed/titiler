@@ -29,17 +29,17 @@ cmap = cmap.register({"above": custom_colormap.above_cmap})
 ################################################################################
 # DO NOT UPDATE
 # Create ENUMS with all CMAP and TMS for documentation and validation.
-ColorMapNames = Enum(  # type: ignore
-    "ColorMapNames", [(a, a) for a in sorted(cmap.list())]
+ColorMapName = Enum(  # type: ignore
+    "ColorMapName", [(a, a) for a in sorted(cmap.list())]
 )
-ResamplingNames = Enum(  # type: ignore
-    "ResamplingNames", [(r.name, r.name) for r in Resampling]
+ResamplingName = Enum(  # type: ignore
+    "ResamplingName", [(r.name, r.name) for r in Resampling]
 )
 WebMercatorTileMatrixSetName = Enum(  # type: ignore
     "WebMercatorTileMatrixSetName", [("WebMercatorQuad", "WebMercatorQuad")]
 )
-TileMatrixSetNames = Enum(  # type: ignore
-    "TileMatrixSetNames", [(a, a) for a in sorted(tms.list())]
+TileMatrixSetName = Enum(  # type: ignore
+    "TileMatrixSetName", [(a, a) for a in sorted(tms.list())]
 )
 
 
@@ -59,8 +59,8 @@ def WebMercatorTMSParams(
 
 
 def TMSParams(
-    TileMatrixSetId: TileMatrixSetNames = Query(
-        TileMatrixSetNames.WebMercatorQuad,  # type: ignore
+    TileMatrixSetId: TileMatrixSetName = Query(
+        TileMatrixSetName.WebMercatorQuad,  # type: ignore
         description="TileMatrixSet Name (default: 'WebMercatorQuad')",
     )
 ) -> TileMatrixSet:
@@ -69,7 +69,7 @@ def TMSParams(
 
 
 def ColorMapParams(
-    color_map: ColorMapNames = Query(None, description="Colormap name",)
+    color_map: ColorMapName = Query(None, description="Colormap name",)
 ) -> Optional[Dict]:
     """Colormap Dependency."""
     if color_map:
@@ -302,8 +302,8 @@ class DatasetParams(DefaultDependency):
         title="Apply internal Scale/Offset",
         description="Apply internal Scale/Offset",
     )
-    resampling_method: ResamplingNames = Query(
-        ResamplingNames.nearest, description="Resampling method."  # type: ignore
+    resampling_method: ResamplingName = Query(
+        ResamplingName.nearest, description="Resampling method."  # type: ignore
     )
 
     def __post_init__(self):
