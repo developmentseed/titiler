@@ -36,7 +36,7 @@ from ..dependencies import (
 )
 from ..models.mapbox import TileJSON
 from ..models.OGC import TileMatrixSetList
-from ..resources.enums import ImageType, MimeType, OptionalHeader, PixelSelectionMethod
+from ..resources.enums import ImageType, MediaType, OptionalHeader, PixelSelectionMethod
 from ..resources.responses import GeoJSONResponse, XMLResponse
 from ..templates import templates
 
@@ -349,7 +349,7 @@ class TilerFactory(BaseTilerFactory):
                     [f"{name};dur={time}" for (name, time) in timings]
                 )
 
-            return Response(content, media_type=format.mimetype, headers=headers)
+            return Response(content, media_type=format.mediatype, headers=headers)
 
     def tilejson(self):  # noqa: C901
         """Register /tilejson.json endpoint."""
@@ -509,9 +509,9 @@ class TilerFactory(BaseTilerFactory):
                     "tms": tms,
                     "title": "Cloud Optimized GeoTIFF",
                     "layer_name": "cogeo",
-                    "media_type": tile_format.mimetype,
+                    "media_type": tile_format.mediatype,
                 },
-                media_type=MimeType.xml.value,
+                media_type=MediaType.xml.value,
             )
 
     ############################################################################
@@ -616,7 +616,7 @@ class TilerFactory(BaseTilerFactory):
                     [f"{name};dur={time}" for (name, time) in timings]
                 )
 
-            return Response(content, media_type=format.mimetype, headers=headers)
+            return Response(content, media_type=format.mediatype, headers=headers)
 
     ############################################################################
     # /crop (Optional)
@@ -684,7 +684,7 @@ class TilerFactory(BaseTilerFactory):
                     [f"{name};dur={time}" for (name, time) in timings]
                 )
 
-            return Response(content, media_type=format.mimetype, headers=headers)
+            return Response(content, media_type=format.mediatype, headers=headers)
 
 
 @dataclass
@@ -1143,7 +1143,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             if OptionalHeader.x_assets in self.optional_headers:
                 headers["X-Assets"] = ",".join(data.assets)
 
-            return Response(content, media_type=format.mimetype, headers=headers)
+            return Response(content, media_type=format.mediatype, headers=headers)
 
     def tilejson(self):  # noqa: C901
         """Add tilejson endpoint."""
@@ -1301,9 +1301,9 @@ class MosaicTilerFactory(BaseTilerFactory):
                     "tms": tms,
                     "title": "Cloud Optimized GeoTIFF",
                     "layer_name": "cogeo",
-                    "media_type": tile_format.mimetype,
+                    "media_type": tile_format.mediatype,
                 },
-                media_type=MimeType.xml.value,
+                media_type=MediaType.xml.value,
             )
 
     ############################################################################

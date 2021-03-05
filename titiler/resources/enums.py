@@ -7,8 +7,8 @@ from rio_tiler.mosaic.methods import defaults
 from rio_tiler.profiles import img_profiles
 
 
-class MimeType(str, Enum):
-    """Responses MineType."""
+class MediaType(str, Enum):
+    """Responses Media types formerly known as MIME types."""
 
     tif = "image/tiff; application=geotiff"
     jp2 = "image/jp2"
@@ -58,9 +58,9 @@ class ImageType(str, Enum):
         return ImageDriver[self._name_].value
 
     @DynamicClassAttribute
-    def mimetype(self):
-        """Return image mimetype."""
-        return MimeType[self._name_].value
+    def mediatype(self):
+        """Return image media type."""
+        return MediaType[self._name_].value
 
 
 class PixelSelectionMethod(str, Enum):

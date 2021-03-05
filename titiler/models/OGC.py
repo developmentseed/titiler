@@ -5,7 +5,7 @@ from typing import List
 
 from pydantic import AnyHttpUrl, BaseModel
 
-from ..resources.enums import MimeType
+from ..resources.enums import MediaType
 
 
 class TileMatrixSetLink(BaseModel):
@@ -18,7 +18,7 @@ class TileMatrixSetLink(BaseModel):
 
     href: AnyHttpUrl
     rel: str = "item"
-    type: MimeType = MimeType.json
+    type: MediaType = MediaType.json
 
     class Config:
         """Config for model."""
