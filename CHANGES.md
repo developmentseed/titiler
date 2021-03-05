@@ -5,6 +5,7 @@
 * adapt for cogeo-mosaic `3.0.0rc2` and add `backend_options` attribute in MosaicTilerFactory (https://github.com/developmentseed/titiler/pull/247)
 * update FastAPI requirements
 * update minimal python version to 3.6
+* add `**render_params.kwargs` to pass custom render params in `image.render` method (https://github.com/developmentseed/titiler/pull/259)
 
 **breaking change**
 
