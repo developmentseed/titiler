@@ -320,9 +320,8 @@ class TilerFactory(BaseTilerFactory):
                             **dataset_params.kwargs,
                             **kwargs,
                         )
-                        colormap = render_params.colormap or getattr(
-                            src_dst, "colormap", None
-                        )
+                        dst_colormap = getattr(src_dst, "colormap", None)
+
             timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
             if not format:
@@ -339,8 +338,9 @@ class TilerFactory(BaseTilerFactory):
                 content = image.render(
                     add_mask=render_params.return_mask,
                     img_format=format.driver,
-                    colormap=colormap,
+                    colormap=render_params.colormap or dst_colormap,
                     **format.profile,
+                    **render_params.kwargs,
                 )
             timings.append(("format", round(t.elapsed * 1000, 2)))
 
@@ -608,6 +608,7 @@ class TilerFactory(BaseTilerFactory):
                     img_format=format.driver,
                     colormap=colormap,
                     **format.profile,
+                    **render_params.kwargs,
                 )
             timings.append(("format", round(t.elapsed * 1000, 2)))
 
@@ -676,6 +677,7 @@ class TilerFactory(BaseTilerFactory):
                     img_format=format.driver,
                     colormap=colormap,
                     **format.profile,
+                    **render_params.kwargs,
                 )
             timings.append(("format", round(t.elapsed * 1000, 2)))
 
@@ -1132,6 +1134,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                     img_format=format.driver,
                     colormap=render_params.colormap,
                     **format.profile,
+                    **render_params.kwargs,
                 )
             timings.append(("format", round(t.elapsed * 1000, 2)))
 
