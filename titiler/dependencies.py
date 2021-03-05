@@ -81,7 +81,7 @@ def ColorMapParams(
 class DefaultDependency:
     """Dependency Base Class"""
 
-    kwargs: dict = field(init=False, default_factory=dict)
+    kwargs: Dict = field(init=False, default_factory=dict)
 
 
 @dataclass
