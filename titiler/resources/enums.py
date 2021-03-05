@@ -7,8 +7,8 @@ from rio_tiler.mosaic.methods import defaults
 from rio_tiler.profiles import img_profiles
 
 
-class MimeTypes(str, Enum):
-    """Responses MineTypes."""
+class MediaType(str, Enum):
+    """Responses Media types formerly known as MIME types."""
 
     tif = "image/tiff; application=geotiff"
     jp2 = "image/jp2"
@@ -24,8 +24,8 @@ class MimeTypes(str, Enum):
     text = "text/plain"
 
 
-class ImageDrivers(str, Enum):
-    """Rio-tiler supported output drivers."""
+class ImageDriver(str, Enum):
+    """Supported output GDAL drivers."""
 
     jpeg = "JPEG"
     png = "PNG"
@@ -55,16 +55,16 @@ class ImageType(str, Enum):
     @DynamicClassAttribute
     def driver(self):
         """Return rio-tiler image default profile."""
-        return ImageDrivers[self._name_].value
+        return ImageDriver[self._name_].value
 
     @DynamicClassAttribute
-    def mimetype(self):
-        """Return image mimetype."""
-        return MimeTypes[self._name_].value
+    def mediatype(self):
+        """Return image media type."""
+        return MediaType[self._name_].value
 
 
 class PixelSelectionMethod(str, Enum):
-    """rio-tiler-mosaic pixel selection methods"""
+    """rio-tiler.mosaic pixel selection methods"""
 
     first = "first"
     highest = "highest"
@@ -79,8 +79,8 @@ class PixelSelectionMethod(str, Enum):
         return getattr(defaults, f"{self._value_.title()}Method")
 
 
-class OptionalHeaders(str, Enum):
-    """Optional Headers in responses."""
+class OptionalHeader(str, Enum):
+    """Optional Header to add in responses."""
 
     server_timing = "Server-Timing"
     x_assets = "X-Assets"

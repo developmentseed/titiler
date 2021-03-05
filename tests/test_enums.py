@@ -7,7 +7,7 @@ from titiler.resources.enums import ImageType
 
 
 @pytest.mark.parametrize(
-    "value,driver,mimetype",
+    "value,driver,mediatype",
     [
         ("png", "PNG", "image/png"),
         ("npy", "NPY", "application/x-binary"),
@@ -18,10 +18,10 @@ from titiler.resources.enums import ImageType
         ("pngraw", "PNG", "image/png"),
     ],
 )
-def test_imagetype(value, driver, mimetype):
-    """Test driver and mimetype values."""
+def test_imagetype(value, driver, mediatype):
+    """Test driver and mediatype values."""
     assert ImageType[value].driver == driver
-    assert ImageType[value].mimetype == mimetype
+    assert ImageType[value].mediatype == mediatype
 
 
 def test_imageprofile():
