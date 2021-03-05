@@ -1,7 +1,10 @@
 """test /COG endpoints."""
+
+import json
 import os
 from io import BytesIO
 from unittest.mock import patch
+from urllib.parse import urlencode
 
 import numpy
 import pytest
@@ -202,19 +205,37 @@ def test_tile(rio, app):
     assert response.headers["content-type"] == "image/png"
 
     response = app.get(
-        "/cog/tiles/8/84/47?url=https://myurl.com/cog.tif&nodata=0&rescale=0,1000&color_map=viridis"
+        "/cog/tiles/8/84/47?url=https://myurl.com/cog.tif&nodata=0&rescale=0,1000&colormap_name=viridis"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
 
     response = app.get(
-        "/cog/tiles/8/53/50.png?url=https://myurl.com/above_cog.tif&bidx=1&color_map=above"
+        "/cog/tiles/8/53/50.png?url=https://myurl.com/above_cog.tif&bidx=1&colormap_name=above"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/png"
+
+    cmap = urlencode(
+        {
+            "colormap": json.dumps(
+                {
+                    "1": [58, 102, 24, 255],
+                    "2": [100, 177, 41],
+                    "3": "#b1b129",
+                    "4": "#ddcb9aFF",
+                }
+            )
+        }
+    )
+    response = app.get(
+        f"/cog/tiles/8/53/50.png?url=https://myurl.com/above_cog.tif&bidx=1&{cmap}"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
 
     response = app.get(
-        "/cog/tiles/8/53/50.png?url=https://myurl.com/above_cog.tif&bidx=1&color_map=above&resampling_method=somethingwrong"
+        "/cog/tiles/8/53/50.png?url=https://myurl.com/above_cog.tif&bidx=1&colormap_name=above&resampling_method=somethingwrong"
     )
     assert response.status_code == 422
 

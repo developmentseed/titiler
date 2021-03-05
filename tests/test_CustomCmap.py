@@ -19,17 +19,18 @@ cmap_values = {
     "cmap1": {6: (4, 5, 6, 255)},
 }
 cmap = ColorMaps(data=cmap_values)
-ColorMapNames = Enum(  # type: ignore
-    "ColorMapNames", [(a, a) for a in sorted(cmap.list())]
+ColorMapName = Enum(  # type: ignore
+    "ColorMapName", [(a, a) for a in sorted(cmap.list())]
 )
 
 
 def ColorMapParams(
-    color_map: ColorMapNames = Query(None, description="Colormap name",)
+    colormap_name: ColorMapName = Query(None, description="Colormap name"),
 ) -> Optional[Dict]:
     """Colormap Dependency."""
-    if color_map:
-        return cmap.get(color_map.value)
+    if colormap_name:
+        return cmap.get(colormap_name.value)
+
     return None
 
 
@@ -41,7 +42,7 @@ def test_CustomCmap():
     client = TestClient(app)
 
     response = client.get(
-        f"/preview.npy?url={DATA_DIR}/above_cog.tif&bidx=1&color_map=cmap1"
+        f"/preview.npy?url={DATA_DIR}/above_cog.tif&bidx=1&colormap_name=cmap1"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/x-binary"
@@ -51,6 +52,6 @@ def test_CustomCmap():
     assert 6 in data[2]
 
     response = client.get(
-        f"/preview.npy?url={DATA_DIR}/above_cog.tif&bidx=1&color_map=another_cmap"
+        f"/preview.npy?url={DATA_DIR}/above_cog.tif&bidx=1&colormap_name=another_cmap"
     )
     assert response.status_code == 422
