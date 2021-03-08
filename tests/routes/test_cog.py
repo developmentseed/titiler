@@ -4,7 +4,7 @@ import json
 import os
 from io import BytesIO
 from unittest.mock import patch
-from urllib.parse import urlencode
+from urllib.parse import parse_qsl, urlencode, urlparse
 
 import numpy
 import pytest
@@ -279,6 +279,24 @@ def test_tilejson(rio, app):
     assert body["tiles"][0].startswith(
         "http://testserver/cog/tiles/WebMercatorQuad/{z}/{x}/{y}@2x.png?url=https"
     )
+
+    cmap_dict = {
+        "1": [58, 102, 24, 255],
+        "2": [100, 177, 41],
+        "3": "#b1b129",
+        "4": "#ddcb9aFF",
+    }
+    cmap = urlencode({"colormap": json.dumps(cmap_dict)})
+    response = app.get(
+        f"/cog/tilejson.json?url=https://myurl.com/above_cog.tif&bidx=1&{cmap}"
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["tiles"][0].startswith(
+        "http://testserver/cog/tiles/WebMercatorQuad/{z}/{x}/{y}@1x?url=https"
+    )
+    query = dict(parse_qsl(urlparse(body["tiles"][0]).query))
+    assert json.loads(query["colormap"]) == cmap_dict
 
 
 @patch("rio_tiler.io.cogeo.rasterio")
