@@ -6,6 +6,7 @@
 * update FastAPI requirements
 * update minimal python version to 3.6
 * add `**render_params.kwargs` to pass custom render params in `image.render` method (https://github.com/developmentseed/titiler/pull/259)
+* Changed probe url from `/ping` to `/healthz` in k8s deployment
 
 **breaking change**
 
