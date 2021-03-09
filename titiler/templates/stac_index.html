@@ -408,7 +408,7 @@
             }
 
             const cmap = document.getElementById('colormap-selector')[document.getElementById('colormap-selector').selectedIndex]
-            if (cmap.value !== 'b&w') params.color_map = cmap.value
+            if (cmap.value !== 'b&w') params.colormap_name = cmap.value
 
             const url_params = Object.keys(params).map(i => `${i}=${params[i]}`).join('&')
             let url = `${tilejson_endpoint}?${url_params}`

@@ -161,7 +161,7 @@ def test_tile(app):
             params={
                 "url": MOSAICJSON_FILE,
                 "rescale": "0,1000",
-                "color_map": "viridis",
+                "colormap_name": "viridis",
                 "bidx": 1,
             },
         )

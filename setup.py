@@ -17,7 +17,7 @@ inst_reqs = [
     "python-dotenv",
     "rasterio",
     "rio-cogeo>=2.1,<2.2",
-    "rio-tiler>=2.0.1,<2.1",
+    "rio-tiler>=2.0.4,<2.1",
     "uvicorn[standard]>=0.12.0,<0.14.0",
     # Additional requirements for python 3.6
     "dataclasses;python_version<'3.7'",

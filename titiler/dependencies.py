@@ -1,5 +1,6 @@
 """Common dependency."""
 
+import json
 import re
 from dataclasses import dataclass, field
 from enum import Enum
@@ -9,7 +10,7 @@ import numpy
 from morecantile import tms
 from morecantile.models import TileMatrixSet
 from rasterio.enums import Resampling
-from rio_tiler.colormap import cmap
+from rio_tiler.colormap import cmap, parse_color
 from rio_tiler.errors import MissingAssets, MissingBands
 
 from .custom import cmap as custom_colormap
@@ -69,11 +70,19 @@ def TMSParams(
 
 
 def ColorMapParams(
-    color_map: ColorMapName = Query(None, description="Colormap name",)
+    colormap_name: ColorMapName = Query(None, description="Colormap name"),
+    colormap: str = Query(None, description="JSON encoded custom Colormap"),
 ) -> Optional[Dict]:
     """Colormap Dependency."""
-    if color_map:
-        return cmap.get(color_map.value)
+    if colormap_name:
+        return cmap.get(colormap_name.value)
+
+    if colormap:
+        return json.loads(
+            colormap,
+            object_hook=lambda x: {int(k): parse_color(v) for k, v in x.items()},
+        )
+
     return None
 
 
