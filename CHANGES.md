@@ -29,8 +29,6 @@
     /cog/preview.png?colormap={"0": "#FFFF00FF", ...}
     ```
 
-
-
 ## 0.1.0 (2021-02-17)
 
 * update FastAPI requirements
