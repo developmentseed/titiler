@@ -1,6 +1,6 @@
 # Release Notes
 
-## 0.2.0 (TBD)
+## 0.2.0 (2021-03-09)
 
 * adapt for cogeo-mosaic `3.0.0rc2` and add `backend_options` attribute in MosaicTilerFactory (https://github.com/developmentseed/titiler/pull/247)
 * update FastAPI requirements
@@ -15,6 +15,21 @@
 * renamed `MimeType` to `MediaType` (https://github.com/developmentseed/titiler/pull/258)
 * add `ColorMapParams` dependency to ease the creation of custom colormap dependency (https://github.com/developmentseed/titiler/pull/252)
 * renamed `PathParams` to `DatasetPathParams` and also made it a simple callable (https://github.com/developmentseed/titiler/pull/260)
+* renamed `colormap` query-parameter to `colormap_name` (https://github.com/developmentseed/titiler/pull/262)
+    ```
+    # before
+    /cog/preview.png?colormap=viridis
+
+    # now
+    /cog/preview.png?colormap_name=viridis
+    ```
+
+* use `colormap` query-parameter to pass custom colormap (https://github.com/developmentseed/titiler/pull/262)
+    ```
+    /cog/preview.png?colormap={"0": "#FFFF00FF", ...}
+    ```
+
+
 
 ## 0.1.0 (2021-02-17)
 
