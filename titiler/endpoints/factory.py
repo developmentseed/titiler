@@ -4,7 +4,7 @@ import abc
 import os
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Type
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 
 import rasterio
 from cogeo_mosaic.backends import BaseBackend, MosaicBackend
@@ -325,7 +325,6 @@ class TilerFactory(BaseTilerFactory):
                             **kwargs,
                         )
                         dst_colormap = getattr(src_dst, "colormap", None)
-
             timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
             if not format:
@@ -423,7 +422,7 @@ class TilerFactory(BaseTilerFactory):
                         "center": tuple(center),
                         "minzoom": minzoom if minzoom is not None else src_dst.minzoom,
                         "maxzoom": maxzoom if maxzoom is not None else src_dst.maxzoom,
-                        "name": os.path.basename(src_path),
+                        "name": urlparse(src_path).path.lstrip("/") or "cogeotif",
                         "tiles": [tiles_url],
                     }
 
@@ -590,7 +589,7 @@ class TilerFactory(BaseTilerFactory):
                             **dataset_params.kwargs,
                             **kwargs,
                         )
-                        colormap = colormap or getattr(src_dst, "colormap", None)
+                        dst_colormap = getattr(src_dst, "colormap", None)
             timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
             if not format:
@@ -607,7 +606,7 @@ class TilerFactory(BaseTilerFactory):
                 content = image.render(
                     add_mask=render_params.return_mask,
                     img_format=format.driver,
-                    colormap=colormap,
+                    colormap=colormap or dst_colormap,
                     **format.profile,
                     **render_params.kwargs,
                 )
@@ -661,7 +660,7 @@ class TilerFactory(BaseTilerFactory):
                             **dataset_params.kwargs,
                             **kwargs,
                         )
-                        colormap = colormap or getattr(src_dst, "colormap", None)
+                        dst_colormap = getattr(src_dst, "colormap", None)
             timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
             with utils.Timer() as t:
@@ -675,7 +674,7 @@ class TilerFactory(BaseTilerFactory):
                 content = image.render(
                     add_mask=render_params.return_mask,
                     img_format=format.driver,
-                    colormap=colormap,
+                    colormap=colormap or dst_colormap,
                     **format.profile,
                     **render_params.kwargs,
                 )
@@ -1219,7 +1218,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                     "center": tuple(center),
                     "minzoom": minzoom if minzoom is not None else src_dst.minzoom,
                     "maxzoom": maxzoom if maxzoom is not None else src_dst.maxzoom,
-                    "name": os.path.basename(src_path),
+                    "name": urlparse(src_path).path.lstrip("/") or "mosaic",
                     "tiles": [tiles_url],
                 }
 

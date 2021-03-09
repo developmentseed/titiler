@@ -10,7 +10,7 @@ import numpy
 from morecantile import tms
 from morecantile.models import TileMatrixSet
 from rasterio.enums import Resampling
-from rio_tiler.colormap import cmap
+from rio_tiler.colormap import cmap, parse_color
 from rio_tiler.errors import MissingAssets, MissingBands
 
 from .custom import cmap as custom_colormap
@@ -67,53 +67,6 @@ def TMSParams(
 ) -> TileMatrixSet:
     """TileMatrixSet Dependency."""
     return tms.get(TileMatrixSetId.name)
-
-
-def parse_color(value: Union[List[int], str]) -> List[int]:
-    """Parse RGB/RGBA color and return valid rio-tiler compatible RGBA colormap entry.
-
-    Args:
-        value (str or list of int): HEX encoded or list RGB or RGBA colors.
-
-    Returns:
-        list: RGBA values.
-
-    Examples:
-        >>> parse_color("#FFF")
-        [255, 255, 255, 255]
-
-        >>> parse_color("#FF0000FF")
-        [255, 0, 0, 255]
-
-        >>> parse_color("#FF0000")
-        [255, 0, 0, 255]
-
-        >>> parse_color([255, 255, 255])
-        [255, 255, 255, 255]
-
-    """
-    if isinstance(value, str):
-        hex_pattern = (
-            r"^#"
-            r"(?P<red>[a-fA-F0-9]{1,2})"
-            r"(?P<green>[a-fA-F0-9]{1,2})"
-            r"(?P<blue>[a-fA-F0-9]{1,2})"
-            r"(?P<alpha>[a-fA-F0-9]{1,2})?"
-            r"$"
-        )
-        match = re.match(hex_pattern, value)
-        if match:
-            factor = 1 if len(match.groups()[0]) == 2 else 2
-            value = [
-                int(n * factor, 16) for n in match.groupdict().values() if n is not None
-            ]
-        else:
-            raise Exception(f"Invalid color {value}")
-
-    if len(value) == 3:
-        value += [255]
-
-    return value
 
 
 def ColorMapParams(
