@@ -3,10 +3,7 @@ kind: Service
 metadata:
   name: {{ include "titiler.fullname" . }}
   labels:
-    app.kubernetes.io/name: {{ include "titiler.name" . }}
-    helm.sh/chart: {{ include "titiler.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- include "titiler.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -15,5 +12,4 @@ spec:
       protocol: TCP
       name: http
   selector:
-    app.kubernetes.io/name: {{ include "titiler.name" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- include "titiler.selectorLabels" . | nindent 4 }}
