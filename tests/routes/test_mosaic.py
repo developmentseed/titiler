@@ -166,7 +166,7 @@ def test_tile(app):
             },
         )
         assert response.status_code == 200
-        assert response.headers["content-type"] == "image/jpeg"
+        assert response.headers["content-type"] == "image/jpg"
 
         # partial tile
         response = app.get(
