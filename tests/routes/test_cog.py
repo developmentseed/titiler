@@ -146,13 +146,19 @@ def test_tile(rio, app):
         "/cog/tiles/8/87/48.jpg?url=https://myurl.com/cog.tif&rescale=0,1000"
     )
     assert response.status_code == 200
+    assert response.headers["content-type"] == "image/jpg"
+
+    response = app.get(
+        "/cog/tiles/8/87/48.jpeg?url=https://myurl.com/cog.tif&rescale=0,1000"
+    )
+    assert response.status_code == 200
     assert response.headers["content-type"] == "image/jpeg"
 
     response = app.get(
         "/cog/tiles/8/87/48@2x.jpg?url=https://myurl.com/cog.tif&rescale=0,1000"
     )
     assert response.status_code == 200
-    assert response.headers["content-type"] == "image/jpeg"
+    assert response.headers["content-type"] == "image/jpg"
 
     response = app.get(
         "/cog/tiles/8/87/48@2x.tif?url=https://myurl.com/cog.tif&nodata=0&bidx=1"
@@ -376,7 +382,7 @@ def test_part(rio, app):
         "/cog/crop/-56.228,72.715,-54.547,73.188.jpg?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=256&return_mask=false"
     )
     assert response.status_code == 200
-    assert response.headers["content-type"] == "image/jpeg"
+    assert response.headers["content-type"] == "image/jpg"
     meta = parse_img(response.content)
     assert meta["count"] == 1
     assert meta["width"] == 256

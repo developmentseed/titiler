@@ -1,5 +1,9 @@
 # Release Notes
 
+## Next (TBD)
+
+* add support for `.jpg` and `.jpeg` extensions (https://github.com/developmentseed/titiler/pull/271)
+
 ## 0.2.0 (2021-03-09)
 
 * adapt for cogeo-mosaic `3.0.0rc2` and add `backend_options` attribute in MosaicTilerFactory (https://github.com/developmentseed/titiler/pull/247)
