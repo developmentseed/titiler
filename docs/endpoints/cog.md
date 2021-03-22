@@ -52,7 +52,8 @@ app.include_router(cog.router, prefix="/cog", tags=["Cloud Optimized GeoTIFF"])
     - **nodata**: Overwrite internal Nodata value. OPTIONAL
     - **rescale**: Comma (',') delimited Min,Max bounds. OPTIONAL
     - **color_formula**: rio-color formula. OPTIONAL
-    - **color_map**: rio-tiler color map name. OPTIONAL
+    - **colormap_name**: rio-tiler color map name. OPTIONAL
+    - **colormap**: JSON encoded custom Colormap. OPTIONAL
     - **resampling_method**: rasterio resampling method. Default is `nearest`.
 
 Example:
@@ -79,7 +80,8 @@ Example:
     - **width**: Force output image width. OPTIONAL
     - **rescale**: Comma (',') delimited Min,Max bounds. OPTIONAL
     - **color_formula**: rio-color formula. OPTIONAL
-    - **color_map**: rio-tiler color map name. OPTIONAL
+    - **colormap_name**: rio-tiler color map name. OPTIONAL
+    - **colormap**: JSON encoded custom Colormap. OPTIONAL
     - **resampling_method**: rasterio resampling method. Default is `nearest`.
 
 Note: if `height` and `width` are provided `max_size` will be ignored.
@@ -109,7 +111,8 @@ Example:
     - **max_size**: Max image size, default is 1024. OPTIONAL
     - **rescale**: Comma (',') delimited Min,Max bounds. OPTIONAL
     - **color_formula**: rio-color formula. OPTIONAL
-    - **color_map**: rio-tiler color map name. OPTIONAL
+    - **colormap_name**: rio-tiler color map name. OPTIONAL
+    - **colormap**: JSON encoded custom Colormap. OPTIONAL
     - **resampling_method**: rasterio resampling method. Default is `nearest`.
 
 Note: if `height` and `width` are provided `max_size` will be ignored.

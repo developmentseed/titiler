@@ -63,7 +63,8 @@ app.include_router(stac.router, prefix="/stac", tags=["SpatioTemporal Asset Cata
     - **nodata**: Overwrite internal Nodata value. OPTIONAL
     - **rescale**: Comma (',') delimited Min,Max bounds. OPTIONAL
     - **color_formula**: rio-color formula. OPTIONAL
-    - **color_map**: rio-tiler color map name. OPTIONAL
+    - **colormap_name**: rio-tiler color map name. OPTIONAL
+    - **colormap**: JSON encoded custom Colormap. OPTIONAL
     - **resampling_method**: rasterio resampling method. Default is `nearest`.
 
 ***assets** OR **expression** is required
@@ -94,7 +95,8 @@ Example:
     - **width**: Force output image width. OPTIONAL
     - **rescale**: Comma (',') delimited Min,Max bounds. OPTIONAL
     - **color_formula**: rio-color formula. OPTIONAL
-    - **color_map**: rio-tiler color map name. OPTIONAL
+    - **colormap_name**: rio-tiler color map name. OPTIONAL
+    - **colormap**: JSON encoded custom Colormap. OPTIONAL
 
 ***assets** OR **expression** is required
 
@@ -126,7 +128,8 @@ Example:
 
     - **rescale**: Comma (',') delimited Min,Max bounds. OPTIONAL
     - **color_formula**: rio-color formula. OPTIONAL
-    - **color_map**: rio-tiler color map name. OPTIONAL
+    - **colormap_name**: rio-tiler color map name. OPTIONAL
+    - **colormap**: JSON encoded custom Colormap. OPTIONAL
     - **resampling_method**: rasterio resampling method. Default is `nearest`.
 
 ***assets** OR **expression** is required
