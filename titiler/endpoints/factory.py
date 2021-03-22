@@ -52,6 +52,7 @@ img_endpoint_params: Dict[str, Any] = {
             "content": {
                 "image/png": {},
                 "image/jpeg": {},
+                "image/jpg": {},
                 "image/webp": {},
                 "image/jp2": {},
                 "image/tiff; application=geotiff": {},
