@@ -177,11 +177,19 @@ The `factories` allow users to set multiple default dependencies. Here is the li
 
     ```python
     def ColorMapParams(
-        color_map: ColorMapNames = Query(None, description="Colormap name",)
+        colormap_name: ColorMapName = Query(None, description="Colormap name"),
+        colormap: str = Query(None, description="JSON encoded custom Colormap"),
     ) -> Optional[Dict]:
         """Colormap Dependency."""
-        if color_map:
-            return cmap.get(color_map.value)
+        if colormap_name:
+            return cmap.get(colormap_name.value)
+
+        if colormap:
+            return json.loads(
+                colormap,
+                object_hook=lambda x: {int(k): parse_color(v) for k, v in x.items()},
+            )
+
         return None
     ```
 

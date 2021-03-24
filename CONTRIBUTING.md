@@ -10,7 +10,7 @@ $ cd titiler
 $ pip install -e .[dev]
 ```
 
-**Python3.7 only**
+**Python3.8 only**
 
 This repo is set to use `pre-commit` to run *isort*, *flake8*, *pydocstring*, *black* ("uncompromising Python code formatter") and mypy when committing new code.
 

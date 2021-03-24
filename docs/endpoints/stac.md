@@ -74,7 +74,7 @@ Example:
 - `https://myendpoint/stac/tiles/1/2/3?url=https://somewhere.com/item.json&assets=B01`
 - `https://myendpoint/stac/tiles/1/2/3.jpg?url=https://somewhere.com/item.json&assets=B01`
 - `https://myendpoint/stac/tiles/WorldCRS84Quad/1/2/3@2x.png?url=https://somewhere.com/item.json&assets=B01`
-- `https://myendpoint/stac/tiles/WorldCRS84Quad/1/2/3?url=https://somewhere.com/item.json&expression=B01/B02&rescale=0,1000&color_map=cfastie`
+- `https://myendpoint/stac/tiles/WorldCRS84Quad/1/2/3?url=https://somewhere.com/item.json&expression=B01/B02&rescale=0,1000&colormap_name=cfastie`
 
 
 ### Preview
@@ -106,7 +106,7 @@ Example:
 
 - `https://myendpoint/stac/preview?url=https://somewhere.com/item.json&assets=B01`
 - `https://myendpoint/stac/preview.jpg?url=https://somewhere.com/item.json&assets=B01`
-- `https://myendpoint/stac/preview?url=https://somewhere.com/item.json&assets=B01&rescale=0,1000&color_map=cfastie`
+- `https://myendpoint/stac/preview?url=https://somewhere.com/item.json&assets=B01&rescale=0,1000&colormap_name=cfastie`
 
 ### Crop / Part
 
@@ -139,7 +139,7 @@ Note: if `height` and `width` are provided `max_size` will be ignored.
 Example:
 
 - `https://myendpoint/stac/crop/0,0,10,10.png?url=https://somewhere.com/item.json&assets=B01`
-- `https://myendpoint/stac/crop/0,0,10,10.png?url=https://somewhere.com/item.json&assets=B01&rescale=0,1000&color_map=cfastie`
+- `https://myendpoint/stac/crop/0,0,10,10.png?url=https://somewhere.com/item.json&assets=B01&rescale=0,1000&colormap_name=cfastie`
 
 ### Point
 

@@ -1,5 +1,5 @@
 
-`TiTiler` is a python module whose goal is to help users in creating a dynamic tile server. To learn more about `dynamic tiling` please refer to the [docs](/docs/concepts/dynamic_tiling.md).
+`TiTiler` is a python module whose goal is to help users in creating a dynamic tile server. To learn more about `dynamic tiling` please refer to the [docs](dynamic_tiling.md).
 
 Users can choose to extend or use `Titiler` as it is.
 
@@ -8,7 +8,7 @@ Users can choose to extend or use `Titiler` as it is.
 `TiTiler` comes with a default (complete) application with support for COG, STAC and MosaicJSON. You can start the application locally by doing:
 
 ```bash
-$ pip install titiler[server]
+$ pip install titiler
 $ uvicorn titiler.main:app --reload
 
 > INFO: Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
@@ -24,7 +24,7 @@ See default endpoints documentation pages:
 
 ## Customized, minimal app
 
-`TiTiler` has been developed so users can build their own app using only the portions they need. Using [`TilerFactory`s](concepts/tiler_factories.md), users can create a fully customized application with only the endpoints needed.
+`TiTiler` has been developed so users can build their own app using only the portions they need. Using [TilerFactories](advanced/tiler_factories.md), users can create a fully customized application with only the endpoints needed.
 
 ```python
 from titiler.endpoints.factory import TilerFactory
@@ -72,4 +72,4 @@ app.include_router(
 )
 ```
 
-More on [customization](concepts/customization.md)
+More on [customization](advanced/customization.md)

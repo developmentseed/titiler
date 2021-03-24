@@ -19,10 +19,16 @@ nav:
   - TiTiler: "index.md"
   - User Guide:
     - Intro: "intro.md"
-    - Dynamic Tiling: "concepts/dynamic_tiling.md"
-    - Mosaics: "concepts/mosaics.md"
-    - TileMatrixSets: "concepts/tile_matrix_sets.md"
-    - Output data format: "concepts/output_format.md"
+    - Dynamic Tiling: "dynamic_tiling.md"
+    - Mosaics: "mosaics.md"
+    - TileMatrixSets: "tile_matrix_sets.md"
+    - Output data format: "output_format.md"
+
+  - Advanced User Guide:
+      - Tiler Factories: "advanced/tiler_factories.md"
+      - Dependencies: "advanced/dependencies.md"
+      - Customization: "advanced/customization.md"
+      - APIRoute and environment variables: "advanced/APIRoute_and_environment_variables.md"
 
   - Default Endpoints:
     - /cog: "endpoints/cog.md"
@@ -30,21 +36,22 @@ nav:
     - /mosaicjson: "endpoints/mosaic.md"
     - /tileMatrixSets: "endpoints/tms.md"
 
-  - Advanced User Guide:
-      - Tiler Factories: "concepts/tiler_factories.md"
-      - Dependencies: "concepts/dependencies.md"
-      - Customization: "concepts/customization.md"
-      - APIRoute and environment variables: "concepts/APIRoute_and_environment_variables.md"
-
   - Examples:
-    - COG: "examples/Working_with_CloudOptimizedGeoTIFF_simple.ipynb"
-    - COG at scale: "examples/Working_with_CloudOptimizedGeoTIFF.ipynb"
-    - STAC: "examples/Working_with_STAC_simple.ipynb"
-    - STAC at scale: "examples/Working_with_STAC.ipynb"
-    - MosaicJSON: "examples/Working_with_MosaicJSON.ipynb"
-    - Non-WebMercator TMS: "examples/Working_with_nonWebMercatorTMS.ipynb"
-    - Custom Sentinel 2 Tiler: "examples/Create_CustomSentinel2Tiler.ipynb"
-    - NumpyTile: "examples/Working_with_NumpyTile.ipynb"
+    - Code:
+      - Minimal COG Tiler: "examples/code/mini_cog_tiler.md"
+      - Tiler with Auth: "examples/code/tiler_with_auth.md"
+      - Tiler with custom TMS: "examples/code/tiler_with_custom_tms.md"
+      - Tiler with Cache: "examples/code/tiler_with_cache.md"
+
+    - Notebooks:
+      - COG: "examples/notebooks/Working_with_CloudOptimizedGeoTIFF_simple.ipynb"
+      - COG at scale: "examples/notebooks/Working_with_CloudOptimizedGeoTIFF.ipynb"
+      - STAC: "examples/notebooks/Working_with_STAC_simple.ipynb"
+      - STAC at scale: "examples/notebooks/Working_with_STAC.ipynb"
+      - MosaicJSON: "examples/notebooks/Working_with_MosaicJSON.ipynb"
+      - Non-WebMercator TMS: "examples/notebooks/Working_with_nonWebMercatorTMS.ipynb"
+      - Custom Sentinel 2 Tiler: "examples/notebooks/Create_CustomSentinel2Tiler.ipynb"
+      - NumpyTile: "examples/notebooks/Working_with_NumpyTile.ipynb"
 
   - API:
       - dependencies: api/titiler/dependencies.md
@@ -52,6 +59,7 @@ nav:
       - middleware: api/titiler/middleware.md
       - utils: api/titiler/utils.md
       - enums: api/titiler/resources/enums.md
+      - errors: api/titiler/errors.md
 
   - Deployment:
     - Amazon Web Services:
