@@ -32,7 +32,7 @@ Supported TMS:
 - WorldMercatorWGS84Quad
 ```
 
-You can easily add more TileMatrixSet support, see [custom-tms](concepts/customization/#custom-tms).
+You can easily add more TileMatrixSet support, see [custom tms](advanced/customization.md#custom-tms).
 
 
-Example: [Notebook](/examples/Working_with_nonWebMercatorTMS.ipynb)
+Notebook: [Working_with_nonWebMercatorTMS](examples/notebooks/Working_with_nonWebMercatorTMS.ipynb)

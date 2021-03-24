@@ -47,4 +47,4 @@ print(data.shape)
 data, mask = data[0:-1], data[-1]
 ```
 
-See the notebook: [/examples/Working_with_NumpyTile.ipynb](/examples/Working_with_NumpyTile)
+Notebook: [Working_with_NumpyTile](examples/notebooks/Working_with_NumpyTile.ipynb)

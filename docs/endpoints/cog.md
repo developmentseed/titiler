@@ -61,7 +61,7 @@ Example:
 - `https://myendpoint/cog/tiles/1/2/3?url=https://somewhere.com/mycog.tif`
 - `https://myendpoint/cog/tiles/1/2/3.jpg?url=https://somewhere.com/mycog.tif`
 - `https://myendpoint/cog/tiles/WorldCRS84Quad/1/2/3@2x.png?url=https://somewhere.com/mycog.tif`
-- `https://myendpoint/cog/tiles/WorldCRS84Quad/1/2/3?url=https://somewhere.com/mycog.tif&bidx=1&rescale=0,1000&color_map=cfastie`
+- `https://myendpoint/cog/tiles/WorldCRS84Quad/1/2/3?url=https://somewhere.com/mycog.tif&bidx=1&rescale=0,1000&colormap_name=cfastie`
 
 ### Preview
 
@@ -90,7 +90,7 @@ Example:
 
 - `https://myendpoint/cog/preview?url=https://somewhere.com/mycog.tif`
 - `https://myendpoint/cog/preview.jpg?url=https://somewhere.com/mycog.tif`
-- `https://myendpoint/cog/preview?url=https://somewhere.com/mycog.tif&bidx=1&rescale=0,1000&color_map=cfastie`
+- `https://myendpoint/cog/preview?url=https://somewhere.com/mycog.tif&bidx=1&rescale=0,1000&colormap_name=cfastie`
 
 ### Crop / Part
 
@@ -120,7 +120,7 @@ Note: if `height` and `width` are provided `max_size` will be ignored.
 Example:
 
 - `https://myendpoint/cog/crop/0,0,10,10.png?url=https://somewhere.com/mycog.tif`
-- `https://myendpoint/cog/crop/0,0,10,10.png?url=https://somewhere.com/mycog.tif&bidx=1&rescale=0,1000&color_map=cfastie`
+- `https://myendpoint/cog/crop/0,0,10,10.png?url=https://somewhere.com/mycog.tif&bidx=1&rescale=0,1000&colormap_name=cfastie`
 
 ### Point
 
