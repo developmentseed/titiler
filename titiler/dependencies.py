@@ -17,7 +17,7 @@ from .custom import cmap as custom_colormap
 from .custom import tms as custom_tms
 from .utils import get_hash
 
-from fastapi import Query
+from fastapi import HTTPException, Query
 
 from starlette.requests import Request
 
@@ -78,10 +78,15 @@ def ColorMapParams(
         return cmap.get(colormap_name.value)
 
     if colormap:
-        return json.loads(
-            colormap,
-            object_hook=lambda x: {int(k): parse_color(v) for k, v in x.items()},
-        )
+        try:
+            return json.loads(
+                colormap,
+                object_hook=lambda x: {int(k): parse_color(v) for k, v in x.items()},
+            )
+        except json.JSONDecodeError:
+            raise HTTPException(
+                status_code=400, detail="Could not parse the colormap value."
+            )
 
     return None
 
