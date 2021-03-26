@@ -3,6 +3,7 @@
 ## Next (TBD)
 
 * add support for `.jpg` and `.jpeg` extensions (https://github.com/developmentseed/titiler/pull/271)
+* better error message when parsing the colormap value fails (https://github.com/developmentseed/titiler/pull/279)
 
 ## 0.2.0 (2021-03-09)
 
