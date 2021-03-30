@@ -7,11 +7,11 @@ from contextlib import contextmanager
 from cogeo_mosaic.backends import FileBackend
 from cogeo_mosaic.mosaic import MosaicJSON
 
-from titiler.core import factory
 from titiler.core.dependencies import TMSParams, WebMercatorTMSParams
+from titiler.core.factory import MosaicTilerFactory, TilerFactory
 from titiler.core.resources.enums import OptionalHeader
 
-from .core_conftest import DATA_DIR
+from .conftest import DATA_DIR
 
 from fastapi import FastAPI
 
@@ -22,15 +22,15 @@ assets = [os.path.join(DATA_DIR, asset) for asset in ["cog1.tif", "cog2.tif"]]
 
 def test_TilerFactory():
     """Test TilerFactory class."""
-    cog = factory.TilerFactory()
+    cog = TilerFactory()
     assert len(cog.router.routes) == 21
     assert cog.tms_dependency == TMSParams
 
-    cog = factory.TilerFactory(add_preview=False, add_part=False)
+    cog = TilerFactory(add_preview=False, add_part=False)
     assert len(cog.router.routes) == 17
 
     app = FastAPI()
-    cog = factory.TilerFactory(optional_headers=[OptionalHeader.server_timing])
+    cog = TilerFactory(optional_headers=[OptionalHeader.server_timing])
     app.include_router(cog.router)
     client = TestClient(app)
 
@@ -86,7 +86,7 @@ def tmpmosaic():
 
 def test_MosaicTilerFactory():
     """Test MosaicTilerFactory class."""
-    mosaic = factory.MosaicTilerFactory(
+    mosaic = MosaicTilerFactory(
         optional_headers=[OptionalHeader.server_timing, OptionalHeader.x_assets],
         router_prefix="mosaic",
     )

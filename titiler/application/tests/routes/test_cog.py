@@ -9,7 +9,7 @@ from urllib.parse import parse_qsl, urlencode, urlparse
 import numpy
 import pytest
 
-from ..app_conftest import DATA_DIR, mock_rasterio_open, parse_img
+from ..conftest import DATA_DIR, mock_rasterio_open, parse_img
 
 
 @patch("rio_tiler.io.cogeo.rasterio")

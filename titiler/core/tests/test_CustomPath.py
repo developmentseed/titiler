@@ -2,9 +2,9 @@
 
 import re
 
-from titiler.core import factory
+from titiler.core.factory import TilerFactory
 
-from .core_conftest import DATA_DIR
+from .conftest import DATA_DIR
 
 from fastapi import FastAPI, HTTPException, Query
 
@@ -24,7 +24,7 @@ def test_CustomPath():
     """Test Custom Render Params dependency."""
     app = FastAPI()
 
-    cog = factory.TilerFactory(path_dependency=CustomPathParams)
+    cog = TilerFactory(path_dependency=CustomPathParams)
     app.include_router(cog.router)
     client = TestClient(app)
 

@@ -41,4 +41,4 @@ repos:
     hooks:
       - id: mypy
         language_version: python3.8
-        args: ["--explicit-package-bases", "--namespace-packages"]
+        args: ["--no-strict-optional", "--ignore-missing-imports", "--explicit-package-bases", "--namespace-packages"]

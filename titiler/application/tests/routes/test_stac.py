@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 from rasterio.io import MemoryFile
 
-from ..app_conftest import mock_rasterio_open, mock_RequestGet
+from ..conftest import mock_rasterio_open, mock_RequestGet
 
 
 @patch("rio_tiler.io.stac.requests")

@@ -10,7 +10,7 @@ from cogeo_mosaic.mosaic import MosaicJSON
 
 from titiler.core.models.mapbox import TileJSON
 
-from ..app_conftest import DATA_DIR, parse_img, read_json_fixture
+from ..conftest import DATA_DIR, parse_img, read_json_fixture
 
 MOSAICJSON_FILE = os.path.join(DATA_DIR, "mosaic.json")
 

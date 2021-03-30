@@ -7,9 +7,9 @@ from typing import Dict, Optional
 import numpy
 from rio_tiler.colormap import ColorMaps
 
-from titiler.core import factory
+from titiler.core.factory import TilerFactory
 
-from .core_conftest import DATA_DIR
+from .conftest import DATA_DIR
 
 from fastapi import FastAPI, Query
 
@@ -37,7 +37,7 @@ def ColorMapParams(
 def test_CustomCmap():
     """Test Custom Render Params dependency."""
     app = FastAPI()
-    cog = factory.TilerFactory(colormap_dependency=ColorMapParams)
+    cog = TilerFactory(colormap_dependency=ColorMapParams)
     app.include_router(cog.router)
     client = TestClient(app)
 

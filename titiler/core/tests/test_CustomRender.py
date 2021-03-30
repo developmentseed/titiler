@@ -5,10 +5,10 @@ from typing import Optional, Union
 
 import numpy
 
-from titiler.core import factory
 from titiler.core.dependencies import RenderParams
+from titiler.core.factory import TilerFactory
 
-from .core_conftest import DATA_DIR, parse_img
+from .conftest import DATA_DIR, parse_img
 
 from fastapi import FastAPI, Query
 
@@ -40,7 +40,7 @@ class CustomRenderParams(RenderParams):
 def test_CustomRender():
     """Test Custom Render Params dependency."""
     app = FastAPI()
-    cog = factory.TilerFactory(render_dependency=CustomRenderParams)
+    cog = TilerFactory(render_dependency=CustomRenderParams)
     app.include_router(cog.router)
     client = TestClient(app)
 
