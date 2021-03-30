@@ -72,7 +72,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install tox
+          pip install setuptools wheel twine
 
       - name: Set tag version
         id: tag
@@ -82,7 +82,7 @@ jobs:
       - name: Set module version
         id: module
         # https://stackoverflow.com/questions/58177786/get-the-current-pushed-tag-in-github-actions
-        run: echo ::set-output name=version::$(python setup.py --version)
+        run: echo ::set-output name=version::$(python titiler/core/setup.py --version)
 
       - name: Build and publish
         if: steps.tag.outputs.tag == steps.module.outputs.version
@@ -90,7 +90,8 @@ jobs:
           TOXENV: release
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-        run: tox
+        run: |
+          scripts/publish
 
   publish-docker:
     needs: [tests]

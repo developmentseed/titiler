@@ -1,0 +1,4 @@
+include titiler/core/templates/*.xml
+
+recursive-exclude tests *
+
