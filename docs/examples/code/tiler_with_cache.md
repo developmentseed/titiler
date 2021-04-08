@@ -47,6 +47,7 @@ import urllib
 from typing import Any, Dict
 
 import aiocache
+from starlette.concurrency import run_in_threadpool
 from starlette.responses import Response
 
 from fastapi.dependencies.utils import is_coroutine_callable
@@ -85,11 +86,10 @@ class cached(aiocache.cached):
                 return value
 
         # CUSTOM, we add support for non-async method
-        # NOTE: Maybe this is a bad idea!!!
         if is_coroutine_callable(f):
             result = await f(*args, **kwargs)
         else:
-            result = f(*args, **kwargs)
+            result = await run_in_threadpool(f, *args, **kwargs)
 
         if cache_write:
             if aiocache_wait_for_write:
