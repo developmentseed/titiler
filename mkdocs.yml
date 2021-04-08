@@ -42,6 +42,7 @@ nav:
       - Tiler with Auth: "examples/code/tiler_with_auth.md"
       - Tiler with custom TMS: "examples/code/tiler_with_custom_tms.md"
       - Tiler with Cache: "examples/code/tiler_with_cache.md"
+      - Mosaic from COG urls: "examples/code/mosaic_from_urls.md"
 
     - Notebooks:
       - COG: "examples/notebooks/Working_with_CloudOptimizedGeoTIFF_simple.ipynb"
