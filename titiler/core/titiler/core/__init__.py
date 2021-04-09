@@ -3,7 +3,6 @@
 from . import dependencies, errors, factory, routing, utils, version  # noqa
 from .factory import (  # noqa
     BaseTilerFactory,
-    MosaicTilerFactory,
     MultiBandTilerFactory,
     MultiBaseTilerFactory,
     TilerFactory,

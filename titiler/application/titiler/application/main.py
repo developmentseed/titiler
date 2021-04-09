@@ -14,6 +14,7 @@ from titiler.application.routers import cog, mosaic, stac, tms
 from titiler.application.settings import ApiSettings
 from titiler.application.version import __version__ as titiler_version
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
+from titiler.mosaic.errors import MOSAIC_STATUS_CODES
 
 from fastapi import FastAPI
 
@@ -46,6 +47,7 @@ if not api_settings.disable_mosaic:
 
 app.include_router(tms.router, tags=["TileMatrixSets"])
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
+add_exception_handlers(app, MOSAIC_STATUS_CODES)
 
 
 # Set all CORS enabled origins

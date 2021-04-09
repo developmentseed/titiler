@@ -2,6 +2,7 @@
 
 SUBPACKAGE_DIRS=(
     "core"
+    "mosaic"
     "application"
 )
 

@@ -1,9 +1,8 @@
-"""Titiler Enums."""
+"""Titiler.core Enums."""
 
 from enum import Enum
 from types import DynamicClassAttribute
 
-from rio_tiler.mosaic.methods import defaults
 from rio_tiler.profiles import img_profiles
 
 
@@ -64,22 +63,6 @@ class ImageType(str, Enum):
     def mediatype(self):
         """Return image media type."""
         return MediaType[self._name_].value
-
-
-class PixelSelectionMethod(str, Enum):
-    """rio-tiler.mosaic pixel selection methods"""
-
-    first = "first"
-    highest = "highest"
-    lowest = "lowest"
-    mean = "mean"
-    median = "median"
-    stdev = "stdev"
-
-    @DynamicClassAttribute
-    def method(self):
-        """Return rio-tiler-mosaic pixel selection class"""
-        return getattr(defaults, f"{self._value_.title()}Method")
 
 
 class OptionalHeader(str, Enum):

@@ -7,6 +7,7 @@ with open("README.md") as f:
 
 inst_reqs = [
     "titiler-core",
+    "titiler-mosaic",
     "brotli-asgi>=1.0.0",
     "python-dotenv",
 ]
