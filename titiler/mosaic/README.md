@@ -1,1 +1,1 @@
-## titiler-mosaic
+## titiler.mosaic

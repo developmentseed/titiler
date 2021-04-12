@@ -6,7 +6,7 @@ with open("README.md") as f:
     long_description = f.read()
 
 inst_reqs = [
-    "titiler-core",
+    "titiler.core",
     "cogeo-mosaic>=3.0.0rc2,<3.1",
 ]
 extra_reqs = {
@@ -15,7 +15,7 @@ extra_reqs = {
 
 
 setup(
-    name="titiler-mosaic",
+    name="titiler.mosaic",
     version="0.2.0",
     description=u"MosaicJSON plugin for TiTiler.",
     long_description=long_description,

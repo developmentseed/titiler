@@ -1,1 +1,1 @@
-## titiler-application
+## titiler.application

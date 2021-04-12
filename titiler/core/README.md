@@ -1,1 +1,1 @@
-## titiler-core
+## titiler.core

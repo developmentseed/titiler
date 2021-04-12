@@ -6,8 +6,8 @@ with open("README.md") as f:
     long_description = f.read()
 
 inst_reqs = [
-    "titiler-core",
-    "titiler-mosaic",
+    "titiler.core",
+    "titiler.mosaic",
     "brotli-asgi>=1.0.0",
     "python-dotenv",
 ]
@@ -18,7 +18,7 @@ extra_reqs = {
 
 
 setup(
-    name="titiler-application",
+    name="titiler.application",
     version="0.2.0",
     description=u"A modern dynamic tile server built on top of FastAPI and Rasterio/GDAL.",
     long_description=long_description,
