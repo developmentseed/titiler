@@ -32,20 +32,35 @@
 
 ---
 
-`Titiler`, pronounced **tee-tiler** (*ti* is the diminutive version of the french *petit* which means small), is a lightweight application (FastAPI) focused on creating web map tiles dynamically from [Cloud Optimized GeoTIFF](https://cogeo.org), [STAC](https://stacspec.org) or [MosaicJSON](https://github.com/developmentseed/mosaicjson-spec/).
+`Titiler`, pronounced **tee-tiler** (*ti* is the diminutive version of the french *petit* which means small), is a set of python modules that focus on creating application for dynamic tiling.
 
 Note: This project is the descendant of [`cogeo-tiler`](https://github.com/developmentseed/cogeo-tiler) and [`cogeo-mosaic-tiler`](https://github.com/developmentseed/cogeo-mosaic-tiler).
 
 ## Features
 
+- Built on top of [FastAPI](https://fastapi.tiangolo.com)
 - [Cloud Optimized GeoTIFF](http://www.cogeo.org/) support
 - [SpatioTemporal Asset Catalog](https://stacspec.org) support
-- Virtual mosaic support (via [MosaicJSON](https://github.com/developmentseed/mosaicjson-spec/))
 - Multiple projections (see [TileMatrixSets](https://www.ogc.org/standards/tms)) via [`morecantile`](https://github.com/developmentseed/morecantile).
 - JPEG / JP2 / PNG / WEBP / GTIFF / NumpyTile output format support
 - OGC WMTS support
 - Automatic OpenAPI documentation (FastAPI builtin)
+- Virtual mosaic support (via [MosaicJSON](https://github.com/developmentseed/mosaicjson-spec/))
 - Example of AWS Lambda / ECS deployment (via CDK)
+
+## Packages
+
+#### **titiler.core**
+
+...
+
+#### **titiler.mosaic**
+
+...
+
+#### **titiler.application**
+
+...
 
 ## Installation
 
@@ -53,16 +68,16 @@ Note: This project is the descendant of [`cogeo-tiler`](https://github.com/devel
 $ pip install -U pip
 
 # From Pypi
-$ pip install titiler
+$ pip install titiler.application
 
 # Or from sources
 $ git clone https://github.com/developmentseed/titiler.git
-$ cd titiler && pip install -e .
+$ cd titiler && pip install -e titiler/core titiler/mosaic titiler/application
 ```
 
 Launch Application
 ```bash
-$ uvicorn titiler.main:app --reload
+$ uvicorn titiler.application.main:app --reload
 ```
 
 Or with Docker
