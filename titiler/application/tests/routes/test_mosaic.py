@@ -1,7 +1,7 @@
 """Test Mosaic endpoints."""
 
 import os
-from typing import Callable
+from typing import Any, Callable
 from unittest.mock import patch
 
 import mercantile
@@ -18,7 +18,7 @@ MOSAICJSON_FILE = os.path.join(DATA_DIR, "mosaic.json")
 def mosaic_read_factory(fname: str) -> Callable:
     """Factory method for patching mosaic reading"""
 
-    def _read(*args, **kwargs) -> MosaicJSON:  # type: ignore
+    def _read(*args: Any, **kwargs: Any) -> MosaicJSON:
         """Match signature of `cogeo_mosaic.backends.BaseBackend._read`"""
         data = read_json_fixture(fname)
         for qk in data["tiles"]:
