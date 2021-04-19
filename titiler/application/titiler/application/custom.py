@@ -15,13 +15,13 @@ from fastapi import HTTPException, Query
 from starlette.templating import Jinja2Templates
 
 try:
-    import importlib.resources as pkg_resources
+    from importlib.resources import files as resources_files  # type: ignore
 except ImportError:
-    import importlib_resources as pkg_resources  # type: ignore
+    # Try backported to PY<39 `importlib_resources`.
+    from importlib_resources import files as resources_files  # type: ignore
 
 
-with pkg_resources.path(__package__, "templates") as p:
-    templates = Jinja2Templates(directory=str(p))
+templates = Jinja2Templates(directory=str(resources_files(__package__) / "templates"))
 
 
 # colors from https://daac.ornl.gov/ABOVE/guides/Annual_Landcover_ABoVE.html
