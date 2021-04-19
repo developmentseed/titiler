@@ -52,15 +52,15 @@ Note: This project is the descendant of [`cogeo-tiler`](https://github.com/devel
 
 Starting with version `0.3.0`, the `TiTiler` python module has been splitted into a set of python namespace packages: `titiler.{package}`.
 
-- [**titiler.core**](/titiler/core)
+- [**titiler.core**](https://github.com/developmentseed/titiler/tree/master/titiler/core)
 
     The `Core` package contains libraries to help creating dynamic tiler for COG and STAC.
 
-- [**titiler.mosaic**](/titiler/mosaic)
+- [**titiler.mosaic**](https://github.com/developmentseed/titiler/tree/master/titiler/mosaic)
 
     The `mosaic` package contains libraries to help creating dynamic tiler for MosaicJSON (adds `cogeo-mosaic` requirement).
 
-- [**titiler.application**](/titiler/application)
+- [**titiler.application**](https://github.com/developmentseed/titiler/tree/master/titiler/application)
 
     TiTiler's `demo` package. Contains a FastAPI application with full support of COG, STAC and MosaicJSON.
 
