@@ -41,7 +41,7 @@
     $ uvicorn titiler.main:app --reload
 
     # now
-    $ pip install titiler.application
+    $ pip install titiler.application uvicorn
     $ uvicorn titiler.application.main:app --reload
     ```
 

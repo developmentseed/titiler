@@ -18,6 +18,7 @@ $ cd titiler && pip install -e titiler/application
 
 Launch Application
 ```bash
+$ pip install uvicorn
 $ uvicorn titiler.application.main:app --reload
 ```
 
