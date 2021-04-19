@@ -1,7 +1,6 @@
 **Goal**: Add simple token auth
 
-**requirements**: titiler, python-jose[cryptography]
-
+**requirements**: titiler.core, python-jose[cryptography]
 
 Learn more about security over [FastAPI documentation](https://fastapi.tiangolo.com/tutorial/security/)
 
@@ -198,7 +197,7 @@ app/main.py
 
 """
 
-from titiler.endpoints.factory import TilerFactory
+from titiler.core.factory import TilerFactory
 from titiler.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 
 from fastapi import FastAPI
@@ -217,4 +216,3 @@ app.include_router(tokens.router)
 
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
 ```
-

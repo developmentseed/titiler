@@ -1,7 +1,17 @@
 
-Tiler factories (`titiler.endpoints.factory.TilerFactory|MultiBaseTilerFactory|MultiBandTilerFactory|MosaicTilerFactory`) are helper functions that let users create a FastAPI router (`fastapi.APIRouter`) with a minimal set of endpoints.
+Tiler factories are helper functions that let users create a FastAPI router (`fastapi.APIRouter`) with a minimal set of endpoints.
 
-#### TilerFactory
+### `titiler.core.factory.TilerFactory`
+
+```python
+from fastapi import FastAPI
+
+from titiler.core.factory import TilerFactory
+
+app = FastAPI(description="A lightweight Cloud Optimized GeoTIFF tile server")
+cog = TilerFactory()
+app.include_router(cog.router, tags=["Cloud Optimized GeoTIFF"])
+```
 
 | Method | URL                                                             | Output    | Description
 | ------ | --------------------------------------------------------------- |---------- |--------------
@@ -16,9 +26,20 @@ Tiler factories (`titiler.endpoints.factory.TilerFactory|MultiBaseTilerFactory|M
 | `GET`  | `/preview[.{format}]`                                           | image/bin | **Optional** - create a preview image from a dataset
 | `GET`  | `/crop/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin | **Optional** - create an image from part of a dataset
 
-#### MultiBaseTilerFactory
+### `titiler.core.factory.MultiBaseTilerFactory`
 
 Custom `TilerFactory` to be used with `rio_tiler.io.MultiBaseReader` type readers.
+
+```python
+from fastapi import FastAPI
+from rio_tiler.io import STACReader
+
+from titiler.core.factory import MultiBaseTilerFactory
+
+app = FastAPI(description="A lightweight STAC tile server")
+cog = MultiBaseTilerFactory(reader=STACReader)
+app.include_router(cog.router, tags=["STAC"])
+```
 
 | Method | URL                                                             | Output    | Description
 | ------ | --------------------------------------------------------------- |---------- |--------------
@@ -34,9 +55,26 @@ Custom `TilerFactory` to be used with `rio_tiler.io.MultiBaseReader` type reader
 | `GET`  | `/preview[.{format}]`                                           | image/bin | **Optional** - create a preview image from a dataset
 | `GET`  | `/crop/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin | **Optional** - create an image from part of a dataset
 
-#### MultiBandTilerFactory
+### `titiler.core.factory.MultiBandTilerFactory`
 
 Custom `TilerFactory` to be used with `rio_tiler.io.MultiBandReader` type readers.
+
+```python
+from fastapi import FastAPI, Query
+from rio_tiler_pds.landsat.aws import LandsatC2Reader
+
+from titiler.core.factory import MultiBaseTilerFactory
+
+
+def ScenePathParams(sceneid: str = Query(..., description="Landsat Scene ID")) -> str:
+    """Create dataset path from args"""
+    return url
+
+
+app = FastAPI(description="A lightweight Landsat Collection 2 tile server")
+cog = MultiBaseTilerFactory(reader=LandsatC2Reader, path_dependency=ScenePathParams)
+app.include_router(cog.router, tags=["Landsat"])
+```
 
 | Method | URL                                                             | Output    | Description
 | ------ | --------------------------------------------------------------- |---------- |--------------
@@ -52,7 +90,9 @@ Custom `TilerFactory` to be used with `rio_tiler.io.MultiBandReader` type reader
 | `GET`  | `/preview[.{format}]`                                           | image/bin | **Optional** - create a preview image from a dataset
 | `GET`  | `/crop/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin | **Optional** - create an image from part of a dataset
 
-#### MosaicTilerFactory
+
+### `titiler.mosaic.factory.MosaicTilerFactory`
+
 
 | Method | URL                                                             | Output    | Description
 | ------ | --------------------------------------------------------------- |---------- |--------------
@@ -65,6 +105,8 @@ Custom `TilerFactory` to be used with `rio_tiler.io.MultiBandReader` type reader
 | `GET`  | `/{TileMatrixSetId}/WMTSCapabilities.xml`                       | XML       | return OGC WMTS Get Capabilities
 | `GET`  | `/point/{lon},{lat}`                                            | JSON      | return pixel value from a MosaicJSON dataset
 
+
+## FYI
 
 **Factories** are built around [`rio_tiler.io.BaseReader`](https://cogeotiff.github.io/rio-tiler/advanced/custom_readers/), which defines basic methods to access datasets (e.g COG or STAC). The default reader is `COGReader` for `TilerFactory` and `MosaicBackend` for `MosaicTilerFactory`.
 

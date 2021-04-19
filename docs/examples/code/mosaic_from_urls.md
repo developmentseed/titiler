@@ -1,7 +1,7 @@
 
 **Goal**: Create a custom mosaic tiler which takes multiple URL as input
 
-**requirements**: titiler
+**requirements**: titiler.core | titiler.mosaic
 
 
 1 - Create a custom Mosaic Backends
@@ -105,7 +105,7 @@ app/router.py
 from dataclasses import dataclass
 from typing import List
 
-from titiler.endpoints.factory import MosaicTilerFactory
+from titiler.mosaic.factory import MosaicTilerFactory
 from fastapi import Query
 
 from .backends import MultiFilesBackend
@@ -116,15 +116,9 @@ class MosaicTiler(MosaicTilerFactory):
 
     Note this is a really simple MosaicTiler Factory with only few endpoints.
     """
+
     def register_routes(self):
-        """
-        This Method register routes to the router.
-
-        Because we wrap the endpoints in a class we cannot define the routes as
-        methods (because of the self argument). The HACK is to define routes inside
-        the class method and register them after the class initialisation.
-
-        """
+        """This Method register routes to the router. """
 
         self.tile()
         self.tilejson()
@@ -148,7 +142,8 @@ app/main.py
 
 """
 
-from titiler.errors import DEFAULT_STATUS_CODES, add_exception_handlers
+from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
+from titiler.mosaic.errors import MOSAIC_STATUS_CODES
 
 from fastapi import FastAPI
 
@@ -157,6 +152,7 @@ from .routers import mosaic
 app = FastAPI()
 app.include_router(mosaic.router)
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
+add_exception_handlers(app, MOSAIC_STATUS_CODES)
 
 ```
 

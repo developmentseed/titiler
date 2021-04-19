@@ -1,18 +1,9 @@
+
+The `titiler.application` package comes with a full FastAPI application with COG, STAC and MosaicJSON supports.
+
 # MosaicJSON
 
-Read Mosaic Info/Metadata and create Web map Tiles from a multiple COG.
-
-```python
-# Minimal FastAPI app with COG support
-from titiler.endpoints import mosaic
-
-from fastapi import FastAPI
-
-app = FastAPI()
-
-# The MosaicJSON Tiler is created with the MosaicTilerFactory with the `mosaicjson` prefix
-app.include_router(mosaic.router, prefix="/mosaicjson", tags=["MosaicJSON"])
-```
+Read Mosaic Info/Metadata and create Web map Tiles from a multiple COG. The `mosaic` router is built on top of `titiler.mosaic.factor.MosaicTilerFactory`.
 
 ## API
 

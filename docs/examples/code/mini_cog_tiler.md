@@ -1,14 +1,14 @@
 
 **Goal**: Create a simple Raster tiler
 
-**requirements**: titiler
+**requirements**: titiler.core
 
 
 ```python
 """Minimal COG tiler."""
 
-from titiler.endpoints.factory import TilerFactory
-from titiler.errors import DEFAULT_STATUS_CODES, add_exception_handlers
+from titiler.core.factory import TilerFactory
+from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 
 from fastapi import FastAPI
 

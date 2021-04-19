@@ -2,7 +2,7 @@
     This has been deprecated. You can now pass `gdal_config={"GDAL_DISABLE_READDIR_ON_OPEN":"FALSE"}` to the Tiler Factory. This will be passed to a `rasterio.Env()` context manager on top of all gdal related blocks.
 
     ```python
-    from titiler.factory import TilerFactory
+    from titiler.core.factory import TilerFactory
     cog = TilerFactory(reader=COGReader, router_prefix="cog", gdal_config={"GDAL_DISABLE_READDIR_ON_OPEN":"FALSE"})
     ```
 
@@ -14,8 +14,8 @@ Example:
     ```python
     from fastapi import FastAPI, APIRouter
     from rasterio._env import get_gdal_config
-    from titiler.custom.routing import apiroute_factory
-    from titiler.endpoints.factory import TilerFactory
+    from titiler.core.routing import apiroute_factory
+    from titiler.core.factory import TilerFactory
 
     app = FastAPI()
     route_class = apiroute_factory({"GDAL_DISABLE_READDIR_ON_OPEN": "FALSE"})

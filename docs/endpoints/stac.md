@@ -1,28 +1,9 @@
+
+The `titiler.application` package comes with a full FastAPI application with COG, STAC and MosaicJSON supports.
+
 # SpatioTemporal Asset Catalog
 
-Read Info/Metadata and create Web map Tiles from a **single** STAC Item.
-
-```python
-# Minimal FastAPI app with STAC support
-from titiler.endpoints import stac
-
-from fastapi import FastAPI
-
-app = FastAPI()
-
-# The STAC Tiler is created with the TilerFactory with the `stac` prefix
-app.include_router(stac.router, prefix="/stac", tags=["SpatioTemporal Asset Catalog"])
-
-################################################################################
-# OR using the Factory
-from rio_tiler.io import STACReader
-from titiler.endpoints.MultiBaseTilerFactory
-
-stac = MultiBaseTilerFactory(reader=STACReader, router_prefix="stac")
-
-app = FastAPI()
-app.include_router(stac.router, prefix="/stac", tags=["SpatioTemporal Asset Catalog"])
-```
+Read Info/Metadata and create Web map Tiles from a **single** STAC Item.  The `stac` router extend the default `titiler.core.factory.MultiBaseTilerFactory`.
 
 ## API
 

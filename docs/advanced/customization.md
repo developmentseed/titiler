@@ -10,10 +10,15 @@ Here an example which allow a mosaic to be passed by a `mosaic` name instead of 
 ```python
 import os
 import re
-from titiler.dependencies import DefaultDependency
 from typing import Optional, Type
+
 from rio_tiler.io import BaseReader
-from fastapi import HTTPException, Query
+
+from fastapi import FastAPI, HTTPException, Query
+
+from titiler.core.dependencies import DefaultDependency
+from titiler.mosaic.factory import MosaicTilerFactory
+
 
 MOSAIC_BACKEND = os.getenv("TITILER_MOSAIC_BACKEND")
 MOSAIC_HOST = os.getenv("TITILER_MOSAIC_HOST")
@@ -31,6 +36,10 @@ def MosaicPathParams(
         )
 
     return f"{MOSAIC_BACKEND}{MOSAIC_HOST}/{self.mosaic}.json.gz"
+
+app = FastAPI()
+mosaic = MosaicTilerFactory(path_dependency=MosaicPathParams)
+app.include_router(mosaic.router)
 ```
 
 The endpoint url will now look like: `{endoint}/mosaic/tilejson.json?mosaic=vincent.mosaic`
@@ -42,7 +51,7 @@ The endpoint url will now look like: `{endoint}/mosaic/tilejson.json?mosaic=vinc
 from morecantile import tms, TileMatrixSet
 from rasterio.crs import CRS
 
-from titiler.endpoint.factory import TilerFactory
+from titiler.core.factory import TilerFactory
 
 # 1. Create Custom TMS
 EPSG6933 = TileMatrixSet.custom(
@@ -83,8 +92,8 @@ COGTilerWithCustomTMS = TilerFactory(
 from dataclasses import dataclass
 from typing import List, Optional
 
-from titiler.endpoints.factory import MosaicTilerFactory
-from titiler.errors import BadRequestError
+from titiler.mosaic.factory import MosaicTilerFactory
+from titiler.core.errors import BadRequestError
 from cogeo_mosaic.mosaic import MosaicJSON
 from cogeo_mosaic.utils import get_footprints
 import rasterio

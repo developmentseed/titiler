@@ -1,6 +1,6 @@
 **Goal**: Add a cache layer on top of the tiler
 
-**requirements**: titiler, aiocache[redis]
+**requirements**: titiler.core, aiocache[redis]
 
 1 - Cache settings
 
@@ -149,10 +149,11 @@ from starlette.responses import Response
 
 from morecantile import TileMatrixSet
 from rio_tiler.io import BaseReader, COGReader
-from titiler.endpoints.factory import BaseTilerFactory, img_endpoint_params
-from titiler.dependencies import ImageParams, MetadataParams, TMSParams
-from titiler.models.mapbox import TileJSON
-from titiler.resources.enums import ImageType
+
+from titiler.core.factory import BaseTilerFactory, img_endpoint_params
+from titiler.core.dependencies import ImageParams, MetadataParams, TMSParams
+from titiler.core.models.mapbox import TileJSON
+from titiler.core.resources.enums import ImageType
 
 from .cache import cached
 
@@ -286,7 +287,6 @@ app/main.py
 
 """
 
-from titiler.endpoints.factory import TilerFactory
 from titiler.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 
 from fastapi import FastAPI

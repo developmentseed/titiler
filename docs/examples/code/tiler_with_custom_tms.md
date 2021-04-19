@@ -1,7 +1,7 @@
 
 **Goal**: add custom TMS to a tiler
 
-**requirements**: titiler
+**requirements**: titiler.core
 
 
 1 - Create a custom `TMSParams` dependency
@@ -52,7 +52,7 @@ app/routes.py
 
 """
 
-from titiler.endpoints.factory import TilerFactory, TMSFactory
+from titiler.core.factory import TilerFactory, TMSFactory
 
 from .dependencies import TileMatrixSetName, TMSParams
 
@@ -71,7 +71,7 @@ app/main.py
 
 """
 
-from titiler.errors import DEFAULT_STATUS_CODES, add_exception_handlers
+from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 
 from fastapi import FastAPI
 

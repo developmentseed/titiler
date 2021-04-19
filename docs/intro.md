@@ -1,5 +1,5 @@
 
-`TiTiler` is a python module whose goal is to help users in creating a dynamic tile server. To learn more about `dynamic tiling` please refer to the [docs](dynamic_tiling.md).
+`TiTiler` is a set of python modules whose goal are to help users in creating a dynamic tile server. To learn more about `dynamic tiling` please refer to the [docs](dynamic_tiling.md).
 
 Users can choose to extend or use `Titiler` as it is.
 
@@ -8,8 +8,8 @@ Users can choose to extend or use `Titiler` as it is.
 `TiTiler` comes with a default (complete) application with support for COG, STAC and MosaicJSON. You can start the application locally by doing:
 
 ```bash
-$ pip install titiler
-$ uvicorn titiler.main:app --reload
+$ pip install titiler.application uvicorn
+$ uvicorn titiler.application.main:app --reload
 
 > INFO: Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
 > INFO: Started reloader process [45592]
@@ -27,8 +27,8 @@ See default endpoints documentation pages:
 `TiTiler` has been developed so users can build their own app using only the portions they need. Using [TilerFactories](advanced/tiler_factories.md), users can create a fully customized application with only the endpoints needed.
 
 ```python
-from titiler.endpoints.factory import TilerFactory
-from titiler.errors import DEFAULT_STATUS_CODES, add_exception_handlers
+from titiler.core.factory import TilerFactory
+from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 
 from fastapi import FastAPI
 
@@ -54,9 +54,8 @@ If you want to include all of Titiler's built-in endpoints, but also include
 customized endpoints, you can import and extend the app directly:
 
 ```py
-from titiler.main import app
-
-from titiler.endpoints.factory import TilerFactory
+from titiler.application.main import app
+from titiler.core.factory import TilerFactory
 
 # Create a custom Tiler (see: https://github.com/developmentseed/titiler-pds/blob/master/app/routes/naip.py)
 tiler = TilerFactory(

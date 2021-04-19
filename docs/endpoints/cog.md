@@ -1,18 +1,9 @@
+
+The `titiler.application` package comes with a full FastAPI application with COG, STAC and MosaicJSON supports.
+
 # Cloud Optimized GeoTIFF
 
-Read Info/Metadata and create Web map Tiles from a **single** COG.
-
-```python
-# Minimal FastAPI app with COG support
-from titiler.endpoints import cog
-
-from fastapi import FastAPI
-
-app = FastAPI()
-
-# The COG Tiler is created with the TilerFactory with the `cog` prefix
-app.include_router(cog.router, prefix="/cog", tags=["Cloud Optimized GeoTIFF"])
-```
+Read Info/Metadata and create Web map Tiles from a **single** COG. The `cog` router extend the default `titiler.core.factory.TilerFactory`.
 
 ## API
 
