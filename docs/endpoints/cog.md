@@ -1,18 +1,9 @@
+
+The `titiler.application` package comes with a full FastAPI application with COG, STAC and MosaicJSON supports.
+
 # Cloud Optimized GeoTIFF
 
-Read Info/Metadata and create Web map Tiles from a **single** COG.
-
-```python
-# Minimal FastAPI app with COG support
-from titiler.endpoints import cog
-
-from fastapi import FastAPI
-
-app = FastAPI()
-
-# The COG Tiler is created with the TilerFactory with the `cog` prefix
-app.include_router(cog.router, prefix="/cog", tags=["Cloud Optimized GeoTIFF"])
-```
+Read Info/Metadata and create Web map Tiles from a **single** COG. The `cog` router extend the default `titiler.core.factory.TilerFactory`.
 
 ## API
 
@@ -52,7 +43,8 @@ app.include_router(cog.router, prefix="/cog", tags=["Cloud Optimized GeoTIFF"])
     - **nodata**: Overwrite internal Nodata value. OPTIONAL
     - **rescale**: Comma (',') delimited Min,Max bounds. OPTIONAL
     - **color_formula**: rio-color formula. OPTIONAL
-    - **color_map**: rio-tiler color map name. OPTIONAL
+    - **colormap_name**: rio-tiler color map name. OPTIONAL
+    - **colormap**: JSON encoded custom Colormap. OPTIONAL
     - **resampling_method**: rasterio resampling method. Default is `nearest`.
 
 Example:
@@ -60,7 +52,7 @@ Example:
 - `https://myendpoint/cog/tiles/1/2/3?url=https://somewhere.com/mycog.tif`
 - `https://myendpoint/cog/tiles/1/2/3.jpg?url=https://somewhere.com/mycog.tif`
 - `https://myendpoint/cog/tiles/WorldCRS84Quad/1/2/3@2x.png?url=https://somewhere.com/mycog.tif`
-- `https://myendpoint/cog/tiles/WorldCRS84Quad/1/2/3?url=https://somewhere.com/mycog.tif&bidx=1&rescale=0,1000&color_map=cfastie`
+- `https://myendpoint/cog/tiles/WorldCRS84Quad/1/2/3?url=https://somewhere.com/mycog.tif&bidx=1&rescale=0,1000&colormap_name=cfastie`
 
 ### Preview
 
@@ -79,7 +71,8 @@ Example:
     - **width**: Force output image width. OPTIONAL
     - **rescale**: Comma (',') delimited Min,Max bounds. OPTIONAL
     - **color_formula**: rio-color formula. OPTIONAL
-    - **color_map**: rio-tiler color map name. OPTIONAL
+    - **colormap_name**: rio-tiler color map name. OPTIONAL
+    - **colormap**: JSON encoded custom Colormap. OPTIONAL
     - **resampling_method**: rasterio resampling method. Default is `nearest`.
 
 Note: if `height` and `width` are provided `max_size` will be ignored.
@@ -88,7 +81,7 @@ Example:
 
 - `https://myendpoint/cog/preview?url=https://somewhere.com/mycog.tif`
 - `https://myendpoint/cog/preview.jpg?url=https://somewhere.com/mycog.tif`
-- `https://myendpoint/cog/preview?url=https://somewhere.com/mycog.tif&bidx=1&rescale=0,1000&color_map=cfastie`
+- `https://myendpoint/cog/preview?url=https://somewhere.com/mycog.tif&bidx=1&rescale=0,1000&colormap_name=cfastie`
 
 ### Crop / Part
 
@@ -109,7 +102,8 @@ Example:
     - **max_size**: Max image size, default is 1024. OPTIONAL
     - **rescale**: Comma (',') delimited Min,Max bounds. OPTIONAL
     - **color_formula**: rio-color formula. OPTIONAL
-    - **color_map**: rio-tiler color map name. OPTIONAL
+    - **colormap_name**: rio-tiler color map name. OPTIONAL
+    - **colormap**: JSON encoded custom Colormap. OPTIONAL
     - **resampling_method**: rasterio resampling method. Default is `nearest`.
 
 Note: if `height` and `width` are provided `max_size` will be ignored.
@@ -117,7 +111,7 @@ Note: if `height` and `width` are provided `max_size` will be ignored.
 Example:
 
 - `https://myendpoint/cog/crop/0,0,10,10.png?url=https://somewhere.com/mycog.tif`
-- `https://myendpoint/cog/crop/0,0,10,10.png?url=https://somewhere.com/mycog.tif&bidx=1&rescale=0,1000&color_map=cfastie`
+- `https://myendpoint/cog/crop/0,0,10,10.png?url=https://somewhere.com/mycog.tif&bidx=1&rescale=0,1000&colormap_name=cfastie`
 
 ### Point
 

@@ -1,5 +1,79 @@
 # Release Notes
 
+## 0.3.0 (TBD)
+
+* add support for `.jpg` and `.jpeg` extensions (https://github.com/developmentseed/titiler/pull/271)
+* better error message when parsing the colormap value fails (https://github.com/developmentseed/titiler/pull/279)
+
+**breaking change**
+
+* split `titiler` into a set of namespaces packages (https://github.com/developmentseed/titiler/pull/284)
+
+    **titiler.core**
+
+    The `core` package host the low level tiler factories.
+    ```python
+    # before
+    from titiler.endpoints.factory import TilerFactory
+
+    # now
+    from titiler.core.factory import TilerFactory
+    ```
+
+    **titiler.mosaic**
+
+    The `mosaic` package is a plugin to `titiler.core` which adds support for MosaicJSON
+    ```python
+    # before
+    from titiler.endpoints.factory import MosaicTilerFactory
+
+    # now
+    from titiler.mosaic.factory import MosaicTilerFactory
+    ```
+
+    **titiler.application**
+
+    The `application` package is a full `ready to use` FastAPI application with support of STAC, COG and MosaicJSON.
+
+    ```bash
+    # before
+    $ pip install titiler
+    $ uvicorn titiler.main:app --reload
+
+    # now
+    $ pip install titiler.application uvicorn
+    $ uvicorn titiler.application.main:app --reload
+    ```
+
+## 0.2.0 (2021-03-09)
+
+* adapt for cogeo-mosaic `3.0.0rc2` and add `backend_options` attribute in MosaicTilerFactory (https://github.com/developmentseed/titiler/pull/247)
+* update FastAPI requirements
+* update minimal python version to 3.6
+* add `**render_params.kwargs` to pass custom render params in `image.render` method (https://github.com/developmentseed/titiler/pull/259)
+* Changed probe url from `/ping` to `/healthz` in k8s deployment
+
+**breaking change**
+
+* renamed `OptionalHeaders`, `MimeTypes` and `ImageDrivers` enums to the singular form (https://github.com/developmentseed/titiler/pull/258)
+* renamed titiler.dependencies's Enums (`ColorMapName`, `ResamplingName` and `TileMatrixSetName`) to the singular form (https://github.com/developmentseed/titiler/pull/260)
+* renamed `MimeType` to `MediaType` (https://github.com/developmentseed/titiler/pull/258)
+* add `ColorMapParams` dependency to ease the creation of custom colormap dependency (https://github.com/developmentseed/titiler/pull/252)
+* renamed `PathParams` to `DatasetPathParams` and also made it a simple callable (https://github.com/developmentseed/titiler/pull/260)
+* renamed `colormap` query-parameter to `colormap_name` (https://github.com/developmentseed/titiler/pull/262)
+    ```
+    # before
+    /cog/preview.png?colormap=viridis
+
+    # now
+    /cog/preview.png?colormap_name=viridis
+    ```
+
+* use `colormap` query-parameter to pass custom colormap (https://github.com/developmentseed/titiler/pull/262)
+    ```
+    /cog/preview.png?colormap={"0": "#FFFF00FF", ...}
+    ```
+
 ## 0.1.0 (2021-02-17)
 
 * update FastAPI requirements

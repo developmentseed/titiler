@@ -10,7 +10,7 @@ $ cd titiler
 $ pip install -e .[dev]
 ```
 
-**Python3.7 only**
+**Python3.8 only**
 
 This repo is set to use `pre-commit` to run *isort*, *flake8*, *pydocstring*, *black* ("uncompromising Python code formatter") and mypy when committing new code.
 
@@ -40,13 +40,28 @@ $ mkdocs gh-deploy
 ```
 
 ```bash
-pdocs as_markdown \
-   --output_dir docs/api/ \
+   pdocs as_markdown \
+   --output_dir docs/api \
    --exclude_source \
    --overwrite \
-   titiler.dependencies \
-   titiler.endpoints.factory \
-   titiler.middleware \
-   titiler.utils \
-   titiler.resources.enums
+   titiler.core.dependencies \
+   titiler.core.factory \
+   titiler.core.utils \
+   titiler.core.routing \
+   titiler.core.errors \
+   titiler.core.resources.enums
+
+   pdocs as_markdown \
+   --output_dir docs/api \
+   --exclude_source \
+   --overwrite \
+   titiler.mosaic.factory \
+   titiler.mosaic.resources.enums \
+   titiler.mosaic.errors
+
+   pdocs as_markdown \
+   --output_dir docs/api \
+   --exclude_source \
+   --overwrite \
+   titiler.application.middleware
 ```

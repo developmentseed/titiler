@@ -1,8 +1,7 @@
 """Construct App."""
 
 import os
-from copy import deepcopy
-from typing import Any, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from aws_cdk import aws_apigatewayv2 as apigw
 from aws_cdk import aws_apigatewayv2_integrations as apigw_integrations
@@ -14,20 +13,6 @@ from aws_cdk import aws_lambda, core
 from config import StackSettings
 
 settings = StackSettings()
-
-
-DEFAULT_ENV = dict(
-    CPL_TMPDIR="/tmp",
-    CPL_VSIL_CURL_ALLOWED_EXTENSIONS=".tif",
-    GDAL_CACHEMAX="75%",
-    GDAL_DISABLE_READDIR_ON_OPEN="EMPTY_DIR",
-    GDAL_HTTP_MERGE_CONSECUTIVE_RANGES="YES",
-    GDAL_HTTP_MULTIPLEX="YES",
-    GDAL_HTTP_VERSION="2",
-    PYTHONWARNINGS="ignore",
-    VSI_CACHE="TRUE",
-    VSI_CACHE_SIZE="1000000",
-)
 
 
 class titilerLambdaStack(core.Stack):
@@ -49,7 +34,7 @@ class titilerLambdaStack(core.Stack):
         runtime: aws_lambda.Runtime = aws_lambda.Runtime.PYTHON_3_8,
         concurrent: Optional[int] = None,
         permissions: Optional[List[iam.PolicyStatement]] = None,
-        env: dict = {},
+        env: Optional[Dict] = None,
         code_dir: str = "./",
         **kwargs: Any,
     ) -> None:
@@ -57,6 +42,7 @@ class titilerLambdaStack(core.Stack):
         super().__init__(scope, id, *kwargs)
 
         permissions = permissions or []
+        env = env or {}
 
         lambda_function = aws_lambda.Function(
             self,
@@ -75,7 +61,7 @@ class titilerLambdaStack(core.Stack):
             memory_size=memory,
             reserved_concurrent_executions=concurrent,
             timeout=core.Duration.seconds(timeout),
-            environment={**DEFAULT_ENV, **env},
+            environment=env,
         )
 
         for perm in permissions:
@@ -103,7 +89,7 @@ class titilerECSStack(core.Stack):
         mincount: int = 1,
         maxcount: int = 50,
         permissions: Optional[List[iam.PolicyStatement]] = None,
-        env: dict = {},
+        env: Optional[Dict] = None,
         code_dir: str = "./",
         **kwargs: Any,
     ) -> None:
@@ -111,12 +97,13 @@ class titilerECSStack(core.Stack):
         super().__init__(scope, id, *kwargs)
 
         permissions = permissions or []
+        env = env or {}
 
         vpc = ec2.Vpc(self, f"{id}-vpc", max_azs=2)
 
         cluster = ecs.Cluster(self, f"{id}-cluster", vpc=vpc)
 
-        task_env = deepcopy(DEFAULT_ENV)
+        task_env = env.copy()
         task_env.update(dict(LOG_LEVEL="error"))
 
         # GUNICORN configuration
@@ -126,8 +113,6 @@ class titilerECSStack(core.Stack):
             task_env.update({"MAX_WORKERS": str(settings.max_workers)})
         if settings.web_concurrency:
             task_env.update({"WEB_CONCURRENCY": str(settings.web_concurrency)})
-
-        task_env.update(env)
 
         fargate_service = ecs_patterns.ApplicationLoadBalancedFargateService(
             self,
@@ -140,7 +125,7 @@ class titilerECSStack(core.Stack):
             listener_port=80,
             task_image_options=ecs_patterns.ApplicationLoadBalancedTaskImageOptions(
                 image=ecs.ContainerImage.from_registry(
-                    f"public.ecr.aws/s2n1v5w1/titiler:{settings.image_version}",
+                    f"public.ecr.aws/developmentseed/titiler:{settings.image_version}",
                 ),
                 container_port=80,
                 environment=task_env,
@@ -209,7 +194,7 @@ titilerECSStack(
     mincount=settings.min_ecs_instances,
     maxcount=settings.max_ecs_instances,
     permissions=perms,
-    env=settings.additional_env,
+    env=settings.env,
 )
 
 lambda_stackname = f"{settings.name}-lambda-{settings.stage}"
@@ -220,7 +205,7 @@ titilerLambdaStack(
     timeout=settings.timeout,
     concurrent=settings.max_concurrent,
     permissions=perms,
-    env=settings.additional_env,
+    env=settings.env,
 )
 
 app.synth()

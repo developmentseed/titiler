@@ -11,9 +11,13 @@
 
 ## Projects
 
+
+* [developmentseed/titiler-digitaltwin](https://github.com/developmentseed/titiler-digitaltwin)
+
 * [developmentseed/titiler-pds](https://github.com/developmentseed/titiler-pds)
 
 * [arturo-ai/arturo-stac-api](https://github.com/arturo-ai/arturo-stac-api)
 
 * [c-core-labs/stac-api](https://github.com/c-core-labs/stac-api)
 
+* [lambgeo/titiler-layer](https://github.com/lambgeo/titiler-layer)

@@ -1,28 +1,9 @@
+
+The `titiler.application` package comes with a full FastAPI application with COG, STAC and MosaicJSON supports.
+
 # SpatioTemporal Asset Catalog
 
-Read Info/Metadata and create Web map Tiles from a **single** STAC Item.
-
-```python
-# Minimal FastAPI app with STAC support
-from titiler.endpoints import stac
-
-from fastapi import FastAPI
-
-app = FastAPI()
-
-# The STAC Tiler is created with the TilerFactory with the `stac` prefix
-app.include_router(stac.router, prefix="/stac", tags=["SpatioTemporal Asset Catalog"])
-
-################################################################################
-# OR using the Factory
-from rio_tiler.io import STACReader
-from titiler.endpoints.MultiBaseTilerFactory
-
-stac = MultiBaseTilerFactory(reader=STACReader, router_prefix="stac")
-
-app = FastAPI()
-app.include_router(stac.router, prefix="/stac", tags=["SpatioTemporal Asset Catalog"])
-```
+Read Info/Metadata and create Web map Tiles from a **single** STAC Item.  The `stac` router extend the default `titiler.core.factory.MultiBaseTilerFactory`.
 
 ## API
 
@@ -63,7 +44,8 @@ app.include_router(stac.router, prefix="/stac", tags=["SpatioTemporal Asset Cata
     - **nodata**: Overwrite internal Nodata value. OPTIONAL
     - **rescale**: Comma (',') delimited Min,Max bounds. OPTIONAL
     - **color_formula**: rio-color formula. OPTIONAL
-    - **color_map**: rio-tiler color map name. OPTIONAL
+    - **colormap_name**: rio-tiler color map name. OPTIONAL
+    - **colormap**: JSON encoded custom Colormap. OPTIONAL
     - **resampling_method**: rasterio resampling method. Default is `nearest`.
 
 ***assets** OR **expression** is required
@@ -73,7 +55,7 @@ Example:
 - `https://myendpoint/stac/tiles/1/2/3?url=https://somewhere.com/item.json&assets=B01`
 - `https://myendpoint/stac/tiles/1/2/3.jpg?url=https://somewhere.com/item.json&assets=B01`
 - `https://myendpoint/stac/tiles/WorldCRS84Quad/1/2/3@2x.png?url=https://somewhere.com/item.json&assets=B01`
-- `https://myendpoint/stac/tiles/WorldCRS84Quad/1/2/3?url=https://somewhere.com/item.json&expression=B01/B02&rescale=0,1000&color_map=cfastie`
+- `https://myendpoint/stac/tiles/WorldCRS84Quad/1/2/3?url=https://somewhere.com/item.json&expression=B01/B02&rescale=0,1000&colormap_name=cfastie`
 
 
 ### Preview
@@ -94,7 +76,8 @@ Example:
     - **width**: Force output image width. OPTIONAL
     - **rescale**: Comma (',') delimited Min,Max bounds. OPTIONAL
     - **color_formula**: rio-color formula. OPTIONAL
-    - **color_map**: rio-tiler color map name. OPTIONAL
+    - **colormap_name**: rio-tiler color map name. OPTIONAL
+    - **colormap**: JSON encoded custom Colormap. OPTIONAL
 
 ***assets** OR **expression** is required
 
@@ -104,7 +87,7 @@ Example:
 
 - `https://myendpoint/stac/preview?url=https://somewhere.com/item.json&assets=B01`
 - `https://myendpoint/stac/preview.jpg?url=https://somewhere.com/item.json&assets=B01`
-- `https://myendpoint/stac/preview?url=https://somewhere.com/item.json&assets=B01&rescale=0,1000&color_map=cfastie`
+- `https://myendpoint/stac/preview?url=https://somewhere.com/item.json&assets=B01&rescale=0,1000&colormap_name=cfastie`
 
 ### Crop / Part
 
@@ -126,7 +109,8 @@ Example:
 
     - **rescale**: Comma (',') delimited Min,Max bounds. OPTIONAL
     - **color_formula**: rio-color formula. OPTIONAL
-    - **color_map**: rio-tiler color map name. OPTIONAL
+    - **colormap_name**: rio-tiler color map name. OPTIONAL
+    - **colormap**: JSON encoded custom Colormap. OPTIONAL
     - **resampling_method**: rasterio resampling method. Default is `nearest`.
 
 ***assets** OR **expression** is required
@@ -136,7 +120,7 @@ Note: if `height` and `width` are provided `max_size` will be ignored.
 Example:
 
 - `https://myendpoint/stac/crop/0,0,10,10.png?url=https://somewhere.com/item.json&assets=B01`
-- `https://myendpoint/stac/crop/0,0,10,10.png?url=https://somewhere.com/item.json&assets=B01&rescale=0,1000&color_map=cfastie`
+- `https://myendpoint/stac/crop/0,0,10,10.png?url=https://somewhere.com/item.json&assets=B01&rescale=0,1000&colormap_name=cfastie`
 
 ### Point
 

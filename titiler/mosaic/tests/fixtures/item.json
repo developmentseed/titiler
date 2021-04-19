@@ -1,0 +1,445 @@
+{
+    "type": "Feature",
+    "stac_version": "1.0.0-beta.1",
+    "stac_extensions": [
+        "eo",
+        "view",
+        "proj"
+    ],
+    "id": "S2A_34SGA_20200318_0_L2A",
+    "bbox": [
+        23.293255090449595,
+        31.505183020453355,
+        24.296453548295318,
+        32.51147809805106
+    ],
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    24.2612208840549,
+                    31.505183020453355
+                ],
+                [
+                    23.293255090449595,
+                    31.52621106544645
+                ],
+                [
+                    23.55058193691424,
+                    32.51147809805106
+                ],
+                [
+                    24.296453548295318,
+                    32.494132999285085
+                ],
+                [
+                    24.2612208840549,
+                    31.505183020453355
+                ]
+            ]
+        ]
+    },
+    "properties": {
+        "datetime": "2020-03-18T09:11:33Z",
+        "platform": "sentinel-2a",
+        "constellation": "sentinel-2",
+        "instruments": [
+            "msi"
+        ],
+        "gsd": 10,
+        "data_coverage": 73.85,
+        "view:off_nadir": 0,
+        "eo:cloud_cover": 89.84,
+        "proj:epsg": 32634,
+        "sentinel:latitude_band": "S",
+        "sentinel:grid_square": "GA",
+        "sentinel:sequence": "0",
+        "sentinel:product_id": "S2A_MSIL2A_20200318T085701_N0214_R007_T34SGA_20200318T115254",
+        "created": "2020-05-12T21:03:26.671Z",
+        "updated": "2020-05-12T21:03:26.671Z"
+    },
+    "collection": "sentinel-s2-l2a-cogs",
+    "assets": {
+        "thumbnail": {
+            "title": "Thumbnail",
+            "type": "image/png",
+            "href": "https://myurl.com/preview.jpg"
+        },
+        "overview": {
+            "title": "True color image",
+            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            "href": "https://myurl.com/L2A_PVI.tif",
+            "proj:shape": [
+                343,
+                343
+            ],
+            "proj:transform": [
+                320,
+                0,
+                699960,
+                0,
+                -320,
+                3600000,
+                0,
+                0,
+                1
+            ]
+        },
+        "info": {
+            "title": "Original JSON metadata",
+            "type": "application/json",
+            "href": "https://myurl.com/tileInfo.json"
+        },
+        "metadata": {
+            "title": "Original XML metadata",
+            "type": "application/xml",
+            "href": "https://myurl.com/metadata.xml"
+        },
+        "visual": {
+            "title": "True color image",
+            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            "href": "https://myurl.com/TCI.tif",
+            "proj:shape": [
+                10980,
+                10980
+            ],
+            "proj:transform": [
+                10,
+                0,
+                699960,
+                0,
+                -10,
+                3600000,
+                0,
+                0,
+                1
+            ]
+        },
+        "B01": {
+            "title": "Band 1 (coastal)",
+            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            "href": "https://myurl.com/B01.tif",
+            "proj:shape": [
+                1830,
+                1830
+            ],
+            "proj:transform": [
+                60,
+                0,
+                699960,
+                0,
+                -60,
+                3600000,
+                0,
+                0,
+                1
+            ]
+        },
+        "B02": {
+            "title": "Band 2 (blue)",
+            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            "href": "https://myurl.com/B02.tif",
+            "proj:shape": [
+                10980,
+                10980
+            ],
+            "proj:transform": [
+                10,
+                0,
+                699960,
+                0,
+                -10,
+                3600000,
+                0,
+                0,
+                1
+            ]
+        },
+        "B03": {
+            "title": "Band 3 (green)",
+            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            "href": "https://myurl.com/B03.tif",
+            "proj:shape": [
+                10980,
+                10980
+            ],
+            "proj:transform": [
+                10,
+                0,
+                699960,
+                0,
+                -10,
+                3600000,
+                0,
+                0,
+                1
+            ]
+        },
+        "B04": {
+            "title": "Band 4 (red)",
+            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            "href": "https://myurl.com/B04.tif",
+            "proj:shape": [
+                10980,
+                10980
+            ],
+            "proj:transform": [
+                10,
+                0,
+                699960,
+                0,
+                -10,
+                3600000,
+                0,
+                0,
+                1
+            ]
+        },
+        "B05": {
+            "title": "Band 5",
+            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            "href": "https://myurl.com/B05.tif",
+            "proj:shape": [
+                5490,
+                5490
+            ],
+            "proj:transform": [
+                20,
+                0,
+                699960,
+                0,
+                -20,
+                3600000,
+                0,
+                0,
+                1
+            ]
+        },
+        "B06": {
+            "title": "Band 6",
+            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            "href": "https://myurl.com/B06.tif",
+            "proj:shape": [
+                5490,
+                5490
+            ],
+            "proj:transform": [
+                20,
+                0,
+                699960,
+                0,
+                -20,
+                3600000,
+                0,
+                0,
+                1
+            ]
+        },
+        "B07": {
+            "title": "Band 7",
+            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            "href": "https://myurl.com/B07.tif",
+            "proj:shape": [
+                5490,
+                5490
+            ],
+            "proj:transform": [
+                20,
+                0,
+                699960,
+                0,
+                -20,
+                3600000,
+                0,
+                0,
+                1
+            ]
+        },
+        "B08": {
+            "title": "Band 8 (nir)",
+            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            "href": "https://myurl.com/B08.tif",
+            "proj:shape": [
+                10980,
+                10980
+            ],
+            "proj:transform": [
+                10,
+                0,
+                699960,
+                0,
+                -10,
+                3600000,
+                0,
+                0,
+                1
+            ]
+        },
+        "B8A": {
+            "title": "Band 8A",
+            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            "href": "https://myurl.com/B8A.tif",
+            "proj:shape": [
+                5490,
+                5490
+            ],
+            "proj:transform": [
+                20,
+                0,
+                699960,
+                0,
+                -20,
+                3600000,
+                0,
+                0,
+                1
+            ]
+        },
+        "B09": {
+            "title": "Band 9",
+            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            "href": "https://myurl.com/B09.tif",
+            "proj:shape": [
+                1830,
+                1830
+            ],
+            "proj:transform": [
+                60,
+                0,
+                699960,
+                0,
+                -60,
+                3600000,
+                0,
+                0,
+                1
+            ]
+        },
+        "B11": {
+            "title": "Band 11 (swir16)",
+            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            "href": "https://myurl.com/B11.tif",
+            "proj:shape": [
+                5490,
+                5490
+            ],
+            "proj:transform": [
+                20,
+                0,
+                699960,
+                0,
+                -20,
+                3600000,
+                0,
+                0,
+                1
+            ]
+        },
+        "B12": {
+            "title": "Band 12 (swir22)",
+            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            "href": "https://myurl.com/B12.tif",
+            "proj:shape": [
+                5490,
+                5490
+            ],
+            "proj:transform": [
+                20,
+                0,
+                699960,
+                0,
+                -20,
+                3600000,
+                0,
+                0,
+                1
+            ]
+        },
+        "AOT": {
+            "title": "Aerosol Optical Thickness (AOT)",
+            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            "href": "https://myurl.com/AOT.tif",
+            "proj:shape": [
+                1830,
+                1830
+            ],
+            "proj:transform": [
+                60,
+                0,
+                699960,
+                0,
+                -60,
+                3600000,
+                0,
+                0,
+                1
+            ]
+        },
+        "WVP": {
+            "title": "Water Vapour (WVP)",
+            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            "href": "https://myurl.com/WVP.tif",
+            "proj:shape": [
+                10980,
+                10980
+            ],
+            "proj:transform": [
+                10,
+                0,
+                699960,
+                0,
+                -10,
+                3600000,
+                0,
+                0,
+                1
+            ]
+        },
+        "SCL": {
+            "title": "Scene Classification Map (SCL)",
+            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            "href": "https://myurl.com/SCL.tif",
+            "proj:shape": [
+                5490,
+                5490
+            ],
+            "proj:transform": [
+                20,
+                0,
+                699960,
+                0,
+                -20,
+                3600000,
+                0,
+                0,
+                1
+            ]
+        }
+    },
+    "links": [
+        {
+            "rel": "self",
+            "href": "s3://sentinel-cogs/sentinel-s2-l2a-cogs/2020/S2A_34SGA_20200318_0_L2A/S2A_34SGA_20200318_0_L2A.json",
+            "type": "application/json"
+        },
+        {
+            "rel": "parent",
+            "href": "https://myurl.com/v0/collections/sentinel-s2-l2a"
+        },
+        {
+            "rel": "collection",
+            "href": "https://myurl.com/v0/collections/sentinel-s2-l2a"
+        },
+        {
+            "rel": "root",
+            "href": "https://myurl.com/v0/"
+        },
+        {
+            "title": "Source STAC Item",
+            "rel": "derived_from",
+            "href": "https://myurl.com/collections/sentinel-s2-l2a/items/S2A_34SGA_20200318_0_L2A",
+            "type": "application/json"
+        }
+    ]
+}

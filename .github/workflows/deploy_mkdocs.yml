@@ -11,6 +11,7 @@ on:
       - 'CONTRIBUTING.md'
       - 'docs/**'
       - 'mkdocs.yml'
+  pull_request:
 
 jobs:
   build:
@@ -28,21 +29,37 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install numpy
-          python -m pip install -e .["docs"]
-          python -m pip install git+https://github.com/timothycrosley/pdocs
+          python -m pip install titiler/core
+          python -m pip install titiler/mosaic
+          python -m pip install titiler/application
+          python -m pip install nbconvert mkdocs mkdocs-material mkdocs-jupyter pygments pdocs
 
       - name: update API docs
         run: |
           pdocs as_markdown \
-            --output_dir docs/api/ \
+            --output_dir docs/api \
             --exclude_source \
             --overwrite \
-            titiler.dependencies \
-            titiler.endpoints.factory \
-            titiler.middleware \
-            titiler.utils \
-            titiler.resources.enums
+            titiler.core.dependencies \
+            titiler.core.factory \
+            titiler.core.utils \
+            titiler.core.routing \
+            titiler.core.errors \
+            titiler.core.resources.enums
+
+          pdocs as_markdown \
+            --output_dir docs/api \
+            --exclude_source \
+            --overwrite \
+            titiler.mosaic.factory \
+            titiler.mosaic.resources.enums \
+            titiler.mosaic.errors
+
+          pdocs as_markdown \
+            --output_dir docs/api \
+            --exclude_source \
+            --overwrite \
+            titiler.application.middleware
 
       - name: Deploy docs
         run: mkdocs gh-deploy --force

@@ -1,10 +1,10 @@
 # Amazon Web Services deployments
 
-Example of of AWS deployments can be found in https://github.com/developmentseed/titiler/tree/master/deployment/aws. Those examples use [AWS Cloud Development Kit](https://aws.amazon.com/cdk/) to define stacks using python code.
+Examples of AWS deployments can be found in https://github.com/developmentseed/titiler/tree/master/deployment/aws. Those examples use [AWS Cloud Development Kit](https://aws.amazon.com/cdk/) to define stacks using python code.
 
 # Configuration/Settings
 
-Deployment settings are managed via [pydantic.BaseSettings](https://pydantic-docs.helpmanual.io/usage/settings/) and stored in [config.py](https://github.com/developmentseed/titiler/blob/master/stack/config.py). Pydantic BaseSettings can receive input to overwrite the default value from `.env` file or from environment variables.
+Deployment settings are managed via [pydantic.BaseSettings](https://pydantic-docs.helpmanual.io/usage/settings/) and stored in [config.py](https://github.com/developmentseed/titiler/blob/master/stack/config.py). Pydantic BaseSettings can receive input to overwrite the default value from a `.env` file or from environment variables. 
 
 Variables in `.env` or in environment variable need to be prefixed with `TITILER_STACK_`:
 
@@ -14,15 +14,14 @@ TITILER_STACK_NAME="my-tiler"
 TITILER_STACK_STAGE="dev"
 
 TITILER_STACK_BUCKETS='["my-bucket*", "*"]'
-TITILER_STACK_MOSAIC_HOST="my-bucket/mosaics"
 
 TITILER_STACK_MEMORY=3008
 
 # Uncomment to allow lambda to access content on requester-payer buckets
-# TITILER_STACK_ADDITIONAL_ENV='{"AWS_REQUEST_PAYER":"requester"}'
+# TITILER_STACK_ENV='{"AWS_REQUEST_PAYER":"requester"}'
 
 # Uncomment if you only on the /cog endpoint
-# TITILER_STACK_ADDITIONAL_ENV='{"TITILER_API_DISABLE_STAC": "TRUE", "TITILER_API_DISABLE_MOSAIC": "TRUE"}'
+# TITILER_STACK_ENV='{"TITILER_API_DISABLE_STAC": "TRUE", "TITILER_API_DISABLE_MOSAIC": "TRUE"}'
 ```
 
 Default values from [config.py](https://github.com/developmentseed/titiler/blob/master/deployment/aws/cdk/config.py):
@@ -33,13 +32,26 @@ stage: str = "production"
 owner: Optional[str]
 client: Optional[str]
 
-additional_env: Dict = {}
+# Default options are optimized for CloudOptimized GeoTIFF
+# For more information on GDAL env see: https://gdal.org/user/configoptions.html
+env: Dict = {
+    "CPL_VSIL_CURL_ALLOWED_EXTENSIONS": ".tif,.TIF,.tiff",
+    "GDAL_CACHEMAX": "200" # 200 mb
+    "GDAL_DISABLE_READDIR_ON_OPEN": "EMPTY_DIR",
+    "GDAL_HTTP_MERGE_CONSECUTIVE_RANGES": "YES",
+    "GDAL_HTTP_MULTIPLEX": "YES",
+    "GDAL_HTTP_VERSION": "2",
+    "PYTHONWARNINGS": "ignore",
+    "VSI_CACHE": "TRUE",
+    "VSI_CACHE_SIZE": "5000000" # 5 MB (per file-handle)      
+}
 
 # add S3 bucket where TiTiler could do HEAD and GET Requests
 buckets: List = []
 
-#########
+###########################################################################
 # AWS ECS
+# The following settings only apply to AWS ECS deployment
 min_ecs_instances: int = 5
 max_ecs_instances: int = 50
 
@@ -73,8 +85,9 @@ web_concurrency: Optional[int]
 
 image_version: str = "latest"
 
-############
+###########################################################################
 # AWS LAMBDA
+# The following settings only apply to AWS Lambda deployment
 timeout: int = 10
 memory: int = 1536
 # more about lambda config: https://www.sentiatechblog.com/aws-re-invent-2020-day-3-optimizing-lambda-cost-with-multi-threading
