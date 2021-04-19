@@ -3,42 +3,28 @@ repos:
     rev: 19.10b0
     hooks:
       - id: black
-        language_version: python3.8
-        args: ["--safe"]
+        language_version: python
 
   - repo: https://github.com/PyCQA/isort
     rev: 5.4.2
     hooks:
       - id: isort
-        language_version: python3.8
+        language_version: python
 
   - repo: https://github.com/PyCQA/flake8
     rev: 3.8.3
     hooks:
       - id: flake8
-        language_version: python3.8
-        args: [
-            # E501 let black handle all line length decisions
-            # W503 black conflicts with "line break before operator" rule
-            # E203 black conflicts with "whitespace before ':'" rule
-            "--ignore=E501,W503,E203",
-          ]
+        language_version: python
 
   - repo: https://github.com/PyCQA/pydocstyle
     rev: 5.1.1
     hooks:
       - id: pydocstyle
-        language_version: python3.8
-        args: [
-            # Check for docstring presence only
-            "--select=D1",
-            # Don't require docstrings for tests
-            '--match=(?!test).*\.py',
-          ]
+        language_version: python
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v0.770
+    rev: v0.812
     hooks:
       - id: mypy
-        language_version: python3.8
-        args: ["--no-strict-optional", "--ignore-missing-imports"]
+        language_version: python

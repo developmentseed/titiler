@@ -55,12 +55,21 @@ nav:
       - NumpyTile: "examples/notebooks/Working_with_NumpyTile.ipynb"
 
   - API:
-      - dependencies: api/titiler/dependencies.md
-      - factory: api/titiler/endpoints/factory.md
-      - middleware: api/titiler/middleware.md
-      - utils: api/titiler/utils.md
-      - enums: api/titiler/resources/enums.md
-      - errors: api/titiler/errors.md
+    - titiler.core:
+      - dependencies: api/titiler/core/dependencies.md
+      - factory: api/titiler/core/factory.md
+      - utils: api/titiler/core/utils.md
+      - routing: api/titiler/core/routing.md
+      - errors: api/titiler/core/errors.md
+      - enums: api/titiler/core/resources/enums.md
+
+    - titiler.mosaic:
+      - factory: api/titiler/mosaic/factory.md
+      - enums: api/titiler/mosaic/resources/enums.md
+      - errors: api/titiler/mosaic/errors.md
+
+    - titiler.application:
+      - middleware: api/titiler/application/middleware.md
 
   - Deployment:
     - Amazon Web Services:

@@ -32,20 +32,37 @@
 
 ---
 
-`Titiler`, pronounced **tee-tiler** (*ti* is the diminutive version of the french *petit* which means small), is a lightweight application (FastAPI) focused on creating web map tiles dynamically from [Cloud Optimized GeoTIFF](https://cogeo.org), [STAC](https://stacspec.org) or [MosaicJSON](https://github.com/developmentseed/mosaicjson-spec/).
+`Titiler`, pronounced **tee-tiler** (*ti* is the diminutive version of the french *petit* which means small), is a set of python modules that focus on creating FastAPI application for dynamic tiling.
 
 Note: This project is the descendant of [`cogeo-tiler`](https://github.com/developmentseed/cogeo-tiler) and [`cogeo-mosaic-tiler`](https://github.com/developmentseed/cogeo-mosaic-tiler).
 
 ## Features
 
+- Built on top of [FastAPI](https://fastapi.tiangolo.com)
 - [Cloud Optimized GeoTIFF](http://www.cogeo.org/) support
 - [SpatioTemporal Asset Catalog](https://stacspec.org) support
-- Virtual mosaic support (via [MosaicJSON](https://github.com/developmentseed/mosaicjson-spec/))
-- Multiple projections (see [TileMatrixSets](https://www.ogc.org/standards/tms)) via [`morecantile`](https://github.com/developmentseed/morecantile).
+- Multiple projections support (see [TileMatrixSets](https://www.ogc.org/standards/tms)) via [`morecantile`](https://github.com/developmentseed/morecantile).
 - JPEG / JP2 / PNG / WEBP / GTIFF / NumpyTile output format support
 - OGC WMTS support
 - Automatic OpenAPI documentation (FastAPI builtin)
+- Virtual mosaic support (via [MosaicJSON](https://github.com/developmentseed/mosaicjson-spec/))
 - Example of AWS Lambda / ECS deployment (via CDK)
+
+## Packages
+
+Starting with version `0.3.0`, the `TiTiler` python module has been splitted into a set of python namespace packages: `titiler.{package}`.
+
+- [**titiler.core**](https://github.com/developmentseed/titiler/tree/master/titiler/core)
+
+    The `Core` package contains libraries to help creating dynamic tiler for COG and STAC.
+
+- [**titiler.mosaic**](https://github.com/developmentseed/titiler/tree/master/titiler/mosaic)
+
+    The `mosaic` package contains libraries to help creating dynamic tiler for MosaicJSON (adds `cogeo-mosaic` requirement).
+
+- [**titiler.application**](https://github.com/developmentseed/titiler/tree/master/titiler/application)
+
+    TiTiler's `demo` package. Contains a FastAPI application with full support of COG, STAC and MosaicJSON.
 
 ## Installation
 
@@ -53,27 +70,15 @@ Note: This project is the descendant of [`cogeo-tiler`](https://github.com/devel
 $ pip install -U pip
 
 # From Pypi
-$ pip install titiler
+$ pip install titiler.{package}
+# e.g
+# pip install titiler.core
+# pip install titiler.mosaic
+# pip install titiler.application
 
 # Or from sources
 $ git clone https://github.com/developmentseed/titiler.git
-$ cd titiler && pip install -e .
-```
-
-Launch Application
-```bash
-$ uvicorn titiler.main:app --reload
-```
-
-Or with Docker
-```
-$ git clone https://github.com/developmentseed/titiler.git
-$ cd titiler
-
-$ export AWS_ACCESS_KEY_ID=...
-$ export AWS_SECRET_ACCESS_KEY=...
-$ docker-compose build
-$ docker-compose up
+$ cd titiler && pip install -e titiler/core titiler/mosaic titiler/application
 ```
 
 ## Docker
@@ -100,29 +105,26 @@ docker run --name titiler \
     --rm -it public.ecr.aws/developmentseed/titiler
 ```
 
+- Built the docker locally
+```
+$ git clone https://github.com/developmentseed/titiler.git
+$ cd titiler
+
+$ export AWS_ACCESS_KEY_ID=...
+$ export AWS_SECRET_ACCESS_KEY=...
+$ docker-compose build
+$ docker-compose up
+```
+
 Some options can be set via environment variables, see: https://github.com/tiangolo/uvicorn-gunicorn-docker#advanced-usage
 
 ## Project structure
 
 ```
-titiler/                         - titiler python module.
- ├── custom/                     - Custom colormap and TMS grids.
- ├── endpoints                   - API routes.
- │   ├── cog.py                  - COG related endpoints.
- │   ├── stac.py                 - STAC related endpoints.
- │   ├── mosaic.py               - MosaicJSON related endpoints.
- │   ├── factory.py              - TiTiler Router Factories.
- │   └── tms.py                  - TileMatrixSets endpoints.
- ├── models/                     - pydantic models for this application.
- ├── resources/                  - application resources (enums, constants, etc.).
- ├── templates/                  - html/xml models.
- ├── middleware.py               - Custom Starlette middlewares.
- ├── dependencies.py             - API dependencies.
- ├── errors.py                   - API custom error handling.
- ├── main.py                     - FastAPI application creation and configuration.
- ├── settings.py                 - application configuration.
- └── utils.py                    - utility functions.
-
+titiler/                         - titiler modules.
+ ├── application/                - Titiler's `Application` package
+ ├── core/                       - Titiler's `Core` package
+ └── mosaic/                     - Titiler's `Mosaic` package
 ```
 
 ## Contribution & Development

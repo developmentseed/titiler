@@ -1,9 +1,49 @@
 # Release Notes
 
-## Next (TBD)
+## 0.3.0 (TBD)
 
 * add support for `.jpg` and `.jpeg` extensions (https://github.com/developmentseed/titiler/pull/271)
 * better error message when parsing the colormap value fails (https://github.com/developmentseed/titiler/pull/279)
+
+**breaking change**
+
+* split `titiler` into a set of namespaces packages (https://github.com/developmentseed/titiler/pull/284)
+
+    **titiler.core**
+
+    The `core` package host the low level tiler factories.
+    ```python
+    # before
+    from titiler.endpoints.factory import TilerFactory
+
+    # now
+    from titiler.core.factory import TilerFactory
+    ```
+
+    **titiler.mosaic**
+
+    The `mosaic` package is a plugin to `titiler.core` which adds support for MosaicJSON
+    ```python
+    # before
+    from titiler.endpoints.factory import MosaicTilerFactory
+
+    # now
+    from titiler.mosaic.factory import MosaicTilerFactory
+    ```
+
+    **titiler.application**
+
+    The `application` package is a full `ready to use` FastAPI application with support of STAC, COG and MosaicJSON.
+
+    ```bash
+    # before
+    $ pip install titiler
+    $ uvicorn titiler.main:app --reload
+
+    # now
+    $ pip install titiler.application uvicorn
+    $ uvicorn titiler.application.main:app --reload
+    ```
 
 ## 0.2.0 (2021-03-09)
 
