@@ -11,6 +11,7 @@ on:
       - 'CONTRIBUTING.md'
       - 'docs/**'
       - 'mkdocs.yml'
+  pull_request:
 
 jobs:
   build:
