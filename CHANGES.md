@@ -1,5 +1,9 @@
 # Release Notes
 
+## Next (TBD)
+
+* add `exclude_path` options in `titiler.application.middleware.CacheControlMiddleware` to avoid adding cache-control headers to specific paths.
+
 ## 0.3.0 (2021-04-19)
 
 * add support for `.jpg` and `.jpeg` extensions (https://github.com/developmentseed/titiler/pull/271)
