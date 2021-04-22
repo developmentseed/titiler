@@ -1,5 +1,24 @@
 
-**Goal**: Add a custom colormap dependency
+**Goal**: Add a custom colormap dependency to allow user pass linear `colormap` definition.
+
+```python
+# https://colorbrewer2.org/#type=sequential&scheme=BuGn&n=3
+cmap = urlencode(
+    {
+        "colormap": json.dumps(
+            {
+                "0": "#e5f5f9",
+                "10": "#99d8c9",
+                "255": "#2ca25f",
+            }
+        )
+    }
+)
+response = requests.get(
+    f"http://127.0.0.1:8000/cog/tiles/8/53/50.png?url=https://myurl.com/cog.tif&bidx=1&rescale=0,10000&{cmap}&colormap_type=linear"
+)
+```
+
 
 **requirements**: titiler.core matplotlib
 
