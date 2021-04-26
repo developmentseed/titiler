@@ -19,7 +19,7 @@ class CacheControlMiddleware(BaseHTTPMiddleware):
         self,
         app: ASGIApp,
         cachecontrol: Optional[str] = None,
-        exclude_path: Optional[Set] = None,
+        exclude_path: Optional[Set[str]] = None,
     ) -> None:
         """Init Middleware.
 
