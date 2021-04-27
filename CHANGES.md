@@ -4,6 +4,9 @@
 
 * add `exclude_path` options in `titiler.application.middleware.CacheControlMiddleware` to avoid adding cache-control headers to specific paths.
 * allow `histogram_bins` to be a single value or a `,` delimited scalar (https://github.com/developmentseed/titiler/pull/307)
+* change error status from `404` to `500` for `RasterioIOError` exception (author @kylebarron, https://github.com/developmentseed/titiler/pull/300)
+
+    Sometimes GDAL/Rasterio can lose track of the file handler (might be related to cache issue + threading) and raise `RasterioIOError: file not found`, while the file exists for real. To avoid caching this, we changed the error code to 500 (errors >= 500 do not get `cache-control` header on titiler.application).
 
 ## 0.3.0 (2021-04-19)
 
