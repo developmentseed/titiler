@@ -233,6 +233,8 @@ class TilerFactory(BaseTilerFactory):
                     info = src_dst.info(**kwargs).dict(exclude_none=True)
                     bounds = info.pop("bounds", None)
                     info.pop("center", None)
+                    info.pop("minzoom", None)
+                    info.pop("maxzoom", None)
                     info["dataset"] = src_path
                     geojson = bbox_to_feature(bounds, properties=info)
 
@@ -879,12 +881,11 @@ class MultiBandTilerFactory(TilerFactory):
             """Return dataset's basic info as a GeoJSON feature."""
             with rasterio.Env(**self.gdal_config):
                 with self.reader(src_path, **self.reader_options) as src_dst:
-                    info = {"dataset": src_path}
-                    info["bands"] = {
-                        band: meta.dict(exclude_none=True)
-                        for band, meta in src_dst.info(
-                            **bands_params.kwargs, **kwargs
-                        ).items()
+                    info = {
+                        "dataset": src_path,
+                        **src_dst.info(**bands_params.kwargs, **kwargs).dict(
+                            exclude_none=True
+                        ),
                     }
                     return bbox_to_feature(src_dst.bounds, properties=info)
 

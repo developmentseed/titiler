@@ -1,4 +1,4 @@
-"""Test TiTiler Tiler Factories."""
+"""Test TiTiler mosaic Factory."""
 
 import os
 import tempfile
@@ -49,6 +49,27 @@ def test_MosaicTilerFactory():
     client = TestClient(app)
 
     with tmpmosaic() as mosaic_file:
+        response = client.get("/mosaic/", params={"url": mosaic_file},)
+        assert response.status_code == 200
+        assert response.json()["mosaicjson"]
+
+        response = client.get("/mosaic", params={"url": mosaic_file},)
+        assert response.status_code == 200
+        assert response.json()["mosaicjson"]
+
+        response = client.get("/mosaic/bounds", params={"url": mosaic_file},)
+        assert response.status_code == 200
+        assert response.json()["bounds"]
+
+        response = client.get("/mosaic/info", params={"url": mosaic_file},)
+        assert response.status_code == 200
+        assert response.json()["bounds"]
+
+        response = client.get("/mosaic/info.geojson", params={"url": mosaic_file},)
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "application/geo+json"
+        assert response.json()["type"] == "Feature"
+
         response = client.get(
             "/mosaic/point/-74.53125,45.9956935", params={"url": mosaic_file},
         )
@@ -66,3 +87,38 @@ def test_MosaicTilerFactory():
         assert "dataread;dur" in timing
         assert "postprocess;dur" in timing
         assert "format;dur" in timing
+
+        response = client.get(
+            "/mosaic/tilejson.json",
+            params={
+                "url": mosaic_file,
+                "tile_format": "png",
+                "minzoom": 6,
+                "maxzoom": 9,
+            },
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert (
+            "http://testserver/mosaic/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?url="
+            in body["tiles"][0]
+        )
+        assert body["minzoom"] == 6
+        assert body["maxzoom"] == 9
+
+        response = client.get(
+            "/mosaic/WMTSCapabilities.xml",
+            params={
+                "url": mosaic_file,
+                "tile_format": "png",
+                "minzoom": 6,
+                "maxzoom": 9,
+            },
+        )
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "application/xml"
+
+        response = client.post(
+            "/mosaic/validate", json=MosaicJSON.from_urls(assets).dict(),
+        )
+        assert response.status_code == 200
