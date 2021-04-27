@@ -39,7 +39,7 @@ DEFAULT_STATUS_CODES = {
     BadRequestError: status.HTTP_400_BAD_REQUEST,
     TileOutsideBounds: status.HTTP_404_NOT_FOUND,
     TileNotFoundError: status.HTTP_404_NOT_FOUND,
-    RasterioIOError: status.HTTP_404_NOT_FOUND,
+    RasterioIOError: status.HTTP_500_INTERNAL_SERVER_ERROR,
     MissingBands: status.HTTP_400_BAD_REQUEST,
     MissingAssets: status.HTTP_400_BAD_REQUEST,
     InvalidColorFormat: status.HTTP_400_BAD_REQUEST,
