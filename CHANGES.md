@@ -1,8 +1,9 @@
 # Release Notes
 
-## Next (TBD)
+## 0.3.1 (TBD)
 
 * add `exclude_path` options in `titiler.application.middleware.CacheControlMiddleware` to avoid adding cache-control headers to specific paths.
+* allow `histogram_bins` to be a single value or a `,` delimited scalar (https://github.com/developmentseed/titiler/pull/307)
 
 ## 0.3.0 (2021-04-19)
 

@@ -202,6 +202,14 @@ def test_TilerFactory():
     assert len(response.json()["statistics"]["1"]["histogram"][0]) == 4
 
     response = client.get(
+        f"/metadata?url={DATA_DIR}/cog.tif&histogram_bins=1,2,3,4,5,6"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    assert len(response.json()["statistics"]["1"]["histogram"][1]) == 6
+    assert response.json()["statistics"]["1"]["histogram"][1][0] == 1.0
+
+    response = client.get(
         f"/preview.png?url={DATA_DIR}/cog.tif&rescale=0,1000&max_size=256"
     )
     assert response.status_code == 200
