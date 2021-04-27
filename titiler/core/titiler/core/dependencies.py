@@ -231,7 +231,7 @@ class MetadataParams(DefaultDependency):
     max_size: Optional[int] = Query(
         None, description="Maximum image size to read onto."
     )
-    histogram_bins: Optional[int] = Query(None, description="Histogram bins.")
+    histogram_bins: Optional[str] = Query(None, description="Histogram bins.")
     histogram_range: Optional[str] = Query(
         None, description="comma (',') delimited Min,Max histogram bounds"
     )
@@ -249,8 +249,13 @@ class MetadataParams(DefaultDependency):
             self.kwargs["bounds"] = tuple(map(float, self.bounds.split(",")))
 
         hist_options = {}
-        if self.histogram_bins:
-            hist_options.update(dict(bins=self.histogram_bins))
+        if self.histogram_bins is not None:
+            bins = self.histogram_bins.split(",")
+            if len(bins) == 1:
+                hist_options.update(dict(bins=int(bins[0])))
+            else:
+                hist_options.update(dict(bins=list(map(float, bins))))
+
         if self.histogram_range:
             hist_options.update(
                 dict(range=list(map(float, self.histogram_range.split(","))))

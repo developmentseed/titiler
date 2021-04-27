@@ -4,6 +4,7 @@ import os
 from typing import Any, Dict
 
 import pytest
+import rasterio
 from rasterio.io import MemoryFile
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "fixtures")
@@ -25,3 +26,10 @@ def parse_img(content: bytes) -> Dict[Any, Any]:
     with MemoryFile(content) as mem:
         with mem.open() as dst:
             return dst.profile
+
+
+def mock_rasterio_open(asset):
+    """Mock rasterio Open."""
+    assert asset.startswith("https://myurl.com/")
+    asset = asset.replace("https://myurl.com", DATA_DIR)
+    return rasterio.open(asset)
