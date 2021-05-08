@@ -50,7 +50,7 @@ Note: This project is the descendant of [`cogeo-tiler`](https://github.com/devel
 
 ## Packages
 
-Starting with version `0.3.0`, the `TiTiler` python module has been splitted into a set of python namespace packages: `titiler.{package}`.
+Starting with version `0.3.0`, the `TiTiler` python module has been split into a set of python namespace packages: `titiler.{package}`.
 
 | Package | Version |  Description
 | ------- | ------- |-------------
