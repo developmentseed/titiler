@@ -47,6 +47,8 @@ resources:
     cpu: 1
     memory: 2Gi
 
+serviceAccountName: ""
+
 nodeSelector: {}
 
 tolerations: []
