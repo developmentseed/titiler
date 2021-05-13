@@ -3,21 +3,16 @@ kind: Deployment
 metadata:
   name: {{ include "titiler.fullname" . }}
   labels:
-    app.kubernetes.io/name: {{ include "titiler.name" . }}
-    helm.sh/chart: {{ include "titiler.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- include "titiler.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "titiler.name" . }}
-      app.kubernetes.io/instance: {{ .Release.Name }}
+      {{- include "titiler.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ include "titiler.name" . }}
-        app.kubernetes.io/instance: {{ .Release.Name }}
+        {{- include "titiler.selectorLabels" . | nindent 8 }}
     spec:
       containers:
         - name: {{ .Chart.Name }}
