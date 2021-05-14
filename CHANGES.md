@@ -1,5 +1,11 @@
 # Release Notes
 
+## 0.3.2 (TBD)
+
+### titiler.application
+
+* re-order middlewares (https://github.com/developmentseed/titiler/issues/311)
+
 ## 0.3.1 (2021-04-27)
 
 * add `exclude_path` options in `titiler.application.middleware.CacheControlMiddleware` to avoid adding cache-control headers to specific paths.
