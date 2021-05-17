@@ -68,8 +68,8 @@ app.add_middleware(
 )
 
 if api_settings.debug:
-    app.add_middleware(TotalTimeMiddleware)
     app.add_middleware(LoggerMiddleware, headers=True, querystrings=True)
+    app.add_middleware(TotalTimeMiddleware)
 
 
 @app.get("/healthz", description="Health Check", tags=["Health Check"])
