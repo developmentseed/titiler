@@ -4,13 +4,14 @@ import json
 import re
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy
 from morecantile import tms
 from morecantile.models import TileMatrixSet
 from rasterio.enums import Resampling
 from rio_tiler.colormap import cmap, parse_color
+from rio_tiler.constants import NumType
 from rio_tiler.errors import MissingAssets, MissingBands
 
 from fastapi import HTTPException, Query
@@ -323,10 +324,10 @@ class DatasetParams(DefaultDependency):
 class RenderParams(DefaultDependency):
     """Image Rendering options."""
 
-    rescale: Optional[str] = Query(
+    rescale: Optional[List[str]] = Query(
         None,
         title="Min/Max data Rescaling",
-        description="comma (',') delimited Min,Max bounds",
+        description="comma (',') delimited Min,Max bounds. Can set multiple time for multiple bands.",
     )
     color_formula: Optional[str] = Query(
         None,
@@ -335,10 +336,12 @@ class RenderParams(DefaultDependency):
     )
     return_mask: bool = Query(True, description="Add mask to the output data.")
 
-    rescale_range: Optional[List[Union[float, int]]] = field(init=False)
+    rescale_range: Optional[Sequence[Tuple[NumType, NumType]]] = field(init=False)
 
     def __post_init__(self):
         """Post Init."""
         self.rescale_range = (
-            list(map(float, self.rescale.split(","))) if self.rescale else None
+            [tuple(map(float, r.split(","))) for r in self.rescale]
+            if self.rescale
+            else None
         )

@@ -2,6 +2,10 @@
 
 ## 0.3.2 (TBD)
 
+### titiler.core
+
+* update rio-tiler dependency to `2.1` version and update `rescale` query-parameter (https://github.com/developmentseed/titiler/issues/319)
+
 ### titiler.application
 
 * re-order middlewares (https://github.com/developmentseed/titiler/issues/311)
