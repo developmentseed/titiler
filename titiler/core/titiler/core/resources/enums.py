@@ -22,6 +22,8 @@ class MediaType(str, Enum):
     geojson = "application/geo+json"
     html = "text/html"
     text = "text/plain"
+    pbf = "application/x-protobuf"
+    mvt = "application/x-protobuf"
 
 
 class ImageDriver(str, Enum):

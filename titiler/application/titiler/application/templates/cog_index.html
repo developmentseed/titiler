@@ -432,16 +432,17 @@
                 bidx: `${r},${g},${b}`
             }
 
+            let url_params = Object.keys(params).map(i => `${i}=${params[i]}`).join('&')
+
             if (document.getElementById('histcut-selector').querySelector("input[name='toggle-histo']:checked").value !== 'none') {
-                const min1 = scope.config[r].min
-                const max1 = scope.config[r].max
-                const min2 = scope.config[g].min
-                const max2 = scope.config[g].max
-                const min3 = scope.config[r].min
-                const max3 = scope.config[r].max
-                params.rescale = `${min1},${max1},${min2},${max2},${min3},${max3}`
+                const r_rescale = `${scope.config[r].min},${scope.config[r].max}`
+                const g_rescale = `${scope.config[g].min},${scope.config[g].max}`
+                const b_rescale = `${scope.config[b].min},${scope.config[b].max}`
+                const rescale_params = [r_rescale, g_rescale, b_rescale].map(i => `rescale=${i}`).join('&')
+                console.log(rescale_params)
+                url_params += `&${rescale_params}`
             }
-            const url_params = Object.keys(params).map(i => `${i}=${params[i]}`).join('&')
+            console.log(url_params)
             let url = `${tilejson_endpoint}?${url_params}`
 
             map.addSource('raster', { type: 'raster', url: url, tileSize: 256 })
