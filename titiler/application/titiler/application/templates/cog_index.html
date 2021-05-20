@@ -439,10 +439,8 @@
                 const g_rescale = `${scope.config[g].min},${scope.config[g].max}`
                 const b_rescale = `${scope.config[b].min},${scope.config[b].max}`
                 const rescale_params = [r_rescale, g_rescale, b_rescale].map(i => `rescale=${i}`).join('&')
-                console.log(rescale_params)
                 url_params += `&${rescale_params}`
             }
-            console.log(url_params)
             let url = `${tilejson_endpoint}?${url_params}`
 
             map.addSource('raster', { type: 'raster', url: url, tileSize: 256 })
