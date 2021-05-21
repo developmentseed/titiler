@@ -6,7 +6,7 @@ with open("README.md") as f:
     long_description = f.read()
 
 inst_reqs = [
-    "rio-cogeo>=2.2,<2.3",
+    "rio-cogeo>=2.2",
     "titiler.core",
     "titiler.mosaic",
     "brotli-asgi>=1.0.0",
