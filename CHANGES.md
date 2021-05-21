@@ -4,11 +4,27 @@
 
 ### titiler.core
 
-* update rio-tiler dependency to `2.1` version and update `rescale` query-parameter (https://github.com/developmentseed/titiler/issues/319)
+* update rio-tiler dependency to `>=2.1` version and update `rescale` query-parameter (https://github.com/developmentseed/titiler/issues/319)
+
+```
+# before
+# previously, rio-tiler was splitting a list of input range in tuple of 2
+rescale=0,1000,0,1000,0,1000
+
+# now
+# rio-tiler 2.1 now expect sequence of tuple in form of Sequence[Tuple[Num, Num]]
+rescale=0,1000&rescale=0,1000&rescale=0,1000
+```
+
+### titiler.mosaic
+
+* update `cogeo-mosaic` version to `>=3.0,<3.1`.
 
 ### titiler.application
 
 * re-order middlewares (https://github.com/developmentseed/titiler/issues/311)
+* update rio-cogeo version to `>=2.2` and use `rio_cogeo.models` instead of custom ones.
+
 
 ## 0.3.1 (2021-04-27)
 
