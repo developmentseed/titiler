@@ -1,12 +1,12 @@
 """TiTiler COG demo endpoints."""
 
 from rio_cogeo.cogeo import cog_info as rio_cogeo_info
+from rio_cogeo.models import Info
 from rio_tiler.io import COGReader
 
 from titiler.application.custom import ColorMapParams, TMSParams, templates
 from titiler.core.dependencies import DatasetPathParams
 from titiler.core.factory import TilerFactory
-from titiler.core.models.cogeo import Info
 
 from fastapi import Depends, Query
 

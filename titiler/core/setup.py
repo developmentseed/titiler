@@ -6,15 +6,14 @@ with open("README.md") as f:
     long_description = f.read()
 
 inst_reqs = [
-    "fastapi==0.63.0",
+    "fastapi>=0.65,<0.66",
     "geojson-pydantic",
     "jinja2>=2.11.2,<3.0.0",
-    "morecantile>=2.1,<2.2",
+    "morecantile",
     "numpy",
     "pydantic",
     "rasterio",
-    "rio-cogeo>=2.1,<2.2",
-    "rio-tiler>=2.0.5,<2.1",
+    "rio-tiler>=2.1,<2.2",
     # Additional requirements for python 3.6
     "async_exit_stack>=1.0.1,<2.0.0;python_version<'3.7'",
     "async_generator>=1.10,<2.0.0;python_version<'3.7'",

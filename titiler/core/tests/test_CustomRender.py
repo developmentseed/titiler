@@ -63,3 +63,12 @@ def test_CustomRender():
     assert meta["nodata"] == 0
     assert meta["count"] == 1
     assert meta["compress"] == "deflate"
+
+    response = client.get(
+        f"/tiles/9/289/207?url={DATA_DIR}/TCI.tif&rescale=0,1000&rescale=0,2000&rescale=0,3000"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/png"
+    meta = parse_img(response.content)
+    assert meta["width"] == 256
+    assert meta["height"] == 256
