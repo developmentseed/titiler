@@ -32,7 +32,7 @@ class MosaicEntity(BaseModel):
 
     id: str # titiler mosaic value
     links: List[Link]
-    mosaicjson: MosaicJSON
+    mosaicjson: MosaicJSON # todo: remove this, maybe?
 
     class Config:
         """Generates alias to convert all fieldnames from snake_case to camelCase"""
@@ -43,8 +43,14 @@ class MosaicEntity(BaseModel):
 
 class StacApiQueryRequestBody(Search):
     """Common request params for MosaicJSON CRUD operations"""
-    # option 3 - a STAC API query
+
     stac_api_root: str
+    asset_name: Optional[str] = None
+    name: Optional[str] = None
+    description: Optional[str] = None
+    attribution: Optional[str] = None
+
+    # override default Search field for collections, which is List[str]
     collections: Optional[List[str]] = None
 
 
