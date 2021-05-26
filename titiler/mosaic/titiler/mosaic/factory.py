@@ -1,8 +1,9 @@
 """TiTiler.mosaic Router factories."""
 
 import os
+import uuid
 from dataclasses import dataclass, field
-from typing import Callable, Dict, Optional, Type
+from typing import Callable, Dict, Optional, Type, Sequence
 from urllib.parse import urlencode, urlparse
 
 import rasterio
@@ -22,8 +23,9 @@ from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
 from titiler.core.resources.responses import GeoJSONResponse, XMLResponse
 from titiler.core.utils import Timer, bbox_to_feature
 from titiler.mosaic.resources.enums import PixelSelectionMethod
+from titiler.mosaic.resources.models import MosaicEntity, UrisRequestBody, StacApiQueryRequestBody, Link
 
-from fastapi import Depends, Path, Query
+from fastapi import Depends, Path, Query, Header
 
 from starlette.requests import Request
 from starlette.responses import Response
@@ -64,6 +66,7 @@ class MosaicTilerFactory(BaseTilerFactory):
         self.wmts()
         self.point()
         self.validate()
+        self.mosaics()
 
     ############################################################################
     # /read
@@ -472,3 +475,120 @@ class MosaicTilerFactory(BaseTilerFactory):
         def validate(body: MosaicJSON):
             """Validate a MosaicJSON"""
             return True
+
+    ############################################################################
+    # /mosaics
+    ############################################################################
+    def mosaics(self):  # noqa: C901
+        """Register /mosaics endpoints."""
+
+        @self.router.get(r"/mosaics/{id}")
+        def get_mosaic(
+                id: str
+        ) -> MosaicEntity:
+            # retrieve(id)from DynamoDB
+            return MosaicEntity()
+
+        @self.router.get(r"/mosaics/{id}/mosaicjson")
+        def get_mosaic_mosaicjson(
+                id: str
+        ) -> MosaicJSON:
+            return retrieve(id)
+
+        @self.router.post("/mosaics")
+        async def post_mosaicjsons(
+                request: Request,
+                content_type: Optional[str] = Header(None),
+        ) -> MosaicEntity:
+            """Validate a MosaicJSON"""
+
+            body_json = await request.json()
+            mosaicjson = None
+            if not content_type or \
+                    content_type == "application/json" or \
+                    content_type == "application/json; charset=utf-8" or \
+                    content_type == "application/vnd.mosaicjson+json":
+                mosaicjson = MosaicJSON(**body_json)
+            elif content_type == "application/vnd.stac-api-query+json":
+                StacApiQueryRequestBody(**body_json)
+
+                # execute query
+                # generate mosaicjson based on results
+                # store in dynamodb
+            elif content_type == "application/vnd.files+json":
+                mosaicjson = mosaicjson_from_urls(UrisRequestBody(**body_json))
+                # generate mosaicjson based on results
+                # MosaicJSON.from_urls
+                # store in dynamodb
+
+            # validate mosaicjson
+
+            id = str(uuid.uuid4())
+
+            # store in dynamodb
+            # mosaicjson
+
+            # set Location header
+            # return MosaicEntity
+            return MosaicEntity(
+                id=id,
+                mosaicjson=mosaicjson,
+                links=[
+                    Link(
+                        rel="self",
+                        href=f"http://example.com/mosaicjson/mosaics/{id}",
+                        type="application/json",
+                        title="Self"
+                    ),
+                    Link(
+                        rel="mosaicjson",
+                        href=f"http://example.com/mosaicjson/mosaics/{id}/mosaicjson",
+                        type="application/vnd.mosaicjson+json",
+                        title="MosiacJSON"
+                    ),
+                    Link(
+                        rel="mosaicjson",
+                        href=f"http://example.com/mosaicjson/mosaics/{id}/tilejson.json",
+                        type="application/json",
+                        title="TileJSON"
+                    ),
+                    Link(
+                        rel="tiles",
+                        href=f"http://example.com/mosaicjson/tiles/{{z}}/{{x}}/{{y}}@1x?url=http://example.com/mosaicjson/mosaics/{id}/mosaicjson",
+                        type="application/json",
+                        title="Tiles Endpoint"
+                    ),
+                ])
+
+        @self.router.put("/mosaics/{id}")
+        def put_mosaicjsons(
+                id: str,
+                request: Request,
+                content_type: Optional[str] = Header(None),
+        ):
+            """Update an existing MosaicJSON"""
+            return None
+
+        def mosaicjson_from_urls(urirb: UrisRequestBody) -> MosaicJSON:
+            mosaic_json = MosaicJSON.from_urls(
+                urls=urirb.urls,
+                minzoom=urirb.minzoom,
+                maxzoom=urirb.maxzoom,
+                max_threads=int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS)),  # todo
+            )
+            mosaic_json.name = urirb.name
+            mosaic_json.description = urirb.description
+            mosaic_json.attribution = urirb.attribution
+            return mosaic_json
+
+        def store(id: str, mosaicjson: MosaicJSON, overwrite: bool = False) -> None:
+            src_path = self.path_dependency(layer=id)
+            print(f"=>>{src_path}")
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path, mosaic_def=mosaicjson) as mosaic:
+                    mosaic.write(overwrite=overwrite)
+
+        def retrieve(id: str) -> MosaicJSON:
+            src_path = self.path_dependency(layer=id)
+            print(f"=>>{src_path}")
+            return None  # todo
