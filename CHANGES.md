@@ -1,6 +1,6 @@
 # Release Notes
 
-## 0.3.2 (TBD)
+## 0.3.2 (2021-05-26)
 
 ### titiler.core
 
