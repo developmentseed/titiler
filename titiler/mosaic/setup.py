@@ -10,8 +10,6 @@ inst_reqs = [
     "cogeo-mosaic>=3.0,<3.1",
     "pystac-client~=0.1.1",
     "stac_pydantic",  # inherit version from pystac-client
-    "aiohttp~=3.7.4",
-    "aiohttp[speedups]"
 ]
 extra_reqs = {
     "test": ["pytest", "pytest-cov", "pytest-asyncio", "requests"],

@@ -2,7 +2,6 @@
 
 import os
 import uuid
-import logging
 from dataclasses import dataclass, field
 from typing import Callable, Dict, Optional, Type, List
 from urllib.parse import urlencode, urlparse
@@ -37,6 +36,11 @@ from pystac_client import Client
 from asyncio import wait_for
 import asyncio
 from functools import partial
+from collections import defaultdict
+
+# TODO: remove!!!!
+mj_store: Dict[str, MosaicJSON] = {}
+
 
 @dataclass
 class MosaicTilerFactory(BaseTilerFactory):
@@ -46,8 +50,6 @@ class MosaicTilerFactory(BaseTilerFactory):
     The main difference with titiler.endpoint.factory.TilerFactory is that this factory
     needs a reader (MosaicBackend) and a dataset_reader (BaseReader).
     """
-
-    logger = logging.getLogger(__name__)
 
     reader: Type[BaseBackend] = MosaicBackend
     dataset_reader: Type[BaseReader] = COGReader
@@ -488,24 +490,26 @@ class MosaicTilerFactory(BaseTilerFactory):
     ############################################################################
     # /mosaics
     ############################################################################
+
+
     def mosaics(self):  # noqa: C901
         """Register /mosaics endpoints."""
 
-        @self.router.get(r"/mosaics/{id}")
+        @self.router.get(r"/mosaics/{mosaic_id}")
         def get_mosaic(
-                id: str
+                request: Request,
+                mosaic_id: str
         ) -> MosaicEntity:
-            # retrieve(id)from DynamoDB
-            return MosaicEntity()
+            base_uri = f"{request.url.scheme}://{request.headers['host']}"
+            self_uri = f"{base_uri}/mosaicjson/mosaics/{mosaic_id}"
+            return mk_mosaic_entity(mosaic_id=mosaic_id, self_uri=self_uri, base_uri=base_uri)
 
-        @self.router.get(r"/mosaics/{id}/mosaicjson")
-        def get_mosaic_mosaicjson(
-                id: str
-        ) -> MosaicJSON:
-            return retrieve(id)
+        @self.router.get(r"/mosaics/{mosaic_id}/mosaicjson")
+        def get_mosaic_mosaicjson(mosaic_id: str) -> MosaicJSON:
+            return retrieve(mosaic_id)
 
         @self.router.post("/mosaics")
-        async def post_mosaicjsons(
+        async def post_mosaics(
                 request: Request,
                 response: Response,
                 content_type: Optional[str] = Header(None),
@@ -513,58 +517,36 @@ class MosaicTilerFactory(BaseTilerFactory):
             """Validate a MosaicJSON"""
 
             body_json = await request.json()
-            mosaicjson = None
             if not content_type or \
                     content_type == "application/json" or \
                     content_type == "application/json; charset=utf-8" or \
-                    content_type == "application/vnd.mosaicjson+json":
+                    content_type == "application/vnd.titiler.mosaicjson+json":
                 mosaicjson = MosaicJSON(**body_json)
-            elif content_type == "application/vnd.stac-api-query+json":
-                mosaicjson = await mosaicjson_from_stac_api_query(StacApiQueryRequestBody(**body_json))
-            elif content_type == "application/vnd.files+json":
+            elif content_type == "application/vnd.titiler.urls+json":
                 mosaicjson = mosaicjson_from_urls(UrisRequestBody(**body_json))
+            elif content_type == "application/vnd.titiler.stac-api-query+json":
+                mosaicjson = await mosaicjson_from_stac_api_query(StacApiQueryRequestBody(**body_json))
+            else:
+                raise HTTPException(
+                    HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+                                    "Error: media in Content-Type header is not supported."
+                                    )
 
             # todo: validate mosaicjson ??
 
-            id = str(uuid.uuid4())
+            mj_id = str(uuid.uuid4())
 
-            # todo: store in dynamodb
+            store(mj_id, mosaicjson)
 
-            self_uri = f"{request.url.scheme}://{request.headers['host']}/mosaicjson/mosaics/{id}"
+            base_uri = f"{request.url.scheme}://{request.headers['host']}"
+            self_uri = f"{base_uri}/mosaicjson/mosaics/{mj_id}"
+
             response.headers["Location"] = self_uri
 
-            return MosaicEntity(
-                id=id,
-                mosaicjson=mosaicjson,
-                links=[
-                    Link(
-                        rel="self",
-                        href=self_uri,
-                        type="application/json",
-                        title="Self"
-                    ),
-                    Link(
-                        rel="mosaicjson",
-                        href=f"{self_uri}/mosaicjson",
-                        type="application/vnd.mosaicjson+json",
-                        title="MosiacJSON"
-                    ),
-                    Link(
-                        rel="mosaicjson",
-                        href=f"{self_uri}/tilejson.json",
-                        type="application/json",
-                        title="TileJSON"
-                    ),
-                    Link(
-                        rel="tiles",
-                        href=f"{request.url.scheme}://{request.headers['host']}/mosaicjson/tiles/{{z}}/{{x}}/{{y}}@1x?url={self_uri}/mosaicjson",
-                        type="application/json",
-                        title="Tiles Endpoint"
-                    ),
-                ])
+            return mk_mosaic_entity(mj_id, self_uri, base_uri, mosaicjson)
 
         @self.router.put("/mosaics/{id}")
-        def put_mosaicjsons(
+        def put_mosaics(
                 id: str,
                 request: Request,
                 content_type: Optional[str] = Header(None),
@@ -675,14 +657,82 @@ class MosaicTilerFactory(BaseTilerFactory):
         def asset_href(feature: dict, asset_name: str) -> str:
             return feature["assets"][asset_name]["href"]
 
+        # def mk_src_path(mosaic_id: str) -> str:
+        #     return f"s3://the-bucket/{mosaic_id}.json.gz"
+        #
+        # def store(mj_id: str, mosaicjson: MosaicJSON, overwrite: bool = False) -> None:
+        #     src_path = mk_src_path(mj_id)
+        #     with rasterio.Env(**self.gdal_config):
+        #         with self.reader(src_path, mosaic_def=mosaicjson) as mosaic:
+        #             mosaic.write(overwrite=overwrite)
+        #
+        # def retrieve(mj_id: str) -> MosaicJSON:
+        #     src_path = mk_src_path(mj_id)
+        #     with rasterio.Env(**self.gdal_config):
+        #         with self.reader(src_path,
+        #                          reader=self.dataset_reader,
+        #                          reader_options=self.reader_options,
+        #                          **self.backend_options) as mosaic:
+        #             return mosaic.mosaic_def
+
         def store(mj_id: str, mosaicjson: MosaicJSON, overwrite: bool = False) -> None:
-            src_path = self.path_dependency(layer=mj_id)
-            print(f"=>>{src_path}")
-            with rasterio.Env(**self.gdal_config):
-                with self.reader(src_path, mosaic_def=mosaicjson) as mosaic:
-                    mosaic.write(overwrite=overwrite)
+            mj_store[mj_id] = mosaicjson
 
         def retrieve(mj_id: str) -> MosaicJSON:
-            src_path = self.path_dependency(layer=mj_id)
-            print(f"=>>{src_path}")
-            return None  # todo
+            return mj_store[mj_id]
+
+
+        def mk_mosaic_entity(mosaic_id, self_uri, base_uri, mosaicjson: Optional[MosaicJSON] = None):
+            return MosaicEntity(
+                id=mosaic_id,
+                mosaicjson=mosaicjson, # todo: remove this, maybe?
+                links=[
+                    Link(
+                        rel="self",
+                        href=self_uri,
+                        type="application/json",
+                        title="Self"
+                    ),
+                    Link(
+                        rel="mosaicjson",
+                        href=f"{self_uri}/mosaicjson",
+                        type="application/vnd.titiler.mosaicjson+json",
+                        title="MosiacJSON"
+                    ),
+                    Link(
+                        rel="tilejson",
+                        href=f"{self_uri}/tilejson.json",
+                        type="application/json",
+                        title="TileJSON"
+                    ),
+                    Link(
+                        rel="tiles",
+                        href=f"{base_uri}/mosaicjson/tiles/{{z}}/{{x}}/{{y}}@1x?url={self_uri}/mosaicjson",
+                        type="application/json",
+                        title="Tiles Endpoint"
+                    ),
+                    Link(
+                        rel="tiles-zxy",
+                        href=f"{base_uri}/mosaicjson/tiles/{{z}}/{{x}}/{{y}}?url={self_uri}/mosaicjson",
+                        type="application/json",
+                        title="Tiles Endpoint /{z}/{x}/{y}"
+                    ),
+                    Link(
+                        rel="tiles-zxy-format",
+                        href=f"{base_uri}/mosaicjson/tiles/{{z}}/{{x}}/{{y}}.{{format}}?url={self_uri}/mosaicjson",
+                        type="application/json",
+                        title="Tiles Endpoint /{z}/{x}/{y}.{format}"
+                    ),
+                    Link(
+                        rel="tiles-zxy-scale",
+                        href=f"{base_uri}/mosaicjson/tiles/{{z}}/{{x}}/{{y}}@{{scale}}x?url={self_uri}/mosaicjson",
+                        type="application/json",
+                        title="Tiles Endpoint /{z}/{x}/{y}@{scale}x"
+                    ),
+                    Link(
+                        rel="tiles-zxy-scale-format",
+                        href=f"{base_uri}/mosaicjson/tiles/{{z}}/{{x}}/{{y}}@{{scale}}x.{{format}}?url={self_uri}/mosaicjson",
+                        type="application/json",
+                        title="Tiles Endpoint /{z}/{x}/{y}@{scale}x.{format}"
+                    ),
+                ])

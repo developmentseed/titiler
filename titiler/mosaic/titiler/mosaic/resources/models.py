@@ -1,7 +1,5 @@
 """Titiler.mosaic Models."""
 
-from pydantic import BaseModel, Field
-from typing import Optional, List
 from cogeo_mosaic.mosaic import MosaicJSON
 from typing import List, Optional
 
@@ -33,12 +31,6 @@ class MosaicEntity(BaseModel):
     id: str # titiler mosaic value
     links: List[Link]
     mosaicjson: MosaicJSON # todo: remove this, maybe?
-
-    class Config:
-        """Generates alias to convert all fieldnames from snake_case to camelCase"""
-
-        alias_generator = to_camel
-        allow_population_by_field_name = True
 
 
 class StacApiQueryRequestBody(Search):
