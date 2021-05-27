@@ -41,6 +41,7 @@ class StacApiQueryRequestBody(Search):
     name: Optional[str] = None
     description: Optional[str] = None
     attribution: Optional[str] = None
+    version: Optional[str] = None
 
     # override default Search field for collections, which is List[str]
     collections: Optional[List[str]] = None
@@ -54,3 +55,4 @@ class UrisRequestBody(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     attribution: Optional[str] = None
+    version: Optional[str] = None

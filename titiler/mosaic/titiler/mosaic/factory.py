@@ -36,7 +36,7 @@ from pystac_client import Client
 from asyncio import wait_for
 import asyncio
 from functools import partial
-from collections import defaultdict
+import traceback
 
 # TODO: remove!!!!
 mj_store: Dict[str, MosaicJSON] = {}
@@ -490,12 +490,14 @@ class MosaicTilerFactory(BaseTilerFactory):
     ############################################################################
     # /mosaics
     ############################################################################
-
-
     def mosaics(self):  # noqa: C901
         """Register /mosaics endpoints."""
 
-        @self.router.get(r"/mosaics/{mosaic_id}")
+        @self.router.get(
+            "/mosaics/{mosaic_id}",
+            response_model=MosaicEntity,
+            responses={200: {"description": "Return a mosaicjson for the given ID."}},
+        )
         def get_mosaic(
                 request: Request,
                 mosaic_id: str
@@ -504,15 +506,78 @@ class MosaicTilerFactory(BaseTilerFactory):
             self_uri = f"{base_uri}/mosaicjson/mosaics/{mosaic_id}"
             return mk_mosaic_entity(mosaic_id=mosaic_id, self_uri=self_uri, base_uri=base_uri)
 
-        @self.router.get(r"/mosaics/{mosaic_id}/mosaicjson")
+        @self.router.get("/mosaics/{mosaic_id}/mosaicjson")
         def get_mosaic_mosaicjson(mosaic_id: str) -> MosaicJSON:
             return retrieve(mosaic_id)
 
-        @self.router.post("/mosaics")
+        # copied from cogeo.xyz
+        @self.router.get(r"/mosaics/{mosaic_id}/tilejson.json",
+                         response_model=TileJSON,
+                         responses={200: {"description": "Return a tilejson for the given ID."}},
+                         )
+        def get_mosaic_tilejson(
+                mosaic_id: str,
+                request: Request,
+                tile_format: Optional[ImageType] = Query(
+                    None, description="Output image type. Default is auto."
+                ),
+                tile_scale: int = Query(
+                    1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
+                ),
+                layer_params=Depends(self.layer_dependency),  # noqa
+                dataset_params=Depends(self.dataset_dependency),  # noqa
+                render_params=Depends(self.render_dependency),  # noqa
+                colormap=Depends(self.colormap_dependency),  # noqa
+                kwargs: Dict = Depends(self.additional_dependency),  # noqa
+        ) -> TileJSON:
+            """Return TileJSON document for a COG."""
+
+            # todo: handle various options
+            # kwargs = {
+            #     "z": "{z}",
+            #     "x": "{x}",
+            #     "y": "{y}",
+            #     "scale": tile_scale,
+            # }
+            # if tile_format:
+            #     kwargs["format"] = tile_format.value
+            #
+            #
+            # tiles_url = self.url_for(request, "tiles", **kwargs)
+            # q = dict(request.query_params)
+            # q.pop("TileMatrixSetId", None)
+            # q.pop("tile_format", None)
+            # q.pop("tile_scale", None)
+            # q.pop("minzoom", None)
+            # q.pop("maxzoom", None)
+            # qs = urlencode(list(q.items()))
+            # tiles_url += f"?{qs}"
+
+            base_uri = f"{request.url.scheme}://{request.headers['host']}"
+            self_uri = f"{base_uri}/mosaicjson/mosaics/{mosaic_id}"
+            tiles_url = f"{base_uri}/mosaicjson/tiles/{{z}}/{{x}}/{{y}}@1x?url={self_uri}/mosaicjson"
+
+            mosaicjson = retrieve(mosaic_id)
+
+            return TileJSON(
+                bounds=mosaicjson.bounds,
+                center=mosaicjson.center,
+                minzoom=mosaicjson.minzoom,
+                maxzoom=mosaicjson.maxzoom,
+                name=mosaic_id,
+                tiles=[tiles_url],
+            )
+
+        @self.router.post(
+            "/mosaics",
+                          status_code=HTTP_201_CREATED,
+                          responses={201: {"description": "Create a new mosaic"}},
+                          response_model=MosaicEntity,
+                          )
         async def post_mosaics(
                 request: Request,
                 response: Response,
-                content_type: Optional[str] = Header(None),
+                content_type: Optional[str] = Header(None)
         ) -> MosaicEntity:
             """Validate a MosaicJSON"""
 
@@ -529,29 +594,37 @@ class MosaicTilerFactory(BaseTilerFactory):
             else:
                 raise HTTPException(
                     HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-                                    "Error: media in Content-Type header is not supported."
+                    "Error: media in Content-Type header is not supported."
                                     )
 
             # todo: validate mosaicjson ??
 
-            mj_id = str(uuid.uuid4())
+            mosaic_id = str(uuid.uuid4())
 
-            store(mj_id, mosaicjson)
+            store(mosaic_id, mosaicjson)
 
             base_uri = f"{request.url.scheme}://{request.headers['host']}"
-            self_uri = f"{base_uri}/mosaicjson/mosaics/{mj_id}"
+            self_uri = f"{base_uri}/mosaicjson/mosaics/{mosaic_id}"
 
             response.headers["Location"] = self_uri
 
-            return mk_mosaic_entity(mj_id, self_uri, base_uri, mosaicjson)
+            # todo: 201
 
-        @self.router.put("/mosaics/{id}")
+            return mk_mosaic_entity(mosaic_id, self_uri, base_uri, mosaicjson)
+
+        # todo
+        @self.router.put(
+            "/mosaics/{id}",
+            status_code=HTTP_204_NO_CONTENT,
+        )
         def put_mosaics(
                 id: str,
                 request: Request,
                 content_type: Optional[str] = Header(None),
         ):
             """Update an existing MosaicJSON"""
+            # todo: refactor POST to provide the same path, with overwrite
+            # retrieve to ensure it exists first, otherwise return error
             return None
 
         # todo: async this
@@ -565,6 +638,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             mosaicjson.name = urirb.name
             mosaicjson.description = urirb.description
             mosaicjson.attribution = urirb.attribution
+            mosaicjson.version = urirb.version
             return mosaicjson
 
         async def mosaicjson_from_stac_api_query(req: StacApiQueryRequestBody) -> MosaicJSON:
@@ -609,7 +683,8 @@ class MosaicTilerFactory(BaseTilerFactory):
                 mosaicjson.name = req.name
                 mosaicjson.description = req.description
                 mosaicjson.attribution = req.attribution
-                
+                mosaicjson.version = req.version
+
                 return mosaicjson
                 
             except HTTPException as e:
@@ -646,6 +721,15 @@ class MosaicTilerFactory(BaseTilerFactory):
                         maxzoom=info.maxzoom,
                         accessor=partial(asset_href, asset_name=asset_name)
                     )
+
+                # when Item geometry is a MultiPolygon (instead of a Polygon), supermercado raises
+                # handle error "local variable 'x' referenced before assignment"
+                # supermercado/burntiles.py ", line 38, in _feature_extrema
+                # as this method only handles Polygon, LineString, and Point :grimace:
+                # https://github.com/mapbox/supermercado/issues/47
+                except UnboundLocalError:
+                    traceback.print_exc()
+                    raise Exception(f"STAC Items likely have MultiPolygon geometry, and only Polygon is supported.")
                 except Exception as e:
                     raise Exception(f"Error extracting mosaic data from results: {e}")
             else:
@@ -655,7 +739,10 @@ class MosaicTilerFactory(BaseTilerFactory):
         # how to handle others?
         # support for selection by role?
         def asset_href(feature: dict, asset_name: str) -> str:
-            return feature["assets"][asset_name]["href"]
+            if href := feature.get("assets", {}).get(asset_name, {}).get("href"):
+                return href
+            else:
+                raise Exception(f"Asset with name '{asset_name}' could not be found.")
 
         # def mk_src_path(mosaic_id: str) -> str:
         #     return f"s3://the-bucket/{mosaic_id}.json.gz"
@@ -675,12 +762,11 @@ class MosaicTilerFactory(BaseTilerFactory):
         #                          **self.backend_options) as mosaic:
         #             return mosaic.mosaic_def
 
-        def store(mj_id: str, mosaicjson: MosaicJSON, overwrite: bool = False) -> None:
-            mj_store[mj_id] = mosaicjson
+        def store(mosaic_id: str, mosaicjson: MosaicJSON, overwrite: bool = False) -> None:
+            mj_store[mosaic_id] = mosaicjson
 
-        def retrieve(mj_id: str) -> MosaicJSON:
-            return mj_store[mj_id]
-
+        def retrieve(mosaic_id: str) -> MosaicJSON:
+            return mj_store[mosaic_id]
 
         def mk_mosaic_entity(mosaic_id, self_uri, base_uri, mosaicjson: Optional[MosaicJSON] = None):
             return MosaicEntity(
