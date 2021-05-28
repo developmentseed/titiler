@@ -496,25 +496,44 @@ class MosaicTilerFactory(BaseTilerFactory):
         @self.router.get(
             "/mosaics/{mosaic_id}",
             response_model=MosaicEntity,
-            responses={200: {"description": "Return a mosaicjson for the given ID."}},
+            responses={
+                200: {"description": "Return a Mosaic resource for the given ID."},
+                404: {"description": "Mosaic resource for the given ID does not exist."},
+            },
         )
-        def get_mosaic(
+        async def get_mosaic(
                 request: Request,
                 mosaic_id: str
         ) -> MosaicEntity:
             base_uri = f"{request.url.scheme}://{request.headers['host']}"
             self_uri = f"{base_uri}/mosaicjson/mosaics/{mosaic_id}"
-            return mk_mosaic_entity(mosaic_id=mosaic_id, self_uri=self_uri, base_uri=base_uri)
+            if await retrieve(mosaic_id):
+                return mk_mosaic_entity(mosaic_id=mosaic_id, self_uri=self_uri, base_uri=base_uri)
+            else:
+                raise HTTPException(HTTP_404_NOT_FOUND, f"Error: mosaic with given ID does not exist.")
 
-        @self.router.get("/mosaics/{mosaic_id}/mosaicjson")
-        def get_mosaic_mosaicjson(mosaic_id: str) -> MosaicJSON:
-            return retrieve(mosaic_id)
+        @self.router.get(
+            "/mosaics/{mosaic_id}/mosaicjson",
+            response_model=MosaicJSON,
+            responses={
+                200: {"description": "Return a MosaicJSON definition for the given ID."},
+                404: {"description": "Mosaic resource for the given ID does not exist."},
+            },
+        )
+        async def get_mosaic_mosaicjson(mosaic_id: str) -> MosaicJSON:
+            if m := await retrieve(mosaic_id):
+                return m
+            else:
+                raise HTTPException(HTTP_404_NOT_FOUND, f"Error: mosaic with given ID does not exist.")
 
         # copied from cogeo.xyz
-        @self.router.get(r"/mosaics/{mosaic_id}/tilejson.json",
-                         response_model=TileJSON,
-                         responses={200: {"description": "Return a tilejson for the given ID."}},
-                         )
+        @self.router.get(
+            r"/mosaics/{mosaic_id}/tilejson.json",
+            response_model=TileJSON,
+            responses={200: {"description": "Return a tilejson for the given ID."},
+                       404: {"description": "Mosaic resource for the given ID does not exist."},
+                       },
+        )
         def get_mosaic_tilejson(
                 mosaic_id: str,
                 request: Request,
@@ -557,23 +576,24 @@ class MosaicTilerFactory(BaseTilerFactory):
             self_uri = f"{base_uri}/mosaicjson/mosaics/{mosaic_id}"
             tiles_url = f"{base_uri}/mosaicjson/tiles/{{z}}/{{x}}/{{y}}@1x?url={self_uri}/mosaicjson"
 
-            mosaicjson = retrieve(mosaic_id)
-
-            return TileJSON(
-                bounds=mosaicjson.bounds,
-                center=mosaicjson.center,
-                minzoom=mosaicjson.minzoom,
-                maxzoom=mosaicjson.maxzoom,
-                name=mosaic_id,
-                tiles=[tiles_url],
-            )
+            if mosaicjson := await retrieve(mosaic_id):
+                return TileJSON(
+                    bounds=mosaicjson.bounds,
+                    center=mosaicjson.center,
+                    minzoom=mosaicjson.minzoom,
+                    maxzoom=mosaicjson.maxzoom,
+                    name=mosaic_id,
+                    tiles=[tiles_url],
+                )
+            else:
+                raise HTTPException(HTTP_404_NOT_FOUND, f"Error: mosaic with given ID does not exist.")
 
         @self.router.post(
             "/mosaics",
-                          status_code=HTTP_201_CREATED,
-                          responses={201: {"description": "Create a new mosaic"}},
-                          response_model=MosaicEntity,
-                          )
+            status_code=HTTP_201_CREATED,
+            responses={201: {"description": "Create a new mosaic"}},
+            response_model=MosaicEntity,
+        )
         async def post_mosaics(
                 request: Request,
                 response: Response,
@@ -618,7 +638,6 @@ class MosaicTilerFactory(BaseTilerFactory):
                 raise HTTPException(HTTP_404, f"Error: mosaic with given ID does not exist.")
 
             return
-
 
         @self.router.delete(
             "/mosaics/{mosaic_id}",
@@ -728,7 +747,8 @@ class MosaicTilerFactory(BaseTilerFactory):
                     bbox=mosaic_request.bbox,
                     intersects=mosaic_request.intersects,
                     query=mosaic_request.query,
-                    max_items=1000,  # todo: should this be a parameter? should an error be returned if more than 1000 in query?
+                    max_items=1000,
+                    # todo: should this be a parameter? should an error be returned if more than 1000 in query?
                     limit=500
                     # setting limit to a higher value causes an error https://github.com/stac-utils/pystac-client/issues/56
                 ).items_as_collection().to_dict()['features']
@@ -795,10 +815,10 @@ class MosaicTilerFactory(BaseTilerFactory):
                 raise Exception("Attempting to update non-existant mosaic")
             mj_store[mosaic_id] = mosaicjson
 
-        async def retrieve(mosaic_id: str) -> MosaicJSON:
-            return mj_store[mosaic_id]
+        async def retrieve(mosaic_id: str) -> Optional[MosaicJSON]:
+            return mj_store.get(mosaic_id)
 
-        async def delete(mosaic_id: str) -> None:
+        async def delete(mosaic_id: str) -> Optional[MosaicJSON]:
             return mj_store.pop(mosaic_id, None)
 
         def mk_mosaic_entity(mosaic_id, self_uri, base_uri, mosaicjson: Optional[MosaicJSON] = None):
