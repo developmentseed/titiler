@@ -30,7 +30,6 @@ class MosaicEntity(BaseModel):
 
     id: str # titiler mosaic value
     links: List[Link]
-    mosaicjson: MosaicJSON # todo: remove this, maybe?
 
 
 class StacApiQueryRequestBody(Search):

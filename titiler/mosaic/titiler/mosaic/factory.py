@@ -38,7 +38,7 @@ import asyncio
 from functools import partial
 import traceback
 
-# TODO: remove!!!!
+# TODO: replace with real datastore
 mj_store: Dict[str, MosaicJSON] = {}
 
 
@@ -530,7 +530,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                 colormap=Depends(self.colormap_dependency),  # noqa
                 kwargs: Dict = Depends(self.additional_dependency),  # noqa
         ) -> TileJSON:
-            """Return TileJSON document for a COG."""
+            """Return TileJSON document for a MosaicJSON."""
 
             # todo: handle various options
             # kwargs = {
@@ -579,66 +579,92 @@ class MosaicTilerFactory(BaseTilerFactory):
                 response: Response,
                 content_type: Optional[str] = Header(None)
         ) -> MosaicEntity:
-            """Validate a MosaicJSON"""
+            """Create a MosaicJSON"""
 
-            body_json = await request.json()
-            if not content_type or \
-                    content_type == "application/json" or \
-                    content_type == "application/json; charset=utf-8" or \
-                    content_type == "application/vnd.titiler.mosaicjson+json":
-                mosaicjson = MosaicJSON(**body_json)
-            elif content_type == "application/vnd.titiler.urls+json":
-                mosaicjson = mosaicjson_from_urls(UrisRequestBody(**body_json))
-            elif content_type == "application/vnd.titiler.stac-api-query+json":
-                mosaicjson = await mosaicjson_from_stac_api_query(StacApiQueryRequestBody(**body_json))
-            else:
-                raise HTTPException(
-                    HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-                    "Error: media in Content-Type header is not supported."
-                                    )
-
-            # todo: validate mosaicjson ??
-
+            mosaicjson = await populate_mosaicjson(request, content_type)
             mosaic_id = str(uuid.uuid4())
 
-            store(mosaic_id, mosaicjson)
+            # this probably can't happen, but just to be safe...
+            try:
+                await store(mosaic_id, mosaicjson, overwrite=False)
+            except Exception as e:
+                raise HTTPException(HTTP_409_CONFLICT, f"Error: mosaic with given ID already exists")
 
             base_uri = f"{request.url.scheme}://{request.headers['host']}"
             self_uri = f"{base_uri}/mosaicjson/mosaics/{mosaic_id}"
 
             response.headers["Location"] = self_uri
 
-            # todo: 201
-
             return mk_mosaic_entity(mosaic_id, self_uri, base_uri, mosaicjson)
 
-        # todo
         @self.router.put(
-            "/mosaics/{id}",
+            "/mosaics/{mosaic_id}",
             status_code=HTTP_204_NO_CONTENT,
         )
-        def put_mosaics(
-                id: str,
+        async def put_mosaic(
+                mosaic_id: str,
                 request: Request,
                 content_type: Optional[str] = Header(None),
-        ):
+        ) -> None:
             """Update an existing MosaicJSON"""
-            # todo: refactor POST to provide the same path, with overwrite
             # retrieve to ensure it exists first, otherwise return error
-            return None
+            await retrieve(mosaic_id)
 
-        # todo: async this
-        def mosaicjson_from_urls(urirb: UrisRequestBody) -> MosaicJSON:
-            mosaicjson = MosaicJSON.from_urls(
-                urls=urirb.urls,
-                minzoom=urirb.minzoom,
-                maxzoom=urirb.maxzoom,
-                max_threads=int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS)),  # todo
-            )
-            mosaicjson.name = urirb.name
-            mosaicjson.description = urirb.description
-            mosaicjson.attribution = urirb.attribution
-            mosaicjson.version = urirb.version
+            mosaicjson = await populate_mosaicjson(request, content_type)
+
+            try:
+                await store(mosaic_id, mosaicjson, overwrite=True)
+            except Exception as e:
+                raise HTTPException(HTTP_404, f"Error: mosaic with given ID does not exist.")
+
+            return
+
+
+        @self.router.delete(
+            "/mosaics/{mosaic_id}",
+            status_code=HTTP_204_NO_CONTENT,
+        )
+        async def delete_mosaic(
+                mosaic_id: str,
+                request: Request
+        ) -> None:
+            """Delete an existing MosaicJSON"""
+
+            if not await delete(mosaic_id):
+                raise HTTPException(HTTP_404, f"Error: mosaic with given ID does not exist.")
+
+            return
+
+        async def mosaicjson_from_urls(urisrb: UrisRequestBody) -> MosaicJSON:
+            loop = asyncio.get_running_loop()
+
+            try:
+                mosaicjson = await wait_for(
+                    loop.run_in_executor(
+                        None,
+                        lambda r: MosaicJSON.from_urls(
+                            urls=r.urls,
+                            minzoom=r.minzoom,
+                            maxzoom=r.maxzoom,
+                            max_threads=int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS)),  # todo
+                        )
+                    ),
+                    20
+                )
+            except asyncio.TimeoutError:
+                raise HTTPException(
+                    HTTP_500_INTERNAL_SERVER_ERROR,
+                    f"Error: timeout reading URLs and generating MosaicJSON definition"
+                )
+
+            if mosaicjson is None:
+                raise HTTPException(HTTP_500_INTERNAL_SERVER_ERROR, f"Error: could not extract mosaic data")
+
+            mosaicjson.name = urisrb.name
+            mosaicjson.description = urisrb.description
+            mosaicjson.attribution = urisrb.attribution
+            mosaicjson.version = urisrb if urisrb.version else "0.0.1"
+
             return mosaicjson
 
         async def mosaicjson_from_stac_api_query(req: StacApiQueryRequestBody) -> MosaicJSON:
@@ -652,7 +678,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             try:
                 try:
                     features = await wait_for(
-                        loop.run_in_executor( None, execute_stac_search, req),
+                        loop.run_in_executor(None, execute_stac_search, req),
                         10
                     )
                 except asyncio.TimeoutError:
@@ -683,10 +709,10 @@ class MosaicTilerFactory(BaseTilerFactory):
                 mosaicjson.name = req.name
                 mosaicjson.description = req.description
                 mosaicjson.attribution = req.attribution
-                mosaicjson.version = req.version
+                mosaicjson.version = req if req.version else "0.0.1"
 
                 return mosaicjson
-                
+
             except HTTPException as e:
                 raise e
             except Exception as e:
@@ -747,13 +773,13 @@ class MosaicTilerFactory(BaseTilerFactory):
         # def mk_src_path(mosaic_id: str) -> str:
         #     return f"s3://the-bucket/{mosaic_id}.json.gz"
         #
-        # def store(mj_id: str, mosaicjson: MosaicJSON, overwrite: bool = False) -> None:
+        # async def store(mj_id: str, mosaicjson: MosaicJSON, overwrite: bool = False) -> None:
         #     src_path = mk_src_path(mj_id)
         #     with rasterio.Env(**self.gdal_config):
         #         with self.reader(src_path, mosaic_def=mosaicjson) as mosaic:
         #             mosaic.write(overwrite=overwrite)
         #
-        # def retrieve(mj_id: str) -> MosaicJSON:
+        # async def retrieve(mj_id: str) -> MosaicJSON:
         #     src_path = mk_src_path(mj_id)
         #     with rasterio.Env(**self.gdal_config):
         #         with self.reader(src_path,
@@ -762,16 +788,22 @@ class MosaicTilerFactory(BaseTilerFactory):
         #                          **self.backend_options) as mosaic:
         #             return mosaic.mosaic_def
 
-        def store(mosaic_id: str, mosaicjson: MosaicJSON, overwrite: bool = False) -> None:
+        async def store(mosaic_id: str, mosaicjson: MosaicJSON, overwrite: bool) -> None:
+            if not overwrite and mj_store.get(mosaic_id) is not None:
+                raise Exception("Attempting to create already existing mosaic")
+            if overwrite and mj_store.get(mosaic_id) is None:
+                raise Exception("Attempting to update non-existant mosaic")
             mj_store[mosaic_id] = mosaicjson
 
-        def retrieve(mosaic_id: str) -> MosaicJSON:
+        async def retrieve(mosaic_id: str) -> MosaicJSON:
             return mj_store[mosaic_id]
+
+        async def delete(mosaic_id: str) -> None:
+            return mj_store.pop(mosaic_id, None)
 
         def mk_mosaic_entity(mosaic_id, self_uri, base_uri, mosaicjson: Optional[MosaicJSON] = None):
             return MosaicEntity(
                 id=mosaic_id,
-                mosaicjson=mosaicjson, # todo: remove this, maybe?
                 links=[
                     Link(
                         rel="self",
@@ -822,3 +854,21 @@ class MosaicTilerFactory(BaseTilerFactory):
                         title="Tiles Endpoint /{z}/{x}/{y}@{scale}x.{format}"
                     ),
                 ])
+
+        async def populate_mosaicjson(request, content_type):
+            body_json = await request.json()
+            if not content_type or \
+                    content_type == "application/json" or \
+                    content_type == "application/json; charset=utf-8" or \
+                    content_type == "application/vnd.titiler.mosaicjson+json":
+                mosaicjson = MosaicJSON(**body_json)
+            elif content_type == "application/vnd.titiler.urls+json":
+                mosaicjson = mosaicjson_from_urls(UrisRequestBody(**body_json))
+            elif content_type == "application/vnd.titiler.stac-api-query+json":
+                mosaicjson = await mosaicjson_from_stac_api_query(StacApiQueryRequestBody(**body_json))
+            else:
+                raise HTTPException(
+                    HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+                    "Error: media in Content-Type header is not supported."
+                )
+            return mosaicjson
