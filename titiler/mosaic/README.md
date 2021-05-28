@@ -12,7 +12,7 @@ $ pip install titiler.mosaic
 
 # Or from sources
 $ git clone https://github.com/developmentseed/titiler.git
-$ cd titiler && pip install -e titiler/core titiler/mosaic
+$ cd titiler && pip install -e titiler/core -e titiler/mosaic
 ```
 
 ## How To
