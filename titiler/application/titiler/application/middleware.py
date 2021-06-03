@@ -101,8 +101,5 @@ class CaseInsensitiveMiddleware(BaseHTTPMiddleware):
         raw = request.scope["query_string"].decode(self.DECODE_FORMAT).lower()
         request.scope["query_string"] = raw.encode(self.DECODE_FORMAT)
 
-        path = request.scope["path"].lower()
-        request.scope["path"] = path
-
         response = await call_next(request)
         return response
