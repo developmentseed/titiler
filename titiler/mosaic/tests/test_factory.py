@@ -107,6 +107,26 @@ def test_MosaicTilerFactory():
         assert body["maxzoom"] == 9
 
         response = client.get(
+            "/mosaic/tilejson.json",
+            params={
+                "url": mosaic_file,
+                "tile_format": "png",
+                "minzoom": 6,
+                "maxzoom": 9,
+                "TileMatrixSetId": "WebMercatorQuad",
+            },
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert (
+            "http://testserver/mosaic/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?url="
+            in body["tiles"][0]
+        )
+        assert body["minzoom"] == 6
+        assert body["maxzoom"] == 9
+        assert "TileMatrixSetId" not in body["tiles"][0]
+
+        response = client.get(
             "/mosaic/WMTSCapabilities.xml",
             params={
                 "url": mosaic_file,
