@@ -140,6 +140,16 @@ def test_TilerFactory():
     assert response.headers["content-type"] == "application/json"
     assert response.json()["tilejson"]
 
+    response = client.get(f"/WorldCRS84Quad/tilejson.json?url={DATA_DIR}/cog.tif")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    assert response.json()["tilejson"]
+
+    response_qs = client.get(
+        f"/tilejson.json?url={DATA_DIR}/cog.tif&TileMatrixSetId=WorldCRS84Quad"
+    )
+    assert response.json()["tiles"] == response_qs.json()["tiles"]
+
     response = client.get(f"/tilejson.json?url={DATA_DIR}/cog.tif&tile_format=png")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"

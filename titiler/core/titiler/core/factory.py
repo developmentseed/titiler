@@ -411,7 +411,7 @@ class TilerFactory(BaseTilerFactory):
             tiles_url = self.url_for(request, "tile", **route_params)
 
             qs_key_to_remove = [
-                "TileMatrixSetIt",
+                "tilematrixsetid",
                 "tile_format",
                 "tile_scale",
                 "minzoom",
@@ -420,7 +420,7 @@ class TilerFactory(BaseTilerFactory):
             qs = [
                 (key, value)
                 for (key, value) in request.query_params._list
-                if key not in qs_key_to_remove
+                if key.lower() not in qs_key_to_remove
             ]
             if qs:
                 tiles_url += f"?{urlencode(qs)}"
@@ -482,18 +482,18 @@ class TilerFactory(BaseTilerFactory):
             tiles_url = self.url_for(request, "tile", **route_params)
 
             qs_key_to_remove = [
-                "TileMatrixSetIt",
+                "tilematrixsetid",
                 "tile_format",
                 "tile_scale",
                 "minzoom",
                 "maxzoom",
-                "SERVICE",
-                "REQUEST",
+                "service",
+                "request",
             ]
             qs = [
                 (key, value)
                 for (key, value) in request.query_params._list
-                if key not in qs_key_to_remove
+                if key.lower() not in qs_key_to_remove
             ]
             if qs:
                 tiles_url += f"?{urlencode(qs)}"
