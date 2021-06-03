@@ -88,3 +88,21 @@ class LoggerMiddleware(BaseHTTPMiddleware):
 
         response = await call_next(request)
         return response
+
+
+class CaseInsensitiveMiddleware(BaseHTTPMiddleware):
+    """Middleware to make URL parameters case-insensitive.
+    taken from: https://github.com/tiangolo/fastapi/issues/826
+    """
+
+    async def dispatch(self, request: Request, call_next):
+        self.DECODE_FORMAT = "latin-1"
+
+        raw = request.scope["query_string"].decode(self.DECODE_FORMAT).lower()
+        request.scope["query_string"] = raw.encode(self.DECODE_FORMAT)
+
+        path = request.scope["path"].lower()
+        request.scope["path"] = path
+
+        response = await call_next(request)
+        return response

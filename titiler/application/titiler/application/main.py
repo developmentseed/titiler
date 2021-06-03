@@ -9,6 +9,7 @@ from titiler.application.middleware import (
     CacheControlMiddleware,
     LoggerMiddleware,
     TotalTimeMiddleware,
+    CaseInsensitiveMiddleware
 )
 from titiler.application.routers import cog, mosaic, stac, tms
 from titiler.application.settings import ApiSettings
@@ -66,6 +67,8 @@ app.add_middleware(
     cachecontrol=api_settings.cachecontrol,
     exclude_path={r"/healthz"},
 )
+
+app.add_middleware(CaseInsensitiveMiddleware)
 
 if api_settings.debug:
     app.add_middleware(LoggerMiddleware, headers=True, querystrings=True)
