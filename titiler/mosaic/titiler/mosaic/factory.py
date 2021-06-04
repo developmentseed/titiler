@@ -492,6 +492,8 @@ class MosaicTilerFactory(BaseTilerFactory):
     def mosaics(self):  # noqa: C901
         """Register /mosaics endpoints."""
 
+        # with dynamodb backend, the tiles field for this is always empty
+        # https://github.com/developmentseed/cogeo-mosaic/issues/175
         @self.router.get(
             "/mosaics/{mosaic_id}",
             response_model=MosaicEntity,
@@ -759,6 +761,10 @@ class MosaicTilerFactory(BaseTilerFactory):
         # auxiliary methods
 
         async def mosaicjson_from_urls(urisrb: UrisRequestBody) -> MosaicJSON:
+
+            if len(urisrb.urls) > MAX_ITEMS:
+                raise HTTPException(HTTP_400_BAD_REQUEST, f"Error: a maximum of {MAX_ITEMS} URLs can be mosaiced.")
+
             loop = asyncio.get_running_loop()
 
             try:
@@ -855,7 +861,6 @@ class MosaicTilerFactory(BaseTilerFactory):
                     intersects=mosaic_request.intersects,
                     query=mosaic_request.query,
                     max_items=MAX_ITEMS,
-                    # todo: should this be a parameter? should an error be returned if more than 1000 in query?
                     limit=mosaic_request.limit if mosaic_request.limit else 100,
                     # setting limit >500 causes an error https://github.com/stac-utils/pystac-client/issues/56
                 )
@@ -934,8 +939,6 @@ class MosaicTilerFactory(BaseTilerFactory):
                 )
             except asyncio.TimeoutError:
                 raise HTTPException(HTTP_500_INTERNAL_SERVER_ERROR, "Error: timeout executing STAC API search.")
-            except Exception as e:
-                traceback.print_exc()
 
         def mosaic_write(mosaic_uri: str, mosaicjson: MosaicJSON, overwrite: bool) -> None:
             with rasterio.Env(**self.gdal_config):

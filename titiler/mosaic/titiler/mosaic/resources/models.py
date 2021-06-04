@@ -27,9 +27,9 @@ class Link(BaseModel):
 
 
 class MosaicEntity(BaseModel):
-    """Dataset Model."""
+    """Mosaic Model."""
 
-    id: str # titiler mosaic value
+    id: str
     links: List[Link]
 
 
