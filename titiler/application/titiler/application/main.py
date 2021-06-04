@@ -22,6 +22,8 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
 
+import uvicorn
+
 logging.getLogger("botocore.credentials").disabled = True
 logging.getLogger("botocore.utils").disabled = True
 logging.getLogger("rio-tiler").setLevel(logging.ERROR)
@@ -84,3 +86,6 @@ def landing(request: Request):
     return templates.TemplateResponse(
         name="index.html", context={"request": request}, media_type="text/html",
     )
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
