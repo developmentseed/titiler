@@ -24,7 +24,7 @@ from titiler.core.resources.responses import GeoJSONResponse, XMLResponse
 from titiler.core.utils import Timer, bbox_to_feature
 from titiler.mosaic.resources.enums import PixelSelectionMethod
 from titiler.mosaic.resources.models import MosaicEntity, UrisRequestBody, StacApiQueryRequestBody, Link, \
-    TooManyResultsException, StoreException
+    TooManyResultsException, StoreException, UnsupportedOperationException
 
 from fastapi import Depends, Path, Query, Header
 
@@ -652,21 +652,28 @@ class MosaicTilerFactory(BaseTilerFactory):
 
             return
 
-        # backends don't implement delete, so wait on this one
-        # @self.router.delete(
-        #     "/mosaics/{mosaic_id}",
-        #     status_code=HTTP_204_NO_CONTENT,
-        # )
-        # async def delete_mosaic(
-        #         mosaic_id: str,
-        #         request: Request
-        # ) -> None:
-        #     """Delete an existing MosaicJSON"""
-        #
-        #     if not await delete(mosaic_id):
-        #         raise HTTPException(HTTP_404_NOT_FOUND, f"Error: mosaic with given ID does not exist.")
-        #
-        #     return
+        # todo: cogeo-mosaic doesn't clear the cache on write/delete, so these will continue to exist until restart
+        @self.router.delete(
+            "/mosaics/{mosaic_id}",
+            status_code=HTTP_204_NO_CONTENT,
+        )
+        async def delete_mosaic(
+                mosaic_id: str,
+                request: Request
+        ) -> None:
+            """Delete an existing MosaicJSON"""
+
+            try:
+                await retrieve(mosaic_id)
+            except Exception as e:
+                raise HTTPException(HTTP_404_NOT_FOUND, f"Error: mosaic with given ID does not exist.")
+
+            try:
+                await delete(mosaic_id)
+            except UnsupportedOperationException:
+                raise HTTPException(HTTP_405_METHOD_NOT_ALLOWED,
+                                    f"Error: mosaic with given ID cannot be deleted because the datastore does not support it.")
+
 
         # copied from cogeo-xyz
         # todo: async
@@ -939,7 +946,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                     20
                 )
             except asyncio.TimeoutError:
-                raise HTTPException(HTTP_500_INTERNAL_SERVER_ERROR, "Error: timeout executing STAC API search.")
+                raise HTTPException(HTTP_500_INTERNAL_SERVER_ERROR, "Error: timeout storing mosaic in datastore")
 
         def mosaic_write(mosaic_uri: str, mosaicjson: MosaicJSON, overwrite: bool) -> None:
             with rasterio.Env(**self.gdal_config):
@@ -956,7 +963,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                     20
                 )
             except asyncio.TimeoutError:
-                raise HTTPException(HTTP_500_INTERNAL_SERVER_ERROR, "Error: timeout executing STAC API search.")
+                raise HTTPException(HTTP_500_INTERNAL_SERVER_ERROR, "Error: timeout retrieving mosaic from datastore.")
 
             return mosaicjson
 
@@ -971,6 +978,33 @@ class MosaicTilerFactory(BaseTilerFactory):
                         keys = (mosaic._fetch_dynamodb(qk) for qk in mosaic._quadkeys)
                         mosaicjson.tiles = {x["quadkey"]: x["assets"] for x in keys}
                     return mosaicjson
+
+
+        async def delete(mosaic_id: str) -> None:
+            mosaic_uri = mk_src_path(mosaic_id)
+            loop = asyncio.get_running_loop()
+
+            try:
+                mosaicjson = await wait_for(
+                    loop.run_in_executor(None, delete_mosaicjson_sync, mosaic_uri),
+                    20
+                )
+            except asyncio.TimeoutError:
+                raise HTTPException(HTTP_500_INTERNAL_SERVER_ERROR, "Error: timeout deleting mosaic.")
+
+            return mosaicjson
+
+        def delete_mosaicjson_sync(mosaic_uri: str) -> None:
+                with rasterio.Env(**self.gdal_config):
+                    with self.reader(mosaic_uri,
+                                     reader=self.dataset_reader,
+                                     reader_options=self.reader_options,
+                                     **self.backend_options) as mosaic:
+                        if isinstance(mosaic, DynamoDBBackend):
+                            mosaic.delete() # delete is only supported by DynamoDB
+                        else:
+                            raise UnsupportedOperationException("Delete is not supported")
+
 
         def mk_base_uri(request: Request):
             return f"{request.url.scheme}://{request.headers['host']}"

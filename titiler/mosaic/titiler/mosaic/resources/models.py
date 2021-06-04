@@ -102,3 +102,8 @@ class TooManyResultsException(Exception):
 class StoreException(Exception):
     def __init__(self, message):
         self.message = message
+
+
+class UnsupportedOperationException(Exception):
+    def __init__(self, message):
+        self.message = message
