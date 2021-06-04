@@ -90,7 +90,7 @@ class LoggerMiddleware(BaseHTTPMiddleware):
         return response
 
 
-class CaseInsensitiveMiddleware(BaseHTTPMiddleware):
+class LowerCaseQueryStringMiddleware(BaseHTTPMiddleware):
     """Middleware to make URL parameters case-insensitive.
     taken from: https://github.com/tiangolo/fastapi/issues/826
     """
