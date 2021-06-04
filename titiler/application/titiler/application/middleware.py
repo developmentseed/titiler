@@ -98,8 +98,15 @@ class LowerCaseQueryStringMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         self.DECODE_FORMAT = "latin-1"
 
-        raw = request.scope["query_string"].decode(self.DECODE_FORMAT).lower()
-        request.scope["query_string"] = raw.encode(self.DECODE_FORMAT)
+        query_string = ""
+        for k in request.query_params:
+            query_string += k.lower() + '=' + request.query_params[k]
+        request.scope["query_string"] = query_string.encode(self.DECODE_FORMAT)
+
+        print(request.scope["query_string"])
+
+        #raw = request.scope["query_string"].decode(self.DECODE_FORMAT).lower()
+        #request.scope["query_string"] = raw.encode(self.DECODE_FORMAT)
 
         response = await call_next(request)
         return response
