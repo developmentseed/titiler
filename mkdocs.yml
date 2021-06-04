@@ -78,6 +78,7 @@ nav:
       - Intro: "deployment/aws/intro.md"
       - ECS: "deployment/aws/ecs.md"
       - Lambda: "deployment/aws/lambda.md"
+    - k8s / Helm Deployment: "deployment/k8s.md"
 
   - External links: "external_links.md"
   - Development - Contributing: "contributing.md"
