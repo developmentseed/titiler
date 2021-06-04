@@ -40,6 +40,7 @@ from functools import partial
 import traceback
 from .settings import mosaic_config
 import logging
+from cogeo_mosaic.backends import DynamoDBBackend, SQLiteBackend
 
 @dataclass
 class MosaicTilerFactory(BaseTilerFactory):
@@ -522,7 +523,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             },
         )
         async def get_mosaic_mosaicjson(mosaic_id: str) -> MosaicJSON:
-            if m := await retrieve(mosaic_id):
+            if m := await retrieve(mosaic_id, include_tiles=True):
                 return m
             else:
                 raise HTTPException(HTTP_404_NOT_FOUND, f"Error: mosaic with given ID does not exist.")
@@ -945,13 +946,13 @@ class MosaicTilerFactory(BaseTilerFactory):
                 with self.reader(mosaic_uri, mosaic_def=mosaicjson) as mosaic:
                     mosaic.write(overwrite=overwrite)
 
-        async def retrieve(mosaic_id: str) -> MosaicJSON:
+        async def retrieve(mosaic_id: str, include_tiles: bool = False) -> MosaicJSON:
             mosaic_uri = mk_src_path(mosaic_id)
             loop = asyncio.get_running_loop()
 
             try:
                 mosaicjson = await wait_for(
-                    loop.run_in_executor(None, mosaic_read, mosaic_uri),
+                    loop.run_in_executor(None, read_mosaicjson_sync, mosaic_uri, include_tiles),
                     20
                 )
             except asyncio.TimeoutError:
@@ -959,13 +960,17 @@ class MosaicTilerFactory(BaseTilerFactory):
 
             return mosaicjson
 
-        def mosaic_read(mosaic_uri: str) -> MosaicJSON:
+        def read_mosaicjson_sync(mosaic_uri: str, include_tiles: bool) -> MosaicJSON:
             with rasterio.Env(**self.gdal_config):
                 with self.reader(mosaic_uri,
                                  reader=self.dataset_reader,
                                  reader_options=self.reader_options,
                                  **self.backend_options) as mosaic:
-                    return mosaic.mosaic_def
+                    mosaicjson = mosaic.mosaic_def
+                    if include_tiles and isinstance(mosaic, DynamoDBBackend):
+                        keys = (mosaic._fetch_dynamodb(qk) for qk in mosaic._quadkeys)
+                        mosaicjson.tiles = {x["quadkey"]: x["assets"] for x in keys}
+                    return mosaicjson
 
         def mk_base_uri(request: Request):
             return f"{request.url.scheme}://{request.headers['host']}"
