@@ -16,6 +16,7 @@ class StackSettings(pydantic.BaseSettings):
 
     # Default options are optimized for CloudOptimized GeoTIFF
     # For more information on GDAL env see: https://gdal.org/user/configoptions.html
+    # or https://developmentseed.org/titiler/advanced/performance_tuning/
     env: Dict = {
         "CPL_VSIL_CURL_ALLOWED_EXTENSIONS": ".tif,.TIF,.tiff",
         "GDAL_CACHEMAX": "200",  # 200 mb
@@ -29,6 +30,8 @@ class StackSettings(pydantic.BaseSettings):
     }
 
     # add S3 bucket where TiTiler could do HEAD and GET Requests
+    # specific private and public buckets MUST be added if you want to use s3:// urls
+    # You can whitelist all bucket by setting `*`.
     buckets: List = []
 
     ###########################################################################
@@ -70,9 +73,9 @@ class StackSettings(pydantic.BaseSettings):
     ###########################################################################
     # AWS LAMBDA
     # The following settings only apply to AWS Lambda deployment
+    # more about lambda config: https://www.sentiatechblog.com/aws-re-invent-2020-day-3-optimizing-lambda-cost-with-multi-threading
     timeout: int = 10
     memory: int = 1536
-    # more about lambda config: https://www.sentiatechblog.com/aws-re-invent-2020-day-3-optimizing-lambda-cost-with-multi-threading
 
     # The maximum of concurrent executions you want to reserve for the function.
     # Default: - No specific limit - account limit.
