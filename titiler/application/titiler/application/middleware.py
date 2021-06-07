@@ -100,13 +100,11 @@ class LowerCaseQueryStringMiddleware(BaseHTTPMiddleware):
 
         query_string = ""
         for k in request.query_params:
-            query_string += k.lower() + '=' + request.query_params[k]
+            query_string += k.lower() + '=' + request.query_params[k] + "&"
+
+        query_string = query_string[:-1]
         request.scope["query_string"] = query_string.encode(self.DECODE_FORMAT)
 
-        print(request.scope["query_string"])
-
-        #raw = request.scope["query_string"].decode(self.DECODE_FORMAT).lower()
-        #request.scope["query_string"] = raw.encode(self.DECODE_FORMAT)
 
         response = await call_next(request)
         return response
