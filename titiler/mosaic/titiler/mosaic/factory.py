@@ -681,11 +681,11 @@ class MosaicTilerFactory(BaseTilerFactory):
 
         # copied from cogeo-xyz
         # todo: async
-        @self.router.get(r"/{mosaic_id}/tiles/{z}/{x}/{y}", **img_endpoint_params)
-        @self.router.get(r"/{mosaic_id}/tiles/{z}/{x}/{y}.{format}", **img_endpoint_params)
-        @self.router.get(r"/{mosaic_id}/tiles/{z}/{x}/{y}@{scale}x", **img_endpoint_params)
+        @self.router.get(r"/mosaics/{mosaic_id}/tiles/{z}/{x}/{y}", **img_endpoint_params)
+        @self.router.get(r"/mosaics/{mosaic_id}/tiles/{z}/{x}/{y}.{format}", **img_endpoint_params)
+        @self.router.get(r"/mosaics/{mosaic_id}/tiles/{z}/{x}/{y}@{scale}x", **img_endpoint_params)
         @self.router.get(
-            r"/{mosaic_id}/tiles/{z}/{x}/{y}@{scale}x.{format}", **img_endpoint_params
+            r"/mosaics/{mosaic_id}/tiles/{z}/{x}/{y}@{scale}x.{format}", **img_endpoint_params
         )
         def tile(
                 mosaic_id: str,
