@@ -507,10 +507,9 @@ class MosaicTilerFactory(BaseTilerFactory):
                 request: Request,
                 mosaic_id: str
         ) -> MosaicEntity:
-            base_uri = mk_base_uri(request)
-            self_uri = f"{base_uri}/mosaicjson/mosaics/{mosaic_id}"
+            self_uri = request.url_for("get_mosaic", mosaic_id=mosaic_id)
             if await retrieve(mosaic_id):
-                return mk_mosaic_entity(mosaic_id=mosaic_id, self_uri=self_uri, base_uri=base_uri)
+                return mk_mosaic_entity(mosaic_id=mosaic_id, self_uri=self_uri)
             else:
                 raise HTTPException(HTTP_404_NOT_FOUND, f"Error: mosaic with given ID does not exist.")
 
@@ -528,13 +527,14 @@ class MosaicTilerFactory(BaseTilerFactory):
             else:
                 raise HTTPException(HTTP_404_NOT_FOUND, f"Error: mosaic with given ID does not exist.")
 
-        # copied from cogeo.xyz
+        # derived from cogeo.xyz
         @self.router.get(
             r"/mosaics/{mosaic_id}/tilejson.json",
             response_model=TileJSON,
             responses={200: {"description": "Return a tilejson for the given ID."},
                        404: {"description": "Mosaic resource for the given ID does not exist."},
                        },
+            response_model_exclude_none=True,
         )
         async def get_mosaic_tilejson(
                 mosaic_id: str,
@@ -553,30 +553,23 @@ class MosaicTilerFactory(BaseTilerFactory):
         ) -> TileJSON:
             """Return TileJSON document for a MosaicJSON."""
 
-            # todo: handle various options
-            # kwargs = {
-            #     "z": "{z}",
-            #     "x": "{x}",
-            #     "y": "{y}",
-            #     "scale": tile_scale,
-            # }
-            # if tile_format:
-            #     kwargs["format"] = tile_format.value
-            #
-            #
-            # tiles_url = self.url_for(request, "tiles", **kwargs)
-            # q = dict(request.query_params)
-            # q.pop("TileMatrixSetId", None)
-            # q.pop("tile_format", None)
-            # q.pop("tile_scale", None)
-            # q.pop("minzoom", None)
-            # q.pop("maxzoom", None)
-            # qs = urlencode(list(q.items()))
-            # tiles_url += f"?{qs}"
+            kwargs = {
+                "mosaic_id": mosaic_id,
+                "z": "{z}",
+                "x": "{x}",
+                "y": "{y}",
+                "scale": tile_scale,
+            }
+            if tile_format:
+                kwargs["format"] = tile_format.value
+            tiles_url = request.url_for("tile", **kwargs)
 
-            base_uri = mk_base_uri(request)
-            self_uri = f"{base_uri}/mosaicjson/mosaics/{mosaic_id}"
-            tiles_url = f"{base_uri}/mosaicjson/tiles/{{z}}/{{x}}/{{y}}@1x?url={self_uri}/mosaicjson"
+            q = dict(request.query_params)
+            q.pop("TileMatrixSetId", None)
+            q.pop("tile_format", None)
+            q.pop("tile_scale", None)
+            qs = urlencode(list(q.items()))
+            tiles_url += f"?{qs}"
 
             if mosaicjson := await retrieve(mosaic_id):
                 return TileJSON(
@@ -618,12 +611,11 @@ class MosaicTilerFactory(BaseTilerFactory):
             except Exception as e:
                 raise HTTPException(HTTP_500_INTERNAL_SERVER_ERROR, f"Error: could not save mosaic")
 
-            base_uri = mk_base_uri(request)
-            self_uri = f"{base_uri}/mosaicjson/mosaics/{mosaic_id}"
+            self_uri = request.url_for("get_mosaic", mosaic_id=mosaic_id)
 
             response.headers["Location"] = self_uri
 
-            return mk_mosaic_entity(mosaic_id, self_uri, base_uri, mosaicjson)
+            return mk_mosaic_entity(mosaic_id, self_uri, mosaicjson)
 
         @self.router.put(
             "/mosaics/{mosaic_id}",
@@ -652,7 +644,8 @@ class MosaicTilerFactory(BaseTilerFactory):
 
             return
 
-        # todo: cogeo-mosaic doesn't clear the cache on write/delete, so these will continue to exist until restart
+        # note: cogeo-mosaic doesn't clear the cache on write/delete, so these will stay until the TTL expires
+        # https://github.com/developmentseed/cogeo-mosaic/issues/176
         @self.router.delete(
             "/mosaics/{mosaic_id}",
             status_code=HTTP_204_NO_CONTENT,
@@ -1009,7 +1002,7 @@ class MosaicTilerFactory(BaseTilerFactory):
         def mk_base_uri(request: Request):
             return f"{request.url.scheme}://{request.headers['host']}"
 
-        def mk_mosaic_entity(mosaic_id, self_uri, base_uri, mosaicjson: Optional[MosaicJSON] = None):
+        def mk_mosaic_entity(mosaic_id, self_uri, mosaicjson: Optional[MosaicJSON] = None):
             return MosaicEntity(
                 id=mosaic_id,
                 links=[
@@ -1031,37 +1024,12 @@ class MosaicTilerFactory(BaseTilerFactory):
                         type="application/json",
                         title="TileJSON"
                     ),
-                    # we probably don't need all of these, but the tilejson format specifier isn't documented anywhere either
                     Link(
                         rel="tiles",
-                        href=f"{base_uri}/mosaicjson/{mosaic_id}/tiles/{{z}}/{{x}}/{{y}}@1x",
+                        href=f"{self_uri}/tiles/{{z}}/{{x}}/{{y}}",
                         type="application/json",
                         title="Tiles Endpoint"
-                    ),
-                    Link(
-                        rel="tiles-zxy",
-                        href=f"{base_uri}/mosaicjson/{mosaic_id}/tiles/{{z}}/{{x}}/{{y}}",
-                        type="application/json",
-                        title="Tiles Endpoint /{z}/{x}/{y}"
-                    ),
-                    Link(
-                        rel="tiles-zxy-format",
-                        href=f"{base_uri}/mosaicjson/{mosaic_id}/tiles/{{z}}/{{x}}/{{y}}.{{format}}",
-                        type="application/json",
-                        title="Tiles Endpoint /{z}/{x}/{y}.{format}"
-                    ),
-                    Link(
-                        rel="tiles-zxy-scale",
-                        href=f"{base_uri}/mosaicjson/{mosaic_id}/tiles/{{z}}/{{x}}/{{y}}@{{scale}}x",
-                        type="application/json",
-                        title="Tiles Endpoint /{z}/{x}/{y}@{scale}x"
-                    ),
-                    Link(
-                        rel="tiles-zxy-scale-format",
-                        href=f"{base_uri}/mosaicjson/{mosaic_id}/tiles/{{z}}/{{x}}/{{y}}@{{scale}}x.{{format}}",
-                        type="application/json",
-                        title="Tiles Endpoint /{z}/{x}/{y}@{scale}x.{format}"
-                    ),
+                    )
                 ])
 
         async def populate_mosaicjson(request, content_type):
