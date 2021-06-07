@@ -545,6 +545,12 @@ class MosaicTilerFactory(BaseTilerFactory):
                 tile_scale: int = Query(
                     1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
                 ),
+                minzoom: Optional[int] = Query(
+                    None, description="Overwrite default minzoom."
+                ),
+                maxzoom: Optional[int] = Query(
+                    None, description="Overwrite default maxzoom."
+                ),
                 layer_params=Depends(self.layer_dependency),  # noqa
                 dataset_params=Depends(self.dataset_dependency),  # noqa
                 render_params=Depends(self.render_dependency),  # noqa
@@ -571,12 +577,17 @@ class MosaicTilerFactory(BaseTilerFactory):
             qs = urlencode(list(q.items()))
             tiles_url += f"?{qs}"
 
+
+
             if mosaicjson := await retrieve(mosaic_id):
+                center = list(mosaicjson.center)
+                if minzoom:
+                    center[-1] = minzoom
                 return TileJSON(
                     bounds=mosaicjson.bounds,
-                    center=mosaicjson.center,
-                    minzoom=mosaicjson.minzoom,
-                    maxzoom=mosaicjson.maxzoom,
+                    center=tuple(center),
+                    minzoom=minzoom if minzoom is not None else mosaicjson.minzoom,
+                    maxzoom=maxzoom if maxzoom is not None else mosaicjson.maxzoom,
                     name=mosaic_id,
                     tiles=[tiles_url],
                 )
