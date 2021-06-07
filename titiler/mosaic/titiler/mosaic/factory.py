@@ -3,7 +3,7 @@
 import os
 import uuid
 from dataclasses import dataclass, field
-from typing import Callable, Dict, Optional, Type, List
+from typing import Callable, Dict, Optional, Type, List, Tuple, Any
 from urllib.parse import urlencode, urlparse
 
 import rasterio
@@ -37,7 +37,6 @@ from pystac_client import Client
 from asyncio import wait_for
 import asyncio
 from functools import partial
-import traceback
 from .settings import mosaic_config
 import logging
 from cogeo_mosaic.backends import DynamoDBBackend, SQLiteBackend
@@ -577,8 +576,6 @@ class MosaicTilerFactory(BaseTilerFactory):
             qs = urlencode(list(q.items()))
             tiles_url += f"?{qs}"
 
-
-
             if mosaicjson := await retrieve(mosaic_id):
                 center = list(mosaicjson.center)
                 if minzoom:
@@ -679,15 +676,14 @@ class MosaicTilerFactory(BaseTilerFactory):
                                     f"Error: mosaic with given ID cannot be deleted because the datastore does not support it.")
 
 
-        # copied from cogeo-xyz
-        # todo: async
+        # derived from cogeo-xyz
         @self.router.get(r"/mosaics/{mosaic_id}/tiles/{z}/{x}/{y}", **img_endpoint_params)
         @self.router.get(r"/mosaics/{mosaic_id}/tiles/{z}/{x}/{y}.{format}", **img_endpoint_params)
         @self.router.get(r"/mosaics/{mosaic_id}/tiles/{z}/{x}/{y}@{scale}x", **img_endpoint_params)
         @self.router.get(
             r"/mosaics/{mosaic_id}/tiles/{z}/{x}/{y}@{scale}x.{format}", **img_endpoint_params
         )
-        def tile(
+        async def tile(
                 mosaic_id: str,
                 z: int = Path(..., ge=0, le=30, description="Mercator tiles's zoom level"),
                 x: int = Path(..., description="Mercator tiles's column"),
@@ -707,58 +703,28 @@ class MosaicTilerFactory(BaseTilerFactory):
                 ),
                 kwargs: Dict = Depends(self.additional_dependency),
         ):
-            """Create map tile from a COG."""
-            timings = []
+            """Create map tile from a mosaic."""
+
+            try:
+                (content, img_format, timings) = await wait_for(
+                    asyncio.get_running_loop().run_in_executor(
+                        None, # executor
+                        render_tile,  # func
+                        mk_src_path(mosaic_id),
+                        z, x, y, scale, format,
+                        layer_params,
+                        dataset_params,
+                        render_params,
+                        colormap,
+                        pixel_selection,
+                        kwargs
+                    ),
+                    30  # todo: ???
+                )
+            except asyncio.TimeoutError:
+                raise HTTPException(HTTP_500_INTERNAL_SERVER_ERROR, "Error: timeout executing rendering tile.")
+
             headers: Dict[str, str] = {}
-
-            tilesize = scale * 256
-
-            threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
-            with Timer() as t:
-                mosaic_uri = mk_src_path(mosaic_id)
-
-                with rasterio.Env(**self.gdal_config):
-                    with self.reader(
-                            mosaic_uri,
-                            reader=self.dataset_reader,
-                            reader_options=self.reader_options,
-                            **self.backend_options,
-                    ) as src_dst:
-                        mosaic_read = t.from_start
-                        timings.append(("mosaicread", round(mosaic_read * 1000, 2)))
-
-                        data, _ = src_dst.tile(
-                            x,
-                            y,
-                            z,
-                            pixel_selection=pixel_selection.method(),
-                            threads=threads,
-                            tilesize=tilesize,
-                            **layer_params.kwargs,
-                            **dataset_params.kwargs,
-                            **kwargs,
-                        )
-            timings.append(("dataread", round((t.elapsed - mosaic_read) * 1000, 2)))
-
-            if not format:
-                format = ImageType.jpeg if data.mask.all() else ImageType.png
-
-            with Timer() as t:
-                image = data.post_process(
-                    in_range=render_params.rescale_range,
-                    color_formula=render_params.color_formula,
-                )
-            timings.append(("postprocess", round(t.elapsed * 1000, 2)))
-
-            with Timer() as t:
-                content = image.render(
-                    add_mask=render_params.return_mask,
-                    img_format=format.driver,
-                    colormap=colormap,
-                    **format.profile,
-                    **render_params.kwargs,
-                )
-            timings.append(("format", round(t.elapsed * 1000, 2)))
 
             if OptionalHeader.server_timing in self.optional_headers:
                 headers["Server-Timing"] = ", ".join(
@@ -768,21 +734,88 @@ class MosaicTilerFactory(BaseTilerFactory):
             if OptionalHeader.x_assets in self.optional_headers:
                 headers["X-Assets"] = ",".join(data.assets)
 
-            return Response(content, media_type=format.mediatype, headers=headers)
+            return Response(content, media_type=img_format.mediatype, headers=headers)
 
-        # auxiliary methods
+        #####################
+        # auxiliary methods #
+        #####################
+
+        def render_tile(
+                    mosaic_uri: str,
+                    z: int,
+                    x: int,
+                    y: int,
+                    scale: int,
+                    format: ImageType,
+                    layer_params,
+                    dataset_params,
+                    render_params,
+                    colormap,
+                    pixel_selection: PixelSelectionMethod,
+                    kwargs: Dict,
+            ) -> Tuple[bytes, str, List[Tuple[str, float]]]:
+                """Create map tile from a COG."""
+                timings = []
+
+                tilesize = scale * 256
+
+                threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
+                with Timer() as t:
+
+                    with rasterio.Env(**self.gdal_config):
+                        with self.reader(
+                                mosaic_uri,
+                                reader=self.dataset_reader,
+                                reader_options=self.reader_options,
+                                **self.backend_options,
+                        ) as src_dst:
+                            mosaic_read = t.from_start
+                            timings.append(("mosaicread", round(mosaic_read * 1000, 2)))
+
+                            data, _ = src_dst.tile(
+                                x,
+                                y,
+                                z,
+                                pixel_selection=pixel_selection.method(),
+                                threads=threads,
+                                tilesize=tilesize,
+                                **layer_params.kwargs,
+                                **dataset_params.kwargs,
+                                **kwargs,
+                            )
+                timings.append(("dataread", round((t.elapsed - mosaic_read) * 1000, 2)))
+
+                if not format:
+                    format = ImageType.jpeg if data.mask.all() else ImageType.png
+
+                with Timer() as t:
+                    image = data.post_process(
+                        in_range=render_params.rescale_range,
+                        color_formula=render_params.color_formula,
+                    )
+                timings.append(("postprocess", round(t.elapsed * 1000, 2)))
+
+                with Timer() as t:
+                    content = image.render(
+                        add_mask=render_params.return_mask,
+                        img_format=format.driver,
+                        colormap=colormap,
+                        **format.profile,
+                        **render_params.kwargs,
+                    )
+                timings.append(("format", round(t.elapsed * 1000, 2)))
+
+                return (content, format, timings)
 
         async def mosaicjson_from_urls(urisrb: UrisRequestBody) -> MosaicJSON:
 
             if len(urisrb.urls) > MAX_ITEMS:
                 raise HTTPException(HTTP_400_BAD_REQUEST, f"Error: a maximum of {MAX_ITEMS} URLs can be mosaiced.")
 
-            loop = asyncio.get_running_loop()
-
             try:
                 mosaicjson = await wait_for(
-                    loop.run_in_executor(
-                        None,
+                    asyncio.get_running_loop().run_in_executor(
+                        None, # executor
                         lambda: MosaicJSON.from_urls(
                             urls=urisrb.urls,
                             minzoom=urisrb.minzoom,
@@ -814,12 +847,14 @@ class MosaicTilerFactory(BaseTilerFactory):
             if not req.stac_api_root:
                 raise HTTPException(HTTP_400_BAD_REQUEST, f"Error: stac_api_root field must be non-empty.")
 
-            loop = asyncio.get_running_loop()
-
             try:
                 try:
                     features = await wait_for(
-                        loop.run_in_executor(None, execute_stac_search, req),
+                        asyncio.get_running_loop().run_in_executor(
+                            None, # executor
+                            execute_stac_search, # func
+                            req
+                        ),
                         30
                     )
                 except asyncio.TimeoutError:
@@ -832,7 +867,7 @@ class MosaicTilerFactory(BaseTilerFactory):
 
                 try:
                     mosaicjson = await wait_for(
-                        loop.run_in_executor(
+                        asyncio.get_running_loop().run_in_executor(
                             None,
                             extract_mosaicjson_from_features,
                             features,
@@ -906,7 +941,6 @@ class MosaicTilerFactory(BaseTilerFactory):
                 # as this method only handles Polygon, LineString, and Point :grimace:
                 # https://github.com/mapbox/supermercado/issues/47
                 except UnboundLocalError:
-                    traceback.print_exc()
                     raise Exception(f"STAC Items likely have MultiPolygon geometry, and only Polygon is supported.")
                 except Exception as e:
                     raise Exception(f"Error extracting mosaic data from results: {e}")
@@ -942,11 +976,16 @@ class MosaicTilerFactory(BaseTilerFactory):
                 raise StoreException("Attempting to update non-existant mosaic")
 
             mosaic_uri = mk_src_path(mosaic_id)
-            loop = asyncio.get_running_loop()
 
             try:
                 await wait_for(
-                    loop.run_in_executor(None, mosaic_write, mosaic_uri, mosaicjson, overwrite),
+                    asyncio.get_running_loop().run_in_executor(
+                        None, # executor
+                        mosaic_write, #func
+                        mosaic_uri,
+                        mosaicjson,
+                        overwrite
+                    ),
                     20
                 )
             except asyncio.TimeoutError:
@@ -959,11 +998,15 @@ class MosaicTilerFactory(BaseTilerFactory):
 
         async def retrieve(mosaic_id: str, include_tiles: bool = False) -> MosaicJSON:
             mosaic_uri = mk_src_path(mosaic_id)
-            loop = asyncio.get_running_loop()
 
             try:
                 mosaicjson = await wait_for(
-                    loop.run_in_executor(None, read_mosaicjson_sync, mosaic_uri, include_tiles),
+                    asyncio.get_running_loop().run_in_executor(
+                        None, # executor
+                        read_mosaicjson_sync, # func
+                        mosaic_uri,
+                        include_tiles
+                    ),
                     20
                 )
             except asyncio.TimeoutError:
@@ -986,11 +1029,14 @@ class MosaicTilerFactory(BaseTilerFactory):
 
         async def delete(mosaic_id: str) -> None:
             mosaic_uri = mk_src_path(mosaic_id)
-            loop = asyncio.get_running_loop()
 
             try:
                 mosaicjson = await wait_for(
-                    loop.run_in_executor(None, delete_mosaicjson_sync, mosaic_uri),
+                    asyncio.get_running_loop().run_in_executor(
+                        None, # executor
+                        delete_mosaicjson_sync, # func
+                        mosaic_uri
+                    ),
                     20
                 )
             except asyncio.TimeoutError:
