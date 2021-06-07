@@ -40,6 +40,7 @@ from functools import partial
 from .settings import mosaic_config
 import logging
 from cogeo_mosaic.backends import DynamoDBBackend, SQLiteBackend
+import morecantile
 
 @dataclass
 class MosaicTilerFactory(BaseTilerFactory):
@@ -506,7 +507,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                 request: Request,
                 mosaic_id: str
         ) -> MosaicEntity:
-            self_uri = request.url_for("get_mosaic", mosaic_id=mosaic_id)
+            self_uri = self.url_for(request, "get_mosaic", mosaic_id=mosaic_id)
             if await retrieve(mosaic_id):
                 return mk_mosaic_entity(mosaic_id=mosaic_id, self_uri=self_uri)
             else:
@@ -567,7 +568,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             }
             if tile_format:
                 kwargs["format"] = tile_format.value
-            tiles_url = request.url_for("tile", **kwargs)
+            tiles_url = self.url_for(request, "tile", **kwargs)
 
             q = dict(request.query_params)
             q.pop("TileMatrixSetId", None)
@@ -619,7 +620,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             except Exception as e:
                 raise HTTPException(HTTP_500_INTERNAL_SERVER_ERROR, f"Error: could not save mosaic")
 
-            self_uri = request.url_for("get_mosaic", mosaic_id=mosaic_id)
+            self_uri = self.url_for(request, "get_mosaic", mosaic_id=mosaic_id)
 
             response.headers["Location"] = self_uri
 
@@ -735,6 +736,95 @@ class MosaicTilerFactory(BaseTilerFactory):
                 headers["X-Assets"] = ",".join(data.assets)
 
             return Response(content, media_type=img_format.mediatype, headers=headers)
+
+        @self.router.get("/mosaics/{mosaic_id}/WMTSCapabilities.xml", response_class=XMLResponse)
+        def wmts(
+                request: Request,
+                mosaic_id: str,
+                tile_format: ImageType = Query(
+                    ImageType.png, description="Output image type. Default is png."
+                ),
+                tile_scale: int = Query(
+                    1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
+                ),
+                minzoom: Optional[int] = Query(
+                    None, description="Overwrite default minzoom."
+                ),
+                maxzoom: Optional[int] = Query(
+                    None, description="Overwrite default maxzoom."
+                ),
+                layer_params=Depends(self.layer_dependency),  # noqa
+                dataset_params=Depends(self.dataset_dependency),  # noqa
+                render_params=Depends(self.render_dependency),  # noqa
+                colormap=Depends(self.colormap_dependency),  # noqa
+                pixel_selection: PixelSelectionMethod = Query(
+                    PixelSelectionMethod.first, description="Pixel selection method."
+                ),  # noqa
+        ):
+            """OGC WMTS endpoint."""
+
+            tiles_url = self.url_for(
+                request,
+                "tile",
+                **{
+                    "mosaic_id": mosaic_id,
+                    "z": "{TileMatrix}",
+                    "x": "{TileCol}",
+                    "y": "{TileRow}",
+                    "scale": tile_scale,
+                    "format": tile_format.value,
+                })
+
+            q = dict(request.query_params)
+            q.pop("tile_format", None)
+            q.pop("tile_scale", None)
+            q.pop("minzoom", None)
+            q.pop("maxzoom", None)
+            q.pop("SERVICE", None)
+            q.pop("REQUEST", None)
+            qs = urlencode(list(q.items()))
+            tiles_url += f"?{qs}"
+
+            mosaic_uri = mk_src_path(mosaic_id)
+
+            with self.reader(mosaic_uri, **self.backend_options) as src_dst:
+                bounds = src_dst.bounds
+                minzoom = minzoom if minzoom is not None else src_dst.minzoom
+                maxzoom = maxzoom if maxzoom is not None else src_dst.maxzoom
+
+            tms = morecantile.tms.get("WebMercatorQuad")
+
+            tileMatrix = []
+            for zoom in range(minzoom, maxzoom + 1):
+                matrix = tms.matrix(zoom)
+                tm = f"""
+                        <TileMatrix>
+                            <ows:Identifier>{matrix.identifier}</ows:Identifier>
+                            <ScaleDenominator>{matrix.scaleDenominator}</ScaleDenominator>
+                            <TopLeftCorner>{matrix.topLeftCorner[0]} {matrix.topLeftCorner[1]}</TopLeftCorner>
+                            <TileWidth>{matrix.tileWidth}</TileWidth>
+                            <TileHeight>{matrix.tileHeight}</TileHeight>
+                            <MatrixWidth>{matrix.matrixWidth}</MatrixWidth>
+                            <MatrixHeight>{matrix.matrixHeight}</MatrixHeight>
+                        </TileMatrix>"""
+                tileMatrix.append(tm)
+
+            return templates.TemplateResponse(
+                "wmts.xml",
+                {
+                    "request": request,
+                    "tiles_endpoint": tiles_url,
+                    "bounds": bounds,
+                    "tileMatrix": tileMatrix,
+                    "tms": tms,
+                    "title": "Cloud Optimized GeoTIFF",
+                    "layer_name": "cogeo",
+                    "media_type": tile_format.mediatype,
+                },
+                media_type=MediaType.xml.value,
+            )
+
+        ###################
 
         #####################
         # auxiliary methods #
@@ -1084,6 +1174,12 @@ class MosaicTilerFactory(BaseTilerFactory):
                     Link(
                         rel="tiles",
                         href=f"{self_uri}/tiles/{{z}}/{{x}}/{{y}}",
+                        type="application/json",
+                        title="Tiles Endpoint"
+                    ),
+                    Link(
+                        rel="wmts",
+                        href=f"{self_uri}/WMTSCapabilities.xml",
                         type="application/json",
                         title="Tiles Endpoint"
                     )

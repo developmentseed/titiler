@@ -10,6 +10,7 @@ inst_reqs = [
     "cogeo-mosaic>=3.0,<3.1",
     "pystac-client~=0.1.1",
     "stac_pydantic",  # inherit version from pystac-client
+    "morecantile>=2.1" # also a transitive dep of cogeo-mosaic
 ]
 extra_reqs = {
     "test": ["pytest", "pytest-cov", "pytest-asyncio", "requests"],
