@@ -59,6 +59,8 @@ class MosaicTilerFactory(BaseTilerFactory):
 
     backend_options: Dict = field(default_factory=dict)
 
+    logger = logging.getLogger(__name__)
+
     def register_routes(self):
         """
         This Method register routes to the router.
@@ -618,6 +620,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             except StoreException as e:
                 raise HTTPException(HTTP_409_CONFLICT, f"Error: mosaic with given ID already exists")
             except Exception as e:
+                logging.error(f"could not save mosaic: {e}")
                 raise HTTPException(HTTP_500_INTERNAL_SERVER_ERROR, f"Error: could not save mosaic")
 
             self_uri = self.url_for(request, "get_mosaic", mosaic_id=mosaic_id)

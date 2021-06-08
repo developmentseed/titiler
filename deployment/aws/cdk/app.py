@@ -10,13 +10,13 @@ from aws_cdk import aws_ecs as ecs
 from aws_cdk import aws_ecs_patterns as ecs_patterns
 from aws_cdk import aws_iam as iam
 from aws_cdk import aws_lambda, core
-from config import StackSettings, mosaic_config
+from config import StackSettings
 
 settings = StackSettings()
 
-if mosaic_config.backend and mosaic_config.host:
+if settings.mosaic_backend and settings.mosaic_host:
     settings.env.update(
-        {"MOSAIC_BACKEND": mosaic_config.backend, "MOSAIC_HOST": mosaic_config.host}
+        {"MOSAIC_BACKEND": settings.mosaic_backend, "MOSAIC_HOST": settings.mosaic_host}
     )
 
 
@@ -175,18 +175,18 @@ if settings.buckets:
     perms.append(
         iam.PolicyStatement(
             actions=["s3:GetObject", "s3:HeadObject"],
-            resources=[f"arn:aws:s3:::{bucket}*" for bucket in settings.buckets],
+            resources=[f"arn:aws:s3:::{bucket}/*" for bucket in settings.buckets],
         )
     )
 
-if mosaic_config.backend == "s3://" and mosaic_config.host:
+if settings.mosaic_backend == "s3://" and settings.mosaic_host:
     perms.append(
         iam.PolicyStatement(
             actions=["s3:GetObject", "s3:PutObject", "s3:HeadObject"],
-            resources=[f"arn:aws:s3:::{mosaic_config.host}*"],
+            resources=[f"arn:aws:s3:::{settings.mosaic_host}*"],
         )
     )
-elif mosaic_config.backend == "dynamodb://":
+elif settings.mosaic_backend == "dynamodb://":
     stack = core.Stack()
     perms.append(
         iam.PolicyStatement(
@@ -197,8 +197,8 @@ elif mosaic_config.backend == "dynamodb://":
             resources=[f"arn:aws:dynamodb:{stack.region}:{stack.account}:table/*"],
         )
     )
-    # backend will be of the form "us-east-1/mytitiler-prod-mosaicjson", and we need just the table name
-    table_name = mosaic_config.backend.split("/", 1)[1]
+    # host will be of the form "us-east-1/mytitiler-prod-mosaicjson", and we need just the table name
+    table_name = settings.mosaic_host.split("/", 1)[1]
     perms.append(
         iam.PolicyStatement(
             actions=[
