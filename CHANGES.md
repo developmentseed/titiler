@@ -10,6 +10,10 @@
 
 * update `tilejson` and `WMTSCapabilities.xml` endpoints to allow list querystrings (as done previously in https://github.com/developmentseed/titiler/issues/319)
 
+### titiler.application
+
+* add `titiler.application.middleware.LowerCaseQueryStringMiddleware` to cast all query string parameter to lowercase (author @lorenzori, https://github.com/developmentseed/titiler/pull/321)
+
 ## 0.3.2 (2021-05-26)
 
 ### titiler.core
