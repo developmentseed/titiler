@@ -8,8 +8,8 @@ from titiler.application.custom import templates
 from titiler.application.middleware import (
     CacheControlMiddleware,
     LoggerMiddleware,
+    LowerCaseQueryStringMiddleware,
     TotalTimeMiddleware,
-    LowerCaseQueryStringMiddleware
 )
 from titiler.application.routers import cog, mosaic, stac, tms
 from titiler.application.settings import ApiSettings
@@ -74,6 +74,7 @@ if api_settings.debug:
 
 if api_settings.lower_case_query_parameters:
     app.add_middleware(LowerCaseQueryStringMiddleware)
+
 
 @app.get("/healthz", description="Health Check", tags=["Health Check"])
 def ping():
