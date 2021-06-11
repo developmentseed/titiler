@@ -22,4 +22,5 @@ done
 
 cd deployment/aws
 cp ".env.${DEPLOY_ENV}" .env
-npm run cdk deploy "dynamic-tiler-lambda-${DEPLOY_ENV}" --verbose
+
+npm run cdk deploy "dynamic-tiler-lambda-${DEPLOY_ENV}"

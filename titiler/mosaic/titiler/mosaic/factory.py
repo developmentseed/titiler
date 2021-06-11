@@ -39,7 +39,9 @@ import asyncio
 from functools import partial
 from .settings import mosaic_config
 import logging
-from cogeo_mosaic.backends import DynamoDBBackend, SQLiteBackend
+from cogeo_mosaic.backends import DynamoDBBackend
+from cogeo_mosaic.errors import MosaicError
+
 import morecantile
 
 @dataclass
@@ -614,7 +616,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             mosaicjson = await populate_mosaicjson(request, content_type)
             mosaic_id = str(uuid.uuid4())
 
-            # this probably can't happen, but just to be safe...
+            # duplicate IDs are unlikely to exist, but handle it just to be safe
             try:
                 await store(mosaic_id, mosaicjson, overwrite=False)
             except StoreException as e:
@@ -627,13 +629,13 @@ class MosaicTilerFactory(BaseTilerFactory):
 
             response.headers["Location"] = self_uri
 
-            return mk_mosaic_entity(mosaic_id, self_uri, mosaicjson)
+            return mk_mosaic_entity(mosaic_id, self_uri)
 
         @self.router.put(
             "/mosaics/{mosaic_id}",
             status_code=HTTP_204_NO_CONTENT,
             responses={
-                HTTP_204_NO_CONTENT : {"description": "Updated a mosaic"},
+                HTTP_204_NO_CONTENT: {"description": "Updated a mosaic"},
                 HTTP_404_NOT_FOUND: {"description": "Mosaic with ID not found"},
                 HTTP_500_INTERNAL_SERVER_ERROR: {"description": "Mosaic could not be updated"}
             }
@@ -645,13 +647,15 @@ class MosaicTilerFactory(BaseTilerFactory):
         ) -> None:
             """Update an existing MosaicJSON"""
 
-            mosaicjson = await populate_mosaicjson(request, content_type)
+            if not await retrieve(mosaic_id):
+                raise HTTPException(HTTP_404_NOT_FOUND, f"Error: mosaic with given ID does not exist.")
 
             try:
+                mosaicjson = await populate_mosaicjson(request, content_type)
                 await store(mosaic_id, mosaicjson, overwrite=True)
-            except StoreException as e:
+            except StoreException:
                 raise HTTPException(HTTP_404_NOT_FOUND, f"Error: mosaic with given ID does not exist.")
-            except Exception as e:
+            except Exception:
                 raise HTTPException(HTTP_500_INTERNAL_SERVER_ERROR, f"Error: could not update mosaic.")
 
             return
@@ -663,22 +667,20 @@ class MosaicTilerFactory(BaseTilerFactory):
             status_code=HTTP_204_NO_CONTENT,
         )
         async def delete_mosaic(
-                mosaic_id: str,
-                request: Request
+                mosaic_id: str
         ) -> None:
             """Delete an existing MosaicJSON"""
 
-            try:
-                await retrieve(mosaic_id)
-            except Exception as e:
+            if not await retrieve(mosaic_id):
                 raise HTTPException(HTTP_404_NOT_FOUND, f"Error: mosaic with given ID does not exist.")
 
             try:
                 await delete(mosaic_id)
             except UnsupportedOperationException:
-                raise HTTPException(HTTP_405_METHOD_NOT_ALLOWED,
-                                    f"Error: mosaic with given ID cannot be deleted because the datastore does not support it.")
-
+                raise HTTPException(
+                    HTTP_405_METHOD_NOT_ALLOWED,
+                    f"Error: mosaic with given ID cannot be deleted because the datastore does not support it."
+                )
 
         # derived from cogeo-xyz
         @self.router.get(r"/mosaics/{mosaic_id}/tiles/{z}/{x}/{y}", **img_endpoint_params)
@@ -710,9 +712,9 @@ class MosaicTilerFactory(BaseTilerFactory):
             """Create map tile from a mosaic."""
 
             try:
-                (content, img_format, timings) = await wait_for(
+                (content, data_assets, img_format, timings) = await wait_for(
                     asyncio.get_running_loop().run_in_executor(
-                        None, # executor
+                        None,  # executor
                         render_tile,  # func
                         mk_src_path(mosaic_id),
                         z, x, y, scale, format,
@@ -736,7 +738,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                 )
 
             if OptionalHeader.x_assets in self.optional_headers:
-                headers["X-Assets"] = ",".join(data.assets)
+                headers["X-Assets"] = ",".join(data_assets)
 
             return Response(content, media_type=img_format.mediatype, headers=headers)
 
@@ -834,71 +836,70 @@ class MosaicTilerFactory(BaseTilerFactory):
         #####################
 
         def render_tile(
-                    mosaic_uri: str,
-                    z: int,
-                    x: int,
-                    y: int,
-                    scale: int,
-                    format: ImageType,
-                    layer_params,
-                    dataset_params,
-                    render_params,
-                    colormap,
-                    pixel_selection: PixelSelectionMethod,
-                    kwargs: Dict,
-            ) -> Tuple[bytes, str, List[Tuple[str, float]]]:
-                """Create map tile from a COG."""
-                timings = []
+                mosaic_uri: str,
+                z: int,
+                x: int,
+                y: int,
+                scale: int,
+                format: ImageType,
+                layer_params,
+                dataset_params,
+                render_params,
+                colormap,
+                pixel_selection: PixelSelectionMethod,
+                kwargs: Dict,
+        ) -> Tuple[bytes, Any, str, List[Tuple[str, float]]]:
+            """Create map tile from a COG."""
+            timings = []
 
-                tilesize = scale * 256
+            tilesize = scale * 256
 
-                threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
-                with Timer() as t:
+            threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
+            with Timer() as t:
+                with rasterio.Env(**self.gdal_config):
+                    with self.reader(
+                            mosaic_uri,
+                            reader=self.dataset_reader,
+                            reader_options=self.reader_options,
+                            **self.backend_options,
+                    ) as src_dst:
+                        mosaic_read = t.from_start
+                        timings.append(("mosaicread", round(mosaic_read * 1000, 2)))
 
-                    with rasterio.Env(**self.gdal_config):
-                        with self.reader(
-                                mosaic_uri,
-                                reader=self.dataset_reader,
-                                reader_options=self.reader_options,
-                                **self.backend_options,
-                        ) as src_dst:
-                            mosaic_read = t.from_start
-                            timings.append(("mosaicread", round(mosaic_read * 1000, 2)))
+                        data, _ = src_dst.tile(
+                            x,
+                            y,
+                            z,
+                            pixel_selection=pixel_selection.method(),
+                            threads=threads,
+                            tilesize=tilesize,
+                            **layer_params.kwargs,
+                            **dataset_params.kwargs,
+                            **kwargs,
+                        )
+            timings.append(("dataread", round((t.elapsed - mosaic_read) * 1000, 2)))
 
-                            data, _ = src_dst.tile(
-                                x,
-                                y,
-                                z,
-                                pixel_selection=pixel_selection.method(),
-                                threads=threads,
-                                tilesize=tilesize,
-                                **layer_params.kwargs,
-                                **dataset_params.kwargs,
-                                **kwargs,
-                            )
-                timings.append(("dataread", round((t.elapsed - mosaic_read) * 1000, 2)))
+            if not format:
+                format = ImageType.jpeg if data.mask.all() else ImageType.png
 
-                if not format:
-                    format = ImageType.jpeg if data.mask.all() else ImageType.png
+            with Timer() as t:
+                image = data.post_process(
+                    in_range=render_params.rescale_range,
+                    color_formula=render_params.color_formula,
+                )
+            timings.append(("postprocess", round(t.elapsed * 1000, 2)))
 
-                with Timer() as t:
-                    image = data.post_process(
-                        in_range=render_params.rescale_range,
-                        color_formula=render_params.color_formula,
-                    )
-                timings.append(("postprocess", round(t.elapsed * 1000, 2)))
+            with Timer() as t:
+                content = image.render(
+                    add_mask=render_params.return_mask,
+                    img_format=format.driver,
+                    colormap=colormap,
+                    **format.profile,
+                    **render_params.kwargs,
+                )
+            timings.append(("format", round(t.elapsed * 1000, 2)))
 
-                with Timer() as t:
-                    content = image.render(
-                        add_mask=render_params.return_mask,
-                        img_format=format.driver,
-                        colormap=colormap,
-                        **format.profile,
-                        **render_params.kwargs,
-                    )
-                timings.append(("format", round(t.elapsed * 1000, 2)))
-
-                return (content, format, timings)
+            return content, data.assets, format, timings
 
         async def mosaicjson_from_urls(urisrb: UrisRequestBody) -> MosaicJSON:
 
@@ -908,7 +909,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             try:
                 mosaicjson = await wait_for(
                     asyncio.get_running_loop().run_in_executor(
-                        None, # executor
+                        None,  # executor
                         lambda: MosaicJSON.from_urls(
                             urls=urisrb.urls,
                             minzoom=urisrb.minzoom,
@@ -944,8 +945,8 @@ class MosaicTilerFactory(BaseTilerFactory):
                 try:
                     features = await wait_for(
                         asyncio.get_running_loop().run_in_executor(
-                            None, # executor
-                            execute_stac_search, # func
+                            None,  # executor
+                            execute_stac_search,  # func
                             req
                         ),
                         30
@@ -965,7 +966,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                             extract_mosaicjson_from_features,
                             features,
                             req.asset_name if req.asset_name else "visual"),
-                        60 # todo: how much time should/can it take?
+                        60  # todo: how much time should/can it take?
                     )
                 except asyncio.TimeoutError:
                     raise HTTPException(
@@ -988,7 +989,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             except Exception as e:
                 raise HTTPException(HTTP_500_INTERNAL_SERVER_ERROR, f"Error: {e}")
 
-        MAX_ITEMS=100
+        MAX_ITEMS = 100
 
         def execute_stac_search(mosaic_request: StacApiQueryRequestBody) -> List[dict]:
             try:
@@ -1057,11 +1058,9 @@ class MosaicTilerFactory(BaseTilerFactory):
 
         async def store(mosaic_id: str, mosaicjson: MosaicJSON, overwrite: bool) -> None:
             try:
-                await retrieve(mosaic_id)
-            except Exception as e:
+                existing = await retrieve(mosaic_id)
+            except:
                 existing = False
-            else:
-                existing = True
 
             if not overwrite and existing:
                 raise StoreException("Attempting to create already existing mosaic")
@@ -1073,8 +1072,8 @@ class MosaicTilerFactory(BaseTilerFactory):
             try:
                 await wait_for(
                     asyncio.get_running_loop().run_in_executor(
-                        None, # executor
-                        mosaic_write, #func
+                        None,  # executor
+                        mosaic_write,  # func
                         mosaic_uri,
                         mosaicjson,
                         overwrite
@@ -1089,14 +1088,14 @@ class MosaicTilerFactory(BaseTilerFactory):
                 with self.reader(mosaic_uri, mosaic_def=mosaicjson) as mosaic:
                     mosaic.write(overwrite=overwrite)
 
-        async def retrieve(mosaic_id: str, include_tiles: bool = False) -> MosaicJSON:
+        async def retrieve(mosaic_id: str, include_tiles: bool = False) -> Optional[MosaicJSON]:
             mosaic_uri = mk_src_path(mosaic_id)
 
             try:
-                mosaicjson = await wait_for(
+                return await wait_for(
                     asyncio.get_running_loop().run_in_executor(
-                        None, # executor
-                        read_mosaicjson_sync, # func
+                        None,  # executor
+                        read_mosaicjson_sync,  # func
                         mosaic_uri,
                         include_tiles
                     ),
@@ -1104,8 +1103,8 @@ class MosaicTilerFactory(BaseTilerFactory):
                 )
             except asyncio.TimeoutError:
                 raise HTTPException(HTTP_500_INTERNAL_SERVER_ERROR, "Error: timeout retrieving mosaic from datastore.")
-
-            return mosaicjson
+            except MosaicError:
+                return None
 
         def read_mosaicjson_sync(mosaic_uri: str, include_tiles: bool) -> MosaicJSON:
             with rasterio.Env(**self.gdal_config):
@@ -1119,15 +1118,14 @@ class MosaicTilerFactory(BaseTilerFactory):
                         mosaicjson.tiles = {x["quadkey"]: x["assets"] for x in keys}
                     return mosaicjson
 
-
         async def delete(mosaic_id: str) -> None:
             mosaic_uri = mk_src_path(mosaic_id)
 
             try:
-                mosaicjson = await wait_for(
+                await wait_for(
                     asyncio.get_running_loop().run_in_executor(
-                        None, # executor
-                        delete_mosaicjson_sync, # func
+                        None,  # executor
+                        delete_mosaicjson_sync,  # func
                         mosaic_uri
                     ),
                     20
@@ -1135,24 +1133,20 @@ class MosaicTilerFactory(BaseTilerFactory):
             except asyncio.TimeoutError:
                 raise HTTPException(HTTP_500_INTERNAL_SERVER_ERROR, "Error: timeout deleting mosaic.")
 
-            return mosaicjson
+            return
 
         def delete_mosaicjson_sync(mosaic_uri: str) -> None:
-                with rasterio.Env(**self.gdal_config):
-                    with self.reader(mosaic_uri,
-                                     reader=self.dataset_reader,
-                                     reader_options=self.reader_options,
-                                     **self.backend_options) as mosaic:
-                        if isinstance(mosaic, DynamoDBBackend):
-                            mosaic.delete() # delete is only supported by DynamoDB
-                        else:
-                            raise UnsupportedOperationException("Delete is not supported")
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(mosaic_uri,
+                                 reader=self.dataset_reader,
+                                 reader_options=self.reader_options,
+                                 **self.backend_options) as mosaic:
+                    if isinstance(mosaic, DynamoDBBackend):
+                        mosaic.delete()  # delete is only supported by DynamoDB
+                    else:
+                        raise UnsupportedOperationException("Delete is not supported")
 
-
-        def mk_base_uri(request: Request):
-            return f"{request.url.scheme}://{request.headers['host']}"
-
-        def mk_mosaic_entity(mosaic_id, self_uri, mosaicjson: Optional[MosaicJSON] = None):
+        def mk_mosaic_entity(mosaic_id, self_uri):
             return MosaicEntity(
                 id=mosaic_id,
                 links=[
@@ -1165,7 +1159,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                     Link(
                         rel="mosaicjson",
                         href=f"{self_uri}/mosaicjson",
-                        type="application/vnd.titiler.mosaicjson+json",
+                        type="application/json",
                         title="MosiacJSON"
                     ),
                     Link(
@@ -1178,13 +1172,13 @@ class MosaicTilerFactory(BaseTilerFactory):
                         rel="tiles",
                         href=f"{self_uri}/tiles/{{z}}/{{x}}/{{y}}",
                         type="application/json",
-                        title="Tiles Endpoint"
+                        title="Tiles"
                     ),
                     Link(
                         rel="wmts",
                         href=f"{self_uri}/WMTSCapabilities.xml",
                         type="application/json",
-                        title="Tiles Endpoint"
+                        title="WMTS"
                     )
                 ])
 
