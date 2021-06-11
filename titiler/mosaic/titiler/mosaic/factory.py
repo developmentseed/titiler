@@ -304,14 +304,20 @@ class MosaicTilerFactory(BaseTilerFactory):
                 route_params["format"] = tile_format.value
             tiles_url = self.url_for(request, "tile", **route_params)
 
-            q = dict(request.query_params)
-            q.pop("TileMatrixSetId", None)
-            q.pop("tile_format", None)
-            q.pop("tile_scale", None)
-            q.pop("minzoom", None)
-            q.pop("maxzoom", None)
-            qs = urlencode(list(q.items()))
-            tiles_url += f"?{qs}"
+            qs_key_to_remove = [
+                "tilematrixsetid",
+                "tile_format",
+                "tile_scale",
+                "minzoom",
+                "maxzoom",
+            ]
+            qs = [
+                (key, value)
+                for (key, value) in request.query_params._list
+                if key.lower() not in qs_key_to_remove
+            ]
+            if qs:
+                tiles_url += f"?{urlencode(qs)}"
 
             with self.reader(src_path, **self.backend_options) as src_dst:
                 center = list(src_dst.center)
@@ -369,16 +375,22 @@ class MosaicTilerFactory(BaseTilerFactory):
             }
             tiles_url = self.url_for(request, "tile", **route_params)
 
-            q = dict(request.query_params)
-            q.pop("TileMatrixSetId", None)
-            q.pop("tile_format", None)
-            q.pop("tile_scale", None)
-            q.pop("minzoom", None)
-            q.pop("maxzoom", None)
-            q.pop("SERVICE", None)
-            q.pop("REQUEST", None)
-            qs = urlencode(list(q.items()))
-            tiles_url += f"?{qs}"
+            qs_key_to_remove = [
+                "tilematrixsetid",
+                "tile_format",
+                "tile_scale",
+                "minzoom",
+                "maxzoom",
+                "service",
+                "request",
+            ]
+            qs = [
+                (key, value)
+                for (key, value) in request.query_params._list
+                if key.lower() not in qs_key_to_remove
+            ]
+            if qs:
+                tiles_url += f"?{urlencode(qs)}"
 
             with self.reader(src_path, **self.backend_options) as src_dst:
                 bounds = src_dst.bounds

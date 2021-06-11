@@ -1,5 +1,15 @@
 # Release Notes
 
+## Next (TBD)
+
+### titiler.core
+
+* fix possible bug when querystring parameter are case insensitive (https://github.com/developmentseed/titiler/pull/323)
+
+### titiler.mosaic
+
+* update `tilejson` and `WMTSCapabilities.xml` endpoints to allow list querystrings (as done previously in https://github.com/developmentseed/titiler/issues/319)
+
 ## 0.3.2 (2021-05-26)
 
 ### titiler.core
