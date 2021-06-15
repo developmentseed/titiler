@@ -29,10 +29,14 @@ class StackSettings(pydantic.BaseSettings):
         "VSI_CACHE_SIZE": "5000000",  # 5 MB (per file-handle)
     }
 
-    # add S3 bucket where TiTiler could do HEAD and GET Requests
+    # S3 bucket names where TiTiler could do HEAD and GET Requests
     # specific private and public buckets MUST be added if you want to use s3:// urls
     # You can whitelist all bucket by setting `*`.
+    # ref: https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-arn-format.html
     buckets: List = []
+
+    # S3 key pattern to limit the access to specific items (e.g: "my_data/*.tif")
+    key: str = "*"
 
     ###########################################################################
     # AWS ECS
