@@ -202,6 +202,7 @@ elif settings.mosaic_backend == "dynamodb://":
     perms.append(
         iam.PolicyStatement(
             actions=[
+                "dynamodb:Query",
                 "dynamodb:GetItem",
                 "dynamodb:Scan",
                 "dynamodb:PutItem",
