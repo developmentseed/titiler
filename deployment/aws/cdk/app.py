@@ -14,6 +14,11 @@ from config import StackSettings
 
 settings = StackSettings()
 
+if settings.mosaic_backend and settings.mosaic_host:
+    settings.env.update(
+        {"MOSAIC_BACKEND": settings.mosaic_backend, "MOSAIC_HOST": settings.mosaic_host}
+    )
+
 
 class titilerLambdaStack(core.Stack):
     """
@@ -30,7 +35,7 @@ class titilerLambdaStack(core.Stack):
         scope: core.Construct,
         id: str,
         memory: int = 1024,
-        timeout: int = 30,
+        timeout: int = 60,
         runtime: aws_lambda.Runtime = aws_lambda.Runtime.PYTHON_3_8,
         concurrent: Optional[int] = None,
         permissions: Optional[List[iam.PolicyStatement]] = None,
@@ -170,10 +175,42 @@ if settings.buckets:
     perms.append(
         iam.PolicyStatement(
             actions=["s3:GetObject", "s3:HeadObject"],
-            resources=[f"arn:aws:s3:::{bucket}*" for bucket in settings.buckets],
+            resources=[f"arn:aws:s3:::{bucket}/*" for bucket in settings.buckets],
         )
     )
 
+if settings.mosaic_backend == "s3://" and settings.mosaic_host:
+    perms.append(
+        iam.PolicyStatement(
+            actions=["s3:GetObject", "s3:PutObject", "s3:HeadObject"],
+            resources=[f"arn:aws:s3:::{settings.mosaic_host}*"],
+        )
+    )
+elif settings.mosaic_backend == "dynamodb://":
+    stack = core.Stack()
+    perms.append(
+        iam.PolicyStatement(
+            actions=[
+                "dynamodb:CreateTable",
+                "dynamodb:DescribeTable",
+            ],
+            resources=[f"arn:aws:dynamodb:{stack.region}:{stack.account}:table/*"],
+        )
+    )
+    # host will be of the form "us-east-1/mytitiler-prod-mosaicjson", and we need just the table name
+    table_name = settings.mosaic_host.split("/", 1)[1]
+    perms.append(
+        iam.PolicyStatement(
+            actions=[
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:PutItem",
+                "dynamodb:BatchWriteItem",
+            ],
+            resources=[f"arn:aws:dynamodb:{stack.region}:{stack.account}:table/{table_name}"],
+        )
+    )
 
 # Tag infrastructure
 for key, value in {

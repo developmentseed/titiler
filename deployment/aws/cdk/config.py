@@ -70,13 +70,17 @@ class StackSettings(pydantic.BaseSettings):
     ###########################################################################
     # AWS LAMBDA
     # The following settings only apply to AWS Lambda deployment
-    timeout: int = 10
+    timeout: int = 60  # MosaicJSON creation takes much more time than tile creation
     memory: int = 1536
     # more about lambda config: https://www.sentiatechblog.com/aws-re-invent-2020-day-3-optimizing-lambda-cost-with-multi-threading
 
     # The maximum of concurrent executions you want to reserve for the function.
     # Default: - No specific limit - account limit.
     max_concurrent: Optional[int]
+
+    mosaic_backend: str
+    mosaic_host: str
+    mosaic_format: str = ".json.gz"  # format will be ignored for dynamodb backend
 
     class Config:
         """model config"""
