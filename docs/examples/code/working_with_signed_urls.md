@@ -44,6 +44,17 @@ def DatasetPathParams(
         url = base64.b64decode(url).decode()
     return url
 
+# Another solution is to pass only the signed url path parameters encoded in base64
+# def DatasetPathParams(
+#     url: str = Query(..., description="Dataset URL"),
+#     url_params: str = Query(
+#         None, description="Base64 encoded Query parameters to add to the dataset URL."
+#     ),
+# ) -> str:
+#     """DatasetPath Params."""
+#     if url_params:
+#         url += f"{b64decode(url_params).decode()}"
+#     return url
 
 app = FastAPI(title="My simple app")
 
