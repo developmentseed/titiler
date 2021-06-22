@@ -12,7 +12,7 @@ Passing a signed URL for a dataset is not supported by default in TiTiler becaus
 
 ### 1. URL Encoding
 
-The easiest way (from the application POV) to allow complex URL, is to allow encoded url as input parameter.
+The easiest way (from the application's point of view) to allow complex URLs is to allow an encoded url as an input parameter.
 
 ```python
 import base64
