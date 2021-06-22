@@ -7,7 +7,7 @@
 
 ## What / Why / How
 
-Passing a signed URL for a dataset is not supported by default in TiTiler because the parameters from the signed url are conflicting with the query parameters from the application itself. In order to allow signed url in the application there are two solutions:
+Passing a signed URL for a dataset is not supported by default in TiTiler because the parameters from the signed url conflict with the query parameters from the application itself. In order to allow signed url in the application there are two solutions:
 
 
 ### 1. URL Encoding
