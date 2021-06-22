@@ -22,7 +22,7 @@ url = "http://my.dataset.com/cog.tif?p=aaa&c&1234&t=4321"
 >>> "aHR0cDovL215LmRhdGFzZXQuY29tL2NvZy50aWY/cD1hYWEmYyYxMjM0JnQ9NDMyMQ=="
 ```
 
-When base64 encoded, url is just a regular string and thus will be valid in the application.
+When base64 encoded, the url is just a regular string and thus will be valid in the application.
 
 ```python
 """Minimal COG tiler with Signed URL support."""
