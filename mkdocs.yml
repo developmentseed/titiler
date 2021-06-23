@@ -45,6 +45,7 @@ nav:
       - Tiler with Cache: "examples/code/tiler_with_cache.md"
       - Mosaic from COG urls: "examples/code/mosaic_from_urls.md"
       - Tiler with custom Colormap dependency: "examples/code/tiler_with_custom_colormap.md"
+      - Loading data with signed URLs: "examples/code/working_with_signed_urls.md"
 
     - Notebooks:
       - COG: "examples/notebooks/Working_with_CloudOptimizedGeoTIFF_simple.ipynb"
