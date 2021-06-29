@@ -79,7 +79,8 @@ To install from sources and run for development:
 ```
 $ git clone https://github.com/developmentseed/titiler.git
 $ cd titiler
-$ pip install uvicorn -e titiler/core -e titiler/mosaic -e titiler/application
+$ pip install -e src/titiler/core -e src/titiler/mosaic -e src/titiler/application
+$ pip install uvicorn
 $ uvicorn titiler.application.main:app --reload
 ```
 
@@ -123,7 +124,7 @@ Some options can be set via environment variables, see: https://github.com/tiang
 ## Project structure
 
 ```
-titiler/                         - titiler modules.
+src/titiler/                     - titiler modules.
  ├── application/                - Titiler's `Application` package
  ├── core/                       - Titiler's `Core` package
  └── mosaic/                     - Titiler's `Mosaic` package

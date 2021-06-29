@@ -7,7 +7,11 @@ Issues and pull requests are more than welcome: https://github.com/developmentse
 ```bash
 $ git clone https://github.com/developmentseed/titiler.git
 $ cd titiler
-$ pip install -e .[dev]
+$ pip install \
+   pre-commit \
+   -e src/titiler/core["test"] \
+   -e src/titiler/mosaic["test"] \
+   -e src/titiler/application["test"]
 ```
 
 **Python3.8 only**
@@ -23,7 +27,7 @@ $ pre-commit install
 ```bash
 $ git clone https://github.com/developmentseed/titiler.git
 $ cd titiler
-$ pip install -e .["docs"]
+$ pip install nbconvert mkdocs mkdocs-material mkdocs-jupyter pygments pdocs
 ```
 
 Hot-reloading docs:
