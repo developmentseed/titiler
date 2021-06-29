@@ -2,7 +2,7 @@ FROM tiangolo/uvicorn-gunicorn:python3.8
 
 ENV CURL_CA_BUNDLE /etc/ssl/certs/ca-certificates.crt
 
-COPY titiler/ /tmp/titiler/
+COPY src/titiler/ /tmp/titiler/
 
 RUN pip install /tmp/titiler/core /tmp/titiler/mosaic /tmp/titiler/application --no-cache-dir
 
