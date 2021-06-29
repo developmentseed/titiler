@@ -1,6 +1,6 @@
 # Release Notes
 
-## Next (TBD)
+## 0.3.3 (2021-06-29)
 
 ### titiler.core
 
@@ -13,6 +13,11 @@
 ### titiler.application
 
 * add `titiler.application.middleware.LowerCaseQueryStringMiddleware` to cast all query string parameter to lowercase (author @lorenzori, https://github.com/developmentseed/titiler/pull/321)
+
+
+### code and repo
+
+* move `titiler` code to `src/titiler`
 
 ## 0.3.2 (2021-05-26)
 
