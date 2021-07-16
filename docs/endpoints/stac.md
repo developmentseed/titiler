@@ -20,6 +20,7 @@ Read Info/Metadata and create Web map Tiles from a **single** STAC Item.  The `s
 | `GET`  | `/stac/point/{lon},{lat}`                                            | JSON      | return pixel value from a dataset
 | `GET`  | `/stac/preview[.{format}]`                                           | image/bin | create a preview image from a dataset
 | `GET`  | `/stac/crop/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin | create an image from part of a dataset
+| `POST` | `/stac/crop[/{width}x{height}][].{format}]`                          | image/bin | create an image from a geojson covering a STAC Item
 | `GET`  | `/stac/viewer`                                                       | HTML      | demo webpage (Not created by the factory)
 
 ## Description
@@ -115,12 +116,45 @@ Example:
 
 ***assets** OR **expression** is required
 
-Note: if `height` and `width` are provided `max_size` will be ignored.
-
 Example:
 
 - `https://myendpoint/stac/crop/0,0,10,10.png?url=https://somewhere.com/item.json&assets=B01`
 - `https://myendpoint/stac/crop/0,0,10,10.png?url=https://somewhere.com/item.json&assets=B01&rescale=0,1000&colormap_name=cfastie`
+
+
+`:endpoint:/stac/crop[/{width}x{height}][].{format}] - [POST]`
+
+- Body:
+    - **feature**: A valida GeoJSON feature (Polygon or MultiPolygon)
+
+- PathParams:
+    - **height**: Force output image height. OPTIONAL
+    - **width**: Force output image width. OPTIONAL
+    - **format**: Output image format, default is set to None and will be either JPEG or PNG depending on masked value. OPTIONAL
+
+- QueryParams:
+    - **url**: STAC Item URL. **REQUIRED**
+    - **assets**: Comma (',') delimited asset names. OPTIONAL*
+    - **expression**: rio-tiler's band math expression (e.g B1/B2). OPTIONAL
+    - **bidx**: Comma (',') delimited band indexes. OPTIONAL
+    - **nodata**: Overwrite internal Nodata value. OPTIONAL
+
+    - **max_size**: Max image size, default is 1024. OPTIONAL
+    - **rescale**: Comma (',') delimited Min,Max bounds. OPTIONAL
+    - **color_formula**: rio-color formula. OPTIONAL
+    - **colormap_name**: rio-tiler color map name. OPTIONAL
+    - **colormap**: JSON encoded custom Colormap. OPTIONAL
+    - **resampling_method**: rasterio resampling method. Default is `nearest`.
+
+***assets** OR **expression** is required
+
+Example:
+
+- `https://myendpoint/stac/crop?url=https://somewhere.com/item.json&assets=B01`
+- `https://myendpoint/stac/crop.png?url=https://somewhere.com/item.json&assets=B01`
+- `https://myendpoint/stac/crop/0,0,10,10.png?url=https://somewhere.com/item.json&assets=B01&rescale=0,1000&colormap_name=cfastie`
+
+Note: if `height` and `width` are provided `max_size` will be ignored.
 
 ### Point
 

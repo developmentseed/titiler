@@ -19,6 +19,7 @@ Read Info/Metadata and create Web map Tiles from a **single** COG. The `cog` rou
 | `GET`  | `/cog/point/{lon},{lat}`                                            | JSON      | return pixel value from a dataset
 | `GET`  | `/cog/preview[.{format}]`                                           | image/bin | create a preview image from a dataset
 | `GET`  | `/cog/crop/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin | create an image from part of a dataset
+| `POST` | `/cog/crop[/{width}x{height}][].{format}]`                          | image/bin | create an image from a geojson covering a dataset
 | `GET`  | `/cog/validate`                                                     | JSON      | validate a COG and return dataset info
 | `GET`  | `/cog/viewer`                                                       | HTML      | demo webpage
 
@@ -106,12 +107,41 @@ Example:
     - **colormap**: JSON encoded custom Colormap. OPTIONAL
     - **resampling_method**: rasterio resampling method. Default is `nearest`.
 
-Note: if `height` and `width` are provided `max_size` will be ignored.
-
 Example:
 
 - `https://myendpoint/cog/crop/0,0,10,10.png?url=https://somewhere.com/mycog.tif`
 - `https://myendpoint/cog/crop/0,0,10,10.png?url=https://somewhere.com/mycog.tif&bidx=1&rescale=0,1000&colormap_name=cfastie`
+
+
+`:endpoint:/cog/crop[/{width}x{height}][].{format}] - [POST]`
+
+- Body:
+    - **feature**: A valida GeoJSON feature (Polygon or MultiPolygon)
+
+- PathParams:
+    - **height**: Force output image height. OPTIONAL
+    - **width**: Force output image width. OPTIONAL
+    - **format**: Output image format, default is set to None and will be either JPEG or PNG depending on masked value. OPTIONAL
+
+- QueryParams:
+    - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
+    - **bidx**: Comma (',') delimited band indexes. OPTIONAL
+    - **expression**: rio-tiler's band math expression (e.g B1/B2). OPTIONAL
+    - **nodata**: Overwrite internal Nodata value. OPTIONAL
+    - **max_size**: Max image size, default is 1024. OPTIONAL
+    - **rescale**: Comma (',') delimited Min,Max bounds. OPTIONAL
+    - **color_formula**: rio-color formula. OPTIONAL
+    - **colormap_name**: rio-tiler color map name. OPTIONAL
+    - **colormap**: JSON encoded custom Colormap. OPTIONAL
+    - **resampling_method**: rasterio resampling method. Default is `nearest`.
+
+Example:
+
+- `https://myendpoint/cog/crop?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/cog/crop.png?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/cog/crop/100x100.png?url=https://somewhere.com/mycog.tif&bidx=1&rescale=0,1000&colormap_name=cfastie`
+
+Note: if `height` and `width` are provided `max_size` will be ignored.
 
 ### Point
 

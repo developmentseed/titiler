@@ -35,7 +35,7 @@ from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
 from titiler.core.resources.responses import GeoJSONResponse, XMLResponse
 from titiler.core.utils import Timer, bbox_to_feature
 
-from fastapi import APIRouter, Depends, Path, Query
+from fastapi import APIRouter, Body, Depends, Path, Query
 
 from starlette.requests import Request
 from starlette.responses import Response
@@ -688,6 +688,72 @@ class TilerFactory(BaseTilerFactory):
                     color_formula=render_params.color_formula,
                 )
             timings.append(("postprocess", round(t.elapsed * 1000, 2)))
+
+            with Timer() as t:
+                content = image.render(
+                    add_mask=render_params.return_mask,
+                    img_format=format.driver,
+                    colormap=colormap or dst_colormap,
+                    **format.profile,
+                    **render_params.kwargs,
+                )
+            timings.append(("format", round(t.elapsed * 1000, 2)))
+
+            if OptionalHeader.server_timing in self.optional_headers:
+                headers["Server-Timing"] = ", ".join(
+                    [f"{name};dur={time}" for (name, time) in timings]
+                )
+
+            return Response(content, media_type=format.mediatype, headers=headers)
+
+        @self.router.post(
+            r"/crop", **img_endpoint_params,
+        )
+        @self.router.post(
+            r"/crop.{format}", **img_endpoint_params,
+        )
+        @self.router.post(
+            r"/crop/{width}x{height}.{format}", **img_endpoint_params,
+        )
+        def geojson_crop(
+            feature: Feature = Body(..., descriptiom="GeoJSON Feature."),
+            format: ImageType = Query(
+                None, description="Output image type. Default is auto."
+            ),
+            src_path=Depends(self.path_dependency),
+            layer_params=Depends(self.layer_dependency),
+            image_params=Depends(self.img_dependency),
+            dataset_params=Depends(self.dataset_dependency),
+            render_params=Depends(self.render_dependency),
+            colormap=Depends(self.colormap_dependency),
+            kwargs: Dict = Depends(self.additional_dependency),
+        ):
+            """Create image from a geojson feature."""
+            timings = []
+            headers: Dict[str, str] = {}
+
+            with Timer() as t:
+                with rasterio.Env(**self.gdal_config):
+                    with self.reader(src_path, **self.reader_options) as src_dst:
+                        data = src_dst.feature(
+                            feature.dict(exclude_none=True),
+                            **layer_params.kwargs,
+                            **image_params.kwargs,
+                            **dataset_params.kwargs,
+                            **kwargs,
+                        )
+                        dst_colormap = getattr(src_dst, "colormap", None)
+            timings.append(("dataread", round(t.elapsed * 1000, 2)))
+
+            with Timer() as t:
+                image = data.post_process(
+                    in_range=render_params.rescale_range,
+                    color_formula=render_params.color_formula,
+                )
+            timings.append(("postprocess", round(t.elapsed * 1000, 2)))
+
+            if not format:
+                format = ImageType.jpeg if data.mask.all() else ImageType.png
 
             with Timer() as t:
                 content = image.render(
