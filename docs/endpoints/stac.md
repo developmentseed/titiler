@@ -152,7 +152,7 @@ Example:
 
 - `https://myendpoint/stac/crop?url=https://somewhere.com/item.json&assets=B01`
 - `https://myendpoint/stac/crop.png?url=https://somewhere.com/item.json&assets=B01`
-- `https://myendpoint/stac/crop/0,0,10,10.png?url=https://somewhere.com/item.json&assets=B01&rescale=0,1000&colormap_name=cfastie`
+- `https://myendpoint/stac/crop/100x100.png?url=https://somewhere.com/item.json&assets=B01&rescale=0,1000&colormap_name=cfastie`
 
 Note: if `height` and `width` are provided `max_size` will be ignored.
 
@@ -275,4 +275,3 @@ Demonstration viewer added to the router created by the factory (https://github.
 Example:
 
 - `https://myendpoint/stac/viewer?url=https://somewhere.com/item.json`
-
