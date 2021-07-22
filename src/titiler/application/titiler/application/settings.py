@@ -1,5 +1,4 @@
 """Titiler API settings."""
-import os
 
 import pydantic
 
@@ -10,7 +9,7 @@ class ApiSettings(pydantic.BaseSettings):
     name: str = "titiler"
     cors_origins: str = "*"
     cachecontrol: str = "public, max-age=3600"
-    root_path: str = os.getenv("ROOT_PATH", "")
+    root_path: str = ""
     debug: bool = False
 
     disable_cog: bool = False
