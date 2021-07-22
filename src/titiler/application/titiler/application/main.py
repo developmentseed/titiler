@@ -1,6 +1,7 @@
 """titiler app."""
 
 import logging
+import os
 
 from brotli_asgi import BrotliMiddleware
 
@@ -33,6 +34,7 @@ app = FastAPI(
     title=api_settings.name,
     description="A lightweight Cloud Optimized GeoTIFF tile server",
     version=titiler_version,
+    root_path=os.getenv('ROOT_PATH', '/'),
 )
 
 if not api_settings.disable_cog:
