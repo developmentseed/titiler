@@ -31,7 +31,7 @@ from starlette.testclient import TestClient
 def test_TilerFactory():
     """Test TilerFactory class."""
     cog = TilerFactory()
-    assert len(cog.router.routes) == 21
+    assert len(cog.router.routes) == 24
     assert cog.tms_dependency == TMSParams
 
     cog = TilerFactory(router_prefix="something", tms_dependency=WebMercatorTMSParams)
@@ -272,6 +272,47 @@ def test_TilerFactory():
     assert meta["dtype"] == "int16"
     assert meta["count"] == 1
 
+    feature = json.dumps(
+        {
+            "type": "Feature",
+            "properties": {},
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [-59.23828124999999, 74.16408546675687],
+                        [-59.83154296874999, 73.15680773175981],
+                        [-58.73291015624999, 72.88087095711504],
+                        [-56.62353515625, 73.06104462497655],
+                        [-55.17333984375, 73.41588526207096],
+                        [-55.2392578125, 74.09799577518739],
+                        [-56.88720703125, 74.2895142503942],
+                        [-57.23876953124999, 74.30735341486248],
+                        [-59.23828124999999, 74.16408546675687],
+                    ]
+                ],
+            },
+        }
+    )
+
+    response = client.post(f"/crop?url={DATA_DIR}/cog.tif", data=feature)
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/png"
+
+    response = client.post(f"/crop.tif?url={DATA_DIR}/cog.tif", data=feature)
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/tiff; application=geotiff"
+    meta = parse_img(response.content)
+    assert meta["dtype"] == "uint16"
+    assert meta["count"] == 2
+
+    response = client.post(f"/crop/100x100.jpeg?url={DATA_DIR}/cog.tif", data=feature)
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/jpeg"
+    meta = parse_img(response.content)
+    assert meta["width"] == 100
+    assert meta["height"] == 100
+
 
 @patch("rio_tiler.io.cogeo.rasterio")
 def test_MultiBaseTilerFactory(rio):
@@ -279,7 +320,7 @@ def test_MultiBaseTilerFactory(rio):
     rio.open = mock_rasterio_open
 
     stac = MultiBaseTilerFactory(reader=STACReader)
-    assert len(stac.router.routes) == 22
+    assert len(stac.router.routes) == 25
 
     app = FastAPI()
     app.include_router(stac.router)
@@ -359,7 +400,7 @@ def test_MultiBandTilerFactory():
     """test MultiBandTilerFactory."""
 
     bands = MultiBandTilerFactory(reader=BandFileReader)
-    assert len(bands.router.routes) == 22
+    assert len(bands.router.routes) == 25
 
     app = FastAPI()
     app.include_router(bands.router)
