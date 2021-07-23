@@ -1,5 +1,12 @@
 # Release Notes
 
+## Unrelease
+
+### titiler.core
+
+* add `/crop` POST endpoint to return an image from a GeoJSON feature (https://github.com/developmentseed/titiler/pull/339)
+
+
 ## 0.3.3 (2021-06-29)
 
 ### titiler.core
