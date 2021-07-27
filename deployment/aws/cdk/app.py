@@ -31,7 +31,6 @@ class titilerLambdaStack(core.Stack):
         id: str,
         memory: int = 1024,
         timeout: int = 30,
-        runtime: aws_lambda.Runtime = aws_lambda.Runtime.PYTHON_3_8,
         concurrent: Optional[int] = None,
         permissions: Optional[List[iam.PolicyStatement]] = None,
         environment: Optional[Dict] = None,
@@ -44,20 +43,11 @@ class titilerLambdaStack(core.Stack):
         permissions = permissions or []
         environment = environment or {}
 
-        lambda_function = aws_lambda.Function(
+        lambda_function = aws_lambda.DockerImageFunction(
             self,
             f"{id}-lambda",
-            runtime=runtime,
-            code=aws_lambda.Code.from_asset(
-                path=os.path.abspath(code_dir),
-                bundling=core.BundlingOptions(
-                    image=core.BundlingDockerImage.from_asset(
-                        os.path.abspath(code_dir), file="lambda/Dockerfile",
-                    ),
-                    command=["bash", "-c", "cp -R /var/task/. /asset-output/."],
-                ),
-            ),
-            handler="handler.handler",
+            code=aws_lambda.DockerImageCode.from_image_asset(
+                os.path.abspath(os.path.join(code_dir, 'lambda'))),
             memory_size=memory,
             reserved_concurrent_executions=concurrent,
             timeout=core.Duration.seconds(timeout),
