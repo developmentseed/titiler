@@ -33,6 +33,7 @@ app = FastAPI(
     title=api_settings.name,
     description="A lightweight Cloud Optimized GeoTIFF tile server",
     version=titiler_version,
+    root_path=api_settings.root_path,
 )
 
 if not api_settings.disable_cog:

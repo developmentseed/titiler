@@ -6,6 +6,9 @@
 
 * add `/crop` POST endpoint to return an image from a GeoJSON feature (https://github.com/developmentseed/titiler/pull/339)
 
+### titiler.application
+
+* add optional `root_path` setting to specify a url path prefix to use when running the app behind a reverse proxy (https://github.com/developmentseed/titiler/pull/343)
 
 ## 0.3.3 (2021-06-29)
 
