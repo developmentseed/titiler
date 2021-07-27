@@ -2,7 +2,7 @@
 
 import abc
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, Type
+from typing import Any, Callable, Dict, List, Optional, Type, Union
 from urllib.parse import urlencode, urlparse
 
 import rasterio
@@ -33,7 +33,7 @@ from titiler.core.models.mapbox import TileJSON
 from titiler.core.models.OGC import TileMatrixSetList
 from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
 from titiler.core.resources.responses import GeoJSONResponse, XMLResponse
-from titiler.core.utils import Timer, bbox_to_feature
+from titiler.core.utils import Timer, bbox_to_feature, data_stats
 
 from fastapi import APIRouter, Body, Depends, Path, Query
 
@@ -146,6 +146,7 @@ class TilerFactory(BaseTilerFactory):
     # Add/Remove some endpoints
     add_preview: bool = True
     add_part: bool = True
+    add_statistics: bool = True
 
     def register_routes(self):
         """
@@ -171,6 +172,9 @@ class TilerFactory(BaseTilerFactory):
 
         if self.add_part:
             self.part()
+
+        if self.add_statistics:
+            self.statistics()
 
     ############################################################################
     # /bounds
@@ -771,6 +775,88 @@ class TilerFactory(BaseTilerFactory):
                 )
 
             return Response(content, media_type=format.mediatype, headers=headers)
+
+    ############################################################################
+    # /statistics (Optional)
+    ############################################################################
+    def statistics(self):
+        """add statistics endpoints."""
+
+        @self.router.get(
+            "/statistics",
+            responses={
+                200: {
+                    "content": {"application/json": {}},
+                    "description": "Return dataset's statistics.",
+                }
+            },
+        )
+        def get_statistics(
+            src_path=Depends(self.path_dependency),
+            layer_params=Depends(self.layer_dependency),
+            image_params=Depends(self.img_dependency),
+            dataset_params=Depends(self.dataset_dependency),
+            categorical: bool = Query(
+                False, description="Return statistics for categorical dataset."
+            ),
+            c: List[Union[float, int]] = Query(
+                None, description="Pixels values for categories."
+            ),
+            p: List[int] = Query([2, 98], description="Percentiles values."),
+            kwargs: Dict = Depends(self.additional_dependency),
+        ):
+            """Create image from a geojson feature."""
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path, **self.reader_options) as src_dst:
+                    data = src_dst.preview(
+                        **layer_params.kwargs,
+                        **image_params.kwargs,
+                        **dataset_params.kwargs,
+                        **kwargs,
+                    ).as_masked()
+
+            return data_stats(
+                data, categorical=categorical, categories=c, percentiles=p
+            )
+
+        @self.router.post(
+            "/statistics",
+            responses={
+                200: {
+                    "content": {"application/json": {}},
+                    "description": "Return dataset's statistics.",
+                }
+            },
+        )
+        def post_statistics(
+            feature: Feature = Body(..., descriptiom="GeoJSON Feature."),
+            src_path=Depends(self.path_dependency),
+            layer_params=Depends(self.layer_dependency),
+            image_params=Depends(self.img_dependency),
+            dataset_params=Depends(self.dataset_dependency),
+            categorical: bool = Query(
+                False, description="Return statistics for categorical dataset."
+            ),
+            c: List[Union[float, int]] = Query(
+                None, description="Pixels values for categories."
+            ),
+            p: List[int] = Query([2, 98], description="Percentiles values."),
+            kwargs: Dict = Depends(self.additional_dependency),
+        ):
+            """Create image from a geojson feature."""
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path, **self.reader_options) as src_dst:
+                    data = src_dst.feature(
+                        feature.dict(exclude_none=True),
+                        **layer_params.kwargs,
+                        **image_params.kwargs,
+                        **dataset_params.kwargs,
+                        **kwargs,
+                    ).as_masked()
+
+            return data_stats(
+                data, categorical=categorical, categories=c, percentiles=p,
+            )
 
 
 @dataclass

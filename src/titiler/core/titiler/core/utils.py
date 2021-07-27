@@ -1,8 +1,9 @@
 """TiTiler utility functions."""
 
 import time
-from typing import Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
+import numpy
 from geojson_pydantic.features import Feature
 
 
@@ -55,3 +56,49 @@ def bbox_to_feature(
             "type": "Feature",
         }
     )
+
+
+def data_stats(
+    data: numpy.ma.array,
+    categorical: bool = False,
+    categories: Optional[List[float]] = None,
+    percentiles: List[int] = [2, 98],
+) -> List[Dict[str, Any]]:
+    """Returns statistics."""
+    output = []
+    percentiles_names = [f"percentile_{int(p)}" for p in percentiles]
+    for b in range(data.shape[0]):
+        keys, counts = numpy.unique(data[b].data, return_counts=True)
+        valid_percent = round(
+            (1 - numpy.ma.count_masked(data[b]) / data[b].size) * 100, 2
+        )
+
+        if categorical:
+            # if input categories we make sure to use the same type as the data
+            out_keys = (
+                numpy.array(categories).astype(keys.dtype) if categories else keys
+            )
+            out_dict = dict(zip(keys.tolist(), counts.tolist()))
+            output.append(
+                {
+                    "categories": {k: out_dict.get(k, 0) for k in out_keys.tolist()},
+                    "valid_percent": valid_percent,
+                },
+            )
+        else:
+            percentiles_values = numpy.percentile(data[b], percentiles).tolist()
+
+            v = {
+                "min": float(data[b].min()),
+                "max": float(data[b].max()),
+                "mean": float(data[b].mean()),
+                "count": float(data[b].count()),
+                "sum": float(data[b].sum()),
+                "std": float(data[b].std()),
+                "median": float(numpy.ma.median(data[b])),
+            }
+            v.update(dict(zip(percentiles_names, percentiles_values)))
+            v["valid_percent"] = valid_percent
+            output.append(v)
+
+    return output

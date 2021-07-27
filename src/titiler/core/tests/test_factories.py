@@ -31,7 +31,7 @@ from starlette.testclient import TestClient
 def test_TilerFactory():
     """Test TilerFactory class."""
     cog = TilerFactory()
-    assert len(cog.router.routes) == 24
+    assert len(cog.router.routes) == 26
     assert cog.tms_dependency == TMSParams
 
     cog = TilerFactory(router_prefix="something", tms_dependency=WebMercatorTMSParams)
@@ -47,7 +47,7 @@ def test_TilerFactory():
     response = client.get(f"/something/NZTM2000/tilejson.json?url={DATA_DIR}/cog.tif")
     assert response.status_code == 422
 
-    cog = TilerFactory(add_preview=False, add_part=False)
+    cog = TilerFactory(add_preview=False, add_part=False, add_statistics=False)
     assert len(cog.router.routes) == 17
 
     app = FastAPI()
@@ -313,6 +313,104 @@ def test_TilerFactory():
     assert meta["width"] == 100
     assert meta["height"] == 100
 
+    # GET - statistics
+    response = client.get(f"/statistics?url={DATA_DIR}/cog.tif&bidx=1,1,1")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    resp = response.json()
+    assert len(resp) == 3
+    assert list(resp[0]) == [
+        "min",
+        "max",
+        "mean",
+        "count",
+        "sum",
+        "std",
+        "median",
+        "percentile_2",
+        "percentile_98",
+        "valid_percent",
+    ]
+
+    response = client.get(f"/statistics?url={DATA_DIR}/cog.tif&bidx=1,1,1&p=4")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    resp = response.json()
+    assert len(resp) == 3
+    assert list(resp[0]) == [
+        "min",
+        "max",
+        "mean",
+        "count",
+        "sum",
+        "std",
+        "median",
+        "percentile_4",
+        "valid_percent",
+    ]
+
+    response = client.get(f"/statistics?url={DATA_DIR}/cog.tif&categorical=true")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    resp = response.json()
+    assert len(resp) == 1
+    assert list(resp[0]) == ["categories", "valid_percent"]
+    assert len(resp[0]["categories"]) == 15
+
+    response = client.get(
+        f"/statistics?url={DATA_DIR}/cog.tif&categorical=true&c=1&c=2&c=3&c=4"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    resp = response.json()
+    assert len(resp) == 1
+    assert list(resp[0]) == ["categories", "valid_percent"]
+    assert len(resp[0]["categories"]) == 4
+    assert resp[0]["categories"]["4"] == 0
+
+    # POST - statistics
+    response = client.post(
+        f"/statistics?url={DATA_DIR}/cog.tif&bidx=1,1,1", data=feature
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    resp = response.json()
+    assert len(resp) == 3
+    assert list(resp[0]) == [
+        "min",
+        "max",
+        "mean",
+        "count",
+        "sum",
+        "std",
+        "median",
+        "percentile_2",
+        "percentile_98",
+        "valid_percent",
+    ]
+
+    response = client.post(
+        f"/statistics?url={DATA_DIR}/cog.tif&categorical=true", data=feature
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    resp = response.json()
+    assert len(resp) == 1
+    assert list(resp[0]) == ["categories", "valid_percent"]
+    assert len(resp[0]["categories"]) == 13
+
+    response = client.post(
+        f"/statistics?url={DATA_DIR}/cog.tif&categorical=true&c=1&c=2&c=3&c=4",
+        data=feature,
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    resp = response.json()
+    assert len(resp) == 1
+    assert list(resp[0]) == ["categories", "valid_percent"]
+    assert len(resp[0]["categories"]) == 4
+    assert resp[0]["categories"]["4"] == 0
+
 
 @patch("rio_tiler.io.cogeo.rasterio")
 def test_MultiBaseTilerFactory(rio):
@@ -320,7 +418,7 @@ def test_MultiBaseTilerFactory(rio):
     rio.open = mock_rasterio_open
 
     stac = MultiBaseTilerFactory(reader=STACReader)
-    assert len(stac.router.routes) == 25
+    assert len(stac.router.routes) == 27
 
     app = FastAPI()
     app.include_router(stac.router)
@@ -371,6 +469,25 @@ def test_MultiBaseTilerFactory(rio):
     assert meta["dtype"] == "int32"
     assert meta["count"] == 3
 
+    # GET - statistics
+    response = client.get(f"/statistics?url={DATA_DIR}/item.json&assets=B01,B09")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    resp = response.json()
+    assert len(resp) == 2
+    assert list(resp[0]) == [
+        "min",
+        "max",
+        "mean",
+        "count",
+        "sum",
+        "std",
+        "median",
+        "percentile_2",
+        "percentile_98",
+        "valid_percent",
+    ]
+
 
 @attr.s
 class BandFileReader(MultiBandReader):
@@ -400,7 +517,7 @@ def test_MultiBandTilerFactory():
     """test MultiBandTilerFactory."""
 
     bands = MultiBandTilerFactory(reader=BandFileReader)
-    assert len(bands.router.routes) == 25
+    assert len(bands.router.routes) == 27
 
     app = FastAPI()
     app.include_router(bands.router)
@@ -445,6 +562,25 @@ def test_MultiBandTilerFactory():
     meta = parse_img(response.content)
     assert meta["dtype"] == "int32"
     assert meta["count"] == 3
+
+    # GET - statistics
+    response = client.get(f"/statistics?url={DATA_DIR}&bands=B01,B09")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    resp = response.json()
+    assert len(resp) == 2
+    assert list(resp[0]) == [
+        "min",
+        "max",
+        "mean",
+        "count",
+        "sum",
+        "std",
+        "median",
+        "percentile_2",
+        "percentile_98",
+        "valid_percent",
+    ]
 
 
 def test_TMSFactory():
