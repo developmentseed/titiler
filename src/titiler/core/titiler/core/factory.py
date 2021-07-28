@@ -791,7 +791,7 @@ class TilerFactory(BaseTilerFactory):
                 }
             },
         )
-        def get_statistics(
+        def statistics(
             src_path=Depends(self.path_dependency),
             layer_params=Depends(self.layer_dependency),
             image_params=Depends(self.img_dependency),
@@ -828,7 +828,7 @@ class TilerFactory(BaseTilerFactory):
                 }
             },
         )
-        def post_statistics(
+        def geojson_statistics(
             feature: Feature = Body(..., descriptiom="GeoJSON Feature."),
             src_path=Depends(self.path_dependency),
             layer_params=Depends(self.layer_dependency),

@@ -327,8 +327,13 @@ def test_TilerFactory():
         "sum",
         "std",
         "median",
+        "majority",
+        "minority",
+        "unique",
         "percentile_2",
         "percentile_98",
+        "valid_pixels",
+        "masked_pixels",
         "valid_percent",
     ]
 
@@ -345,7 +350,12 @@ def test_TilerFactory():
         "sum",
         "std",
         "median",
+        "majority",
+        "minority",
+        "unique",
         "percentile_4",
+        "valid_pixels",
+        "masked_pixels",
         "valid_percent",
     ]
 
@@ -354,7 +364,12 @@ def test_TilerFactory():
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
     assert len(resp) == 1
-    assert list(resp[0]) == ["categories", "valid_percent"]
+    assert list(resp[0]) == [
+        "categories",
+        "valid_pixels",
+        "masked_pixels",
+        "valid_percent",
+    ]
     assert len(resp[0]["categories"]) == 15
 
     response = client.get(
@@ -364,7 +379,12 @@ def test_TilerFactory():
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
     assert len(resp) == 1
-    assert list(resp[0]) == ["categories", "valid_percent"]
+    assert list(resp[0]) == [
+        "categories",
+        "valid_pixels",
+        "masked_pixels",
+        "valid_percent",
+    ]
     assert len(resp[0]["categories"]) == 4
     assert resp[0]["categories"]["4"] == 0
 
@@ -384,8 +404,13 @@ def test_TilerFactory():
         "sum",
         "std",
         "median",
+        "majority",
+        "minority",
+        "unique",
         "percentile_2",
         "percentile_98",
+        "valid_pixels",
+        "masked_pixels",
         "valid_percent",
     ]
 
@@ -396,8 +421,13 @@ def test_TilerFactory():
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
     assert len(resp) == 1
-    assert list(resp[0]) == ["categories", "valid_percent"]
-    assert len(resp[0]["categories"]) == 13
+    assert list(resp[0]) == [
+        "categories",
+        "valid_pixels",
+        "masked_pixels",
+        "valid_percent",
+    ]
+    assert len(resp[0]["categories"]) == 12
 
     response = client.post(
         f"/statistics?url={DATA_DIR}/cog.tif&categorical=true&c=1&c=2&c=3&c=4",
@@ -407,7 +437,12 @@ def test_TilerFactory():
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
     assert len(resp) == 1
-    assert list(resp[0]) == ["categories", "valid_percent"]
+    assert list(resp[0]) == [
+        "categories",
+        "valid_pixels",
+        "masked_pixels",
+        "valid_percent",
+    ]
     assert len(resp[0]["categories"]) == 4
     assert resp[0]["categories"]["4"] == 0
 
@@ -483,8 +518,13 @@ def test_MultiBaseTilerFactory(rio):
         "sum",
         "std",
         "median",
+        "majority",
+        "minority",
+        "unique",
         "percentile_2",
         "percentile_98",
+        "valid_pixels",
+        "masked_pixels",
         "valid_percent",
     ]
 
@@ -577,8 +617,13 @@ def test_MultiBandTilerFactory():
         "sum",
         "std",
         "median",
+        "majority",
+        "minority",
+        "unique",
         "percentile_2",
         "percentile_98",
+        "valid_pixels",
+        "masked_pixels",
         "valid_percent",
     ]
 

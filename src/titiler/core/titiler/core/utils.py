@@ -63,15 +63,21 @@ def data_stats(
     categorical: bool = False,
     categories: Optional[List[float]] = None,
     percentiles: List[int] = [2, 98],
-) -> List[Dict[str, Any]]:
+) -> List[Dict[Any, Any]]:
     """Returns statistics."""
-    output = []
+    output: List[Dict[Any, Any]] = []
     percentiles_names = [f"percentile_{int(p)}" for p in percentiles]
     for b in range(data.shape[0]):
-        keys, counts = numpy.unique(data[b].data, return_counts=True)
-        valid_percent = round(
-            (1 - numpy.ma.count_masked(data[b]) / data[b].size) * 100, 2
-        )
+        keys, counts = numpy.unique(data[b].compressed(), return_counts=True)
+
+        valid_pixels = float(numpy.ma.count(data[b]))
+        masked_pixels = float(numpy.ma.count_masked(data[b]))
+        valid_percent = round((valid_pixels / data[b].size) * 100, 2)
+        info_px = {
+            "valid_pixels": valid_pixels,
+            "masked_pixels": masked_pixels,
+            "valid_percent": valid_percent,
+        }
 
         if categorical:
             # if input categories we make sure to use the same type as the data
@@ -82,23 +88,33 @@ def data_stats(
             output.append(
                 {
                     "categories": {k: out_dict.get(k, 0) for k in out_keys.tolist()},
-                    "valid_percent": valid_percent,
+                    **info_px,
                 },
             )
         else:
-            percentiles_values = numpy.percentile(data[b], percentiles).tolist()
+            percentiles_values = numpy.percentile(
+                data[b].compressed(), percentiles
+            ).tolist()
 
-            v = {
-                "min": float(data[b].min()),
-                "max": float(data[b].max()),
-                "mean": float(data[b].mean()),
-                "count": float(data[b].count()),
-                "sum": float(data[b].sum()),
-                "std": float(data[b].std()),
-                "median": float(numpy.ma.median(data[b])),
-            }
-            v.update(dict(zip(percentiles_names, percentiles_values)))
-            v["valid_percent"] = valid_percent
-            output.append(v)
+            output.append(
+                {
+                    "min": float(data[b].min()),
+                    "max": float(data[b].max()),
+                    "mean": float(data[b].mean()),
+                    "count": float(data[b].count()),
+                    "sum": float(data[b].sum()),
+                    "std": float(data[b].std()),
+                    "median": float(numpy.ma.median(data[b])),
+                    "majority": float(
+                        keys[counts.tolist().index(counts.max())].tolist()
+                    ),
+                    "minority": float(
+                        keys[counts.tolist().index(counts.min())].tolist()
+                    ),
+                    "unique": float(counts.size),
+                    **dict(zip(percentiles_names, percentiles_values)),
+                    **info_px,
+                }
+            )
 
     return output
