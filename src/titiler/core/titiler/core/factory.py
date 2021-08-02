@@ -802,7 +802,7 @@ class TilerFactory(BaseTilerFactory):
             c: List[Union[float, int]] = Query(
                 None, description="Pixels values for categories."
             ),
-            p: List[int] = Query([2, 98], description="Percentiles values."),
+            p: List[int] = Query([2, 98], description="Percentile values."),
             kwargs: Dict = Depends(self.additional_dependency),
         ):
             """Create image from a geojson feature."""
@@ -845,7 +845,7 @@ class TilerFactory(BaseTilerFactory):
             c: List[Union[float, int]] = Query(
                 None, description="Pixels values for categories."
             ),
-            p: List[int] = Query([2, 98], description="Percentiles values."),
+            p: List[int] = Query([2, 98], description="Percentile values."),
             kwargs: Dict = Depends(self.additional_dependency),
         ):
             """Create image from a geojson feature."""

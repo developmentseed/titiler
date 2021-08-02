@@ -20,6 +20,8 @@ Read Info/Metadata and create Web map Tiles from a **single** COG. The `cog` rou
 | `GET`  | `/cog/preview[.{format}]`                                           | image/bin | create a preview image from a dataset
 | `GET`  | `/cog/crop/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin | create an image from part of a dataset
 | `POST` | `/cog/crop[/{width}x{height}][].{format}]`                          | image/bin | create an image from a geojson covering a dataset
+| `GET`  | `/cog/statistics`                                                   | JSON      | Return advanced statistics from a dataset
+| `POST` | `/cog/statistics`                                                   | GeoJSON   | Return zonal statistics from a dataset for a geosjon Feature or FeatureCollection
 | `GET`  | `/cog/validate`                                                     | JSON      | validate a COG and return dataset info
 | `GET`  | `/cog/viewer`                                                       | HTML      | demo webpage
 
@@ -116,7 +118,7 @@ Example:
 `:endpoint:/cog/crop[/{width}x{height}][].{format}] - [POST]`
 
 - Body:
-    - **feature**: A valida GeoJSON feature (Polygon or MultiPolygon)
+    - **feature**: A valid GeoJSON feature (Polygon or MultiPolygon)
 
 - PathParams:
     - **height**: Force output image height. OPTIONAL
@@ -230,6 +232,33 @@ Example:
 Example:
 
 - `https://myendpoint/cog/metadata?url=https://somewhere.com/mycog.tif&bidx=1,2,3`
+
+### Statistics
+
+Advanced raster statistics
+
+`:endpoint:/cog/statistics - [GET|POST]`
+
+- QueryParams:
+    - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
+    - **bidx**: Comma (',') delimited band indexes. OPTIONAL
+    - **expression**: rio-tiler's band math expression (e.g B1/B2). OPTIONAL
+    - **nodata**: Overwrite internal Nodata value. OPTIONAL
+    - **max_size**: Max image size from which to calculate statistics, default is 1024. OPTIONAL
+    - **height**: Force image height. OPTIONAL
+    - **width**: Force image width. OPTIONAL
+    - **unscale**: Apply internal Scale/Offset. OPTIONAL
+    - **resampling_method**: rasterio resampling method. Default is `nearest`.
+    - **categorical**: Return statistics for categorical dataset.
+    - **c** (multiple): Pixels values for categories.
+    - **p** (multiple): Percentile values.
+
+- Body (for POST endpoint):
+    - **features**: A valid GeoJSON feature or FeatureCollection (Polygon or MultiPolygon).
+
+Example:
+
+- `https://myendpoint/cog/statistics?url=https://somewhere.com/mycog.tif&bidx=1,2,3&categorical=true&c=1&c=2&c=3&p=2&p98`
 
 ### Demo
 

@@ -261,7 +261,36 @@ Example:
 
 Example:
 
-- `https://myendpoint/stac/metadata?https://somewhere.com/item.json&assets=B01`
+- `https://myendpoint/stac/metadata?url=https://somewhere.com/item.json&assets=B01`
+
+
+### Statistics
+
+Advanced raster statistics
+
+`:endpoint:/stac/statistics - [GET|POST]`
+
+- QueryParams:
+    - **url**: STAC Item URL. **REQUIRED**
+    - **bidx**: Comma (',') delimited band indexes. OPTIONAL
+    - **assets**: Comma (',') delimited asset names. **REQUIRED**
+    - **expression**: rio-tiler's band math expression (e.g B1/B2). OPTIONAL
+    - **nodata**: Overwrite internal Nodata value. OPTIONAL
+    - **max_size**: Max image size from which to calculate statistics, default is 1024. OPTIONAL
+    - **height**: Force image height. OPTIONAL
+    - **width**: Force image width. OPTIONAL
+    - **unscale**: Apply internal Scale/Offset. OPTIONAL
+    - **resampling_method**: rasterio resampling method. Default is `nearest`.
+    - **categorical**: Return statistics for categorical dataset.
+    - **c** (multiple): Pixels values for categories.
+    - **p** (multiple): Percentile values.
+
+- Body (for POST endpoint):
+    - **features**: A valid GeoJSON feature or FeatureCollection (Polygon or MultiPolygon).
+
+Example:
+
+- `https://myendpoint/cog/statistics?url=https://somewhere.com/item.json&assets=B01&categorical=true&c=1&c=2&c=3&p=2&p98`
 
 ### Demo
 
