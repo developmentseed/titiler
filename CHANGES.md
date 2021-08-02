@@ -5,6 +5,7 @@
 ### titiler.core
 
 * add `/crop` POST endpoint to return an image from a GeoJSON feature (https://github.com/developmentseed/titiler/pull/339)
+* add `/statistics` (GET and POST) endpoints to return advanced images statistics (https://github.com/developmentseed/titiler/pull/347)
 
 ### titiler.application
 
