@@ -6,7 +6,7 @@ from typing import Any, Callable, Dict, List, Optional, Type, Union
 from urllib.parse import urlencode, urlparse
 
 import rasterio
-from geojson_pydantic.features import Feature
+from geojson_pydantic.features import Feature, FeatureCollection
 from morecantile import TileMatrixSet
 from rio_tiler.io import BaseReader, COGReader, MultiBandReader, MultiBaseReader
 from rio_tiler.models import Bounds, Info, Metadata
@@ -821,6 +821,9 @@ class TilerFactory(BaseTilerFactory):
 
         @self.router.post(
             "/statistics",
+            response_model=Union[Feature, FeatureCollection],
+            response_model_exclude_none=True,
+            response_class=GeoJSONResponse,
             responses={
                 200: {
                     "content": {"application/json": {}},
@@ -829,7 +832,9 @@ class TilerFactory(BaseTilerFactory):
             },
         )
         def geojson_statistics(
-            feature: Feature = Body(..., descriptiom="GeoJSON Feature."),
+            features: Union[FeatureCollection, Feature] = Body(
+                ..., descriptiom="GeoJSON Feature or FeatureCollection."
+            ),
             src_path=Depends(self.path_dependency),
             layer_params=Depends(self.layer_dependency),
             image_params=Depends(self.img_dependency),
@@ -844,19 +849,50 @@ class TilerFactory(BaseTilerFactory):
             kwargs: Dict = Depends(self.additional_dependency),
         ):
             """Create image from a geojson feature."""
-            with rasterio.Env(**self.gdal_config):
-                with self.reader(src_path, **self.reader_options) as src_dst:
-                    data = src_dst.feature(
-                        feature.dict(exclude_none=True),
-                        **layer_params.kwargs,
-                        **image_params.kwargs,
-                        **dataset_params.kwargs,
-                        **kwargs,
-                    ).as_masked()
+            if isinstance(features, FeatureCollection):
+                feat = []
+                for feature in features:
+                    with rasterio.Env(**self.gdal_config):
+                        with self.reader(src_path, **self.reader_options) as src_dst:
+                            data = src_dst.feature(
+                                feature.dict(exclude_none=True),
+                                **layer_params.kwargs,
+                                **image_params.kwargs,
+                                **dataset_params.kwargs,
+                                **kwargs,
+                            ).as_masked()
 
-            return data_stats(
-                data, categorical=categorical, categories=c, percentiles=p,
-            )
+                        feature.properties.update(
+                            {
+                                "statistics": data_stats(
+                                    data,
+                                    categorical=categorical,
+                                    categories=c,
+                                    percentiles=p,
+                                )
+                            }
+                        )
+                        feat.append(feature)
+                return FeatureCollection(features=feat)
+            else:
+                with rasterio.Env(**self.gdal_config):
+                    with self.reader(src_path, **self.reader_options) as src_dst:
+                        data = src_dst.feature(
+                            features.dict(exclude_none=True),
+                            **layer_params.kwargs,
+                            **image_params.kwargs,
+                            **dataset_params.kwargs,
+                            **kwargs,
+                        ).as_masked()
+
+                features.properties.update(
+                    {
+                        "statistics": data_stats(
+                            data, categorical=categorical, categories=c, percentiles=p,
+                        )
+                    }
+                )
+                return features
 
 
 @dataclass

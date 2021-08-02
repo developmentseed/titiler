@@ -272,41 +272,41 @@ def test_TilerFactory():
     assert meta["dtype"] == "int16"
     assert meta["count"] == 1
 
-    feature = json.dumps(
-        {
-            "type": "Feature",
-            "properties": {},
-            "geometry": {
-                "type": "Polygon",
-                "coordinates": [
-                    [
-                        [-59.23828124999999, 74.16408546675687],
-                        [-59.83154296874999, 73.15680773175981],
-                        [-58.73291015624999, 72.88087095711504],
-                        [-56.62353515625, 73.06104462497655],
-                        [-55.17333984375, 73.41588526207096],
-                        [-55.2392578125, 74.09799577518739],
-                        [-56.88720703125, 74.2895142503942],
-                        [-57.23876953124999, 74.30735341486248],
-                        [-59.23828124999999, 74.16408546675687],
-                    ]
-                ],
-            },
-        }
-    )
+    feature = {
+        "type": "Feature",
+        "properties": {},
+        "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [-59.23828124999999, 74.16408546675687],
+                    [-59.83154296874999, 73.15680773175981],
+                    [-58.73291015624999, 72.88087095711504],
+                    [-56.62353515625, 73.06104462497655],
+                    [-55.17333984375, 73.41588526207096],
+                    [-55.2392578125, 74.09799577518739],
+                    [-56.88720703125, 74.2895142503942],
+                    [-57.23876953124999, 74.30735341486248],
+                    [-59.23828124999999, 74.16408546675687],
+                ]
+            ],
+        },
+    }
 
-    response = client.post(f"/crop?url={DATA_DIR}/cog.tif", data=feature)
+    feature_collection = {"type": "FeatureCollection", "features": [feature]}
+
+    response = client.post(f"/crop?url={DATA_DIR}/cog.tif", json=feature)
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
 
-    response = client.post(f"/crop.tif?url={DATA_DIR}/cog.tif", data=feature)
+    response = client.post(f"/crop.tif?url={DATA_DIR}/cog.tif", json=feature)
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/tiff; application=geotiff"
     meta = parse_img(response.content)
     assert meta["dtype"] == "uint16"
     assert meta["count"] == 2
 
-    response = client.post(f"/crop/100x100.jpeg?url={DATA_DIR}/cog.tif", data=feature)
+    response = client.post(f"/crop/100x100.jpeg?url={DATA_DIR}/cog.tif", json=feature)
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/jpeg"
     meta = parse_img(response.content)
@@ -390,13 +390,14 @@ def test_TilerFactory():
 
     # POST - statistics
     response = client.post(
-        f"/statistics?url={DATA_DIR}/cog.tif&bidx=1,1,1", data=feature
+        f"/statistics?url={DATA_DIR}/cog.tif&bidx=1,1,1", json=feature
     )
     assert response.status_code == 200
-    assert response.headers["content-type"] == "application/json"
+    assert response.headers["content-type"] == "application/geo+json"
     resp = response.json()
-    assert len(resp) == 3
-    assert list(resp[0]) == [
+    assert resp["type"] == "Feature"
+    assert len(resp["properties"]["statistics"]) == 3
+    assert list(resp["properties"]["statistics"][0]) == [
         "min",
         "max",
         "mean",
@@ -415,36 +416,64 @@ def test_TilerFactory():
     ]
 
     response = client.post(
-        f"/statistics?url={DATA_DIR}/cog.tif&categorical=true", data=feature
+        f"/statistics?url={DATA_DIR}/cog.tif&bidx=1,1,1", json=feature_collection
     )
     assert response.status_code == 200
-    assert response.headers["content-type"] == "application/json"
+    assert response.headers["content-type"] == "application/geo+json"
     resp = response.json()
-    assert len(resp) == 1
-    assert list(resp[0]) == [
+    assert resp["type"] == "FeatureCollection"
+    assert len(resp["features"][0]["properties"]["statistics"]) == 3
+    assert list(resp["features"][0]["properties"]["statistics"][0]) == [
+        "min",
+        "max",
+        "mean",
+        "count",
+        "sum",
+        "std",
+        "median",
+        "majority",
+        "minority",
+        "unique",
+        "percentile_2",
+        "percentile_98",
+        "valid_pixels",
+        "masked_pixels",
+        "valid_percent",
+    ]
+
+    response = client.post(
+        f"/statistics?url={DATA_DIR}/cog.tif&categorical=true", json=feature
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/geo+json"
+    resp = response.json()
+    assert resp["type"] == "Feature"
+    assert len(resp["properties"]["statistics"]) == 1
+    assert list(resp["properties"]["statistics"][0]) == [
         "categories",
         "valid_pixels",
         "masked_pixels",
         "valid_percent",
     ]
-    assert len(resp[0]["categories"]) == 12
+    assert len(resp["properties"]["statistics"][0]["categories"]) == 12
 
     response = client.post(
         f"/statistics?url={DATA_DIR}/cog.tif&categorical=true&c=1&c=2&c=3&c=4",
-        data=feature,
+        json=feature,
     )
     assert response.status_code == 200
-    assert response.headers["content-type"] == "application/json"
+    assert response.headers["content-type"] == "application/geo+json"
     resp = response.json()
-    assert len(resp) == 1
-    assert list(resp[0]) == [
+    assert resp["type"] == "Feature"
+    assert len(resp["properties"]["statistics"]) == 1
+    assert list(resp["properties"]["statistics"][0]) == [
         "categories",
         "valid_pixels",
         "masked_pixels",
         "valid_percent",
     ]
-    assert len(resp[0]["categories"]) == 4
-    assert resp[0]["categories"]["4"] == 0
+    assert len(resp["properties"]["statistics"][0]["categories"]) == 4
+    assert resp["properties"]["statistics"][0]["categories"]["4"] == 0
 
 
 @patch("rio_tiler.io.cogeo.rasterio")
