@@ -41,7 +41,7 @@ def test_MosaicTilerFactory():
         optional_headers=[OptionalHeader.server_timing, OptionalHeader.x_assets],
         router_prefix="mosaic",
     )
-    assert len(mosaic.router.routes) == 19
+    assert len(mosaic.router.routes) == 22
     assert mosaic.tms_dependency == WebMercatorTMSParams
 
     app = FastAPI()
@@ -143,7 +143,7 @@ def test_MosaicTilerFactory():
         )
         assert response.status_code == 200
 
-        response = client.get("/mosaic/0302320/assets", params={"url": mosaic_file},)
+        response = client.get("/mosaic/0302302/assets", params={"url": mosaic_file},)
         assert response.status_code == 200
         assert all(
             filepath.split("/")[-1] in ["cog1.tif"] for filepath in response.json()

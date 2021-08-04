@@ -65,6 +65,7 @@ class MosaicTilerFactory(BaseTilerFactory):
         self.wmts()
         self.point()
         self.validate()
+        self.assets()
 
     ############################################################################
     # /read
