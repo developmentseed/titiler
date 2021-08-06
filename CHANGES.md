@@ -1,6 +1,6 @@
 # Release Notes
 
-## 0.3.5 (2021-08-05)
+## 0.3.5 (TBD)
 
 ### titiler.mosaic
 
