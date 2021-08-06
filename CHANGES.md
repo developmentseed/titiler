@@ -1,5 +1,11 @@
 # Release Notes
 
+## 0.3.5 (TBD)
+
+### titiler.mosaic
+
+* add `/{quadkey}/assets`, `/{lon},{lat}/assets`, `/{minx},{miny},{maxx},{maxy}/assets` GET endpoints to return a list of assets that intersect a given geometry (author @mackdelany, https://github.com/developmentseed/titiler/pull/351)
+
 ## 0.3.4 (2021-08-02)
 
 ### titiler.core

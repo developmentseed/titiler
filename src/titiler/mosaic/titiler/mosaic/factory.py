@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from typing import Callable, Dict, Optional, Type
 from urllib.parse import urlencode, urlparse
 
+import mercantile
 import rasterio
 from cogeo_mosaic.backends import BaseBackend, MosaicBackend
 from cogeo_mosaic.models import Info as mosaicInfo
@@ -64,6 +65,7 @@ class MosaicTilerFactory(BaseTilerFactory):
         self.wmts()
         self.point()
         self.validate()
+        self.assets()
 
     ############################################################################
     # /read
@@ -484,3 +486,65 @@ class MosaicTilerFactory(BaseTilerFactory):
         def validate(body: MosaicJSON):
             """Validate a MosaicJSON"""
             return True
+
+    def assets(self):
+        """Register /assets endpoint."""
+
+        @self.router.get(
+            r"/{minx},{miny},{maxx},{maxy}/assets",
+            responses={200: {"description": "Return list of COGs in bounding box"}},
+        )
+        def bbox(
+            src_path=Depends(self.path_dependency),
+            minx: float = Query(None, description="Left side of bounding box"),
+            miny: float = Query(None, description="Bottom of bounding box"),
+            maxx: float = Query(None, description="Right side of bounding box"),
+            maxy: float = Query(None, description="Top of bounding box"),
+        ):
+            """Return a list of assets which overlap a bounding box"""
+            with self.reader(src_path, **self.backend_options) as mosaic:
+                tl_tile = mercantile.tile(minx, maxy, mosaic.minzoom)
+                br_tile = mercantile.tile(maxx, miny, mosaic.minzoom)
+                tiles = [
+                    (x, y, mosaic.minzoom)
+                    for x in range(tl_tile.x, br_tile.x + 1)
+                    for y in range(tl_tile.y, br_tile.y + 1)
+                ]
+                assets = list(
+                    {
+                        asset
+                        for asset_list in [mosaic.assets_for_tile(*t) for t in tiles]
+                        for asset in asset_list
+                    }
+                )
+
+            return assets
+
+        @self.router.get(
+            r"/{lng},{lat}/assets",
+            responses={200: {"description": "Return list of COGs"}},
+        )
+        def lonlat(
+            src_path=Depends(self.path_dependency),
+            lng: float = Query(None, description="Longitude"),
+            lat: float = Query(None, description="Latitude"),
+        ):
+            """Return a list of assets which overlap a point"""
+            with self.reader(src_path, **self.backend_options) as mosaic:
+                assets = mosaic.assets_for_point(lng, lat)
+
+            return assets
+
+        @self.router.get(
+            r"/{quadkey}/assets",
+            responses={200: {"description": "Return list of COGs"}},
+        )
+        def quadkey(
+            src_path=Depends(self.path_dependency),
+            quadkey: str = Query(None, description="Quadkey to return COGS for."),
+        ):
+            """Return a list of assets which overlap a given quadkey"""
+            with self.reader(src_path, **self.backend_options) as mosaic:
+                assets = mosaic.assets_for_tile(*mercantile.quadkey_to_tile(quadkey))
+
+            return assets
