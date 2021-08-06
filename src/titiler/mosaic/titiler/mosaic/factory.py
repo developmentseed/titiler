@@ -494,7 +494,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             r"/{minx},{miny},{maxx},{maxy}/assets",
             responses={200: {"description": "Return list of COGs in bounding box"}},
         )
-        def bbox(
+        def assets_for_bbox(
             src_path=Depends(self.path_dependency),
             minx: float = Query(None, description="Left side of bounding box"),
             miny: float = Query(None, description="Bottom of bounding box"),
@@ -524,7 +524,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             r"/{lng},{lat}/assets",
             responses={200: {"description": "Return list of COGs"}},
         )
-        def lonlat(
+        def assets_for_lon_lat(
             src_path=Depends(self.path_dependency),
             lng: float = Query(None, description="Longitude"),
             lat: float = Query(None, description="Latitude"),
@@ -536,15 +536,17 @@ class MosaicTilerFactory(BaseTilerFactory):
             return assets
 
         @self.router.get(
-            r"/{quadkey}/assets",
+            r"/{z}/{x}/{y}/assets",
             responses={200: {"description": "Return list of COGs"}},
         )
-        def quadkey(
+        def assets_for_tile(
+            z: int = Path(..., ge=0, le=30, description="Mercator tiles's zoom level"),
+            x: int = Path(..., description="Mercator tiles's column"),
+            y: int = Path(..., description="Mercator tiles's row"),
             src_path=Depends(self.path_dependency),
-            quadkey: str = Query(None, description="Quadkey to return COGS for."),
         ):
-            """Return a list of assets which overlap a given quadkey"""
+            """Return a list of assets which overlap a given tile"""
             with self.reader(src_path, **self.backend_options) as mosaic:
-                assets = mosaic.assets_for_tile(*mercantile.quadkey_to_tile(quadkey))
+                assets = mosaic.assets_for_tile(x, y, z)
 
             return assets
