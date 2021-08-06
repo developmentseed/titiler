@@ -149,7 +149,7 @@ def test_MosaicTilerFactory():
             filepath.split("/")[-1] in ["cog1.tif"] for filepath in response.json()
         )
 
-        response = client.get("/mosaic/-71,46/assets", params={"url": mosaic_file},)
+        response = client.get("/mosaic/-71,46/assets", params={"url": mosaic_file})
         assert response.status_code == 200
         assert all(
             filepath.split("/")[-1] in ["cog1.tif", "cog2.tif"]
