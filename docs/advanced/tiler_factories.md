@@ -107,6 +107,9 @@ app.include_router(cog.router, tags=["Landsat"])
 | `GET`  | `/[{TileMatrixSetId}]/tilejson.json`                            | JSON      | return a Mapbox TileJSON document
 | `GET`  | `/{TileMatrixSetId}/WMTSCapabilities.xml`                       | XML       | return OGC WMTS Get Capabilities
 | `GET`  | `/point/{lon},{lat}`                                            | JSON      | return pixel value from a MosaicJSON dataset
+| `GET`  | `/{quadkey}/assets`                                             | JSON      | return list of assets intersecting a quadkey
+| `GET`  | `/{lon},{lat}/assets`                                           | JSON      | return list of assets intersecting a point
+| `GET`  | `/{minx},{miny},{maxx},{maxy}/assets`                           | JSON      | return list of assets intersecting a bounding box
 
 
 ## FYI
