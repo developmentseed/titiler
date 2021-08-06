@@ -4,7 +4,7 @@
 
 ### titiler.mosaic
 
-- add `/{quadkey}/assets`, `/{lon},{lat}/assets`, `/{minx},{miny},{maxx},{maxy}/assets` GET endpoints to return lists of assets that overlap a given geometry (https://github.com/developmentseed/titiler/pull/351)
+- add `/{quadkey}/assets`, `/{lon},{lat}/assets`, `/{minx},{miny},{maxx},{maxy}/assets` GET endpoints to return a list of assets that overlap the given geometry (https://github.com/developmentseed/titiler/pull/351)
 
 ## 0.3.4 (2021-08-02)
 
