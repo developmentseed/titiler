@@ -85,6 +85,7 @@ def landing(request: Request):
         name="index.html", context={"request": request}, media_type="text/html",
     )
 
+
 # to run the app locally, uncomment these lines:
 # import uvicorn
 # if __name__ == "__main__":

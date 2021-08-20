@@ -190,10 +190,7 @@ elif settings.mosaic_backend == "dynamodb://":
     stack = core.Stack()
     perms.append(
         iam.PolicyStatement(
-            actions=[
-                "dynamodb:CreateTable",
-                "dynamodb:DescribeTable",
-            ],
+            actions=["dynamodb:CreateTable", "dynamodb:DescribeTable"],
             resources=[f"arn:aws:dynamodb:{stack.region}:{stack.account}:table/*"],
         )
     )
@@ -208,7 +205,9 @@ elif settings.mosaic_backend == "dynamodb://":
                 "dynamodb:PutItem",
                 "dynamodb:BatchWriteItem",
             ],
-            resources=[f"arn:aws:dynamodb:{stack.region}:{stack.account}:table/{table_name}"],
+            resources=[
+                f"arn:aws:dynamodb:{stack.region}:{stack.account}:table/{table_name}"
+            ],
         )
     )
 

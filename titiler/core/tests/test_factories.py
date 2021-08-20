@@ -410,7 +410,7 @@ def test_TMSFactory():
     response = client.get("/tms/tileMatrixSets")
     assert response.status_code == 200
     body = response.json()
-    assert len(body["tileMatrixSets"]) == 10  # morecantile has 10 defaults
+    assert len(body["tileMatrixSets"]) == 11  # morecantile has 11 defaults
     tms = list(filter(lambda m: m["id"] == "WebMercatorQuad", body["tileMatrixSets"]))[
         0
     ]

@@ -1,12 +1,11 @@
 """Titiler.mosaic Models."""
 
-from cogeo_mosaic.mosaic import MosaicJSON
+import re
 from typing import List, Optional
 
-from stac_pydantic.api import Search
 from pydantic import BaseModel, validator
+from stac_pydantic.api import Search
 
-import re
 
 def to_camel(snake_str: str) -> str:
     """
@@ -33,9 +32,12 @@ class MosaicEntity(BaseModel):
     links: List[Link]
 
 
-rfc3339_regex_str = r"^(\d\d\d\d)\-(\d\d)\-(\d\d)(T|t)" \
-                    r"(\d\d):(\d\d):(\d\d)(\.\d+)?(Z|([-+])(\d\d):(\d\d))$"
+rfc3339_regex_str = (
+    r"^(\d\d\d\d)\-(\d\d)\-(\d\d)(T|t)"
+    r"(\d\d):(\d\d):(\d\d)(\.\d+)?(Z|([-+])(\d\d):(\d\d))$"
+)
 rfc3339_regex = re.compile(rfc3339_regex_str)
+
 
 class StacApiQueryRequestBody(Search):
     """Common request params for MosaicJSON CRUD operations"""
@@ -52,10 +54,12 @@ class StacApiQueryRequestBody(Search):
     # overriding limit so we can tell if it's defined or not
     limit: Optional[int]
 
-    # copied from Search to fix https://github.com/stac-utils/stac-pydantic/issues/78
-    # override
     @validator("datetime")
     def validate_datetime(cls, v):
+        """
+        datetime validation
+        overrides default validation due to issue https://github.com/stac-utils/stac-pydantic/issues/78
+        """
         if "/" in v:
             values = v.split("/")
         else:
@@ -83,7 +87,10 @@ class StacApiQueryRequestBody(Search):
         #         )
         return v
 
+
 class UrisRequestBody(BaseModel):
+    """model for a source body to create a mosaicjson"""
+
     # option 2 - a list of files and min/max zoom
     urls: List[str]
     minzoom: Optional[int] = None
@@ -95,15 +102,24 @@ class UrisRequestBody(BaseModel):
 
 
 class TooManyResultsException(Exception):
+    """exception when there are too many STAC API results to generate a mosaicjson"""
+
     def __init__(self, message):
+        """init"""
         self.message = message
 
 
 class StoreException(Exception):
+    """exception when there is a problem storing the mosaicjson in the datastore"""
+
     def __init__(self, message):
+        """init"""
         self.message = message
 
 
 class UnsupportedOperationException(Exception):
+    """exception for unsupported operation"""
+
     def __init__(self, message):
+        """init"""
         self.message = message

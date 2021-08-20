@@ -5,9 +5,10 @@ from typing import Any, Dict
 
 import pytest
 from rasterio.io import MemoryFile
-from titiler.mosaic.settings import mosaic_config
-from titiler.mosaic.factory import MosaicTilerFactory
+
 from titiler.core.resources.enums import OptionalHeader
+from titiler.mosaic.factory import MosaicTilerFactory
+from titiler.mosaic.settings import mosaic_config
 
 from fastapi import FastAPI
 
@@ -25,6 +26,7 @@ def set_env(monkeypatch):
     monkeypatch.setenv("AWS_REGION", "us-west-2")
     monkeypatch.delenv("AWS_PROFILE", raising=False)
     monkeypatch.setenv("AWS_CONFIG_FILE", "/tmp/noconfigheere")
+
 
 @pytest.fixture
 def client():
