@@ -7,7 +7,7 @@ COPY titiler.*.tar.gz /tmp/
 # rasterio 1.2.0 wheels are built using GDAL 3.2 and PROJ 7 which we found having a
 # performance downgrade: https://github.com/developmentseed/titiler/discussions/216
 RUN pip install \
-        titiler.application-0.3.1.tar.gz titiler.mosaic-0.3.1.tar.gz titiler.core-0.3.1.tar.gz \
+        titiler.application-0.3.5.tar.gz titiler.mosaic-0.3.5.tar.gz titiler.core-0.3.5.tar.gz \
         mangum>=0.10.0 rasterio==1.1.8 -t /var/task --no-binary numpy,pydantic --no-cache-dir
 
 # Reduce package size and remove useless files

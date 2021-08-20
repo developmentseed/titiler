@@ -1,6 +1,41 @@
 # Release Notes
 
-## 0.3.2 (TBD)
+## 0.3.5 (2021-08-17)
+
+### titiler.mosaic
+
+* add `/{z}/{x}/{y}/assets`, `/{lon},{lat}/assets`, `/{minx},{miny},{maxx},{maxy}/assets` GET endpoints to return a list of assets that intersect a given geometry (author @mackdelany, https://github.com/developmentseed/titiler/pull/351)
+
+## 0.3.4 (2021-08-02) - **Not published on PyPi** [#355](https://github.com/developmentseed/titiler/discussions/355)
+
+### titiler.core
+
+* add `/crop` POST endpoint to return an image from a GeoJSON feature (https://github.com/developmentseed/titiler/pull/339)
+* add `/statistics` (GET and POST) endpoints to return advanced images statistics (https://github.com/developmentseed/titiler/pull/347)
+
+### titiler.application
+
+* add optional `root_path` setting to specify a url path prefix to use when running the app behind a reverse proxy (https://github.com/developmentseed/titiler/pull/343)
+
+## 0.3.3 (2021-06-29) - **Not published on PyPi** [#355](https://github.com/developmentseed/titiler/discussions/355)
+
+### titiler.core
+
+* fix possible bug when querystring parameter are case insensitive (https://github.com/developmentseed/titiler/pull/323)
+
+### titiler.mosaic
+
+* update `tilejson` and `WMTSCapabilities.xml` endpoints to allow list querystrings (as done previously in https://github.com/developmentseed/titiler/issues/319)
+
+### titiler.application
+
+* add `titiler.application.middleware.LowerCaseQueryStringMiddleware` to cast all query string parameter to lowercase (author @lorenzori, https://github.com/developmentseed/titiler/pull/321)
+
+### code and repo
+
+* move `titiler` code to `src/titiler`
+
+## 0.3.2 (2021-05-26)
 
 ### titiler.core
 

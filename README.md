@@ -61,19 +61,27 @@ Starting with version `0.3.0`, the `TiTiler` python module has been split into a
 
 ## Installation
 
+To install from PyPI and run:
+
 ```bash
 $ pip install -U pip
-
-# From Pypi
+$ pip install uvicorn
 $ pip install titiler.{package}
-# e.g
+# e.g.,
 # pip install titiler.core
 # pip install titiler.mosaic
-# pip install titiler.application
+# pip install titiler.application (also installs core and mosaic)
+$ uvicorn titiler.application.main:app
+```
 
-# Or from sources
+To install from sources and run for development:
+
+```
 $ git clone https://github.com/developmentseed/titiler.git
-$ cd titiler && pip install -e titiler/core titiler/mosaic titiler/application
+$ cd titiler
+$ pip install -e src/titiler/core -e src/titiler/mosaic -e src/titiler/application
+$ pip install uvicorn
+$ uvicorn titiler.application.main:app --reload
 ```
 
 ## Docker
@@ -116,7 +124,7 @@ Some options can be set via environment variables, see: https://github.com/tiang
 ## Project structure
 
 ```
-titiler/                         - titiler modules.
+src/titiler/                     - titiler modules.
  ├── application/                - Titiler's `Application` package
  ├── core/                       - Titiler's `Core` package
  └── mosaic/                     - Titiler's `Mosaic` package

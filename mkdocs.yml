@@ -38,15 +38,17 @@ nav:
     - /tileMatrixSets: "endpoints/tms.md"
 
   - Examples:
-    - Code:
+    - Create dynamic tilers with TiTiler:
       - Minimal COG Tiler: "examples/code/mini_cog_tiler.md"
       - Tiler with Auth: "examples/code/tiler_with_auth.md"
       - Tiler with custom TMS: "examples/code/tiler_with_custom_tms.md"
       - Tiler with Cache: "examples/code/tiler_with_cache.md"
       - Mosaic from COG urls: "examples/code/mosaic_from_urls.md"
       - Tiler with custom Colormap dependency: "examples/code/tiler_with_custom_colormap.md"
+      - Loading data with signed URLs: "examples/code/working_with_signed_urls.md"
+      - STAC endpoints with custom `/validate`: "examples/code/tiler_with_custom_stac_validation.md"
 
-    - Notebooks:
+    - Use TiTiler endpoints:
       - COG: "examples/notebooks/Working_with_CloudOptimizedGeoTIFF_simple.ipynb"
       - COG at scale: "examples/notebooks/Working_with_CloudOptimizedGeoTIFF.ipynb"
       - STAC: "examples/notebooks/Working_with_STAC_simple.ipynb"
@@ -78,6 +80,8 @@ nav:
       - Intro: "deployment/aws/intro.md"
       - ECS: "deployment/aws/ecs.md"
       - Lambda: "deployment/aws/lambda.md"
+      - SAM: "deployment/aws/sam.md"
+    - k8s / Helm Deployment: "deployment/k8s.md"
 
   - External links: "external_links.md"
   - Development - Contributing: "contributing.md"

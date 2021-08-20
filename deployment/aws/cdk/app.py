@@ -39,7 +39,7 @@ class titilerLambdaStack(core.Stack):
         runtime: aws_lambda.Runtime = aws_lambda.Runtime.PYTHON_3_8,
         concurrent: Optional[int] = None,
         permissions: Optional[List[iam.PolicyStatement]] = None,
-        env: Optional[Dict] = None,
+        environment: Optional[Dict] = None,
         code_dir: str = "./",
         **kwargs: Any,
     ) -> None:
@@ -47,7 +47,7 @@ class titilerLambdaStack(core.Stack):
         super().__init__(scope, id, *kwargs)
 
         permissions = permissions or []
-        env = env or {}
+        environment = environment or {}
 
         lambda_function = aws_lambda.Function(
             self,
@@ -66,7 +66,7 @@ class titilerLambdaStack(core.Stack):
             memory_size=memory,
             reserved_concurrent_executions=concurrent,
             timeout=core.Duration.seconds(timeout),
-            environment=env,
+            environment=environment,
         )
 
         for perm in permissions:
@@ -94,7 +94,7 @@ class titilerECSStack(core.Stack):
         mincount: int = 1,
         maxcount: int = 50,
         permissions: Optional[List[iam.PolicyStatement]] = None,
-        env: Optional[Dict] = None,
+        environment: Optional[Dict] = None,
         code_dir: str = "./",
         **kwargs: Any,
     ) -> None:
@@ -102,13 +102,13 @@ class titilerECSStack(core.Stack):
         super().__init__(scope, id, *kwargs)
 
         permissions = permissions or []
-        env = env or {}
+        environment = environment or {}
 
         vpc = ec2.Vpc(self, f"{id}-vpc", max_azs=2)
 
         cluster = ecs.Cluster(self, f"{id}-cluster", vpc=vpc)
 
-        task_env = env.copy()
+        task_env = environment.copy()
         task_env.update(dict(LOG_LEVEL="error"))
 
         # GUNICORN configuration
@@ -136,7 +136,7 @@ class titilerECSStack(core.Stack):
                 environment=task_env,
             ),
         )
-        fargate_service.target_group.configure_health_check(path="/ping")
+        fargate_service.target_group.configure_health_check(path="/healthz")
 
         for perm in permissions:
             fargate_service.task_definition.task_role.add_to_policy(perm)
@@ -174,8 +174,10 @@ perms = []
 if settings.buckets:
     perms.append(
         iam.PolicyStatement(
-            actions=["s3:GetObject", "s3:HeadObject"],
-            resources=[f"arn:aws:s3:::{bucket}/*" for bucket in settings.buckets],
+            actions=["s3:GetObject"],
+            resources=[
+                f"arn:aws:s3:::{bucket}/{settings.key}" for bucket in settings.buckets
+            ],
         )
     )
 
@@ -230,7 +232,7 @@ titilerECSStack(
     mincount=settings.min_ecs_instances,
     maxcount=settings.max_ecs_instances,
     permissions=perms,
-    env=settings.env,
+    environment=settings.env,
 )
 
 lambda_stackname = f"{settings.name}-lambda-{settings.stage}"
@@ -241,7 +243,7 @@ titilerLambdaStack(
     timeout=settings.timeout,
     concurrent=settings.max_concurrent,
     permissions=perms,
-    env=settings.env,
+    environment=settings.env,
 )
 
 app.synth()

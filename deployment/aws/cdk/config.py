@@ -16,6 +16,7 @@ class StackSettings(pydantic.BaseSettings):
 
     # Default options are optimized for CloudOptimized GeoTIFF
     # For more information on GDAL env see: https://gdal.org/user/configoptions.html
+    # or https://developmentseed.org/titiler/advanced/performance_tuning/
     env: Dict = {
         "CPL_VSIL_CURL_ALLOWED_EXTENSIONS": ".tif,.TIF,.tiff",
         "GDAL_CACHEMAX": "200",  # 200 mb
@@ -28,8 +29,14 @@ class StackSettings(pydantic.BaseSettings):
         "VSI_CACHE_SIZE": "5000000",  # 5 MB (per file-handle)
     }
 
-    # add S3 bucket where TiTiler could do HEAD and GET Requests
+    # S3 bucket names where TiTiler could do HEAD and GET Requests
+    # specific private and public buckets MUST be added if you want to use s3:// urls
+    # You can whitelist all bucket by setting `*`.
+    # ref: https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-arn-format.html
     buckets: List = []
+
+    # S3 key pattern to limit the access to specific items (e.g: "my_data/*.tif")
+    key: str = "*"
 
     ###########################################################################
     # AWS ECS
@@ -70,9 +77,9 @@ class StackSettings(pydantic.BaseSettings):
     ###########################################################################
     # AWS LAMBDA
     # The following settings only apply to AWS Lambda deployment
+    # more about lambda config: https://www.sentiatechblog.com/aws-re-invent-2020-day-3-optimizing-lambda-cost-with-multi-threading
     timeout: int = 60  # MosaicJSON creation takes much more time than tile creation
     memory: int = 1536
-    # more about lambda config: https://www.sentiatechblog.com/aws-re-invent-2020-day-3-optimizing-lambda-cost-with-multi-threading
 
     # The maximum of concurrent executions you want to reserve for the function.
     # Default: - No specific limit - account limit.

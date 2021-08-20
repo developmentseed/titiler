@@ -23,8 +23,9 @@ app.include_router(cog.router, tags=["Cloud Optimized GeoTIFF"])
 | `GET`  | `/[{TileMatrixSetId}]/tilejson.json`                            | JSON      | return a Mapbox TileJSON document
 | `GET`  | `/{TileMatrixSetId}/WMTSCapabilities.xml`                       | XML       | return OGC WMTS Get Capabilities
 | `GET`  | `/point/{lon},{lat}`                                            | JSON      | return pixel value from a dataset
-| `GET`  | `/preview[.{format}]`                                           | image/bin | **Optional** - create a preview image from a dataset
-| `GET`  | `/crop/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin | **Optional** - create an image from part of a dataset
+| `GET`  | `/preview[.{format}]`                                           | image/bin | create a preview image from a dataset
+| `GET`  | `/crop/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin | create an image from part of a dataset
+| `POST` | `/crop[/{width}x{height}][.{format}]`                           | image/bin | create an image from a geojson feature
 
 ### `titiler.core.factory.MultiBaseTilerFactory`
 
@@ -52,8 +53,9 @@ app.include_router(cog.router, tags=["STAC"])
 | `GET`  | `/[{TileMatrixSetId}]/tilejson.json`                            | JSON      | return a Mapbox TileJSON document
 | `GET`  | `/{TileMatrixSetId}/WMTSCapabilities.xml`                       | XML       | return OGC WMTS Get Capabilities
 | `GET`  | `/point/{lon},{lat}`                                            | JSON      | return pixel value from a dataset
-| `GET`  | `/preview[.{format}]`                                           | image/bin | **Optional** - create a preview image from a dataset
-| `GET`  | `/crop/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin | **Optional** - create an image from part of a dataset
+| `GET`  | `/preview[.{format}]`                                           | image/bin | create a preview image from a dataset
+| `GET`  | `/crop/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin | create an image from part of a dataset
+| `POST` | `/crop[/{width}x{height}][.{format}]`                           | image/bin | create an image from a geojson feature
 
 ### `titiler.core.factory.MultiBandTilerFactory`
 
@@ -87,8 +89,9 @@ app.include_router(cog.router, tags=["Landsat"])
 | `GET`  | `/[{TileMatrixSetId}]/tilejson.json`                            | JSON      | return a Mapbox TileJSON document
 | `GET`  | `/{TileMatrixSetId}/WMTSCapabilities.xml`                       | XML       | return OGC WMTS Get Capabilities
 | `GET`  | `/point/{lon},{lat}`                                            | JSON      | return pixel value from a dataset
-| `GET`  | `/preview[.{format}]`                                           | image/bin | **Optional** - create a preview image from a dataset
-| `GET`  | `/crop/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin | **Optional** - create an image from part of a dataset
+| `GET`  | `/preview[.{format}]`                                           | image/bin | create a preview image from a dataset
+| `GET`  | `/crop/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin | create an image from part of a dataset
+| `POST` | `/crop[/{width}x{height}][.{format}]`                           | image/bin | create an image from a geojson feature
 
 
 ### `titiler.mosaic.factory.MosaicTilerFactory`
@@ -104,6 +107,9 @@ app.include_router(cog.router, tags=["Landsat"])
 | `GET`  | `/[{TileMatrixSetId}]/tilejson.json`                            | JSON      | return a Mapbox TileJSON document
 | `GET`  | `/{TileMatrixSetId}/WMTSCapabilities.xml`                       | XML       | return OGC WMTS Get Capabilities
 | `GET`  | `/point/{lon},{lat}`                                            | JSON      | return pixel value from a MosaicJSON dataset
+| `GET`  | `/{z}/{x}/{y}/assets`                                           | JSON      | return list of assets intersecting a XYZ tile
+| `GET`  | `/{lon},{lat}/assets`                                           | JSON      | return list of assets intersecting a point
+| `GET`  | `/{minx},{miny},{maxx},{maxy}/assets`                           | JSON      | return list of assets intersecting a bounding box
 
 
 ## FYI
