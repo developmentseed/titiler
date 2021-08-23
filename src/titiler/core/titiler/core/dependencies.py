@@ -341,7 +341,7 @@ class RenderParams(DefaultDependency):
     def __post_init__(self):
         """Post Init."""
         self.rescale_range = (
-            [tuple(map(float, r.split(","))) for r in self.rescale]
+            [tuple(map(float, r.replace(" ", "").split(","))) for r in self.rescale]
             if self.rescale
             else None
         )

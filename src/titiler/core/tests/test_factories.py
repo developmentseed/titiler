@@ -69,6 +69,16 @@ def test_TilerFactory():
     assert "format;dur" in timing
 
     response = client.get(
+        f"/tiles/8/87/48?url={DATA_DIR}/cog.tif&rescale=-3.4028235e+38,3.4028235e+38"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/jpeg"
+    timing = response.headers["server-timing"]
+    assert "dataread;dur" in timing
+    assert "postprocess;dur" in timing
+    assert "format;dur" in timing
+
+    response = client.get(
         f"/tiles/8/87/48.tif?url={DATA_DIR}/cog.tif&expression=b1,b1,b1&return_mask=false"
     )
     assert response.status_code == 200

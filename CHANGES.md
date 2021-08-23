@@ -1,10 +1,11 @@
 # Release Notes
 
-## Next (TDB)
+## 0.3.6 (2021-08-23)
 
 ### titiler.core
 
 - fix morecantile related tests (https://github.com/developmentseed/titiler/issues/358)
+- fix float parsing when datatype is float32 (https://github.com/developmentseed/rio-viz/issues/39)
 
 ### titiler.application
 
