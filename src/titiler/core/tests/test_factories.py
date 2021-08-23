@@ -27,6 +27,8 @@ from fastapi import FastAPI
 
 from starlette.testclient import TestClient
 
+NB_DEFAULT_TMS = len(morecantile.tms.list())
+
 
 def test_TilerFactory():
     """Test TilerFactory class."""
@@ -671,7 +673,7 @@ def test_TMSFactory():
     response = client.get("/tms/tileMatrixSets")
     assert response.status_code == 200
     body = response.json()
-    assert len(body["tileMatrixSets"]) == 10  # morecantile has 10 defaults
+    assert len(body["tileMatrixSets"]) == NB_DEFAULT_TMS
     tms = list(filter(lambda m: m["id"] == "WebMercatorQuad", body["tileMatrixSets"]))[
         0
     ]

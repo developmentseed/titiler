@@ -1,5 +1,15 @@
 # Release Notes
 
+## Next (TDB)
+
+### titiler.core
+
+- fix morecantile related tests (https://github.com/developmentseed/titiler/issues/358)
+
+### titiler.application
+
+- fix morecantile related tests (https://github.com/developmentseed/titiler/issues/358)
+
 ## 0.3.5 (2021-08-17)
 
 ### titiler.mosaic
