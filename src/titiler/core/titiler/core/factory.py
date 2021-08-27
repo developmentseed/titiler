@@ -431,12 +431,8 @@ class TilerFactory(BaseTilerFactory):
 
             with rasterio.Env(**self.gdal_config):
                 with self.reader(src_path, tms=tms, **self.reader_options) as src_dst:
-                    center = list(src_dst.center)
-                    if minzoom:
-                        center[-1] = minzoom
                     tjson = {
                         "bounds": src_dst.bounds,
-                        "center": tuple(center),
                         "minzoom": minzoom if minzoom is not None else src_dst.minzoom,
                         "maxzoom": maxzoom if maxzoom is not None else src_dst.maxzoom,
                         "name": urlparse(src_path).path.lstrip("/") or "cogeotif",
