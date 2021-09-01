@@ -1,5 +1,11 @@
 # Release Notes
 
+## Next
+
+### titiler.core
+
+- move `titiler.application.middleware` to `titiler.core.middleware` (https://github.com/developmentseed/titiler/pull/365)
+
 ## 0.3.7 (2021-09-01)
 
 ### titiler.core

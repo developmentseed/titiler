@@ -1,7 +1,7 @@
-"""Test titiler.application.middleware.LowerCaseQueryStringMiddleware."""
+"""Test titiler.core.middleware.LowerCaseQueryStringMiddleware."""
 
 
-from titiler.application.middleware import LowerCaseQueryStringMiddleware
+from titiler.core.middleware import LowerCaseQueryStringMiddleware
 
 from fastapi import FastAPI, Query
 

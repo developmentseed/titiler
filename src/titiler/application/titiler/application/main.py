@@ -5,16 +5,16 @@ import logging
 from brotli_asgi import BrotliMiddleware
 
 from titiler.application.custom import templates
-from titiler.application.middleware import (
+from titiler.application.routers import cog, mosaic, stac, tms
+from titiler.application.settings import ApiSettings
+from titiler.application.version import __version__ as titiler_version
+from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
+from titiler.core.middleware import (
     CacheControlMiddleware,
     LoggerMiddleware,
     LowerCaseQueryStringMiddleware,
     TotalTimeMiddleware,
 )
-from titiler.application.routers import cog, mosaic, stac, tms
-from titiler.application.settings import ApiSettings
-from titiler.application.version import __version__ as titiler_version
-from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 from titiler.mosaic.errors import MOSAIC_STATUS_CODES
 
 from fastapi import FastAPI
