@@ -1,7 +1,7 @@
-"""Test titiler.middleware.CacheControlMiddleware."""
+"""Test titiler.core.CacheControlMiddleware."""
 
 
-from titiler.application.middleware import CacheControlMiddleware
+from titiler.core.middleware import CacheControlMiddleware
 
 from fastapi import FastAPI, Path
 
