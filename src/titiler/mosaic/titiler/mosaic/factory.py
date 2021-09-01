@@ -323,7 +323,7 @@ class MosaicTilerFactory(BaseTilerFactory):
 
             with self.reader(src_path, **self.backend_options) as src_dst:
                 center = list(src_dst.center)
-                if minzoom:
+                if minzoom is not None:
                     center[-1] = minzoom
                 return {
                     "bounds": src_dst.bounds,

@@ -1,5 +1,11 @@
 # Release Notes
 
+## Next
+
+### titiler.core
+
+- Update the TileJSON model for better validation and to match with the specification (center is optional) (https://github.com/developmentseed/titiler/pull/363)
+
 ## 0.3.6 (2021-08-23)
 
 ### titiler.core
