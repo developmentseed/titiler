@@ -1,6 +1,6 @@
 # Release Notes
 
-## Next
+## 0.3.8 (2021-09-02)
 
 ### titiler.core
 
