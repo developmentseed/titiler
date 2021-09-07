@@ -157,10 +157,15 @@ class AssetsBidxExprParams(DefaultDependency):
     expression: Optional[str] = Query(
         None,
         title="Band Math expression",
-        description="rio-tiler's band math expression (e.g B1/B2)",
+        description="rio-tiler's band math expression between assets (e.g asset1/asset2)",
     )
     bidx: Optional[str] = Query(
         None, title="Band indexes", description="comma (',') delimited band indexes",
+    )
+    asset_expression: Optional[str] = Query(
+        None,
+        title="Band Math expression to apply to each asset",
+        description="rio-tiler's band math expression (e.g b1/b2)",
     )
 
     def __post_init__(self):
@@ -174,6 +179,8 @@ class AssetsBidxExprParams(DefaultDependency):
             self.kwargs["assets"] = self.assets.split(",")
         if self.expression is not None:
             self.kwargs["expression"] = self.expression
+        if self.asset_expression is not None:
+            self.kwargs["asset_expression"] = self.asset_expression
         if self.bidx is not None:
             self.kwargs["indexes"] = tuple(
                 int(s) for s in re.findall(r"\d+", self.bidx)
@@ -204,7 +211,12 @@ class BandsExprParams(DefaultDependency):
     expression: Optional[str] = Query(
         None,
         title="Band Math expression",
-        description="rio-tiler's band math expression.",
+        description="rio-tiler's band math expression between Band asset.",
+    )
+    band_expression: Optional[str] = Query(
+        None,
+        title="Band Math expression",
+        description="rio-tiler's band math expression to apply to each band file.",
     )
 
     def __post_init__(self):
@@ -218,6 +230,8 @@ class BandsExprParams(DefaultDependency):
             self.kwargs["bands"] = self.bands.split(",")
         if self.expression is not None:
             self.kwargs["expression"] = self.expression
+        if self.band_expression is not None:
+            self.kwargs["band_expression"] = self.band_expression
 
 
 @dataclass
