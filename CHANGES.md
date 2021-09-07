@@ -1,5 +1,12 @@
 # Release Notes
 
+## 0.3.9 (2021-09-07)
+
+### titiler.core
+
+- update FastAPI requirements to `>=0.65,<0.68` (ref: https://github.com/developmentseed/titiler/issues/366)
+- surface `asset_expression` and `band_expression` in Multi*TilerFactory (ref: https://github.com/developmentseed/titiler/issues/367)
+
 ## 0.3.8 (2021-09-02)
 
 ### titiler.core
