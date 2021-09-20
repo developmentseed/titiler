@@ -194,6 +194,15 @@ def test_tile(rio, app):
     assert response.status_code == 200
     assert response.headers["content-encoding"] == "br"
 
+    # Exclude png from compression middleware
+    headers = {"Accept-Encoding": "br, gzip"}
+    response = app.get(
+        "/cog/tiles/8/87/48.png?url=https://myurl.com/cog.tif&nodata=0&return_mask=false",
+        headers=headers,
+    )
+    assert response.status_code == 200
+    assert "content-encoding" not in response.headers
+
     # Test gzip fallback
     headers = {"Accept-Encoding": "gzip"}
     response = app.get(

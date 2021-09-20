@@ -2,8 +2,6 @@
 
 import logging
 
-from brotli_asgi import BrotliMiddleware
-
 from titiler.application.custom import templates
 from titiler.application.routers import cog, mosaic, stac, tms
 from titiler.application.settings import ApiSettings
@@ -22,6 +20,7 @@ from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
+from starlette_cramjam.middleware import CompressionMiddleware
 
 logging.getLogger("botocore.credentials").disabled = True
 logging.getLogger("botocore.utils").disabled = True
@@ -62,7 +61,18 @@ if api_settings.cors_origins:
         allow_headers=["*"],
     )
 
-app.add_middleware(BrotliMiddleware, minimum_size=0, gzip_fallback=True)
+app.add_middleware(
+    CompressionMiddleware,
+    minimum_size=0,
+    exclude_mediatype={
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/jp2",
+        "image/webp",
+    },
+)
+
 app.add_middleware(
     CacheControlMiddleware,
     cachecontrol=api_settings.cachecontrol,

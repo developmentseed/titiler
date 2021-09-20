@@ -9,11 +9,11 @@ inst_reqs = [
     "rio-cogeo>=2.2",
     "titiler.core",
     "titiler.mosaic",
-    "brotli-asgi>=1.0.0",
+    "starlette-cramjam>=0.1.0,<0.2",
     "python-dotenv",
 ]
 extra_reqs = {
-    "test": ["pytest", "pytest-cov", "pytest-asyncio", "requests"],
+    "test": ["pytest", "pytest-cov", "pytest-asyncio", "requests", "brotlipy"],
     "server": ["uvicorn[standard]>=0.12.0,<0.14.0"],
 }
 

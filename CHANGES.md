@@ -1,5 +1,11 @@
 # Release Notes
 
+## 0.3.10 (TBD)
+
+### titiler.application
+
+- switch to `starlette_cramjam` compression middleware (ref: https://github.com/developmentseed/titiler/issues/369)
+
 ## 0.3.9 (2021-09-07)
 
 ### titiler.core
