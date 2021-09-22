@@ -476,3 +476,23 @@ def test_validate_cog(app, url):
     response = app.get(f"/cog/validate?url={os.path.join(DATA_DIR, 'cog.tif')}")
     assert response.status_code == 200
     assert response.json()["COG"]
+
+
+@patch("rio_tiler.io.cogeo.rasterio")
+def test_info_nan(rio, app):
+    """test /info endpoint."""
+    rio.open = mock_rasterio_open
+
+    response = app.get("/cog/info?url=https://myurl.com/cog_with_nan.tif")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["dtype"] == "float32"
+    assert body["nodata_type"] == "Nodata"
+
+    response = app.get("/cog/info.geojson?url=https://myurl.com/cog_with_nan.tif")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/geo+json"
+    body = response.json()
+    assert body["geometry"]
+    assert body["properties"]["nodata_type"] == "Nodata"
+    assert body["properties"]["nodata_value"] is None

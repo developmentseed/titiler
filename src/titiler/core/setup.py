@@ -14,6 +14,7 @@ inst_reqs = [
     "pydantic",
     "rasterio",
     "rio-tiler>=2.1,<2.2",
+    "simplejson",
     # Additional requirements for python 3.6
     "async_exit_stack>=1.0.1,<2.0.0;python_version<'3.7'",
     "async_generator>=1.10,<2.0.0;python_version<'3.7'",

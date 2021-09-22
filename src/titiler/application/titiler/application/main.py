@@ -13,6 +13,7 @@ from titiler.core.middleware import (
     LowerCaseQueryStringMiddleware,
     TotalTimeMiddleware,
 )
+from titiler.core.resources.responses import JSONResponse
 from titiler.mosaic.errors import MOSAIC_STATUS_CODES
 
 from fastapi import FastAPI
@@ -33,6 +34,7 @@ app = FastAPI(
     description="A lightweight Cloud Optimized GeoTIFF tile server",
     version=titiler_version,
     root_path=api_settings.root_path,
+    default_response_class=JSONResponse,
 )
 
 if not api_settings.disable_cog:

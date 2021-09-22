@@ -1,10 +1,15 @@
 # Release Notes
 
-## 0.3.10 (TBD)
+## 0.3.10 (2021-09-23)
+
+### titiler.core
+
+- add custom JSONResponse using [simplejson](https://simplejson.readthedocs.io/en/latest/) to allow NaN/inf/-inf values
 
 ### titiler.application
 
 - switch to `starlette_cramjam` compression middleware (ref: https://github.com/developmentseed/titiler/issues/369)
+- use `titiler.core.resources.responses.JSONResponse` as default application response.
 
 ## 0.3.9 (2021-09-07)
 
