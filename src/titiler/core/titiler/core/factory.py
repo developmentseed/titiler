@@ -32,7 +32,7 @@ from titiler.core.dependencies import (
 from titiler.core.models.mapbox import TileJSON
 from titiler.core.models.OGC import TileMatrixSetList
 from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
-from titiler.core.resources.responses import GeoJSONResponse, XMLResponse
+from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
 from titiler.core.utils import Timer, bbox_to_feature, data_stats
 
 from fastapi import APIRouter, Body, Depends, Path, Query
@@ -204,6 +204,7 @@ class TilerFactory(BaseTilerFactory):
             response_model=Info,
             response_model_exclude={"minzoom", "maxzoom", "center"},
             response_model_exclude_none=True,
+            response_class=JSONResponse,
             responses={200: {"description": "Return dataset's basic info."}},
         )
         def info(
@@ -255,6 +256,7 @@ class TilerFactory(BaseTilerFactory):
             response_model=Metadata,
             response_model_exclude={"minzoom", "maxzoom", "center"},
             response_model_exclude_none=True,
+            response_class=JSONResponse,
             responses={200: {"description": "Return dataset's metadata."}},
         )
         def metadata(
@@ -542,6 +544,7 @@ class TilerFactory(BaseTilerFactory):
 
         @self.router.get(
             r"/point/{lon},{lat}",
+            response_class=JSONResponse,
             responses={200: {"description": "Return a value for a point"}},
         )
         def point(
@@ -780,6 +783,7 @@ class TilerFactory(BaseTilerFactory):
 
         @self.router.get(
             "/statistics",
+            response_class=JSONResponse,
             responses={
                 200: {
                     "content": {"application/json": {}},
@@ -920,6 +924,7 @@ class MultiBaseTilerFactory(TilerFactory):
             response_model=Dict[str, Info],
             response_model_exclude={"minzoom", "maxzoom", "center"},
             response_model_exclude_none=True,
+            response_class=JSONResponse,
             responses={
                 200: {
                     "description": "Return dataset's basic info or the list of available assets."
@@ -991,6 +996,7 @@ class MultiBaseTilerFactory(TilerFactory):
             response_model=Dict[str, Metadata],
             response_model_exclude={"minzoom", "maxzoom", "center"},
             response_model_exclude_none=True,
+            response_class=JSONResponse,
             responses={200: {"description": "Return dataset's metadata."}},
         )
         def metadata(
@@ -1041,6 +1047,7 @@ class MultiBandTilerFactory(TilerFactory):
             response_model=Info,
             response_model_exclude={"minzoom", "maxzoom", "center"},
             response_model_exclude_none=True,
+            response_class=JSONResponse,
             responses={
                 200: {
                     "description": "Return dataset's basic info or the list of available bands."
@@ -1107,6 +1114,7 @@ class MultiBandTilerFactory(TilerFactory):
             response_model=Metadata,
             response_model_exclude={"minzoom", "maxzoom", "center"},
             response_model_exclude_none=True,
+            response_class=JSONResponse,
             responses={200: {"description": "Return dataset's metadata."}},
         )
         def metadata(
