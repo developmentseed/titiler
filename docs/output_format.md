@@ -48,3 +48,23 @@ data, mask = data[0:-1], data[-1]
 ```
 
 Notebook: [Working_with_NumpyTile](examples/notebooks/Working_with_NumpyTile.ipynb)
+
+## JSONResponse
+
+Sometimes rio-tiler's responses can contain `NaN`, `Infinity` or `-Infinity` values (e.g for Nodata). Sadly there is no proper ways to encode those values in JSON or at least not all web client supports it.
+
+In  order to allow TiTiler to return valid responses we added a custom `JSONResponse` in `v0.3.10` which will automatically translate `float('nan')`, `float('inf')` and `float('-inf')` to `null` and thus avoid in valid JSON response.
+
+```python
+
+from fastapi import FastAPI
+from titiler.core.resources.responses import JSONResponse
+
+app = FastAPI(default_response_class=JSONResponse,)
+
+@app.get("/something")
+def return_something():
+    return float('nan')
+```
+
+This `JSONResponse` is used by default in `titiler` Tiler Factories where `NaN` are expected (`info`, `metadata`, `statistics` and `point` endpoints).

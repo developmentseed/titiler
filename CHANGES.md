@@ -1,6 +1,11 @@
 # Release Notes
 
-## 0.3.10 (TBD)
+## 0.3.10 (2021-09-23)
+
+### titiler.core
+
+- add custom JSONResponse using [simplejson](https://simplejson.readthedocs.io/en/latest/) to allow NaN/inf/-inf values (ref: https://github.com/developmentseed/titiler/pull/374)
+- use `titiler.core.resources.responses.JSONResponse` as default response for `info`, `metadata`, `statistics` and `point` endpoints (ref: https://github.com/developmentseed/titiler/pull/374)
 
 ### titiler.application
 
