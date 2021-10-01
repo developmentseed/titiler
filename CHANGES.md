@@ -1,11 +1,5 @@
 # Release Notes
 
-## Unreleased
-
-### titiler.k8s
-
-- create a configmap attached to the titiler deployment for netrc config file (ref: https://github.com/developmentseed/titiler/pull/380)
-
 ## 0.3.10 (2021-09-23)
 
 ### titiler.core
