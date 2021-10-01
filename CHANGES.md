@@ -1,11 +1,5 @@
 # Release Notes
 
-## Unreleased
-
-### titiler.docker
-
-- update root certificates at every build (ref: https://github.com/developmentseed/titiler/pull/381)
-
 ## 0.3.10 (2021-09-23)
 
 ### titiler.core
