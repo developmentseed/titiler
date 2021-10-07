@@ -86,7 +86,18 @@ $ uvicorn titiler.application.main:app --reload
 
 ## Docker
 
-Ready to use/deploy images can be found on Docker Hub and AWS public ECR registery.
+Ready to use/deploy images can be found on DockerHub, Github and AWS public ECR registeries.
+
+- GitHub: https://github.com/developmentseed/titiler/pkgs/container/titiler
+
+```bash
+docker run --name titiler \
+    -p 8000:8000 \
+    --env PORT=8000 \
+    --env WORKERS_PER_CORE=1 \
+    --rm -it ghcr.io/developmentseed/titiler:latest
+```
+
 
 - Docker Hub: https://hub.docker.com/repository/docker/developmentseed/titiler
 
@@ -95,7 +106,7 @@ docker run --name titiler \
     -p 8000:8000 \
     --env PORT=8000 \
     --env WORKERS_PER_CORE=1 \
-    --rm -it developmentseed/titiler
+    --rm -it developmentseed/titiler:latest
 ```
 
 - AWS ECR: https://gallery.ecr.aws/developmentseed/titiler
@@ -105,7 +116,7 @@ docker run --name titiler \
     -p 8000:8000 \
     --env PORT=8000 \
     --env WORKERS_PER_CORE=1 \
-    --rm -it public.ecr.aws/developmentseed/titiler
+    --rm -it public.ecr.aws/developmentseed/titiler:latest
 ```
 
 - Built the docker locally
