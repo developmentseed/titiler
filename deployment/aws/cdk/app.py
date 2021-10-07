@@ -48,14 +48,8 @@ class titilerLambdaStack(core.Stack):
             self,
             f"{id}-lambda",
             runtime=runtime,
-            code=aws_lambda.Code.from_asset(
-                path=os.path.abspath(code_dir),
-                bundling=core.BundlingOptions(
-                    image=core.BundlingDockerImage.from_asset(
-                        os.path.abspath(code_dir), file="lambda/Dockerfile",
-                    ),
-                    command=["bash", "-c", "cp -R /var/task/. /asset-output/."],
-                ),
+            code=aws_lambda.Code.from_docker_build(
+                path=os.path.abspath(code_dir), file="lambda/Dockerfile",
             ),
             handler="handler.handler",
             memory_size=memory,
