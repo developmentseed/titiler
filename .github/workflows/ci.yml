@@ -141,7 +141,7 @@ jobs:
           push: true
           tags: |
             developmentseed/titiler:latest
-            ghcr.io/${{ github.repo }}:latest
+            ghcr.io/${{ github.repository }}:latest
             public.ecr.aws/${{ secrets.AWS_ECR_PUBLIC_REPO }}/titiler:latest
 
       # Push `{VERSION}` when pushing a new tag
@@ -154,5 +154,5 @@ jobs:
           push: true
           tags: |
             developmentseed/titiler:${{ steps.tag.outputs.tag }}
-            ghcr.io/${{ github.repo }}:${{ steps.tag.outputs.tag }}
+            ghcr.io/${{ github.repository }}:${{ steps.tag.outputs.tag }}
             public.ecr.aws/${{ secrets.AWS_ECR_PUBLIC_REPO }}/titiler:${{ steps.tag.outputs.tag }}
