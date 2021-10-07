@@ -1,5 +1,11 @@
 # Release Notes
 
+## 0.3.11 (2021-10-07)
+
+### titiler.application
+
+- Update rio-cogeo requirement to stay under `3.0`
+
 ## 0.3.10 (2021-09-23)
 
 ### titiler.core
