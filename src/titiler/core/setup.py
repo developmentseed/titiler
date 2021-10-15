@@ -9,7 +9,7 @@ inst_reqs = [
     "fastapi>=0.65,<0.68",
     "geojson-pydantic",
     "jinja2>=2.11.2,<3.0.0",
-    "morecantile",
+    "morecantile<3.0.0",
     "numpy",
     "pydantic",
     "rasterio",
