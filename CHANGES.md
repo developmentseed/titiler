@@ -1,5 +1,11 @@
 # Release Notes
 
+## Unreleased
+
+### titiler.core
+
+- Update morecantile requirement to stay under `3.0` (author @robintw, https://github.com/developmentseed/titiler/pull/389)
+
 ## 0.3.11 (2021-10-07)
 
 ### titiler.application
