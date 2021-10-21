@@ -21,7 +21,8 @@ except ImportError:
     from importlib_resources import files as resources_files  # type: ignore
 
 
-templates = Jinja2Templates(directory=str(resources_files(__package__) / "templates"))
+# TODO: mypy fails in python 3.9, we need to find a proper way to do this
+templates = Jinja2Templates(directory=str(resources_files(__package__) / "templates"))  # type: ignore
 
 
 # colors from https://daac.ornl.gov/ABOVE/guides/Annual_Landcover_ABoVE.html
