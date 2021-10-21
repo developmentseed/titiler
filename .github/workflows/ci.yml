@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.6, 3.7, 3.8, 3.9]
+        python-version: [3.7, 3.8, 3.9]
 
     steps:
       - uses: actions/checkout@v2
@@ -41,9 +41,8 @@ jobs:
       - name: Run Tox
         run: tox -e py
 
-      # Run pre-commit (only for python-3.8)
+      # Run pre-commit
       - name: run pre-commit
-        if: matrix.python-version == 3.8
         run: pre-commit run --all-files
 
       - name: Upload Results
