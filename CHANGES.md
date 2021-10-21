@@ -1,5 +1,27 @@
 # Release Notes
 
+## 0.4.0a0 (TBD)
+
+* remove python 3.6 supports (related to morecatile/pyproj update)
+
+### titiler.core
+
+* update `rio-tiler/morecantile` requirement (>=3.0)
+* remove `utils.bbox_to_feature` (replaced by geojson_pydantic native function `Feature(geometry=Polygon.from_bounds(*bounds), properties=info)`)
+* remove `utils.data_stats` (replaced by rio-tiler new statistics method)
+* remove `metadata` endpoints  **breaking API**
+* update `statistics` endpoints with histogram options
+* update `statistics` endpoint responses **breaking API**
+* remove `band_expression` in `BandsExprParams` dependency **breaking API**
+* remove `morecantile` requirement definition in setup.py and defers to rio-tiler supported version
+
+### titiler.mosaic
+
+* update `cogeo-mosaic` requirement (>=4.0)
+
+### titiler.application
+
+
 ## 0.3.12 (2021-10-20)
 
 ### titiler.core

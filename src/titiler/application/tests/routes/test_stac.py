@@ -9,10 +9,10 @@ from rasterio.io import MemoryFile
 from ..conftest import mock_rasterio_open, mock_RequestGet
 
 
-@patch("rio_tiler.io.stac.requests")
-def test_bounds(requests, app):
+@patch("rio_tiler.io.stac.httpx")
+def test_bounds(httpx, app):
     """test /bounds endpoint."""
-    requests.get = mock_RequestGet
+    httpx.get = mock_RequestGet
 
     response = app.get("/stac/bounds?url=https://myurl.com/item.json")
     assert response.status_code == 200
@@ -21,10 +21,10 @@ def test_bounds(requests, app):
 
 
 @patch("rio_tiler.io.cogeo.rasterio")
-@patch("rio_tiler.io.stac.requests")
-def test_info(requests, rio, app):
+@patch("rio_tiler.io.stac.httpx")
+def test_info(httpx, rio, app):
     """test /info endpoint."""
-    requests.get = mock_RequestGet
+    httpx.get = mock_RequestGet
     rio.open = mock_rasterio_open
 
     response = app.get("/stac/assets?url=https://myurl.com/item.json")
@@ -53,25 +53,6 @@ def test_info(requests, rio, app):
     assert body["properties"]["assets"]["B01"]
 
 
-@patch("rio_tiler.io.cogeo.rasterio")
-@patch("rio_tiler.io.stac.requests")
-def test_metadata(requests, rio, app):
-    """test /metadata endpoint."""
-    requests.get = mock_RequestGet
-    rio.open = mock_rasterio_open
-
-    response = app.get("/stac/metadata?url=https://myurl.com/item.json&assets=B01")
-    assert response.status_code == 200
-    body = response.json()
-    assert body["B01"]
-
-    response = app.get("/stac/metadata?url=https://myurl.com/item.json&assets=B01,B09")
-    assert response.status_code == 200
-    body = response.json()
-    assert body["B01"]
-    assert body["B09"]
-
-
 def parse_img(content: bytes) -> Dict:
     """Read tile image and return metadata."""
     with MemoryFile(content) as mem:
@@ -80,10 +61,10 @@ def parse_img(content: bytes) -> Dict:
 
 
 @patch("rio_tiler.io.cogeo.rasterio")
-@patch("rio_tiler.io.stac.requests")
-def test_tile(requests, rio, app):
+@patch("rio_tiler.io.stac.httpx")
+def test_tile(httpx, rio, app):
     """test tile endpoints."""
-    requests.get = mock_RequestGet
+    httpx.get = mock_RequestGet
     rio.open = mock_rasterio_open
 
     # Missing assets
@@ -110,10 +91,10 @@ def test_tile(requests, rio, app):
 
 
 @patch("rio_tiler.io.cogeo.rasterio")
-@patch("rio_tiler.io.stac.requests")
-def test_tilejson(requests, rio, app):
+@patch("rio_tiler.io.stac.httpx")
+def test_tilejson(httpx, rio, app):
     """test /tilejson endpoint."""
-    requests.get = mock_RequestGet
+    httpx.get = mock_RequestGet
     rio.open = mock_rasterio_open
 
     response = app.get("/stac/tilejson.json?url=https://myurl.com/item.json")
@@ -147,10 +128,10 @@ def test_tilejson(requests, rio, app):
 
 
 @patch("rio_tiler.io.cogeo.rasterio")
-@patch("rio_tiler.io.stac.requests")
-def test_preview(requests, rio, app):
+@patch("rio_tiler.io.stac.httpx")
+def test_preview(httpx, rio, app):
     """test preview endpoints."""
-    requests.get = mock_RequestGet
+    httpx.get = mock_RequestGet
     rio.open = mock_rasterio_open
 
     # Missing Assets or Expression
@@ -186,10 +167,10 @@ def test_preview(requests, rio, app):
 
 
 @patch("rio_tiler.io.cogeo.rasterio")
-@patch("rio_tiler.io.stac.requests")
-def test_part(requests, rio, app):
+@patch("rio_tiler.io.stac.httpx")
+def test_part(httpx, rio, app):
     """test crop endpoints."""
-    requests.get = mock_RequestGet
+    httpx.get = mock_RequestGet
     rio.open = mock_rasterio_open
 
     # Missing Assets or Expression
@@ -227,10 +208,10 @@ def test_part(requests, rio, app):
 
 
 @patch("rio_tiler.io.cogeo.rasterio")
-@patch("rio_tiler.io.stac.requests")
-def test_point(requests, rio, app):
+@patch("rio_tiler.io.stac.httpx")
+def test_point(httpx, rio, app):
     """test crop endpoints."""
-    requests.get = mock_RequestGet
+    httpx.get = mock_RequestGet
     rio.open = mock_rasterio_open
 
     # Missing Assets or Expression
@@ -263,10 +244,10 @@ def test_point(requests, rio, app):
 
 
 @patch("rio_tiler.io.cogeo.rasterio")
-@patch("rio_tiler.io.stac.requests")
-def test_missing_asset_not_found(requests, rio, app):
+@patch("rio_tiler.io.stac.httpx")
+def test_missing_asset_not_found(httpx, rio, app):
     """test /info endpoint."""
-    requests.get = mock_RequestGet
+    httpx.get = mock_RequestGet
     rio.open = mock_rasterio_open
 
     response = app.get(

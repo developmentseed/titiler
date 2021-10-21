@@ -2,12 +2,12 @@
 
 import json
 from enum import Enum
-from typing import Dict, Optional
+from typing import Dict, Optional, Sequence, Union
 
 import morecantile
 from morecantile import tms
 from morecantile.models import TileMatrixSet
-from rasterio.crs import CRS
+from pyproj import CRS
 from rio_tiler.colormap import cmap, parse_color
 
 from fastapi import HTTPException, Query
@@ -69,7 +69,7 @@ TileMatrixSetName = Enum(  # type: ignore
 def ColorMapParams(
     colormap_name: ColorMapName = Query(None, description="Colormap name"),
     colormap: str = Query(None, description="JSON encoded custom Colormap"),
-) -> Optional[Dict]:
+) -> Optional[Union[Dict, Sequence]]:
     """Colormap Dependency."""
     if colormap_name:
         return cmap.get(colormap_name.value)

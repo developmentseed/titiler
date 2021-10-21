@@ -23,9 +23,9 @@ def stac_demo(request: Request):
         name="stac_index.html",
         context={
             "request": request,
-            "tilejson": stac.url_for(request, "tilejson"),
-            "metadata": stac.url_for(request, "info"),
-            "get_assets": stac.url_for(request, "available_assets"),
+            "tilejson_endpoint": stac.url_for(request, "tilejson"),
+            "info_endpoint": stac.url_for(request, "info"),
+            "statistics_endpoint": stac.url_for(request, "statistics"),
         },
         media_type="text/html",
     )

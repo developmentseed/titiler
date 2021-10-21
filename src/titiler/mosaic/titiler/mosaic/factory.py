@@ -5,12 +5,12 @@ from dataclasses import dataclass, field
 from typing import Callable, Dict, Optional, Type
 from urllib.parse import urlencode, urlparse
 
-import mercantile
 import rasterio
 from cogeo_mosaic.backends import BaseBackend, MosaicBackend
 from cogeo_mosaic.models import Info as mosaicInfo
 from cogeo_mosaic.mosaic import MosaicJSON
 from geojson_pydantic.features import Feature
+from geojson_pydantic.geometries import Polygon
 from morecantile import TileMatrixSet
 from rio_tiler.constants import MAX_THREADS
 from rio_tiler.io import BaseReader, COGReader
@@ -21,7 +21,7 @@ from titiler.core.factory import BaseTilerFactory, img_endpoint_params, template
 from titiler.core.models.mapbox import TileJSON
 from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
 from titiler.core.resources.responses import GeoJSONResponse, XMLResponse
-from titiler.core.utils import Timer, bbox_to_feature
+from titiler.core.utils import Timer
 from titiler.mosaic.resources.enums import PixelSelectionMethod
 
 from fastapi import Depends, Path, Query
@@ -106,7 +106,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             """Return the bounds of the COG."""
             with rasterio.Env(**self.gdal_config):
                 with self.reader(src_path, **self.backend_options) as src_dst:
-                    return {"bounds": src_dst.bounds}
+                    return {"bounds": src_dst.geographic_bounds}
 
     ############################################################################
     # /info
@@ -147,9 +147,9 @@ class MosaicTilerFactory(BaseTilerFactory):
                     bounds = info.pop("bounds", None)
                     info.pop("center", None)
                     info["dataset"] = src_path
-                    geojson = bbox_to_feature(bounds, properties=info)
-
-            return geojson
+                    return Feature(
+                        geometry=Polygon.from_bounds(*bounds), properties=info
+                    )
 
     ############################################################################
     # /tiles
@@ -202,12 +202,14 @@ class MosaicTilerFactory(BaseTilerFactory):
             threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
             with Timer() as t:
                 with rasterio.Env(**self.gdal_config):
-                    with self.reader(
-                        src_path,
-                        reader=self.dataset_reader,
-                        reader_options=self.reader_options,
+                    options = {
                         **self.backend_options,
-                    ) as src_dst:
+                        **{
+                            "reader": self.dataset_reader,
+                            "reader_options": self.reader_options,
+                        },
+                    }
+                    with self.reader(src_path, **options) as src_dst:
                         mosaic_read = t.from_start
                         timings.append(("mosaicread", round(mosaic_read * 1000, 2)))
 
@@ -322,7 +324,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                 tiles_url += f"?{urlencode(qs)}"
 
             with self.reader(src_path, **self.backend_options) as src_dst:
-                center = list(src_dst.center)
+                center = list(src_dst.mosaic_def.center)
                 if minzoom is not None:
                     center[-1] = minzoom
                 return {
@@ -395,7 +397,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                 tiles_url += f"?{urlencode(qs)}"
 
             with self.reader(src_path, **self.backend_options) as src_dst:
-                bounds = src_dst.bounds
+                bounds = src_dst.geographic_bounds
                 minzoom = minzoom if minzoom is not None else src_dst.minzoom
                 maxzoom = maxzoom if maxzoom is not None else src_dst.maxzoom
 
@@ -454,12 +456,14 @@ class MosaicTilerFactory(BaseTilerFactory):
 
             with Timer() as t:
                 with rasterio.Env(**self.gdal_config):
-                    with self.reader(
-                        src_path,
-                        reader=self.dataset_reader,
-                        reader_options=self.reader_options,
+                    options = {
                         **self.backend_options,
-                    ) as src_dst:
+                        **{
+                            "reader": self.dataset_reader,
+                            "reader_options": self.reader_options,
+                        },
+                    }
+                    with self.reader(src_path, **options) as src_dst:
                         mosaic_read = t.from_start
                         timings.append(("mosaicread", round(mosaic_read * 1000, 2)))
                         values = src_dst.point(
@@ -503,22 +507,7 @@ class MosaicTilerFactory(BaseTilerFactory):
         ):
             """Return a list of assets which overlap a bounding box"""
             with self.reader(src_path, **self.backend_options) as mosaic:
-                tl_tile = mercantile.tile(minx, maxy, mosaic.minzoom)
-                br_tile = mercantile.tile(maxx, miny, mosaic.minzoom)
-                tiles = [
-                    (x, y, mosaic.minzoom)
-                    for x in range(tl_tile.x, br_tile.x + 1)
-                    for y in range(tl_tile.y, br_tile.y + 1)
-                ]
-                assets = list(
-                    {
-                        asset
-                        for asset_list in [mosaic.assets_for_tile(*t) for t in tiles]
-                        for asset in asset_list
-                    }
-                )
-
-            return assets
+                return mosaic.assets_for_bbox(minx, miny, maxx, maxy)
 
         @self.router.get(
             r"/{lng},{lat}/assets",
@@ -531,9 +520,7 @@ class MosaicTilerFactory(BaseTilerFactory):
         ):
             """Return a list of assets which overlap a point"""
             with self.reader(src_path, **self.backend_options) as mosaic:
-                assets = mosaic.assets_for_point(lng, lat)
-
-            return assets
+                return mosaic.assets_for_point(lng, lat)
 
         @self.router.get(
             r"/{z}/{x}/{y}/assets",
@@ -547,6 +534,4 @@ class MosaicTilerFactory(BaseTilerFactory):
         ):
             """Return a list of assets which overlap a given tile"""
             with self.reader(src_path, **self.backend_options) as mosaic:
-                assets = mosaic.assets_for_tile(x, y, z)
-
-            return assets
+                return mosaic.assets_for_tile(x, y, z)

@@ -53,7 +53,7 @@ def TMSParams(
 def ColorMapParams(
     colormap_name: ColorMapName = Query(None, description="Colormap name"),
     colormap: str = Query(None, description="JSON encoded custom Colormap"),
-) -> Optional[Dict]:
+) -> Optional[Union[Dict, Sequence]]:
     """Colormap Dependency."""
     if colormap_name:
         return cmap.get(colormap_name.value)
@@ -127,20 +127,35 @@ class BidxExprParams(DefaultDependency):
 
 # Dependencies for  MultiBaseReader (e.g STACReader)
 @dataclass
-class AssetsBidxParams(DefaultDependency):
-    """Asset and Band indexes parameters."""
+class AssetsParams(DefaultDependency):
+    """Assets parameters."""
 
-    assets: Optional[str] = Query(
+    assets: str = Query(
         ..., title="Asset indexes", description="comma (',') delimited asset names.",
-    )
-    bidx: Optional[str] = Query(
-        None, title="Band indexes", description="comma (',') delimited band indexes",
     )
 
     def __post_init__(self):
         """Post Init."""
         if self.assets is not None:
             self.kwargs["assets"] = self.assets.split(",")
+
+
+@dataclass
+class AssetsBidxParams(DefaultDependency):
+    """Asset and Band indexes parameters."""
+
+    assets: str = Query(
+        ..., title="Asset indexes", description="comma (',') delimited asset names.",
+    )
+    # TODO: Update to asset_indexes and new format
+    bidx: Optional[str] = Query(
+        None, title="Band indexes", description="comma (',') delimited band indexes",
+    )
+    # TODO: add asset_expression
+
+    def __post_init__(self):
+        """Post Init."""
+        self.kwargs["assets"] = self.assets.split(",")
         if self.bidx is not None:
             self.kwargs["indexes"] = tuple(
                 int(s) for s in re.findall(r"\d+", self.bidx)
@@ -159,9 +174,11 @@ class AssetsBidxExprParams(DefaultDependency):
         title="Band Math expression",
         description="rio-tiler's band math expression between assets (e.g asset1/asset2)",
     )
+    # TODO: Update to asset_indexes and new format
     bidx: Optional[str] = Query(
         None, title="Band indexes", description="comma (',') delimited band indexes",
     )
+    # TODO: Update to new format
     asset_expression: Optional[str] = Query(
         None,
         title="Band Math expression to apply to each asset",
@@ -213,11 +230,6 @@ class BandsExprParams(DefaultDependency):
         title="Band Math expression",
         description="rio-tiler's band math expression between Band asset.",
     )
-    band_expression: Optional[str] = Query(
-        None,
-        title="Band Math expression",
-        description="rio-tiler's band math expression to apply to each band file.",
-    )
 
     def __post_init__(self):
         """Post Init."""
@@ -230,53 +242,6 @@ class BandsExprParams(DefaultDependency):
             self.kwargs["bands"] = self.bands.split(",")
         if self.expression is not None:
             self.kwargs["expression"] = self.expression
-        if self.band_expression is not None:
-            self.kwargs["band_expression"] = self.band_expression
-
-
-@dataclass
-class MetadataParams(DefaultDependency):
-    """Common Metadada parameters."""
-
-    # Required params
-    pmin: float = Query(2.0, description="Minimum percentile")
-    pmax: float = Query(98.0, description="Maximum percentile")
-
-    # Optional params
-    max_size: Optional[int] = Query(
-        None, description="Maximum image size to read onto."
-    )
-    histogram_bins: Optional[str] = Query(None, description="Histogram bins.")
-    histogram_range: Optional[str] = Query(
-        None, description="comma (',') delimited Min,Max histogram bounds"
-    )
-    bounds: Optional[str] = Query(
-        None,
-        descriptions="comma (',') delimited Bounding box coordinates from which to calculate image statistics.",
-    )
-
-    def __post_init__(self):
-        """Post Init."""
-        if self.max_size is not None:
-            self.kwargs["max_size"] = self.max_size
-
-        if self.bounds:
-            self.kwargs["bounds"] = tuple(map(float, self.bounds.split(",")))
-
-        hist_options = {}
-        if self.histogram_bins is not None:
-            bins = self.histogram_bins.split(",")
-            if len(bins) == 1:
-                hist_options.update(dict(bins=int(bins[0])))
-            else:
-                hist_options.update(dict(bins=list(map(float, bins))))
-
-        if self.histogram_range:
-            hist_options.update(
-                dict(range=list(map(float, self.histogram_range.split(","))))
-            )
-        if hist_options:
-            self.kwargs["hist_options"] = hist_options
 
 
 @dataclass
