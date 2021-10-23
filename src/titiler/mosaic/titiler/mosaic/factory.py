@@ -187,6 +187,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             render_params=Depends(self.render_dependency),
+            postprocess_params=Depends(self.process_dependency),
             colormap=Depends(self.colormap_dependency),
             pixel_selection: PixelSelectionMethod = Query(
                 PixelSelectionMethod.first, description="Pixel selection method."
@@ -220,8 +221,8 @@ class MosaicTilerFactory(BaseTilerFactory):
                             pixel_selection=pixel_selection.method(),
                             tilesize=tilesize,
                             threads=threads,
-                            **layer_params.kwargs,
-                            **dataset_params.kwargs,
+                            **layer_params,
+                            **dataset_params,
                             **kwargs,
                         )
             timings.append(("dataread", round((t.elapsed - mosaic_read) * 1000, 2)))
@@ -230,19 +231,15 @@ class MosaicTilerFactory(BaseTilerFactory):
                 format = ImageType.jpeg if data.mask.all() else ImageType.png
 
             with Timer() as t:
-                image = data.post_process(
-                    in_range=render_params.rescale_range,
-                    color_formula=render_params.color_formula,
-                )
+                image = data.post_process(**postprocess_params)
             timings.append(("postprocess", round(t.elapsed * 1000, 2)))
 
             with Timer() as t:
                 content = image.render(
-                    add_mask=render_params.return_mask,
                     img_format=format.driver,
                     colormap=colormap,
                     **format.profile,
-                    **render_params.kwargs,
+                    **render_params,
                 )
             timings.append(("format", round(t.elapsed * 1000, 2)))
 
@@ -290,6 +287,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             layer_params=Depends(self.layer_dependency),  # noqa
             dataset_params=Depends(self.dataset_dependency),  # noqa
             render_params=Depends(self.render_dependency),  # noqa
+            postprocess_params=Depends(self.process_dependency),  # noqa
             colormap=Depends(self.colormap_dependency),  # noqa
             pixel_selection: PixelSelectionMethod = Query(
                 PixelSelectionMethod.first, description="Pixel selection method."
@@ -362,6 +360,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             layer_params=Depends(self.layer_dependency),  # noqa
             dataset_params=Depends(self.dataset_dependency),  # noqa
             render_params=Depends(self.render_dependency),  # noqa
+            postprocess_params=Depends(self.process_dependency),  # noqa
             colormap=Depends(self.colormap_dependency),  # noqa
             pixel_selection: PixelSelectionMethod = Query(
                 PixelSelectionMethod.first, description="Pixel selection method."
@@ -470,8 +469,8 @@ class MosaicTilerFactory(BaseTilerFactory):
                             lon,
                             lat,
                             threads=threads,
-                            **layer_params.kwargs,
-                            **dataset_params.kwargs,
+                            **layer_params,
+                            **dataset_params,
                             **kwargs,
                         )
             timings.append(("dataread", round((t.elapsed - mosaic_read) * 1000, 2)))
