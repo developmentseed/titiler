@@ -37,7 +37,9 @@ def test_info(httpx, rio, app):
     body = response.json()
     assert body["B01"]
 
-    response = app.get("/stac/info?url=https://myurl.com/item.json&assets=B01,B09")
+    response = app.get(
+        "/stac/info?url=https://myurl.com/item.json&assets=B01&assets=B09"
+    )
     assert response.status_code == 200
     body = response.json()
     assert body["B01"]
@@ -226,13 +228,13 @@ def test_point(httpx, rio, app):
     assert body["coordinates"] == [23.878, 32.063]
     assert body["values"] == [[3565]]
 
-    # response = app.get(
-    #     "/stac/point/23.878,32.063?url=https://myurl.com/item.json&assets=B01&asset_expression=b1*2"
-    # )
-    # assert response.status_code == 200
-    # body = response.json()
-    # assert body["coordinates"] == [23.878, 32.063]
-    # assert body["values"] == [[7130]]
+    response = app.get(
+        "/stac/point/23.878,32.063?url=https://myurl.com/item.json&assets=B01&asset_expression=B01|b1*2"
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["coordinates"] == [23.878, 32.063]
+    assert body["values"] == [[7130]]
 
     response = app.get(
         "/stac/point/23.878,32.063?url=https://myurl.com/item.json&expression=B01/B09"

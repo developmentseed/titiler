@@ -79,6 +79,17 @@ def test_TilerFactory():
     assert "format;dur" in timing
 
     response = client.get(
+        f"/tiles/8/87/48.tif?url={DATA_DIR}/cog.tif&bidx=1&bidx=1&bidx=1&return_mask=false"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/tiff; application=geotiff"
+    meta = parse_img(response.content)
+    assert meta["dtype"] == "uint16"
+    assert meta["count"] == 3
+    assert meta["width"] == 256
+    assert meta["height"] == 256
+
+    response = client.get(
         f"/tiles/8/87/48.tif?url={DATA_DIR}/cog.tif&expression=b1,b1,b1&return_mask=false"
     )
     assert response.status_code == 200
@@ -292,7 +303,7 @@ def test_TilerFactory():
     assert meta["height"] == 100
 
     # GET - statistics
-    response = client.get(f"/statistics?url={DATA_DIR}/cog.tif&bidx=1,1,1")
+    response = client.get(f"/statistics?url={DATA_DIR}/cog.tif&bidx=1&bidx=1&bidx=1")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
@@ -340,7 +351,9 @@ def test_TilerFactory():
         "percentile_98",
     }
 
-    response = client.get(f"/statistics?url={DATA_DIR}/cog.tif&bidx=1,1,1&p=4&p=5")
+    response = client.get(
+        f"/statistics?url={DATA_DIR}/cog.tif&bidx=1&bidx=1&bidx=1&p=4&p=5"
+    )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
@@ -420,7 +433,7 @@ def test_TilerFactory():
 
     # POST - statistics
     response = client.post(
-        f"/statistics?url={DATA_DIR}/cog.tif&bidx=1,1,1", json=feature
+        f"/statistics?url={DATA_DIR}/cog.tif&bidx=1&bidx=1&bidx=1", json=feature
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/geo+json"
@@ -447,7 +460,8 @@ def test_TilerFactory():
     }
 
     response = client.post(
-        f"/statistics?url={DATA_DIR}/cog.tif&bidx=1,1,1", json=feature_collection
+        f"/statistics?url={DATA_DIR}/cog.tif&bidx=1&bidx=1&bidx=1",
+        json=feature_collection,
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/geo+json"
@@ -558,7 +572,7 @@ def test_MultiBaseTilerFactory(rio):
     response = client.get(f"/info?url={DATA_DIR}/item.json")
     assert response.status_code == 422
 
-    response = client.get(f"/info?url={DATA_DIR}/item.json&assets=B01,B09")
+    response = client.get(f"/info?url={DATA_DIR}/item.json&assets=B01&assets=B09")
     assert response.status_code == 200
     assert response.json()["B01"]
     assert response.json()["B09"]
@@ -572,7 +586,7 @@ def test_MultiBaseTilerFactory(rio):
     assert response.status_code == 400
 
     response = client.get(
-        f"/preview.tif?url={DATA_DIR}/item.json&assets=B01,B09&return_mask=false"
+        f"/preview.tif?url={DATA_DIR}/item.json&assets=B01&assets=B09&return_mask=false"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/tiff; application=geotiff"
@@ -589,9 +603,8 @@ def test_MultiBaseTilerFactory(rio):
     assert meta["dtype"] == "int32"
     assert meta["count"] == 3
 
-    # TODO: update bidx to asset_indexes format
     response = client.get(
-        f"/preview.tif?url={DATA_DIR}/item.json&assets=B01&bidx=1,1,1&return_mask=false"
+        f"/preview.tif?url={DATA_DIR}/item.json&assets=B01&asset_bidx=B01|1,1,1&return_mask=false"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/tiff; application=geotiff"
@@ -599,18 +612,17 @@ def test_MultiBaseTilerFactory(rio):
     assert meta["dtype"] == "uint16"
     assert meta["count"] == 3
 
-    # TODO: update asset_expression format
-    # response = client.get(
-    #     f"/preview.tif?url={DATA_DIR}/item.json&assets=B01&asset_expression=b1,b1,b1&return_mask=false"
-    # )
-    # assert response.status_code == 200
-    # assert response.headers["content-type"] == "image/tiff; application=geotiff"
-    # meta = parse_img(response.content)
-    # assert meta["dtype"] == "int32"
-    # assert meta["count"] == 3
+    response = client.get(
+        f"/preview.tif?url={DATA_DIR}/item.json&assets=B01&asset_expression=B01|b1,b1,b1&return_mask=false"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/tiff; application=geotiff"
+    meta = parse_img(response.content)
+    assert meta["dtype"] == "int32"
+    assert meta["count"] == 3
 
     # GET - statistics
-    response = client.get(f"/statistics?url={DATA_DIR}/item.json&assets=B01,B09")
+    response = client.get(f"/statistics?url={DATA_DIR}/item.json&assets=B01&assets=B09")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
@@ -634,8 +646,9 @@ def test_MultiBaseTilerFactory(rio):
         "percentile_98",
     }
 
-    # TODO: update bidx to asset_indexes format
-    response = client.get(f"/statistics?url={DATA_DIR}/item.json&assets=B01,B09&bidx=1")
+    response = client.get(
+        f"/statistics?url={DATA_DIR}/item.json&assets=B01&assets=B09&asset_bidx=B01|1&asset_bidx=B09|1"
+    )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
@@ -667,7 +680,7 @@ def test_MultiBaseTilerFactory(rio):
 
     # POST - statistics
     response = client.post(
-        f"/statistics?url={DATA_DIR}/item.json&assets=B01,B09",
+        f"/statistics?url={DATA_DIR}/item.json&assets=B01&assets=B09",
         json=stac_feature["features"][0],
     )
     assert response.status_code == 200
@@ -696,7 +709,7 @@ def test_MultiBaseTilerFactory(rio):
     assert props["B09_1"]
 
     response = client.post(
-        f"/statistics?url={DATA_DIR}/item.json&assets=B01,B09", json=stac_feature
+        f"/statistics?url={DATA_DIR}/item.json&assets=B01&assets=B09", json=stac_feature
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/geo+json"
@@ -723,34 +736,34 @@ def test_MultiBaseTilerFactory(rio):
     }
     assert props["B09_1"]
 
-    # TODO: update bidx to asset_indexes format
-    # response = client.post(
-    #     f"/statistics?url={DATA_DIR}/item.json&assets=B01,B09&bidx=1", json=stac_feature["features"][0]
-    # )
-    # assert response.status_code == 200
-    # assert response.headers["content-type"] == "application/geo+json"
-    # resp = response.json()
-    # props = resp["properties"]["statistics"]
-    # assert len(props) == 2
-    # assert set(props["B01_1"].keys()) == {
-    #     "min",
-    #     "max",
-    #     "mean",
-    #     "count",
-    #     "sum",
-    #     "std",
-    #     "median",
-    #     "majority",
-    #     "minority",
-    #     "unique",
-    #     "histogram",
-    #     "valid_percent",
-    #     "masked_pixels",
-    #     "valid_pixels",
-    #     "percentile_2",
-    #     "percentile_98",
-    # }
-    # assert props["B09_1"]
+    response = client.post(
+        f"/statistics?url={DATA_DIR}/item.json&assets=B01&assets=B09&asset_bidx=B01|1&asset_bidx=B09|1",
+        json=stac_feature["features"][0],
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/geo+json"
+    resp = response.json()
+    props = resp["properties"]["statistics"]
+    assert len(props) == 2
+    assert set(props["B01_1"].keys()) == {
+        "min",
+        "max",
+        "mean",
+        "count",
+        "sum",
+        "std",
+        "median",
+        "majority",
+        "minority",
+        "unique",
+        "histogram",
+        "valid_percent",
+        "masked_pixels",
+        "valid_pixels",
+        "percentile_2",
+        "percentile_98",
+    }
+    assert props["B09_1"]
 
 
 @attr.s
@@ -814,7 +827,7 @@ def test_MultiBandTilerFactory():
     assert response.status_code == 400
 
     response = client.get(
-        f"/preview.tif?url={DATA_DIR}&bands=B01,B09,B01&return_mask=false"
+        f"/preview.tif?url={DATA_DIR}&bands=B01&bands=B09&bands=B01&return_mask=false"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/tiff; application=geotiff"
@@ -834,7 +847,7 @@ def test_MultiBandTilerFactory():
     assert meta["count"] == 3
 
     # GET - statistics
-    response = client.get(f"/statistics?url={DATA_DIR}&bands=B01,B09")
+    response = client.get(f"/statistics?url={DATA_DIR}&bands=B01&bands=B09")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
@@ -907,7 +920,8 @@ def test_MultiBandTilerFactory():
     }
 
     response = client.post(
-        f"/statistics?url={DATA_DIR}&bands=B01,B09", json=band_feature["features"][0],
+        f"/statistics?url={DATA_DIR}&bands=B01&bands=B09",
+        json=band_feature["features"][0],
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/geo+json"
@@ -963,7 +977,7 @@ def test_MultiBandTilerFactory():
     }
 
     response = client.post(
-        f"/statistics?url={DATA_DIR}&bands=B01,B09", json=band_feature
+        f"/statistics?url={DATA_DIR}&bands=B01&bands=B09", json=band_feature
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/geo+json"

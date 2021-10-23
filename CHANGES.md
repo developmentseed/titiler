@@ -14,6 +14,16 @@
 * update `statistics` endpoint responses **breaking API**
 * remove `band_expression` in `BandsExprParams` dependency **breaking API**
 * remove `morecantile` requirement definition in setup.py and defers to rio-tiler supported version
+* update `titiler.core.dependencies.DefaultDependency` (allows dict unpacking and remove `.kwargs`) **breaking API**
+* use standard for List in QueryParameter (e.g `bidx=1&bidx=2&bidx` instead of `bidx=1,2,3`) **breaking API**
+* add `asset_bidx` query parameter in replacement of `bidx` in MultiBaseFactory dependencies and switch to new format: `{asset name}|{bidx,bidx,bidx}` **breaking API**
+* update `asset_expression` to the new format: `{asset name}|{expression}` (e.g `data|b1+b2`) **breaking API**
+* update `assets` QueryParameter to List (e.g `assets=COG&assets=Data`) **breaking API**
+* update `bands` QueryParameter to List (e.g `bands=B01&bands=B02`) **breaking API**
+* split `RenderParams` dependency into:
+    * `PostProcessParams`: `rescale` and `color_formula` parameters
+    * `ImageRenderingParams`: `return_mask`
+* add `process_dependency` attribute in `BaseTilerFactory` (defaults to `PostProcessParams`)
 
 ### titiler.mosaic
 

@@ -25,7 +25,8 @@ from titiler.core.dependencies import (
     DatasetPathParams,
     DefaultDependency,
     ImageParams,
-    RenderParams,
+    ImageRenderingParams,
+    PostProcessParams,
     TileMatrixSetName,
     TMSParams,
     WebMercatorTMSParams,
@@ -92,8 +93,11 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
     layer_dependency: Type[DefaultDependency] = BidxExprParams
 
     # Image rendering Dependencies
-    render_dependency: Type[DefaultDependency] = RenderParams
+    render_dependency: Type[DefaultDependency] = ImageRenderingParams
     colormap_dependency: Callable[..., Optional[Dict]] = ColorMapParams
+
+    # Post Processing Dependencies (rescaling, color-formula)
+    process_dependency: Type[DefaultDependency] = PostProcessParams
 
     # TileMatrixSet dependency
     tms_dependency: Callable[..., TileMatrixSet] = WebMercatorTMSParams
@@ -280,6 +284,7 @@ class TilerFactory(BaseTilerFactory):
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             render_params=Depends(self.render_dependency),
+            postprocess_params=Depends(self.process_dependency),
             colormap=Depends(self.colormap_dependency),
             kwargs: Dict = Depends(self.additional_dependency),
         ):
@@ -298,8 +303,8 @@ class TilerFactory(BaseTilerFactory):
                             y,
                             z,
                             tilesize=tilesize,
-                            **layer_params.kwargs,
-                            **dataset_params.kwargs,
+                            **layer_params,
+                            **dataset_params,
                             **kwargs,
                         )
                         dst_colormap = getattr(src_dst, "colormap", None)
@@ -309,19 +314,15 @@ class TilerFactory(BaseTilerFactory):
                 format = ImageType.jpeg if data.mask.all() else ImageType.png
 
             with Timer() as t:
-                image = data.post_process(
-                    in_range=render_params.rescale_range,
-                    color_formula=render_params.color_formula,
-                )
+                image = data.post_process(**postprocess_params)
             timings.append(("postprocess", round(t.elapsed * 1000, 2)))
 
             with Timer() as t:
                 content = image.render(
-                    add_mask=render_params.return_mask,
                     img_format=format.driver,
                     colormap=colormap or dst_colormap,
                     **format.profile,
-                    **render_params.kwargs,
+                    **render_params,
                 )
             timings.append(("format", round(t.elapsed * 1000, 2)))
 
@@ -366,6 +367,7 @@ class TilerFactory(BaseTilerFactory):
             layer_params=Depends(self.layer_dependency),  # noqa
             dataset_params=Depends(self.dataset_dependency),  # noqa
             render_params=Depends(self.render_dependency),  # noqa
+            postprocess_params=Depends(self.process_dependency),  # noqa
             colormap=Depends(self.colormap_dependency),  # noqa
             kwargs: Dict = Depends(self.additional_dependency),  # noqa
         ):
@@ -433,6 +435,7 @@ class TilerFactory(BaseTilerFactory):
             layer_params=Depends(self.layer_dependency),  # noqa
             dataset_params=Depends(self.dataset_dependency),  # noqa
             render_params=Depends(self.render_dependency),  # noqa
+            postprocess_params=Depends(self.process_dependency),  # noqa
             colormap=Depends(self.colormap_dependency),  # noqa
             kwargs: Dict = Depends(self.additional_dependency),  # noqa
         ):
@@ -528,11 +531,7 @@ class TilerFactory(BaseTilerFactory):
                 with rasterio.Env(**self.gdal_config):
                     with self.reader(src_path, **self.reader_options) as src_dst:
                         values = src_dst.point(
-                            lon,
-                            lat,
-                            **layer_params.kwargs,
-                            **dataset_params.kwargs,
-                            **kwargs,
+                            lon, lat, **layer_params, **dataset_params, **kwargs,
                         )
             timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
@@ -560,6 +559,7 @@ class TilerFactory(BaseTilerFactory):
             img_params=Depends(self.img_dependency),
             dataset_params=Depends(self.dataset_dependency),
             render_params=Depends(self.render_dependency),
+            postprocess_params=Depends(self.process_dependency),
             colormap=Depends(self.colormap_dependency),
             kwargs: Dict = Depends(self.additional_dependency),
         ):
@@ -571,10 +571,7 @@ class TilerFactory(BaseTilerFactory):
                 with rasterio.Env(**self.gdal_config):
                     with self.reader(src_path, **self.reader_options) as src_dst:
                         data = src_dst.preview(
-                            **layer_params.kwargs,
-                            **img_params.kwargs,
-                            **dataset_params.kwargs,
-                            **kwargs,
+                            **layer_params, **img_params, **dataset_params, **kwargs,
                         )
                         dst_colormap = getattr(src_dst, "colormap", None)
             timings.append(("dataread", round(t.elapsed * 1000, 2)))
@@ -583,19 +580,15 @@ class TilerFactory(BaseTilerFactory):
                 format = ImageType.jpeg if data.mask.all() else ImageType.png
 
             with Timer() as t:
-                image = data.post_process(
-                    in_range=render_params.rescale_range,
-                    color_formula=render_params.color_formula,
-                )
+                image = data.post_process(**postprocess_params)
             timings.append(("postprocess", round(t.elapsed * 1000, 2)))
 
             with Timer() as t:
                 content = image.render(
-                    add_mask=render_params.return_mask,
                     img_format=format.driver,
                     colormap=colormap or dst_colormap,
                     **format.profile,
-                    **render_params.kwargs,
+                    **render_params,
                 )
             timings.append(("format", round(t.elapsed * 1000, 2)))
 
@@ -631,6 +624,7 @@ class TilerFactory(BaseTilerFactory):
             image_params=Depends(self.img_dependency),
             dataset_params=Depends(self.dataset_dependency),
             render_params=Depends(self.render_dependency),
+            postprocess_params=Depends(self.process_dependency),
             colormap=Depends(self.colormap_dependency),
             kwargs: Dict = Depends(self.additional_dependency),
         ):
@@ -643,28 +637,24 @@ class TilerFactory(BaseTilerFactory):
                     with self.reader(src_path, **self.reader_options) as src_dst:
                         data = src_dst.part(
                             [minx, miny, maxx, maxy],
-                            **layer_params.kwargs,
-                            **image_params.kwargs,
-                            **dataset_params.kwargs,
+                            **layer_params,
+                            **image_params,
+                            **dataset_params,
                             **kwargs,
                         )
                         dst_colormap = getattr(src_dst, "colormap", None)
             timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
             with Timer() as t:
-                image = data.post_process(
-                    in_range=render_params.rescale_range,
-                    color_formula=render_params.color_formula,
-                )
+                image = data.post_process(**postprocess_params)
             timings.append(("postprocess", round(t.elapsed * 1000, 2)))
 
             with Timer() as t:
                 content = image.render(
-                    add_mask=render_params.return_mask,
                     img_format=format.driver,
                     colormap=colormap or dst_colormap,
                     **format.profile,
-                    **render_params.kwargs,
+                    **render_params,
                 )
             timings.append(("format", round(t.elapsed * 1000, 2)))
 
@@ -695,6 +685,7 @@ class TilerFactory(BaseTilerFactory):
             image_params=Depends(self.img_dependency),
             dataset_params=Depends(self.dataset_dependency),
             render_params=Depends(self.render_dependency),
+            postprocess_params=Depends(self.process_dependency),
             colormap=Depends(self.colormap_dependency),
             kwargs: Dict = Depends(self.additional_dependency),
         ):
@@ -707,19 +698,16 @@ class TilerFactory(BaseTilerFactory):
                     with self.reader(src_path, **self.reader_options) as src_dst:
                         data = src_dst.feature(
                             feature.dict(exclude_none=True),
-                            **layer_params.kwargs,
-                            **image_params.kwargs,
-                            **dataset_params.kwargs,
+                            **layer_params,
+                            **image_params,
+                            **dataset_params,
                             **kwargs,
                         )
                         dst_colormap = getattr(src_dst, "colormap", None)
             timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
             with Timer() as t:
-                image = data.post_process(
-                    in_range=render_params.rescale_range,
-                    color_formula=render_params.color_formula,
-                )
+                image = data.post_process(**postprocess_params)
             timings.append(("postprocess", round(t.elapsed * 1000, 2)))
 
             if not format:
@@ -727,11 +715,10 @@ class TilerFactory(BaseTilerFactory):
 
             with Timer() as t:
                 content = image.render(
-                    add_mask=render_params.return_mask,
                     img_format=format.driver,
                     colormap=colormap or dst_colormap,
                     **format.profile,
-                    **render_params.kwargs,
+                    **render_params,
                 )
             timings.append(("format", round(t.elapsed * 1000, 2)))
 
@@ -794,9 +781,9 @@ class TilerFactory(BaseTilerFactory):
             with rasterio.Env(**self.gdal_config):
                 with self.reader(src_path, **self.reader_options) as src_dst:
                     return src_dst.statistics(
-                        **layer_params.kwargs,
-                        **image_params.kwargs,
-                        **dataset_params.kwargs,
+                        **layer_params,
+                        **image_params,
+                        **dataset_params,
                         categorical=categorical,
                         categories=c,
                         percentiles=p,
@@ -859,9 +846,9 @@ class TilerFactory(BaseTilerFactory):
                         with self.reader(src_path, **self.reader_options) as src_dst:
                             data = src_dst.feature(
                                 feature.dict(exclude_none=True),
-                                **layer_params.kwargs,
-                                **image_params.kwargs,
-                                **dataset_params.kwargs,
+                                **layer_params,
+                                **image_params,
+                                **dataset_params,
                                 **kwargs,
                             )
                             stats = get_array_statistics(
@@ -890,9 +877,9 @@ class TilerFactory(BaseTilerFactory):
                 with self.reader(src_path, **self.reader_options) as src_dst:
                     data = src_dst.feature(
                         features.dict(exclude_none=True),
-                        **layer_params.kwargs,
-                        **image_params.kwargs,
-                        **dataset_params.kwargs,
+                        **layer_params,
+                        **image_params,
+                        **dataset_params,
                         **kwargs,
                     )
                     stats = get_array_statistics(
@@ -959,7 +946,7 @@ class MultiBaseTilerFactory(TilerFactory):
             """Return dataset's basic info or the list of available assets."""
             with rasterio.Env(**self.gdal_config):
                 with self.reader(src_path, **self.reader_options) as src_dst:
-                    return src_dst.info(**asset_params.kwargs, **kwargs)
+                    return src_dst.info(**asset_params, **kwargs)
 
         @self.router.get(
             "/info.geojson",
@@ -987,7 +974,7 @@ class MultiBaseTilerFactory(TilerFactory):
                             exclude_none=True, exclude={"minzoom", "maxzoom"}
                         )
                         for asset, asset_info in src_dst.info(
-                            **asset_params.kwargs, **kwargs
+                            **asset_params, **kwargs
                         ).items()
                     }
                     return Feature(
@@ -1060,9 +1047,9 @@ class MultiBaseTilerFactory(TilerFactory):
             with rasterio.Env(**self.gdal_config):
                 with self.reader(src_path, **self.reader_options) as src_dst:
                     return src_dst.statistics(
-                        **asset_params.kwargs,
-                        **image_params.kwargs,
-                        **dataset_params.kwargs,
+                        **asset_params,
+                        **image_params,
+                        **dataset_params,
                         **hist_options,
                     )
 
@@ -1122,9 +1109,9 @@ class MultiBaseTilerFactory(TilerFactory):
                         with self.reader(src_path, **self.reader_options) as src_dst:
                             data = src_dst.feature(
                                 feature.dict(exclude_none=True),
-                                **asset_params.kwargs,
-                                **image_params.kwargs,
-                                **dataset_params.kwargs,
+                                **asset_params,
+                                **image_params,
+                                **dataset_params,
                                 **kwargs,
                             )
 
@@ -1156,9 +1143,9 @@ class MultiBaseTilerFactory(TilerFactory):
                 with self.reader(src_path, **self.reader_options) as src_dst:
                     data = src_dst.feature(
                         features.dict(exclude_none=True),
-                        **asset_params.kwargs,
-                        **image_params.kwargs,
-                        **dataset_params.kwargs,
+                        **asset_params,
+                        **image_params,
+                        **dataset_params,
                         **kwargs,
                     )
                     stats = get_array_statistics(
@@ -1224,7 +1211,7 @@ class MultiBandTilerFactory(TilerFactory):
             """Return dataset's basic info."""
             with rasterio.Env(**self.gdal_config):
                 with self.reader(src_path, **self.reader_options) as src_dst:
-                    return src_dst.info(**bands_params.kwargs, **kwargs)
+                    return src_dst.info(**bands_params, **kwargs)
 
         @self.router.get(
             "/info.geojson",
@@ -1246,7 +1233,7 @@ class MultiBandTilerFactory(TilerFactory):
             """Return dataset's basic info as a GeoJSON feature."""
             with rasterio.Env(**self.gdal_config):
                 with self.reader(src_path, **self.reader_options) as src_dst:
-                    info = src_dst.info(**bands_params.kwargs, **kwargs).dict(
+                    info = src_dst.info(**bands_params, **kwargs).dict(
                         exclude_none=True
                     )
                     info.pop("bounds", None)
