@@ -8,9 +8,13 @@ WORKDIR /opt/titiler
 # Install packages
 COPY src/titiler/ /tmp/titiler/
 
+RUN pip install uvicorn
+
 RUN pip install /tmp/titiler/core /tmp/titiler/mosaic /tmp/titiler/application --no-cache-dir
 
 RUN rm -rf /tmp/titiler
+
+COPY app.sh /opt/titiler
 
 ENV MODULE_NAME titiler.application.main
 ENV VARIABLE_NAME app
@@ -20,4 +24,5 @@ EXPOSE 3000
 # Metrics port
 EXPOSE 9100
 
-CMD ["uvicorn titiler.application.main:app"]
+#CMD ["uvicorn titiler.application.main:app"]
+CMD ["/opt/titiler/app.sh"]
