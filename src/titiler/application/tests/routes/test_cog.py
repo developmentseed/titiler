@@ -224,7 +224,7 @@ def test_tile(rio, app):
     assert response.status_code == 400
 
     response = app.get(
-        "/cog/tiles/8/53/50.png?url=https://myurl.com/above_cog.tif&bidx=1&colormap_name=above&resampling_method=somethingwrong"
+        "/cog/tiles/8/53/50.png?url=https://myurl.com/above_cog.tif&bidx=1&colormap_name=above&resampling=somethingwrong"
     )
     assert response.status_code == 422
 

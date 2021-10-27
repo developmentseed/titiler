@@ -47,7 +47,7 @@ Read Info/Metadata and create Web map Tiles from a **single** STAC Item.  The `s
     - **color_formula**: rio-color formula. OPTIONAL
     - **colormap_name**: rio-tiler color map name. OPTIONAL
     - **colormap**: JSON encoded custom Colormap. OPTIONAL
-    - **resampling_method**: rasterio resampling method. Default is `nearest`.
+    - **resampling**: rasterio resampling method. Default is `nearest`.
 
 ***assets** OR **expression** is required
 
@@ -112,7 +112,7 @@ Example:
     - **color_formula**: rio-color formula. OPTIONAL
     - **colormap_name**: rio-tiler color map name. OPTIONAL
     - **colormap**: JSON encoded custom Colormap. OPTIONAL
-    - **resampling_method**: rasterio resampling method. Default is `nearest`.
+    - **resampling**: rasterio resampling method. Default is `nearest`.
 
 ***assets** OR **expression** is required
 
@@ -144,7 +144,7 @@ Example:
     - **color_formula**: rio-color formula. OPTIONAL
     - **colormap_name**: rio-tiler color map name. OPTIONAL
     - **colormap**: JSON encoded custom Colormap. OPTIONAL
-    - **resampling_method**: rasterio resampling method. Default is `nearest`.
+    - **resampling**: rasterio resampling method. Default is `nearest`.
 
 ***assets** OR **expression** is required
 
@@ -257,7 +257,7 @@ Example:
     - **max_size**: Max image size from which to calculate statistics, default is 1024. OPTIONAL
     - **histogram_bins**: Histogram bins, default is 20. OPTIONAL
     - **histogram_range**: comma (',') delimited histogram bounds. OPTIONAL
-    - **resampling_method**: rasterio resampling method. Default is `nearest`.
+    - **resampling**: rasterio resampling method. Default is `nearest`.
 
 Example:
 
@@ -280,7 +280,7 @@ Advanced raster statistics
     - **height**: Force image height. OPTIONAL
     - **width**: Force image width. OPTIONAL
     - **unscale**: Apply internal Scale/Offset. OPTIONAL
-    - **resampling_method**: rasterio resampling method. Default is `nearest`.
+    - **resampling**: rasterio resampling method. Default is `nearest`.
     - **categorical**: Return statistics for categorical dataset.
     - **c** (multiple): Pixels values for categories.
     - **p** (multiple): Percentile values.

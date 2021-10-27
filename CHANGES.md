@@ -24,6 +24,7 @@
     * `PostProcessParams`: `rescale` and `color_formula` parameters
     * `ImageRenderingParams`: `return_mask`
 * add `process_dependency` attribute in `BaseTilerFactory` (defaults to `PostProcessParams`)
+* use `resampling` alias instead of `resampling_method` for QueryParameter **breaking API**
 
 ### titiler.mosaic
 
