@@ -1,0 +1,184 @@
+version: 2.0
+
+working_directory: &working_directory
+  /app
+
+production_branch: &production_branch
+  prod
+
+staging_branch: &staging_branch
+  sd-master
+
+development_branch: &development_branch
+  dev
+
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Run aws-build-image and login to aws ecr
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+aws_build_container: &aws_build_container
+  docker:
+    - image: ${AWS_BUILD_IMAGE}
+      aws_auth:
+        aws_access_key_id: ${ECR_KEY_ID}
+        aws_secret_access_key: ${ECR_ACCESS_KEY}
+aws_ecr_login: &aws_ecr_login
+  run:
+    name: Logging into AWS ECR
+    command: /config.sh; aws ecr get-login-password | docker login --username AWS --password-stdin ${ECR_ROOT}
+aws_ecr_create_repo: &aws_ecr_create_repo
+  run:
+    name: Creating repo if not exist
+    command: |
+      aws ecr create-repository --repository-name ${CIRCLE_PROJECT_REPONAME} --image-scanning-configuration scanOnPush=true --tags Key=cost,Value="ecr.${CIRCLE_PROJECT_REPONAME}" || true
+      aws ecr set-repository-policy --repository-name ${CIRCLE_PROJECT_REPONAME} --policy-text "${PLATFORM_ECR_POLICY}"
+aws_ecr_push: &aws_ecr_push
+  deploy:
+    name: Push Docker image
+    command: |
+      docker tag app "${ECR_ROOT}/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_SHA1}"
+      docker push "${ECR_ROOT}/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_SHA1}"
+k8s_pre_run: &k8s_pre_run
+  run:
+    name: k8s Deploy Pre-Run
+    command: |
+      env
+      $CIRCLE_WORKING_DIRECTORY/infra-toolbox/ci/scripts/circle2Scripts.sh prerun -r "${ECR_ROOT}"
+k8s_tests: &k8s_tests
+  working_directory: *working_directory
+  docker:
+    - image: ${HELM_TOOLS_IMAGE}
+      aws_auth:
+        aws_access_key_id: ${ECR_KEY_ID}
+        aws_secret_access_key: ${ECR_ACCESS_KEY}
+      environment:
+        PROD_REPO: *production_branch
+        STAGING_REPO: *staging_branch
+        DEV_REPO: *development_branch
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+add_circleci_user: &add_circleci_user
+  add_ssh_keys:
+    fingerprints:
+      - "13:a6:81:74:d7:d6:6a:32:47:32:aa:f5:f0:48:3f:64"
+
+jobs:
+  test:
+    docker:
+      - image: node:10.15.0
+    steps:
+      - checkout
+      - run:
+          name: test
+          command: |
+            echo "Testing goes here."
+  build-push-image:
+    working_directory: *working_directory
+    <<: *aws_build_container
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - restore_cache:
+          keys:
+            - v1-{{ .Branch }}-{{ .BuildNum }}
+          paths:
+            - /caches/app.tar
+      - run:
+          name: Load Docker image layer cache
+          command: |
+            set +o pipefail
+            docker load -i /caches/app.tar | true
+      - run:
+          name: Build Docker image
+          command: |
+            docker build --cache-from=app --rm=false -t app .
+          no_output_timeout: 40m
+      - run:
+          name: Save Docker image layer cache
+          command: |
+            mkdir -p /caches
+            docker save -o /caches/app.tar app
+      - save_cache:
+          key: v1-{{ .Branch }}-{{ .BuildNum }}-{{ epoch }}
+          paths:
+            - /caches/app.tar
+      - *aws_ecr_login
+      - *aws_ecr_create_repo
+      - *aws_ecr_push
+  build-lint-manifest:
+    <<: *k8s_tests
+    steps:
+      - *add_circleci_user
+      - checkout
+      - run:
+          name: Pull k8-deploy-state
+          command: |
+            git clone --single-branch --branch master git@github.com:Saildrone/k8-deploy-state.git $CIRCLE_WORKING_DIRECTORY/k8-deploy-state || true
+      - run:
+          name: pull infra-toolbox
+          command: |
+            git clone --single-branch --branch master git@github.com:Saildrone/infra-toolbox.git $CIRCLE_WORKING_DIRECTORY/infra-toolbox || true
+      - *k8s_pre_run
+      - run:
+          name: Lint and error checking
+          command: |
+            $CIRCLE_WORKING_DIRECTORY/infra-toolbox/ci/scripts/circle2Scripts.sh lint-service
+      - persist_to_workspace:
+          root: *working_directory
+          paths:
+            - manifests/*
+            - config/*
+  deploy-k8s-manifest:
+    <<: *k8s_tests
+    steps:
+      - *add_circleci_user
+      - checkout
+      - attach_workspace:
+          at: *working_directory
+      - run:
+          name: Pull k8-deploy-state
+          command: |
+            git clone git@github.com:Saildrone/k8-deploy-state.git $CIRCLE_WORKING_DIRECTORY/k8-deploy-state || true
+      - run:
+          name: pull infra-toolbox
+          command: |
+            git clone --single-branch --branch master git@github.com:Saildrone/infra-toolbox.git $CIRCLE_WORKING_DIRECTORY/infra-toolbox || true
+      - run:
+          name: Deploy Service
+          command: |
+            $CIRCLE_WORKING_DIRECTORY/infra-toolbox/ci/scripts/circle2Scripts.sh deploy-service
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - test
+      - build-lint-manifest:
+          context: platform-k8s
+          filters:
+            branches:
+              only:
+                - *production_branch
+                - *staging_branch
+                - *development_branch
+      - build-push-image:
+          context: platform-k8s
+          requires:
+            - test
+          filters:
+            branches:
+              only:
+                - *production_branch
+                - *staging_branch
+                - *development_branch
+      - deploy-k8s-manifest:
+          context: platform-k8s
+          requires:
+            - build-push-image
+            - build-lint-manifest
+          filters:
+            branches:
+              only:
+                - *production_branch
+                - *staging_branch
+                - *development_branch

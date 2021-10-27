@@ -1,0 +1,62 @@
+app:
+  enabled: true
+  containerPort: 3000
+  replicaCount: 1
+  extraEnvs:
+    - name: SD_ENV
+      value: "prod"
+  livenessProbe:
+    httpGet:
+      path: /healthz
+      port: http
+      scheme: HTTP
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    successThreshold: 1
+    failureThreshold: 5
+  readinessProbe:
+    httpGet:
+      path: /healthz
+      port: http
+      scheme: HTTP
+    initialDelaySeconds: 45
+    periodSeconds: 15
+    timeoutSeconds: 10
+    successThreshold: 1
+    failureThreshold: 5
+
+  service:
+    type: ClusterIP
+    port: 3000
+
+  ingress:
+    internalEnabled: true
+    trustedEnabled: true
+    publicEnabled: false
+    tls:
+      # Secrets must be manually created in the namespace.
+      - secretName: tls-secret
+        hosts:
+          - titiler.prod.saildrone.com
+    hosts:
+      - host: titiler.prod.saildrone.com
+        paths:
+          - path: /
+            servicePort: http
+
+  metrics:
+    enabled: false
+    endpoints:
+      port: 9100
+      interval: 30s
+      path: /metrics
+      # scheme: http
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
