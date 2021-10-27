@@ -369,6 +369,7 @@ class DatasetParams(DefaultDependency):
     )
     resampling_method: ResamplingName = Query(
         ResamplingName.nearest,  # type: ignore
+        alias="resampling",
         description="Resampling method.",
     )
 

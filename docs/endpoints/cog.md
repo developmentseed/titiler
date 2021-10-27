@@ -48,7 +48,7 @@ Read Info/Metadata and create Web map Tiles from a **single** COG. The `cog` rou
     - **color_formula**: rio-color formula. OPTIONAL
     - **colormap_name**: rio-tiler color map name. OPTIONAL
     - **colormap**: JSON encoded custom Colormap. OPTIONAL
-    - **resampling_method**: rasterio resampling method. Default is `nearest`.
+    - **resampling**: rasterio resampling method. Default is `nearest`.
 
 Example:
 
@@ -76,7 +76,7 @@ Example:
     - **color_formula**: rio-color formula. OPTIONAL
     - **colormap_name**: rio-tiler color map name. OPTIONAL
     - **colormap**: JSON encoded custom Colormap. OPTIONAL
-    - **resampling_method**: rasterio resampling method. Default is `nearest`.
+    - **resampling**: rasterio resampling method. Default is `nearest`.
 
 Note: if `height` and `width` are provided `max_size` will be ignored.
 
@@ -107,7 +107,7 @@ Example:
     - **color_formula**: rio-color formula. OPTIONAL
     - **colormap_name**: rio-tiler color map name. OPTIONAL
     - **colormap**: JSON encoded custom Colormap. OPTIONAL
-    - **resampling_method**: rasterio resampling method. Default is `nearest`.
+    - **resampling**: rasterio resampling method. Default is `nearest`.
 
 Example:
 
@@ -135,7 +135,7 @@ Example:
     - **color_formula**: rio-color formula. OPTIONAL
     - **colormap_name**: rio-tiler color map name. OPTIONAL
     - **colormap**: JSON encoded custom Colormap. OPTIONAL
-    - **resampling_method**: rasterio resampling method. Default is `nearest`.
+    - **resampling**: rasterio resampling method. Default is `nearest`.
 
 Example:
 
@@ -227,7 +227,7 @@ Example:
     - **max_size**: Max image size from which to calculate statistics, default is 1024. OPTIONAL
     - **histogram_bins**: Histogram bins, default is 20. OPTIONAL
     - **histogram_range**: Comma (',') delimited histogram bounds. OPTIONAL
-    - **resampling_method**: rasterio resampling method. Default is `nearest`.
+    - **resampling**: rasterio resampling method. Default is `nearest`.
 
 Example:
 
@@ -248,7 +248,7 @@ Advanced raster statistics
     - **height**: Force image height. OPTIONAL
     - **width**: Force image width. OPTIONAL
     - **unscale**: Apply internal Scale/Offset. OPTIONAL
-    - **resampling_method**: rasterio resampling method. Default is `nearest`.
+    - **resampling**: rasterio resampling method. Default is `nearest`.
     - **categorical**: Return statistics for categorical dataset.
     - **c** (multiple): Pixels values for categories.
     - **p** (multiple): Percentile values.
