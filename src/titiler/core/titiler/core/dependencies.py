@@ -103,8 +103,8 @@ class BidxParams(DefaultDependency):
 
 
 @dataclass
-class BidxExprParams(BidxParams):
-    """Band Indexes and Expression parameters."""
+class ExpressionParams(DefaultDependency):
+    """Expression parameters."""
 
     expression: Optional[str] = Query(
         None,
@@ -120,13 +120,20 @@ class BidxExprParams(BidxParams):
     )
 
 
+@dataclass
+class BidxExprParams(ExpressionParams, BidxParams):
+    """Band Indexes and Expression parameters."""
+
+    pass
+
+
 # Dependencies for  MultiBaseReader (e.g STACReader)
 @dataclass
 class AssetsParams(DefaultDependency):
     """Assets parameters."""
 
     assets: List[str] = Query(
-        ...,
+        None,
         title="Asset names",
         description="Asset's names.",
         examples={
@@ -282,7 +289,7 @@ class BandsParams(DefaultDependency):
     """Band names parameters."""
 
     bands: List[str] = Query(
-        ...,
+        None,
         title="Band names",
         description="Band's names.",
         examples={
@@ -299,37 +306,15 @@ class BandsParams(DefaultDependency):
 
 
 @dataclass
-class BandsExprParams(DefaultDependency):
-    """Band names and Expression parameters."""
+class BandsExprParamsOptional(ExpressionParams, BandsParams):
+    """Optional Band names and Expression parameters."""
 
-    bands: Optional[List[str]] = Query(
-        None,
-        title="Band names",
-        description="Band's names.",
-        examples={
-            "one-band": {
-                "description": "Return results for band `B01`.",
-                "value": ["B01"],
-            },
-            "multi-bands": {
-                "description": "Return results for bands `B01` and `B02`.",
-                "value": ["B01", "B02"],
-            },
-        },
-    )
+    pass
 
-    expression: Optional[str] = Query(
-        None,
-        title="Band Math expression",
-        description="rio-tiler's band math expression",
-        examples={
-            "simple": {"description": "Simple band math.", "value": "B01/B02"},
-            "multi-bands": {
-                "description": "Coma (,) delimited expressions (band1: B01/B02, band2: B02+B03).",
-                "value": "B01/B02,B02+B03",
-            },
-        },
-    )
+
+@dataclass
+class BandsExprParams(ExpressionParams, BandsParams):
+    """Band names and Expression parameters (Band or Expression required)."""
 
     def __post_init__(self):
         """Post Init."""

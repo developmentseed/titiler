@@ -25,6 +25,8 @@
     * `ImageRenderingParams`: `return_mask`
 * add `process_dependency` attribute in `BaseTilerFactory` (defaults to `PostProcessParams`)
 * use `resampling` alias instead of `resampling_method` for QueryParameter **breaking API**
+* defaults to available assets if `assets` option is not provided for `MultiBaseTilerFactory` info and statistics endpoints.
+* defaults to available bands if `bands` option is not provided for `MultiBandsTilerFactory` info and statistics endpoints.
 
 ### titiler.mosaic
 
