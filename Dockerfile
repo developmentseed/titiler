@@ -1,4 +1,4 @@
-FROM python:3.8.3-buster
+FROM python:3.8.9-slim-buster
 
 RUN set -ex \
     && mkdir /opt/titiler
