@@ -20,4 +20,4 @@ EXPOSE 3000
 # Metrics port
 EXPOSE 9100
 
-CMD ["start"]
+CMD ["uvicorn titiler.application.main:app"]
