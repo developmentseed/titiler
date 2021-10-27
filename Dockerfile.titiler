@@ -1,4 +1,4 @@
-ROM tiangolo/uvicorn-gunicorn:python3.8
+FROM tiangolo/uvicorn-gunicorn:python3.8
 
 # Ensure root certificates are always updated at evey container build
 # and curl is using the latest version of them
