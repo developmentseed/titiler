@@ -9,5 +9,5 @@ exec uvicorn \
     --workers 1 \
     --limit-max-requests $max_requests \
     --host 0.0.0.0 \
-    --port 8000 \
+    --port 3000 \
     titiler.application.main:app

@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      - "3000:3000"
     environment:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
@@ -16,7 +16,7 @@ services:
       - GDAL_HTTP_MERGE_CONSECUTIVE_RANGES=YES
       - GDAL_HTTP_MULTIPLEX=YES
       - GDAL_HTTP_VERSION=2
-      - PORT=8000
+      - PORT=3000
       - PYTHONWARNINGS=ignore
       - VSI_CACHE=TRUE
       - VSI_CACHE_SIZE=536870912
