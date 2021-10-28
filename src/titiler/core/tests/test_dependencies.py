@@ -92,6 +92,11 @@ def test_bdix():
         """return params."""
         return params
 
+    @app.get("/third")
+    def _expre(params=Depends(dependencies.ExpressionParams)):
+        """return express."""
+        return params.expression
+
     client = TestClient(app)
     response = client.get("/first?bidx=1&bidx=2")
     assert response.json() == [1, 2]
@@ -108,6 +113,12 @@ def test_bdix():
     response = client.get("/second")
     assert not response.json()["expression"]
     assert not response.json()["indexes"]
+
+    response = client.get("/third?expression=1,2")
+    assert response.json() == "1,2"
+
+    response = client.get("/third")
+    assert not response.json()
 
 
 def test_assets():
@@ -134,9 +145,8 @@ def test_assets():
     response = client.get("/first?assets=data&assets=image")
     assert response.json() == ["data", "image"]
 
-    # assets is required
     response = client.get("/first")
-    assert response.status_code == 422
+    assert not response.json()
 
     response = client.get("/second?assets=data&assets=image")
     assert response.json()["assets"] == ["data", "image"]
@@ -165,7 +175,7 @@ def test_assets():
     assert response.json()["assets"] == ["data", "image"]
 
     response = client.get("/third")
-    assert response.status_code == 422
+    assert not response.json()["assets"]
 
     response = client.get(
         "/third?assets=data&assets=image&asset_bidx=data|1,2,3&asset_bidx=image|1"
@@ -195,12 +205,17 @@ def test_bands():
         """return params."""
         return params
 
+    @app.get("/third")
+    def _bands_expr_opt(params=Depends(dependencies.BandsExprParamsOptional)):
+        """return params."""
+        return params
+
     client = TestClient(app)
     response = client.get("/first?bands=b1&bands=b2")
     assert response.json() == ["b1", "b2"]
 
     response = client.get("/first")
-    assert response.status_code == 422
+    assert not response.json()
 
     response = client.get("/second?bands=b1&bands=b2")
     assert response.json()["bands"] == ["b1", "b2"]
@@ -210,6 +225,15 @@ def test_bands():
 
     with pytest.raises(errors.MissingBands):
         response = client.get("/second")
+
+    response = client.get("/third?bands=b1&bands=b2")
+    assert response.json()["bands"] == ["b1", "b2"]
+
+    response = client.get("/third?expression=b1,b2")
+    assert response.json()["expression"] == "b1,b2"
+
+    response = client.get("/third")
+    assert not response.json()["bands"]
 
 
 def test_image():

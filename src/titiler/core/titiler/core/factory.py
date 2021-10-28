@@ -18,6 +18,7 @@ from titiler.core.dependencies import (
     AssetsBidxParams,
     AssetsParams,
     BandsExprParams,
+    BandsExprParamsOptional,
     BandsParams,
     BidxExprParams,
     ColorMapParams,
@@ -841,9 +842,9 @@ class TilerFactory(BaseTilerFactory):
             # TODO: stream features for FeatureCollection
             if isinstance(features, FeatureCollection):
                 feat = []
-                for feature in features:
-                    with rasterio.Env(**self.gdal_config):
-                        with self.reader(src_path, **self.reader_options) as src_dst:
+                with rasterio.Env(**self.gdal_config):
+                    with self.reader(src_path, **self.reader_options) as src_dst:
+                        for feature in features:
                             data = src_dst.feature(
                                 feature.dict(exclude_none=True),
                                 **layer_params,
@@ -919,8 +920,11 @@ class MultiBaseTilerFactory(TilerFactory):
 
     reader: Type[MultiBaseReader]
 
-    # Assets/Indexes/Expression Dependencies
+    # Assets/Indexes/Expression dependency
     layer_dependency: Type[DefaultDependency] = AssetsBidxExprParams
+
+    # Assets dependency
+    assets_dependency: Type[DefaultDependency] = AssetsParams
 
     # Overwrite the `/info` endpoint to return the list of assets when no assets is passed.
     def info(self):
@@ -940,12 +944,15 @@ class MultiBaseTilerFactory(TilerFactory):
         )
         def info(
             src_path=Depends(self.path_dependency),
-            asset_params=Depends(AssetsParams),
+            asset_params=Depends(self.assets_dependency),
             kwargs: Dict = Depends(self.additional_dependency),
         ):
             """Return dataset's basic info or the list of available assets."""
             with rasterio.Env(**self.gdal_config):
                 with self.reader(src_path, **self.reader_options) as src_dst:
+                    # Default to all available assets
+                    if not asset_params.assets:
+                        asset_params.assets = src_dst.assets
                     return src_dst.info(**asset_params, **kwargs)
 
         @self.router.get(
@@ -962,12 +969,16 @@ class MultiBaseTilerFactory(TilerFactory):
         )
         def info_geojson(
             src_path=Depends(self.path_dependency),
-            asset_params=Depends(AssetsParams),
+            asset_params=Depends(self.assets_dependency),
             kwargs: Dict = Depends(self.additional_dependency),
         ):
             """Return dataset's basic info as a GeoJSON feature."""
             with rasterio.Env(**self.gdal_config):
                 with self.reader(src_path, **self.reader_options) as src_dst:
+                    # Default to all available assets
+                    if not asset_params.assets:
+                        asset_params.assets = src_dst.assets
+
                     info = {"dataset": src_path}
                     info["assets"] = {
                         asset: asset_info.dict(
@@ -997,8 +1008,8 @@ class MultiBaseTilerFactory(TilerFactory):
                     return src_dst.assets
 
     # Overwrite the `/statistics` endpoint because the MultiBaseReader output model is different (Dict[str, Dict[str, BandStatistics]])
-    # and MultiBaseReader.statistics() method also has `assets` as a requirement arguments.
-    def statistics(self):
+    # and MultiBaseReader.statistics() method also has `assets` arguments to defaults to the list of assets.
+    def statistics(self):  # noqa: C901
         """Register /statistics endpoint."""
 
         # GET endpoint
@@ -1046,6 +1057,10 @@ class MultiBaseTilerFactory(TilerFactory):
 
             with rasterio.Env(**self.gdal_config):
                 with self.reader(src_path, **self.reader_options) as src_dst:
+                    # Default to all available assets
+                    if not asset_params.assets:
+                        asset_params.assets = src_dst.assets
+
                     return src_dst.statistics(
                         **asset_params,
                         **image_params,
@@ -1107,6 +1122,11 @@ class MultiBaseTilerFactory(TilerFactory):
                 for feature in features:
                     with rasterio.Env(**self.gdal_config):
                         with self.reader(src_path, **self.reader_options) as src_dst:
+
+                            # Default to all available assets
+                            if not asset_params.assets:
+                                asset_params.assets = src_dst.assets
+
                             data = src_dst.feature(
                                 feature.dict(exclude_none=True),
                                 **asset_params,
@@ -1141,6 +1161,10 @@ class MultiBaseTilerFactory(TilerFactory):
 
             with rasterio.Env(**self.gdal_config):
                 with self.reader(src_path, **self.reader_options) as src_dst:
+                    # Default to all available assets
+                    if not asset_params.assets:
+                        asset_params.assets = src_dst.assets
+
                     data = src_dst.feature(
                         features.dict(exclude_none=True),
                         **asset_params,
@@ -1189,8 +1213,11 @@ class MultiBandTilerFactory(TilerFactory):
 
     reader: Type[MultiBandReader]
 
-    # Assets/Expression Dependencies
+    # Assets/Expression dependency
     layer_dependency: Type[DefaultDependency] = BandsExprParams
+
+    # Bands dependency
+    bands_dependency: Type[DefaultDependency] = BandsParams
 
     def info(self):
         """Register /info endpoint."""
@@ -1205,13 +1232,17 @@ class MultiBandTilerFactory(TilerFactory):
         )
         def info(
             src_path=Depends(self.path_dependency),
-            bands_params=Depends(BandsParams),
+            bands_params=Depends(self.bands_dependency),
             kwargs: Dict = Depends(self.additional_dependency),
         ):
             """Return dataset's basic info."""
             with rasterio.Env(**self.gdal_config):
                 with self.reader(src_path, **self.reader_options) as src_dst:
-                    return src_dst.info(**bands_params, **kwargs)
+                    # Default to all available assets
+                    if not bands_params.bands:
+                        bands_params.bands = src_dst.bands
+
+                    return src_dst.info(**bands_params, **kwargs,)
 
         @self.router.get(
             "/info.geojson",
@@ -1227,12 +1258,16 @@ class MultiBandTilerFactory(TilerFactory):
         )
         def info_geojson(
             src_path=Depends(self.path_dependency),
-            bands_params=Depends(BandsParams),
+            bands_params=Depends(self.bands_dependency),
             kwargs: Dict = Depends(self.additional_dependency),
         ):
             """Return dataset's basic info as a GeoJSON feature."""
             with rasterio.Env(**self.gdal_config):
                 with self.reader(src_path, **self.reader_options) as src_dst:
+                    # Default to all available assets
+                    if not bands_params.bands:
+                        bands_params.bands = src_dst.bands
+
                     info = src_dst.info(**bands_params, **kwargs).dict(
                         exclude_none=True
                     )
@@ -1258,6 +1293,188 @@ class MultiBandTilerFactory(TilerFactory):
             with rasterio.Env(**self.gdal_config):
                 with self.reader(src_path, **self.reader_options) as src_dst:
                     return src_dst.bands
+
+    # Overwrite the `/statistics` endpoint because we need bands to default to the list of bands.
+    def statistics(self):  # noqa: C901
+        """add statistics endpoints."""
+
+        # GET endpoint
+        @self.router.get(
+            "/statistics",
+            response_model=Dict[str, BandStatistics],
+            responses={
+                200: {
+                    "content": {"application/json": {}},
+                    "description": "Return dataset's statistics.",
+                }
+            },
+        )
+        def statistics(
+            src_path=Depends(self.path_dependency),
+            bands_params=Depends(BandsExprParamsOptional),
+            image_params=Depends(self.img_dependency),
+            dataset_params=Depends(self.dataset_dependency),
+            categorical: bool = Query(
+                False, description="Return statistics for categorical dataset."
+            ),
+            c: List[Union[float, int]] = Query(
+                None, description="Pixels values for categories."
+            ),
+            p: List[int] = Query([2, 98], description="Percentile values."),
+            histogram_bins: Optional[str] = Query(None, description="Histogram bins."),
+            histogram_range: Optional[str] = Query(
+                None, description="comma (',') delimited Min,Max histogram bounds"
+            ),
+            kwargs: Dict = Depends(self.additional_dependency),
+        ):
+            """Create image from a geojson feature."""
+            hist_options: Dict[str, Any] = {}
+            if histogram_bins is not None:
+                bins = histogram_bins.split(",")
+                if len(bins) == 1:
+                    hist_options.update(dict(bins=int(bins[0])))
+                else:
+                    hist_options.update(dict(bins=list(map(float, bins))))
+
+            if histogram_range:
+                hist_options.update(
+                    dict(range=list(map(float, histogram_range.split(","))))
+                )
+
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path, **self.reader_options) as src_dst:
+                    # Default to all available bands
+                    if not bands_params.bands and not bands_params.expression:
+                        bands_params.bands = src_dst.bands
+
+                    return src_dst.statistics(
+                        **bands_params,
+                        **image_params,
+                        **dataset_params,
+                        categorical=categorical,
+                        categories=c,
+                        percentiles=p,
+                        hist_options=hist_options,
+                    )
+
+        # POST endpoint
+        @self.router.post(
+            "/statistics",
+            response_model=Union[Feature, FeatureCollection],
+            response_model_exclude_none=True,
+            response_class=GeoJSONResponse,
+            responses={
+                200: {
+                    "content": {"application/json": {}},
+                    "description": "Return dataset's statistics.",
+                }
+            },
+        )
+        def geojson_statistics(
+            features: Union[FeatureCollection, Feature] = Body(
+                ..., descriptiom="GeoJSON Feature or FeatureCollection."
+            ),
+            src_path=Depends(self.path_dependency),
+            bands_params=Depends(BandsExprParamsOptional),
+            image_params=Depends(self.img_dependency),
+            dataset_params=Depends(self.dataset_dependency),
+            categorical: bool = Query(
+                False, description="Return statistics for categorical dataset."
+            ),
+            c: List[Union[float, int]] = Query(
+                None, description="Pixels values for categories."
+            ),
+            p: List[int] = Query([2, 98], description="Percentile values."),
+            histogram_bins: Optional[str] = Query(None, description="Histogram bins."),
+            histogram_range: Optional[str] = Query(
+                None, description="comma (',') delimited Min,Max histogram bounds"
+            ),
+            kwargs: Dict = Depends(self.additional_dependency),
+        ):
+            """Get Statistics from a geojson feature or featureCollection."""
+            hist_options: Dict[str, Any] = {}
+            if histogram_bins is not None:
+                bins = histogram_bins.split(",")
+                if len(bins) == 1:
+                    hist_options.update(dict(bins=int(bins[0])))
+                else:
+                    hist_options.update(dict(bins=list(map(float, bins))))
+
+            if histogram_range:
+                hist_options.update(
+                    dict(range=list(map(float, histogram_range.split(","))))
+                )
+
+            # TODO: stream features for FeatureCollection
+            if isinstance(features, FeatureCollection):
+                feat = []
+                with rasterio.Env(**self.gdal_config):
+                    with self.reader(src_path, **self.reader_options) as src_dst:
+                        # Default to all available bands
+                        if not bands_params.bands and not bands_params.expression:
+                            bands_params.bands = src_dst.bands
+
+                        for feature in features:
+                            data = src_dst.feature(
+                                feature.dict(exclude_none=True),
+                                **bands_params,
+                                **image_params,
+                                **dataset_params,
+                                **kwargs,
+                            )
+                            stats = get_array_statistics(
+                                data.as_masked(),
+                                categorical=categorical,
+                                categories=c,
+                                percentiles=p,
+                                **hist_options,
+                            )
+
+                        feature.properties.update(
+                            {
+                                "statistics": {
+                                    f"{data.band_names[ix]}": BandStatistics(
+                                        **stats[ix]
+                                    )
+                                    for ix in range(len(stats))
+                                }
+                            }
+                        )
+                        feat.append(feature)
+
+                return FeatureCollection(features=feat)
+
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path, **self.reader_options) as src_dst:
+                    # Default to all available bands
+                    if not bands_params.bands and not bands_params.expression:
+                        bands_params.bands = src_dst.bands
+
+                    data = src_dst.feature(
+                        features.dict(exclude_none=True),
+                        **bands_params,
+                        **image_params,
+                        **dataset_params,
+                        **kwargs,
+                    )
+                    stats = get_array_statistics(
+                        data.as_masked(),
+                        categorical=categorical,
+                        categories=c,
+                        percentiles=p,
+                        **hist_options,
+                    )
+
+            features.properties.update(
+                {
+                    "statistics": {
+                        f"{data.band_names[ix]}": BandStatistics(**stats[ix])
+                        for ix in range(len(stats))
+                    }
+                }
+            )
+
+            return features
 
 
 @dataclass

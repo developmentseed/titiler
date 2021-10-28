@@ -563,14 +563,15 @@ def test_MultiBaseTilerFactory(rio):
 
     response = client.get(f"/assets?url={DATA_DIR}/item.json")
     assert response.status_code == 200
-    assert len(response.json()) == 17
+    assert len(response.json()) == 2
 
     response = client.get(f"/bounds?url={DATA_DIR}/item.json")
     assert response.status_code == 200
     assert len(response.json()["bounds"]) == 4
 
     response = client.get(f"/info?url={DATA_DIR}/item.json")
-    assert response.status_code == 422
+    assert response.status_code == 200
+    assert len(response.json()) == 2
 
     response = client.get(f"/info?url={DATA_DIR}/item.json&assets=B01&assets=B09")
     assert response.status_code == 200
@@ -809,9 +810,9 @@ def test_MultiBandTilerFactory():
     assert response.status_code == 200
     assert response.json() == ["B01", "B09"]
 
-    # missing bands
+    # default bands
     response = client.get(f"/info?url={DATA_DIR}")
-    assert response.status_code == 422
+    assert response.json()["band_metadata"] == [["B01", {}], ["B09", {}]]
 
     response = client.get(f"/info?url={DATA_DIR}&bands=B01")
     assert response.status_code == 200
@@ -847,6 +848,14 @@ def test_MultiBandTilerFactory():
     assert meta["count"] == 3
 
     # GET - statistics
+    response = client.get(f"/statistics?url={DATA_DIR}")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    resp = response.json()
+    assert len(resp) == 2
+    assert resp["B01"]
+    assert resp["B09"]
+
     response = client.get(f"/statistics?url={DATA_DIR}&bands=B01&bands=B09")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
@@ -1030,6 +1039,25 @@ def test_MultiBandTilerFactory():
         "percentile_2",
         "percentile_98",
     }
+
+    # default bands
+    response = client.post(f"/statistics?url={DATA_DIR}", json=band_feature)
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/geo+json"
+    resp = response.json()
+    props = resp["features"][0]["properties"]["statistics"]
+    assert props["B01"]
+    assert props["B09"]
+
+    response = client.post(
+        f"/statistics?url={DATA_DIR}", json=band_feature["features"][0],
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/geo+json"
+    resp = response.json()
+    props = resp["properties"]["statistics"]
+    assert props["B01"]
+    assert props["B09"]
 
 
 def test_TMSFactory():
