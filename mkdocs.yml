@@ -72,9 +72,6 @@ nav:
       - enums: api/titiler/mosaic/resources/enums.md
       - errors: api/titiler/mosaic/errors.md
 
-    - titiler.application:
-      - middleware: api/titiler/application/middleware.md
-
   - Deployment:
     - Amazon Web Services:
       - Intro: "deployment/aws/intro.md"
