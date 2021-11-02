@@ -739,6 +739,7 @@ class TilerFactory(BaseTilerFactory):
         # GET endpoint
         @self.router.get(
             "/statistics",
+            response_class=JSONResponse,
             response_model=Dict[str, BandStatistics],
             responses={
                 200: {
@@ -1015,6 +1016,7 @@ class MultiBaseTilerFactory(TilerFactory):
         # GET endpoint
         @self.router.get(
             "/statistics",
+            response_class=JSONResponse,
             response_model=Dict[str, Dict[str, BandStatistics]],
             responses={
                 200: {
@@ -1301,6 +1303,7 @@ class MultiBandTilerFactory(TilerFactory):
         # GET endpoint
         @self.router.get(
             "/statistics",
+            response_class=JSONResponse,
             response_model=Dict[str, BandStatistics],
             responses={
                 200: {
