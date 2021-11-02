@@ -15,6 +15,7 @@ RUN pip install /tmp/titiler/core /tmp/titiler/mosaic /tmp/titiler/application -
 RUN rm -rf /tmp/titiler
 
 COPY app.sh /opt/titiler
+COPY bathy_daily_test_mosaic.json /opt/titiler
 
 ENV MODULE_NAME titiler.application.main
 ENV VARIABLE_NAME app
