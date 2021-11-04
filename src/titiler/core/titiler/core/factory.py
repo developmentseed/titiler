@@ -170,7 +170,7 @@ class TilerFactory(BaseTilerFactory):
 
         Because we wrap the endpoints in a class we cannot define the routes as
         methods (because of the self argument). The HACK is to define routes inside
-        the class method and register them after the class initialisation.
+        the class method and register them after the class initialization.
 
         """
         # Default Routes

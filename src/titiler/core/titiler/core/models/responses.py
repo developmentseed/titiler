@@ -3,7 +3,7 @@
 from typing import Dict, List, Union
 
 from geojson_pydantic.features import Feature, FeatureCollection
-from geojson_pydantic.geometries import Geometry
+from geojson_pydantic.geometries import Geometry, Polygon
 from pydantic import BaseModel
 from rio_tiler.models import BandStatistics, Info
 
@@ -27,8 +27,7 @@ class MultiBasePoint(BaseModel):
     values: List[List[float]]
 
 
-InfoGeoJSON = Feature[Geometry, Info]
-
+InfoGeoJSON = Feature[Polygon, Info]
 Statistics = Dict[str, BandStatistics]
 
 
@@ -50,7 +49,7 @@ StatisticsGeoJSON = Union[
 
 # MultiBase Models
 MultiBaseInfo = Dict[str, Info]
-MultiBaseInfoGeoJSON = Feature[Geometry, MultiBaseInfo]
+MultiBaseInfoGeoJSON = Feature[Polygon, MultiBaseInfo]
 
 MultiBaseStatistics = Dict[str, Statistics]
 MultiBaseStatisticsGeoJSON = Union[

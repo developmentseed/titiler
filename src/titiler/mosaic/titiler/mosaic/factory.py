@@ -2,7 +2,7 @@
 
 import os
 from dataclasses import dataclass, field
-from typing import Callable, Dict, Optional, Type
+from typing import Callable, Dict, Optional, Type, Union
 from urllib.parse import urlencode, urlparse
 
 import rasterio
@@ -19,8 +19,9 @@ from rio_tiler.models import Bounds
 from titiler.core.dependencies import WebMercatorTMSParams
 from titiler.core.factory import BaseTilerFactory, img_endpoint_params, templates
 from titiler.core.models.mapbox import TileJSON
+from titiler.core.models.responses import MultiBasePoint, Point
 from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
-from titiler.core.resources.responses import GeoJSONResponse, XMLResponse
+from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
 from titiler.core.utils import Timer
 from titiler.mosaic.resources.enums import PixelSelectionMethod
 
@@ -126,7 +127,7 @@ class MosaicTilerFactory(BaseTilerFactory):
 
         @self.router.get(
             "/info.geojson",
-            response_model=Feature,
+            response_model=Feature[Polygon, mosaicInfo],
             response_model_exclude_none=True,
             response_class=GeoJSONResponse,
             responses={
@@ -438,6 +439,8 @@ class MosaicTilerFactory(BaseTilerFactory):
 
         @self.router.get(
             r"/point/{lon},{lat}",
+            response_model=Union[Point, MultiBasePoint],
+            response_class=JSONResponse,
             responses={200: {"description": "Return a value for a point"}},
         )
         def point(
