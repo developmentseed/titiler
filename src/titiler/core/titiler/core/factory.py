@@ -38,6 +38,7 @@ from titiler.core.models.responses import (
     InfoGeoJSON,
     MultiBaseInfo,
     MultiBaseInfoGeoJSON,
+    MultiBasePoint,
     MultiBaseStatistics,
     MultiBaseStatisticsGeoJSON,
     Point,
@@ -929,6 +930,45 @@ class MultiBaseTilerFactory(TilerFactory):
 
     # Assets dependency
     assets_dependency: Type[DefaultDependency] = AssetsParams
+
+    ############################################################################
+    # /point
+    ############################################################################
+    def point(self):
+        """Register /point endpoints."""
+
+        @self.router.get(
+            r"/point/{lon},{lat}",
+            response_model=MultiBasePoint,
+            response_class=JSONResponse,
+            responses={200: {"description": "Return a value for a point"}},
+        )
+        def point(
+            response: Response,
+            lon: float = Path(..., description="Longitude"),
+            lat: float = Path(..., description="Latitude"),
+            src_path=Depends(self.path_dependency),
+            layer_params=Depends(self.layer_dependency),
+            dataset_params=Depends(self.dataset_dependency),
+            kwargs: Dict = Depends(self.additional_dependency),
+        ):
+            """Get Point value for a dataset."""
+            timings = []
+
+            with Timer() as t:
+                with rasterio.Env(**self.gdal_config):
+                    with self.reader(src_path, **self.reader_options) as src_dst:
+                        values = src_dst.point(
+                            lon, lat, **layer_params, **dataset_params, **kwargs,
+                        )
+            timings.append(("dataread", round(t.elapsed * 1000, 2)))
+
+            if OptionalHeader.server_timing in self.optional_headers:
+                response.headers["Server-Timing"] = ", ".join(
+                    [f"{name};dur={time}" for (name, time) in timings]
+                )
+
+            return {"coordinates": [lon, lat], "values": values}
 
     # Overwrite the `/info` endpoint to return the list of assets when no assets is passed.
     def info(self):

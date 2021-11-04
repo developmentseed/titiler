@@ -20,6 +20,13 @@ class Point(BaseModel):
     values: List[float]
 
 
+class MultiBasePoint(BaseModel):
+    """Point model for MultiBaseReader."""
+
+    coordinates: List[float]
+    values: List[List[float]]
+
+
 InfoGeoJSON = Feature[Geometry, Info]
 
 Statistics = Dict[str, BandStatistics]
