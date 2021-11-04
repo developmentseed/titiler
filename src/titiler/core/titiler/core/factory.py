@@ -34,6 +34,16 @@ from titiler.core.dependencies import (
 )
 from titiler.core.models.mapbox import TileJSON
 from titiler.core.models.OGC import TileMatrixSetList
+from titiler.core.models.responses import (
+    InfoGeoJSON,
+    MultiBaseInfo,
+    MultiBaseInfoGeoJSON,
+    MultiBaseStatistics,
+    MultiBaseStatisticsGeoJSON,
+    Point,
+    Statistics,
+    StatisticsGeoJSON,
+)
 from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
 from titiler.core.utils import Timer
@@ -111,7 +121,7 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
     # e.g if you mount the route with `/cog` prefix, set router_prefix to cog and
     router_prefix: str = ""
 
-    # Add specific GDAL environement (e.g {"AWS_REQUEST_PAYER": "requester"})
+    # Add specific GDAL environment (e.g {"AWS_REQUEST_PAYER": "requester"})
     gdal_config: Dict = field(default_factory=dict)
 
     # add additional headers in response
@@ -206,7 +216,6 @@ class TilerFactory(BaseTilerFactory):
         @self.router.get(
             "/info",
             response_model=Info,
-            response_model_exclude={"minzoom", "maxzoom"},
             response_model_exclude_none=True,
             response_class=JSONResponse,
             responses={200: {"description": "Return dataset's basic info."}},
@@ -222,7 +231,7 @@ class TilerFactory(BaseTilerFactory):
 
         @self.router.get(
             "/info.geojson",
-            response_model=Feature,
+            response_model=InfoGeoJSON,
             response_model_exclude_none=True,
             response_class=GeoJSONResponse,
             responses={
@@ -239,14 +248,9 @@ class TilerFactory(BaseTilerFactory):
             """Return dataset's basic info as a GeoJSON feature."""
             with rasterio.Env(**self.gdal_config):
                 with self.reader(src_path, **self.reader_options) as src_dst:
-                    info = src_dst.info(**kwargs).dict(exclude_none=True)
-                    info.pop("bounds", None)
-                    info.pop("minzoom", None)
-                    info.pop("maxzoom", None)
-                    info["dataset"] = src_path
                     return Feature(
                         geometry=Polygon.from_bounds(*src_dst.geographic_bounds),
-                        properties=info,
+                        properties=src_dst.info(**kwargs),
                     )
 
     ############################################################################
@@ -513,6 +517,7 @@ class TilerFactory(BaseTilerFactory):
 
         @self.router.get(
             r"/point/{lon},{lat}",
+            response_model=Point,
             response_class=JSONResponse,
             responses={200: {"description": "Return a value for a point"}},
         )
@@ -677,7 +682,7 @@ class TilerFactory(BaseTilerFactory):
             r"/crop/{width}x{height}.{format}", **img_endpoint_params,
         )
         def geojson_crop(
-            feature: Feature = Body(..., descriptiom="GeoJSON Feature."),
+            geojson: Feature = Body(..., description="GeoJSON Feature."),
             format: ImageType = Query(
                 None, description="Output image type. Default is auto."
             ),
@@ -698,7 +703,7 @@ class TilerFactory(BaseTilerFactory):
                 with rasterio.Env(**self.gdal_config):
                     with self.reader(src_path, **self.reader_options) as src_dst:
                         data = src_dst.feature(
-                            feature.dict(exclude_none=True),
+                            geojson.dict(exclude_none=True),
                             **layer_params,
                             **image_params,
                             **dataset_params,
@@ -740,7 +745,7 @@ class TilerFactory(BaseTilerFactory):
         @self.router.get(
             "/statistics",
             response_class=JSONResponse,
-            response_model=Dict[str, BandStatistics],
+            response_model=Statistics,
             responses={
                 200: {
                     "content": {"application/json": {}},
@@ -795,7 +800,7 @@ class TilerFactory(BaseTilerFactory):
         # POST endpoint
         @self.router.post(
             "/statistics",
-            response_model=Union[Feature, FeatureCollection],
+            response_model=StatisticsGeoJSON,
             response_model_exclude_none=True,
             response_class=GeoJSONResponse,
             responses={
@@ -806,8 +811,8 @@ class TilerFactory(BaseTilerFactory):
             },
         )
         def geojson_statistics(
-            features: Union[FeatureCollection, Feature] = Body(
-                ..., descriptiom="GeoJSON Feature or FeatureCollection."
+            geojson: Union[FeatureCollection, Feature] = Body(
+                ..., description="GeoJSON Feature or FeatureCollection."
             ),
             src_path=Depends(self.path_dependency),
             layer_params=Depends(self.layer_dependency),
@@ -839,13 +844,11 @@ class TilerFactory(BaseTilerFactory):
                 hist_options.update(
                     dict(range=list(map(float, histogram_range.split(","))))
                 )
-
-            # TODO: stream features for FeatureCollection
-            if isinstance(features, FeatureCollection):
-                feat = []
-                with rasterio.Env(**self.gdal_config):
-                    with self.reader(src_path, **self.reader_options) as src_dst:
-                        for feature in features:
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path, **self.reader_options) as src_dst:
+                    # TODO: stream features for FeatureCollection
+                    if isinstance(geojson, FeatureCollection):
+                        for feature in geojson:
                             data = src_dst.feature(
                                 feature.dict(exclude_none=True),
                                 **layer_params,
@@ -861,6 +864,7 @@ class TilerFactory(BaseTilerFactory):
                                 **hist_options,
                             )
 
+                        feature.properties = feature.properties or {}
                         feature.properties.update(
                             {
                                 "statistics": {
@@ -871,37 +875,36 @@ class TilerFactory(BaseTilerFactory):
                                 }
                             }
                         )
-                        feat.append(feature)
 
-                return FeatureCollection(features=feat)
+                    else:  # simple feature
+                        data = src_dst.feature(
+                            geojson.dict(exclude_none=True),
+                            **layer_params,
+                            **image_params,
+                            **dataset_params,
+                            **kwargs,
+                        )
+                        stats = get_array_statistics(
+                            data.as_masked(),
+                            categorical=categorical,
+                            categories=c,
+                            percentiles=p,
+                            **hist_options,
+                        )
 
-            with rasterio.Env(**self.gdal_config):
-                with self.reader(src_path, **self.reader_options) as src_dst:
-                    data = src_dst.feature(
-                        features.dict(exclude_none=True),
-                        **layer_params,
-                        **image_params,
-                        **dataset_params,
-                        **kwargs,
-                    )
-                    stats = get_array_statistics(
-                        data.as_masked(),
-                        categorical=categorical,
-                        categories=c,
-                        percentiles=p,
-                        **hist_options,
-                    )
+                        geojson.properties = geojson.properties or {}
+                        geojson.properties.update(
+                            {
+                                "statistics": {
+                                    f"{data.band_names[ix]}": BandStatistics(
+                                        **stats[ix]
+                                    )
+                                    for ix in range(len(stats))
+                                }
+                            }
+                        )
 
-            features.properties.update(
-                {
-                    "statistics": {
-                        f"{data.band_names[ix]}": BandStatistics(**stats[ix])
-                        for ix in range(len(stats))
-                    }
-                }
-            )
-
-            return features
+                    return geojson
 
 
 @dataclass
@@ -933,8 +936,7 @@ class MultiBaseTilerFactory(TilerFactory):
 
         @self.router.get(
             "/info",
-            response_model=Dict[str, Info],
-            response_model_exclude={"minzoom", "maxzoom"},
+            response_model=MultiBaseInfo,
             response_model_exclude_none=True,
             response_class=JSONResponse,
             responses={
@@ -951,14 +953,11 @@ class MultiBaseTilerFactory(TilerFactory):
             """Return dataset's basic info or the list of available assets."""
             with rasterio.Env(**self.gdal_config):
                 with self.reader(src_path, **self.reader_options) as src_dst:
-                    # Default to all available assets
-                    if not asset_params.assets:
-                        asset_params.assets = src_dst.assets
                     return src_dst.info(**asset_params, **kwargs)
 
         @self.router.get(
             "/info.geojson",
-            response_model=Feature,
+            response_model=MultiBaseInfoGeoJSON,
             response_model_exclude_none=True,
             response_class=GeoJSONResponse,
             responses={
@@ -976,22 +975,14 @@ class MultiBaseTilerFactory(TilerFactory):
             """Return dataset's basic info as a GeoJSON feature."""
             with rasterio.Env(**self.gdal_config):
                 with self.reader(src_path, **self.reader_options) as src_dst:
-                    # Default to all available assets
-                    if not asset_params.assets:
-                        asset_params.assets = src_dst.assets
-
-                    info = {"dataset": src_path}
-                    info["assets"] = {
-                        asset: asset_info.dict(
-                            exclude_none=True, exclude={"minzoom", "maxzoom"}
-                        )
-                        for asset, asset_info in src_dst.info(
-                            **asset_params, **kwargs
-                        ).items()
-                    }
                     return Feature(
                         geometry=Polygon.from_bounds(*src_dst.geographic_bounds),
-                        properties=info,
+                        properties={
+                            asset: asset_info
+                            for asset, asset_info in src_dst.info(
+                                **asset_params, **kwargs
+                            ).items()
+                        },
                     )
 
         @self.router.get(
@@ -1017,7 +1008,7 @@ class MultiBaseTilerFactory(TilerFactory):
         @self.router.get(
             "/statistics",
             response_class=JSONResponse,
-            response_model=Dict[str, Dict[str, BandStatistics]],
+            response_model=MultiBaseStatistics,
             responses={
                 200: {
                     "content": {"application/json": {}},
@@ -1059,10 +1050,6 @@ class MultiBaseTilerFactory(TilerFactory):
 
             with rasterio.Env(**self.gdal_config):
                 with self.reader(src_path, **self.reader_options) as src_dst:
-                    # Default to all available assets
-                    if not asset_params.assets:
-                        asset_params.assets = src_dst.assets
-
                     return src_dst.statistics(
                         **asset_params,
                         **image_params,
@@ -1073,7 +1060,7 @@ class MultiBaseTilerFactory(TilerFactory):
         # POST endpoint
         @self.router.post(
             "/statistics",
-            response_model=Union[Feature, FeatureCollection],
+            response_model=MultiBaseStatisticsGeoJSON,
             response_model_exclude_none=True,
             response_class=GeoJSONResponse,
             responses={
@@ -1084,8 +1071,8 @@ class MultiBaseTilerFactory(TilerFactory):
             },
         )
         def geojson_statistics(
-            features: Union[FeatureCollection, Feature] = Body(
-                ..., descriptiom="GeoJSON Feature or FeatureCollection."
+            geojson: Union[FeatureCollection, Feature] = Body(
+                ..., description="GeoJSON Feature or FeatureCollection."
             ),
             src_path=Depends(self.path_dependency),
             asset_params=Depends(AssetsBidxParams),
@@ -1118,17 +1105,15 @@ class MultiBaseTilerFactory(TilerFactory):
                     dict(range=list(map(float, histogram_range.split(","))))
                 )
 
-            # TODO: stream features for FeatureCollection
-            if isinstance(features, FeatureCollection):
-                feat = []
-                for feature in features:
-                    with rasterio.Env(**self.gdal_config):
-                        with self.reader(src_path, **self.reader_options) as src_dst:
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path, **self.reader_options) as src_dst:
+                    # Default to all available assets
+                    if not asset_params.assets:
+                        asset_params.assets = src_dst.assets
 
-                            # Default to all available assets
-                            if not asset_params.assets:
-                                asset_params.assets = src_dst.assets
-
+                    # TODO: stream features for FeatureCollection
+                    if isinstance(geojson, FeatureCollection):
+                        for feature in geojson:
                             data = src_dst.feature(
                                 feature.dict(exclude_none=True),
                                 **asset_params,
@@ -1145,6 +1130,7 @@ class MultiBaseTilerFactory(TilerFactory):
                                 **hist_options,
                             )
 
+                        feature.properties = feature.properties or {}
                         feature.properties.update(
                             {
                                 # NOTE: because we use `src_dst.feature` the statistics will be in form of
@@ -1157,43 +1143,38 @@ class MultiBaseTilerFactory(TilerFactory):
                                 }
                             }
                         )
-                        feat.append(feature)
 
-                return FeatureCollection(features=feat)
+                    else:  # simple feature
+                        data = src_dst.feature(
+                            geojson.dict(exclude_none=True),
+                            **asset_params,
+                            **image_params,
+                            **dataset_params,
+                            **kwargs,
+                        )
+                        stats = get_array_statistics(
+                            data.as_masked(),
+                            categorical=categorical,
+                            categories=c,
+                            percentiles=p,
+                            **hist_options,
+                        )
 
-            with rasterio.Env(**self.gdal_config):
-                with self.reader(src_path, **self.reader_options) as src_dst:
-                    # Default to all available assets
-                    if not asset_params.assets:
-                        asset_params.assets = src_dst.assets
+                        geojson.properties = geojson.properties or {}
+                        geojson.properties.update(
+                            {
+                                # NOTE: because we use `src_dst.feature` the statistics will be in form of
+                                # `Dict[str, BandStatistics]` and not `Dict[str, Dict[str, BandStatistics]]`
+                                "statistics": {
+                                    f"{data.band_names[ix]}": BandStatistics(
+                                        **stats[ix]
+                                    )
+                                    for ix in range(len(stats))
+                                }
+                            }
+                        )
 
-                    data = src_dst.feature(
-                        features.dict(exclude_none=True),
-                        **asset_params,
-                        **image_params,
-                        **dataset_params,
-                        **kwargs,
-                    )
-                    stats = get_array_statistics(
-                        data.as_masked(),
-                        categorical=categorical,
-                        categories=c,
-                        percentiles=p,
-                        **hist_options,
-                    )
-
-            features.properties.update(
-                {
-                    # NOTE: because we use `src_dst.feature` the statistics will be in form of
-                    # `Dict[str, BandStatistics]` and not `Dict[str, Dict[str, BandStatistics]]`
-                    "statistics": {
-                        f"{data.band_names[ix]}": BandStatistics(**stats[ix])
-                        for ix in range(len(stats))
-                    }
-                }
-            )
-
-            return features
+            return geojson
 
 
 @dataclass
@@ -1227,7 +1208,6 @@ class MultiBandTilerFactory(TilerFactory):
         @self.router.get(
             "/info",
             response_model=Info,
-            response_model_exclude={"minzoom", "maxzoom"},
             response_model_exclude_none=True,
             response_class=JSONResponse,
             responses={200: {"description": "Return dataset's basic info."}},
@@ -1240,15 +1220,11 @@ class MultiBandTilerFactory(TilerFactory):
             """Return dataset's basic info."""
             with rasterio.Env(**self.gdal_config):
                 with self.reader(src_path, **self.reader_options) as src_dst:
-                    # Default to all available assets
-                    if not bands_params.bands:
-                        bands_params.bands = src_dst.bands
-
                     return src_dst.info(**bands_params, **kwargs,)
 
         @self.router.get(
             "/info.geojson",
-            response_model=Feature,
+            response_model=InfoGeoJSON,
             response_model_exclude_none=True,
             response_class=GeoJSONResponse,
             responses={
@@ -1266,20 +1242,9 @@ class MultiBandTilerFactory(TilerFactory):
             """Return dataset's basic info as a GeoJSON feature."""
             with rasterio.Env(**self.gdal_config):
                 with self.reader(src_path, **self.reader_options) as src_dst:
-                    # Default to all available assets
-                    if not bands_params.bands:
-                        bands_params.bands = src_dst.bands
-
-                    info = src_dst.info(**bands_params, **kwargs).dict(
-                        exclude_none=True
-                    )
-                    info.pop("bounds", None)
-                    info.pop("minzoom", None)
-                    info.pop("maxzoom", None)
-                    info["dataset"] = src_path
                     return Feature(
                         geometry=Polygon.from_bounds(*src_dst.geographic_bounds),
-                        properties=info,
+                        properties=src_dst.info(**bands_params, **kwargs),
                     )
 
         @self.router.get(
@@ -1304,7 +1269,7 @@ class MultiBandTilerFactory(TilerFactory):
         @self.router.get(
             "/statistics",
             response_class=JSONResponse,
-            response_model=Dict[str, BandStatistics],
+            response_model=Statistics,
             responses={
                 200: {
                     "content": {"application/json": {}},
@@ -1346,10 +1311,6 @@ class MultiBandTilerFactory(TilerFactory):
 
             with rasterio.Env(**self.gdal_config):
                 with self.reader(src_path, **self.reader_options) as src_dst:
-                    # Default to all available bands
-                    if not bands_params.bands and not bands_params.expression:
-                        bands_params.bands = src_dst.bands
-
                     return src_dst.statistics(
                         **bands_params,
                         **image_params,
@@ -1363,7 +1324,7 @@ class MultiBandTilerFactory(TilerFactory):
         # POST endpoint
         @self.router.post(
             "/statistics",
-            response_model=Union[Feature, FeatureCollection],
+            response_model=StatisticsGeoJSON,
             response_model_exclude_none=True,
             response_class=GeoJSONResponse,
             responses={
@@ -1374,8 +1335,8 @@ class MultiBandTilerFactory(TilerFactory):
             },
         )
         def geojson_statistics(
-            features: Union[FeatureCollection, Feature] = Body(
-                ..., descriptiom="GeoJSON Feature or FeatureCollection."
+            geojson: Union[FeatureCollection, Feature] = Body(
+                ..., description="GeoJSON Feature or FeatureCollection."
             ),
             src_path=Depends(self.path_dependency),
             bands_params=Depends(BandsExprParamsOptional),
@@ -1408,16 +1369,15 @@ class MultiBandTilerFactory(TilerFactory):
                     dict(range=list(map(float, histogram_range.split(","))))
                 )
 
-            # TODO: stream features for FeatureCollection
-            if isinstance(features, FeatureCollection):
-                feat = []
-                with rasterio.Env(**self.gdal_config):
-                    with self.reader(src_path, **self.reader_options) as src_dst:
-                        # Default to all available bands
-                        if not bands_params.bands and not bands_params.expression:
-                            bands_params.bands = src_dst.bands
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path, **self.reader_options) as src_dst:
+                    # Default to all available bands
+                    if not bands_params.bands and not bands_params.expression:
+                        bands_params.bands = src_dst.bands
 
-                        for feature in features:
+                    # TODO: stream features for FeatureCollection
+                    if isinstance(geojson, FeatureCollection):
+                        for feature in geojson:
                             data = src_dst.feature(
                                 feature.dict(exclude_none=True),
                                 **bands_params,
@@ -1433,7 +1393,36 @@ class MultiBandTilerFactory(TilerFactory):
                                 **hist_options,
                             )
 
-                        feature.properties.update(
+                            feature.properties = feature.properties or {}
+                            feature.properties.update(
+                                {
+                                    "statistics": {
+                                        f"{data.band_names[ix]}": BandStatistics(
+                                            **stats[ix]
+                                        )
+                                        for ix in range(len(stats))
+                                    }
+                                }
+                            )
+
+                    else:  # simple feature
+                        data = src_dst.feature(
+                            geojson.dict(exclude_none=True),
+                            **bands_params,
+                            **image_params,
+                            **dataset_params,
+                            **kwargs,
+                        )
+                        stats = get_array_statistics(
+                            data.as_masked(),
+                            categorical=categorical,
+                            categories=c,
+                            percentiles=p,
+                            **hist_options,
+                        )
+
+                        geojson.properties = geojson.properties or {}
+                        geojson.properties.update(
                             {
                                 "statistics": {
                                     f"{data.band_names[ix]}": BandStatistics(
@@ -1443,41 +1432,8 @@ class MultiBandTilerFactory(TilerFactory):
                                 }
                             }
                         )
-                        feat.append(feature)
 
-                return FeatureCollection(features=feat)
-
-            with rasterio.Env(**self.gdal_config):
-                with self.reader(src_path, **self.reader_options) as src_dst:
-                    # Default to all available bands
-                    if not bands_params.bands and not bands_params.expression:
-                        bands_params.bands = src_dst.bands
-
-                    data = src_dst.feature(
-                        features.dict(exclude_none=True),
-                        **bands_params,
-                        **image_params,
-                        **dataset_params,
-                        **kwargs,
-                    )
-                    stats = get_array_statistics(
-                        data.as_masked(),
-                        categorical=categorical,
-                        categories=c,
-                        percentiles=p,
-                        **hist_options,
-                    )
-
-            features.properties.update(
-                {
-                    "statistics": {
-                        f"{data.band_names[ix]}": BandStatistics(**stats[ix])
-                        for ix in range(len(stats))
-                    }
-                }
-            )
-
-            return features
+                    return geojson
 
 
 @dataclass

@@ -62,10 +62,4 @@ $ mkdocs gh-deploy
    titiler.mosaic.factory \
    titiler.mosaic.resources.enums \
    titiler.mosaic.errors
-
-   pdocs as_markdown \
-   --output_dir docs/api \
-   --exclude_source \
-   --overwrite \
-   titiler.application.middleware
 ```

@@ -2,7 +2,7 @@
 
 ## 0.4.0a0 (TBD)
 
-* remove python 3.6 supports (related to morecatile/pyproj update)
+* remove python 3.6 supports (related to morecantile/pyproj update)
 
 ### titiler.core
 
@@ -27,6 +27,9 @@
 * use `resampling` alias instead of `resampling_method` for QueryParameter **breaking API**
 * defaults to available assets if `assets` option is not provided for `MultiBaseTilerFactory` info and statistics endpoints.
 * defaults to available bands if `bands` option is not provided for `MultiBandsTilerFactory` info and statistics endpoints.
+* better output models definition
+* keep `bounds`, `minzoom` and `maxzoom` in `/info` response
+* remove `dataset` in `/info` response to better follow the Info model
 
 ### titiler.mosaic
 
