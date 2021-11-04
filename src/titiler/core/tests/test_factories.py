@@ -201,7 +201,6 @@ def test_TilerFactory():
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
     assert response.json()["band_metadata"]
-    assert not response.json().get("minzoom")
 
     response = client.get(f"/info.geojson?url={DATA_DIR}/cog.tif")
     assert response.status_code == 200

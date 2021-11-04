@@ -57,8 +57,7 @@ def test_info(httpx, rio, app):
     assert response.headers["content-type"] == "application/geo+json"
     body = response.json()
     assert body["geometry"]
-    assert body["properties"]["dataset"] == "https://myurl.com/item.json"
-    assert body["properties"]["assets"]["B01"]
+    assert body["properties"]["B01"]
 
 
 def parse_img(content: bytes) -> Dict:
