@@ -3,27 +3,34 @@ The `titiler.application` package comes with a full FastAPI application with COG
 
 # Cloud Optimized GeoTIFF
 
-Read Info/Metadata and create Web map Tiles from a **single** COG. The `cog` router extend the default `titiler.core.factory.TilerFactory`.
+The `cog` router extend the default `titiler.core.factory.TilerFactory`.
+
+```python
+from fastapi import FastAPI
+from titiler.application.routers.cog import cog
+
+app = FastAPI()
+app.include_router(cog.router, prefix="/cog", tags=["Cloud Optimized GeoTIFF"])
+```
 
 ## API
 
 | Method | URL                                                                 | Output    | Description
 | ------ | ------------------------------------------------------------------- |---------- |--------------
-| `GET`  | `/cog/bounds`                                                       | JSON      | return bounds info for a dataset
-| `GET`  | `/cog/info`                                                         | JSON      | return basic info for a dataset
-| `GET`  | `/cog/info.geojson`                                                 | GeoJSON   | return basic info for a dataset as a GeoJSON feature
-| `GET`  | `/cog/metadata`                                                     | JSON      | return info and statistics for a dataset
+| `GET`  | `/cog/bounds`                                                       | JSON      | return dataset's bounds
+| `GET`  | `/cog/info`                                                         | JSON      | return dataset's basic info
+| `GET`  | `/cog/info.geojson`                                                 | GeoJSON   | return dataset's basic info as a GeoJSON feature
+| `GET`  | `/cog/statistics`                                                   | JSON      | return dataset's statistics
+| `POST` | `/cog/statistics`                                                   | GeoJSON   | return dataset's statistics for a GeoJSON
 | `GET`  | `/cog/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`  | image/bin | create a web map tile image from a dataset
 | `GET`  | `/cog/[{TileMatrixSetId}]/tilejson.json`                            | JSON      | return a Mapbox TileJSON document
 | `GET`  | `/cog/{TileMatrixSetId}/WMTSCapabilities.xml`                       | XML       | return OGC WMTS Get Capabilities
-| `GET`  | `/cog/point/{lon},{lat}`                                            | JSON      | return pixel value from a dataset
+| `GET`  | `/cog/point/{lon},{lat}`                                            | JSON      | return pixel values from a dataset
 | `GET`  | `/cog/preview[.{format}]`                                           | image/bin | create a preview image from a dataset
 | `GET`  | `/cog/crop/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin | create an image from part of a dataset
-| `POST` | `/cog/crop[/{width}x{height}][].{format}]`                          | image/bin | create an image from a geojson covering a dataset
-| `GET`  | `/cog/statistics`                                                   | JSON      | Return advanced statistics from a dataset
-| `POST` | `/cog/statistics`                                                   | GeoJSON   | Return zonal statistics from a dataset for a geosjon Feature or FeatureCollection
-| `GET`  | `/cog/validate`                                                     | JSON      | validate a COG and return dataset info
-| `GET`  | `/cog/viewer`                                                       | HTML      | demo webpage
+| `POST` | `/cog/crop[/{width}x{height}][].{format}]`                          | image/bin | create an image from a GeoJSON feature
+| `GET`  | `/cog/validate`                                                     | JSON      | validate a COG and return dataset info (Not in `TilerFactory`)
+| `GET`  | `/cog/viewer`                                                       | HTML      | demo webpage (Not in `TilerFactory`)
 
 ## Description
 
@@ -32,28 +39,30 @@ Read Info/Metadata and create Web map Tiles from a **single** COG. The `cog` rou
 `:endpoint:/cog/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`
 
 - PathParams:
-    - **TileMatrixSetId**: TileMatrixSet name, default is `WebMercatorQuad`. OPTIONAL
-    - **z**: Mercator tile's zoom level.
-    - **x**: Mercator tile's column.
-    - **y**: Mercator tile's row.
-    - **scale**: Tile size scale, default is set to 1 (256x256). OPTIONAL
-    - **format**: Output image format, default is set to None and will be either JPEG or PNG depending on masked value. OPTIONAL
+    - **TileMatrixSetId** (str): TileMatrixSet name, default is `WebMercatorQuad`. **Optional**
+    - **z** (int): TMS tile's zoom level.
+    - **x** (int): TMS tile's column.
+    - **y** (int): TMS tile's row.
+    - **scale** (int): Tile size scale, default is set to 1 (256x256). **Optional**
+    - **format** (str): Output image format, default is set to None and will be either JPEG or PNG depending on masked value. **Optional**
 
 - QueryParams:
-    - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
-    - **bidx**: Comma (',') delimited band indexes. OPTIONAL
-    - **expression**: rio-tiler's band math expression (e.g B1/B2). OPTIONAL
-    - **nodata**: Overwrite internal Nodata value. OPTIONAL
-    - **rescale**: Comma (',') delimited Min,Max bounds. OPTIONAL
-    - **color_formula**: rio-color formula. OPTIONAL
-    - **colormap_name**: rio-tiler color map name. OPTIONAL
-    - **colormap**: JSON encoded custom Colormap. OPTIONAL
-    - **resampling**: rasterio resampling method. Default is `nearest`.
+    - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
+    - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
+    - **expression** (str): rio-tiler's band math expression (e.g B1/B2).
+    - **nodata** (str, int, float): Overwrite internal Nodata value.
+    - **unscale** (bool): Apply dataset internal Scale/Offset.
+    - **resampling** (str): rasterio resampling method. Default is `nearest`.
+    - **rescale** (array[str]): Comma (',') delimited Min,Max range (e.g `rescale=0,1000`, `rescale=0,1000&rescale=0,3000&rescale=0,2000`).
+    - **color_formula** (str): rio-color formula.
+    - **colormap** (str): JSON encoded custom Colormap.
+    - **colormap_name** (str): rio-tiler color map name.
+    - **return_mask** (bool): Add mask to the output data. Default is True.
 
 Example:
 
 - `https://myendpoint/cog/tiles/1/2/3?url=https://somewhere.com/mycog.tif`
-- `https://myendpoint/cog/tiles/1/2/3.jpg?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/cog/tiles/1/2/3.jpg?url=https://somewhere.com/mycog.tif&bidx=3&bidx=1&bidx2`
 - `https://myendpoint/cog/tiles/WorldCRS84Quad/1/2/3@2x.png?url=https://somewhere.com/mycog.tif`
 - `https://myendpoint/cog/tiles/WorldCRS84Quad/1/2/3?url=https://somewhere.com/mycog.tif&bidx=1&rescale=0,1000&colormap_name=cfastie`
 
@@ -62,28 +71,31 @@ Example:
 `:endpoint:/cog/preview[.{format}]`
 
 - PathParams:
-    - **format**: Output image format, default is set to None and will be either JPEG or PNG depending on masked value. OPTIONAL
+    - **format** (str): Output image format, default is set to None and will be either JPEG or PNG depending on masked value. **Optional**
 
 - QueryParams:
-    - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
-    - **bidx**: Comma (',') delimited band indexes. OPTIONAL
-    - **expression**: rio-tiler's band math expression (e.g B1/B2). OPTIONAL
-    - **nodata**: Overwrite internal Nodata value. OPTIONAL
-    - **max_size**: Max image size, default is 1024. OPTIONAL
-    - **height**: Force output image height. OPTIONAL
-    - **width**: Force output image width. OPTIONAL
-    - **rescale**: Comma (',') delimited Min,Max bounds. OPTIONAL
-    - **color_formula**: rio-color formula. OPTIONAL
-    - **colormap_name**: rio-tiler color map name. OPTIONAL
-    - **colormap**: JSON encoded custom Colormap. OPTIONAL
-    - **resampling**: rasterio resampling method. Default is `nearest`.
+    - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
+    - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
+    - **expression** (str): rio-tiler's band math expression (e.g B1/B2).
+    - **max_size** (int): Max image size, default is 1024.
+    - **height** (int): Force output image height.
+    - **width** (int): Force output image width.
+    - **nodata** (str, int, float): Overwrite internal Nodata value.
+    - **unscale** (bool): Apply dataset internal Scale/Offset.
+    - **resampling** (str): rasterio resampling method. Default is `nearest`.
+    - **rescale** (array[str]): Comma (',') delimited Min,Max range (e.g `rescale=0,1000`, `rescale=0,1000&rescale=0,3000&rescale=0,2000`).
+    - **color_formula** (str): rio-color formula.
+    - **colormap** (str): JSON encoded custom Colormap.
+    - **colormap_name** (str): rio-tiler color map name.
+    - **return_mask** (bool): Add mask to the output data. Default is True.
 
-Note: if `height` and `width` are provided `max_size` will be ignored.
+!!! important
+    if **height** and **width** are provided **max_size** will be ignored.
 
 Example:
 
 - `https://myendpoint/cog/preview?url=https://somewhere.com/mycog.tif`
-- `https://myendpoint/cog/preview.jpg?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/cog/preview.jpg?url=https://somewhere.com/mycog.tif&bidx=3&bidx=1&bidx2`
 - `https://myendpoint/cog/preview?url=https://somewhere.com/mycog.tif&bidx=1&rescale=0,1000&colormap_name=cfastie`
 
 ### Crop / Part
@@ -92,22 +104,27 @@ Example:
 `:endpoint:/cog/crop/{minx},{miny},{maxx},{maxy}/{width}x{height}.{format}`
 
 - PathParams:
-    - **minx,miny,maxx,maxy**: Comma (',') delimited bounding box in WGS84.
-    - **format**: Output image format
-    - **height**: Force output image height. OPTIONAL
-    - **width**: Force output image width. OPTIONAL
+    - **minx,miny,maxx,maxy** (str): Comma (',') delimited bounding box in WGS84.
+    - **format** (str): Output image format
+    - **height** (int): Force output image height.
+    - **width** (int): Force output image width.
 
 - QueryParams:
-    - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
-    - **bidx**: Comma (',') delimited band indexes. OPTIONAL
-    - **expression**: rio-tiler's band math expression (e.g B1/B2). OPTIONAL
-    - **nodata**: Overwrite internal Nodata value. OPTIONAL
-    - **max_size**: Max image size, default is 1024. OPTIONAL
-    - **rescale**: Comma (',') delimited Min,Max bounds. OPTIONAL
-    - **color_formula**: rio-color formula. OPTIONAL
-    - **colormap_name**: rio-tiler color map name. OPTIONAL
-    - **colormap**: JSON encoded custom Colormap. OPTIONAL
-    - **resampling**: rasterio resampling method. Default is `nearest`.
+    - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
+    - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
+    - **expression** (str): rio-tiler's band math expression (e.g B1/B2).
+    - **max_size** (int): Max image size, default is 1024.
+    - **nodata** (str, int, float): Overwrite internal Nodata value.
+    - **unscale** (bool): Apply dataset internal Scale/Offset.
+    - **resampling** (str): rasterio resampling method. Default is `nearest`.
+    - **rescale** (array[str]): Comma (',') delimited Min,Max range (e.g `rescale=0,1000`, `rescale=0,1000&rescale=0,3000&rescale=0,2000`).
+    - **color_formula** (str): rio-color formula.
+    - **colormap** (str): JSON encoded custom Colormap.
+    - **colormap_name** (str): rio-tiler color map name.
+    - **return_mask** (bool): Add mask to the output data. Default is True.
+
+!!! important
+    if **height** and **width** are provided **max_size** will be ignored.
 
 Example:
 
@@ -118,24 +135,29 @@ Example:
 `:endpoint:/cog/crop[/{width}x{height}][].{format}] - [POST]`
 
 - Body:
-    - **feature**: A valid GeoJSON feature (Polygon or MultiPolygon)
+    - **feature** (JSON): A valid GeoJSON feature (Polygon or MultiPolygon)
 
 - PathParams:
-    - **height**: Force output image height. OPTIONAL
-    - **width**: Force output image width. OPTIONAL
-    - **format**: Output image format, default is set to None and will be either JPEG or PNG depending on masked value. OPTIONAL
+    - **height** (int): Force output image height. **Optional**
+    - **width** (int): Force output image width. **Optional**
+    - **format** (str): Output image format, default is set to None and will be either JPEG or PNG depending on masked value. **Optional**
 
 - QueryParams:
-    - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
-    - **bidx**: Comma (',') delimited band indexes. OPTIONAL
-    - **expression**: rio-tiler's band math expression (e.g B1/B2). OPTIONAL
-    - **nodata**: Overwrite internal Nodata value. OPTIONAL
-    - **max_size**: Max image size, default is 1024. OPTIONAL
-    - **rescale**: Comma (',') delimited Min,Max bounds. OPTIONAL
-    - **color_formula**: rio-color formula. OPTIONAL
-    - **colormap_name**: rio-tiler color map name. OPTIONAL
-    - **colormap**: JSON encoded custom Colormap. OPTIONAL
-    - **resampling**: rasterio resampling method. Default is `nearest`.
+    - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
+    - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
+    - **expression** (str): rio-tiler's band math expression (e.g B1/B2).
+    - **max_size** (int): Max image size, default is 1024.
+    - **nodata** (str, int, float): Overwrite internal Nodata value.
+    - **unscale** (bool): Apply dataset internal Scale/Offset.
+    - **resampling** (str): rasterio resampling method. Default is `nearest`.
+    - **rescale** (array[str]): Comma (',') delimited Min,Max range (e.g `rescale=0,1000`, `rescale=0,1000&rescale=0,3000&rescale=0,2000`).
+    - **color_formula** (str): rio-color formula.
+    - **colormap** (str): JSON encoded custom Colormap.
+    - **colormap_name** (str): rio-tiler color map name.
+    - **return_mask** (bool): Add mask to the output data. Default is True.
+
+!!! important
+    if **height** and **width** are provided **max_size** will be ignored.
 
 Example:
 
@@ -150,13 +172,15 @@ Note: if `height` and `width` are provided `max_size` will be ignored.
 `:endpoint:/cog/point/{lon},{lat}`
 
 - PathParams:
-    - **lon,lat,**: Comma (',') delimited point Longitude and Latitude WGS84.
+    - **lon,lat,** (str): Comma (',') delimited point Longitude and Latitude WGS84.
 
 - QueryParams:
-    - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
-    - **bidx**: Comma (',') delimited band indexes. OPTIONAL
-    - **expression**: rio-tiler's band math expression (e.g B1/B2). OPTIONAL
-    - **nodata**: Overwrite internal Nodata value. OPTIONAL
+    - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
+    - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
+    - **expression** (str): rio-tiler's band math expression (e.g B1/B2).
+    - **nodata** (str, int, float): Overwrite internal Nodata value.
+    - **unscale** (bool): Apply dataset internal Scale/Offset.
+    - **resampling** (str): rasterio resampling method. Default is `nearest`.
 
 Example:
 
@@ -168,15 +192,24 @@ Example:
 `:endpoint:/cog/[{TileMatrixSetId}]/tilejson.json` tileJSON document
 
 - PathParams:
-    - **TileMatrixSetId**: TileMatrixSet name, default is `WebMercatorQuad`. OPTIONAL
+    - **TileMatrixSetId**: TileMatrixSet name, default is `WebMercatorQuad`. **Optional**
 
 - QueryParams:
-    - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
-    - **tile_format**: Output image format, default is set to None and will be either JPEG or PNG depending on masked value.
-    - **tile_scale**: Tile size scale, default is set to 1 (256x256). OPTIONAL
-    - **minzoom**: Overwrite default minzoom. OPTIONAL
-    - **maxzoom**: Overwrite default maxzoom. OPTIONAL
-    - **kwargs**: Other options will be forwarded to the `tiles` url.
+    - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
+    - **tile_format** (str): Output image format, default is set to None and will be either JPEG or PNG depending on masked value.
+    - **tile_scale** (int): Tile size scale, default is set to 1 (256x256).
+    - **minzoom** (int): Overwrite default minzoom.
+    - **maxzoom** (int): Overwrite default maxzoom.
+    - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
+    - **expression** (str): rio-tiler's band math expression (e.g B1/B2).
+    - **nodata** (str, int, float): Overwrite internal Nodata value.
+    - **unscale** (bool): Apply dataset internal Scale/Offset.
+    - **resampling** (str): rasterio resampling method. Default is `nearest`.
+    - **rescale** (array[str]): Comma (',') delimited Min,Max range (e.g `rescale=0,1000`, `rescale=0,1000&rescale=0,3000&rescale=0,2000`).
+    - **color_formula** (str): rio-color formula.
+    - **colormap** (str): JSON encoded custom Colormap.
+    - **colormap_name** (str): rio-tiler color map name.
+    - **return_mask** (bool): Add mask to the output data. Default is True.
 
 Example:
 
@@ -189,7 +222,7 @@ Example:
 `:endpoint:/cog/bounds` general image bounds
 
 - QueryParams:
-    - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
+    - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
 
 Example:
 
@@ -198,74 +231,76 @@ Example:
 ### Info
 
 `:endpoint:/cog/info` general raster info
+
+`:endpoint:/cog/info.geojson` general raster info as a GeoJSON feature
+
 - QueryParams:
-    - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
+    - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
 
 Example:
 
 - `https://myendpoint/cog/info?url=https://somewhere.com/mycog.tif`
-
-`:endpoint:/cog/info.geojson` general raster info as a GeoJSON feature
-- QueryParams:
-    - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
-
-Example:
-
 - `https://myendpoint/cog/info.geojson?url=https://somewhere.com/mycog.tif`
 
-
-### Metadata
-
-`:endpoint:/cog/metadata` raster statistics
-
-- QueryParams:
-    - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
-    - **bidx**: Comma (',') delimited band indexes. OPTIONAL
-    - **nodata**: Overwrite internal Nodata value. OPTIONAL
-    - **pmin**: min percentile, default is 2. OPTIONAL
-    - **pmax**: max percentile, default is 98. OPTIONAL
-    - **max_size**: Max image size from which to calculate statistics, default is 1024. OPTIONAL
-    - **histogram_bins**: Histogram bins, default is 20. OPTIONAL
-    - **histogram_range**: Comma (',') delimited histogram bounds. OPTIONAL
-    - **resampling**: rasterio resampling method. Default is `nearest`.
-
-Example:
-
-- `https://myendpoint/cog/metadata?url=https://somewhere.com/mycog.tif&bidx=1,2,3`
 
 ### Statistics
 
 Advanced raster statistics
 
-`:endpoint:/cog/statistics - [GET|POST]`
+`:endpoint:/cog/statistics - [GET]`
 
 - QueryParams:
-    - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
-    - **bidx**: Comma (',') delimited band indexes. OPTIONAL
-    - **expression**: rio-tiler's band math expression (e.g B1/B2). OPTIONAL
-    - **nodata**: Overwrite internal Nodata value. OPTIONAL
-    - **max_size**: Max image size from which to calculate statistics, default is 1024. OPTIONAL
-    - **height**: Force image height. OPTIONAL
-    - **width**: Force image width. OPTIONAL
-    - **unscale**: Apply internal Scale/Offset. OPTIONAL
-    - **resampling**: rasterio resampling method. Default is `nearest`.
-    - **categorical**: Return statistics for categorical dataset.
-    - **c** (multiple): Pixels values for categories.
-    - **p** (multiple): Percentile values.
-
-- Body (for POST endpoint):
-    - **features**: A valid GeoJSON feature or FeatureCollection (Polygon or MultiPolygon).
+    - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
+    - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
+    - **expression** (str): rio-tiler's band math expression (e.g B1/B2).
+    - **max_size** (int): Max image size from which to calculate statistics, default is 1024.
+    - **height** (int): Force image height from which to calculate statistics.
+    - **width** (int): Force image width from which to calculate statistics.
+    - **nodata** (str, int, float): Overwrite internal Nodata value.
+    - **unscale** (bool): Apply dataset internal Scale/Offset.
+    - **resampling** (str): rasterio resampling method. Default is `nearest`.
+    - **categorical** (bool): Return statistics for categorical dataset, default is false.
+    - **c** (array[float]): Pixels values for categories.
+    - **p** (array[int]): Percentile values.
+    - **histogram_bins** (str): Histogram bins.
+    - **histogram_range** (str): Comma (',') delimited Min,Max histogram bounds
 
 Example:
 
 - `https://myendpoint/cog/statistics?url=https://somewhere.com/mycog.tif&bidx=1,2,3&categorical=true&c=1&c=2&c=3&p=2&p98`
+
+`:endpoint:/cog/statistics - [POST]`
+
+- Body:
+    - **feature** (JSON): A valid GeoJSON feature or FeatureCollection
+
+- QueryParams:
+    - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
+    - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
+    - **expression** (str): rio-tiler's band math expression (e.g B1/B2).
+    - **max_size** (int): Max image size from which to calculate statistics, default is 1024.
+    - **height** (int): Force image height from which to calculate statistics.
+    - **width** (int): Force image width from which to calculate statistics.
+    - **nodata** (str, int, float): Overwrite internal Nodata value.
+    - **unscale** (bool): Apply dataset internal Scale/Offset.
+    - **resampling** (str): rasterio resampling method. Default is `nearest`.
+    - **categorical** (bool): Return statistics for categorical dataset, default is false.
+    - **c** (array[float]): Pixels values for categories.
+    - **p** (array[int]): Percentile values.
+    - **histogram_bins** (str): Histogram bins.
+    - **histogram_range** (str): Comma (',') delimited Min,Max histogram bounds
+
+Example:
+
+- `https://myendpoint/cog/statistics?url=https://somewhere.com/mycog.tif&bidx=1,2,3&categorical=true&c=1&c=2&c=3&p=2&p98`
+
 
 ### Demo
 
 `:endpoint:/cog/viewer` - COG Viewer
 
 - QueryParams:
-    - **url**: Cloud Optimized GeoTIFF URL. **OPTIONAL**
+    - **url**: Cloud Optimized GeoTIFF URL. **Required**
 
 Example:
 
@@ -277,8 +312,8 @@ Example:
 `:endpoint:/cog/validate` - COG Viewer
 
 - QueryParams:
-    - **url**: Cloud Optimized GeoTIFF URL. **REQUIRED**
-    - **strict**: Treat warnings as errors (bool, default is False). **OPTIONAL**
+    - **url**: Cloud Optimized GeoTIFF URL. **Required**
+    - **strict**: Treat warnings as errors (bool, default is False).
 
 Example:
 

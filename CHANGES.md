@@ -31,9 +31,11 @@
 * keep `bounds`, `minzoom` and `maxzoom` in `/info` response
 * remove `dataset` in `/info` response to better follow the Info model
 
+
 ### titiler.mosaic
 
 * update `cogeo-mosaic` requirement (>=4.0)
+* update response from `/info` endpoint to match the model.
 
 ### titiler.application
 
