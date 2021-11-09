@@ -49,8 +49,8 @@ def test_TilerFactory():
     response = client.get(f"/something/NZTM2000/tilejson.json?url={DATA_DIR}/cog.tif")
     assert response.status_code == 422
 
-    cog = TilerFactory(add_preview=False, add_part=False, add_statistics=False)
-    assert len(cog.router.routes) == 16
+    cog = TilerFactory(add_preview=False, add_part=False)
+    assert len(cog.router.routes) == 18
 
     app = FastAPI()
     cog = TilerFactory(optional_headers=[OptionalHeader.server_timing])
