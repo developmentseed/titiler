@@ -18,8 +18,8 @@ app.include_router(cog.router, tags=["Cloud Optimized GeoTIFF"])
 | `GET`  | `/bounds`                                                       | JSON ([Bounds][bounds_model])               | return dataset's bounds
 | `GET`  | `/info`                                                         | JSON ([Info][info_model])                   | return dataset's basic info
 | `GET`  | `/info.geojson`                                                 | GeoJSON ([InfoGeoJSON][info_geojson_model]) | return dataset's basic info as a GeoJSON feature
-| `GET`  | `/statistics`                                                   | JSON ([Statistics][stats_model])            | return dataset's statistics (**Optional**)
-| `POST` | `/statistics`                                                   | GeoJSON ([Statistics][stats_geojson_model]) | return dataset's statistics for a GeoJSON (**Optional**)
+| `GET`  | `/statistics`                                                   | JSON ([Statistics][stats_model])            | return dataset's statistics
+| `POST` | `/statistics`                                                   | GeoJSON ([Statistics][stats_geojson_model]) | return dataset's statistics for a GeoJSON
 | `GET`  | `/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`  | image/bin                                   | create a web map tile image from a dataset
 | `GET`  | `/[{TileMatrixSetId}]/tilejson.json`                            | JSON ([TileJSON][tilejson_model])           | return a Mapbox TileJSON document
 | `GET`  | `/{TileMatrixSetId}/WMTSCapabilities.xml`                       | XML                                         | return OGC WMTS Get Capabilities
@@ -49,8 +49,8 @@ app.include_router(cog.router, tags=["STAC"])
 | `GET`  | `/assets`                                                       | JSON                                             | return the list of available assets
 | `GET`  | `/info`                                                         | JSON ([Info][multiinfo_model])                   | return assets basic info
 | `GET`  | `/info.geojson`                                                 | GeoJSON ([InfoGeoJSON][multiinfo_geojson_model]) | return assets basic info as a GeoJSON feature
-| `GET`  | `/statistics`                                                   | JSON ([Statistics][multistats_model])            | return assets statistics (**Optional**)
-| `POST` | `/statistics`                                                   | GeoJSON ([Statistics][multistats_geojson_model]) | return assets statistics for a GeoJSON (**Optional**)
+| `GET`  | `/statistics`                                                   | JSON ([Statistics][multistats_model])            | return assets statistics
+| `POST` | `/statistics`                                                   | GeoJSON ([Statistics][multistats_geojson_model]) | return assets statistics for a GeoJSON
 | `GET`  | `/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`  | image/bin                                        | create a web map tile image from assets
 | `GET`  | `/[{TileMatrixSetId}]/tilejson.json`                            | JSON ([TileJSON][tilejson_model])                | return a Mapbox TileJSON document
 | `GET`  | `/{TileMatrixSetId}/WMTSCapabilities.xml`                       | XML                                              | return OGC WMTS Get Capabilities

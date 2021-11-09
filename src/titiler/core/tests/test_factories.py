@@ -325,6 +325,7 @@ def test_TilerFactory():
         "percentile_2",
         "percentile_98",
     }
+    assert len(resp["1"]["histogram"][0]) == 10
 
     response = client.get(f"/statistics?url={DATA_DIR}/cog.tif&expression=b1*2")
     assert response.status_code == 200
@@ -429,6 +430,23 @@ def test_TilerFactory():
     }
     assert resp["1"]["histogram"][1] == [1.0, 2.0, 3.0, 4.0]  # categories
     assert resp["1"]["histogram"][0][3] == 0  # 4.0 is not present in the array
+
+    response = client.get(f"/statistics?url={DATA_DIR}/cog.tif&bidx=1&histogram_bins=3")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    resp = response.json()
+    assert len(resp) == 1
+    assert len(resp["1"]["histogram"][0]) == 3
+
+    response = client.get(
+        f"/statistics?url={DATA_DIR}/cog.tif&bidx=1&histogram_range=5,10"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    resp = response.json()
+    assert len(resp) == 1
+    assert min(resp["1"]["histogram"][1]) == 5.0
+    assert max(resp["1"]["histogram"][1]) == 10.0
 
     # POST - statistics
     response = client.post(
