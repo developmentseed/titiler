@@ -42,14 +42,14 @@ mosaic = MosaicTilerFactory(path_dependency=MosaicPathParams)
 app.include_router(mosaic.router)
 ```
 
-The endpoint url will now look like: `{endoint}/mosaic/tilejson.json?mosaic=vincent.mosaic`
+The endpoint url will now look like: `{endpoint}/mosaic/tilejson.json?mosaic=vincent.mosaic`
 
 
 ### Custom TMS
 
 ```python
 from morecantile import tms, TileMatrixSet
-from rasterio.crs import CRS
+from pyproj import CRS
 
 from titiler.core.factory import TilerFactory
 
