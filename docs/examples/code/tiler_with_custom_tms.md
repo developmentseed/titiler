@@ -14,7 +14,7 @@ app/dependencies.py
 """
 
 from morecantile import tms, TileMatrixSet
-from rasterio.crs import CRS
+from pyproj import CRS
 
 # 1. Create Custom TMS
 EPSG6933 = TileMatrixSet.custom(
