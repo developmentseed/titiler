@@ -335,7 +335,9 @@ class TilerFactory(BaseTilerFactory):
                                 **kwargs,
                             )
                             stats = get_array_statistics(
-                                data.as_masked(), **stats_params, **histogram_params,
+                                data.as_masked(),
+                                **stats_params,
+                                **histogram_params,
                             )
 
                         feature.properties = feature.properties or {}
@@ -359,7 +361,9 @@ class TilerFactory(BaseTilerFactory):
                             **kwargs,
                         )
                         stats = get_array_statistics(
-                            data.as_masked(), **stats_params, **histogram_params,
+                            data.as_masked(),
+                            **stats_params,
+                            **histogram_params,
                         )
 
                         geojson.properties = geojson.properties or {}
@@ -660,7 +664,11 @@ class TilerFactory(BaseTilerFactory):
                 with rasterio.Env(**self.gdal_config):
                     with self.reader(src_path, **self.reader_options) as src_dst:
                         values = src_dst.point(
-                            lon, lat, **layer_params, **dataset_params, **kwargs,
+                            lon,
+                            lat,
+                            **layer_params,
+                            **dataset_params,
+                            **kwargs,
                         )
             timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
@@ -700,7 +708,10 @@ class TilerFactory(BaseTilerFactory):
                 with rasterio.Env(**self.gdal_config):
                     with self.reader(src_path, **self.reader_options) as src_dst:
                         data = src_dst.preview(
-                            **layer_params, **img_params, **dataset_params, **kwargs,
+                            **layer_params,
+                            **img_params,
+                            **dataset_params,
+                            **kwargs,
                         )
                         dst_colormap = getattr(src_dst, "colormap", None)
             timings.append(("dataread", round(t.elapsed * 1000, 2)))
@@ -736,7 +747,8 @@ class TilerFactory(BaseTilerFactory):
 
         # GET endpoints
         @self.router.get(
-            r"/crop/{minx},{miny},{maxx},{maxy}.{format}", **img_endpoint_params,
+            r"/crop/{minx},{miny},{maxx},{maxy}.{format}",
+            **img_endpoint_params,
         )
         @self.router.get(
             r"/crop/{minx},{miny},{maxx},{maxy}/{width}x{height}.{format}",
@@ -796,13 +808,16 @@ class TilerFactory(BaseTilerFactory):
 
         # POST endpoints
         @self.router.post(
-            r"/crop", **img_endpoint_params,
+            r"/crop",
+            **img_endpoint_params,
         )
         @self.router.post(
-            r"/crop.{format}", **img_endpoint_params,
+            r"/crop.{format}",
+            **img_endpoint_params,
         )
         @self.router.post(
-            r"/crop/{width}x{height}.{format}", **img_endpoint_params,
+            r"/crop/{width}x{height}.{format}",
+            **img_endpoint_params,
         )
         def geojson_crop(
             geojson: Feature = Body(..., description="GeoJSON Feature."),
@@ -910,7 +925,11 @@ class MultiBaseTilerFactory(TilerFactory):
                 with rasterio.Env(**self.gdal_config):
                     with self.reader(src_path, **self.reader_options) as src_dst:
                         values = src_dst.point(
-                            lon, lat, **layer_params, **dataset_params, **kwargs,
+                            lon,
+                            lat,
+                            **layer_params,
+                            **dataset_params,
+                            **kwargs,
                         )
             timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
@@ -1071,7 +1090,9 @@ class MultiBaseTilerFactory(TilerFactory):
                             )
 
                             stats = get_array_statistics(
-                                data.as_masked(), **stats_params, **histogram_params,
+                                data.as_masked(),
+                                **stats_params,
+                                **histogram_params,
                             )
 
                         feature.properties = feature.properties or {}
@@ -1097,7 +1118,9 @@ class MultiBaseTilerFactory(TilerFactory):
                             **kwargs,
                         )
                         stats = get_array_statistics(
-                            data.as_masked(), **stats_params, **histogram_params,
+                            data.as_masked(),
+                            **stats_params,
+                            **histogram_params,
                         )
 
                         geojson.properties = geojson.properties or {}
@@ -1160,7 +1183,10 @@ class MultiBandTilerFactory(TilerFactory):
             """Return dataset's basic info."""
             with rasterio.Env(**self.gdal_config):
                 with self.reader(src_path, **self.reader_options) as src_dst:
-                    return src_dst.info(**bands_params, **kwargs,)
+                    return src_dst.info(
+                        **bands_params,
+                        **kwargs,
+                    )
 
         @self.router.get(
             "/info.geojson",
@@ -1280,7 +1306,9 @@ class MultiBandTilerFactory(TilerFactory):
                                 **kwargs,
                             )
                             stats = get_array_statistics(
-                                data.as_masked(), **stats_params, **histogram_params,
+                                data.as_masked(),
+                                **stats_params,
+                                **histogram_params,
                             )
 
                             feature.properties = feature.properties or {}
@@ -1304,7 +1332,9 @@ class MultiBandTilerFactory(TilerFactory):
                             **kwargs,
                         )
                         stats = get_array_statistics(
-                            data.as_masked(), **stats_params, **histogram_params,
+                            data.as_masked(),
+                            **stats_params,
+                            **histogram_params,
                         )
 
                         geojson.properties = geojson.properties or {}

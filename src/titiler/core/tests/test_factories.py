@@ -1067,7 +1067,8 @@ def test_MultiBandTilerFactory():
     assert props["B09"]
 
     response = client.post(
-        f"/statistics?url={DATA_DIR}", json=band_feature["features"][0],
+        f"/statistics?url={DATA_DIR}",
+        json=band_feature["features"][0],
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/geo+json"

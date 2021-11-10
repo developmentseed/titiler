@@ -11,11 +11,17 @@ from fastapi import FastAPI, HTTPException, Query
 from starlette.testclient import TestClient
 
 
-def CustomPathParams(url: str = Query(..., description="Give me a url.",)) -> str:
+def CustomPathParams(
+    url: str = Query(
+        ...,
+        description="Give me a url.",
+    )
+) -> str:
     """Custom path Dependency."""
     if not re.match("^c.+tif$", url):
         raise HTTPException(
-            status_code=400, detail="Nope, this is not a valid URL - Please Try Again",
+            status_code=400,
+            detail="Nope, this is not a valid URL - Please Try Again",
         )
     return f"{DATA_DIR}/{url}"
 

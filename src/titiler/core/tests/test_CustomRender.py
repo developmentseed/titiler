@@ -20,10 +20,14 @@ class CustomRenderParams(ImageRenderingParams):
     """Custom renderparams class."""
 
     nodata: Optional[Union[str, int, float]] = Query(
-        None, title="Tiff Ouptut Nodata value", alias="output_nodata",
+        None,
+        title="Tiff Ouptut Nodata value",
+        alias="output_nodata",
     )
     compress: Optional[str] = Query(
-        None, title="Tiff compression schema", alias="output_compression",
+        None,
+        title="Tiff compression schema",
+        alias="output_compression",
     )
 
     def __post_init__(self):

@@ -87,7 +87,9 @@ class MosaicTilerFactory(BaseTilerFactory):
             response_model_exclude_none=True,
             responses={200: {"description": "Return MosaicJSON definition"}},
         )
-        def read(src_path=Depends(self.path_dependency),):
+        def read(
+            src_path=Depends(self.path_dependency),
+        ):
             """Read a MosaicJSON"""
             with self.reader(src_path, **self.backend_options) as mosaic:
                 return mosaic.mosaic_def
