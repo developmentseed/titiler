@@ -398,9 +398,9 @@ class TilerFactory(BaseTilerFactory):
             **img_endpoint_params,
         )
         def tile(
-            z: int = Path(..., ge=0, le=30, description="Mercator tiles's zoom level"),
-            x: int = Path(..., description="Mercator tiles's column"),
-            y: int = Path(..., description="Mercator tiles's row"),
+            z: int = Path(..., ge=0, le=30, description="TMS tiles's zoom level"),
+            x: int = Path(..., description="TMS tiles's column"),
+            y: int = Path(..., description="TMS tiles's row"),
             tms: TileMatrixSet = Depends(self.tms_dependency),
             scale: int = Query(
                 1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
