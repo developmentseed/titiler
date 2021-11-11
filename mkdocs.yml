@@ -47,6 +47,7 @@ nav:
       - Tiler with custom Colormap dependency: "examples/code/tiler_with_custom_colormap.md"
       - Loading data with signed URLs: "examples/code/working_with_signed_urls.md"
       - STAC endpoints with custom `/validate`: "examples/code/tiler_with_custom_stac_validation.md"
+      - Custom Sentinel 2 Tiler: "examples/code/tiler_for_sentinel2.md"
 
     - Use TiTiler endpoints:
       - COG: "examples/notebooks/Working_with_CloudOptimizedGeoTIFF_simple.ipynb"
@@ -55,7 +56,6 @@ nav:
       - STAC at scale: "examples/notebooks/Working_with_STAC.ipynb"
       - MosaicJSON: "examples/notebooks/Working_with_MosaicJSON.ipynb"
       - Non-WebMercator TMS: "examples/notebooks/Working_with_nonWebMercatorTMS.ipynb"
-      - Custom Sentinel 2 Tiler: "examples/notebooks/Create_CustomSentinel2Tiler.ipynb"
       - NumpyTile: "examples/notebooks/Working_with_NumpyTile.ipynb"
 
   - API:
