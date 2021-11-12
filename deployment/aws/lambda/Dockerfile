@@ -2,7 +2,7 @@ FROM --platform=linux/amd64 lambci/lambda:build-python3.8
 
 WORKDIR /tmp
 
-RUN pip install titiler.application mangum>=0.10.0 -t /asset --no-binary pydantic
+RUN pip install titiler==0.4.0a0 mangum>=0.10.0 -t /asset --no-binary pydantic
 
 # Reduce package size and remove useless files
 RUN cd /asset && find . -type f -name '*.pyc' | while read f; do n=$(echo $f | sed 's/__pycache__\///' | sed 's/.cpython-[2-3][0-9]//'); cp $f $n; done;
