@@ -1,6 +1,6 @@
 # Release Notes
 
-## 0.4.0a0 (TBD)
+## 0.4.0a0 (2021-11-12)
 
 * remove python 3.6 supports (related to morecantile/pyproj update)
 
@@ -39,6 +39,7 @@
 
 ### titiler.application
 
+* update viewers to match changes in titiler.core endpoints
 
 ## 0.3.12 (2021-10-20)
 
