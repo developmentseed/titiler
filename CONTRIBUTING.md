@@ -14,7 +14,7 @@ $ pip install \
    -e src/titiler/application["test"]
 ```
 
-**Python3.8 only**
+**pre-commit**
 
 This repo is set to use `pre-commit` to run *isort*, *flake8*, *pydocstring*, *black* ("uncompromising Python code formatter") and mypy when committing new code.
 
@@ -62,10 +62,4 @@ $ mkdocs gh-deploy
    titiler.mosaic.factory \
    titiler.mosaic.resources.enums \
    titiler.mosaic.errors
-
-   pdocs as_markdown \
-   --output_dir docs/api \
-   --exclude_source \
-   --overwrite \
-   titiler.application.middleware
 ```

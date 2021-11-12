@@ -5,7 +5,7 @@ from typing import Optional, Union
 
 import numpy
 
-from titiler.core.dependencies import RenderParams
+from titiler.core.dependencies import ImageRenderingParams
 from titiler.core.factory import TilerFactory
 
 from .conftest import DATA_DIR, parse_img
@@ -16,25 +16,24 @@ from starlette.testclient import TestClient
 
 
 @dataclass
-class CustomRenderParams(RenderParams):
+class CustomRenderParams(ImageRenderingParams):
     """Custom renderparams class."""
 
-    output_nodata: Optional[Union[str, int, float]] = Query(
-        None, title="Tiff Ouptut Nodata value",
+    nodata: Optional[Union[str, int, float]] = Query(
+        None,
+        title="Tiff Ouptut Nodata value",
+        alias="output_nodata",
     )
-    output_compression: Optional[str] = Query(
-        None, title="Tiff compression schema",
+    compress: Optional[str] = Query(
+        None,
+        title="Tiff compression schema",
+        alias="output_compression",
     )
 
     def __post_init__(self):
         """post init."""
-        super().__post_init__()
-        if self.output_nodata is not None:
-            self.kwargs["nodata"] = (
-                numpy.nan if self.output_nodata == "nan" else float(self.output_nodata)
-            )
-        if self.output_compression is not None:
-            self.kwargs["compress"] = self.output_compression
+        if self.nodata is not None:
+            self.nodata = numpy.nan if self.nodata == "nan" else float(self.nodata)
 
 
 def test_CustomRender():

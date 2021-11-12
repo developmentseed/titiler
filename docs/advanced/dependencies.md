@@ -6,8 +6,17 @@ In titiler `Factories`, we use the dependencies to define the inputs for each en
 Example:
 ```python
 # Custom Dependency
+
+from dataclasses import dataclass
+from typing import Optional
+
+from fastapi import Depends, FastAPI, Query
+from titiler.core.dependencies import DefaultDependency
+
+from rio_tiler.io import COGReader
+
 @dataclass
-class ImageParams:
+class ImageParams(DefaultDependency):
     """Common Preview/Crop parameters."""
 
     max_size: Optional[int] = Query(
@@ -16,40 +25,37 @@ class ImageParams:
     height: Optional[int] = Query(None, description="Force output image height.")
     width: Optional[int] = Query(None, description="Force output image width.")
 
-    kwargs: Dict = field(init=False, default_factory=dict)
-
     def __post_init__(self):
         """Post Init."""
         if self.width and self.height:
             self.max_size = None
 
-        if self.width is not None:
-            self.kwargs["width"] = self.width
 
-        if self.height is not None:
-            self.kwargs["height"] = self.height
-
-        if self.max_size is not None:
-            self.kwargs["max_size"] = self.max_size
-
+app = FastAPI()
 
 # Simple preview endpoint
-@router.get("/preview.png")
+@app.get("/preview.png")
 def preview(
     url: str = Query(..., description="data set URL"),
     params: ImageParams = Depends(),
 ):
 
     with COGReader(url) as cog:
-        img = cog.preview(**params.kwargs)
+        img = cog.preview(**params)  # classes built with `DefaultDependency` can be unpacked
+        # or
+        img = cog.preview(
+            max_size=params.max_size,
+            height=params.height,
+            width=params.width,
+        )
     ...
 ```
 
 !!! important
 
-    In the example above, we create a custom `ImageParams` dependency which will then be injected to the `preview` endpoint to add  **max_size**, **height** and **width** querystring parameters. As for most of `titiler` dependencies, the `ImageParams` class will host the input querystrings to a `kwargs` dictionary, which will then be used to pass the options to the `cog.preview()` methods.
+    In the example above, we create a custom `ImageParams` dependency which will then be injected to the `preview` endpoint to add  **max_size**, **height** and **width** querystring parameters.
 
-    Note: when calling the `cog.preview()` method, we use the `**` operator to pass the dictionary key/value pairs as keyword arguments.
+    Using `titiler.core.dependencies.DefaultDependency`, we can `unpack` the class as if it was a dictionnary, which helps with customization.
 
 
 ### TiTiler Dependencies
@@ -92,27 +98,39 @@ The `factories` allow users to set multiple default dependencies. Here is the li
 * **layer_dependency**: Define band indexes or expression
     ```python
     @dataclass
-    class BidxExprParams(DefaultDependency):
-        """Band Indexes and Expression parameters."""
+    class BidxParams(DefaultDependency):
+        """Band Indexes parameters."""
 
-        bidx: Optional[str] = Query(
-            None, title="Band indexes", description="comma (',') delimited band indexes",
+        indexes: Optional[List[int]] = Query(
+            None,
+            title="Band indexes",
+            alias="bidx",
+            description="Dataset band indexes",
+            examples={"one-band": {"value": [1]}, "multi-bands": {"value": [1, 2, 3]}},
         )
+
+    @dataclass
+    class ExpressionParams(DefaultDependency):
+        """Expression parameters."""
+
         expression: Optional[str] = Query(
             None,
             title="Band Math expression",
-            description="rio-tiler's band math expression (e.g B1/B2)",
+            description="rio-tiler's band math expression",
+            examples={
+                "simple": {"description": "Simple band math.", "value": "b1/b2"},
+                "multi-bands": {
+                    "description": "Coma (,) delimited expressions (band1: b1/b2, band2: b2+b3).",
+                    "value": "b1/b2,b2+b3",
+                },
+            },
         )
 
-        def __post_init__(self):
-            """Post Init."""
-            if self.bidx is not None:
-                self.kwargs["indexes"] = tuple(
-                    int(s) for s in re.findall(r"\d+", self.bidx)
-                )
+    @dataclass
+    class BidxExprParams(ExpressionParams, BidxParams):
+        """Band Indexes and Expression parameters."""
 
-            if self.expression is not None:
-                self.kwargs["expression"] = self.expression
+        pass
     ```
 
 * **dataset_dependency**: Overwrite nodata value, apply rescaling or change default resampling.
@@ -125,52 +143,60 @@ The `factories` allow users to set multiple default dependencies. Here is the li
             None, title="Nodata value", description="Overwrite internal Nodata value"
         )
         unscale: Optional[bool] = Query(
-            None,
+            False,
             title="Apply internal Scale/Offset",
             description="Apply internal Scale/Offset",
         )
-        resampling_method: ResamplingNames = Query(
-            ResamplingNames.nearest, description="Resampling method."  # type: ignore
+        resampling_method: ResamplingName = Query(
+            ResamplingName.nearest,  # type: ignore
+            alias="resampling",
+            description="Resampling method.",
         )
 
         def __post_init__(self):
             """Post Init."""
             if self.nodata is not None:
-                self.kwargs["nodata"] = (
-                    numpy.nan if self.nodata == "nan" else float(self.nodata)
-                )
-
-            if self.unscale is not None:
-                self.kwargs["unscale"] = self.unscale
-
-            if self.resampling_method is not None:
-                self.kwargs["resampling_method"] = self.resampling_method.name
+                self.nodata = numpy.nan if self.nodata == "nan" else float(self.nodata)
+            self.resampling_method = self.resampling_method.value  # type: ignore
     ```
-* **render_dependency**: Image rendering options.
+
+
+* **process_dependency**: Post-Process data before rendering.
     ```python
     @dataclass
-    class RenderParams(DefaultDependency):
-        """Image Rendering options."""
+    class PostProcessParams(DefaultDependency):
+        """Data Post-Processing options."""
 
-        rescale: Optional[str] = Query(
+        in_range: Optional[List[str]] = Query(
             None,
+            alias="rescale",
             title="Min/Max data Rescaling",
-            description="comma (',') delimited Min,Max bounds",
+            description="comma (',') delimited Min,Max range. Can set multiple time for multiple bands.",
+            example=["0,2000", "0,1000", "0,10000"],  # band 1  # band 2  # band 3
         )
         color_formula: Optional[str] = Query(
             None,
             title="Color Formula",
             description="rio-color formula (info: https://github.com/mapbox/rio-color)",
         )
-        return_mask: bool = Query(True, description="Add mask to the output data.")
-
-        rescale_range: Optional[List[Union[float, int]]] = field(init=False)
 
         def __post_init__(self):
             """Post Init."""
-            self.rescale_range = (
-                list(map(float, self.rescale.split(","))) if self.rescale else None
-            )
+            if self.in_range:
+                self.in_range = [  # type: ignore
+                    tuple(map(float, r.replace(" ", "").split(","))) for r in self.in_range
+                ]
+    ```
+
+* **render_dependency**: Image rendering options.
+    ```python
+    @dataclass
+    class ImageRenderingParams(DefaultDependency):
+        """Image Rendering options."""
+
+        add_mask: bool = Query(
+            True, alias="return_mask", description="Add mask to the output data."
+        )
     ```
 
 * **colormap_dependency**: colormap options.
@@ -179,16 +205,21 @@ The `factories` allow users to set multiple default dependencies. Here is the li
     def ColorMapParams(
         colormap_name: ColorMapName = Query(None, description="Colormap name"),
         colormap: str = Query(None, description="JSON encoded custom Colormap"),
-    ) -> Optional[Dict]:
+    ) -> Optional[Union[Dict, Sequence]]:
         """Colormap Dependency."""
         if colormap_name:
             return cmap.get(colormap_name.value)
 
         if colormap:
-            return json.loads(
-                colormap,
-                object_hook=lambda x: {int(k): parse_color(v) for k, v in x.items()},
-            )
+            try:
+                return json.loads(
+                    colormap,
+                    object_hook=lambda x: {int(k): parse_color(v) for k, v in x.items()},
+                )
+            except json.JSONDecodeError:
+                raise HTTPException(
+                    status_code=400, detail="Could not parse the colormap value."
+                )
 
         return None
     ```
@@ -260,13 +291,4 @@ For `TilerFactory`:
             """Post Init."""
             if self.width and self.height:
                 self.max_size = None
-
-            if self.width is not None:
-                self.kwargs["width"] = self.width
-
-            if self.height is not None:
-                self.kwargs["height"] = self.height
-
-            if self.max_size is not None:
-                self.kwargs["max_size"] = self.max_size
     ```

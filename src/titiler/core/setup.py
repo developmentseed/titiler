@@ -9,16 +9,11 @@ inst_reqs = [
     "fastapi>=0.65,<0.68",
     "geojson-pydantic",
     "jinja2>=2.11.2,<3.0.0",
-    "morecantile<3.0.0",
     "numpy",
     "pydantic",
     "rasterio",
-    "rio-tiler>=2.1,<2.2",
+    "rio-tiler>=3.0.0a3,<3.1",
     "simplejson",
-    # Additional requirements for python 3.6
-    "async_exit_stack>=1.0.1,<2.0.0;python_version<'3.7'",
-    "async_generator>=1.10,<2.0.0;python_version<'3.7'",
-    "dataclasses;python_version<'3.7'",
     "importlib_resources>=1.1.0;python_version<'3.9'",
 ]
 extra_reqs = {
@@ -28,16 +23,15 @@ extra_reqs = {
 
 setup(
     name="titiler.core",
-    version="0.3.12",
+    version="0.4.0a0",
     description=u"A modern dynamic tile server built on top of FastAPI and Rasterio/GDAL.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    python_requires=">=3.6",
+    python_requires=">=3.7",
     classifiers=[
         "Intended Audience :: Information Technology",
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: BSD License",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",

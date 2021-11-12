@@ -2,12 +2,12 @@
 
 import json
 from enum import Enum
-from typing import Dict, Optional
+from typing import Dict, Optional, Sequence, Union
 
 import morecantile
 from morecantile import tms
 from morecantile.models import TileMatrixSet
-from rasterio.crs import CRS
+from pyproj import CRS
 from rio_tiler.colormap import cmap, parse_color
 
 from fastapi import HTTPException, Query
@@ -21,7 +21,8 @@ except ImportError:
     from importlib_resources import files as resources_files  # type: ignore
 
 
-templates = Jinja2Templates(directory=str(resources_files(__package__) / "templates"))
+# TODO: mypy fails in python 3.9, we need to find a proper way to do this
+templates = Jinja2Templates(directory=str(resources_files(__package__) / "templates"))  # type: ignore
 
 
 # colors from https://daac.ornl.gov/ABOVE/guides/Annual_Landcover_ABoVE.html
@@ -69,7 +70,7 @@ TileMatrixSetName = Enum(  # type: ignore
 def ColorMapParams(
     colormap_name: ColorMapName = Query(None, description="Colormap name"),
     colormap: str = Query(None, description="JSON encoded custom Colormap"),
-) -> Optional[Dict]:
+) -> Optional[Union[Dict, Sequence]]:
     """Colormap Dependency."""
     if colormap_name:
         return cmap.get(colormap_name.value)

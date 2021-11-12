@@ -6,7 +6,7 @@ with open("README.md") as f:
     long_description = f.read()
 
 inst_reqs = [
-    "rio-cogeo>=2.2,<3.0",
+    "rio-cogeo>=3.0,<4.0",
     "titiler.core",
     "titiler.mosaic",
     "starlette-cramjam>=0.1.0,<0.2",
@@ -20,7 +20,7 @@ extra_reqs = {
 
 setup(
     name="titiler.application",
-    version="0.3.12",
+    version="0.4.0a0",
     description=u"A modern dynamic tile server built on top of FastAPI and Rasterio/GDAL.",
     long_description=long_description,
     long_description_content_type="text/markdown",

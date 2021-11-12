@@ -49,7 +49,8 @@ class titilerLambdaStack(core.Stack):
             f"{id}-lambda",
             runtime=runtime,
             code=aws_lambda.Code.from_docker_build(
-                path=os.path.abspath(code_dir), file="lambda/Dockerfile",
+                path=os.path.abspath(code_dir),
+                file="lambda/Dockerfile",
             ),
             handler="handler.handler",
             memory_size=memory,

@@ -1,5 +1,46 @@
 # Release Notes
 
+## 0.4.0a0 (2021-11-12)
+
+* remove python 3.6 supports (related to morecantile/pyproj update)
+
+### titiler.core
+
+* update `rio-tiler/morecantile` requirement (>=3.0)
+* remove `utils.bbox_to_feature` (replaced by geojson_pydantic native function `Feature(geometry=Polygon.from_bounds(*bounds), properties=info)`)
+* remove `utils.data_stats` (replaced by rio-tiler new statistics method)
+* remove `metadata` endpoints  **breaking API**
+* update `statistics` endpoints with histogram options
+* update `statistics` endpoint responses **breaking API**
+* remove `band_expression` in `BandsExprParams` dependency **breaking API**
+* remove `morecantile` requirement definition in setup.py and defers to rio-tiler supported version
+* update `titiler.core.dependencies.DefaultDependency` (allows dict unpacking and remove `.kwargs`) **breaking API**
+* use standard for List in QueryParameter (e.g `bidx=1&bidx=2&bidx` instead of `bidx=1,2,3`) **breaking API**
+* add `asset_bidx` query parameter in replacement of `bidx` in MultiBaseFactory dependencies and switch to new format: `{asset name}|{bidx,bidx,bidx}` **breaking API**
+* update `asset_expression` to the new format: `{asset name}|{expression}` (e.g `data|b1+b2`) **breaking API**
+* update `assets` QueryParameter to List (e.g `assets=COG&assets=Data`) **breaking API**
+* update `bands` QueryParameter to List (e.g `bands=B01&bands=B02`) **breaking API**
+* split `RenderParams` dependency into:
+    * `PostProcessParams`: `rescale` and `color_formula` parameters
+    * `ImageRenderingParams`: `return_mask`
+* add `process_dependency` attribute in `BaseTilerFactory` (defaults to `PostProcessParams`)
+* use `resampling` alias instead of `resampling_method` for QueryParameter **breaking API**
+* defaults to available assets if `assets` option is not provided for `MultiBaseTilerFactory` info and statistics endpoints.
+* defaults to available bands if `bands` option is not provided for `MultiBandsTilerFactory` info and statistics endpoints.
+* better output models definition
+* keep `bounds`, `minzoom` and `maxzoom` in `/info` response
+* remove `dataset` in `/info` response to better follow the Info model
+* add `/statistics` endpoint by default
+
+### titiler.mosaic
+
+* update `cogeo-mosaic` requirement (>=4.0)
+* update response from `/info` endpoint to match the model.
+
+### titiler.application
+
+* update viewers to match changes in titiler.core endpoints
+
 ## 0.3.12 (2021-10-20)
 
 ### titiler.core

@@ -1,17 +1,15 @@
 """Common dependency."""
 
 import json
-import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Sequence, Tuple, Union
+from typing import Dict, List, Optional, Sequence, Union
 
 import numpy
 from morecantile import tms
 from morecantile.models import TileMatrixSet
 from rasterio.enums import Resampling
 from rio_tiler.colormap import cmap, parse_color
-from rio_tiler.constants import NumType
 from rio_tiler.errors import MissingAssets, MissingBands
 
 from fastapi import HTTPException, Query
@@ -53,7 +51,7 @@ def TMSParams(
 def ColorMapParams(
     colormap_name: ColorMapName = Query(None, description="Colormap name"),
     colormap: str = Query(None, description="JSON encoded custom Colormap"),
-) -> Optional[Dict]:
+) -> Optional[Union[Dict, Sequence]]:
     """Colormap Dependency."""
     if colormap_name:
         return cmap.get(colormap_name.value)
@@ -79,9 +77,15 @@ def DatasetPathParams(url: str = Query(..., description="Dataset URL")) -> str:
 
 @dataclass
 class DefaultDependency:
-    """Dependency Base Class"""
+    """Dataclass with dict unpacking"""
 
-    kwargs: Dict = field(init=False, default_factory=dict)
+    def keys(self):
+        """Return Keys."""
+        return self.__dict__.keys()
+
+    def __getitem__(self, key):
+        """Return value."""
+        return self.__dict__[key]
 
 
 # Dependencies for simple BaseReader (e.g COGReader)
@@ -89,83 +93,124 @@ class DefaultDependency:
 class BidxParams(DefaultDependency):
     """Band Indexes parameters."""
 
-    bidx: Optional[str] = Query(
-        None, title="Band indexes", description="comma (',') delimited band indexes",
+    indexes: Optional[List[int]] = Query(
+        None,
+        title="Band indexes",
+        alias="bidx",
+        description="Dataset band indexes",
+        examples={"one-band": {"value": [1]}, "multi-bands": {"value": [1, 2, 3]}},
     )
-
-    def __post_init__(self):
-        """Post Init."""
-        if self.bidx is not None:
-            self.kwargs["indexes"] = tuple(
-                int(s) for s in re.findall(r"\d+", self.bidx)
-            )
 
 
 @dataclass
-class BidxExprParams(DefaultDependency):
-    """Band Indexes and Expression parameters."""
+class ExpressionParams(DefaultDependency):
+    """Expression parameters."""
 
-    bidx: Optional[str] = Query(
-        None, title="Band indexes", description="comma (',') delimited band indexes",
-    )
     expression: Optional[str] = Query(
         None,
         title="Band Math expression",
-        description="rio-tiler's band math expression (e.g B1/B2)",
+        description="rio-tiler's band math expression",
+        examples={
+            "simple": {"description": "Simple band math.", "value": "b1/b2"},
+            "multi-bands": {
+                "description": "Coma (,) delimited expressions (band1: b1/b2, band2: b2+b3).",
+                "value": "b1/b2,b2+b3",
+            },
+        },
     )
 
-    def __post_init__(self):
-        """Post Init."""
-        if self.bidx is not None:
-            self.kwargs["indexes"] = tuple(
-                int(s) for s in re.findall(r"\d+", self.bidx)
-            )
 
-        if self.expression is not None:
-            self.kwargs["expression"] = self.expression
+@dataclass
+class BidxExprParams(ExpressionParams, BidxParams):
+    """Band Indexes and Expression parameters."""
+
+    pass
 
 
 # Dependencies for  MultiBaseReader (e.g STACReader)
 @dataclass
-class AssetsBidxParams(DefaultDependency):
-    """Asset and Band indexes parameters."""
+class AssetsParams(DefaultDependency):
+    """Assets parameters."""
 
-    assets: Optional[str] = Query(
-        ..., title="Asset indexes", description="comma (',') delimited asset names.",
+    assets: List[str] = Query(
+        None,
+        title="Asset names",
+        description="Asset's names.",
+        examples={
+            "one-asset": {
+                "description": "Return results for asset `data`.",
+                "value": ["data"],
+            },
+            "multi-assets": {
+                "description": "Return results for assets `data` and `cog`.",
+                "value": ["data", "cog"],
+            },
+        },
     )
-    bidx: Optional[str] = Query(
-        None, title="Band indexes", description="comma (',') delimited band indexes",
-    )
-
-    def __post_init__(self):
-        """Post Init."""
-        if self.assets is not None:
-            self.kwargs["assets"] = self.assets.split(",")
-        if self.bidx is not None:
-            self.kwargs["indexes"] = tuple(
-                int(s) for s in re.findall(r"\d+", self.bidx)
-            )
 
 
 @dataclass
 class AssetsBidxExprParams(DefaultDependency):
     """Assets, Band Indexes and Expression parameters."""
 
-    assets: Optional[str] = Query(
-        None, title="Asset indexes", description="comma (',') delimited asset names.",
+    assets: Optional[List[str]] = Query(
+        None,
+        title="Asset names",
+        description="Asset's names.",
+        examples={
+            "one-asset": {
+                "description": "Return results for asset `data`.",
+                "value": ["data"],
+            },
+            "multi-assets": {
+                "description": "Return results for assets `data` and `cog`.",
+                "value": ["data", "cog"],
+            },
+        },
     )
     expression: Optional[str] = Query(
         None,
         title="Band Math expression",
-        description="rio-tiler's band math expression between assets (e.g asset1/asset2)",
+        description="Band math expression between assets",
+        examples={
+            "simple": {
+                "description": "Return results of expression between assets.",
+                "value": "asset1 + asset2 / asset3",
+            },
+        },
     )
-    bidx: Optional[str] = Query(
-        None, title="Band indexes", description="comma (',') delimited band indexes",
-    )
-    asset_expression: Optional[str] = Query(
+
+    asset_indexes: Optional[Sequence[str]] = Query(
         None,
-        title="Band Math expression to apply to each asset",
-        description="rio-tiler's band math expression (e.g b1/b2)",
+        title="Per asset band indexes",
+        description="Per asset band indexes",
+        alias="asset_bidx",
+        examples={
+            "one-asset": {
+                "description": "Return indexes 1,2,3 of asset `data`.",
+                "value": ["data|1,2,3"],
+            },
+            "multi-assets": {
+                "description": "Return indexes 1,2,3 of asset `data` and indexes 1 of asset `cog`",
+                "value": ["data|1,2,3", "cog|1"],
+            },
+        },
+    )
+
+    asset_expression: Optional[Sequence[str]] = Query(
+        None,
+        title="Per asset band expression",
+        description="Per asset band expression",
+        examples={
+            "one-asset": {
+                "description": "Return results for expression `b1*b2+b3` of asset `data`.",
+                "value": ["data|b1*b2+b3"],
+            },
+            "multi-assets": {
+                "description": "Return results for expressions `b1*b2+b3` for asset `data` and `b1+b3` for asset `cog`.",
+                "value": ["data|b1*b2+b3", "cog|b1+b3"],
+            },
+        },
     )
 
     def __post_init__(self):
@@ -175,16 +220,67 @@ class AssetsBidxExprParams(DefaultDependency):
                 "assets must be defined either via expression or assets options."
             )
 
-        if self.assets is not None:
-            self.kwargs["assets"] = self.assets.split(",")
-        if self.expression is not None:
-            self.kwargs["expression"] = self.expression
-        if self.asset_expression is not None:
-            self.kwargs["asset_expression"] = self.asset_expression
-        if self.bidx is not None:
-            self.kwargs["indexes"] = tuple(
-                int(s) for s in re.findall(r"\d+", self.bidx)
-            )
+        if self.asset_indexes:
+            self.asset_indexes: Dict[str, Sequence[int]] = {  # type: ignore
+                idx.split("|")[0]: list(map(int, idx.split("|")[1].split(",")))
+                for idx in self.asset_indexes
+            }
+
+        if self.asset_expression:
+            self.asset_expression: Dict[str, str] = {  # type: ignore
+                idx.split("|")[0]: idx.split("|")[1] for idx in self.asset_expression
+            }
+
+
+@dataclass
+class AssetsBidxParams(AssetsParams):
+    """asset and extra."""
+
+    asset_indexes: Optional[Sequence[str]] = Query(
+        None,
+        title="Per asset band indexes",
+        description="Per asset band indexes",
+        alias="asset_bidx",
+        examples={
+            "one-asset": {
+                "description": "Return indexes 1,2,3 of asset `data`.",
+                "value": ["data|1,2,3"],
+            },
+            "multi-assets": {
+                "description": "Return indexes 1,2,3 of asset `data` and indexes 1 of asset `cog`",
+                "value": ["data|1,2,3", "cog|1"],
+            },
+        },
+    )
+
+    asset_expression: Optional[Sequence[str]] = Query(
+        None,
+        title="Per asset band expression",
+        description="Per asset band expression",
+        examples={
+            "one-asset": {
+                "description": "Return results for expression `b1*b2+b3` of asset `data`.",
+                "value": ["data|b1*b2+b3"],
+            },
+            "multi-assets": {
+                "description": "Return results for expressions `b1*b2+b3` for asset `data` and `b1+b3` for asset `cog`.",
+                "value": ["data|b1*b2+b3", "cog|b1+b3"],
+            },
+        },
+    )
+
+    def __post_init__(self):
+        """Post Init."""
+        if self.asset_indexes:
+            self.asset_indexes: Dict[str, Sequence[int]] = {  # type: ignore
+                idx.split("|")[0]: list(map(int, idx.split("|")[1].split(",")))
+                for idx in self.asset_indexes
+            }
+
+        if self.asset_expression:
+            self.asset_expression: Dict[str, str] = {  # type: ignore
+                idx.split("|")[0]: idx.split("|")[1] for idx in self.asset_expression
+            }
 
 
 # Dependencies for  MultiBandReader
@@ -192,32 +288,33 @@ class AssetsBidxExprParams(DefaultDependency):
 class BandsParams(DefaultDependency):
     """Band names parameters."""
 
-    bands: str = Query(
-        ..., title="bands names", description="comma (',') delimited bands names.",
+    bands: List[str] = Query(
+        None,
+        title="Band names",
+        description="Band's names.",
+        examples={
+            "one-band": {
+                "description": "Return results for band `B01`.",
+                "value": ["B01"],
+            },
+            "multi-bands": {
+                "description": "Return results for bands `B01` and `B02`.",
+                "value": ["B01", "B02"],
+            },
+        },
     )
-
-    def __post_init__(self):
-        """Post Init."""
-        self.kwargs["bands"] = self.bands.split(",")
 
 
 @dataclass
-class BandsExprParams(DefaultDependency):
-    """Band names and Expression parameters."""
+class BandsExprParamsOptional(ExpressionParams, BandsParams):
+    """Optional Band names and Expression parameters."""
 
-    bands: Optional[str] = Query(
-        None, title="bands names", description="comma (',') delimited bands names.",
-    )
-    expression: Optional[str] = Query(
-        None,
-        title="Band Math expression",
-        description="rio-tiler's band math expression between Band asset.",
-    )
-    band_expression: Optional[str] = Query(
-        None,
-        title="Band Math expression",
-        description="rio-tiler's band math expression to apply to each band file.",
-    )
+    pass
+
+
+@dataclass
+class BandsExprParams(ExpressionParams, BandsParams):
+    """Band names and Expression parameters (Band or Expression required)."""
 
     def __post_init__(self):
         """Post Init."""
@@ -225,58 +322,6 @@ class BandsExprParams(DefaultDependency):
             raise MissingBands(
                 "bands must be defined either via expression or bands options."
             )
-
-        if self.bands is not None:
-            self.kwargs["bands"] = self.bands.split(",")
-        if self.expression is not None:
-            self.kwargs["expression"] = self.expression
-        if self.band_expression is not None:
-            self.kwargs["band_expression"] = self.band_expression
-
-
-@dataclass
-class MetadataParams(DefaultDependency):
-    """Common Metadada parameters."""
-
-    # Required params
-    pmin: float = Query(2.0, description="Minimum percentile")
-    pmax: float = Query(98.0, description="Maximum percentile")
-
-    # Optional params
-    max_size: Optional[int] = Query(
-        None, description="Maximum image size to read onto."
-    )
-    histogram_bins: Optional[str] = Query(None, description="Histogram bins.")
-    histogram_range: Optional[str] = Query(
-        None, description="comma (',') delimited Min,Max histogram bounds"
-    )
-    bounds: Optional[str] = Query(
-        None,
-        descriptions="comma (',') delimited Bounding box coordinates from which to calculate image statistics.",
-    )
-
-    def __post_init__(self):
-        """Post Init."""
-        if self.max_size is not None:
-            self.kwargs["max_size"] = self.max_size
-
-        if self.bounds:
-            self.kwargs["bounds"] = tuple(map(float, self.bounds.split(",")))
-
-        hist_options = {}
-        if self.histogram_bins is not None:
-            bins = self.histogram_bins.split(",")
-            if len(bins) == 1:
-                hist_options.update(dict(bins=int(bins[0])))
-            else:
-                hist_options.update(dict(bins=list(map(float, bins))))
-
-        if self.histogram_range:
-            hist_options.update(
-                dict(range=list(map(float, self.histogram_range.split(","))))
-            )
-        if hist_options:
-            self.kwargs["hist_options"] = hist_options
 
 
 @dataclass
@@ -294,15 +339,6 @@ class ImageParams(DefaultDependency):
         if self.width and self.height:
             self.max_size = None
 
-        if self.width is not None:
-            self.kwargs["width"] = self.width
-
-        if self.height is not None:
-            self.kwargs["height"] = self.height
-
-        if self.max_size is not None:
-            self.kwargs["max_size"] = self.max_size
-
 
 @dataclass
 class DatasetParams(DefaultDependency):
@@ -312,50 +348,134 @@ class DatasetParams(DefaultDependency):
         None, title="Nodata value", description="Overwrite internal Nodata value"
     )
     unscale: Optional[bool] = Query(
-        None,
+        False,
         title="Apply internal Scale/Offset",
         description="Apply internal Scale/Offset",
     )
     resampling_method: ResamplingName = Query(
-        ResamplingName.nearest, description="Resampling method."  # type: ignore
+        ResamplingName.nearest,  # type: ignore
+        alias="resampling",
+        description="Resampling method.",
     )
 
     def __post_init__(self):
         """Post Init."""
         if self.nodata is not None:
-            self.kwargs["nodata"] = (
-                numpy.nan if self.nodata == "nan" else float(self.nodata)
-            )
-
-        if self.unscale is not None:
-            self.kwargs["unscale"] = self.unscale
-
-        if self.resampling_method is not None:
-            self.kwargs["resampling_method"] = self.resampling_method.name
+            self.nodata = numpy.nan if self.nodata == "nan" else float(self.nodata)
+        self.resampling_method = self.resampling_method.value  # type: ignore
 
 
 @dataclass
-class RenderParams(DefaultDependency):
+class ImageRenderingParams(DefaultDependency):
     """Image Rendering options."""
 
-    rescale: Optional[List[str]] = Query(
+    add_mask: bool = Query(
+        True, alias="return_mask", description="Add mask to the output data."
+    )
+
+
+@dataclass
+class PostProcessParams(DefaultDependency):
+    """Data Post-Processing options."""
+
+    in_range: Optional[List[str]] = Query(
         None,
+        alias="rescale",
         title="Min/Max data Rescaling",
-        description="comma (',') delimited Min,Max bounds. Can set multiple time for multiple bands.",
+        description="comma (',') delimited Min,Max range. Can set multiple time for multiple bands.",
+        example=["0,2000", "0,1000", "0,10000"],  # band 1  # band 2  # band 3
     )
     color_formula: Optional[str] = Query(
         None,
         title="Color Formula",
         description="rio-color formula (info: https://github.com/mapbox/rio-color)",
     )
-    return_mask: bool = Query(True, description="Add mask to the output data.")
-
-    rescale_range: Optional[Sequence[Tuple[NumType, NumType]]] = field(init=False)
 
     def __post_init__(self):
         """Post Init."""
-        self.rescale_range = (
-            [tuple(map(float, r.replace(" ", "").split(","))) for r in self.rescale]
-            if self.rescale
-            else None
-        )
+        if self.in_range:
+            self.in_range = [  # type: ignore
+                tuple(map(float, r.replace(" ", "").split(","))) for r in self.in_range
+            ]
+
+
+@dataclass
+class StatisticsParams(DefaultDependency):
+    """Statistics options."""
+
+    categorical: bool = Query(
+        False, description="Return statistics for categorical dataset."
+    )
+    categories: List[Union[float, int]] = Query(
+        None,
+        alias="c",
+        title="Pixels values for categories.",
+        description="List of values for which to report counts.",
+        example=[1, 2, 3],
+    )
+    percentiles: List[int] = Query(
+        [2, 98],
+        alias="p",
+        title="Percentile values",
+        description="List of percentile values.",
+        example=[2, 5, 95, 98],
+    )
+
+
+@dataclass
+class HistogramParams(DefaultDependency):
+    """Numpy Histogram options."""
+
+    bins: Optional[str] = Query(
+        None,
+        alias="histogram_bins",
+        title="Histogram bins.",
+        description="""
+Defines the number of equal-width bins in the given range (10, by default).
+
+If bins is a sequence (comma `,` delimited values), it defines a monotonically increasing array of bin edges, including the rightmost edge, allowing for non-uniform bin widths.
+
+link: https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
+        """,
+        examples={
+            "simple": {
+                "description": "Defines the number of equal-width bins",
+                "value": 8,
+            },
+            "array": {
+                "description": "Defines custom bin edges (comma `,` delimited values)",
+                "value": "0,100,200,300",
+            },
+        },
+    )
+
+    range: Optional[str] = Query(
+        None,
+        alias="histogram_range",
+        title="Histogram range",
+        description="""
+Comma `,` delimited range of the bins.
+
+The lower and upper range of the bins. If not provided, range is simply (a.min(), a.max()).
+
+Values outside the range are ignored. The first element of the range must be less than or equal to the second.
+range affects the automatic bin computation as well.
+
+link: https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
+        """,
+        example="0,1000",
+    )
+
+    def __post_init__(self):
+        """Post Init."""
+        if self.bins:
+            bins = self.bins.split(",")
+            if len(bins) == 1:
+                self.bins = int(bins[0])  # type: ignore
+            else:
+                self.bins = list(map(float, bins))  # type: ignore
+        else:
+            self.bins = 10
+
+        if self.range:
+            self.range = list(map(float, self.range.split(",")))  # type: ignore

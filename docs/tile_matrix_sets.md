@@ -11,25 +11,20 @@ ref: https://developer.tomtom.com/blog/decoded/understanding-map-tile-grids-and-
 As one of the first requirements, we built `TiTiler` with support for serving tiles in multiple Projections by using [`rio-tiler`](https://github.com/cogeotiff/rio-tiler) and [`morecantile`](https://github.com/developmentseed/morecantile) which provide the low level TileMatrixSets support.
 
 ```python
-r = requests.get("https://api.cogeo.xyz/tileMatrixSets").json()
-
-print("Supported TMS:")
-for tms in r["tileMatrixSets"]:
-    print("-", tms["id"])
-
-Supported TMS:
-- CanadianNAD83_LCC
-- EPSG3413
-- EPSG6933
-- EuropeanETRS89_LAEAQuad
-- LINZAntarticaMapTilegrid
-- NZTM2000
-- UPSAntarcticWGS84Quad
-- UPSArcticWGS84Quad
-- UTM31WGS84Quad
-- WebMercatorQuad
-- WorldCRS84Quad
-- WorldMercatorWGS84Quad
+$ curl http://127.0.0.1:8000/tileMatrixSets | jq '.tileMatrixSets[] | .id'
+"CanadianNAD83_LCC"
+"EPSG3413"
+"EPSG6933"
+"EuropeanETRS89_LAEAQuad"
+"LINZAntarticaMapTilegrid"
+"NZTM2000"
+"NZTM2000Quad"
+"UPSAntarcticWGS84Quad"
+"UPSArcticWGS84Quad"
+"UTM31WGS84Quad"
+"WebMercatorQuad"
+"WorldCRS84Quad"
+"WorldMercatorWGS84Quad"
 ```
 
 You can easily add more TileMatrixSet support, see [custom tms](advanced/customization.md#custom-tms).

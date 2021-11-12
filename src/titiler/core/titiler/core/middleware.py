@@ -67,7 +67,10 @@ class LoggerMiddleware(BaseHTTPMiddleware):
     """MiddleWare to add logging."""
 
     def __init__(
-        self, app: ASGIApp, querystrings: bool = False, headers: bool = False,
+        self,
+        app: ASGIApp,
+        querystrings: bool = False,
+        headers: bool = False,
     ) -> None:
         """Init Middleware."""
         super().__init__(app)
