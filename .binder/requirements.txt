@@ -12,3 +12,5 @@ geojson_pydantic
 cogeo-mosaic
 
 ipyleaflet
+
+matplotlib
