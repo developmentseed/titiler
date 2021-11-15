@@ -1,5 +1,9 @@
 # Release Notes
 
+## 0.4.0a1 (2021-11-12)
+
+* fix titiler packages cross dependencies
+
 ## 0.4.0a0 (2021-11-12)
 
 * remove python 3.6 supports (related to morecantile/pyproj update)
