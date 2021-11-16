@@ -63,6 +63,18 @@ def test_cmap():
     response = client.get(f"/?colormap={cmap}")
     assert response.json()["1"] == [68, 1, 84, 255]
 
+    intervals = [
+        # ([min, max], [r, g, b, a])
+        ([1, 2], [0, 0, 0, 255]),
+        ([2, 3], [255, 255, 255, 255]),
+        ([3, 1000], [255, 0, 0, 255]),
+    ]
+    cmap = json.dumps(intervals)
+    response = client.get(f"/?colormap={cmap}")
+    assert response.json()[0] == [[1, 2], [0, 0, 0, 255]]
+    assert response.json()[1] == [[2, 3], [255, 255, 255, 255]]
+    assert response.json()[2] == [[3, 1000], [255, 0, 0, 255]]
+
 
 def test_default():
     """test default dep behavior."""

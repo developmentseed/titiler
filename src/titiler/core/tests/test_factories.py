@@ -106,6 +106,7 @@ def test_TilerFactory():
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
 
+    # Dict
     cmap = urlencode(
         {
             "colormap": json.dumps(
@@ -115,6 +116,23 @@ def test_TilerFactory():
                     "3": "#b1b129",
                     "4": "#ddcb9aFF",
                 }
+            )
+        }
+    )
+    response = client.get(f"/tiles/8/84/47.png?url={DATA_DIR}/cog.tif&bidx=1&{cmap}")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/png"
+
+    # Intervals
+    cmap = urlencode(
+        {
+            "colormap": json.dumps(
+                [
+                    # ([min, max], [r, g, b, a])
+                    ([1, 2], [0, 0, 0, 255]),
+                    ([2, 3], [255, 255, 255, 255]),
+                    ([3, 1000], [255, 0, 0, 255]),
+                ]
             )
         }
     )
