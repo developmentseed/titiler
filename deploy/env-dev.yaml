@@ -5,6 +5,16 @@ app:
   extraEnvs:
     - name: SD_ENV
       value: "dev"
+    - name: AWS_ACCESS_KEY_ID
+      valueFrom:
+        secretKeyRef:
+          name: aws-dev-s3-creds
+          key: access_key
+    - name: AWS_SECRET_ACCESS_KEY
+      valueFrom:
+        secretKeyRef:
+          name: aws-dev-s3-creds
+          key: secret_key
   livenessProbe:
     httpGet:
       path: /healthz
