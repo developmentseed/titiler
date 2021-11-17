@@ -1,3 +1,7 @@
+rbac:
+  create: true
+awsAssumeRole:
+  sourceID: "801320765546"
 app:
   enabled: true
   containerPort: 3000
@@ -5,16 +9,6 @@ app:
   extraEnvs:
     - name: SD_ENV
       value: "staging"
-    - name: AWS_ACCESS_KEY_ID
-      valueFrom:
-        secretKeyRef:
-          name: aws-stage-s3-creds
-          key: access_key
-    - name: AWS_SECRET_ACCESS_KEY
-      valueFrom:
-        secretKeyRef:
-          name: aws-stage-s3-creds
-          key: secret_key
   livenessProbe:
     httpGet:
       path: /healthz

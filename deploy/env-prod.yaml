@@ -1,3 +1,7 @@
+rbac:
+  create: true
+awsAssumeRole:
+  sourceID: "515777131470"
 app:
   enabled: true
   containerPort: 3000
