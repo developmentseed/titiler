@@ -1,6 +1,7 @@
 """Common dependency."""
 
 import json
+import os
 import re
 from dataclasses import dataclass, field
 from enum import Enum
@@ -74,7 +75,8 @@ def ColorMapParams(
 
 def DatasetPathParams(url: str = Query(..., description="Dataset URL")) -> str:
     """Create dataset path from args"""
-    return url
+    MOSAIC_BACKEND = os.getenv("TITILER_MOSAIC_BACKEND")
+    return MOSAIC_BACKEND + url
 
 
 @dataclass
