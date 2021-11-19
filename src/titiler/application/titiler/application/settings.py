@@ -8,9 +8,11 @@ class ApiSettings(pydantic.BaseSettings):
 
     name: str = "titiler"
     cors_origins: str = "*"
-    cachecontrol: str = "public, max-age=3600"
+    #cachecontrol: str = "public, max-age=3600"
+    cachecontrol: str = "public, max-age=10"
     root_path: str = ""
-    debug: bool = False
+    #debug: bool = False
+    debug: bool = True
 
     disable_cog: bool = False
     disable_stac: bool = False
