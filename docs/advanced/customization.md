@@ -1,18 +1,15 @@
 
 `TiTiler` is designed to help user customize input/output for each endpoint. This section goes over some simple customization examples.
 
-### Custom DatasetPathParams for `path_dependency`
+### Custom DatasetPathParams for `reader_dependency`
 
-One common customization could be to create your own `path_dependency` (used in all endpoints).
+One common customization could be to create your own `path_dependency`. This dependency is used on all endpoint and pass inputs to the *Readers* (MosaicBackend, COGReader, STACReader...).
 
-Here an example which allow a mosaic to be passed by a `mosaic` name instead of a full S3 url.
+Here an example which allow a mosaic to be passed by a `mosaic name` instead of a full S3 url.
 
 ```python
 import os
 import re
-from typing import Optional, Type
-
-from rio_tiler.io import BaseReader
 
 from fastapi import FastAPI, HTTPException, Query
 
@@ -32,10 +29,11 @@ def MosaicPathParams(
     if not re.match(self.mosaic, r"^[a-zA-Z0-9-_]{1,32}\.[a-zA-Z0-9-_]{1,32}$"):
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid mosaic name {self.mosaic}.",
-        )
+                detail=f"Invalid mosaic name {self.input}.",
+            )
 
-    return f"{MOSAIC_BACKEND}{MOSAIC_HOST}/{self.mosaic}.json.gz"
+        return f"{MOSAIC_BACKEND}{MOSAIC_HOST}/{self.input}.json.gz"
+
 
 app = FastAPI()
 mosaic = MosaicTilerFactory(path_dependency=MosaicPathParams)
@@ -152,10 +150,9 @@ class CustomMosaicFactory(MosaicTilerFactory):
             )
 
             # Write the MosaicJSON using a cogeo-mosaic backend
-            src_path = self.path_dependency(body.url)
             with rasterio.Env(**self.gdal_config):
                 with self.reader(
-                    src_path, mosaic_def=mosaic, reader=self.dataset_reader
+                    body.url, mosaic_def=mosaic, reader=self.dataset_reader
                 ) as mosaic:
                     try:
                         mosaic.write(overwrite=body.overwrite)
@@ -173,9 +170,8 @@ class CustomMosaicFactory(MosaicTilerFactory):
         )
         def update_mosaicjson(body: UpdateMosaicJSON):
             """Update an existing MosaicJSON"""
-            src_path = self.path_dependency(body.url)
             with rasterio.Env(**self.gdal_config):
-                with self.reader(src_path, reader=self.dataset_reader) as mosaic:
+                with self.reader(body.url, reader=self.dataset_reader) as mosaic:
                     features = get_footprints(body.files, max_threads=body.max_threads)
                     try:
                         mosaic.update(features, add_first=body.add_first, quiet=True)

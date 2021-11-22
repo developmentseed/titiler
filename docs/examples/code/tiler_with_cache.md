@@ -192,17 +192,15 @@ class TilerFactory(BaseTilerFactory):
             render_params=Depends(self.render_dependency),
             postprocess_params=Depends(self.process_dependency),
             colormap=Depends(self.colormap_dependency),
-            kwargs: Dict = Depends(self.additional_dependency),
         ):
             """Create map tile from a dataset."""
-            with self.reader(src_path, tms=tms, **self.reader_options) as src_dst:
+            with self.reader(src_path, tms=tms) as src_dst:
                 data = src_dst.tile(
                     x,
                     y,
                     z,
                     **layer_params,
                     **dataset_params,
-                    **kwargs,
                 )
                 dst_colormap = getattr(src_dst, "colormap", None)
 
@@ -244,7 +242,6 @@ class TilerFactory(BaseTilerFactory):
             render_params=Depends(self.render_dependency),
             postprocess_params=Depends(self.process_dependency),
             colormap=Depends(self.colormap_dependency),
-            kwargs: Dict = Depends(self.additional_dependency),
         ):
             """Return TileJSON document for a dataset."""
             route_params = {
@@ -270,7 +267,7 @@ class TilerFactory(BaseTilerFactory):
             if qs:
                 tiles_url += f"?{urlencode(qs)}"
 
-            with self.reader(src_path, tms=tms, **self.reader_options) as src_dst:
+            with self.reader(src_path, tms=tms) as src_dst:
                 return {
                     "bounds": src_dst.geographic_bounds,
                     "minzoom": src_dst.minzoom,

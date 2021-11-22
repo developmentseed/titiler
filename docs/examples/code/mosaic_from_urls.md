@@ -20,10 +20,9 @@ app/backends.py
 from typing import Type, List, Tuple, Dict
 
 import attr
-from rio_tiler.io import BaseReader
-from rio_tiler.io import COGReader
-from rio_tiler.constants import WEB_MERCATOR_TMS
-
+from rio_tiler.io import BaseReader, COGReader, MultiBandReader, MultiBaseReader
+from rio_tiler.constants import WEB_MERCATOR_TMS, WGS84_CRS
+from rasterio.crs import CRS
 from morecantile import TileMatrixSet
 
 from cogeo_mosaic.backends.base import BaseBackend
@@ -35,8 +34,14 @@ class MultiFilesBackend(BaseBackend):
 
     input: List[str] = attr.ib()
 
-    reader: Type[BaseReader] = attr.ib(default=COGReader)
+    reader: Union[
+        Type[BaseReader],
+        Type[MultiBaseReader],
+        Type[MultiBandReader],
+    ] = attr.ib(default=COGReader)
     reader_options: Dict = attr.ib(factory=dict)
+
+    geographic_crs: CRS = attr.ib(default=WGS84_CRS)
 
     tms: TileMatrixSet = attr.ib(default=WEB_MERCATOR_TMS)
     minzoom: int = attr.ib(default=0)
@@ -46,6 +51,7 @@ class MultiFilesBackend(BaseBackend):
     bounds: Tuple[float, float, float, float] = attr.ib(
         default=(-180, -90, 180, 90)
     )
+    crs: CRS = attr.ib(init=False, default=WGS84_CRS)
 
     # mosaic_def is outside the __init__ method
     mosaic_def: MosaicJSON = attr.ib(init=False)

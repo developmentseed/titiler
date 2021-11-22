@@ -23,7 +23,7 @@ from titiler.core.resources.enums import OptionalHeader
 
 from .conftest import DATA_DIR, mock_rasterio_open, parse_img
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 
 from starlette.testclient import TestClient
 
@@ -807,12 +807,12 @@ class BandFileReader(MultiBandReader):
     """Test MultiBand"""
 
     input: str = attr.ib()
-    reader: Type[BaseReader] = attr.ib(default=COGReader)
-
-    reader_options: Dict = attr.ib(factory=dict)
     tms: morecantile.TileMatrixSet = attr.ib(
         default=morecantile.tms.get("WebMercatorQuad")
     )
+    reader_options: Dict = attr.ib(factory=dict)
+
+    reader: Type[BaseReader] = attr.ib(default=COGReader)
 
     def __attrs_post_init__(self):
         """Parse Sceneid and get grid bounds."""
@@ -828,10 +828,17 @@ class BandFileReader(MultiBandReader):
         return os.path.join(self.input, f"{band}.tif")
 
 
+def CustomPathParams(directory: str = Query(..., description="Give me a url.")) -> str:
+    """Custom path Dependency."""
+    return directory
+
+
 def test_MultiBandTilerFactory():
     """test MultiBandTilerFactory."""
 
-    bands = MultiBandTilerFactory(reader=BandFileReader)
+    bands = MultiBandTilerFactory(
+        reader=BandFileReader, path_dependency=CustomPathParams
+    )
     assert len(bands.router.routes) == 26
 
     app = FastAPI()
@@ -841,29 +848,29 @@ def test_MultiBandTilerFactory():
 
     client = TestClient(app)
 
-    response = client.get(f"/bands?url={DATA_DIR}")
+    response = client.get(f"/bands?directory={DATA_DIR}")
     assert response.status_code == 200
     assert response.json() == ["B01", "B09"]
 
     # default bands
-    response = client.get(f"/info?url={DATA_DIR}")
+    response = client.get(f"/info?directory={DATA_DIR}")
     assert response.json()["band_metadata"] == [["B01", {}], ["B09", {}]]
 
-    response = client.get(f"/info?url={DATA_DIR}&bands=B01")
+    response = client.get(f"/info?directory={DATA_DIR}&bands=B01")
     assert response.status_code == 200
     assert response.json()["band_metadata"] == [["B01", {}]]
 
-    response = client.get(f"/info.geojson?url={DATA_DIR}&bands=B01")
+    response = client.get(f"/info.geojson?directory={DATA_DIR}&bands=B01")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/geo+json"
     assert response.json()["properties"]["band_metadata"] == [["B01", {}]]
 
     # need bands or expression
-    response = client.get(f"/preview.tif?url={DATA_DIR}&return_mask=false")
+    response = client.get(f"/preview.tif?directory={DATA_DIR}&return_mask=false")
     assert response.status_code == 400
 
     response = client.get(
-        f"/preview.tif?url={DATA_DIR}&bands=B01&bands=B09&bands=B01&return_mask=false"
+        f"/preview.tif?directory={DATA_DIR}&bands=B01&bands=B09&bands=B01&return_mask=false"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/tiff; application=geotiff"
@@ -872,7 +879,7 @@ def test_MultiBandTilerFactory():
     assert meta["count"] == 3
 
     response = client.get(
-        f"/preview.tif?url={DATA_DIR}&expression=B01,B09,B01&return_mask=false"
+        f"/preview.tif?directory={DATA_DIR}&expression=B01,B09,B01&return_mask=false"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/tiff; application=geotiff"
@@ -883,7 +890,7 @@ def test_MultiBandTilerFactory():
     assert meta["count"] == 3
 
     # GET - statistics
-    response = client.get(f"/statistics?url={DATA_DIR}")
+    response = client.get(f"/statistics?directory={DATA_DIR}")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
@@ -891,7 +898,7 @@ def test_MultiBandTilerFactory():
     assert resp["B01"]
     assert resp["B09"]
 
-    response = client.get(f"/statistics?url={DATA_DIR}&bands=B01&bands=B09")
+    response = client.get(f"/statistics?directory={DATA_DIR}&bands=B01&bands=B09")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
@@ -916,7 +923,7 @@ def test_MultiBandTilerFactory():
     }
     assert resp["B09"]
 
-    response = client.get(f"/statistics?url={DATA_DIR}&expression=B01/B09")
+    response = client.get(f"/statistics?directory={DATA_DIR}&expression=B01/B09")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
@@ -964,7 +971,7 @@ def test_MultiBandTilerFactory():
     }
 
     response = client.post(
-        f"/statistics?url={DATA_DIR}&bands=B01&bands=B09",
+        f"/statistics?directory={DATA_DIR}&bands=B01&bands=B09",
         json=band_feature["features"][0],
     )
     assert response.status_code == 200
@@ -993,7 +1000,7 @@ def test_MultiBandTilerFactory():
     assert props["B09"]
 
     response = client.post(
-        f"/statistics?url={DATA_DIR}&expression=B01/B09",
+        f"/statistics?directory={DATA_DIR}&expression=B01/B09",
         json=band_feature["features"][0],
     )
     assert response.status_code == 200
@@ -1021,7 +1028,7 @@ def test_MultiBandTilerFactory():
     }
 
     response = client.post(
-        f"/statistics?url={DATA_DIR}&bands=B01&bands=B09", json=band_feature
+        f"/statistics?directory={DATA_DIR}&bands=B01&bands=B09", json=band_feature
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/geo+json"
@@ -1049,7 +1056,7 @@ def test_MultiBandTilerFactory():
     assert props["B09"]
 
     response = client.post(
-        f"/statistics?url={DATA_DIR}&expression=B01/B09", json=band_feature
+        f"/statistics?directory={DATA_DIR}&expression=B01/B09", json=band_feature
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/geo+json"
@@ -1076,7 +1083,7 @@ def test_MultiBandTilerFactory():
     }
 
     # default bands
-    response = client.post(f"/statistics?url={DATA_DIR}", json=band_feature)
+    response = client.post(f"/statistics?directory={DATA_DIR}", json=band_feature)
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/geo+json"
     resp = response.json()
@@ -1085,7 +1092,7 @@ def test_MultiBandTilerFactory():
     assert props["B09"]
 
     response = client.post(
-        f"/statistics?url={DATA_DIR}",
+        f"/statistics?directory={DATA_DIR}",
         json=band_feature["features"][0],
     )
     assert response.status_code == 200

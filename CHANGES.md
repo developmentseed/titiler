@@ -1,5 +1,18 @@
 # Release Notes
 
+## 0.4.0a2 (TBD)
+
+### titiler.core
+
+* update `rio-tiler` version (>=3.0.0a6) with new colormap types information and base classes
+* remove `additional_dependency` attribute in `BaseTileFactory`. This also remove `**kwargs` in endpoints **breaking**
+* remove `reader_options` attribute in `BaseTileFactory` **breaking**
+* `tms_dependency` default to `titiler.core.dependencies.TMSParams` which should supports all morecantile's TMS.
+
+### titiler.mosaic
+
+* update `cogeo-mosaic` version (>=4.0.0a2) with updated Backend type hints information
+
 ## 0.4.0a1 (2021-11-12)
 
 * fix titiler packages cross dependencies

@@ -11,6 +11,7 @@ from morecantile.models import TileMatrixSet
 from rasterio.enums import Resampling
 from rio_tiler.colormap import cmap, parse_color
 from rio_tiler.errors import MissingAssets, MissingBands
+from rio_tiler.types import ColorMapType
 
 from fastapi import HTTPException, Query
 
@@ -51,17 +52,21 @@ def TMSParams(
 def ColorMapParams(
     colormap_name: ColorMapName = Query(None, description="Colormap name"),
     colormap: str = Query(None, description="JSON encoded custom Colormap"),
-) -> Optional[Union[Dict, Sequence]]:
+) -> Optional[ColorMapType]:
     """Colormap Dependency."""
     if colormap_name:
         return cmap.get(colormap_name.value)
 
     if colormap:
         try:
-            return json.loads(
+            c = json.loads(
                 colormap,
                 object_hook=lambda x: {int(k): parse_color(v) for k, v in x.items()},
             )
+            # Make sure to match colormap type
+            if isinstance(c, Sequence):
+                c = [(tuple(inter), parse_color(v)) for (inter, v) in c]
+            return c
         except json.JSONDecodeError:
             raise HTTPException(
                 status_code=400, detail="Could not parse the colormap value."

@@ -5,6 +5,7 @@ from dataclasses import dataclass
 
 import pytest
 from morecantile import TileMatrixSet
+from rio_tiler.types import ColorMapType
 
 from titiler.core import dependencies, errors
 from titiler.core.resources.responses import JSONResponse
@@ -47,7 +48,7 @@ def test_cmap():
     """Create App."""
     app = FastAPI()
 
-    @app.get("/")
+    @app.get("/", response_model=ColorMapType)
     def main(cm=Depends(dependencies.ColorMapParams)):
         """return cmap."""
         return cm
