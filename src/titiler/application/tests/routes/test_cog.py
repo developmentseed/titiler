@@ -251,7 +251,6 @@ def test_tilejson(rio, app):
     assert body["tilejson"] == "2.2.0"
     assert body["version"] == "1.0.0"
     assert body["scheme"] == "xyz"
-    assert body["name"] == "cog.tif"
     assert len(body["tiles"]) == 1
     assert body["tiles"][0].startswith(
         "http://testserver/cog/tiles/WebMercatorQuad/{z}/{x}/{y}@1x?url=https"

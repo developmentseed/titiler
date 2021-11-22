@@ -1,7 +1,7 @@
 
 If you are new to the concept of **Dependency Injection**, please read this awesome tutorial: https://fastapi.tiangolo.com/tutorial/dependencies/
 
-In titiler `Factories`, we use the dependencies to define the inputs for each endpoint (and thus the OpenAPI documention).
+In titiler `Factories`, we use the dependencies to define the inputs for each endpoint (and thus the OpenAPI documentation).
 
 Example:
 ```python
@@ -53,9 +53,9 @@ def preview(
 
 !!! important
 
-    In the example above, we create a custom `ImageParams` dependency which will then be injected to the `preview` endpoint to add  **max_size**, **height** and **width** querystring parameters.
+    In the example above, we create a custom `ImageParams` dependency which will then be injected to the `preview` endpoint to add  **max_size**, **height** and **width** query string parameters.
 
-    Using `titiler.core.dependencies.DefaultDependency`, we can `unpack` the class as if it was a dictionnary, which helps with customization.
+    Using `titiler.core.dependencies.DefaultDependency`, we can `unpack` the class as if it was a dictionary, which helps with customization.
 
 
 ### TiTiler Dependencies
@@ -222,12 +222,6 @@ The `factories` allow users to set multiple default dependencies. Here is the li
                 )
 
         return None
-    ```
-
-* **additional_dependency**: Default dependency, will be passed as `**kwargs` to all endpoints.
-
-    ```python
-    additional_dependency: Callable[..., Dict] = field(default=lambda: dict())
     ```
 
 For `TilerFactory`:
