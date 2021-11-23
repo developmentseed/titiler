@@ -15,6 +15,7 @@ inst_reqs = [
     "rio-tiler>=3.0.0a6,<3.1",
     "simplejson",
     "importlib_resources>=1.1.0;python_version<'3.9'",
+    "typing_extensions;python_version<'3.8'",
 ]
 extra_reqs = {
     "test": ["pytest", "pytest-cov", "pytest-asyncio", "requests"],

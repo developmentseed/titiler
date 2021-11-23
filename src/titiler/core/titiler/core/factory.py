@@ -46,9 +46,9 @@ from titiler.core.models.responses import (
     Statistics,
     StatisticsGeoJSON,
 )
-from titiler.core.models.routes import EndpointScope
 from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
+from titiler.core.routing import EndpointScope
 from titiler.core.utils import Timer
 
 from fastapi import APIRouter, Body, Depends, Path, Query, params
@@ -179,6 +179,7 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
 
     def add_route_dependencies(
         self,
+        *,
         scopes: List[EndpointScope],
         dependencies=List[params.Depends],
     ):
