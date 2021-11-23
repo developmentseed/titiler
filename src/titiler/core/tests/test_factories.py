@@ -9,6 +9,8 @@ from urllib.parse import urlencode
 
 import attr
 import morecantile
+import pytest
+from requests.auth import HTTPBasicAuth
 from rio_tiler.io import BaseReader, COGReader, MultiBandReader, STACReader
 
 from titiler.core.dependencies import TMSParams, WebMercatorTMSParams
@@ -23,7 +25,7 @@ from titiler.core.resources.enums import OptionalHeader
 
 from .conftest import DATA_DIR, mock_rasterio_open, parse_img
 
-from fastapi import FastAPI, Query
+from fastapi import Depends, FastAPI, HTTPException, Query, security, status
 
 from starlette.testclient import TestClient
 
@@ -1131,3 +1133,101 @@ def test_TMSFactory():
     body = response.json()
     assert body["type"] == "TileMatrixSetType"
     assert body["identifier"] == "WebMercatorQuad"
+
+
+def test_TilerFactory_WithDependencies():
+    """Test TilerFactory class."""
+
+    http_basic = security.HTTPBasic()
+
+    def must_be_bob(credentials: security.HTTPBasicCredentials = Depends(http_basic)):
+        print(credentials)
+        if credentials.username == "bob":
+            return True
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="You're not Bob",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+
+    cog = TilerFactory(
+        route_dependencies=[
+            (
+                [
+                    {"path": "/bounds", "method": "GET"},
+                    {"path": "/tiles/{z}/{x}/{y}", "method": "GET"},
+                ],
+                [Depends(must_be_bob)],
+            ),
+        ],
+    )
+    assert len(cog.router.routes) == 25
+    assert cog.tms_dependency == TMSParams
+
+    app = FastAPI()
+    app.include_router(cog.router, prefix="/something")
+    client = TestClient(app)
+
+    response = client.get(f"/something/tilejson.json?url={DATA_DIR}/cog.tif")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    assert response.json()["tilejson"]
+
+    auth_bob = HTTPBasicAuth(username="bob", password="ILoveSponge")
+    auth_notbob = HTTPBasicAuth(username="notbob", password="IHateSponge")
+
+    response = client.get(
+        f"/something/bounds?url={DATA_DIR}/cog.tif&rescale=0,1000", auth=auth_bob
+    )
+    assert response.status_code == 200
+
+    with pytest.raises(HTTPException):
+        client.get(
+            f"/something/bounds?url={DATA_DIR}/cog.tif&rescale=0,1000", auth=auth_notbob
+        )
+
+    # response = client.get(f"/tiles/8/87/48?url={DATA_DIR}/cog.tif&rescale=0,1000")
+    # assert response.status_code == 200
+    # assert response.headers["content-type"] == "image/jpeg"
+    # timing = response.headers["server-timing"]
+    # assert "dataread;dur" in timing
+    # assert "postprocess;dur" in timing
+    # assert "format;dur" in timing
+
+    # response = client.get(
+    #     f"/tiles/8/87/48?url={DATA_DIR}/cog.tif&rescale=-3.4028235e+38,3.4028235e+38"
+    # )
+    # assert response.status_code == 200
+    # assert response.headers["content-type"] == "image/jpeg"
+    # timing = response.headers["server-timing"]
+    # assert "dataread;dur" in timing
+    # assert "postprocess;dur" in timing
+    # assert "format;dur" in timing
+
+    # response = client.get(
+    #     f"/tiles/8/87/48.tif?url={DATA_DIR}/cog.tif&bidx=1&bidx=1&bidx=1&return_mask=false"
+    # )
+    # assert response.status_code == 200
+    # assert response.headers["content-type"] == "image/tiff; application=geotiff"
+    # meta = parse_img(response.content)
+    # assert meta["dtype"] == "uint16"
+    # assert meta["count"] == 3
+    # assert meta["width"] == 256
+    # assert meta["height"] == 256
+
+    # response = client.get(
+    #     f"/tiles/8/87/48.tif?url={DATA_DIR}/cog.tif&expression=b1,b1,b1&return_mask=false"
+    # )
+    # assert response.status_code == 200
+    # assert response.headers["content-type"] == "image/tiff; application=geotiff"
+    # meta = parse_img(response.content)
+    # assert meta["dtype"] == "int32"
+    # assert meta["count"] == 3
+    # assert meta["width"] == 256
+    # assert meta["height"] == 256
+
+    # response = client.get(
+    #     f"/tiles/8/84/47?url={DATA_DIR}/cog.tif&bidx=1&rescale=0,1000&colormap_name=viridis"
+    # )
+    # assert response.status_code == 200
+    # assert response.headers["content-type"] == "image/png"

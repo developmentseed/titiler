@@ -2,7 +2,7 @@
 
 import abc
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, Type, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 from urllib.parse import urlencode
 
 import rasterio
@@ -46,14 +46,17 @@ from titiler.core.models.responses import (
     Statistics,
     StatisticsGeoJSON,
 )
+from titiler.core.models.routes import EndpointScope
 from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
 from titiler.core.utils import Timer
 
-from fastapi import APIRouter, Body, Depends, Path, Query
+from fastapi import APIRouter, Body, Depends, Path, Query, params
+from fastapi.dependencies.utils import get_parameterless_sub_dependant
 
 from starlette.requests import Request
 from starlette.responses import Response
+from starlette.routing import Match
 from starlette.templating import Jinja2Templates
 
 try:
@@ -149,9 +152,17 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
     # add additional headers in response
     optional_headers: List[OptionalHeader] = field(default_factory=list)
 
+    # add dependencies to specific routes
+    route_dependencies: List[Tuple[List[EndpointScope], List[params.Depends]]] = field(
+        default_factory=list
+    )
+
     def __post_init__(self):
         """Post Init: register route and configure specific options."""
         self.register_routes()
+
+        for scopes, dependencies in self.route_dependencies:
+            self.add_route_dependencies(scopes=scopes, dependencies=dependencies)
 
     @abc.abstractmethod
     def register_routes(self):
@@ -165,6 +176,32 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
         if self.router_prefix:
             base_url += self.router_prefix.lstrip("/")
         return url_path.make_absolute_url(base_url=base_url)
+
+    def add_route_dependencies(
+        self,
+        scopes: List[EndpointScope],
+        dependencies=List[params.Depends],
+    ):
+        """Add dependencies to routes.
+
+        Allows a developer to add dependencies to a route after the route has been defined.
+
+        """
+        for route in self.router.routes:
+            for scope in scopes:
+                match, _ = route.matches({"type": "http", **scope})
+                if match != Match.FULL:
+                    continue
+
+                # Mimicking how APIRoute handles dependencies:
+                # https://github.com/tiangolo/fastapi/blob/1760da0efa55585c19835d81afa8ca386036c325/fastapi/routing.py#L408-L412
+                for depends in dependencies[::-1]:
+                    route.dependant.dependencies.insert(  # type: ignore
+                        0,
+                        get_parameterless_sub_dependant(
+                            depends=depends, path=route.path_format  # type: ignore
+                        ),
+                    )
 
 
 @dataclass
