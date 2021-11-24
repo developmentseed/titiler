@@ -207,6 +207,11 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
 
+      # Let's wait a bit to make sure package is available on pypi
+      - name: Sleep for 60 seconds
+        run: sleep 60s
+        shell: bash
+
       # Build and Deploy CDK application
       - name: Build & Deploy
         run: npm run cdk deploy ${{ secrets.STACK_NAME }}-lambda-${{ secrets.STACK_STAGE }} --require-approval never
