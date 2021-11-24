@@ -9,6 +9,7 @@ from urllib.parse import urlencode
 
 import attr
 import morecantile
+from requests.auth import HTTPBasicAuth
 from rio_tiler.io import BaseReader, COGReader, MultiBandReader, STACReader
 
 from titiler.core.dependencies import TMSParams, WebMercatorTMSParams
@@ -23,7 +24,7 @@ from titiler.core.resources.enums import OptionalHeader
 
 from .conftest import DATA_DIR, mock_rasterio_open, parse_img
 
-from fastapi import FastAPI, Query
+from fastapi import Depends, FastAPI, HTTPException, Query, security, status
 
 from starlette.testclient import TestClient
 
@@ -1131,3 +1132,101 @@ def test_TMSFactory():
     body = response.json()
     assert body["type"] == "TileMatrixSetType"
     assert body["identifier"] == "WebMercatorQuad"
+
+
+def test_TilerFactory_WithDependencies():
+    """Test TilerFactory class."""
+
+    http_basic = security.HTTPBasic()
+
+    def must_be_bob(credentials: security.HTTPBasicCredentials = Depends(http_basic)):
+        if credentials.username == "bob":
+            return True
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="You're not Bob",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+
+    cog = TilerFactory(
+        route_dependencies=[
+            (
+                [
+                    {"path": "/bounds", "method": "GET"},
+                    {"path": "/tiles/{z}/{x}/{y}", "method": "GET"},
+                ],
+                [Depends(must_be_bob)],
+            ),
+        ],
+        router_prefix="something",
+    )
+    assert len(cog.router.routes) == 25
+    assert cog.tms_dependency == TMSParams
+
+    app = FastAPI()
+    app.include_router(cog.router, prefix="/something")
+    client = TestClient(app)
+
+    auth_bob = HTTPBasicAuth(username="bob", password="ILoveSponge")
+    auth_notbob = HTTPBasicAuth(username="notbob", password="IHateSponge")
+
+    response = client.get(f"/something/tilejson.json?url={DATA_DIR}/cog.tif")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    assert response.json()["tilejson"]
+
+    response = client.get(
+        f"/something/bounds?url={DATA_DIR}/cog.tif&rescale=0,1000", auth=auth_bob
+    )
+    assert response.status_code == 200
+
+    response = client.get(
+        f"/something/bounds?url={DATA_DIR}/cog.tif&rescale=0,1000", auth=auth_notbob
+    )
+    assert response.status_code == 401
+    assert response.json()["detail"] == "You're not Bob"
+
+    response = client.get(
+        f"/something/tiles/8/87/48?url={DATA_DIR}/cog.tif&rescale=0,1000", auth=auth_bob
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/jpeg"
+
+    response = client.get(
+        f"/something/tiles/8/87/48?url={DATA_DIR}/cog.tif&rescale=0,1000",
+        auth=auth_notbob,
+    )
+    assert response.status_code == 401
+    assert response.json()["detail"] == "You're not Bob"
+
+    response = client.get(
+        f"/something/tiles/8/87/48.jpeg?url={DATA_DIR}/cog.tif&rescale=0,1000"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/jpeg"
+
+    cog = TilerFactory(router_prefix="something")
+    cog.add_route_dependencies(
+        scopes=[{"path": "/bounds", "method": "GET"}],
+        dependencies=[Depends(must_be_bob)],
+    )
+
+    app = FastAPI()
+    app.include_router(cog.router, prefix="/something")
+    client = TestClient(app)
+
+    response = client.get(f"/something/tilejson.json?url={DATA_DIR}/cog.tif")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    assert response.json()["tilejson"]
+
+    response = client.get(
+        f"/something/bounds?url={DATA_DIR}/cog.tif&rescale=0,1000", auth=auth_bob
+    )
+    assert response.status_code == 200
+
+    response = client.get(
+        f"/something/bounds?url={DATA_DIR}/cog.tif&rescale=0,1000", auth=auth_notbob
+    )
+    assert response.status_code == 401
+    assert response.json()["detail"] == "You're not Bob"

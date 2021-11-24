@@ -1,6 +1,6 @@
 # Release Notes
 
-## 0.4.0a2 (TBD)
+## 0.4.0a2 (2021-11-24)
 
 ### titiler.core
 
@@ -8,6 +8,7 @@
 * remove `additional_dependency` attribute in `BaseTileFactory`. This also remove `**kwargs` in endpoints **breaking**
 * remove `reader_options` attribute in `BaseTileFactory` **breaking**
 * `tms_dependency` default to `titiler.core.dependencies.TMSParams` which should supports all morecantile's TMS.
+* add `route_dependencies` attribute to `BaseTilerFactory` to allow customizing route dependencies (author @alukach, https://github.com/developmentseed/titiler/pull/406)
 
 ### titiler.mosaic
 
