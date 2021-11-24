@@ -7,8 +7,8 @@ with open("README.md") as f:
 
 inst_reqs = [
     "rio-cogeo>=3.0,<4.0",
-    "titiler.core>=0.4.0a0,<0.5",
-    "titiler.mosaic>=0.4.0a0,<0.5",
+    "titiler.core>=0.4.0a2,<0.5",
+    "titiler.mosaic>=0.4.0a2,<0.5",
     "starlette-cramjam>=0.1.0,<0.2",
     "python-dotenv",
 ]
