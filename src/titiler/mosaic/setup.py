@@ -13,7 +13,7 @@ extra_reqs = {
 
 setup(
     name="titiler.mosaic",
-    version="0.4.0a1",
+    version="0.4.0a2",
     description=u"MosaicJSON plugin for TiTiler.",
     long_description=long_description,
     long_description_content_type="text/markdown",
