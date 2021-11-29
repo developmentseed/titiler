@@ -10,19 +10,75 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      # Application
+      - HOST=0.0.0.0
+      - PORT=8000
+      # Gunicorn / Uvicorn
+      # https://github.com/tiangolo/uvicorn-gunicorn-docker#web_concurrency
+      - WEB_CONCURRENCY=1
+      # https://github.com/tiangolo/uvicorn-gunicorn-docker#workers_per_core
+      - WORKERS_PER_CORE=1
+      # GDAL config
       - CPL_TMPDIR=/tmp
       - GDAL_CACHEMAX=75%
       - GDAL_DISABLE_READDIR_ON_OPEN=EMPTY_DIR
       - GDAL_HTTP_MERGE_CONSECUTIVE_RANGES=YES
       - GDAL_HTTP_MULTIPLEX=YES
       - GDAL_HTTP_VERSION=2
-      - PORT=8000
       - PYTHONWARNINGS=ignore
       - VSI_CACHE=TRUE
       - VSI_CACHE_SIZE=536870912
-      - WORKERS_PER_CORE=1
-      # - TITILER_API_DISABLE_STAC=TRUE
-      # - TITILER_API_DISABLE_MOSAIC=TRUE
-      # - TITILER_API_DISABLE_COG=TRUE
+      # AWS S3 endpoint config
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      # TiTiler config
+      # - TITILER_API_DISABLE_STAC=TRUE/FALSE
+      # - TITILER_API_DISABLE_MOSAIC=TRUE/FALSE
+      # - TITILER_API_DISABLE_COG=TRUE/FALSE
+      # - TITILER_API_CORS_ORIGIN=url.io,url.xyz
+      # - TITILER_API_CACHECONTROL=public, max-age=3600
+      # - TITILER_API_DEBUG=TRUE/FALSE
+      # - MOSAIC_CONCURRENCY= # will default to `RIO_TILER_MAX_THREADS`
+      # rio-tiler config
+      # - RIO_TILER_MAX_THREADS=
+
+
+  titiler-uvicorn:
+    # See https://github.com/developmentseed/titiler/discussions/387
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: Dockerfile-slim
+    ports:
+      - "8000:8000"
+    environment:
+      # Application
+      - HOST=0.0.0.0
+      - PORT=8000
+      # Uvicorn
+      # http://www.uvicorn.org/settings/#production
+      - WEB_CONCURRENCY=1
+      # GDAL config
+      - CPL_TMPDIR=/tmp
+      - GDAL_CACHEMAX=75%
+      - GDAL_DISABLE_READDIR_ON_OPEN=EMPTY_DIR
+      - GDAL_HTTP_MERGE_CONSECUTIVE_RANGES=YES
+      - GDAL_HTTP_MULTIPLEX=YES
+      - GDAL_HTTP_VERSION=2
+      - PYTHONWARNINGS=ignore
+      - VSI_CACHE=TRUE
+      - VSI_CACHE_SIZE=536870912
+      # AWS S3 endpoint config
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      # TiTiler config
+      # - TITILER_API_DISABLE_STAC=TRUE/FALSE
+      # - TITILER_API_DISABLE_MOSAIC=TRUE/FALSE
+      # - TITILER_API_DISABLE_COG=TRUE/FALSE
+      # - TITILER_API_CORS_ORIGIN=url.io,url.xyz
+      # - TITILER_API_CACHECONTROL=public, max-age=3600
+      # - TITILER_API_DEBUG=TRUE/FALSE
+      # - MOSAIC_CONCURRENCY= # will default to `RIO_TILER_MAX_THREADS`
+      # rio-tiler config
+      # - RIO_TILER_MAX_THREADS=
+
