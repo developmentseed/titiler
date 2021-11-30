@@ -1,5 +1,15 @@
 # Release Notes
 
+## 0.4.0 (2021-11-30)
+
+### titiler.core
+
+* update `rio-tiler` version requirement to `>=3.0`
+
+### titiler.mosaic
+
+* update `cogeo-mosaic` version to `>=4.0`
+
 ## 0.4.0a2 (2021-11-24)
 
 ### titiler.core
