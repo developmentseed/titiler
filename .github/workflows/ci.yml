@@ -148,7 +148,7 @@ jobs:
           # See https://github.com/developmentseed/titiler/discussions/387
           platforms: linux/amd64
           context: .
-          file: Dockerfile
+          file: Dockerfile.gunicorn
           push: true
           tags: |
             developmentseed/titiler:latest
@@ -163,7 +163,7 @@ jobs:
           # See https://github.com/developmentseed/titiler/discussions/387
           platforms: linux/amd64
           context: .
-          file: Dockerfile
+          file: Dockerfile.gunicorn
           push: true
           tags: |
             developmentseed/titiler:${{ steps.tag.outputs.tag }}
