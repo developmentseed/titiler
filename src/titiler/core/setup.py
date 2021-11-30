@@ -12,7 +12,7 @@ inst_reqs = [
     "numpy",
     "pydantic",
     "rasterio",
-    "rio-tiler>=3.0.0a6,<3.1",
+    "rio-tiler>=3.0,<3.1",
     "simplejson",
     "importlib_resources>=1.1.0;python_version<'3.9'",
     "typing_extensions;python_version<'3.8'",
@@ -24,7 +24,7 @@ extra_reqs = {
 
 setup(
     name="titiler.core",
-    version="0.4.0a2",
+    version="0.4.0",
     description=u"A modern dynamic tile server built on top of FastAPI and Rasterio/GDAL.",
     long_description=long_description,
     long_description_content_type="text/markdown",
