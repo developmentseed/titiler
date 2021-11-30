@@ -2,6 +2,10 @@
 
 ## 0.4.0 (2021-11-30)
 
+* rename `Dockerfile` to `Dockerfile.gunicorn`
+* switch default docker image to python3.9
+* add `Dockerfile.uvicorn`
+
 ### titiler.core
 
 * update `rio-tiler` version requirement to `>=3.0`

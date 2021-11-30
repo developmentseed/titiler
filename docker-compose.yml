@@ -6,7 +6,7 @@ services:
     platform: linux/amd64
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.gunicorn
     ports:
       - "8000:8000"
     environment:
@@ -28,9 +28,12 @@ services:
       - PYTHONWARNINGS=ignore
       - VSI_CACHE=TRUE
       - VSI_CACHE_SIZE=536870912
-      # AWS S3 endpoint config
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      # GDAL VSI Config
+      # https://gdal.org/user/virtual_file_systems.html#vsis3-aws-s3-files
+      # https://gdal.org/user/virtual_file_systems.html#vsigs-google-cloud-storage-files
+      # https://gdal.org/user/virtual_file_systems.html#vsiaz-microsoft-azure-blob-files
+      # - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      # - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       # TiTiler config
       # - TITILER_API_DISABLE_STAC=TRUE/FALSE
       # - TITILER_API_DISABLE_MOSAIC=TRUE/FALSE
@@ -48,7 +51,7 @@ services:
     platform: linux/amd64
     build:
       context: .
-      dockerfile: Dockerfile-slim
+      dockerfile: Dockerfile.uvicorn
     ports:
       - "8000:8000"
     environment:
@@ -68,9 +71,12 @@ services:
       - PYTHONWARNINGS=ignore
       - VSI_CACHE=TRUE
       - VSI_CACHE_SIZE=536870912
-      # AWS S3 endpoint config
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      # GDAL VSI Config
+      # https://gdal.org/user/virtual_file_systems.html#vsis3-aws-s3-files
+      # https://gdal.org/user/virtual_file_systems.html#vsigs-google-cloud-storage-files
+      # https://gdal.org/user/virtual_file_systems.html#vsiaz-microsoft-azure-blob-files
+      # - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      # - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       # TiTiler config
       # - TITILER_API_DISABLE_STAC=TRUE/FALSE
       # - TITILER_API_DISABLE_MOSAIC=TRUE/FALSE

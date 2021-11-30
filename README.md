@@ -124,10 +124,7 @@ docker run --name titiler \
 $ git clone https://github.com/developmentseed/titiler.git
 $ cd titiler
 
-$ export AWS_ACCESS_KEY_ID=...
-$ export AWS_SECRET_ACCESS_KEY=...
-$ docker-compose build
-$ docker-compose up
+$ docker-compose up --build titiler
 ```
 
 Some options can be set via environment variables, see: https://github.com/tiangolo/uvicorn-gunicorn-docker#advanced-usage

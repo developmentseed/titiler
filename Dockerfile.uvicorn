@@ -2,6 +2,8 @@ ARG PYTHON_VERSION=3.9
 
 FROM python:${PYTHON_VERSION}-slim
 
+RUN apt-get update && apt-get install curl -y
+
 # Ensure root certificates are always updated at evey container build
 # and curl is using the latest version of them
 RUN mkdir /usr/local/share/ca-certificates/cacert.org
