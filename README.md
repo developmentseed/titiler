@@ -86,9 +86,9 @@ $ uvicorn titiler.application.main:app --reload
 
 ## Docker
 
-Ready to use/deploy images can be found on DockerHub, Github and AWS public ECR registeries.
+Ready to use/deploy images can be found on Github registry.
 
-- GitHub: https://github.com/developmentseed/titiler/pkgs/container/titiler
+- https://github.com/developmentseed/titiler/pkgs/container/titiler
 
 ```bash
 docker run --name titiler \
@@ -98,33 +98,12 @@ docker run --name titiler \
     --rm -it ghcr.io/developmentseed/titiler:latest
 ```
 
-
-- Docker Hub: https://hub.docker.com/repository/docker/developmentseed/titiler
-
-```bash
-docker run --name titiler \
-    -p 8000:8000 \
-    --env PORT=8000 \
-    --env WORKERS_PER_CORE=1 \
-    --rm -it developmentseed/titiler:latest
-```
-
-- AWS ECR: https://gallery.ecr.aws/developmentseed/titiler
-
-```bash
-docker run --name titiler \
-    -p 8000:8000 \
-    --env PORT=8000 \
-    --env WORKERS_PER_CORE=1 \
-    --rm -it public.ecr.aws/developmentseed/titiler:latest
-```
-
 - Built the docker locally
 ```
 $ git clone https://github.com/developmentseed/titiler.git
 $ cd titiler
 
-$ docker-compose up --build titiler
+$ docker-compose up --build titiler  # or titiler-uvicorn
 ```
 
 Some options can be set via environment variables, see: https://github.com/tiangolo/uvicorn-gunicorn-docker#advanced-usage

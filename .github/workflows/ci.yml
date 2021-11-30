@@ -151,9 +151,7 @@ jobs:
           file: Dockerfile.gunicorn
           push: true
           tags: |
-            developmentseed/titiler:latest
             ghcr.io/${{ github.repository }}:latest
-            public.ecr.aws/${{ secrets.AWS_ECR_PUBLIC_REPO }}/titiler:latest
 
       # Push `{VERSION}` when pushing a new tag
       - name: Build and push
@@ -166,9 +164,7 @@ jobs:
           file: Dockerfile.gunicorn
           push: true
           tags: |
-            developmentseed/titiler:${{ steps.tag.outputs.tag }}
             ghcr.io/${{ github.repository }}:${{ steps.tag.outputs.tag }}
-            public.ecr.aws/${{ secrets.AWS_ECR_PUBLIC_REPO }}/titiler:${{ steps.tag.outputs.tag }}
 
   deploy:
     needs: [tests, publish]
