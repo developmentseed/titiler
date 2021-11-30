@@ -6,6 +6,7 @@ on:
     branches:
     - master
     tags:
+    - '*'
     paths:
       # Only run test and docker publish if some code have changed
       - 'setup.py'

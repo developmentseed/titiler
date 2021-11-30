@@ -1,5 +1,5 @@
 # Dockerfile for running titiler application with gunicorn server
-
+# Size ~1.4GB
 ARG PYTHON_VERSION=3.9
 
 FROM tiangolo/uvicorn-gunicorn:python${PYTHON_VERSION}
