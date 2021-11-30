@@ -6,15 +6,14 @@ on:
     branches:
     - master
     tags:
-    - '*'
     paths:
-      # Only run test and docker publish if somde code have changed
+      # Only run test and docker publish if some code have changed
       - 'setup.py'
       - 'setup.cfg'
       - 'src/titiler/**'
       - '.pre-commit-config.yaml'
       - 'codecov.yml'
-      - 'Dockerfile'
+      - 'Dockerfile.*'
       - 'tox.ini'
   pull_request:
 
