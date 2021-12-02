@@ -9,6 +9,8 @@ app:
   extraEnvs:
     - name: SD_ENV
       value: "prod"
+    - name: TITILER_MOSAIC_BACKEND
+      value: "s3://externaldata.saildrone.com/"
   livenessProbe:
     httpGet:
       path: /healthz
