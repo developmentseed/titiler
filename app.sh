@@ -10,4 +10,5 @@ exec uvicorn \
     --limit-max-requests $max_requests \
     --host 0.0.0.0 \
     --port 3000 \
-    titiler.application.main:app
+    saildrone_custom_tiler.app.main:app
+    #titiler.application.main:app

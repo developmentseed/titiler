@@ -24,3 +24,21 @@ services:
       # - TITILER_API_DISABLE_STAC=TRUE
       # - TITILER_API_DISABLE_MOSAIC=TRUE
       # - TITILER_API_DISABLE_COG=TRUE
+
+  redis:
+    image: redis:6.2-rc-alpine
+    ports: ["6379:6379"]
+    container_name: titiler-redis
+    entrypoint: >
+      /bin/sh -c "
+        echo '
+        maxmemory 1gb
+        maxmemory-policy allkeys-lru
+        appendonly no
+        save \"\"
+        dir /tmp
+        ' |
+        redis-server -
+      "
+    volumes:
+      - ".data/redis:/data"

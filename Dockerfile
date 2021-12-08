@@ -9,15 +9,20 @@ WORKDIR /opt/titiler
 COPY src/titiler/ /tmp/titiler/
 
 RUN pip install uvicorn
+RUN pip install aiocache
 
 RUN pip install /tmp/titiler/core /tmp/titiler/mosaic /tmp/titiler/application --no-cache-dir
 
 RUN rm -rf /tmp/titiler
 
 COPY app.sh /opt/titiler
-COPY bathy_daily_test_mosaic.json /opt/titiler
+COPY saildrone_custom_tiler /opt/titiler/saildrone_custom_tiler
 
-ENV MODULE_NAME titiler.application.main
+COPY bathy_daily_test_mosaic.json /opt/titiler
+COPY dev_daily_product_mosaic.json /opt/titiler
+
+#ENV MODULE_NAME titiler.application.main
+ENV MODULE_NAME saildrone_custom_tiler
 ENV VARIABLE_NAME app
 
 # expose port
