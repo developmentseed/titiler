@@ -20,10 +20,9 @@ app/backends.py
 from typing import Type, List, Tuple, Dict
 
 import attr
-from rio_tiler.io import BaseReader
-from rio_tiler.io import COGReader
-from rio_tiler.constants import WEB_MERCATOR_TMS
-
+from rio_tiler.io import BaseReader, COGReader, MultiBandReader, MultiBaseReader
+from rio_tiler.constants import WEB_MERCATOR_TMS, WGS84_CRS
+from rasterio.crs import CRS
 from morecantile import TileMatrixSet
 
 from cogeo_mosaic.backends.base import BaseBackend
@@ -33,20 +32,28 @@ from cogeo_mosaic.mosaic import MosaicJSON
 @attr.s
 class MultiFilesBackend(BaseBackend):
 
-    path: List[str] = attr.ib()
+    input: List[str] = attr.ib()
 
-    reader: Type[BaseReader] = attr.ib(default=COGReader)
+    reader: Union[
+        Type[BaseReader],
+        Type[MultiBaseReader],
+        Type[MultiBandReader],
+    ] = attr.ib(default=COGReader)
     reader_options: Dict = attr.ib(factory=dict)
 
-    # default values for bounds and zoom
-    bounds: Tuple[float, float, float, float] = attr.ib(
-        default=(-180, -90, 180, 90)
-    )
+    geographic_crs: CRS = attr.ib(default=WGS84_CRS)
+
+    tms: TileMatrixSet = attr.ib(default=WEB_MERCATOR_TMS)
     minzoom: int = attr.ib(default=0)
     maxzoom: int = attr.ib(default=30)
 
-    tms: TileMatrixSet = attr.ib(init=False, default=WEB_MERCATOR_TMS)
+    # default values for bounds
+    bounds: Tuple[float, float, float, float] = attr.ib(
+        default=(-180, -90, 180, 90)
+    )
+    crs: CRS = attr.ib(init=False, default=WGS84_CRS)
 
+    # mosaic_def is outside the __init__ method
     mosaic_def: MosaicJSON = attr.ib(init=False)
 
     _backend_name = "MultiFiles"
@@ -85,7 +92,7 @@ class MultiFilesBackend(BaseBackend):
 
     def get_assets(self) -> List[str]:
         """assets are just files we give in path"""
-        return self.path
+        return self.input
 
     @property
     def _quadkeys(self) -> List[str]:

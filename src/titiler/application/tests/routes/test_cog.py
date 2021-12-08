@@ -50,44 +50,6 @@ def test_info(rio, app):
 
 
 @patch("rio_tiler.io.cogeo.rasterio")
-def test_metadata(rio, app):
-    """test /metadata endpoint."""
-    rio.open = mock_rasterio_open
-
-    response = app.get("/cog/metadata?url=https://myurl.com/cog.tif")
-    assert response.status_code == 200
-    body = response.json()
-    assert len(body["bounds"]) == 4
-    assert body["statistics"]
-    assert len(body["statistics"]["1"]["histogram"][0]) == 10
-    assert body["band_descriptions"] == [["1", ""]]
-    assert body["dtype"] == "uint16"
-    assert body["colorinterp"] == ["gray"]
-    assert body["nodata_type"] == "None"
-
-    response = app.get(
-        "/cog/metadata?url=https://myurl.com/cog.tif&resampling_method=bilinear"
-    )
-    assert response.status_code == 200
-    body2 = response.json()
-    assert body2["statistics"] != body["statistics"]
-
-    response = app.get(
-        "/cog/metadata?url=https://myurl.com/cog.tif&bounds=-56.228,72.715,-54.547,73.188"
-    )
-    assert response.status_code == 200
-    body2 = response.json()
-    assert body2["statistics"] != body["statistics"]
-
-    response = app.get(
-        "/cog/metadata?url=https://myurl.com/cog.tif&histogram_bins=5&histogram_range=1,1000&nodata=0"
-    )
-    assert response.status_code == 200
-    body = response.json()
-    assert len(body["statistics"]["1"]["histogram"][0]) == 5
-
-
-@patch("rio_tiler.io.cogeo.rasterio")
 def test_wmts(rio, app):
     """test wmts endpoints."""
     rio.open = mock_rasterio_open
@@ -262,7 +224,7 @@ def test_tile(rio, app):
     assert response.status_code == 400
 
     response = app.get(
-        "/cog/tiles/8/53/50.png?url=https://myurl.com/above_cog.tif&bidx=1&colormap_name=above&resampling_method=somethingwrong"
+        "/cog/tiles/8/53/50.png?url=https://myurl.com/above_cog.tif&bidx=1&colormap_name=above&resampling=somethingwrong"
     )
     assert response.status_code == 422
 
@@ -289,7 +251,6 @@ def test_tilejson(rio, app):
     assert body["tilejson"] == "2.2.0"
     assert body["version"] == "1.0.0"
     assert body["scheme"] == "xyz"
-    assert body["name"] == "cog.tif"
     assert len(body["tiles"]) == 1
     assert body["tiles"][0].startswith(
         "http://testserver/cog/tiles/WebMercatorQuad/{z}/{x}/{y}@1x?url=https"
@@ -497,12 +458,6 @@ def test_json_response_with_nan(rio, app):
     assert body["geometry"]
     assert body["properties"]["nodata_type"] == "Nodata"
     assert body["properties"]["nodata_value"] is None
-
-    response = app.get("/cog/metadata?url=https://myurl.com/cog_with_nan.tif")
-    assert response.status_code == 200
-    body = response.json()
-    assert body["nodata_type"] == "Nodata"
-    assert body["nodata_value"] is None
 
     response = app.get(
         "/cog/point/79.80860440702253,21.852217086223234?url=https://myurl.com/cog_with_nan.tif"

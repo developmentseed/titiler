@@ -2,26 +2,27 @@
 
 import os
 from dataclasses import dataclass, field
-from typing import Callable, Dict, Optional, Type
-from urllib.parse import urlencode, urlparse
+from typing import Callable, Dict, Optional, Type, Union
+from urllib.parse import urlencode
 
-import mercantile
 import rasterio
 from cogeo_mosaic.backends import BaseBackend, MosaicBackend
 from cogeo_mosaic.models import Info as mosaicInfo
 from cogeo_mosaic.mosaic import MosaicJSON
 from geojson_pydantic.features import Feature
+from geojson_pydantic.geometries import Polygon
 from morecantile import TileMatrixSet
 from rio_tiler.constants import MAX_THREADS
-from rio_tiler.io import BaseReader, COGReader
+from rio_tiler.io import BaseReader, COGReader, MultiBandReader, MultiBaseReader
 from rio_tiler.models import Bounds
 
 from titiler.core.dependencies import WebMercatorTMSParams
 from titiler.core.factory import BaseTilerFactory, img_endpoint_params, templates
 from titiler.core.models.mapbox import TileJSON
 from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
-from titiler.core.resources.responses import GeoJSONResponse, XMLResponse
-from titiler.core.utils import Timer, bbox_to_feature
+from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
+from titiler.core.utils import Timer
+from titiler.mosaic.models.responses import Point
 from titiler.mosaic.resources.enums import PixelSelectionMethod
 
 from fastapi import Depends, Path, Query
@@ -36,11 +37,15 @@ class MosaicTilerFactory(BaseTilerFactory):
     MosaicTiler Factory.
 
     The main difference with titiler.endpoint.factory.TilerFactory is that this factory
-    needs a reader (MosaicBackend) and a dataset_reader (BaseReader).
+    needs the `reader` to be of `cogeo_mosaic.backends.BaseBackend` type (e.g MosaicBackend) and a `dataset_reader` (BaseReader).
     """
 
     reader: Type[BaseBackend] = MosaicBackend
-    dataset_reader: Type[BaseReader] = COGReader
+    dataset_reader: Union[
+        Type[BaseReader],
+        Type[MultiBaseReader],
+        Type[MultiBandReader],
+    ] = COGReader
 
     # BaseBackend does not support other TMS than WebMercator
     tms_dependency: Callable[..., TileMatrixSet] = WebMercatorTMSParams
@@ -53,7 +58,7 @@ class MosaicTilerFactory(BaseTilerFactory):
 
         Because we wrap the endpoints in a class we cannot define the routes as
         methods (because of the self argument). The HACK is to define routes inside
-        the class method and register them after the class initialisation.
+        the class method and register them after the class initialization.
 
         """
 
@@ -86,10 +91,15 @@ class MosaicTilerFactory(BaseTilerFactory):
             response_model_exclude_none=True,
             responses={200: {"description": "Return MosaicJSON definition"}},
         )
-        def read(src_path=Depends(self.path_dependency),):
+        def read(src_path=Depends(self.path_dependency)):
             """Read a MosaicJSON"""
-            with self.reader(src_path, **self.backend_options) as mosaic:
-                return mosaic.mosaic_def
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(
+                    src_path,
+                    reader=self.dataset_reader,
+                    **self.backend_options,
+                ) as src_dst:
+                    return src_dst.mosaic_def
 
     ############################################################################
     # /bounds
@@ -105,8 +115,12 @@ class MosaicTilerFactory(BaseTilerFactory):
         def bounds(src_path=Depends(self.path_dependency)):
             """Return the bounds of the COG."""
             with rasterio.Env(**self.gdal_config):
-                with self.reader(src_path, **self.backend_options) as src_dst:
-                    return {"bounds": src_dst.bounds}
+                with self.reader(
+                    src_path,
+                    reader=self.dataset_reader,
+                    **self.backend_options,
+                ) as src_dst:
+                    return {"bounds": src_dst.geographic_bounds}
 
     ############################################################################
     # /info
@@ -121,12 +135,17 @@ class MosaicTilerFactory(BaseTilerFactory):
         )
         def info(src_path=Depends(self.path_dependency)):
             """Return basic info."""
-            with self.reader(src_path, **self.backend_options) as src_dst:
-                return src_dst.info()
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(
+                    src_path,
+                    reader=self.dataset_reader,
+                    **self.backend_options,
+                ) as src_dst:
+                    return src_dst.info()
 
         @self.router.get(
             "/info.geojson",
-            response_model=Feature,
+            response_model=Feature[Polygon, mosaicInfo],
             response_model_exclude_none=True,
             response_class=GeoJSONResponse,
             responses={
@@ -136,20 +155,18 @@ class MosaicTilerFactory(BaseTilerFactory):
                 }
             },
         )
-        def info_geojson(
-            src_path=Depends(self.path_dependency),
-            kwargs: Dict = Depends(self.additional_dependency),
-        ):
+        def info_geojson(src_path=Depends(self.path_dependency)):
             """Return mosaic's basic info as a GeoJSON feature."""
             with rasterio.Env(**self.gdal_config):
-                with self.reader(src_path, **self.backend_options) as src_dst:
-                    info = src_dst.info(**kwargs).dict(exclude_none=True)
-                    bounds = info.pop("bounds", None)
-                    info.pop("center", None)
-                    info["dataset"] = src_path
-                    geojson = bbox_to_feature(bounds, properties=info)
-
-            return geojson
+                with self.reader(
+                    src_path,
+                    reader=self.dataset_reader,
+                    **self.backend_options,
+                ) as src_dst:
+                    info = src_dst.info()
+                    return Feature(
+                        geometry=Polygon.from_bounds(*info.bounds), properties=info
+                    )
 
     ############################################################################
     # /tiles
@@ -186,12 +203,12 @@ class MosaicTilerFactory(BaseTilerFactory):
             src_path=Depends(self.path_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
-            render_params=Depends(self.render_dependency),
-            colormap=Depends(self.colormap_dependency),
             pixel_selection: PixelSelectionMethod = Query(
                 PixelSelectionMethod.first, description="Pixel selection method."
             ),
-            kwargs: Dict = Depends(self.additional_dependency),
+            postprocess_params=Depends(self.process_dependency),
+            colormap=Depends(self.colormap_dependency),
+            render_params=Depends(self.render_dependency),
         ):
             """Create map tile from a COG."""
             timings = []
@@ -205,7 +222,6 @@ class MosaicTilerFactory(BaseTilerFactory):
                     with self.reader(
                         src_path,
                         reader=self.dataset_reader,
-                        reader_options=self.reader_options,
                         **self.backend_options,
                     ) as src_dst:
                         mosaic_read = t.from_start
@@ -218,9 +234,8 @@ class MosaicTilerFactory(BaseTilerFactory):
                             pixel_selection=pixel_selection.method(),
                             tilesize=tilesize,
                             threads=threads,
-                            **layer_params.kwargs,
-                            **dataset_params.kwargs,
-                            **kwargs,
+                            **layer_params,
+                            **dataset_params,
                         )
             timings.append(("dataread", round((t.elapsed - mosaic_read) * 1000, 2)))
 
@@ -228,19 +243,15 @@ class MosaicTilerFactory(BaseTilerFactory):
                 format = ImageType.jpeg if data.mask.all() else ImageType.png
 
             with Timer() as t:
-                image = data.post_process(
-                    in_range=render_params.rescale_range,
-                    color_formula=render_params.color_formula,
-                )
+                image = data.post_process(**postprocess_params)
             timings.append(("postprocess", round(t.elapsed * 1000, 2)))
 
             with Timer() as t:
                 content = image.render(
-                    add_mask=render_params.return_mask,
                     img_format=format.driver,
                     colormap=colormap,
                     **format.profile,
-                    **render_params.kwargs,
+                    **render_params,
                 )
             timings.append(("format", round(t.elapsed * 1000, 2)))
 
@@ -287,12 +298,12 @@ class MosaicTilerFactory(BaseTilerFactory):
             ),
             layer_params=Depends(self.layer_dependency),  # noqa
             dataset_params=Depends(self.dataset_dependency),  # noqa
-            render_params=Depends(self.render_dependency),  # noqa
-            colormap=Depends(self.colormap_dependency),  # noqa
             pixel_selection: PixelSelectionMethod = Query(
                 PixelSelectionMethod.first, description="Pixel selection method."
             ),  # noqa
-            kwargs: Dict = Depends(self.additional_dependency),  # noqa
+            postprocess_params=Depends(self.process_dependency),  # noqa
+            colormap=Depends(self.colormap_dependency),  # noqa
+            render_params=Depends(self.render_dependency),  # noqa
         ):
             """Return TileJSON document for a COG."""
             route_params = {
@@ -321,18 +332,22 @@ class MosaicTilerFactory(BaseTilerFactory):
             if qs:
                 tiles_url += f"?{urlencode(qs)}"
 
-            with self.reader(src_path, **self.backend_options) as src_dst:
-                center = list(src_dst.center)
-                if minzoom is not None:
-                    center[-1] = minzoom
-                return {
-                    "bounds": src_dst.bounds,
-                    "center": tuple(center),
-                    "minzoom": minzoom if minzoom is not None else src_dst.minzoom,
-                    "maxzoom": maxzoom if maxzoom is not None else src_dst.maxzoom,
-                    "name": urlparse(src_path).path.lstrip("/") or "mosaic",
-                    "tiles": [tiles_url],
-                }
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(
+                    src_path,
+                    reader=self.dataset_reader,
+                    **self.backend_options,
+                ) as src_dst:
+                    center = list(src_dst.mosaic_def.center)
+                    if minzoom is not None:
+                        center[-1] = minzoom
+                    return {
+                        "bounds": src_dst.bounds,
+                        "center": tuple(center),
+                        "minzoom": minzoom if minzoom is not None else src_dst.minzoom,
+                        "maxzoom": maxzoom if maxzoom is not None else src_dst.maxzoom,
+                        "tiles": [tiles_url],
+                    }
 
     def wmts(self):  # noqa: C901
         """Add wmts endpoint."""
@@ -359,12 +374,12 @@ class MosaicTilerFactory(BaseTilerFactory):
             ),
             layer_params=Depends(self.layer_dependency),  # noqa
             dataset_params=Depends(self.dataset_dependency),  # noqa
-            render_params=Depends(self.render_dependency),  # noqa
-            colormap=Depends(self.colormap_dependency),  # noqa
             pixel_selection: PixelSelectionMethod = Query(
                 PixelSelectionMethod.first, description="Pixel selection method."
             ),  # noqa
-            kwargs: Dict = Depends(self.additional_dependency),  # noqa
+            postprocess_params=Depends(self.process_dependency),  # noqa
+            colormap=Depends(self.colormap_dependency),  # noqa
+            render_params=Depends(self.render_dependency),  # noqa
         ):
             """OGC WMTS endpoint."""
             route_params = {
@@ -394,10 +409,15 @@ class MosaicTilerFactory(BaseTilerFactory):
             if qs:
                 tiles_url += f"?{urlencode(qs)}"
 
-            with self.reader(src_path, **self.backend_options) as src_dst:
-                bounds = src_dst.bounds
-                minzoom = minzoom if minzoom is not None else src_dst.minzoom
-                maxzoom = maxzoom if maxzoom is not None else src_dst.maxzoom
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(
+                    src_path,
+                    reader=self.dataset_reader,
+                    **self.backend_options,
+                ) as src_dst:
+                    bounds = src_dst.geographic_bounds
+                    minzoom = minzoom if minzoom is not None else src_dst.minzoom
+                    maxzoom = maxzoom if maxzoom is not None else src_dst.maxzoom
 
             tileMatrix = []
             for zoom in range(minzoom, maxzoom + 1):
@@ -422,8 +442,8 @@ class MosaicTilerFactory(BaseTilerFactory):
                     "bounds": bounds,
                     "tileMatrix": tileMatrix,
                     "tms": tms,
-                    "title": "Cloud Optimized GeoTIFF",
-                    "layer_name": "cogeo",
+                    "title": "Mosaic",
+                    "layer_name": "mosaic",
                     "media_type": tile_format.mediatype,
                 },
                 media_type=MediaType.xml.value,
@@ -437,6 +457,8 @@ class MosaicTilerFactory(BaseTilerFactory):
 
         @self.router.get(
             r"/point/{lon},{lat}",
+            response_model=Point,
+            response_class=JSONResponse,
             responses={200: {"description": "Return a value for a point"}},
         )
         def point(
@@ -446,7 +468,6 @@ class MosaicTilerFactory(BaseTilerFactory):
             src_path=Depends(self.path_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
-            kwargs: Dict = Depends(self.additional_dependency),
         ):
             """Get Point value for a Mosaic."""
             timings = []
@@ -457,7 +478,6 @@ class MosaicTilerFactory(BaseTilerFactory):
                     with self.reader(
                         src_path,
                         reader=self.dataset_reader,
-                        reader_options=self.reader_options,
                         **self.backend_options,
                     ) as src_dst:
                         mosaic_read = t.from_start
@@ -466,9 +486,8 @@ class MosaicTilerFactory(BaseTilerFactory):
                             lon,
                             lat,
                             threads=threads,
-                            **layer_params.kwargs,
-                            **dataset_params.kwargs,
-                            **kwargs,
+                            **layer_params,
+                            **dataset_params,
                         )
             timings.append(("dataread", round((t.elapsed - mosaic_read) * 1000, 2)))
 
@@ -502,23 +521,13 @@ class MosaicTilerFactory(BaseTilerFactory):
             maxy: float = Query(None, description="Top of bounding box"),
         ):
             """Return a list of assets which overlap a bounding box"""
-            with self.reader(src_path, **self.backend_options) as mosaic:
-                tl_tile = mercantile.tile(minx, maxy, mosaic.minzoom)
-                br_tile = mercantile.tile(maxx, miny, mosaic.minzoom)
-                tiles = [
-                    (x, y, mosaic.minzoom)
-                    for x in range(tl_tile.x, br_tile.x + 1)
-                    for y in range(tl_tile.y, br_tile.y + 1)
-                ]
-                assets = list(
-                    {
-                        asset
-                        for asset_list in [mosaic.assets_for_tile(*t) for t in tiles]
-                        for asset in asset_list
-                    }
-                )
-
-            return assets
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(
+                    src_path,
+                    reader=self.dataset_reader,
+                    **self.backend_options,
+                ) as src_dst:
+                    return src_dst.assets_for_bbox(minx, miny, maxx, maxy)
 
         @self.router.get(
             r"/{lng},{lat}/assets",
@@ -530,10 +539,13 @@ class MosaicTilerFactory(BaseTilerFactory):
             lat: float = Query(None, description="Latitude"),
         ):
             """Return a list of assets which overlap a point"""
-            with self.reader(src_path, **self.backend_options) as mosaic:
-                assets = mosaic.assets_for_point(lng, lat)
-
-            return assets
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(
+                    src_path,
+                    reader=self.dataset_reader,
+                    **self.backend_options,
+                ) as src_dst:
+                    return src_dst.assets_for_point(lng, lat)
 
         @self.router.get(
             r"/{z}/{x}/{y}/assets",
@@ -546,7 +558,10 @@ class MosaicTilerFactory(BaseTilerFactory):
             src_path=Depends(self.path_dependency),
         ):
             """Return a list of assets which overlap a given tile"""
-            with self.reader(src_path, **self.backend_options) as mosaic:
-                assets = mosaic.assets_for_tile(x, y, z)
-
-            return assets
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(
+                    src_path,
+                    reader=self.dataset_reader,
+                    **self.backend_options,
+                ) as src_dst:
+                    return src_dst.assets_for_tile(x, y, z)

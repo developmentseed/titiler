@@ -7,11 +7,12 @@ WORKDIR /opt/titiler
 
 # Install packages
 COPY src/titiler/ /tmp/titiler/
+<<<<<<< HEAD:Dockerfile
 
 RUN pip install uvicorn
 RUN pip install aiocache
 
-RUN pip install /tmp/titiler/core /tmp/titiler/mosaic /tmp/titiler/application --no-cache-dir
+RUN pip install /tmp/titiler/core /tmp/titiler/mosaic /tmp/titiler/application --no-cache-dir --upgrade
 
 RUN rm -rf /tmp/titiler
 

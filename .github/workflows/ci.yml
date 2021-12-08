@@ -8,13 +8,13 @@ on:
     tags:
     - '*'
     paths:
-      # Only run test and docker publish if somde code have changed
+      # Only run test and docker publish if some code have changed
       - 'setup.py'
       - 'setup.cfg'
       - 'src/titiler/**'
       - '.pre-commit-config.yaml'
       - 'codecov.yml'
-      - 'Dockerfile'
+      - 'Dockerfile.*'
       - 'tox.ini'
   pull_request:
 
@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.6, 3.7, 3.8, 3.9]
+        python-version: [3.7, 3.8, 3.9]
 
     steps:
       - uses: actions/checkout@v2
@@ -35,15 +35,24 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install tox codecov pre-commit
+          python -m pip install codecov pre-commit
 
-      # Run tox using the version of Python in `PATH`
-      - name: Run Tox
-        run: tox -e py
+      - name: Test titiler.core
+        run: |
+          python -m pip install -e src/titiler/core["test"]
+          python -m pytest src/titiler/core --cov=titiler.core --cov-report=xml --cov-append --cov-report=term-missing --ignore=venv
 
-      # Run pre-commit (only for python-3.8)
+      - name: Test titiler.mosaic
+        run: |
+          python -m pip install -e src/titiler/mosaic["test"]
+          python -m pytest src/titiler/mosaic --cov=titiler.mosaic --cov-report=xml --cov-append --cov-report=term-missing --ignore=venv
+
+      - name: Test titiler.application
+        run: |
+          python -m pip install -e src/titiler/application["test"]
+          python -m pytest src/titiler/application --cov=titiler.application --cov-report=xml --cov-append --cov-report=term-missing --ignore=venv
+
       - name: run pre-commit
-        if: matrix.python-version == 3.8
         run: pre-commit run --all-files
 
       - name: Upload Results
@@ -136,23 +145,76 @@ jobs:
         if: github.ref == 'refs/heads/master'
         uses: docker/build-push-action@v2
         with:
+          # See https://github.com/developmentseed/titiler/discussions/387
+          platforms: linux/amd64
           context: .
-          file: Dockerfile
+          file: Dockerfile.gunicorn
           push: true
           tags: |
-            developmentseed/titiler:latest
             ghcr.io/${{ github.repository }}:latest
-            public.ecr.aws/${{ secrets.AWS_ECR_PUBLIC_REPO }}/titiler:latest
 
       # Push `{VERSION}` when pushing a new tag
       - name: Build and push
         if: startsWith(github.event.ref, 'refs/tags') || github.event_name == 'release'
         uses: docker/build-push-action@v2
         with:
+          # See https://github.com/developmentseed/titiler/discussions/387
+          platforms: linux/amd64
           context: .
-          file: Dockerfile
+          file: Dockerfile.gunicorn
           push: true
           tags: |
-            developmentseed/titiler:${{ steps.tag.outputs.tag }}
             ghcr.io/${{ github.repository }}:${{ steps.tag.outputs.tag }}
-            public.ecr.aws/${{ secrets.AWS_ECR_PUBLIC_REPO }}/titiler:${{ steps.tag.outputs.tag }}
+
+  deploy:
+    needs: [tests, publish]
+    runs-on: ubuntu-latest
+    if: startsWith(github.event.ref, 'refs/tags') || github.event_name == 'release'
+
+    defaults:
+      run:
+        working-directory: deployment/aws
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: '12.x'
+
+      - name: Install cdk
+        run: npm install -g
+
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      # Let's wait a bit to make sure package is available on pypi
+      - name: Sleep for 60 seconds
+        run: sleep 60s
+        shell: bash
+
+      # Build and Deploy CDK application
+      - name: Build & Deploy
+        run: npm run cdk deploy ${{ secrets.STACK_NAME }}-lambda-${{ secrets.STACK_STAGE }} --require-approval never
+        env:
+          TITILER_STACK_NAME: ${{ secrets.STACK_NAME }}
+          TITILER_STACK_STAGE: ${{ secrets.STACK_STAGE }}
+          TITILER_STACK_MEMORY: ${{ secrets.STACK_MEMORY }}
+          TITILER_STACK_OWNER: ${{ secrets.STACK_OWNER }}
+          TITILER_STACK_CLIENT: ${{ secrets.STACK_CLIENT }}
+          TITILER_STACK_BUCKET: '["*"]'

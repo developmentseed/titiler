@@ -49,29 +49,45 @@ def test_MosaicTilerFactory():
     client = TestClient(app)
 
     with tmpmosaic() as mosaic_file:
-        response = client.get("/mosaic/", params={"url": mosaic_file},)
+        response = client.get(
+            "/mosaic/",
+            params={"url": mosaic_file},
+        )
         assert response.status_code == 200
         assert response.json()["mosaicjson"]
 
-        response = client.get("/mosaic", params={"url": mosaic_file},)
+        response = client.get(
+            "/mosaic",
+            params={"url": mosaic_file},
+        )
         assert response.status_code == 200
         assert response.json()["mosaicjson"]
 
-        response = client.get("/mosaic/bounds", params={"url": mosaic_file},)
+        response = client.get(
+            "/mosaic/bounds",
+            params={"url": mosaic_file},
+        )
         assert response.status_code == 200
         assert response.json()["bounds"]
 
-        response = client.get("/mosaic/info", params={"url": mosaic_file},)
+        response = client.get(
+            "/mosaic/info",
+            params={"url": mosaic_file},
+        )
         assert response.status_code == 200
         assert response.json()["bounds"]
 
-        response = client.get("/mosaic/info.geojson", params={"url": mosaic_file},)
+        response = client.get(
+            "/mosaic/info.geojson",
+            params={"url": mosaic_file},
+        )
         assert response.status_code == 200
         assert response.headers["content-type"] == "application/geo+json"
         assert response.json()["type"] == "Feature"
 
         response = client.get(
-            "/mosaic/point/-74.53125,45.9956935", params={"url": mosaic_file},
+            "/mosaic/point/-74.53125,45.9956935",
+            params={"url": mosaic_file},
         )
         assert response.status_code == 200
         timing = response.headers["server-timing"]
@@ -139,11 +155,15 @@ def test_MosaicTilerFactory():
         assert response.headers["content-type"] == "application/xml"
 
         response = client.post(
-            "/mosaic/validate", json=MosaicJSON.from_urls(assets).dict(),
+            "/mosaic/validate",
+            json=MosaicJSON.from_urls(assets).dict(),
         )
         assert response.status_code == 200
 
-        response = client.get("/mosaic/7/36/45/assets", params={"url": mosaic_file},)
+        response = client.get(
+            "/mosaic/7/36/45/assets",
+            params={"url": mosaic_file},
+        )
         assert response.status_code == 200
         assert all(
             filepath.split("/")[-1] in ["cog1.tif"] for filepath in response.json()
@@ -167,7 +187,8 @@ def test_MosaicTilerFactory():
         )
 
         response = client.get(
-            "/mosaic/10,10,11,11/assets", params={"url": mosaic_file},
+            "/mosaic/10,10,11,11/assets",
+            params={"url": mosaic_file},
         )
         assert response.status_code == 200
         assert response.json() == []

@@ -34,7 +34,7 @@ from io import BytesIO
 
 url = "https://opendata.digitalglobe.com/events/mauritius-oil-spill/post-event/2020-08-12/105001001F1B5B00/105001001F1B5B00.tif"
 
-r = requests.get("https://api.cogeo.xyz/cog/tiles/14/10818/9146.npy",
+r = requests.get("http://127.0.0.1:8000/cog/tiles/14/10818/9146.npy",
     params = {
         "url": url,
     }
@@ -67,4 +67,4 @@ def return_something():
     return float('nan')
 ```
 
-This `JSONResponse` is used by default in `titiler` Tiler Factories where `NaN` are expected (`info`, `metadata`, `statistics` and `point` endpoints).
+This `JSONResponse` is used by default in `titiler` Tiler Factories where `NaN` are expected (`info`, `statistics` and `point` endpoints).

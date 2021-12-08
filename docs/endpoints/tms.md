@@ -4,6 +4,14 @@ The `titiler.application` package comes with a full FastAPI application with COG
 
 The `tms` router extend the default `titiler.core.factory.TMSFactory`, adding some custom TileMatrixSets.
 
+```python
+from fastapi import FastAPI
+from titiler.application.routers.tms import tms
+
+app = FastAPI()
+app.include_router(tms.router, tags=["TileMatrixSets"])
+```
+
 
 ## API
 

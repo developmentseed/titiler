@@ -178,7 +178,7 @@ def test_tile(app):
 
         response = app.get(
             f"/mosaicjson/tiles/{partial_tile.z}/{partial_tile.x}/{partial_tile.y}.tif",
-            params={"url": MOSAICJSON_FILE, "resampling_method": "bilinear"},
+            params={"url": MOSAICJSON_FILE, "resampling": "bilinear"},
         )
         assert response.status_code == 200
         assert response.headers["content-type"] == "image/tiff; application=geotiff"

@@ -1,0 +1,16 @@
+# Requirements to run notebooks in BinderHub
+
+folium
+httpx
+
+rasterio
+boto3
+tqdm
+
+
+geojson_pydantic
+cogeo-mosaic
+
+ipyleaflet
+
+matplotlib

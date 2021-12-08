@@ -165,7 +165,6 @@ class TilerFactory(BaseTilerFactory):
     reader: Type[BaseReader] = COGReader
 
     # Endpoint Dependencies
-    metadata_dependency: Type[DefaultDependency] = MetadataParams
     img_dependency: Type[DefaultDependency] = ImageParams
 
     # TileMatrixSet dependency
@@ -173,7 +172,6 @@ class TilerFactory(BaseTilerFactory):
 
     def register_routes(self):
         """This Method register routes to the router."""
-
         self.tile()
         self.tilejson()
 
@@ -184,42 +182,37 @@ class TilerFactory(BaseTilerFactory):
         @self.router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}", **img_endpoint_params)
         @cached()
         def tile(
-            z: int = Path(..., ge=0, le=30, description="Tiles's zoom level"),
-            x: int = Path(..., description="Tiles's column"),
-            y: int = Path(..., description="Tiles's row"),
+            z: int = Path(..., ge=0, le=30, description="TMS tiles's zoom level"),
+            x: int = Path(..., description="TMS tiles's column"),
+            y: int = Path(..., description="TMS tiles's row"),
             tms: TileMatrixSet = Depends(self.tms_dependency),
             src_path=Depends(self.path_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             render_params=Depends(self.render_dependency),
+            postprocess_params=Depends(self.process_dependency),
             colormap=Depends(self.colormap_dependency),
-            kwargs: Dict = Depends(self.additional_dependency),
         ):
             """Create map tile from a dataset."""
-            with self.reader(src_path, tms=tms, **self.reader_options) as src_dst:
+            with self.reader(src_path, tms=tms) as src_dst:
                 data = src_dst.tile(
                     x,
                     y,
                     z,
-                    **layer_params.kwargs,
-                    **dataset_params.kwargs,
-                    **kwargs,
+                    **layer_params,
+                    **dataset_params,
                 )
                 dst_colormap = getattr(src_dst, "colormap", None)
 
             format = ImageType.jpeg if data.mask.all() else ImageType.png
 
-            image = data.post_process(
-                in_range=render_params.rescale_range,
-                color_formula=render_params.color_formula,
-            )
+            image = data.post_process(**postprocess_params)
 
             content = image.render(
-                add_mask=render_params.return_mask,
                 img_format=format.driver,
                 colormap=colormap or dst_colormap,
                 **format.profile,
-                **render_params.kwargs,
+                **render_params,
             )
 
             return Response(content, media_type=format.mediatype)
@@ -247,8 +240,8 @@ class TilerFactory(BaseTilerFactory):
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             render_params=Depends(self.render_dependency),
+            postprocess_params=Depends(self.process_dependency),
             colormap=Depends(self.colormap_dependency),
-            kwargs: Dict = Depends(self.additional_dependency),
         ):
             """Return TileJSON document for a dataset."""
             route_params = {
@@ -259,15 +252,24 @@ class TilerFactory(BaseTilerFactory):
             }
             tiles_url = self.url_for(request, "tile", **route_params)
 
-            q = dict(request.query_params)
-            q.pop("TileMatrixSetId", None)
-            qs = urlencode(list(q.items()))
-            tiles_url += f"?{qs}"
+            qs_key_to_remove = [
+                "tilematrixsetid",
+                "tile_format",
+                "tile_scale",
+                "minzoom",
+                "maxzoom",
+            ]
+            qs = [
+                (key, value)
+                for (key, value) in request.query_params._list
+                if key.lower() not in qs_key_to_remove
+            ]
+            if qs:
+                tiles_url += f"?{urlencode(qs)}"
 
-            with self.reader(src_path, tms=tms, **self.reader_options) as src_dst:
+            with self.reader(src_path, tms=tms) as src_dst:
                 return {
-                    "bounds": src_dst.bounds,
-                    "center": src_dst.center,
+                    "bounds": src_dst.geographic_bounds,
                     "minzoom": src_dst.minzoom,
                     "maxzoom": src_dst.maxzoom,
                     "name": "cogeotif",
@@ -298,7 +300,6 @@ app = FastAPI(title="My simple app with cache")
 
 # Setup Cache on Startup
 app.add_event_handler("startup", setup_cache)
-
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
 
 app.include_router(cog.router, tags=["Cloud Optimized GeoTIFF"])

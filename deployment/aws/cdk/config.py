@@ -21,6 +21,7 @@ class StackSettings(pydantic.BaseSettings):
         "CPL_VSIL_CURL_ALLOWED_EXTENSIONS": ".tif,.TIF,.tiff",
         "GDAL_CACHEMAX": "200",  # 200 mb
         "GDAL_DISABLE_READDIR_ON_OPEN": "EMPTY_DIR",
+        "GDAL_INGESTED_BYTES_AT_OPEN": "32768",  # get more bytes when opening the files.
         "GDAL_HTTP_MERGE_CONSECUTIVE_RANGES": "YES",
         "GDAL_HTTP_MULTIPLEX": "YES",
         "GDAL_HTTP_VERSION": "2",
