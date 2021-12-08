@@ -1,35 +1,20 @@
-FROM python:3.8.9-slim-buster
+# Dockerfile for running titiler application with gunicorn server
+# Size ~1.4GB
+ARG PYTHON_VERSION=3.9
 
-RUN set -ex \
-    && mkdir /opt/titiler
+FROM tiangolo/uvicorn-gunicorn:python${PYTHON_VERSION}
 
-WORKDIR /opt/titiler
+# Ensure root certificates are always updated at evey container build
+# and curl is using the latest version of them
+RUN mkdir /usr/local/share/ca-certificates/cacert.org
+RUN cd /usr/local/share/ca-certificates/cacert.org && curl -k -O https://www.cacert.org/certs/root.crt
+RUN cd /usr/local/share/ca-certificates/cacert.org && curl -k -O https://www.cacert.org/certs/class3.crt
+RUN update-ca-certificates
+ENV CURL_CA_BUNDLE /etc/ssl/certs/ca-certificates.crt
 
-# Install packages
 COPY src/titiler/ /tmp/titiler/
-<<<<<<< HEAD:Dockerfile
-
-RUN pip install uvicorn
-RUN pip install aiocache
-
 RUN pip install /tmp/titiler/core /tmp/titiler/mosaic /tmp/titiler/application --no-cache-dir --upgrade
-
 RUN rm -rf /tmp/titiler
 
-COPY app.sh /opt/titiler
-COPY saildrone_custom_tiler /opt/titiler/saildrone_custom_tiler
-
-COPY bathy_daily_test_mosaic.json /opt/titiler
-COPY dev_daily_product_mosaic.json /opt/titiler
-
-#ENV MODULE_NAME titiler.application.main
-ENV MODULE_NAME saildrone_custom_tiler
+ENV MODULE_NAME titiler.application.main
 ENV VARIABLE_NAME app
-
-# expose port
-EXPOSE 3000
-# Metrics port
-EXPOSE 9100
-
-#CMD ["uvicorn titiler.application.main:app"]
-CMD ["/opt/titiler/app.sh"]
