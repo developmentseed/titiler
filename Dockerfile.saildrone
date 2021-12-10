@@ -8,22 +8,25 @@ WORKDIR /opt/titiler
 # Install packages
 COPY src/titiler/ /tmp/titiler/
 
-RUN pip install uvicorn
-RUN pip install aiocache
-
 RUN pip install /tmp/titiler/core /tmp/titiler/mosaic /tmp/titiler/application --no-cache-dir --upgrade
 
 RUN rm -rf /tmp/titiler
 
+COPY requirements.txt /opt/titiler
+RUN pip install -U pip && pip install -r requirements.txt
+
 COPY app.sh /opt/titiler
 COPY saildrone_custom_tiler /opt/titiler/saildrone_custom_tiler
 
-COPY bathy_daily_test_mosaic.json /opt/titiler
-COPY dev_daily_product_mosaic.json /opt/titiler
+# Copy over test data for local development
+COPY test_mosaics /opt/titiler/test_mosaics/
+COPY sample_data /opt/titiler/sample_data/
 
 #ENV MODULE_NAME titiler.application.main
-ENV MODULE_NAME saildrone_custom_tiler
+ENV MODULE_NAME saildrone_custom_tiler.app.main
 ENV VARIABLE_NAME app
+
+#ENV TITILER_MOSAIC_BACKEND s3://externaldata.dev.saildrone.com
 
 # expose port
 EXPOSE 3000

@@ -21,4 +21,4 @@ class CacheSettings(BaseSettings):
         env_prefix = "CACHE_"
 
 
-cache_setting = CacheSettings()
+cache_settings = CacheSettings()

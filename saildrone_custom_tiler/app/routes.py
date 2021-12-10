@@ -14,7 +14,8 @@ from morecantile import TileMatrixSet
 from rio_tiler.io import BaseReader, COGReader
 
 from titiler.core.factory import BaseTilerFactory, img_endpoint_params
-from titiler.core.dependencies import DefaultDependency, ImageParams, MetadataParams, TMSParams
+#from titiler.core.dependencies import ImageParams, MetadataParams, TMSParams
+from titiler.core.dependencies import ImageParams, TMSParams, DefaultDependency
 from titiler.core.models.mapbox import TileJSON
 from titiler.core.resources.enums import ImageType
 
