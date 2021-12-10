@@ -2,6 +2,12 @@
 
 app/routes.py
 """
+
+import os
+import re
+
+import rasterio
+
 from dataclasses import dataclass
 from typing import Callable, Dict, Type
 from urllib.parse import urlencode
@@ -12,14 +18,23 @@ from starlette.responses import Response
 
 from morecantile import TileMatrixSet
 from rio_tiler.io import BaseReader, COGReader
+from rio_tiler.constants import MAX_THREADS
 
 from titiler.core.factory import BaseTilerFactory, img_endpoint_params
 #from titiler.core.dependencies import ImageParams, MetadataParams, TMSParams
 from titiler.core.dependencies import ImageParams, TMSParams, DefaultDependency
 from titiler.core.models.mapbox import TileJSON
-from titiler.core.resources.enums import ImageType
+from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
+from titiler.core.utils import Timer
+
+from titiler.mosaic.factory import MosaicTilerFactory
+from titiler.mosaic.resources.enums import PixelSelectionMethod
+from fastapi import Query
 
 from .cache import cached
+
+MOSAIC_BACKEND = os.getenv("TITILER_MOSAIC_BACKEND", default="")
+MOSAIC_HOST = os.getenv("TITILER_MOSAIC_HOST", default="")
 
 
 @dataclass
@@ -141,4 +156,127 @@ class TilerFactory(BaseTilerFactory):
                 }
 
 
-cog = TilerFactory()
+sd_cog = TilerFactory()
+
+
+def MosaicPathParams(
+    mosaic: str = Query(..., description="mosaic name")
+) -> str:
+    """Create dataset path from args"""
+    return f"{MOSAIC_BACKEND}{MOSAIC_HOST}{mosaic}.json"
+
+@dataclass
+class MosaicTiler(MosaicTilerFactory):
+    """Custom MosaicTilerFactory.
+
+    Note this is a really simple MosaicTiler Factory with only few endpoints.
+    end points are cached
+    and TITILER_MOSAIC_BACKEND is added to path if it exists
+    """
+
+
+    def register_routes(self):
+        """This Method register routes to the router. """
+
+        self.tile()
+        self.tilejson()
+
+    ############################################################################
+    # /tiles
+    ############################################################################
+    def tile(self):  # noqa: C901
+        """Register /tiles endpoints."""
+
+        @self.router.get(r"/tiles/{z}/{x}/{y}", **img_endpoint_params)
+        @self.router.get(r"/tiles/{z}/{x}/{y}.{format}", **img_endpoint_params)
+        @self.router.get(r"/tiles/{z}/{x}/{y}@{scale}x", **img_endpoint_params)
+        @self.router.get(r"/tiles/{z}/{x}/{y}@{scale}x.{format}", **img_endpoint_params)
+        @self.router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}", **img_endpoint_params)
+        @self.router.get(
+            r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}.{format}", **img_endpoint_params
+        )
+        @self.router.get(
+            r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x", **img_endpoint_params
+        )
+        @self.router.get(
+            r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x.{format}",
+            **img_endpoint_params,
+        )
+        @cached()
+        def tile(
+            z: int = Path(..., ge=0, le=30, description="Mercator tiles's zoom level"),
+            x: int = Path(..., description="Mercator tiles's column"),
+            y: int = Path(..., description="Mercator tiles's row"),
+            tms: TileMatrixSet = Depends(self.tms_dependency),
+            scale: int = Query(
+                1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
+            ),
+            format: ImageType = Query(
+                None, description="Output image type. Default is auto."
+            ),
+            src_path=Depends(self.path_dependency),
+            layer_params=Depends(self.layer_dependency),
+            dataset_params=Depends(self.dataset_dependency),
+            pixel_selection: PixelSelectionMethod = Query(
+                PixelSelectionMethod.first, description="Pixel selection method."
+            ),
+            postprocess_params=Depends(self.process_dependency),
+            colormap=Depends(self.colormap_dependency),
+            render_params=Depends(self.render_dependency),
+        ):
+            """Create map tile from a COG."""
+            timings = []
+            headers: Dict[str, str] = {}
+
+            tilesize = scale * 256
+
+            threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
+            with Timer() as t:
+                with rasterio.Env(**self.gdal_config):
+                    with self.reader(
+                        src_path,
+                        reader=self.dataset_reader,
+                        **self.backend_options,
+                    ) as src_dst:
+                        mosaic_read = t.from_start
+                        timings.append(("mosaicread", round(mosaic_read * 1000, 2)))
+
+                        data, _ = src_dst.tile(
+                            x,
+                            y,
+                            z,
+                            pixel_selection=pixel_selection.method(),
+                            tilesize=tilesize,
+                            threads=threads,
+                            **layer_params,
+                            **dataset_params,
+                        )
+            timings.append(("dataread", round((t.elapsed - mosaic_read) * 1000, 2)))
+
+            if not format:
+                format = ImageType.jpeg if data.mask.all() else ImageType.png
+
+            with Timer() as t:
+                image = data.post_process(**postprocess_params)
+            timings.append(("postprocess", round(t.elapsed * 1000, 2)))
+
+            with Timer() as t:
+                content = image.render(
+                    img_format=format.driver,
+                    colormap=colormap,
+                    **format.profile,
+                    **render_params,
+                )
+            timings.append(("format", round(t.elapsed * 1000, 2)))
+
+            if OptionalHeader.server_timing in self.optional_headers:
+                headers["Server-Timing"] = ", ".join(
+                    [f"{name};dur={time}" for (name, time) in timings]
+                )
+
+            if OptionalHeader.x_assets in self.optional_headers:
+                headers["X-Assets"] = ",".join(data.assets)
+
+            return Response(content, media_type=format.mediatype, headers=headers)
+
+sd_mosaic = MosaicTiler(path_dependency=MosaicPathParams)
