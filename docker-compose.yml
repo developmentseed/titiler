@@ -6,7 +6,7 @@ services:
     platform: linux/amd64
     build:
       context: .
-      dockerfile: Dockerfile.saildrone
+      dockerfile: Dockerfile
     ports:
       - "3000:3000"
     environment:
