@@ -13,7 +13,7 @@ RUN pip install /tmp/titiler/core /tmp/titiler/mosaic /tmp/titiler/application -
 RUN rm -rf /tmp/titiler
 
 COPY requirements.txt /opt/titiler
-RUN pip install -U pip && pip install -r requirements.txt
+RUN  pip install -r requirements.txt
 
 COPY app.sh /opt/titiler
 COPY saildrone_custom_tiler /opt/titiler/saildrone_custom_tiler
