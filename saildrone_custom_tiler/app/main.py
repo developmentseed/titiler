@@ -52,3 +52,13 @@ def landing(request: Request):
         context={"request": request},
         media_type="text/html",
     )
+
+@app.get('/status')
+def status() -> dict:
+    return {
+        #'uptime': utils.uptime(),
+        'pid': os.getpid()
+        # 'dask_cache_size': list(dask_cache.cache.nbytes.keys()),
+        #'memory_cache_size': len(backend.cache._cache),
+        #'memory_cache_keys': list(backend.cache._cache.keys())
+    }
