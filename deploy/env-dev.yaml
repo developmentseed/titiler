@@ -66,29 +66,7 @@ app:
     limits:
       memory: 1.3Gi
 
-  redis:
-    enabled: true
-    cluster:
-      enabled: false
-      slaveCount: 0
-    configmap: |
-      maxmemory 1900mb
-      maxmemory-policy allkeys-lru
-      databases 1
-      appendonly no
-      #save 900 1
-      #save 300 10
-      #save 60 10000
-      repl-diskless-sync yes
-    extraEnvs:
-      - name: REDIS_AOF_ENABLED
-        value: no
-    master:
-      persistence:
-        enabled: false
-      resources:
-        limits:
-          memory: "2Gi"
-        requests:
-          cpu: 100m
-          memory: "2Gi"
+redis:
+  enabled: true
+  cluster:
+    enabled: false

@@ -45,18 +45,9 @@ services:
 
   redis:
     image: redis:6.2-rc-alpine
-    ports: ["6379:6379"]
     container_name: titiler-redis
-    entrypoint: >
-      /bin/sh -c "
-        echo '
-        maxmemory 1gb
-        maxmemory-policy allkeys-lru
-        appendonly no
-        save \"\"
-        dir /tmp
-        ' |
-        redis-server -
-      "
+    command: ["redis-server"]
+    ports:
+      - "6379:6379"
     volumes:
       - ".data/redis:/data"
