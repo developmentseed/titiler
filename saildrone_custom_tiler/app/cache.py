@@ -74,7 +74,7 @@ def setup_cache():
     '''
     config: Dict[str, Any] = {
         'cache': "aiocache.RedisCache",
-        'endpoint': "127.0.0.1",
+        'endpoint': "localhost",
         'port': 6379,
         'timeout': 1,
         'serializer': {
