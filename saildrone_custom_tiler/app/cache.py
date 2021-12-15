@@ -64,11 +64,26 @@ class cached(aiocache.cached):
 
 def setup_cache():
     """Setup aiocache."""
+    '''
     config: Dict[str, Any] = {
         'cache': "aiocache.SimpleMemoryCache",
         'serializer': {
             'class': "aiocache.serializers.PickleSerializer"
         }
+    }
+    '''
+    config: Dict[str, Any] = {
+        'cache': "aiocache.RedisCache",
+        'endpoint': "127.0.0.1",
+        'port': 6379,
+        'timeout': 1,
+        'serializer': {
+            'class': "aiocache.serializers.PickleSerializer"
+        },
+        'plugins': [
+            {'class': "aiocache.plugins.HitMissRatioPlugin"},
+            {'class': "aiocache.plugins.TimingPlugin"}
+        ]
     }
     if cache_settings.ttl is not None:
         config["ttl"] = cache_settings.ttl
