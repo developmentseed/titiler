@@ -12,7 +12,8 @@ class CacheSettings(BaseSettings):
     """Cache settings"""
 
     endpoint: Optional[str] = None
-    ttl: int = 3600
+    #ttl: int = 3600 # one hour
+    ttl: int = 2592000 # 30 days
 
     class Config:
         """model config"""
