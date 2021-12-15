@@ -20,6 +20,7 @@ from morecantile import TileMatrixSet
 from rio_tiler.io import BaseReader, COGReader
 from rio_tiler.constants import MAX_THREADS
 from rio_tiler.models import ImageData
+from rio_tiler.errors import EmptyMosaicError
 
 import numpy
 
@@ -262,7 +263,7 @@ class MosaicTiler(MosaicTilerFactory):
                                 **layer_params,
                                 **dataset_params,
                             )
-                        except (NoAssetFoundError, MosaicError) as e:
+                        except (NoAssetFoundError, MosaicError, EmptyMosaicError) as e:
                             d = numpy.zeros((3, 256, 256))
                             m = numpy.zeros((256, 256)) + 256
                             data = ImageData(d, m)
