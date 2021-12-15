@@ -217,4 +217,4 @@ jobs:
           TITILER_STACK_MEMORY: ${{ secrets.STACK_MEMORY }}
           TITILER_STACK_OWNER: ${{ secrets.STACK_OWNER }}
           TITILER_STACK_CLIENT: ${{ secrets.STACK_CLIENT }}
-          TITILER_STACK_BUCKET: '["*"]'
+          TITILER_STACK_BUCKETS: ${{ secrets.STACK_BUCKETS }}

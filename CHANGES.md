@@ -1,5 +1,11 @@
 # Release Notes
 
+## Unreleased
+
+## titiler.core
+
+* update type information for the factory `colormap_dependency`
+
 ## 0.4.0 (2021-11-30)
 
 * rename `Dockerfile` to `Dockerfile.gunicorn`

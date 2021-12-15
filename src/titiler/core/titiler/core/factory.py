@@ -11,6 +11,7 @@ from geojson_pydantic.geometries import Polygon
 from morecantile import TileMatrixSet
 from rio_tiler.io import BaseReader, COGReader, MultiBandReader, MultiBaseReader
 from rio_tiler.models import BandStatistics, Bounds, Info
+from rio_tiler.types import ColorMapType
 from rio_tiler.utils import get_array_statistics
 
 from titiler.core.dependencies import (
@@ -129,7 +130,7 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
 
     # Image rendering Dependencies
     render_dependency: Type[DefaultDependency] = ImageRenderingParams
-    colormap_dependency: Callable[..., Optional[Dict]] = ColorMapParams
+    colormap_dependency: Callable[..., Optional[ColorMapType]] = ColorMapParams
 
     # Statistics/Histogram Dependencies
     stats_dependency: Type[DefaultDependency] = StatisticsParams
