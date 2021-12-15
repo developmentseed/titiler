@@ -66,3 +66,7 @@ app:
     limits:
       cpu: 4
       memory: 10Gi
+redis:
+  enabled: true
+  cluster:
+    enabled: true
