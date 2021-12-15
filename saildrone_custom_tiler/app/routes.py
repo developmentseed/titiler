@@ -19,6 +19,9 @@ from starlette.responses import Response
 from morecantile import TileMatrixSet
 from rio_tiler.io import BaseReader, COGReader
 from rio_tiler.constants import MAX_THREADS
+from rio_tiler.models import ImageData
+
+import numpy
 
 from titiler.core.factory import BaseTilerFactory, img_endpoint_params
 #from titiler.core.dependencies import ImageParams, MetadataParams, TMSParams
@@ -32,6 +35,13 @@ from titiler.mosaic.resources.enums import PixelSelectionMethod
 from fastapi import Query
 
 from .cache import cached
+
+from cogeo_mosaic.errors import (
+    MosaicAuthError,
+    MosaicError,
+    MosaicNotFoundError,
+    NoAssetFoundError,
+)
 
 MOSAIC_BACKEND = os.getenv("TITILER_MOSAIC_BACKEND", default="")
 MOSAIC_HOST = os.getenv("TITILER_MOSAIC_HOST", default="")
@@ -241,16 +251,21 @@ class MosaicTiler(MosaicTilerFactory):
                         mosaic_read = t.from_start
                         timings.append(("mosaicread", round(mosaic_read * 1000, 2)))
 
-                        data, _ = src_dst.tile(
-                            x,
-                            y,
-                            z,
-                            pixel_selection=pixel_selection.method(),
-                            tilesize=tilesize,
-                            threads=threads,
-                            **layer_params,
-                            **dataset_params,
-                        )
+                        try:
+                            data, _ = src_dst.tile(
+                                x,
+                                y,
+                                z,
+                                pixel_selection=pixel_selection.method(),
+                                tilesize=tilesize,
+                                threads=threads,
+                                **layer_params,
+                                **dataset_params,
+                            )
+                        except NoAssetFoundError as nafe:
+                            d = numpy.zeros((3, 256, 256))
+                            m = numpy.zeros((256, 256)) + 256
+                            data = ImageData(d, m)
             timings.append(("dataread", round((t.elapsed - mosaic_read) * 1000, 2)))
 
             if not format:
