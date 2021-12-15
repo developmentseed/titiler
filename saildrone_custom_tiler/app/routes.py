@@ -262,7 +262,7 @@ class MosaicTiler(MosaicTilerFactory):
                                 **layer_params,
                                 **dataset_params,
                             )
-                        except NoAssetFoundError as nafe:
+                        except (NoAssetFoundError, MosaicError) as e:
                             d = numpy.zeros((3, 256, 256))
                             m = numpy.zeros((256, 256)) + 256
                             data = ImageData(d, m)
