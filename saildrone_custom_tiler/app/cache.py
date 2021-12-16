@@ -9,6 +9,7 @@ import urllib
 from typing import Any, Dict
 
 import aiocache
+
 from starlette.concurrency import run_in_threadpool
 from starlette.responses import Response
 
@@ -40,6 +41,8 @@ class cached(aiocache.cached):
         aiocache_wait_for_write=True,
         **kwargs,
     ):
+
+        self.cache = aiocache.caches.get('redis_alt')
         key = self.get_cache_key(f, args, kwargs)
 
         if cache_read:
@@ -64,27 +67,24 @@ class cached(aiocache.cached):
 
 def setup_cache():
     """Setup aiocache."""
-    '''
     config: Dict[str, Any] = {
-        'cache': "aiocache.SimpleMemoryCache",
-        'serializer': {
-            'class': "aiocache.serializers.PickleSerializer"
+        'default': {
+            'cache': "aiocache.SimpleMemoryCache",
+            'serializer': {
+                'class': "aiocache.serializers.StringSerializer"
+            }
+        },
+        'redis_alt': {
+            'cache': "aiocache.RedisCache",
+            'endpoint': "localhost",
+            'port': 6378,
+            'serializer': {
+                'class': "aiocache.serializers.PickleSerializer"
+            }
         }
     }
-    '''
-    config: Dict[str, Any] = {
-        'cache': "aiocache.RedisCache",
-        'endpoint': "localhost",
-        'port': 6379,
-        'timeout': 1,
-        'serializer': {
-            'class': "aiocache.serializers.PickleSerializer"
-        },
-        'plugins': [
-            {'class': "aiocache.plugins.HitMissRatioPlugin"},
-            {'class': "aiocache.plugins.TimingPlugin"}
-        ]
-    }
+
+
     if cache_settings.ttl is not None:
         config["ttl"] = cache_settings.ttl
 
@@ -106,4 +106,4 @@ def setup_cache():
         elif cache_class == aiocache.Cache.MEMCACHED:
             config["cache"] = "aiocache.MemcachedCache"
 
-    aiocache.caches.set_config({"default": config})
+    aiocache.caches.set_config(config)
