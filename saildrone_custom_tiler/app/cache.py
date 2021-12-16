@@ -7,6 +7,7 @@ app/cache.py
 import asyncio
 import urllib
 from typing import Any, Dict
+import os
 
 import aiocache
 
@@ -67,6 +68,10 @@ class cached(aiocache.cached):
 
 def setup_cache():
     """Setup aiocache."""
+
+    redis_host = os.getenv("REDIS_HOST", default="redis")
+    redis_port = os.getenv("REDIS_PORT", default=6379)
+    
     config: Dict[str, Any] = {
         'default': {
             'cache': "aiocache.SimpleMemoryCache",
@@ -76,8 +81,8 @@ def setup_cache():
         },
         'redis_alt': {
             'cache': "aiocache.RedisCache",
-            'endpoint': "localhost",
-            'port': 6378,
+            'endpoint': redis_host,
+            'port': redis_port,
             'serializer': {
                 'class': "aiocache.serializers.PickleSerializer"
             }
