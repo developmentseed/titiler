@@ -54,9 +54,9 @@ Starting with version `0.3.0`, the `TiTiler` python module has been split into a
 
 | Package | Version |  Description
 | ------- | ------- |-------------
-[**titiler.core**](https://github.com/developmentseed/titiler/tree/master/titiler/core) | [![titiler.core](https://img.shields.io/pypi/v/titiler.core?color=%2334D058&label=pypi)](https://pypi.org/project/titiler.core) | The `Core` package contains libraries to help create a  dynamic tiler for COG and STAC
-[**titiler.mosaic**](https://github.com/developmentseed/titiler/tree/master/titiler/mosaic) | [![titiler.mosaic](https://img.shields.io/pypi/v/titiler.mosaic?color=%2334D058&label=pypi)](https://pypi.org/project/titiler.mosaic) | The `mosaic` package contains libraries to help create a dynamic tiler for MosaicJSON (adds `cogeo-mosaic` requirement)
-[**titiler.application**](https://github.com/developmentseed/titiler/tree/master/titiler/application) | [![titiler.application](https://img.shields.io/pypi/v/titiler.application?color=%2334D058&label=pypi)](https://pypi.org/project/titiler.application) | TiTiler's `demo` package. Contains a FastAPI application with full support of COG, STAC and MosaicJSON
+[**titiler.core**](https://github.com/developmentseed/titiler/tree/master/src/titiler/core) | [![titiler.core](https://img.shields.io/pypi/v/titiler.core?color=%2334D058&label=pypi)](https://pypi.org/project/titiler.core) | The `Core` package contains libraries to help create a  dynamic tiler for COG and STAC
+[**titiler.mosaic**](https://github.com/developmentseed/titiler/tree/master/src/titiler/mosaic) | [![titiler.mosaic](https://img.shields.io/pypi/v/titiler.mosaic?color=%2334D058&label=pypi)](https://pypi.org/project/titiler.mosaic) | The `mosaic` package contains libraries to help create a dynamic tiler for MosaicJSON (adds `cogeo-mosaic` requirement)
+[**titiler.application**](https://github.com/developmentseed/titiler/tree/master/src/titiler/application) | [![titiler.application](https://img.shields.io/pypi/v/titiler.application?color=%2334D058&label=pypi)](https://pypi.org/project/titiler.application) | TiTiler's `demo` package. Contains a FastAPI application with full support of COG, STAC and MosaicJSON
 
 
 ## Installation
