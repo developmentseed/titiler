@@ -1,4 +1,6 @@
-FROM python:3.8.9-slim-buster
+ARG BASE_IMAGE=python:3.8.9-slim-buster
+
+FROM ${BASE_IMAGE} as builder
 
 RUN set -ex \
     && mkdir /opt/titiler
