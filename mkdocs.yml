@@ -79,6 +79,7 @@ nav:
       - Lambda: "deployment/aws/lambda.md"
       - SAM: "deployment/aws/sam.md"
     - k8s / Helm Deployment: "deployment/k8s.md"
+    - Azure: "deployment/azure.md"
 
   - External links: "external_links.md"
   - Development - Contributing: "contributing.md"
