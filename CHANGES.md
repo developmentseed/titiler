@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Update ingress k8s templates to be compatible with latest resource types versions
+
 ## titiler.core
 
 * update type information for the factory `colormap_dependency`
