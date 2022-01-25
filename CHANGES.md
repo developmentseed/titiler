@@ -1,13 +1,13 @@
 # Release Notes
 
-## Unreleased
-
-## k8s
-* Update ingress k8s templates to be compatible with latest resource types versions (https://github.com/developmentseed/titiler/pull/425
+## 0.4.1 (2022-01-25)
 
 ## titiler.core
 
 * update type information for the factory `colormap_dependency`
+
+## k8s
+* Update ingress k8s templates to be compatible with latest resource types versions (https://github.com/developmentseed/titiler/pull/425
 
 ## 0.4.0 (2021-11-30)
 
