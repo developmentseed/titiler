@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-* Update ingress k8s templates to be compatible with latest resource types versions
+## k8s
+* Update ingress k8s templates to be compatible with latest resource types versions (https://github.com/developmentseed/titiler/pull/425
 
 ## titiler.core
 
