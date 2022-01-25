@@ -6,9 +6,9 @@ with open("README.md") as f:
     long_description = f.read()
 
 inst_reqs = [
-    "fastapi>=0.65,<0.68",
+    "fastapi>=0.65,!=0.68.0,!=0.68.1,!=0.68.2,!=0.69.0,!=0.70.0,!=0.70.1,!=0.71.0,!=0.72.0",
     "geojson-pydantic",
-    "jinja2>=2.11.2,<3.0.0",
+    "jinja2>=2.11.2,<4.0.0",
     "numpy",
     "pydantic",
     "rasterio",
