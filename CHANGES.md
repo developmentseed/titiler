@@ -1,5 +1,11 @@
 # Release Notes
 
+## 0.4.2 (2022-01-25)
+
+## titiler.core
+
+* update minimum FastAPI version to `>=0.73` (https://github.com/developmentseed/titiler/pull/425)
+
 ## 0.4.1 (2022-01-25)
 
 ## titiler.core
