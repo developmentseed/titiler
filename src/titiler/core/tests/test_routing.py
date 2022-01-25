@@ -14,6 +14,7 @@ from fastapi import APIRouter, Depends, FastAPI, HTTPException, security, status
 from starlette.testclient import TestClient
 
 
+@pytest.mark.xfail
 def test_withoutCustomRoute(monkeypatch):
     """Create App."""
     monkeypatch.setenv("GDAL_DISABLE_READDIR_ON_OPEN", "something")
