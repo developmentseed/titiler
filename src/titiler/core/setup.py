@@ -24,7 +24,7 @@ extra_reqs = {
 
 setup(
     name="titiler.core",
-    version="0.4.1",
+    version="0.4.2",
     description=u"A modern dynamic tile server built on top of FastAPI and Rasterio/GDAL.",
     long_description=long_description,
     long_description_content_type="text/markdown",
