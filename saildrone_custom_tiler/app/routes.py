@@ -234,7 +234,11 @@ class MosaicTiler(MosaicTilerFactory):
             postprocess_params=Depends(self.process_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
+            cache_action: str = Query(
+                "cache_read", description="Read from cache or overwrite"
+            ),
         ):
+
             """Create map tile from a COG."""
             timings = []
             headers: Dict[str, str] = {}
