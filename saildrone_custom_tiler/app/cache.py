@@ -46,11 +46,15 @@ class cached(aiocache.cached):
         self.cache = aiocache.caches.get('redis_alt')
         key = self.get_cache_key(f, args, kwargs)
 
-        # if requesting to overwrite cache, replace cache_action string so that
+        # if requesting to overwrite or delete from cache, replace cache_action string so that
         # key is the same as one to be overwritten
         if "cache_overwrite" in key:
           cache_read = False
           key = key.replace("cache_overwrite", "cache_read")
+        elif "cache_delete" in key:
+          key = key.replace("cache_delete", "cache_read")
+          num_deleted = await self.cache.delete(key)
+          return 
 
         if cache_read:
             value = await self.get_from_cache(key)
