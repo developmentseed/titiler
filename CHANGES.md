@@ -1,5 +1,9 @@
 # Release Notes
 
+## 0.4.3 (TBD)
+
+* add tile `buffer` option to match rio-tiler tile options (https://github.com/developmentseed/titiler/pull/427)
+
 ## 0.4.2 (2022-01-25)
 
 ## titiler.core

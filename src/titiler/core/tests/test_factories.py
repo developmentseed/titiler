@@ -3,12 +3,14 @@
 import json
 import os
 import pathlib
+from io import BytesIO
 from typing import Dict, Type
 from unittest.mock import patch
 from urllib.parse import urlencode
 
 import attr
 import morecantile
+import numpy
 from requests.auth import HTTPBasicAuth
 from rio_tiler.io import BaseReader, COGReader, MultiBandReader, STACReader
 
@@ -150,6 +152,20 @@ def test_TilerFactory():
     cmap = urlencode({"colormap": {"1": [58, 102]}})
     response = client.get(f"/tiles/8/84/47.png?url={DATA_DIR}/cog.tif&bidx=1&{cmap}")
     assert response.status_code == 400
+
+    # Test NumpyTile
+    response = client.get(f"/tiles/8/87/48.npy?url={DATA_DIR}/cog.tif")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/x-binary"
+    npy_tile = numpy.load(BytesIO(response.content))
+    assert npy_tile.shape == (2, 256, 256)  # mask + data
+
+    # Test Buffer
+    response = client.get(f"/tiles/8/87/48.npy?url={DATA_DIR}/cog.tif&buffer=10")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/x-binary"
+    npy_tile = numpy.load(BytesIO(response.content))
+    assert npy_tile.shape == (2, 276, 276)  # mask + data
 
     response = client.get(
         f"/preview?url={DATA_DIR}/cog.tif&rescale=0,1000&max_size=256"
