@@ -60,6 +60,7 @@ app.include_router(stac.router, prefix="/stac", tags=["SpatioTemporal Asset Cata
     - **colormap** (str): JSON encoded custom Colormap.
     - **colormap_name** (str): rio-tiler color map name.
     - **return_mask** (bool): Add mask to the output data. Default is True.
+    - **buffer** (float): Add buffer on each side of the tile (e.g 0.5 = 257x257, 1.0 = 258x258).
 
 !!! important
     **assets** OR **expression** is required
@@ -230,6 +231,7 @@ Example:
     - **colormap** (str): JSON encoded custom Colormap.
     - **colormap_name** (str): rio-tiler color map name.
     - **return_mask** (bool): Add mask to the output data. Default is True.
+    - **buffer** (float): Add buffer on each side of the tile (e.g 0.5 = 257x257, 1.0 = 258x258).
 
 !!! important
     **assets** OR **expression** is required

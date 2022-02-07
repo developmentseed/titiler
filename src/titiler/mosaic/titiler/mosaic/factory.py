@@ -209,6 +209,13 @@ class MosaicTilerFactory(BaseTilerFactory):
             postprocess_params=Depends(self.process_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
+            tile_buffer: Optional[float] = Query(
+                None,
+                gt=0,
+                alias="buffer",
+                title="Tile buffer.",
+                description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * tile_buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
+            ),
         ):
             """Create map tile from a COG."""
             timings = []
@@ -234,6 +241,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                             pixel_selection=pixel_selection.method(),
                             tilesize=tilesize,
                             threads=threads,
+                            tile_buffer=tile_buffer,
                             **layer_params,
                             **dataset_params,
                         )
@@ -304,6 +312,13 @@ class MosaicTilerFactory(BaseTilerFactory):
             postprocess_params=Depends(self.process_dependency),  # noqa
             colormap=Depends(self.colormap_dependency),  # noqa
             render_params=Depends(self.render_dependency),  # noqa
+            tile_buffer: Optional[float] = Query(  # noqa
+                None,
+                gt=0,
+                alias="buffer",
+                title="Tile buffer.",
+                description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * tile_buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
+            ),
         ):
             """Return TileJSON document for a COG."""
             route_params = {

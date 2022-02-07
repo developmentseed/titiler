@@ -3,7 +3,9 @@
 import os
 import tempfile
 from contextlib import contextmanager
+from io import BytesIO
 
+import numpy
 from cogeo_mosaic.backends import FileBackend
 from cogeo_mosaic.mosaic import MosaicJSON
 
@@ -96,13 +98,22 @@ def test_MosaicTilerFactory():
 
         response = client.get("/mosaic/tiles/7/37/45", params={"url": mosaic_file})
         assert response.status_code == 200
-
         assert response.headers["X-Assets"]
         timing = response.headers["server-timing"]
         assert "mosaicread;dur" in timing
         assert "dataread;dur" in timing
         assert "postprocess;dur" in timing
         assert "format;dur" in timing
+
+        # Buffer
+        response = client.get(
+            "/mosaic/tiles/7/37/45.npy", params={"url": mosaic_file, "buffer": 10}
+        )
+        assert response.status_code == 200
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "application/x-binary"
+        npy_tile = numpy.load(BytesIO(response.content))
+        assert npy_tile.shape == (4, 276, 276)  # mask + data
 
         response = client.get(
             "/mosaic/tilejson.json",
