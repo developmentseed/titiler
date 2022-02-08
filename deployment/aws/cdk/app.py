@@ -9,7 +9,9 @@ from aws_cdk import aws_ec2 as ec2
 from aws_cdk import aws_ecs as ecs
 from aws_cdk import aws_ecs_patterns as ecs_patterns
 from aws_cdk import aws_iam as iam
-from aws_cdk import aws_lambda, core
+from aws_cdk import aws_lambda
+from aws_cdk import aws_logs as logs
+from aws_cdk import core
 from config import StackSettings
 
 settings = StackSettings()
@@ -57,6 +59,7 @@ class titilerLambdaStack(core.Stack):
             reserved_concurrent_executions=concurrent,
             timeout=core.Duration.seconds(timeout),
             environment=environment,
+            log_retention=logs.RetentionDays.ONE_WEEK,
         )
 
         for perm in permissions:
@@ -65,8 +68,8 @@ class titilerLambdaStack(core.Stack):
         api = apigw.HttpApi(
             self,
             f"{id}-endpoint",
-            default_integration=apigw_integrations.LambdaProxyIntegration(
-                handler=lambda_function
+            default_integration=apigw_integrations.HttpLambdaIntegration(
+                f"{id}-integration", handler=lambda_function
             ),
         )
         core.CfnOutput(self, "Endpoint", value=api.url)
