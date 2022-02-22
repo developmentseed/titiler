@@ -5,7 +5,7 @@ from setuptools import setup
 with open("README.md") as f:
     long_description = f.read()
 
-__version__ = "0.4.3"
+__version__ = "0.5.0"
 
 inst_reqs = [
     f"titiler.core=={__version__}",
