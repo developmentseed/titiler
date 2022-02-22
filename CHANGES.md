@@ -3,6 +3,7 @@
 ## 0.5.0 (TBD)
 
 * update rio-tiler/morecantile/rio-cogeo/cogeo-mosaic versions
+* add MultiBaseTilerFactory `/asset_statistics` which will return *per asset* statistics. Returns response in form of `Dict[{asset name}, Dict[{band name}, BandStatistics]]`
 
 **breaking change**
 
@@ -14,6 +15,44 @@ expression = "b1+b2,b2"
 
 # new
 expression = "b1+b2;b2"
+```
+
+* MultiBaseTilerFactory `/statistics` now returns *merged* statistics in form of `Dict[{asset_band or expression}, BandStatistics]` (instead of `Dict[{asset name}, Dict[{band name}, BandStatistics]]`)
+
+```python
+# before
+response = httpx.get(f"/stac/statistics?url=item.json").json()
+print(response)
+>>> {
+    "asset1": {
+        "1": {
+            "min": ...,
+            "max": ...,
+            ...
+        },
+        "2": {
+            "min": ...,
+            "max": ...,
+            ...
+        }
+    }
+}
+
+# now
+response = httpx.get(f"/stac/statistics?url=item.json").json()
+print(response)
+>>> {
+    "asset1_1": {
+        "min": ...,
+        "max": ...,
+        ...
+    },
+    "asset1_2": {
+        "min": ...,
+        "max": ...,
+        ...
+    },
+}
 ```
 
 ## 0.4.3 (2022-02-08)

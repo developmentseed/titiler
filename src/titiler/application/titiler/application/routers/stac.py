@@ -25,7 +25,7 @@ def stac_demo(request: Request):
             "request": request,
             "tilejson_endpoint": stac.url_for(request, "tilejson"),
             "info_endpoint": stac.url_for(request, "info"),
-            "statistics_endpoint": stac.url_for(request, "statistics"),
+            "statistics_endpoint": stac.url_for(request, "asset_statistics"),
         },
         media_type="text/html",
     )

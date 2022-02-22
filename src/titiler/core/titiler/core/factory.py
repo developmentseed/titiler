@@ -16,6 +16,7 @@ from rio_tiler.utils import get_array_statistics
 
 from titiler.core.dependencies import (
     AssetsBidxExprParams,
+    AssetsBidxExprParamsOptional,
     AssetsBidxParams,
     AssetsParams,
     BandsExprParams,
@@ -1055,7 +1056,7 @@ class MultiBaseTilerFactory(TilerFactory):
 
         # GET endpoint
         @self.router.get(
-            "/statistics",
+            "/asset_statistics",
             response_class=JSONResponse,
             response_model=MultiBaseStatistics,
             responses={
@@ -1065,7 +1066,7 @@ class MultiBaseTilerFactory(TilerFactory):
                 }
             },
         )
-        def statistics(
+        def asset_statistics(
             src_path=Depends(self.path_dependency),
             asset_params=Depends(AssetsBidxParams),
             dataset_params=Depends(self.dataset_dependency),
@@ -1073,11 +1074,48 @@ class MultiBaseTilerFactory(TilerFactory):
             stats_params=Depends(self.stats_dependency),
             histogram_params=Depends(self.histogram_dependency),
         ):
-            """Create image from a geojson feature."""
+            """Per Asset statistics"""
             with rasterio.Env(**self.gdal_config):
                 with self.reader(src_path) as src_dst:
                     return src_dst.statistics(
                         **asset_params,
+                        **image_params,
+                        **dataset_params,
+                        **stats_params,
+                        hist_options={**histogram_params},
+                    )
+
+        # MultiBaseReader merged statistics
+        # https://github.com/cogeotiff/rio-tiler/blob/master/rio_tiler/io/base.py#L455-L468
+        # GET endpoint
+        @self.router.get(
+            "/statistics",
+            response_class=JSONResponse,
+            response_model=Statistics,
+            responses={
+                200: {
+                    "content": {"application/json": {}},
+                    "description": "Return dataset's statistics.",
+                }
+            },
+        )
+        def statistics(
+            src_path=Depends(self.path_dependency),
+            layer_params=Depends(AssetsBidxExprParamsOptional),
+            dataset_params=Depends(self.dataset_dependency),
+            image_params=Depends(self.img_dependency),
+            stats_params=Depends(self.stats_dependency),
+            histogram_params=Depends(self.histogram_dependency),
+        ):
+            """Merged assets statistics."""
+            with rasterio.Env(**self.gdal_config):
+                with self.reader(src_path) as src_dst:
+                    # Default to all available assets
+                    if not layer_params.assets and not layer_params.expression:
+                        layer_params.assets = src_dst.assets
+
+                    return src_dst.merged_statistics(
+                        **layer_params,
                         **image_params,
                         **dataset_params,
                         **stats_params,
@@ -1102,7 +1140,7 @@ class MultiBaseTilerFactory(TilerFactory):
                 ..., description="GeoJSON Feature or FeatureCollection."
             ),
             src_path=Depends(self.path_dependency),
-            asset_params=Depends(AssetsBidxParams),
+            layer_params=Depends(AssetsBidxExprParamsOptional),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_dependency),
             stats_params=Depends(self.stats_dependency),
@@ -1112,15 +1150,15 @@ class MultiBaseTilerFactory(TilerFactory):
             with rasterio.Env(**self.gdal_config):
                 with self.reader(src_path) as src_dst:
                     # Default to all available assets
-                    if not asset_params.assets:
-                        asset_params.assets = src_dst.assets
+                    if not layer_params.assets and not layer_params.expression:
+                        layer_params.assets = src_dst.assets
 
                     # TODO: stream features for FeatureCollection
                     if isinstance(geojson, FeatureCollection):
                         for feature in geojson:
                             data = src_dst.feature(
                                 feature.dict(exclude_none=True),
-                                **asset_params,
+                                **layer_params,
                                 **image_params,
                                 **dataset_params,
                             )
@@ -1148,7 +1186,7 @@ class MultiBaseTilerFactory(TilerFactory):
                     else:  # simple feature
                         data = src_dst.feature(
                             geojson.dict(exclude_none=True),
-                            **asset_params,
+                            **layer_params,
                             **image_params,
                             **dataset_params,
                         )

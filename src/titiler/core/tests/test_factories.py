@@ -609,7 +609,7 @@ def test_MultiBaseTilerFactory(rio):
     rio.open = mock_rasterio_open
 
     stac = MultiBaseTilerFactory(reader=STACReader)
-    assert len(stac.router.routes) == 26
+    assert len(stac.router.routes) == 27
 
     app = FastAPI()
     app.include_router(stac.router)
@@ -691,12 +691,47 @@ def test_MultiBaseTilerFactory(rio):
     assert meta["count"] == 3
 
     # GET - statistics
-    response = client.get(f"/statistics?url={DATA_DIR}/item.json&assets=B01&assets=B09")
+    response = client.get(
+        f"/asset_statistics?url={DATA_DIR}/item.json&assets=B01&assets=B09"
+    )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
     assert len(resp) == 2
     assert set(resp["B01"]["1"].keys()) == {
+        "min",
+        "max",
+        "mean",
+        "count",
+        "sum",
+        "std",
+        "median",
+        "majority",
+        "minority",
+        "unique",
+        "histogram",
+        "valid_percent",
+        "masked_pixels",
+        "valid_pixels",
+        "percentile_2",
+        "percentile_98",
+    }
+    response = client.get(
+        f"/asset_statistics?url={DATA_DIR}/item.json&assets=B01&assets=B09&asset_bidx=B01|1&asset_bidx=B09|1"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    resp = response.json()
+    assert len(resp) == 2
+    assert resp["B01"]["1"]
+    assert resp["B09"]["1"]
+
+    response = client.get(f"/statistics?url={DATA_DIR}/item.json&assets=B01&assets=B09")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    resp = response.json()
+    assert list(resp) == ["B01_1", "B09_1"]
+    assert set(resp["B01_1"].keys()) == {
         "min",
         "max",
         "mean",
@@ -722,8 +757,8 @@ def test_MultiBaseTilerFactory(rio):
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
     assert len(resp) == 2
-    assert resp["B01"]["1"]
-    assert resp["B09"]["1"]
+    assert resp["B01_1"]
+    assert resp["B09_1"]
 
     stac_feature = {
         "type": "FeatureCollection",
