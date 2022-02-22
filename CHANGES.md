@@ -1,6 +1,6 @@
 # Release Notes
 
-## 0.5.0 (TBD)
+## 0.5.0 (2022-02-22)
 
 * update rio-tiler/morecantile/rio-cogeo/cogeo-mosaic versions
 * add MultiBaseTilerFactory `/asset_statistics` which will return *per asset* statistics. Returns response in form of `Dict[{asset name}, Dict[{band name}, BandStatistics]]`
