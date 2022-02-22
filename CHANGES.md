@@ -1,5 +1,21 @@
 # Release Notes
 
+## 0.5.0 (TBD)
+
+* update rio-tiler/morecantile/rio-cogeo/cogeo-mosaic versions
+
+**breaking change**
+
+* Multi-band expression now uses semicolon `;` instead of colon (`,`) as separator. Note: proper urlencoding might be needed.
+
+```python
+# before
+expression = "b1+b2,b2"
+
+# new
+expression = "b1+b2;b2"
+```
+
 ## 0.4.3 (2022-02-08)
 
 * add tile `buffer` option to match rio-tiler tile options (https://github.com/developmentseed/titiler/pull/427)

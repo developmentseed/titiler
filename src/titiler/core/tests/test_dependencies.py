@@ -120,15 +120,15 @@ def test_bdix():
     response = client.get("/second?bidx=1&bidx=2")
     assert response.json()["indexes"] == [1, 2]
 
-    response = client.get("/second?expression=1,2")
-    assert response.json()["expression"] == "1,2"
+    response = client.get("/second", params={"expression": "1;2"})
+    assert response.json()["expression"] == "1;2"
 
     response = client.get("/second")
     assert not response.json()["expression"]
     assert not response.json()["indexes"]
 
-    response = client.get("/third?expression=1,2")
-    assert response.json() == "1,2"
+    response = client.get("/third", params={"expression": "1;2"})
+    assert response.json() == "1;2"
 
     response = client.get("/third")
     assert not response.json()
@@ -233,8 +233,8 @@ def test_bands():
     response = client.get("/second?bands=b1&bands=b2")
     assert response.json()["bands"] == ["b1", "b2"]
 
-    response = client.get("/second?expression=b1,b2")
-    assert response.json()["expression"] == "b1,b2"
+    response = client.get("/second", params={"expression": "b1;b2"})
+    assert response.json()["expression"] == "b1;b2"
 
     with pytest.raises(errors.MissingBands):
         response = client.get("/second")
@@ -242,8 +242,8 @@ def test_bands():
     response = client.get("/third?bands=b1&bands=b2")
     assert response.json()["bands"] == ["b1", "b2"]
 
-    response = client.get("/third?expression=b1,b2")
-    assert response.json()["expression"] == "b1,b2"
+    response = client.get("/third", params={"expression": "b1;b2"})
+    assert response.json()["expression"] == "b1;b2"
 
     response = client.get("/third")
     assert not response.json()["bands"]

@@ -50,7 +50,7 @@ app.include_router(stac.router, prefix="/stac", tags=["SpatioTemporal Asset Cata
     - **url** (str): STAC Item URL. **Required**
     - **assets** (array[str]): asset names.
     - **expression** (str): rio-tiler's math expression with asset names (e.g `Asset1/Asset2`).
-    - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1,2,3`).
+    - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1;2;3`).
     - **asset_expression** (array[str]): Per asset band math expression (e.g `Asset1|b1\*b2`).
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
@@ -83,7 +83,7 @@ Example:
     - **url** (str): STAC Item URL. **Required**
     - **assets** (array[str]): asset names.
     - **expression** (str): rio-tiler's math expression with asset names (e.g `Asset1/Asset2`).
-    - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1,2,3`).
+    - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1;2;3`).
     - **asset_expression** (array[str]): Per asset band math expression (e.g `Asset1|b1\*b2`).
     - **max_size** (int): Max image size, default is 1024.
     - **height** (int): Force output image height.
@@ -123,7 +123,7 @@ Example:
     - **url** (str): STAC Item URL. **Required**
     - **assets** (array[str]): asset names.
     - **expression** (str): rio-tiler's math expression with asset names (e.g `Asset1/Asset2`).
-    - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1,2,3`).
+    - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1;2;3`).
     - **asset_expression** (array[str]): Per asset band math expression (e.g `Asset1|b1\*b2`).
     - **max_size** (int): Max image size, default is 1024.
     - **nodata** (str, int, float): Overwrite internal Nodata value.
@@ -159,7 +159,7 @@ Example:
     - **url** (str): STAC Item URL. **Required**
     - **assets** (array[str]): asset names.
     - **expression** (str): rio-tiler's math expression with asset names (e.g `Asset1/Asset2`).
-    - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1,2,3`).
+    - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1;2;3`).
     - **asset_expression** (array[str]): Per asset band math expression (e.g `Asset1|b1\*b2`).
     - **max_size** (int): Max image size, default is 1024.
     - **nodata** (str, int, float): Overwrite internal Nodata value.
@@ -193,7 +193,7 @@ Example:
     - **url** (str): STAC Item URL. **Required**
     - **assets** (array[str]): asset names.
     - **expression** (str): rio-tiler's math expression with asset names (e.g `Asset1/Asset2`).
-    - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1,2,3`).
+    - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1;2;3`).
     - **asset_expression** (array[str]): Per asset band math expression (e.g `Asset1|b1\*b2`).
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
@@ -217,7 +217,7 @@ Example:
     - **url** (str): STAC Item URL. **Required**
     - **assets** (array[str]): asset names.
     - **expression** (str): rio-tiler's math expression with asset names (e.g `Asset1/Asset2`).
-    - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1,2,3`).
+    - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1;2;3`).
     - **asset_expression** (array[str]): Per asset band math expression (e.g `Asset1|b1\*b2`).
     - **tile_format** (str): Output image format, default is set to None and will be either JPEG or PNG depending on masked value.
     - **tile_scale** (int): Tile size scale, default is set to 1 (256x256).
@@ -290,7 +290,7 @@ Example:
 - QueryParams:
     - **url** (str): STAC Item URL. **Required**
     - **assets** (array[str]): asset names. Default to all available assets.
-    - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1,2,3`).
+    - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1;2;3`).
     - **asset_expression** (array[str]): Per asset band math expression (e.g `Asset1|b1\*b2`).
     - **max_size** (int): Max image size from which to calculate statistics, default is 1024.
     - **height** (int): Force image height from which to calculate statistics.
@@ -317,7 +317,7 @@ Example:
 - QueryParams:
     - **url** (str): STAC Item URL. **Required**
     - **assets** (array[str]): asset names. Default to all available assets.
-    - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1,2,3`).
+    - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1;2;3`).
     - **asset_expression** (array[str]): Per asset band math expression (e.g `Asset1|b1\*b2`).
     - **max_size** (int): Max image size from which to calculate statistics, default is 1024.
     - **height** (int): Force image height from which to calculate statistics.

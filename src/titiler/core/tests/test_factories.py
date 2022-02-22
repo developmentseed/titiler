@@ -93,7 +93,12 @@ def test_TilerFactory():
     assert meta["height"] == 256
 
     response = client.get(
-        f"/tiles/8/87/48.tif?url={DATA_DIR}/cog.tif&expression=b1,b1,b1&return_mask=false"
+        "/tiles/8/87/48.tif",
+        params={
+            "url": f"{DATA_DIR}/cog.tif",
+            "expression": "b1;b1;b1",
+            "return_mask": False,
+        },
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/tiff; application=geotiff"
@@ -648,7 +653,12 @@ def test_MultiBaseTilerFactory(rio):
     assert meta["count"] == 2
 
     response = client.get(
-        f"/preview.tif?url={DATA_DIR}/item.json&expression=B01,B01,B01&return_mask=false"
+        "/preview.tif",
+        params={
+            "url": f"{DATA_DIR}/item.json",
+            "expression": "B01;B01;B01",
+            "return_mask": False,
+        },
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/tiff; application=geotiff"
@@ -666,7 +676,13 @@ def test_MultiBaseTilerFactory(rio):
     assert meta["count"] == 3
 
     response = client.get(
-        f"/preview.tif?url={DATA_DIR}/item.json&assets=B01&asset_expression=B01|b1,b1,b1&return_mask=false"
+        "/preview.tif",
+        params={
+            "url": f"{DATA_DIR}/item.json",
+            "assets": "B01",
+            "asset_expression": "B01|b1;b1;b1",
+            "return_mask": False,
+        },
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/tiff; application=geotiff"
@@ -896,7 +912,12 @@ def test_MultiBandTilerFactory():
     assert meta["count"] == 3
 
     response = client.get(
-        f"/preview.tif?directory={DATA_DIR}&expression=B01,B09,B01&return_mask=false"
+        "/preview.tif",
+        params={
+            "directory": DATA_DIR,
+            "expression": "B01;B09;B01",
+            "return_mask": False,
+        },
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/tiff; application=geotiff"
