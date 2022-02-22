@@ -21,6 +21,7 @@ app.include_router(stac.router, prefix="/stac", tags=["SpatioTemporal Asset Cata
 | `GET`  | `/stac/bounds`                                                       | JSON      | return STAC item bounds
 | `GET`  | `/stac/info`                                                         | JSON      | return asset's basic info
 | `GET`  | `/stac/info.geojson`                                                 | GeoJSON   | return asset's basic info as a GeoJSON feature
+| `GET`  | `/stac/asset_statistics`                                             | JSON      | return per asset statistics
 | `GET`  | `/stac/statistics`                                                   | JSON      | return asset's statistics
 | `POST` | `/stac/statistics`                                                   | GeoJSON   | return asset's statistics for a GeoJSON
 | `GET`  | `/stac/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`  | image/bin | create a web map tile image from assets
@@ -285,11 +286,36 @@ Example:
 
 ### Statistics
 
+`:endpoint:/stac/asset_statistics - [GET]`
+
+- QueryParams:
+    - **url** (str): STAC Item URL. **Required**
+    - **assets** (array[str]): asset names. Default to all available assets.
+    - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1;2;3`).
+    - **asset_expression** (array[str]): Per asset band math expression (e.g `Asset1|b1\*b2`).
+    - **max_size** (int): Max image size from which to calculate statistics, default is 1024.
+    - **height** (int): Force image height from which to calculate statistics.
+    - **width** (int): Force image width from which to calculate statistics.
+    - **nodata** (str, int, float): Overwrite internal Nodata value.
+    - **unscale** (bool): Apply dataset internal Scale/Offset.
+    - **resampling** (str): rasterio resampling method. Default is `nearest`.
+    - **categorical** (bool): Return statistics for categorical dataset, default is false.
+    - **c** (array[float]): Pixels values for categories.
+    - **p** (array[int]): Percentile values.
+    - **histogram_bins** (str): Histogram bins.
+    - **histogram_range** (str): Comma (',') delimited Min,Max histogram bounds
+
+Example:
+
+- `https://myendpoint/stac/statistics?url=https://somewhere.com/item.json&assets=B01&categorical=true&c=1&c=2&c=3&p=2&p98`
+
+
 `:endpoint:/stac/statistics - [GET]`
 
 - QueryParams:
     - **url** (str): STAC Item URL. **Required**
     - **assets** (array[str]): asset names. Default to all available assets.
+    - **expression** (str): rio-tiler's math expression with asset names (e.g `Asset1/Asset2`).
     - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1;2;3`).
     - **asset_expression** (array[str]): Per asset band math expression (e.g `Asset1|b1\*b2`).
     - **max_size** (int): Max image size from which to calculate statistics, default is 1024.
