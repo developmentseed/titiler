@@ -118,8 +118,8 @@ class ExpressionParams(DefaultDependency):
         examples={
             "simple": {"description": "Simple band math.", "value": "b1/b2"},
             "multi-bands": {
-                "description": "Coma (,) delimited expressions (band1: b1/b2, band2: b2+b3).",
-                "value": "b1/b2,b2+b3",
+                "description": "Semicolon (;) delimited expressions (band1: b1/b2, band2: b2+b3).",
+                "value": "b1/b2;b2+b3",
             },
         },
     )
@@ -193,11 +193,11 @@ class AssetsBidxExprParams(DefaultDependency):
         examples={
             "one-asset": {
                 "description": "Return indexes 1,2,3 of asset `data`.",
-                "value": ["data|1,2,3"],
+                "value": ["data|1;2;3"],
             },
             "multi-assets": {
                 "description": "Return indexes 1,2,3 of asset `data` and indexes 1 of asset `cog`",
-                "value": ["data|1,2,3", "cog|1"],
+                "value": ["data|1;2;3", "cog|1"],
             },
         },
     )
@@ -249,11 +249,11 @@ class AssetsBidxParams(AssetsParams):
         examples={
             "one-asset": {
                 "description": "Return indexes 1,2,3 of asset `data`.",
-                "value": ["data|1,2,3"],
+                "value": ["data|1;2;3"],
             },
             "multi-assets": {
                 "description": "Return indexes 1,2,3 of asset `data` and indexes 1 of asset `cog`",
-                "value": ["data|1,2,3", "cog|1"],
+                "value": ["data|1;2;3", "cog|1"],
             },
         },
     )

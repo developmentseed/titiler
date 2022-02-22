@@ -120,8 +120,8 @@ The `factories` allow users to set multiple default dependencies. Here is the li
             examples={
                 "simple": {"description": "Simple band math.", "value": "b1/b2"},
                 "multi-bands": {
-                    "description": "Coma (,) delimited expressions (band1: b1/b2, band2: b2+b3).",
-                    "value": "b1/b2,b2+b3",
+                    "description": "Semicolon (;) delimited expressions (band1: b1/b2, band2: b2+b3).",
+                    "value": "b1/b2;b2+b3",
                 },
             },
         )
