@@ -17,7 +17,7 @@ The goal is to build a minimalist Mosaic Backend which takes COG paths as input.
 app/backends.py
 
 """
-from typing import Type, List, Tuple, Dict
+from typing import Type, List, Tuple, Dict, Union
 
 import attr
 from rio_tiler.io import BaseReader, COGReader, MultiBandReader, MultiBaseReader
