@@ -19,7 +19,7 @@ class CacheControlMiddleware(BaseHTTPMiddleware):
         self,
         app: ASGIApp,
         cachecontrol: Optional[str] = None,
-        cachecontrol_http_code_range: Optional[int] = 500,
+        cachecontrol_max_http_code: Optional[int] = 500,
         exclude_path: Optional[Set[str]] = None,
     ) -> None:
         """Init Middleware.
@@ -32,7 +32,7 @@ class CacheControlMiddleware(BaseHTTPMiddleware):
         """
         super().__init__(app)
         self.cachecontrol = cachecontrol
-        self.cachecontrol_http_code_range = cachecontrol_http_code_range
+        self.cachecontrol_max_http_code = cachecontrol_max_http_code
         self.exclude_path = exclude_path or set()
 
     async def dispatch(self, request: Request, call_next):
@@ -45,7 +45,7 @@ class CacheControlMiddleware(BaseHTTPMiddleware):
 
             if (
                 request.method in ["HEAD", "GET"]
-                and response.status_code < self.cachecontrol_http_code_range
+                and response.status_code < self.cachecontrol_max_http_code
             ):
                 response.headers["Cache-Control"] = self.cachecontrol
 

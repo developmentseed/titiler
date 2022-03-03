@@ -49,7 +49,7 @@ def test_cachecontrol_middleware_exclude():
     app.add_middleware(
         CacheControlMiddleware,
         cachecontrol="public",
-        cachecontrol_http_code_range=400,
+        cachecontrol_max_http_code=400,
         exclude_path={r"/route1", r"/route2", r"/tiles/[0-1]/.+"},
     )
 
