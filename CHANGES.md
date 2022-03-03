@@ -1,5 +1,9 @@
 # Release Notes
 
+## Unrleased
+
+* add `cachecontrol_max_http_code` option to `CacheControlMiddleware` to avoid adding cache-control headers for API errors (Author @sharkinsspatial, https://github.com/developmentseed/titiler/pull/444)
+
 ## 0.5.0 (2022-02-22)
 
 * update rio-tiler/morecantile/rio-cogeo/cogeo-mosaic versions
