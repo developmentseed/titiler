@@ -1,6 +1,6 @@
 # Release Notes
 
-## Unrleased
+## 0.5.1 (2022-03-07)
 
 * add `cachecontrol_max_http_code` option to `CacheControlMiddleware` to avoid adding cache-control headers for API errors (Author @sharkinsspatial, https://github.com/developmentseed/titiler/pull/444)
 
