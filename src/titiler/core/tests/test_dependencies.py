@@ -64,6 +64,11 @@ def test_cmap():
     response = client.get(f"/?colormap={cmap}")
     assert response.json()["1"] == [68, 1, 84, 255]
 
+    cmap = json.dumps({0: "#000000", 255: "#ffffff"})
+    response = client.get("/", params={"colormap": cmap})
+    assert response.json()["0"] == [0, 0, 0, 255]
+    assert response.json()["255"] == [255, 255, 255, 255]
+
     intervals = [
         # ([min, max], [r, g, b, a])
         ([1, 2], [0, 0, 0, 255]),
