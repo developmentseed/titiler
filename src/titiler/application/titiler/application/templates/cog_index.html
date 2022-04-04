@@ -707,20 +707,6 @@ const addAOI = (bounds) => {
   return
 }
 
-const truncate_lnglat = (lng, lat) => {
-  if (lng > 180.0) {
-    lng = 180.0
-  } else if (lng < -180.0) {
-    lng = -180.0
-  }
-  if (lat > 90.0) {
-    lat = 90.0
-  } else if (lat < -90.0) {
-    lat = -90.0
-  }
-  return [lng, lat]
-}
-
 const parseParams = (w_loc) => {
   const param_list = w_loc.replace('?', '').split('&')
   const out_params = {}
@@ -806,11 +792,15 @@ const addCogeo = () => {
       document.getElementById('hide-arrow').classList.toggle('off')
       document.getElementById('menu').classList.toggle('off')
 
-      const ll = truncate_lnglat(data.bounds[0], data.bounds[1])
-      const ur = truncate_lnglat(data.bounds[2], data.bounds[3])
-      map.fitBounds([ll, ur])
-
-      addAOI(data.bounds)
+      let bounds = [...data.bounds]
+      // Bounds crossing dateline
+      if (bounds[0] > bounds[2]) {
+        bounds[0] = bounds[0] - 360
+      }
+      map.fitBounds(
+        [[bounds[0], bounds[1]], [bounds[2], bounds[3]]]
+      )
+      addAOI(bounds)
 
       if (nbands === 1) {
         document.getElementById('3b').classList.add('disabled')

@@ -40,17 +40,17 @@ jobs:
       - name: Test titiler.core
         run: |
           python -m pip install -e src/titiler/core["test"]
-          python -m pytest src/titiler/core --cov=titiler.core --cov-report=xml --cov-append --cov-report=term-missing --ignore=venv
+          python -m pytest src/titiler/core --cov=titiler.core --cov-report=xml --cov-append --cov-report=term-missing
 
       - name: Test titiler.mosaic
         run: |
           python -m pip install -e src/titiler/mosaic["test"]
-          python -m pytest src/titiler/mosaic --cov=titiler.mosaic --cov-report=xml --cov-append --cov-report=term-missing --ignore=venv
+          python -m pytest src/titiler/mosaic --cov=titiler.mosaic --cov-report=xml --cov-append --cov-report=term-missing
 
       - name: Test titiler.application
         run: |
           python -m pip install -e src/titiler/application["test"]
-          python -m pytest src/titiler/application --cov=titiler.application --cov-report=xml --cov-append --cov-report=term-missing --ignore=venv
+          python -m pytest src/titiler/application --cov=titiler.application --cov-report=xml --cov-append --cov-report=term-missing
 
       - name: run pre-commit
         run: pre-commit run --all-files

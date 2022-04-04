@@ -1,5 +1,15 @@
 # Release Notes
 
+## Unreleased
+
+### titiler.core
+
+* remove logging in error `exception_handler_factory`
+
+### titiler.application
+
+* Fix frontend to handle antimeridian crossing data
+
 ## 0.5.1 (2022-03-07)
 
 * add `cachecontrol_max_http_code` option to `CacheControlMiddleware` to avoid adding cache-control headers for API errors (Author @sharkinsspatial, https://github.com/developmentseed/titiler/pull/444)
@@ -65,17 +75,17 @@ print(response)
 
 ## 0.4.2 (2022-01-25)
 
-## titiler.core
+### titiler.core
 
 * update minimum FastAPI version to `>=0.73` (https://github.com/developmentseed/titiler/pull/425)
 
 ## 0.4.1 (2022-01-25)
 
-## titiler.core
+### titiler.core
 
 * update type information for the factory `colormap_dependency`
 
-## k8s
+### k8s
 * Update ingress k8s templates to be compatible with latest resource types versions (https://github.com/developmentseed/titiler/pull/425
 
 ## 0.4.0 (2021-11-30)
