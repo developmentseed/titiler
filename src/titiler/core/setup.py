@@ -25,7 +25,7 @@ extra_reqs = {
 setup(
     name="titiler.core",
     version="0.5.1",
-    description=u"A modern dynamic tile server built on top of FastAPI and Rasterio/GDAL.",
+    description="A modern dynamic tile server built on top of FastAPI and Rasterio/GDAL.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     python_requires=">=3.7",
@@ -38,7 +38,7 @@ setup(
         "Programming Language :: Python :: 3.9",
     ],
     keywords="COG STAC FastAPI",
-    author=u"Vincent Sarago",
+    author="Vincent Sarago",
     author_email="vincent@developmentseed.org",
     url="https://github.com/developmentseed/titiler",
     license="MIT",

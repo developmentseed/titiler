@@ -21,6 +21,7 @@ services:
       # GDAL config
       - CPL_TMPDIR=/tmp
       - GDAL_CACHEMAX=75%
+      - GDAL_INGESTED_BYTES_AT_OPEN=32768
       - GDAL_DISABLE_READDIR_ON_OPEN=EMPTY_DIR
       - GDAL_HTTP_MERGE_CONSECUTIVE_RANGES=YES
       - GDAL_HTTP_MULTIPLEX=YES
@@ -45,7 +46,6 @@ services:
       # rio-tiler config
       # - RIO_TILER_MAX_THREADS=
 
-
   titiler-uvicorn:
     # See https://github.com/developmentseed/titiler/discussions/387
     platform: linux/amd64
@@ -64,6 +64,7 @@ services:
       # GDAL config
       - CPL_TMPDIR=/tmp
       - GDAL_CACHEMAX=75%
+      - GDAL_INGESTED_BYTES_AT_OPEN=32768
       - GDAL_DISABLE_READDIR_ON_OPEN=EMPTY_DIR
       - GDAL_HTTP_MERGE_CONSECUTIVE_RANGES=YES
       - GDAL_HTTP_MULTIPLEX=YES

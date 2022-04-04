@@ -14,7 +14,7 @@ extra_reqs = {
 setup(
     name="titiler.mosaic",
     version="0.5.1",
-    description=u"MosaicJSON plugin for TiTiler.",
+    description="MosaicJSON plugin for TiTiler.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     python_requires=">=3.7",
@@ -27,7 +27,7 @@ setup(
         "Programming Language :: Python :: 3.9",
     ],
     keywords="MosaicJSON",
-    author=u"Vincent Sarago",
+    author="Vincent Sarago",
     author_email="vincent@developmentseed.org",
     url="https://github.com/developmentseed/titiler",
     license="MIT",

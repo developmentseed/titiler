@@ -740,20 +740,6 @@ const addAOI = (bounds) => {
   return
 }
 
-const truncate_lnglat = (lng, lat) => {
-  if (lng > 180.0) {
-    lng = 180.0
-  } else if (lng < -180.0) {
-    lng = -180.0
-  }
-  if (lat > 90.0) {
-    lat = 90.0
-  } else if (lat < -90.0) {
-    lat = -90.0
-  }
-  return [lng, lat]
-}
-
 const updateUI = () => {
   const is_checked = document.getElementById("compose-switch").checked
   const rList = document.getElementById('r-selector')
@@ -878,20 +864,24 @@ const updateUI = () => {
     document.getElementById('data-min').value = mm[0]
     document.getElementById('data-max').value = mm[1]
 
-    const ll = truncate_lnglat(info.bounds[0], info.bounds[1])
-    const ur = truncate_lnglat(info.bounds[2], info.bounds[3])
-
-    map.fitBounds([ll, ur])
-    addAOI(info.bounds)
+    let bounds = [...info.bounds]
+    // Bounds crossing dateline
+    if (bounds[0] > bounds[2]) {
+      bounds[0] = bounds[0] - 360
+    }
+    map.fitBounds(
+      [[bounds[0], bounds[1]], [bounds[2], bounds[3]]]
+    )
+    addAOI(bounds)
 
     if (nbands === 1) {
-        document.getElementById('3b').classList.add('disabled')
-        document.getElementById('3b').classList.remove('active')
-        document.getElementById('3b-section').classList.toggle('active')
-        document.getElementById('1b').classList.add('active')
-        document.getElementById('1b-section').classList.toggle('active')
+      document.getElementById('3b').classList.add('disabled')
+      document.getElementById('3b').classList.remove('active')
+      document.getElementById('3b-section').classList.toggle('active')
+      document.getElementById('1b').classList.add('active')
+      document.getElementById('1b-section').classList.toggle('active')
     } else {
-        document.getElementById('3b').classList.remove('disabled')
+      document.getElementById('3b').classList.remove('disabled')
     }
   }
   updateViz()
