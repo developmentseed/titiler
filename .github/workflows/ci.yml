@@ -13,8 +13,8 @@ on:
       - 'setup.cfg'
       - 'src/titiler/**'
       - '.pre-commit-config.yaml'
-      - 'codecov.yml'
-      - 'Dockerfile.*'
+      - '.github/codecov.yml'
+      - 'dockerfiles/**'
       - 'tox.ini'
   pull_request:
 
@@ -119,15 +119,6 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Login to Public ECR
-        uses: docker/login-action@v1
-        with:
-          registry: public.ecr.aws
-          username: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          password: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        env:
-          AWS_REGION: us-east-1
-
       - name: Login to Github
         uses: docker/login-action@v1
         with:
@@ -148,7 +139,7 @@ jobs:
           # See https://github.com/developmentseed/titiler/discussions/387
           platforms: linux/amd64
           context: .
-          file: Dockerfile.gunicorn
+          file: dockerfiles/Dockerfile.gunicorn
           push: true
           tags: |
             ghcr.io/${{ github.repository }}:latest
@@ -161,7 +152,7 @@ jobs:
           # See https://github.com/developmentseed/titiler/discussions/387
           platforms: linux/amd64
           context: .
-          file: Dockerfile.gunicorn
+          file: dockerfiles/Dockerfile.gunicorn
           push: true
           tags: |
             ghcr.io/${{ github.repository }}:${{ steps.tag.outputs.tag }}

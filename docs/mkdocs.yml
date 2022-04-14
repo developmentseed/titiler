@@ -1,6 +1,9 @@
 site_name: TiTiler
 site_description: A lightweight service for creating map tiles from Cloud-Optimized GeoTiff
 
+docs_dir: 'src'
+site_dir: 'build'
+
 repo_name: "developmentseed/titiler"
 repo_url: "https://github.com/developmentseed/titiler"
 edit_uri: "blob/master/docs/"
@@ -95,7 +98,7 @@ theme:
   palette:
     primary: indigo
     scheme: default
-  custom_dir: 'docs/overrides'
+  custom_dir: 'src/overrides'
 
 # https://github.com/kylebarron/cogeo-mosaic/blob/mkdocs/mkdocs.yml#L50-L75
 markdown_extensions:

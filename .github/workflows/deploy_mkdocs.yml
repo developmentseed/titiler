@@ -9,8 +9,8 @@ on:
       - 'README.md'
       - 'CHANGES.md'
       - 'CONTRIBUTING.md'
+      - 'deployment/**'
       - 'docs/**'
-      - 'mkdocs.yml'
 
 jobs:
   build:
@@ -34,7 +34,7 @@ jobs:
       - name: update API docs
         run: |
           pdocs as_markdown \
-            --output_dir docs/api \
+            --output_dir docs/src/api \
             --exclude_source \
             --overwrite \
             titiler.core.dependencies \
@@ -45,7 +45,7 @@ jobs:
             titiler.core.resources.enums
 
           pdocs as_markdown \
-            --output_dir docs/api \
+            --output_dir docs/src/api \
             --exclude_source \
             --overwrite \
             titiler.mosaic.factory \
@@ -53,4 +53,4 @@ jobs:
             titiler.mosaic.errors
 
       - name: Deploy docs
-        run: mkdocs gh-deploy --force
+        run: mkdocs gh-deploy --force -f docs/mkdocs.yml

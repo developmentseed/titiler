@@ -6,7 +6,7 @@ services:
     platform: linux/amd64
     build:
       context: .
-      dockerfile: Dockerfile.gunicorn
+      dockerfile: dockerfiles/Dockerfile.gunicorn
     ports:
       - "8000:8000"
     environment:
@@ -51,7 +51,7 @@ services:
     platform: linux/amd64
     build:
       context: .
-      dockerfile: Dockerfile.uvicorn
+      dockerfile: dockerfiles/Dockerfile.uvicorn
     ports:
       - "8000:8000"
     environment:
