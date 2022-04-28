@@ -10,7 +10,7 @@ app:
     - name: SD_ENV
       value: "staging"
     - name: TITILER_MOSAIC_BACKEND
-      value: "s3://externaldata.stage.saildrone.com/"
+      value: "s3://openvdm.staging.saildrone.com/"
   livenessProbe:
     httpGet:
       path: /healthz

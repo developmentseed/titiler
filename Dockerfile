@@ -28,7 +28,7 @@ COPY sample_data /opt/titiler/sample_data/
 ENV MODULE_NAME saildrone_custom_tiler.app.main
 ENV VARIABLE_NAME app
 
-#ENV TITILER_MOSAIC_BACKEND s3://externaldata.dev.saildrone.com
+#ENV TITILER_MOSAIC_BACKEND s3://openvdm.dev.saildrone.com
 
 # expose port
 EXPOSE 3000
