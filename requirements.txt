@@ -5,3 +5,4 @@ aiocache==0.11.1
 aiocache[redis]==0.11.1
 ujson==4.3.0
 msgpack==1.0.3
+jinja==2.11.2
