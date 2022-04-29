@@ -30,7 +30,6 @@ ENV VARIABLE_NAME app
 
 #ENV TITILER_MOSAIC_BACKEND s3://openvdm.dev.saildrone.com
 
-
 # expose port
 EXPOSE 3000
 # Metrics port
