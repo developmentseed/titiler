@@ -1,14 +1,15 @@
 # Release Notes
 
-## Unreleased
+## 0.5.2 (TBD)
 
 ### titiler.core
 
 * remove logging in error `exception_handler_factory`
+* add optional `reader_dependency` to enable passing `Reader`'s option defined by Query/Header/Path parameters.
 
 ### titiler.application
 
-* Fix frontend to handle antimeridian crossing data
+* Fix frontend to handle anti-meridian crossing data
 
 ## 0.5.1 (2022-03-07)
 

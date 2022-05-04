@@ -246,6 +246,10 @@ def ColorMapParams(
     return None
 ```
 
+#### reader_dependency
+
+Additional reader options. Defaults to `DefaultDependency` (empty).
+
 
 ### TilerFactory
 

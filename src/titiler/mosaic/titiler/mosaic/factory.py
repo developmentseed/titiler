@@ -91,12 +91,16 @@ class MosaicTilerFactory(BaseTilerFactory):
             response_model_exclude_none=True,
             responses={200: {"description": "Return MosaicJSON definition"}},
         )
-        def read(src_path=Depends(self.path_dependency)):
+        def read(
+            src_path=Depends(self.path_dependency),
+            reader_params=Depends(self.reader_dependency),
+        ):
             """Read a MosaicJSON"""
             with rasterio.Env(**self.gdal_config):
                 with self.reader(
                     src_path,
                     reader=self.dataset_reader,
+                    reader_options={**reader_params},
                     **self.backend_options,
                 ) as src_dst:
                     return src_dst.mosaic_def
@@ -112,12 +116,16 @@ class MosaicTilerFactory(BaseTilerFactory):
             response_model=Bounds,
             responses={200: {"description": "Return the bounds of the MosaicJSON"}},
         )
-        def bounds(src_path=Depends(self.path_dependency)):
+        def bounds(
+            src_path=Depends(self.path_dependency),
+            reader_params=Depends(self.reader_dependency),
+        ):
             """Return the bounds of the COG."""
             with rasterio.Env(**self.gdal_config):
                 with self.reader(
                     src_path,
                     reader=self.dataset_reader,
+                    reader_options={**reader_params},
                     **self.backend_options,
                 ) as src_dst:
                     return {"bounds": src_dst.geographic_bounds}
@@ -133,12 +141,16 @@ class MosaicTilerFactory(BaseTilerFactory):
             response_model=mosaicInfo,
             responses={200: {"description": "Return info about the MosaicJSON"}},
         )
-        def info(src_path=Depends(self.path_dependency)):
+        def info(
+            src_path=Depends(self.path_dependency),
+            reader_params=Depends(self.reader_dependency),
+        ):
             """Return basic info."""
             with rasterio.Env(**self.gdal_config):
                 with self.reader(
                     src_path,
                     reader=self.dataset_reader,
+                    reader_options={**reader_params},
                     **self.backend_options,
                 ) as src_dst:
                     return src_dst.info()
@@ -155,12 +167,16 @@ class MosaicTilerFactory(BaseTilerFactory):
                 }
             },
         )
-        def info_geojson(src_path=Depends(self.path_dependency)):
+        def info_geojson(
+            src_path=Depends(self.path_dependency),
+            reader_params=Depends(self.reader_dependency),
+        ):
             """Return mosaic's basic info as a GeoJSON feature."""
             with rasterio.Env(**self.gdal_config):
                 with self.reader(
                     src_path,
                     reader=self.dataset_reader,
+                    reader_options={**reader_params},
                     **self.backend_options,
                 ) as src_dst:
                     info = src_dst.info()
@@ -216,6 +232,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                 title="Tile buffer.",
                 description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * tile_buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
             ),
+            reader_params=Depends(self.reader_dependency),
         ):
             """Create map tile from a COG."""
             timings = []
@@ -229,6 +246,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                     with self.reader(
                         src_path,
                         reader=self.dataset_reader,
+                        reader_options={**reader_params},
                         **self.backend_options,
                     ) as src_dst:
                         mosaic_read = t.from_start
@@ -319,6 +337,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                 title="Tile buffer.",
                 description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * tile_buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
             ),
+            reader_params=Depends(self.reader_dependency),
         ):
             """Return TileJSON document for a COG."""
             route_params = {
@@ -351,6 +370,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                 with self.reader(
                     src_path,
                     reader=self.dataset_reader,
+                    reader_options={**reader_params},
                     **self.backend_options,
                 ) as src_dst:
                     center = list(src_dst.mosaic_def.center)
@@ -395,6 +415,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             postprocess_params=Depends(self.process_dependency),  # noqa
             colormap=Depends(self.colormap_dependency),  # noqa
             render_params=Depends(self.render_dependency),  # noqa
+            reader_params=Depends(self.reader_dependency),
         ):
             """OGC WMTS endpoint."""
             route_params = {
@@ -428,6 +449,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                 with self.reader(
                     src_path,
                     reader=self.dataset_reader,
+                    reader_options={**reader_params},
                     **self.backend_options,
                 ) as src_dst:
                     bounds = src_dst.geographic_bounds
@@ -483,6 +505,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             src_path=Depends(self.path_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
+            reader_params=Depends(self.reader_dependency),
         ):
             """Get Point value for a Mosaic."""
             timings = []
@@ -493,6 +516,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                     with self.reader(
                         src_path,
                         reader=self.dataset_reader,
+                        reader_options={**reader_params},
                         **self.backend_options,
                     ) as src_dst:
                         mosaic_read = t.from_start
@@ -534,12 +558,14 @@ class MosaicTilerFactory(BaseTilerFactory):
             miny: float = Query(None, description="Bottom of bounding box"),
             maxx: float = Query(None, description="Right side of bounding box"),
             maxy: float = Query(None, description="Top of bounding box"),
+            reader_params=Depends(self.reader_dependency),
         ):
             """Return a list of assets which overlap a bounding box"""
             with rasterio.Env(**self.gdal_config):
                 with self.reader(
                     src_path,
                     reader=self.dataset_reader,
+                    reader_options={**reader_params},
                     **self.backend_options,
                 ) as src_dst:
                     return src_dst.assets_for_bbox(minx, miny, maxx, maxy)
@@ -552,12 +578,14 @@ class MosaicTilerFactory(BaseTilerFactory):
             src_path=Depends(self.path_dependency),
             lng: float = Query(None, description="Longitude"),
             lat: float = Query(None, description="Latitude"),
+            reader_params=Depends(self.reader_dependency),
         ):
             """Return a list of assets which overlap a point"""
             with rasterio.Env(**self.gdal_config):
                 with self.reader(
                     src_path,
                     reader=self.dataset_reader,
+                    reader_options={**reader_params},
                     **self.backend_options,
                 ) as src_dst:
                     return src_dst.assets_for_point(lng, lat)
@@ -571,12 +599,14 @@ class MosaicTilerFactory(BaseTilerFactory):
             x: int = Path(..., description="Mercator tiles's column"),
             y: int = Path(..., description="Mercator tiles's row"),
             src_path=Depends(self.path_dependency),
+            reader_params=Depends(self.reader_dependency),
         ):
             """Return a list of assets which overlap a given tile"""
             with rasterio.Env(**self.gdal_config):
                 with self.reader(
                     src_path,
                     reader=self.dataset_reader,
+                    reader_options={**reader_params},
                     **self.backend_options,
                 ) as src_dst:
                     return src_dst.assets_for_tile(x, y, z)
