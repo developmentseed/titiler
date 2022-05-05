@@ -43,7 +43,7 @@ titiler/
     ├── tests/                   - Tests suite
     └── titiler/core/            - `core` namespace package
         ├── models/
-        |   ├── cogeo.py         - rio-cogeo pydantic models
+        |   ├── response.py      - Titiler's response models
         |   ├── mapbox.py        - Mapbox TileJSON pydantic model
         |   └── OGC.py           - Open GeoSpatial Consortium pydantic models (TileMatrixSets...)
         ├── resources/
@@ -55,6 +55,5 @@ titiler/
         ├── errors.py            - Errors handler factory
         ├── factory.py           - Dynamic tiler endpoints factories
         ├── routing.py           - Custom APIRoute class
-        ├── utils.py             - Titiler utility functions
-        └── version.py           - version
+        └── utils.py             - Titiler utility functions
 ```

@@ -6,15 +6,21 @@
 
 * remove logging in error `exception_handler_factory`
 * add optional `reader_dependency` to enable passing `Reader`'s option defined by Query/Header/Path parameters.
+* switch to `pyproject.toml`
+* move version definition in `titiler.core.__version__` **breaking**
 
 ### titiler.mosaic
 
 * add optional `backend_dependency` to enable passing `Backend`'s option defined by Query/Header/Path parameters.
 * remove `backend_options` MosaicTilerFactory argument in favor of the use of `backend_dependency` **breaking**
+* switch to `pyproject.toml`
+* move version definition in `titiler.mosaic.__version__` **breaking**
 
 ### titiler.application
 
 * Fix frontend to handle anti-meridian crossing data
+* switch to `pyproject.toml`
+* move version definition in `titiler.application.__version__` **breaking**
 
 ## 0.5.1 (2022-03-07)
 
