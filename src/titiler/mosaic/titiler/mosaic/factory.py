@@ -1,7 +1,7 @@
 """TiTiler.mosaic Router factories."""
 
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Callable, Dict, Optional, Type, Union
 from urllib.parse import urlencode
 
@@ -16,7 +16,7 @@ from rio_tiler.constants import MAX_THREADS
 from rio_tiler.io import BaseReader, COGReader, MultiBandReader, MultiBaseReader
 from rio_tiler.models import Bounds
 
-from titiler.core.dependencies import WebMercatorTMSParams
+from titiler.core.dependencies import DefaultDependency, WebMercatorTMSParams
 from titiler.core.factory import BaseTilerFactory, img_endpoint_params, templates
 from titiler.core.models.mapbox import TileJSON
 from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
@@ -50,7 +50,7 @@ class MosaicTilerFactory(BaseTilerFactory):
     # BaseBackend does not support other TMS than WebMercator
     tms_dependency: Callable[..., TileMatrixSet] = WebMercatorTMSParams
 
-    backend_options: Dict = field(default_factory=dict)
+    backend_dependency: Type[DefaultDependency] = DefaultDependency
 
     def register_routes(self):
         """
@@ -93,6 +93,7 @@ class MosaicTilerFactory(BaseTilerFactory):
         )
         def read(
             src_path=Depends(self.path_dependency),
+            backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
         ):
             """Read a MosaicJSON"""
@@ -101,7 +102,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                     src_path,
                     reader=self.dataset_reader,
                     reader_options={**reader_params},
-                    **self.backend_options,
+                    **backend_params,
                 ) as src_dst:
                     return src_dst.mosaic_def
 
@@ -118,6 +119,7 @@ class MosaicTilerFactory(BaseTilerFactory):
         )
         def bounds(
             src_path=Depends(self.path_dependency),
+            backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
         ):
             """Return the bounds of the COG."""
@@ -126,7 +128,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                     src_path,
                     reader=self.dataset_reader,
                     reader_options={**reader_params},
-                    **self.backend_options,
+                    **backend_params,
                 ) as src_dst:
                     return {"bounds": src_dst.geographic_bounds}
 
@@ -143,6 +145,7 @@ class MosaicTilerFactory(BaseTilerFactory):
         )
         def info(
             src_path=Depends(self.path_dependency),
+            backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
         ):
             """Return basic info."""
@@ -151,7 +154,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                     src_path,
                     reader=self.dataset_reader,
                     reader_options={**reader_params},
-                    **self.backend_options,
+                    **backend_params,
                 ) as src_dst:
                     return src_dst.info()
 
@@ -169,6 +172,7 @@ class MosaicTilerFactory(BaseTilerFactory):
         )
         def info_geojson(
             src_path=Depends(self.path_dependency),
+            backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
         ):
             """Return mosaic's basic info as a GeoJSON feature."""
@@ -177,7 +181,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                     src_path,
                     reader=self.dataset_reader,
                     reader_options={**reader_params},
-                    **self.backend_options,
+                    **backend_params,
                 ) as src_dst:
                     info = src_dst.info()
                     return Feature(
@@ -232,6 +236,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                 title="Tile buffer.",
                 description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * tile_buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
             ),
+            backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
         ):
             """Create map tile from a COG."""
@@ -247,7 +252,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                         src_path,
                         reader=self.dataset_reader,
                         reader_options={**reader_params},
-                        **self.backend_options,
+                        **backend_params,
                     ) as src_dst:
                         mosaic_read = t.from_start
                         timings.append(("mosaicread", round(mosaic_read * 1000, 2)))
@@ -337,6 +342,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                 title="Tile buffer.",
                 description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * tile_buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
             ),
+            backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
         ):
             """Return TileJSON document for a COG."""
@@ -371,7 +377,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                     src_path,
                     reader=self.dataset_reader,
                     reader_options={**reader_params},
-                    **self.backend_options,
+                    **backend_params,
                 ) as src_dst:
                     center = list(src_dst.mosaic_def.center)
                     if minzoom is not None:
@@ -415,6 +421,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             postprocess_params=Depends(self.process_dependency),  # noqa
             colormap=Depends(self.colormap_dependency),  # noqa
             render_params=Depends(self.render_dependency),  # noqa
+            backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
         ):
             """OGC WMTS endpoint."""
@@ -450,7 +457,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                     src_path,
                     reader=self.dataset_reader,
                     reader_options={**reader_params},
-                    **self.backend_options,
+                    **backend_params,
                 ) as src_dst:
                     bounds = src_dst.geographic_bounds
                     minzoom = minzoom if minzoom is not None else src_dst.minzoom
@@ -505,6 +512,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             src_path=Depends(self.path_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
+            backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
         ):
             """Get Point value for a Mosaic."""
@@ -517,7 +525,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                         src_path,
                         reader=self.dataset_reader,
                         reader_options={**reader_params},
-                        **self.backend_options,
+                        **backend_params,
                     ) as src_dst:
                         mosaic_read = t.from_start
                         timings.append(("mosaicread", round(mosaic_read * 1000, 2)))
@@ -558,6 +566,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             miny: float = Query(None, description="Bottom of bounding box"),
             maxx: float = Query(None, description="Right side of bounding box"),
             maxy: float = Query(None, description="Top of bounding box"),
+            backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
         ):
             """Return a list of assets which overlap a bounding box"""
@@ -566,7 +575,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                     src_path,
                     reader=self.dataset_reader,
                     reader_options={**reader_params},
-                    **self.backend_options,
+                    **backend_params,
                 ) as src_dst:
                     return src_dst.assets_for_bbox(minx, miny, maxx, maxy)
 
@@ -578,6 +587,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             src_path=Depends(self.path_dependency),
             lng: float = Query(None, description="Longitude"),
             lat: float = Query(None, description="Latitude"),
+            backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
         ):
             """Return a list of assets which overlap a point"""
@@ -586,7 +596,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                     src_path,
                     reader=self.dataset_reader,
                     reader_options={**reader_params},
-                    **self.backend_options,
+                    **backend_params,
                 ) as src_dst:
                     return src_dst.assets_for_point(lng, lat)
 
@@ -599,6 +609,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             x: int = Path(..., description="Mercator tiles's column"),
             y: int = Path(..., description="Mercator tiles's row"),
             src_path=Depends(self.path_dependency),
+            backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
         ):
             """Return a list of assets which overlap a given tile"""
@@ -607,6 +618,6 @@ class MosaicTilerFactory(BaseTilerFactory):
                     src_path,
                     reader=self.dataset_reader,
                     reader_options={**reader_params},
-                    **self.backend_options,
+                    **backend_params,
                 ) as src_dst:
                     return src_dst.assets_for_tile(x, y, z)

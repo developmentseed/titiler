@@ -3,6 +3,7 @@
 import json
 import os
 import pathlib
+from dataclasses import dataclass
 from io import BytesIO
 from typing import Dict, Type
 from unittest.mock import patch
@@ -14,7 +15,7 @@ import numpy
 from requests.auth import HTTPBasicAuth
 from rio_tiler.io import BaseReader, COGReader, MultiBandReader, STACReader
 
-from titiler.core.dependencies import TMSParams, WebMercatorTMSParams
+from titiler.core.dependencies import DefaultDependency, TMSParams, WebMercatorTMSParams
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 from titiler.core.factory import (
     MultiBandTilerFactory,
@@ -601,6 +602,27 @@ def test_TilerFactory():
     }
     assert len(resp["properties"]["statistics"]["1"]["histogram"][0]) == 4
     assert resp["properties"]["statistics"]["1"]["histogram"][0][3] == 0
+
+
+@dataclass
+class ReaderParams(DefaultDependency):
+    """Reader options to overwrite min/max zoom."""
+
+    minzoom: int = 4
+    maxzoom: int = 8
+
+
+def test_TilerFactory_ReaderParams():
+    """Test TilerFactory factory with Reader dependency."""
+    cog = TilerFactory(reader_dependency=ReaderParams)
+    app = FastAPI()
+    app.include_router(cog.router)
+    client = TestClient(app)
+
+    response = client.get(f"/tilejson.json?url={DATA_DIR}/cog.tif")
+    tj = response.json()
+    assert tj["minzoom"] == 4
+    assert tj["maxzoom"] == 8
 
 
 @patch("rio_tiler.io.cogeo.rasterio")

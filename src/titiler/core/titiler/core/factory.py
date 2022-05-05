@@ -606,7 +606,9 @@ class TilerFactory(BaseTilerFactory):
                 tiles_url += f"?{urlencode(qs)}"
 
             with rasterio.Env(**self.gdal_config):
+                print(reader_params)
                 with self.reader(src_path, tms=tms, **reader_params) as src_dst:
+                    print(src_dst)
                     return {
                         "bounds": src_dst.geographic_bounds,
                         "minzoom": minzoom if minzoom is not None else src_dst.minzoom,

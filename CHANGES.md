@@ -1,11 +1,16 @@
 # Release Notes
 
-## 0.5.2 (TBD)
+## 0.6.0 (TBD)
 
 ### titiler.core
 
 * remove logging in error `exception_handler_factory`
 * add optional `reader_dependency` to enable passing `Reader`'s option defined by Query/Header/Path parameters.
+
+### titiler.mosaic
+
+* add optional `backend_dependency` to enable passing `Backend`'s option defined by Query/Header/Path parameters.
+* remove `backend_options` MosaicTilerFactory argument in favor of the use of `backend_dependency` **breaking**
 
 ### titiler.application
 

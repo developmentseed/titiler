@@ -3,13 +3,16 @@
 import os
 import tempfile
 from contextlib import contextmanager
+from dataclasses import dataclass
 from io import BytesIO
+from typing import Callable, Optional
 
+import attr
 import numpy
 from cogeo_mosaic.backends import FileBackend
 from cogeo_mosaic.mosaic import MosaicJSON
 
-from titiler.core.dependencies import WebMercatorTMSParams
+from titiler.core.dependencies import DefaultDependency, WebMercatorTMSParams
 from titiler.core.resources.enums import OptionalHeader
 from titiler.mosaic.factory import MosaicTilerFactory
 
@@ -203,3 +206,86 @@ def test_MosaicTilerFactory():
         )
         assert response.status_code == 200
         assert response.json() == []
+
+
+@dataclass
+class BackendParams(DefaultDependency):
+    """Backend options to overwrite min/max zoom."""
+
+    minzoom: int = 4
+    maxzoom: int = 8
+
+
+@attr.s
+class CustomFileBackend(FileBackend):
+    """Fake backend to prove we can overwrite min/max zoom."""
+
+    minzoom: Optional[int] = attr.ib(default=None)
+    maxzoom: Optional[int] = attr.ib(default=None)
+
+    def __attrs_post_init__(self):
+        """Post Init: if not passed in init, try to read from self.input."""
+        self.mosaic_def = self.mosaic_def or self._read()
+        self.minzoom = self.minzoom or self.mosaic_def.minzoom
+        self.maxzoom = self.maxzoom or self.mosaic_def.maxzoom
+        self.bounds = self.mosaic_def.bounds
+
+
+def test_MosaicTilerFactory_BackendParams():
+    """Test MosaicTilerFactory factory with Backend dependency."""
+    mosaic = MosaicTilerFactory(
+        reader=CustomFileBackend,
+        backend_dependency=BackendParams,
+        router_prefix="/mosaic",
+    )
+    app = FastAPI()
+    app.include_router(mosaic.router, prefix="/mosaic")
+    client = TestClient(app)
+
+    with tmpmosaic() as mosaic_file:
+        response = client.get(
+            "/mosaic/tilejson.json",
+            params={"url": mosaic_file},
+        )
+        assert response.json()["minzoom"] == 4
+        assert response.json()["maxzoom"] == 8
+
+
+def _multiply_by_two(data, mask):
+    mask.fill(255)
+    data = data * 2
+    return data, mask
+
+
+@dataclass
+class ReaderParams(DefaultDependency):
+    """Backend options to overwrite min/max zoom."""
+
+    post_process: Callable = _multiply_by_two
+
+
+def test_MosaicTilerFactory_ReaderParams():
+    """Test MosaicTilerFactory factory with Reader dependency."""
+    mosaic = MosaicTilerFactory(router_prefix="/mosaic")
+    mosaic_two = MosaicTilerFactory(
+        reader_dependency=ReaderParams, router_prefix="/mosaic_two"
+    )
+
+    app = FastAPI()
+    app.include_router(mosaic.router, prefix="/mosaic")
+    app.include_router(mosaic_two.router, prefix="/mosaic_two")
+    client = TestClient(app)
+
+    with tmpmosaic() as mosaic_file:
+        response = client.get(
+            "/mosaic/point/-74.53125,45.9956935",
+            params={"url": mosaic_file},
+        )
+        value = response.json()["values"][0][1][0]
+
+        response = client.get(
+            "/mosaic_two/point/-74.53125,45.9956935",
+            params={"url": mosaic_file},
+        )
+        value_two = response.json()["values"][0][1][0]
+        assert value_two == 2 * value
