@@ -1,14 +1,20 @@
 # Release Notes
 
-## Unreleased
+## 0.6.0 (TBD)
 
 ### titiler.core
 
 * remove logging in error `exception_handler_factory`
+* add optional `reader_dependency` to enable passing `Reader`'s option defined by Query/Header/Path parameters.
+
+### titiler.mosaic
+
+* add optional `backend_dependency` to enable passing `Backend`'s option defined by Query/Header/Path parameters.
+* remove `backend_options` MosaicTilerFactory argument in favor of the use of `backend_dependency` **breaking**
 
 ### titiler.application
 
-* Fix frontend to handle antimeridian crossing data
+* Fix frontend to handle anti-meridian crossing data
 
 ## 0.5.1 (2022-03-07)
 

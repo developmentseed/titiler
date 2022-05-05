@@ -246,8 +246,13 @@ def ColorMapParams(
     return None
 ```
 
+#### reader_dependency
+
+Additional reader options. Defaults to `DefaultDependency` (empty).
 
 ### TilerFactory
+
+The `TilerFactory` inherits dependency from `BaseTilerFactory`.
 
 #### metadata_dependency
 
@@ -317,6 +322,8 @@ class ImageParams(DefaultDependency):
 
 ### MultiBaseTilerFactory
 
+The `MultiBaseTilerFactory` inherits dependency from `TilerFactory` and `BaseTilerFactory`.
+
 #### assets_dependency
 
 Define `assets`.
@@ -345,6 +352,8 @@ class AssetsParams(DefaultDependency):
 
 ### MultiBandTilerFactory
 
+The `MultiBaseTilerFactory` inherits dependency from `TilerFactory` and `BaseTilerFactory`.
+
 #### bands_dependency
 
 Define `bands`.
@@ -370,3 +379,11 @@ class BandsParams(DefaultDependency):
         },
     )
 ```
+
+### MosaicTilerFactory
+
+The `MultiBaseTilerFactory` inherits dependency from `BaseTilerFactory`.
+
+#### backend_dependency
+
+Additional backend options. Defaults to `DefaultDependency` (empty).
