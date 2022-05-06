@@ -109,8 +109,8 @@ class LowerCaseQueryStringMiddleware(BaseHTTPMiddleware):
         self.DECODE_FORMAT = "latin-1"
 
         query_string = ""
-        for k in request.query_params:
-            query_string += k.lower() + "=" + request.query_params[k] + "&"
+        for k, v in request.query_params.multi_items():
+            query_string += k.lower() + "=" + v + "&"
 
         query_string = query_string[:-1]
         request.scope["query_string"] = query_string.encode(self.DECODE_FORMAT)
