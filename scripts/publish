@@ -4,7 +4,6 @@ SUBPACKAGE_DIRS=(
     "core"
     "mosaic"
     "application"
-    "meta"
 )
 
 for PACKAGE_DIR in "${SUBPACKAGE_DIRS[@]}"
