@@ -8,6 +8,7 @@
 * add optional `reader_dependency` to enable passing `Reader`'s option defined by Query/Header/Path parameters.
 * switch to `pyproject.toml`
 * move version definition in `titiler.core.__version__` **breaking**
+* Include all values for a query param in `LowerCaseQueryStringMiddleware` (author @samn, https://github.com/developmentseed/titiler/pull/464)
 
 ### titiler.mosaic
 
