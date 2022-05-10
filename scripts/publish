@@ -4,6 +4,7 @@ SUBPACKAGE_DIRS=(
     "core"
     "mosaic"
     "application"
+    "meta"
 )
 
 for PACKAGE_DIR in "${SUBPACKAGE_DIRS[@]}"
@@ -11,12 +12,6 @@ do
     echo "publishing titiler-${PACKAGE_DIR}"
     pushd ./src/titiler/${PACKAGE_DIR}
     rm -rf dist
-    python setup.py sdist
-    twine upload dist/*
+    flit build
     popd
 done
-
-# Publish Titiler meta package
-rm -rf dist
-python setup.py sdist
-twine upload dist/*
