@@ -6,6 +6,7 @@
 
 * remove logging in error `exception_handler_factory`
 * add optional `reader_dependency` to enable passing `Reader`'s option defined by Query/Header/Path parameters.
+* Include all values for a query param in `LowerCaseQueryStringMiddleware` (author @samn, https://github.com/developmentseed/titiler/pull/464)
 
 ### titiler.mosaic
 
