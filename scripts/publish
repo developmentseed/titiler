@@ -14,3 +14,8 @@ do
     flit build
     popd
 done
+
+# Publish Titiler meta package
+rm -rf dist
+python setup.py sdist
+twine upload dist/*
