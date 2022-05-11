@@ -52,10 +52,10 @@ jobs:
           python -m pip install -e src/titiler/application["test"]
           python -m pytest src/titiler/application --cov=titiler.application --cov-report=xml --cov-append --cov-report=term-missing
 
-      - name: Run pre-commit
+      - name: run pre-commit
         if: ${{ matrix.python-version == env.LATEST_PY_VERSION }}
         run: |
-          pip install pre-commit
+          python -m pip install pre-commit
           pre-commit run --all-files
 
       - name: Upload Results
