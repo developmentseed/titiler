@@ -67,12 +67,6 @@ jobs:
           name: ${{ matrix.python-version }}
           fail_ci_if_error: false
 
-      - name: try build
-        if: ${{ matrix.python-version == env.LATEST_PY_VERSION }}
-        run: |
-          python setup.py sdist
-
-
   publish:
     needs: [tests]
     runs-on: ubuntu-latest
@@ -87,9 +81,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install setuptools flit
-          python -m pip install src/titiler/core src/titiler/mosaic src/titiler/application src/titiler/meta
-
+          pip install setuptools flit twine
 
       - name: Set tag version
         id: tag
@@ -99,15 +91,25 @@ jobs:
       - name: Set module version
         id: module
         # https://stackoverflow.com/questions/58177786/get-the-current-pushed-tag-in-github-actions
-        run: echo ::set-output name=version::$(python -c 'from importlib.metadata import version; print(version("titiler"))')
+        run: echo ::set-output name=version::$(python setup.py --version)
 
-      - name: Build and publish
+      - name: Build and publish titiler packages
         if: steps.tag.outputs.tag == steps.module.outputs.version
         env:
           FLIT_USERNAME: ${{ secrets.PYPI_USERNAME }}
           FLIT_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
         run: |
           scripts/publish
+
+      - name: Build and publish titiler meta-package
+        if: steps.tag.outputs.tag == steps.module.outputs.version
+        env:
+          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+        run: |
+          rm -rf dist
+          python setup.py sdist
+          twine upload dist/*
 
   publish-docker:
     needs: [tests]
