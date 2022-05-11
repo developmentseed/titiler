@@ -11,6 +11,6 @@ do
     echo "publishing titiler-${PACKAGE_DIR}"
     pushd ./src/titiler/${PACKAGE_DIR}
     rm -rf dist
-    flit build
+    flit publish
     popd
 done
