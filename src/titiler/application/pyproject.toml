@@ -25,8 +25,8 @@ classifiers = [
 dynamic = ["version"]
 dependencies = [
     "rio-cogeo>=3.1,<4.0",
-    "titiler.core>=0.5,<0.6",
-    "titiler.mosaic>=0.5,<0.6",
+    "titiler.core>=0.6.0a1,<0.7",
+    "titiler.mosaic>=0.6.0a1,<0.7",
     "starlette-cramjam>=0.1.0,<0.2",
     "python-dotenv",
 ]
