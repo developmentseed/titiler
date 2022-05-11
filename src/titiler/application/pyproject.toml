@@ -1,0 +1,60 @@
+[project]
+name = "titiler.application"
+description = "Demo application for TiTiler."
+readme = "README.md"
+requires-python = ">=3.7"
+authors = [
+    {name = "Vincent Sarago", email = "vincent@developmentseed.com"},
+]
+keywords = [
+    "COG",
+    "Cloud Optimized GeoTIFF",
+    "STAC",
+    "Spatio Temporal Asset Catalog",
+    "FastAPI",
+]
+classifiers = [
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Topic :: Scientific/Engineering :: GIS",
+]
+dynamic = ["version"]
+dependencies = [
+    "rio-cogeo>=3.1,<4.0",
+    "titiler.core>=0.5,<0.6",
+    "titiler.mosaic>=0.5,<0.6",
+    "starlette-cramjam>=0.1.0,<0.2",
+    "python-dotenv",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-cov",
+    "pytest-asyncio",
+    "requests",
+    "brotlipy",
+]
+server = [
+    "uvicorn[standard]>=0.12.0,<0.16.0"
+]
+
+[project.urls]
+Source = "https://github.com/developmentseed/titiler"
+Documentation = "https://developmentseed.org/titiler/"
+
+[build-system]
+requires = ["flit>=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.flit.module]
+name = "titiler.application"
+
+[tool.flit.sdist]
+exclude = [
+    "tests/",
+]

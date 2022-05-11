@@ -1,7 +1,7 @@
 ## titiler.application
 
 <img style="max-width:400px" src="https://user-images.githubusercontent.com/10407788/115224800-53d9d980-a0db-11eb-86c3-1c94fde3ed4a.png"/>
-<p align="center">Titiler's demo package.</p>
+<p align="center">Titiler's demo application.</p>
 
 ## Installation
 

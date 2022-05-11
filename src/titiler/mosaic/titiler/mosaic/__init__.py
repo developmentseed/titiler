@@ -1,5 +1,6 @@
 """titiler.mosaic"""
 
-from . import errors, factory, version  # noqa
+__version__ = "0.5.1"
+
+from . import errors, factory  # noqa
 from .factory import MosaicTilerFactory  # noqa
-from .version import __version__  # noqa

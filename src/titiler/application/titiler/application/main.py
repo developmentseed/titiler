@@ -2,10 +2,10 @@
 
 import logging
 
+from titiler.application import __version__ as titiler_version
 from titiler.application.custom import templates
 from titiler.application.routers import cog, mosaic, stac, tms
 from titiler.application.settings import ApiSettings
-from titiler.application.version import __version__ as titiler_version
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 from titiler.core.middleware import (
     CacheControlMiddleware,
