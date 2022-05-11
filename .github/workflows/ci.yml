@@ -81,7 +81,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install setuptools flit twine
+          pip install setuptools twine
 
       - name: Set tag version
         id: tag
@@ -96,20 +96,10 @@ jobs:
       - name: Build and publish titiler packages
         if: steps.tag.outputs.tag == steps.module.outputs.version
         env:
-          FLIT_USERNAME: ${{ secrets.PYPI_USERNAME }}
-          FLIT_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-        run: |
-          scripts/publish
-
-      - name: Build and publish titiler meta-package
-        if: steps.tag.outputs.tag == steps.module.outputs.version
-        env:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
         run: |
-          rm -rf dist
-          python setup.py sdist
-          twine upload dist/*
+          scripts/publish
 
   publish-docker:
     needs: [tests]

@@ -1,23 +1,19 @@
-"""Setup titiler metapackage."""
+"""Setup titiler.mosaic."""
 
-from setuptools import setup
+from setuptools import find_namespace_packages, setup
 
 with open("README.md") as f:
     long_description = f.read()
 
-__version__ = "0.6.0a2"
-
-inst_reqs = [
-    f"titiler.core=={__version__}",
-    f"titiler.mosaic=={__version__}",
-    f"titiler.application=={__version__}",
-]
+inst_reqs = ["titiler.core>=0.6.0a1,<0.7", "cogeo-mosaic>=4.1,<4.2"]
+extra_reqs = {
+    "test": ["pytest", "pytest-cov", "pytest-asyncio", "requests"],
+}
 
 
 setup(
-    name="titiler",
-    version=__version__,
-    description="A modern dynamic tile server built on top of FastAPI and Rasterio/GDAL.",
+    name="titiler.mosaic",
+    description="MosaicJSON plugin for TiTiler.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     python_requires=">=3.7",
@@ -29,12 +25,14 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
     ],
-    keywords="COG STAC MosaicJSON FastAPI Tile Server Dynamic",
+    keywords="MosaicJSON",
     author="Vincent Sarago",
     author_email="vincent@developmentseed.org",
     url="https://github.com/developmentseed/titiler",
     license="MIT",
+    packages=find_namespace_packages(exclude=["tests*"]),
+    include_package_data=True,
     zip_safe=False,
     install_requires=inst_reqs,
-    packages=[],
+    extras_require=extra_reqs,
 )

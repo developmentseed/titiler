@@ -1,22 +1,29 @@
-"""Setup titiler metapackage."""
+"""Setup titiler.core."""
 
-from setuptools import setup
+from setuptools import find_namespace_packages, setup
 
 with open("README.md") as f:
     long_description = f.read()
 
-__version__ = "0.6.0a2"
-
 inst_reqs = [
-    f"titiler.core=={__version__}",
-    f"titiler.mosaic=={__version__}",
-    f"titiler.application=={__version__}",
+    "fastapi>=0.73.0",
+    "geojson-pydantic",
+    "jinja2>=2.11.2,<4.0.0",
+    "numpy",
+    "pydantic",
+    "rasterio",
+    "rio-tiler>=3.1,<3.2",
+    "simplejson",
+    "importlib_resources>=1.1.0;python_version<'3.9'",
+    "typing_extensions;python_version<'3.8'",
 ]
+extra_reqs = {
+    "test": ["pytest", "pytest-cov", "pytest-asyncio", "requests"],
+}
 
 
 setup(
-    name="titiler",
-    version=__version__,
+    name="titiler.core",
     description="A modern dynamic tile server built on top of FastAPI and Rasterio/GDAL.",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -29,12 +36,15 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
     ],
-    keywords="COG STAC MosaicJSON FastAPI Tile Server Dynamic",
+    keywords="COG STAC FastAPI",
     author="Vincent Sarago",
     author_email="vincent@developmentseed.org",
     url="https://github.com/developmentseed/titiler",
     license="MIT",
+    packages=find_namespace_packages(exclude=["tests*"]),
+    package_data={"titiler": ["core/templates/*.xml"]},
+    include_package_data=True,
     zip_safe=False,
     install_requires=inst_reqs,
-    packages=[],
+    extras_require=extra_reqs,
 )

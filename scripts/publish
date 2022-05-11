@@ -11,6 +11,11 @@ do
     echo "publishing titiler-${PACKAGE_DIR}"
     pushd ./src/titiler/${PACKAGE_DIR}
     rm -rf dist
-    flit publish --format sdist
+    python setup.py sdist
+    twine upload dist/*
     popd
 done
+
+rm -rf dist
+python setup.py sdist
+twine upload dist/*
