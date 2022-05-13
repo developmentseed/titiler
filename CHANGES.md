@@ -1,5 +1,9 @@
 # Release Notes
 
+## 0.6.0 (2022-05-13)
+
+* no change since `0.6.0a2`
+
 ## 0.6.0a2 (2022-05-11)
 
 * revert to `setup.py` + `setuptools` instead of `pyproject.toml` + `flit` because it broke namespace packages (https://github.com/developmentseed/titiler/pull/472)
