@@ -1,7 +1,7 @@
 
 TiTiler's first goal is to create a lightweight but performant dynamic tile server... but what do we mean by this?
 
-When you zoom/pan on a web map, you are visualizing either vector or raster data that is loaded by your web client (e.g Chrome). Vector Tiles are rendered `On the Fly`, meaning the map library (e.g MapgoxGL) will apply colors or width on the vector it receives to create a visual representation on the map. This is possible because we can encode and compress `vector` data very efficently, which each tile being only couple of kilo octets.
+When you zoom/pan on a web map, you are visualizing either vector or raster data that is loaded by your web client (e.g Chrome). Vector Tiles are rendered `On the Fly`, meaning the map library (e.g MapboxGL) will apply colors or width on the vector it receives to create a visual representation on the map. This is possible because we can encode and compress `vector` data very efficently, which each tile being only couple of kilo octets.
 
 On the other side, raster data is a really dense format, a `256 x 256 x 3` tile (True color image) needs to encode `196 608` values, and depending on the data type (Integer, Float, Complex), a raster tile can be really heavy. Note, if the original data is stored in `Float`, to be able to obtain a visual representation we need to `rescale` the initial data to a `Byte` range of 0 to 255 values.
 
