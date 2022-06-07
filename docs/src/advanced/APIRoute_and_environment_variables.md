@@ -1,9 +1,13 @@
 !!! important
-    This has been deprecated. You can now pass `gdal_config={"GDAL_DISABLE_READDIR_ON_OPEN":"FALSE"}` to the Tiler Factory. This will be passed to a `rasterio.Env()` context manager on top of all gdal related blocks.
+    This has been deprecated. You can now pass `environment_dependency=lambda: {"GDAL_DISABLE_READDIR_ON_OPEN":"FALSE"}` to the Tiler Factory. This will be passed to a `rasterio.Env()` context manager on top of all gdal related blocks.
 
     ```python
     from titiler.core.factory import TilerFactory
-    cog = TilerFactory(reader=COGReader, router_prefix="cog", gdal_config={"GDAL_DISABLE_READDIR_ON_OPEN":"FALSE"})
+    cog = TilerFactory(
+        reader=COGReader,
+        router_prefix="cog",
+        environment_dependency=lambda: {"GDAL_DISABLE_READDIR_ON_OPEN":"FALSE"},
+    )
     ```
 
 Sometimes, specifically when using GDAL, it can be useful to have environment variables set for certain endpoints

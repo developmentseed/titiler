@@ -34,7 +34,7 @@ def apiroute_factory(env: Optional[Dict] = None) -> Type[APIRoute]:
     """
     warnings.warn(
         "'apiroute_factory' has been deprecated and will be removed"
-        "in titiler 0.1.0. Please see `gdal_config` option in endpoint factories.",
+        "in titiler 0.1.0. Please see `environment_dependency` option in endpoint factories.",
         DeprecationWarning,
     )
 

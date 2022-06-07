@@ -136,7 +136,10 @@ class CustomMosaicFactory(MosaicTilerFactory):
         @self.router.post(
             "", response_model=MosaicJSON, response_model_exclude_none=True
         )
-        def create(body: CreateMosaicJSON):
+        def create(
+            body: CreateMosaicJSON,
+            env=Depends(self.environment_dependency),
+        ):
             """Create a MosaicJSON"""
             # Write can write to either a local path, a S3 path...
             # See https://developmentseed.org/cogeo-mosaic/advanced/backends/ for the list of supported backends
@@ -150,7 +153,7 @@ class CustomMosaicFactory(MosaicTilerFactory):
             )
 
             # Write the MosaicJSON using a cogeo-mosaic backend
-            with rasterio.Env(**self.gdal_config):
+            with rasterio.Env(**env):
                 with self.reader(
                     body.url, mosaic_def=mosaic, reader=self.dataset_reader
                 ) as mosaic:
@@ -168,9 +171,12 @@ class CustomMosaicFactory(MosaicTilerFactory):
         @self.router.put(
             "", response_model=MosaicJSON, response_model_exclude_none=True
         )
-        def update_mosaicjson(body: UpdateMosaicJSON):
+        def update_mosaicjson(
+            body: UpdateMosaicJSON,
+            env=Depends(self.environment_dependency),
+        ):
             """Update an existing MosaicJSON"""
-            with rasterio.Env(**self.gdal_config):
+            with rasterio.Env(**env):
                 with self.reader(body.url, reader=self.dataset_reader) as mosaic:
                     features = get_footprints(body.files, max_threads=body.max_threads)
                     try:
