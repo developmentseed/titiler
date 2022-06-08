@@ -99,6 +99,7 @@ theme:
     primary: indigo
     scheme: default
   custom_dir: 'src/overrides'
+  favicon: img/favicon.png
 
 # https://github.com/kylebarron/cogeo-mosaic/blob/mkdocs/mkdocs.yml#L50-L75
 markdown_extensions:
