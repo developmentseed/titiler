@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="500" src="https://user-images.githubusercontent.com/10407788/172713196-77ec7803-3b6b-43a7-b77e-8bf68bd8e51b.png"/>
+  <img width="500" src="https://user-images.githubusercontent.com/10407788/172718020-c2378b7e-a0d4-406e-924c-8ffe54e61596.png"/>
   <p align="center">A modern dynamic tile server built on top of FastAPI and Rasterio/GDAL.</p>
 </p>
 
