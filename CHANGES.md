@@ -1,5 +1,33 @@
 # Release Notes
 
+## 0.7.0 (TBD)
+
+* add `environment_dependency` option in `BaseTilerFactory` to define GDAL environment at runtime.
+* remove `gdal_config` option in `BaseTilerFactory` **breaking**
+
+```python
+# before
+router = TilerFactory(gdal_config={"GDAL_DISABLE_READDIR_ON_OPEN": "FALSE"}).router
+
+# now
+router = TilerFactory(environment_dependency=lambda: {"GDAL_DISABLE_READDIR_ON_OPEN": "FALSE"}).router
+
+
+class ReaddirType(str, Enum):
+
+    false = "false"
+    true = "true"
+    empty_dir = "empty_dir"
+
+
+# or at endpoint call. The user could choose between false/true/empty_dir
+def gdal_env(disable_read: ReaddirType = Query(ReaddirType.false)):
+    return {"GDAL_DISABLE_READDIR_ON_OPEN": disable_read.value.upper()}
+
+router = TilerFactory(environment_dependency=gdal_env).router
+```
+
+
 ## 0.6.0 (2022-05-13)
 
 * no change since `0.6.0a2`

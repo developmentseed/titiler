@@ -95,9 +95,10 @@ class MosaicTilerFactory(BaseTilerFactory):
             src_path=Depends(self.path_dependency),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
+            env=Depends(self.environment_dependency),
         ):
             """Read a MosaicJSON"""
-            with rasterio.Env(**self.gdal_config):
+            with rasterio.Env(**env):
                 with self.reader(
                     src_path,
                     reader=self.dataset_reader,
@@ -121,9 +122,10 @@ class MosaicTilerFactory(BaseTilerFactory):
             src_path=Depends(self.path_dependency),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
+            env=Depends(self.environment_dependency),
         ):
-            """Return the bounds of the COG."""
-            with rasterio.Env(**self.gdal_config):
+            """Return the bounds of the MosaicJSON."""
+            with rasterio.Env(**env):
                 with self.reader(
                     src_path,
                     reader=self.dataset_reader,
@@ -147,9 +149,10 @@ class MosaicTilerFactory(BaseTilerFactory):
             src_path=Depends(self.path_dependency),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
+            env=Depends(self.environment_dependency),
         ):
             """Return basic info."""
-            with rasterio.Env(**self.gdal_config):
+            with rasterio.Env(**env):
                 with self.reader(
                     src_path,
                     reader=self.dataset_reader,
@@ -174,9 +177,10 @@ class MosaicTilerFactory(BaseTilerFactory):
             src_path=Depends(self.path_dependency),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
+            env=Depends(self.environment_dependency),
         ):
             """Return mosaic's basic info as a GeoJSON feature."""
-            with rasterio.Env(**self.gdal_config):
+            with rasterio.Env(**env):
                 with self.reader(
                     src_path,
                     reader=self.dataset_reader,
@@ -238,6 +242,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             ),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
+            env=Depends(self.environment_dependency),
         ):
             """Create map tile from a COG."""
             timings = []
@@ -247,7 +252,7 @@ class MosaicTilerFactory(BaseTilerFactory):
 
             threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
             with Timer() as t:
-                with rasterio.Env(**self.gdal_config):
+                with rasterio.Env(**env):
                     with self.reader(
                         src_path,
                         reader=self.dataset_reader,
@@ -344,6 +349,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             ),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
+            env=Depends(self.environment_dependency),
         ):
             """Return TileJSON document for a COG."""
             route_params = {
@@ -372,7 +378,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             if qs:
                 tiles_url += f"?{urlencode(qs)}"
 
-            with rasterio.Env(**self.gdal_config):
+            with rasterio.Env(**env):
                 with self.reader(
                     src_path,
                     reader=self.dataset_reader,
@@ -423,6 +429,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             render_params=Depends(self.render_dependency),  # noqa
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
+            env=Depends(self.environment_dependency),
         ):
             """OGC WMTS endpoint."""
             route_params = {
@@ -452,7 +459,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             if qs:
                 tiles_url += f"?{urlencode(qs)}"
 
-            with rasterio.Env(**self.gdal_config):
+            with rasterio.Env(**env):
                 with self.reader(
                     src_path,
                     reader=self.dataset_reader,
@@ -514,13 +521,14 @@ class MosaicTilerFactory(BaseTilerFactory):
             dataset_params=Depends(self.dataset_dependency),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
+            env=Depends(self.environment_dependency),
         ):
             """Get Point value for a Mosaic."""
             timings = []
             threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
 
             with Timer() as t:
-                with rasterio.Env(**self.gdal_config):
+                with rasterio.Env(**env):
                     with self.reader(
                         src_path,
                         reader=self.dataset_reader,
@@ -568,9 +576,10 @@ class MosaicTilerFactory(BaseTilerFactory):
             maxy: float = Query(None, description="Top of bounding box"),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
+            env=Depends(self.environment_dependency),
         ):
             """Return a list of assets which overlap a bounding box"""
-            with rasterio.Env(**self.gdal_config):
+            with rasterio.Env(**env):
                 with self.reader(
                     src_path,
                     reader=self.dataset_reader,
@@ -589,9 +598,10 @@ class MosaicTilerFactory(BaseTilerFactory):
             lat: float = Query(None, description="Latitude"),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
+            env=Depends(self.environment_dependency),
         ):
             """Return a list of assets which overlap a point"""
-            with rasterio.Env(**self.gdal_config):
+            with rasterio.Env(**env):
                 with self.reader(
                     src_path,
                     reader=self.dataset_reader,
@@ -611,9 +621,10 @@ class MosaicTilerFactory(BaseTilerFactory):
             src_path=Depends(self.path_dependency),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
+            env=Depends(self.environment_dependency),
         ):
             """Return a list of assets which overlap a given tile"""
-            with rasterio.Env(**self.gdal_config):
+            with rasterio.Env(**env):
                 with self.reader(
                     src_path,
                     reader=self.dataset_reader,
