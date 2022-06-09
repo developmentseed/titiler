@@ -1,6 +1,6 @@
 # Release Notes
 
-## 0.7.0 (TBD)
+## 0.7.0 (2022-06-08)
 
 * add `environment_dependency` option in `BaseTilerFactory` to define GDAL environment at runtime.
 * remove `gdal_config` option in `BaseTilerFactory` **breaking**
@@ -27,6 +27,9 @@ def gdal_env(disable_read: ReaddirType = Query(ReaddirType.false)):
 router = TilerFactory(environment_dependency=gdal_env).router
 ```
 
+### titiler.application
+
+* update `starlette-cramjam` requirement
 
 ## 0.6.0 (2022-05-13)
 
