@@ -5,7 +5,7 @@ from setuptools import find_namespace_packages, setup
 with open("README.md") as f:
     long_description = f.read()
 
-inst_reqs = ["titiler.core>=0.6,<0.7", "cogeo-mosaic>=4.1,<4.2"]
+inst_reqs = ["titiler.core>=0.7,<0.8", "cogeo-mosaic>=4.1,<4.2"]
 extra_reqs = {
     "test": ["pytest", "pytest-cov", "pytest-asyncio", "requests"],
 }
