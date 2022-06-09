@@ -148,7 +148,7 @@ def test_tile(rio, app):
     assert data.shape == (1, 256, 256)
 
     # Test brotli compression
-    headers = {"Accept-Encoding": "br, gzip"}
+    headers = {"Accept-Encoding": "br"}
     response = app.get(
         "/cog/tiles/8/87/48.npy?url=https://myurl.com/cog.tif&nodata=0&return_mask=false",
         headers=headers,
@@ -157,7 +157,7 @@ def test_tile(rio, app):
     assert response.headers["content-encoding"] == "br"
 
     # Exclude png from compression middleware
-    headers = {"Accept-Encoding": "br, gzip"}
+    headers = {"Accept-Encoding": "br"}
     response = app.get(
         "/cog/tiles/8/87/48.png?url=https://myurl.com/cog.tif&nodata=0&return_mask=false",
         headers=headers,
