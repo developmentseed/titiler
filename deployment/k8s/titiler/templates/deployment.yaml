@@ -33,7 +33,7 @@ spec:
           {{- end }}
           ports:
             - name: http
-              containerPort: 80
+              containerPort: {{ .Values.env.PORT }}
               protocol: TCP
           livenessProbe:
             httpGet:
