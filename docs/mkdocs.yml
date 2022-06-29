@@ -69,7 +69,7 @@ nav:
       - routing: api/titiler/core/routing.md
       - errors: api/titiler/core/errors.md
       - enums: api/titiler/core/resources/enums.md
-
+      - middleware: api/titiler/core/middleware.md
     - titiler.mosaic:
       - factory: api/titiler/mosaic/factory.md
       - enums: api/titiler/mosaic/resources/enums.md

@@ -53,7 +53,8 @@ $ mkdocs gh-deploy -f docs/mkdocs.yml
    titiler.core.utils \
    titiler.core.routing \
    titiler.core.errors \
-   titiler.core.resources.enums
+   titiler.core.resources.enums \
+   titiler.core.middleware
 
    pdocs as_markdown \
    --output_dir docs/src/api \

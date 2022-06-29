@@ -21,6 +21,20 @@ See default endpoints documentation pages:
 * [`/stac` - Spatio Temporal Asset Catalog](endpoints/stac.md)
 * [`/tms` - TileMatrixSets](endpoints/tms.md)
 
+#### Settings
+
+The default application can be customized using environment variables defined in `titiler.application.settings.ApiSettings` class. Each variable needs to be prefixed with `TITILER_API_`.
+
+- `NAME` (str): name of the application. Defaults to `titiler`.
+- `CORS_ORIGINS` (str, `,` delimited origins): allowed CORS origin. Defaults to `*`.
+- `CACHECONTROL` (str): Cache control header to add to responses. Defaults to `"public, max-age=3600"`.
+- `ROOT_PATH` (str): path behind proxy.
+- `DEBUG` (str): adds `LoggerMiddleware` and `TotalTimeMiddleware` in the middleware stack.
+- `DISABLE_COG` (bool): disable `/cog` endpoints.
+- `DISABLE_STAC` (bool): disable `/stac` endpoints.
+- `DISABLE_MOSAIC` (bool): disable `/mosaic` endpoints.
+- `LOWER_CASE_QUERY_PARAMETERS` (bool): transform all query-parameters to lower case (see https://github.com/developmentseed/titiler/pull/321).
+
 ## Development
 
 To install and run `Titiler` from sources and for developing the `Titiler` code itself:
