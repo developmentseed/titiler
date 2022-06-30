@@ -29,6 +29,7 @@ workflows:
     jobs:
       - k8s-build-deploy/build-lint-manifest:
           circleci_ssh_fingerprint: *fingerprint
+          prerun_args: "-v 2.6.2"
           <<: *branch_config
           context: *context
           <<: *filter_config

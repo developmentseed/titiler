@@ -68,5 +68,5 @@ app:
       memory: 10Gi
 redis:
   enabled: true
-  cluster:
-    enabled: true
+  replica:
+    replicaCount: 1
