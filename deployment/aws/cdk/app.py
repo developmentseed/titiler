@@ -41,7 +41,7 @@ class titilerLambdaStack(core.Stack):
         **kwargs: Any,
     ) -> None:
         """Define stack."""
-        super().__init__(scope, id, *kwargs)
+        super().__init__(scope, id, **kwargs)
 
         permissions = permissions or []
         environment = environment or {}
