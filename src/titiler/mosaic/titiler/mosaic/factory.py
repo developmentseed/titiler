@@ -15,6 +15,7 @@ from morecantile import TileMatrixSet
 from rio_tiler.constants import MAX_THREADS
 from rio_tiler.io import BaseReader, COGReader, MultiBandReader, MultiBaseReader
 from rio_tiler.models import Bounds
+from rio_tiler.mosaic.methods.base import MosaicMethodBase
 
 from titiler.core.dependencies import DefaultDependency, WebMercatorTMSParams
 from titiler.core.factory import BaseTilerFactory, img_endpoint_params, templates
@@ -29,6 +30,18 @@ from fastapi import Depends, Path, Query
 
 from starlette.requests import Request
 from starlette.responses import Response
+
+
+def PixelSelectionParams(
+    pixel_selection: PixelSelectionMethod = Query(
+        PixelSelectionMethod.first,
+        description="Pixel selection method.",
+    )
+) -> MosaicMethodBase:
+    """
+    Returns the mosaic method used to combine datasets together.
+    """
+    return pixel_selection.method()
 
 
 @dataclass
@@ -51,6 +64,8 @@ class MosaicTilerFactory(BaseTilerFactory):
     tms_dependency: Callable[..., TileMatrixSet] = WebMercatorTMSParams
 
     backend_dependency: Type[DefaultDependency] = DefaultDependency
+
+    pixel_selection_dependency: Callable[..., MosaicMethodBase] = PixelSelectionParams
 
     def register_routes(self):
         """
@@ -227,9 +242,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             src_path=Depends(self.path_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
-            pixel_selection: PixelSelectionMethod = Query(
-                PixelSelectionMethod.first, description="Pixel selection method."
-            ),
+            pixel_selection=Depends(self.pixel_selection_dependency),
             postprocess_params=Depends(self.process_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
@@ -266,7 +279,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                             x,
                             y,
                             z,
-                            pixel_selection=pixel_selection.method(),
+                            pixel_selection=pixel_selection,
                             tilesize=tilesize,
                             threads=threads,
                             tile_buffer=tile_buffer,
@@ -334,9 +347,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             ),
             layer_params=Depends(self.layer_dependency),  # noqa
             dataset_params=Depends(self.dataset_dependency),  # noqa
-            pixel_selection: PixelSelectionMethod = Query(
-                PixelSelectionMethod.first, description="Pixel selection method."
-            ),  # noqa
+            pixel_selection=Depends(self.pixel_selection_dependency),  # noqa
             postprocess_params=Depends(self.process_dependency),  # noqa
             colormap=Depends(self.colormap_dependency),  # noqa
             render_params=Depends(self.render_dependency),  # noqa
@@ -421,9 +432,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             ),
             layer_params=Depends(self.layer_dependency),  # noqa
             dataset_params=Depends(self.dataset_dependency),  # noqa
-            pixel_selection: PixelSelectionMethod = Query(
-                PixelSelectionMethod.first, description="Pixel selection method."
-            ),  # noqa
+            pixel_selection=Depends(self.pixel_selection_dependency),  # noqa
             postprocess_params=Depends(self.process_dependency),  # noqa
             colormap=Depends(self.colormap_dependency),  # noqa
             render_params=Depends(self.render_dependency),  # noqa
