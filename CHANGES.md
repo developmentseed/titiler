@@ -1,5 +1,11 @@
 # Release Notes
 
+## Unreleased
+
+### titiler.mosaic
+
+* add `pixel_selection_dependency` options in `MosaicTilerFactory` to allow default method override (author @samn, https://github.com/developmentseed/titiler/pull/495)
+
 ## 0.7.0 (2022-06-08)
 
 * add `environment_dependency` option in `BaseTilerFactory` to define GDAL environment at runtime.
