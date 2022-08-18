@@ -347,8 +347,10 @@ class S3Proxy(BaseTilerFactory):
 
             s3 = boto3.client('s3', **client_kwargs)
 
+            # need to remove the leading s3:// from the bucketname
+            bucket = MOSAIC_BACKEND.split('/')[2]
             content = s3.get_object(
-              Bucket=MOSAIC_BACKEND,
+              Bucket=bucket,
               Key=list_id
             )
 
