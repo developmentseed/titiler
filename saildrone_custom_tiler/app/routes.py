@@ -357,6 +357,8 @@ class S3Proxy(BaseTilerFactory):
               Key=key
             )
 
+            content = json.dumps(content)
+
             if OptionalHeader.x_assets in self.optional_headers:
                 headers["X-Assets"] = ",".join(data.assets)
 
