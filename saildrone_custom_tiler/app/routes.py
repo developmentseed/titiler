@@ -352,10 +352,12 @@ class S3Proxy(BaseTilerFactory):
               
             # and force the list to the right location
             key = "mosaic_maps/nrt/" + list_id
-            content = s3.get_object(
+            response = s3.get_object(
               Bucket=bucket,
               Key=key
             )
+            
+            content = response['Body'].read()
 
             content = json.dumps(content, indent=4, sort_keys=True, default=str)
 
@@ -387,10 +389,12 @@ class S3Proxy(BaseTilerFactory):
               
             # and force the list to the right location
             key = "geotiffs/nrt/" + drone_id + "/" + deployment_id + "/" + filename
-            content = s3.get_object(
+            response = s3.get_object(
               Bucket=bucket,
               Key=key
             )
+
+            content = response['Body'].read()
 
             if OptionalHeader.x_assets in self.optional_headers:
                 headers["X-Assets"] = ",".join(data.assets)
