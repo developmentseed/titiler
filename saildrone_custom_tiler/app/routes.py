@@ -349,9 +349,12 @@ class S3Proxy(BaseTilerFactory):
 
             # need to remove the leading s3:// from the bucketname
             bucket = MOSAIC_BACKEND.split('/')[2]
+              
+            # and force the list to the right location
+            key = "mosaic_maps/nrt/" + list_id
             content = s3.get_object(
               Bucket=bucket,
-              Key=list_id
+              Key=key
             )
 
             if OptionalHeader.x_assets in self.optional_headers:
