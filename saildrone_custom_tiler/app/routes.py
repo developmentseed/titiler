@@ -51,6 +51,7 @@ MOSAIC_BACKEND = os.getenv("TITILER_MOSAIC_BACKEND", default="")
 MOSAIC_HOST = os.getenv("TITILER_MOSAIC_HOST", default="")
 DEFAULT_REGION = os.getenv("AWS_DEFAULT_REGION", default="us-west-2")
 
+ENV = os.getenv("SD_ENV", default="production")
 
 @dataclass
 class TilerFactory(BaseTilerFactory):
@@ -364,6 +365,11 @@ class S3Proxy(BaseTilerFactory):
             if OptionalHeader.x_assets in self.optional_headers:
                 headers["X-Assets"] = ",".join(data.assets)
 
+            # open cors for testing
+            if "staging" in ENV:
+              headers["Access-Control-Allow-Credentials"] = "true"
+              headers["Access-Control-Allow-Origin"] = "*"
+
             return Response(content, media_type="application/json", headers=headers)
 
     def proxy_tif(self):
@@ -401,6 +407,11 @@ class S3Proxy(BaseTilerFactory):
 
             if OptionalHeader.x_assets in self.optional_headers:
                 headers["X-Assets"] = ",".join(data.assets)
+          
+            # open cors for testing
+            if "staging" in ENV:
+              headers["Access-Control-Allow-Credentials"] = "true"
+              headers["Access-Control-Allow-Origin"] = "*"
 
             return Response(content, media_type=MediaType.tif.value, headers=headers)
 
