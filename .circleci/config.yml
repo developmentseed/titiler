@@ -11,7 +11,8 @@ docker_config: &docker_config
 
 branch_config: &branch_config
   production_branch: &production_branch prod
-  staging_branch: &staging_branch sd-master
+  #staging_branch: &staging_branch sd-master
+  staging_branch: &staging_branch df/nrt-file-list
   development_branch: &development_branch dev
 
 context: &context platform-k8s
