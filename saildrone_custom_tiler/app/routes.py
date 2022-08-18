@@ -359,7 +359,7 @@ class S3Proxy(BaseTilerFactory):
             
             content = response['Body'].read()
 
-            content = json.dumps(content.decode(), indent=4, sort_keys=True, default=str)
+            content = json.dump(content.decode())
 
             if OptionalHeader.x_assets in self.optional_headers:
                 headers["X-Assets"] = ",".join(data.assets)
