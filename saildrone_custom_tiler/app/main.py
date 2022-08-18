@@ -12,6 +12,7 @@ from titiler.application.custom import templates
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 
 from titiler.core.dependencies import DefaultDependency
 from titiler.mosaic.factory import MosaicTilerFactory
@@ -25,6 +26,29 @@ from .routes import sd_mosaic
 from .routes import sd_s3_proxy
 
 app = FastAPI(title="My simple app with cache")
+
+
+ENV = os.getenv("SD_ENV", default="production")
+
+# open cors for testing
+if "staging" in ENV:
+    origins = [
+        "http://localhost.saildrone.com",
+        "https://localhost.saildrone.com",
+        "http://localhost",
+        "https://localhost",
+        "http://localhost:8080",
+        "http://localhost:4000",
+        "https://localhost:4000",
+    ]
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 # Setup Cache on Startup
 app.add_event_handler("startup", setup_cache)
