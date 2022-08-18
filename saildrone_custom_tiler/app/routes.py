@@ -28,7 +28,8 @@ from rio_tiler.errors import EmptyMosaicError
 import numpy
 
 from titiler.core.factory import BaseTilerFactory, img_endpoint_params
-#from titiler.core.dependencies import ImageParams, MetadataParams, TMSParams
+
+# from titiler.core.dependencies import ImageParams, MetadataParams, TMSParams
 from titiler.core.dependencies import ImageParams, TMSParams, DefaultDependency
 from titiler.core.models.mapbox import TileJSON
 from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
@@ -52,6 +53,7 @@ MOSAIC_HOST = os.getenv("TITILER_MOSAIC_HOST", default="")
 DEFAULT_REGION = os.getenv("AWS_DEFAULT_REGION", default="us-west-2")
 
 ENV = os.getenv("SD_ENV", default="production")
+
 
 @dataclass
 class TilerFactory(BaseTilerFactory):
@@ -175,11 +177,10 @@ class TilerFactory(BaseTilerFactory):
 sd_cog = TilerFactory()
 
 
-def MosaicPathParams(
-    mosaic: str = Query(..., description="mosaic name")
-) -> str:
+def MosaicPathParams(mosaic: str = Query(..., description="mosaic name")) -> str:
     """Create dataset path from args"""
     return f"{MOSAIC_BACKEND}{MOSAIC_HOST}{mosaic}.json"
+
 
 @dataclass
 class MosaicTiler(MosaicTilerFactory):
@@ -190,9 +191,8 @@ class MosaicTiler(MosaicTilerFactory):
     and TITILER_MOSAIC_BACKEND is added to path if it exists
     """
 
-
     def register_routes(self):
-        """This Method register routes to the router. """
+        """This Method register routes to the router."""
 
         self.tile()
         self.tilejson()
@@ -304,8 +304,8 @@ class MosaicTiler(MosaicTilerFactory):
 
             return Response(content, media_type=format.mediatype, headers=headers)
 
-sd_mosaic = MosaicTiler(path_dependency=MosaicPathParams)
 
+sd_mosaic = MosaicTiler(path_dependency=MosaicPathParams)
 
 
 @dataclass
@@ -323,15 +323,13 @@ class S3Proxy(BaseTilerFactory):
     """
 
     def register_routes(self):
-        """This Method register routes to the router. """
+        """This Method register routes to the router."""
 
         self.proxy_list()
         self.proxy_tif()
 
     def proxy_list(self):
-
         @self.router.get(r"/list/{list_id}")
-
         @cached(ttl=60)
         def list(
             list_id: str = Path(..., description="name of the list in s3"),
@@ -344,21 +342,18 @@ class S3Proxy(BaseTilerFactory):
             content: Dict[str, str] = {}
 
             client_kwargs = {}
-            client_kwargs['region_name'] = DEFAULT_REGION
+            client_kwargs["region_name"] = DEFAULT_REGION
 
-            s3 = boto3.client('s3', **client_kwargs)
+            s3 = boto3.client("s3", **client_kwargs)
 
             # need to remove the leading s3:// from the bucketname
-            bucket = MOSAIC_BACKEND.split('/')[2]
-              
+            bucket = MOSAIC_BACKEND.split("/")[2]
+
             # and force the list to the right location
             key = "mosaic_maps/nrt/" + list_id
-            response = s3.get_object(
-              Bucket=bucket,
-              Key=key
-            )
-            
-            content = response['Body'].read()
+            response = s3.get_object(Bucket=bucket, Key=key)
+
+            content = response["Body"].read()
 
             content = content.decode()
 
@@ -367,8 +362,8 @@ class S3Proxy(BaseTilerFactory):
 
             # open cors for testing
             if "staging" in ENV:
-              headers["Access-Control-Allow-Credentials"] = "true"
-              headers["Access-Control-Allow-Origin"] = "*"
+                headers["Access-Control-Allow-Credentials"] = "true"
+                headers["Access-Control-Allow-Origin"] = "*"
 
             return Response(content, media_type="application/json", headers=headers)
 
@@ -389,30 +384,28 @@ class S3Proxy(BaseTilerFactory):
             headers: Dict[str, str] = {}
 
             client_kwargs = {}
-            client_kwargs['region_name'] = DEFAULT_REGION
+            client_kwargs["region_name"] = DEFAULT_REGION
 
-            s3 = boto3.client('s3', **client_kwargs)
+            s3 = boto3.client("s3", **client_kwargs)
 
             # need to remove the leading s3:// from the bucketname
-            bucket = MOSAIC_BACKEND.split('/')[2]
-              
+            bucket = MOSAIC_BACKEND.split("/")[2]
+
             # and force the list to the right location
             key = "geotiffs/nrt/" + drone_id + "/" + deployment_id + "/" + filename
-            response = s3.get_object(
-              Bucket=bucket,
-              Key=key
-            )
+            response = s3.get_object(Bucket=bucket, Key=key)
 
-            content = response['Body'].read()
+            content = response["Body"].read()
 
             if OptionalHeader.x_assets in self.optional_headers:
                 headers["X-Assets"] = ",".join(data.assets)
-          
+
             # open cors for testing
             if "staging" in ENV:
-              headers["Access-Control-Allow-Credentials"] = "true"
-              headers["Access-Control-Allow-Origin"] = "*"
+                headers["Access-Control-Allow-Credentials"] = "true"
+                headers["Access-Control-Allow-Origin"] = "*"
 
             return Response(content, media_type=MediaType.tif.value, headers=headers)
+
 
 sd_s3_proxy = S3Proxy()

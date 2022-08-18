@@ -29,9 +29,7 @@ class cached(aiocache.cached):
                 value.headers["X-Cache"] = "HIT"
             return value
         except Exception:
-            aiocache.logger.exception(
-                "Couldn't retrieve %s, unexpected error", key
-            )
+            aiocache.logger.exception("Couldn't retrieve %s, unexpected error", key)
 
     async def decorator(
         self,
@@ -43,18 +41,18 @@ class cached(aiocache.cached):
         **kwargs,
     ):
 
-        self.cache = aiocache.caches.get('redis_alt')
+        self.cache = aiocache.caches.get("redis_alt")
         key = self.get_cache_key(f, args, kwargs)
 
         # if requesting to overwrite or delete from cache, replace cache_action string so that
         # key is the same as one to be overwritten
         if "cache_overwrite" in key:
-          cache_read = False
-          key = key.replace("cache_overwrite", "cache_read")
+            cache_read = False
+            key = key.replace("cache_overwrite", "cache_read")
         elif "cache_delete" in key:
-          key = key.replace("cache_delete", "cache_read")
-          num_deleted = await self.cache.delete(key)
-          return 
+            key = key.replace("cache_delete", "cache_read")
+            num_deleted = await self.cache.delete(key)
+            return
 
         if cache_read:
             value = await self.get_from_cache(key)
@@ -81,24 +79,19 @@ def setup_cache():
 
     redis_host = os.getenv("REDIS_HOST", default="redis")
     redis_port = os.getenv("REDIS_PORT", default=6379)
-    
-    config: Dict[str, Any] = {
-        'default': {
-            'cache': "aiocache.SimpleMemoryCache",
-            'serializer': {
-                'class': "aiocache.serializers.StringSerializer"
-            }
-        },
-        'redis_alt': {
-            'cache': "aiocache.RedisCache",
-            'endpoint': redis_host,
-            'port': redis_port,
-            'serializer': {
-                'class': "aiocache.serializers.PickleSerializer"
-            }
-        }
-    }
 
+    config: Dict[str, Any] = {
+        "default": {
+            "cache": "aiocache.SimpleMemoryCache",
+            "serializer": {"class": "aiocache.serializers.StringSerializer"},
+        },
+        "redis_alt": {
+            "cache": "aiocache.RedisCache",
+            "endpoint": redis_host,
+            "port": redis_port,
+            "serializer": {"class": "aiocache.serializers.PickleSerializer"},
+        },
+    }
 
     if cache_settings.ttl is not None:
         config["ttl"] = cache_settings.ttl
