@@ -329,6 +329,7 @@ class S3Proxy(BaseTilerFactory):
     def proxy(self):
 
         @self.router.get(r"/list/{list_id}")
+        @self.router.get(r"/geotiff/{drone_id}/{deployment_id}/{filename}")
 
         @cached(ttl=60)
         def list(
@@ -342,7 +343,6 @@ class S3Proxy(BaseTilerFactory):
             content: Dict[str, str] = {}
 
             client_kwargs = {}
-            #client_kwargs['endpoint_url'] = MOSAIC_BACKEND
             client_kwargs['region_name'] = DEFAULT_REGION
 
             s3 = boto3.client('s3', **client_kwargs)
@@ -363,5 +363,38 @@ class S3Proxy(BaseTilerFactory):
                 headers["X-Assets"] = ",".join(data.assets)
 
             return Response(content, media_type="application/json", headers=headers)
+
+        # cache for 24 hrs
+        @cached(ttl=86400)
+        def geotiff(
+            drone_id: str = Path(..., description="drone id"),
+            deployment_id: str = Path(..., description="deployment id"),
+            filename: str = Path(..., description="filename for the geotiff to fetch"),
+            cache_action: str = Query(
+                "cache_read", description="Read from cache or overwrite"
+            ),
+        ):
+
+            headers: Dict[str, str] = {}
+
+            client_kwargs = {}
+            client_kwargs['region_name'] = DEFAULT_REGION
+
+            s3 = boto3.client('s3', **client_kwargs)
+
+            # need to remove the leading s3:// from the bucketname
+            bucket = MOSAIC_BACKEND.split('/')[2]
+              
+            # and force the list to the right location
+            key = "geotiffs/nrt/" + drone_id + "/" + deployment_id + "/" + filename
+            content = s3.get_object(
+              Bucket=bucket,
+              Key=key
+            )
+
+            if OptionalHeader.x_assets in self.optional_headers:
+                headers["X-Assets"] = ",".join(data.assets)
+
+            return Response(content, media_type=MediaType.tif.value, headers=headers)
 
 sd_s3_proxy = S3Proxy()
