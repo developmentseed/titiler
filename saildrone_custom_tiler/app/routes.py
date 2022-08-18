@@ -330,7 +330,7 @@ class S3Proxy(BaseTilerFactory):
 
         @self.router.get(r"/list/{list_id}")
 
-        @cached()
+        @cached(ttl=60)
         def list(
             list_id: str = Path(..., description="name of the list in s3"),
             cache_action: str = Query(
