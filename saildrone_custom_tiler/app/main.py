@@ -20,8 +20,9 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse
 
 from .cache import setup_cache
-from .routes import sd_cog
+#from .routes import sd_cog
 from .routes import sd_mosaic
+from .routes import sd_s3_proxy
 
 app = FastAPI(title="My simple app with cache")
 
@@ -32,10 +33,12 @@ add_exception_handlers(app, DEFAULT_STATUS_CODES)
 #print(cog.router)
 #app.include_router(sd_cog.router, tags=["Cloud Optimized GeoTIFF"])
 
-#print(mosaic.router)
+
+# mosaic endpoint used for Daily Product png tiles from collection of geotiffs
 app.include_router(sd_mosaic.router, prefix="/mosaic", tags=["Custom backend mosaic"])
 
-
+# s3 proxy endpoint for NRT geotiffs and json lists of desired files
+app.include_router(sd_s3_proxy.router, prefix="/nrt", tags=["s3 proxy for NRT"])
 
 
 @app.get("/healthz", description="Health Check", tags=["Health Check"])

@@ -6,6 +6,9 @@ app/routes.py
 import os
 import re
 
+import json
+import boto3
+
 import rasterio
 
 from dataclasses import dataclass
@@ -46,6 +49,7 @@ from cogeo_mosaic.errors import (
 
 MOSAIC_BACKEND = os.getenv("TITILER_MOSAIC_BACKEND", default="")
 MOSAIC_HOST = os.getenv("TITILER_MOSAIC_HOST", default="")
+DEFAULT_REGION = os.getenv("AWS_DEFAULT_REGION", default="us-west-2")
 
 
 @dataclass
@@ -300,3 +304,57 @@ class MosaicTiler(MosaicTilerFactory):
             return Response(content, media_type=format.mediatype, headers=headers)
 
 sd_mosaic = MosaicTiler(path_dependency=MosaicPathParams)
+
+
+
+@dataclass
+class S3Proxy(BaseTilerFactory):
+    # Default reader is set to COGReader
+    reader: Type[BaseReader] = COGReader
+
+    # Endpoint Dependencies
+    img_dependency: Type[DefaultDependency] = ImageParams
+    """
+
+    Note this is a really simple s3 proxy with only few endpoints.
+    end points are cached
+    and TITILER_MOSAIC_BACKEND is added to path if it exists
+    """
+
+    def register_routes(self):
+        """This Method register routes to the router. """
+
+        self.proxy()
+
+    def proxy(self):
+
+        @self.router.get(r"/list/{list_id}")
+
+        @cached()
+        def list(
+            list_id: str = Path(..., description="name of the list in s3"),
+            cache_action: str = Query(
+                "cache_read", description="Read from cache or overwrite"
+            ),
+        ):
+
+            headers: Dict[str, str] = {}
+            content: Dict[str, str] = {}
+
+            client_kwargs = {}
+            #client_kwargs['endpoint_url'] = MOSAIC_BACKEND
+            client_kwargs['region_name'] = DEFAULT_REGION
+
+            s3 = boto3.client('s3', **client_kwargs)
+
+            content = s3.get_object(
+              Bucket=MOSAIC_BACKEND,
+              Key=list_id
+            )
+
+            if OptionalHeader.x_assets in self.optional_headers:
+                headers["X-Assets"] = ",".join(data.assets)
+
+            return Response(content, media_type="application/json", headers=headers)
+
+sd_s3_proxy = S3Proxy()
