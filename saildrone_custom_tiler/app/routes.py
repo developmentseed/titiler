@@ -324,12 +324,12 @@ class S3Proxy(BaseTilerFactory):
     def register_routes(self):
         """This Method register routes to the router. """
 
-        self.proxy()
+        self.proxy_list()
+        self.proxy_tif()
 
-    def proxy(self):
+    def proxy_list(self):
 
         @self.router.get(r"/list/{list_id}")
-        @self.router.get(r"/geotiff/{drone_id}/{deployment_id}/{filename}")
 
         @cached(ttl=60)
         def list(
@@ -365,6 +365,9 @@ class S3Proxy(BaseTilerFactory):
                 headers["X-Assets"] = ",".join(data.assets)
 
             return Response(content, media_type="application/json", headers=headers)
+
+    def proxy_tif(self):
+        @self.router.get(r"/geotiff/{drone_id}/{deployment_id}/{filename}")
 
         # cache for 24 hrs
         @cached(ttl=86400)
