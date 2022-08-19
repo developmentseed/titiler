@@ -26,6 +26,7 @@ services:
       - PYTHONWARNINGS=ignore
       - VSI_CACHE=TRUE
       - VSI_CACHE_SIZE=536870912
+      - AWS_DEFAULT_REGION=us-west-2
       # GDAL VSI Config
       # https://gdal.org/user/virtual_file_systems.html#vsis3-aws-s3-files
       # https://gdal.org/user/virtual_file_systems.html#vsigs-google-cloud-storage-files
