@@ -49,7 +49,7 @@ jobs:
           pdocs as_markdown \
             --output_dir docs/src/api \
             --exclude_source \
-            --overwrite \6.5
+            --overwrite \
             titiler.mosaic.factory \
             titiler.mosaic.resources.enums \
             titiler.mosaic.errors
