@@ -2,6 +2,8 @@
 
 **requirements**: titiler.core, aiocache[redis]
 
+Note: Use aioredis 1.3 because aiocache [doesnt work](https://github.com/aio-libs/aiocache/issues/543) with aioredis version [2.0](https://github.com/aio-libs/aioredis-py/releases/tag/v2.0.0)
+
 1 - Cache settings
 
 ```python
@@ -20,6 +22,7 @@ class CacheSettings(BaseSettings):
 
     endpoint: Optional[str] = None
     ttl: int = 3600
+    namespace: str = ""
 
     class Config:
         """model config"""
@@ -29,6 +32,12 @@ class CacheSettings(BaseSettings):
 
 
 cache_setting = CacheSettings()
+```
+
+Env file example with redis URI
+
+```
+CACHE_ENDPOINT=redis://127.0.0.1:6379/0
 ```
 
 2 - Cache plugin
@@ -121,6 +130,12 @@ def setup_cache():
         config["endpoint"] = url.hostname
         config["port"] = str(url.port)
 
+        # Add other configuration into config here, Example for namespace:
+        """
+        if cache_settings.namespace != "":
+            config["namespace"] = cache_settings.namespace
+        """
+
         if url.password:
             config["password"] = url.password
 
@@ -180,7 +195,12 @@ class TilerFactory(BaseTilerFactory):
 
         @self.router.get(r"/tiles/{z}/{x}/{y}", **img_endpoint_params)
         @self.router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}", **img_endpoint_params)
-        @cached()
+        """
+        Add default cache config dictionary into cached alias.
+
+        Note: if alias is used, other arguments in cached will be ignored. Add other arguments into default dicttionary in setup_cache function.
+        """
+        @cached(alias="default")
         def tile(
             z: int = Path(..., ge=0, le=30, description="TMS tiles's zoom level"),
             x: int = Path(..., description="TMS tiles's column"),
@@ -232,7 +252,7 @@ class TilerFactory(BaseTilerFactory):
             responses={200: {"description": "Return a tilejson"}},
             response_model_exclude_none=True,
         )
-        @cached()
+        @cached(alias="default")
         def tilejson(
             request: Request,
             tms: TileMatrixSet = Depends(self.tms_dependency),
@@ -278,6 +298,20 @@ class TilerFactory(BaseTilerFactory):
 
 
 cog = TilerFactory()
+```
+
+Other endpoints can also be configured into using cache with the same steps as above, change the factory class into the desired endpoints, for example to add cache into mosaic endpoints:
+
+```python
+from titiler.mosaic.factory import MosaicTilerFactory
+
+@dataclass
+class CustomMosaicTilerFactory(MosaicTilerFactory):
+    ...
+
+mosaic = CustomMosaicTilerFactory(
+    colormap_dependency=ColorMapParams, router_prefix="mosaicjson"
+)
 ```
 
 4 - Create the Tiler app with our custom `DatasetPathParams`
