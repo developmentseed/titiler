@@ -11,6 +11,7 @@ on:
       - 'CONTRIBUTING.md'
       - 'deployment/**'
       - 'docs/**'
+      - '.github/workflows/deploy_mkdocs.yml'
 
 jobs:
   build:
