@@ -11,6 +11,7 @@ on:
       - 'CONTRIBUTING.md'
       - 'deployment/**'
       - 'docs/**'
+      - '.github/workflows/deploy_mkdocs.yml'
 
 jobs:
   build:
@@ -29,7 +30,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install src/titiler/core src/titiler/mosaic src/titiler/application
-          python -m pip install nbconvert mkdocs mkdocs-material mkdocs-jupyter pygments pdocs
+          python -m pip install nbconvert==6.5.3 mkdocs mkdocs-material mkdocs-jupyter pygments pdocs
 
       - name: update API docs
         run: |
