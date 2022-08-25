@@ -1,8 +1,11 @@
 # Dockerfile for running titiler application with uvicorn server
 # Size ~600MB
-ARG PYTHON_VERSION=3.9
-
-FROM python:${PYTHON_VERSION}-slim
+# R: Failed to process file dockerfiles/Dockerfile.uvicorn
+# Could not automatically modify your base image, as it is fragmented over several statements.
+ARG PYTHON_VERSION=3.11
+#FROM python:${PYTHON_VERSION}-slim
+FROM python:${PYTHON_VERSION}-rc-slim
+#FROM python:python:3.11-rc-slim
 
 RUN apt-get update && apt-get install curl -y
 
