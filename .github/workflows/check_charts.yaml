@@ -1,0 +1,78 @@
+name: Lint and Test Charts
+
+on: 
+  push:
+    branches:
+    - master
+    - chartsimprovements
+    tags:
+    - '*'
+    paths:
+      # Only run test and docker publish if some code have changed
+      - 'deployment/k8s/charts/**'
+      - '.github/workflows/check_charts.yaml'
+      - 'setup.cfg'
+  pull_request:
+
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Check Version
+        run: |
+          current_version=$(grep 'current_version =' setup.cfg | cut -f2 -d= | tr -d ' ')
+          app_version=$(grep 'appVersion:' deployment/k8s/charts/Chart.yaml | cut -f2 -d: | tr -d ' ')
+          if [[ "$current_version" != "$app_version" ]]; then
+            echo "❌ current version from setup.cfg ($current_version) and appVersion from Chart.yaml ($app_version) differs";
+            exit 1;
+          fi
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: v3.9.2
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2.2.1
+
+      - name: Run chart-testing (list-changed)
+        id: list-changed
+        run: |
+          changed=$(ct list-changed --chart-dirs deployment/k8s --target-branch ${{ github.event.repository.default_branch }})
+          if [[ -n "$changed" ]]; then
+            echo "::set-output name=changed::true"
+          fi
+
+      - name: Run chart-testing (lint)
+        run: ct lint --chart-dirs deployment/k8s --target-branch ${{ github.event.repository.default_branch }}
+
+      - name: Build container
+        uses: docker/build-push-action@v2
+        if: steps.list-changed.outputs.changed == 'true'
+        with:
+          # See https://github.com/developmentseed/titiler/discussions/387
+          platforms: linux/amd64
+          context: .
+          file: dockerfiles/Dockerfile.gunicorn
+          push: false
+          tags: "titiler:dev"
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.2.0
+        if: steps.list-changed.outputs.changed == 'true'
+
+      - name: Load container image in kind cluster
+        run: kind load docker-image titiler:dev --name chart-testing
+        if: steps.list-changed.outputs.changed == 'true'
+
+      - name: Run chart-testing (install)
+        run: ct install --chart-dirs deployment/k8s
