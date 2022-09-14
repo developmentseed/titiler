@@ -2,7 +2,7 @@
 replicaCount: 1
 
 image:
-  repository: public.ecr.aws/developmentseed/titiler
+  repository: ghcr.io/developmentseed/titiler
   tag: latest
   pullPolicy: IfNotPresent
 
