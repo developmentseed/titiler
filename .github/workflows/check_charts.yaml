@@ -55,8 +55,23 @@ jobs:
       - name: Run chart-testing (lint)
         run: ct lint --chart-dirs deployment/k8s --target-branch ${{ github.event.repository.default_branch }}
 
+      - name: Build container
+        uses: docker/build-push-action@v2
+        if: steps.list-changed.outputs.changed == 'true'
+        with:
+          # See https://github.com/developmentseed/titiler/discussions/387
+          platforms: linux/amd64
+          context: .
+          file: dockerfiles/Dockerfile.gunicorn
+          push: false
+          tags: "titiler:dev"
+
       - name: Create kind cluster
         uses: helm/kind-action@v1.2.0
+        if: steps.list-changed.outputs.changed == 'true'
+
+      - name: Load container image in kind cluster
+        run: kind load docker-image titiler:dev --name chart-testing
         if: steps.list-changed.outputs.changed == 'true'
 
       - name: Run chart-testing (install)
