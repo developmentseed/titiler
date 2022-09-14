@@ -11,6 +11,7 @@ on:
       # Only run test and docker publish if some code have changed
       - 'deployment/k8s/charts/**'
       - '.github/workflows/check_charts.yaml'
+      - 'setup.cfg'
   pull_request:
 
 jobs:
