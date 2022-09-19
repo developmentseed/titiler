@@ -86,7 +86,7 @@ app.add_middleware(
 app.add_middleware(
     CacheControlMiddleware,
     cachecontrol=api_settings.cachecontrol,
-    exclude_path={r"/healthz"},
+    exclude_path={api_settings.path_prefix + "/healthz"},
 )
 
 if api_settings.debug:
