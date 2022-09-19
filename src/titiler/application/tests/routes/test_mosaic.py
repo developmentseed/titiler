@@ -5,6 +5,7 @@ from typing import Any, Callable
 from unittest.mock import patch
 
 import mercantile
+import pytest
 from cogeo_mosaic.backends import FileBackend
 from cogeo_mosaic.mosaic import MosaicJSON
 
@@ -232,3 +233,13 @@ def test_validate(app):
 
     response = app.post("/mosaicjson/validate", json={"nope": "oups"})
     assert response.status_code == 422
+
+
+@pytest.mark.parametrize(
+    "set_env", [{"TITILER_API_PATH_PREFIX": "/foo"}], indirect=True
+)
+def test_path_prefix(app):
+    """test POST /foo/mosaicjson/validate endpoint"""
+    body = read_json_fixture("mosaic.json")
+    response = app.post("/foo/mosaicjson/validate", json=body)
+    assert response.status_code == 200

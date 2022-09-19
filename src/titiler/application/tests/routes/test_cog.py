@@ -465,3 +465,12 @@ def test_json_response_with_nan(rio, app):
     assert response.status_code == 200
     body = response.json()
     assert body["values"][0] is None
+
+
+@pytest.mark.parametrize(
+    "set_env", [{"TITILER_API_PATH_PREFIX": "/foo"}], indirect=True
+)
+def test_path_prefix(app):
+    """test /foo/validate endpoint"""
+    response = app.get(f"/foo/cog/validate?url={os.path.join(DATA_DIR, 'cog.tif')}")
+    assert response.status_code == 200

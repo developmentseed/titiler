@@ -1,6 +1,7 @@
 """test TileMatrixSets endpoints."""
 
 import morecantile
+import pytest
 
 NB_DEFAULT_TMS = len(morecantile.tms.list())
 
@@ -24,3 +25,12 @@ def test_tilematrixInfo(app):
     body = response.json()
     assert body["type"] == "TileMatrixSetType"
     assert body["identifier"] == "EPSG3413"
+
+
+@pytest.mark.parametrize(
+    "set_env", [{"TITILER_API_PATH_PREFIX": "/foo"}], indirect=True
+)
+def test_path_prefix(app):
+    """test /foo/tileMatrixSet endpoint."""
+    response = app.get("/foo/tileMatrixSets")
+    assert response.status_code == 200

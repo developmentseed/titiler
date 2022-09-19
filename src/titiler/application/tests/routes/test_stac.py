@@ -4,6 +4,7 @@
 from typing import Dict
 from unittest.mock import patch
 
+import pytest
 from rasterio.io import MemoryFile
 
 from ..conftest import mock_rasterio_open, mock_RequestGet
@@ -11,7 +12,7 @@ from ..conftest import mock_rasterio_open, mock_RequestGet
 
 @patch("rio_tiler.io.stac.httpx")
 def test_bounds(httpx, app):
-    """test /bounds endpoint."""
+    """test /stac/bounds endpoint."""
     httpx.get = mock_RequestGet
 
     response = app.get("/stac/bounds?url=https://myurl.com/item.json")
@@ -23,7 +24,7 @@ def test_bounds(httpx, app):
 @patch("rio_tiler.io.cogeo.rasterio")
 @patch("rio_tiler.io.stac.httpx")
 def test_info(httpx, rio, app):
-    """test /info endpoint."""
+    """test /stac/info endpoint."""
     httpx.get = mock_RequestGet
     rio.open = mock_rasterio_open
 
@@ -100,7 +101,7 @@ def test_tile(httpx, rio, app):
 @patch("rio_tiler.io.cogeo.rasterio")
 @patch("rio_tiler.io.stac.httpx")
 def test_tilejson(httpx, rio, app):
-    """test /tilejson endpoint."""
+    """test /stac/tilejson endpoint."""
     httpx.get = mock_RequestGet
     rio.open = mock_rasterio_open
 
@@ -253,7 +254,7 @@ def test_point(httpx, rio, app):
 @patch("rio_tiler.io.cogeo.rasterio")
 @patch("rio_tiler.io.stac.httpx")
 def test_missing_asset_not_found(httpx, rio, app):
-    """test /info endpoint."""
+    """test /stac/info endpoint."""
     httpx.get = mock_RequestGet
     rio.open = mock_rasterio_open
 
@@ -261,3 +262,15 @@ def test_missing_asset_not_found(httpx, rio, app):
         "/stac/preview?url=https://myurl.com/item.json&assets=B1111&rescale=0,1000&max_size=64"
     )
     assert response.status_code == 404
+
+
+@patch("rio_tiler.io.stac.httpx")
+@pytest.mark.parametrize(
+    "set_env", [{"TITILER_API_PATH_PREFIX": "/foo"}], indirect=True
+)
+def test_path_prefix(httpx, app):
+    """test /foo/stac/bounds endpoint."""
+    httpx.get = mock_RequestGet
+
+    response = app.get("/foo/stac/bounds?url=https://myurl.com/item.json")
+    assert response.status_code == 200

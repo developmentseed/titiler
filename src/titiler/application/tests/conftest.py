@@ -2,11 +2,14 @@
 
 import json
 import os
+from importlib import reload
 from typing import Any, Dict
 
 import pytest
 import rasterio
 from rasterio.io import MemoryFile
+
+import titiler.application.main as main
 
 from starlette.testclient import TestClient
 
@@ -14,7 +17,7 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), "fixtures")
 
 
 @pytest.fixture
-def set_env(monkeypatch):
+def set_env(monkeypatch, request):
     """Set Env variables."""
     monkeypatch.setenv("AWS_ACCESS_KEY_ID", "jqt")
     monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "rde")
@@ -24,13 +27,19 @@ def set_env(monkeypatch):
     monkeypatch.setenv("AWS_CONFIG_FILE", "/tmp/noconfigheere")
     monkeypatch.setenv("TITILER_API_CACHECONTROL", "private, max-age=3600")
 
+    # Support additional env vars via parametrization:
+    additional_env_vars = getattr(request, "param", {})
+    for key, value in additional_env_vars.items():
+        monkeypatch.setenv(key, value)
+
 
 @pytest.fixture(autouse=True)
 def app(set_env) -> TestClient:
     """Create App."""
-    from titiler.application.main import app
+    # Reload to consume latest environment variables:
+    reload(main)
 
-    return TestClient(app)
+    return TestClient(main.app)
 
 
 def mock_RequestGet(src_path):
