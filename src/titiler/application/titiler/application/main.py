@@ -15,7 +15,7 @@ from titiler.core.middleware import (
 )
 from titiler.mosaic.errors import MOSAIC_STATUS_CODES
 
-from fastapi import FastAPI, APIRouter
+from fastapi import APIRouter, FastAPI
 
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
@@ -36,15 +36,25 @@ app = FastAPI(
 )
 
 if not api_settings.disable_cog:
-    app.include_router(cog.router, prefix=api_settings.path_prefix+"/cog", tags=["Cloud Optimized GeoTIFF"])
+    app.include_router(
+        cog.router,
+        prefix=api_settings.path_prefix + "/cog",
+        tags=["Cloud Optimized GeoTIFF"],
+    )
 
 if not api_settings.disable_stac:
     app.include_router(
-        stac.router, prefix=api_settings.path_prefix+"/stac", tags=["SpatioTemporal Asset Catalog"]
+        stac.router,
+        prefix=api_settings.path_prefix + "/stac",
+        tags=["SpatioTemporal Asset Catalog"],
     )
 
 if not api_settings.disable_mosaic:
-    app.include_router(mosaic.router, prefix=api_settings.path_prefix+"/mosaicjson", tags=["MosaicJSON"])
+    app.include_router(
+        mosaic.router,
+        prefix=api_settings.path_prefix + "/mosaicjson",
+        tags=["MosaicJSON"],
+    )
 
 app.include_router(tms.router, prefix=api_settings.path_prefix, tags=["TileMatrixSets"])
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
@@ -89,6 +99,7 @@ if api_settings.lower_case_query_parameters:
 
 router = APIRouter(prefix=api_settings.path_prefix)
 
+
 @router.get("/healthz", description="Health Check", tags=["Health Check"])
 def ping():
     """Health check."""
@@ -103,5 +114,6 @@ def landing(request: Request):
         context={"request": request},
         media_type="text/html",
     )
+
 
 app.include_router(router)
