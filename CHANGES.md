@@ -1,10 +1,14 @@
 # Release Notes
 
-## Unreleased
+## 0.7.1 (2022-09-21)
 
 ### titiler.mosaic
 
 * add `pixel_selection_dependency` options in `MosaicTilerFactory` to allow default method override (author @samn, https://github.com/developmentseed/titiler/pull/495)
+
+### titiler.application
+
+* allow `interval` colormaps in titiler.application
 
 ### Helm charts
 

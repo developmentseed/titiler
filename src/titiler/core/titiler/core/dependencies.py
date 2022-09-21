@@ -63,9 +63,11 @@ def ColorMapParams(
                 colormap,
                 object_hook=lambda x: {int(k): parse_color(v) for k, v in x.items()},
             )
+
             # Make sure to match colormap type
             if isinstance(c, Sequence):
                 c = [(tuple(inter), parse_color(v)) for (inter, v) in c]
+
             return c
         except json.JSONDecodeError:
             raise HTTPException(
