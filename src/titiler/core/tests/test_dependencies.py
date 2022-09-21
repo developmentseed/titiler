@@ -106,7 +106,7 @@ def test_cmap():
     response = client.get("/", params={"colormap": json.dumps(interval_float_cmap)})
     assert response.status_code == 200
     assert response.json()[0][0] == [0.0, 0.05263157894736842]
-    assert response.json()[0][1] == (247, 252, 240, 255)
+    assert response.json()[0][1] == [247, 252, 240, 255]
 
     # Make sure the color is parsed
     interval_float_cmap = [
@@ -134,7 +134,7 @@ def test_cmap():
     response = client.get("/", params={"colormap": json.dumps(interval_float_cmap)})
     assert response.status_code == 200
     assert response.json()[0][0] == [0.0, 0.05263157894736842]
-    assert response.json()[0][1] == (247, 252, 240, 255)
+    assert response.json()[0][1] == [247, 252, 240, 255]
 
 
 def test_default():
