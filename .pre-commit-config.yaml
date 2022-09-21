@@ -28,3 +28,7 @@ repos:
     hooks:
       - id: mypy
         language_version: python
+        additional_dependencies:
+          - types-simplejson
+          - types-attrs
+          - types-requests
