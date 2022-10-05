@@ -1,10 +1,10 @@
 # Dockerfile for running titiler application with uvicorn server
-# Size ~600MB
 ARG PYTHON_VERSION=3.9
 
-FROM python:${PYTHON_VERSION}-slim
-
-RUN apt-get update && apt-get install curl -y
+FROM bitnami/python:${PYTHON_VERSION}
+RUN apt update && apt upgrade -y \
+  && apt install curl -y \
+  && rm -rf /var/lib/apt/lists/*
 
 # Ensure root certificates are always updated at evey container build
 # and curl is using the latest version of them
