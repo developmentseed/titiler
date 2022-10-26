@@ -74,3 +74,5 @@ redis:
     enabled: true
     serviceMonitor:
       enabled: true
+      additionalLabels:
+        prometheus: sd-monitoring
