@@ -70,3 +70,7 @@ redis:
   enabled: true
   replica:
     replicaCount: 1
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
