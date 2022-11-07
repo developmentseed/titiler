@@ -29,7 +29,7 @@ export GDAL_HTTP_MULTIPLEX=YES
 
 When set to `YES`, this tells GDAL to merge adjacent range requests. Instead of
 making two requests for byte ranges `1-5` and `6-10`, it would make a single
-request for `1-10`. This should always be set to `YES`.
+request for `1-10`. This should always be set to **`YES`**.
 
 #### `GDAL_DISABLE_READDIR_ON_OPEN`
 
@@ -108,18 +108,32 @@ value too large.
 
 Default GDAL block cache. The value can be either in Mb, bytes or percent of the physical RAM
 
-Recommanded: 200 (200Mb)
+Recommended: **200** (200Mb)
+
+#### `CPL_VSIL_CURL_CACHE_SIZE`
+
+A global least-recently-used cache shared among all downloaded content and may be reused after a file handle has been closed and reopen
+
+Recommended: **20000000** (200Mb)
 
 #### `VSI_CACHE`
 
 Setting this to `TRUE` enables GDAL to use an internal caching mechanism. It's
-strongly recommended to set this to `TRUE`.
+
+Recommended (Strongly): **TRUE**.
 
 #### `VSI_CACHE_SIZE`
 
 The size of the above VSI cache in bytes **per-file handle**. If you open a VRT with 10 files and your VSI_CACHE_SIZE is 10 bytes, the total cache memory usage would be 100 bytes.
+The cache is RAM based and the content of the cache is discarded when the file handle is closed.
 
-Recommanded: 5000000 (5Mb per file handle)
+Recommended: **5000000** (5Mb per file handle)
+
+
+#### `GDAL_BAND_BLOCK_CACHE`
+
+GDAL Block Cache type: `ARRAY` or `HASHSET`. See https://gdal.org/development/rfc/rfc26_blockcache.html
+
 
 #### `PROJ_NETWORK`
 
@@ -133,7 +147,7 @@ Ref: https://proj.org/usage/network.html
 
 When set to `YES`, this attempts to download multiple range requests in
 parallel, reusing the same TCP connection. Note this is only possible when the
-server supports HTTP2, which many servers don't yet support. However there's no
+server supports HTTP2, which many servers don't yet support. There's no
 downside to setting `YES` here.
 
 #### `GDAL_DATA`
@@ -148,30 +162,37 @@ The `PROJ_LIB` variable tells rasterio/GDAL where the PROJ C libraries have been
 
 #### `AWS_REQUEST_PAYER`
 
-## Recommanded Configuration for dynamic tiling
+## Recommended Configuration for dynamic tiling
 
-- CPL_VSIL_CURL_ALLOWED_EXTENSIONS=".tif,.TIF,.tiff"
+- `CPL_VSIL_CURL_ALLOWED_EXTENSIONS=".tif,.TIF,.tiff"`
 
   In addition to `GDAL_DISABLE_READDIR_ON_OPEN`, we set the allowed extensions to `.tif` to only enable tif files. (OPTIONAL)
 
-- GDAL_CACHEMAX="200"
+- `GDAL_CACHEMAX="200"`
 
   200 Mb Cache.
 
-- GDAL_DISABLE_READDIR_ON_OPEN="EMPTY_DIR"
+- `CPL_VSIL_CURL_CACHE_SIZE="20000000`
+
+  200 Mb VSI Cache.
+
+- `GDAL_BAND_BLOCK_CACHE="HASHSET"`
+
+
+- `GDAL_DISABLE_READDIR_ON_OPEN="EMPTY_DIR"`
 
   Maybe the most important variable. Setting it to `EMPTY_DIR` reduce the number of GET/LIST requests.
 
-- GDAL_HTTP_MERGE_CONSECUTIVE_RANGES="YES"
+- `GDAL_HTTP_MERGE_CONSECUTIVE_RANGES="YES"`
 
   Tells GDAL to merge consecutive range GET requests.
 
-- GDAL_HTTP_MULTIPLEX="YES"
-- GDAL_HTTP_VERSION="2"
+- `GDAL_HTTP_MULTIPLEX="YES"`
+- `GDAL_HTTP_VERSION="2"`
 
   Both Multiplex and HTTP_VERSION will only have impact if the files are stored in an environment which support HTTP 2 (e.g cloudfront).
 
-- VSI_CACHE="TRUE"
-- VSI_CACHE_SIZE="5000000"
+- `VSI_CACHE="TRUE"`
+- `VSI_CACHE_SIZE="5000000"`
 
   5Mb cache per file handle.
