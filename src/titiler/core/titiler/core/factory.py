@@ -5,13 +5,13 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 from urllib.parse import urlencode
 
-import titiler.core.gis_tools as gt
 from geojson_pydantic.features import Feature, FeatureCollection
+from morecantile import TileMatrixSet
 from rio_tiler.io import BaseReader, COGReader, MultiBandReader, MultiBaseReader
 from rio_tiler.models import Bounds, Info
 from rio_tiler.types import ColorMapType
-from morecantile import TileMatrixSet
 
+import titiler.core.gis_tools as gt
 from titiler.core.dependencies import (
     AssetsBidxExprParams,
     AssetsBidxExprParamsOptional,
@@ -46,7 +46,7 @@ from titiler.core.models.responses import (
     Statistics,
     StatisticsGeoJSON,
 )
-from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
+from titiler.core.resources.enums import ImageType, OptionalHeader
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
 from titiler.core.routing import EndpointScope
 from titiler.core.utils import Timer
@@ -57,8 +57,6 @@ from fastapi.dependencies.utils import get_parameterless_sub_dependant
 from starlette.requests import Request
 from starlette.responses import Response
 from starlette.routing import Match
-
-
 
 img_endpoint_params: Dict[str, Any] = {
     "responses": {
@@ -267,7 +265,7 @@ class TilerFactory(BaseTilerFactory):
                 reader=self.reader,
                 env=env,
                 src_path=src_path,
-                reader_params=reader_params
+                reader_params=reader_params,
             )
 
     ############################################################################
@@ -293,9 +291,8 @@ class TilerFactory(BaseTilerFactory):
                 reader=self.reader,
                 env=env,
                 src_path=src_path,
-                reader_params=reader_params
+                reader_params=reader_params,
             )
-            
 
         @self.router.get(
             "/info.geojson",
@@ -319,7 +316,7 @@ class TilerFactory(BaseTilerFactory):
                 reader=self.reader,
                 env=env,
                 src_path=src_path,
-                reader_params=reader_params
+                reader_params=reader_params,
             )
 
     ############################################################################
@@ -398,15 +395,8 @@ class TilerFactory(BaseTilerFactory):
                 env=env,
                 src_path=src_path,
                 reader_params=reader_params,
-                feature_params={
-                    **layer_params,
-                    **image_params,
-                    **dataset_params
-                },
-                stats_params={
-                    **stats_params,
-                    **histogram_params
-                }
+                feature_params={**layer_params, **image_params, **dataset_params},
+                stats_params={**stats_params, **histogram_params},
             )
 
     ############################################################################
@@ -459,24 +449,23 @@ class TilerFactory(BaseTilerFactory):
         ):
             """Create map tile from a dataset."""
             headers: Dict[str, str] = {}
-            
+
             content, timings = gt.tile(
                 reader=self.reader,
+                env=env,
+                src_path=src_path,
+                reader_params=reader_params,
                 z=z,
                 x=x,
                 y=y,
                 tms=tms,
                 scale=scale,
                 format=format,
-                src_path=src_path,
-                layer_params=layer_params,
-                dataset_params=dataset_params,
+                tile_params={**layer_params, **dataset_params},
                 postprocess_params=postprocess_params,
                 colormap=colormap,
                 render_params=render_params,
                 tile_buffer=tile_buffer,
-                reader_params=reader_params,
-                env=env
             )
 
             if OptionalHeader.server_timing in self.optional_headers:
@@ -559,7 +548,7 @@ class TilerFactory(BaseTilerFactory):
             if qs:
                 tiles_url += f"?{urlencode(qs)}"
 
-            reader_params['tms'] = tms
+            reader_params["tms"] = tms
             return gt.tilejson(
                 reader=self.reader,
                 env=env,
@@ -567,7 +556,7 @@ class TilerFactory(BaseTilerFactory):
                 reader_params=reader_params,
                 tiles_url=tiles_url,
                 minzoom=minzoom,
-                maxzoom=maxzoom
+                maxzoom=maxzoom,
             )
 
     def wmts(self):  # noqa: C901
@@ -628,16 +617,18 @@ class TilerFactory(BaseTilerFactory):
             ]
             if qs:
                 tiles_url += f"?{urlencode(qs)}"
-            
+
             return gt.wmts(
-                request=request,
                 reader=self.reader,
+                env=env,
+                src_path=src_path,
+                reader_params=reader_params,
+                request=request,
                 tile_format=tile_format,
                 tms=tms,
                 tiles_url=tiles_url,
-                src_path=src_path,
-                reader_params=reader_params,
-                env=env,
+                minzoom=minzoom,
+                maxzoom=maxzoom,
             )
 
     ############################################################################
@@ -673,8 +664,7 @@ class TilerFactory(BaseTilerFactory):
                     lon=lon,
                     lat=lat,
                     layer_params=layer_params,
-                    dataset_params=dataset_params
-
+                    dataset_params=dataset_params,
                 )
             timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
@@ -723,7 +713,7 @@ class TilerFactory(BaseTilerFactory):
                 colormap=colormap,
                 render_params=render_params,
                 reader_params=reader_params,
-                env=env
+                env=env,
             )
 
             if OptionalHeader.server_timing in self.optional_headers:
@@ -784,7 +774,7 @@ class TilerFactory(BaseTilerFactory):
                 colormap=colormap,
                 render_params=render_params,
                 reader_params=reader_params,
-                env=env
+                env=env,
             )
 
             if OptionalHeader.server_timing in self.optional_headers:
@@ -839,7 +829,7 @@ class TilerFactory(BaseTilerFactory):
                 postprocess_params=postprocess_params,
                 colormap=colormap,
                 render_params=render_params,
-                env=env
+                env=env,
             )
 
             if OptionalHeader.server_timing in self.optional_headers:
@@ -906,8 +896,7 @@ class MultiBaseTilerFactory(TilerFactory):
                     lon=lon,
                     lat=lat,
                     layer_params=layer_params,
-                    dataset_params=dataset_params
-
+                    dataset_params=dataset_params,
                 )
             timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
@@ -945,7 +934,7 @@ class MultiBaseTilerFactory(TilerFactory):
                 env=env,
                 src_path=src_path,
                 reader_params=reader_params,
-                info_params=asset_params
+                info_params=asset_params,
             )
 
         @self.router.get(
@@ -972,7 +961,7 @@ class MultiBaseTilerFactory(TilerFactory):
                 env=env,
                 src_path=src_path,
                 reader_params=reader_params,
-                asset_params=asset_params
+                asset_params=asset_params,
             )
 
         @self.router.get(
@@ -990,7 +979,7 @@ class MultiBaseTilerFactory(TilerFactory):
                 reader=self.reader,
                 env=env,
                 src_path=src_path,
-                reader_params=reader_params
+                reader_params=reader_params,
             )
 
     # Overwrite the `/statistics` endpoint because the MultiBaseReader output model is different (Dict[str, Dict[str, BandStatistics]])
@@ -1069,10 +1058,10 @@ class MultiBaseTilerFactory(TilerFactory):
                     **stats_params,
                     **layer_params,
                     **dataset_params,
-                    **image_params
+                    **image_params,
                 },
                 histogram_params=histogram_params,
-                multi_assets=True
+                multi_assets=True,
             )
 
         # POST endpoint
@@ -1114,11 +1103,9 @@ class MultiBaseTilerFactory(TilerFactory):
                     **image_params,
                     **dataset_params,
                 },
-                stats_params={
-                    **stats_params,
-                    **histogram_params
-                }
+                stats_params={**stats_params, **histogram_params},
             )
+
 
 @dataclass
 class MultiBandTilerFactory(TilerFactory):
@@ -1167,7 +1154,7 @@ class MultiBandTilerFactory(TilerFactory):
                 env=env,
                 src_path=src_path,
                 reader_params=reader_params,
-                info_params=bands_params
+                info_params=bands_params,
             )
 
         @self.router.get(
@@ -1194,7 +1181,7 @@ class MultiBandTilerFactory(TilerFactory):
                 env=env,
                 src_path=src_path,
                 reader_params=reader_params,
-                info_params=bands_params
+                info_params=bands_params,
             )
 
         @self.router.get(
@@ -1212,7 +1199,7 @@ class MultiBandTilerFactory(TilerFactory):
                 reader=self.reader,
                 env=env,
                 src_path=src_path,
-                reader_params=reader_params
+                reader_params=reader_params,
             )
 
     # Overwrite the `/statistics` endpoint because we need bands to default to the list of bands.
@@ -1290,15 +1277,11 @@ class MultiBandTilerFactory(TilerFactory):
                 env=env,
                 src_path=src_path,
                 reader_params=reader_params,
-                feature_params={
-                    **bands_params,
-                    **image_params,
-                    **dataset_params
-                },
+                feature_params={**bands_params, **image_params, **dataset_params},
                 stats_params={
                     **stats_params,
                     **histogram_params,
-                }
+                },
             )
 
 
