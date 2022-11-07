@@ -263,8 +263,7 @@ class TilerFactory(BaseTilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Return the bounds of the COG."""
-            return gt.call_with_read(
-                func=gt.bounds,
+            return gt.bounds(
                 reader=self.reader,
                 env=env,
                 src_path=src_path,
@@ -290,8 +289,7 @@ class TilerFactory(BaseTilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Return dataset's basic info."""
-            return gt.call_with_read(
-                func=gt.info,
+            return gt.info(
                 reader=self.reader,
                 env=env,
                 src_path=src_path,
@@ -317,8 +315,7 @@ class TilerFactory(BaseTilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Return dataset's basic info as a GeoJSON feature."""
-            return gt.call_with_read(
-                func=gt.info_geojson,
+            return gt.info_geojson(
                 reader=self.reader,
                 env=env,
                 src_path=src_path,
@@ -354,16 +351,17 @@ class TilerFactory(BaseTilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Get Dataset statistics."""
-            return gt.call_with_read(
-                gt.statistics,
+            return gt.statistics(
                 reader=self.reader,
                 env=env,
                 src_path=src_path,
                 reader_params=reader_params,
-                layer_params=layer_params,
-                image_params=image_params,
-                dataset_params=dataset_params,
-                stats_params=stats_params,
+                stat_params={
+                    **layer_params,
+                    **image_params,
+                    **dataset_params,
+                    **stats_params,
+                },
                 histogram_params=histogram_params,
             )
 
@@ -394,18 +392,21 @@ class TilerFactory(BaseTilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Get Statistics from a geojson feature or featureCollection."""
-            return gt.call_with_read(
-                gt.geojson_statistics,
+            return gt.geojson_statistics(
                 geojson=geojson,
                 reader=self.reader,
                 env=env,
                 src_path=src_path,
                 reader_params=reader_params,
-                layer_params=layer_params,
-                image_params=image_params,
-                dataset_params=dataset_params,
-                stats_params=stats_params,
-                histogram_params=histogram_params,
+                feature_params={
+                    **layer_params,
+                    **image_params,
+                    **dataset_params
+                },
+                stats_params={
+                    **stats_params,
+                    **histogram_params
+                }
             )
 
     ############################################################################
@@ -559,8 +560,7 @@ class TilerFactory(BaseTilerFactory):
                 tiles_url += f"?{urlencode(qs)}"
 
             reader_params['tms'] = tms
-            return gt.call_with_read(
-                gt.tilejson,
+            return gt.tilejson(
                 reader=self.reader,
                 env=env,
                 src_path=src_path,
@@ -665,8 +665,7 @@ class TilerFactory(BaseTilerFactory):
             """Get Point value for a dataset."""
             timings = []
             with Timer() as t:
-                result = gt.call_with_read(
-                    gt.point,
+                result = gt.point(
                     reader=self.reader,
                     env=env,
                     src_path=src_path,
@@ -715,9 +714,11 @@ class TilerFactory(BaseTilerFactory):
                 reader=self.reader,
                 format=format,
                 src_path=src_path,
-                layer_params=layer_params,
-                dataset_params=dataset_params,
-                img_params=img_params,
+                preview_params={
+                    **layer_params,
+                    **img_params,
+                    **dataset_params,
+                },
                 postprocess_params=postprocess_params,
                 colormap=colormap,
                 render_params=render_params,
@@ -774,9 +775,11 @@ class TilerFactory(BaseTilerFactory):
                 reader=self.reader,
                 format=format,
                 src_path=src_path,
-                layer_params=layer_params,
-                image_params=image_params,
-                dataset_params=dataset_params,
+                part_params={
+                    **layer_params,
+                    **image_params,
+                    **dataset_params,
+                },
                 postprocess_params=postprocess_params,
                 colormap=colormap,
                 render_params=render_params,
@@ -822,18 +825,20 @@ class TilerFactory(BaseTilerFactory):
             """Create image from a geojson feature."""
             headers: Dict[str, str] = {}
 
-            timings, content = gt.part(
+            timings, content = gt.geojson_crop(
                 geojson=geojson,
                 reader=self.reader,
+                reader_params=reader_params,
                 format=format,
                 src_path=src_path,
-                layer_params=layer_params,
-                dataset_params=dataset_params,
-                image_params=image_params,
+                part_params={
+                    **layer_params,
+                    **dataset_params,
+                    **image_params,
+                },
                 postprocess_params=postprocess_params,
                 colormap=colormap,
                 render_params=render_params,
-                reader_params=reader_params,
                 env=env
             )
 
@@ -893,8 +898,7 @@ class MultiBaseTilerFactory(TilerFactory):
             """Get Point value for a dataset."""
             timings = []
             with Timer() as t:
-                result = gt.call_with_read(
-                    gt.point,
+                result = gt.point(
                     reader=self.reader,
                     env=env,
                     src_path=src_path,
@@ -936,8 +940,7 @@ class MultiBaseTilerFactory(TilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Return dataset's basic info or the list of available assets."""
-            return gt.call_with_read(
-                func=gt.info,
+            return gt.info(
                 reader=self.reader,
                 env=env,
                 src_path=src_path,
@@ -964,8 +967,7 @@ class MultiBaseTilerFactory(TilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Return dataset's basic info as a GeoJSON feature."""
-            return gt.call_with_read(
-                func=gt.info_geojson_multi,
+            return gt.info_geojson_multi(
                 reader=self.reader,
                 env=env,
                 src_path=src_path,
@@ -984,8 +986,7 @@ class MultiBaseTilerFactory(TilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Return a list of supported assets."""
-            return gt.call_with_read(
-                func=gt.assets,
+            return gt.assets(
                 reader=self.reader,
                 env=env,
                 src_path=src_path,
@@ -1020,16 +1021,17 @@ class MultiBaseTilerFactory(TilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Per Asset statistics"""
-            return gt.call_with_read(
-                gt.statistics,
+            return gt.statistics(
                 reader=self.reader,
                 env=env,
                 src_path=src_path,
                 reader_params=reader_params,
-                asset_params=asset_params,
-                image_params=image_params,
-                dataset_params=dataset_params,
-                stats_params=stats_params,
+                stat_params={
+                    **asset_params,
+                    **image_params,
+                    **dataset_params,
+                    **stats_params,
+                },
                 histogram_params=histogram_params,
             )
 
@@ -1058,17 +1060,19 @@ class MultiBaseTilerFactory(TilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Merged assets statistics."""
-            return gt.call_with_read(
-                gt.merged_statistics,
+            return gt.statistics(
                 reader=self.reader,
+                reader_params=reader_params,
                 env=env,
                 src_path=src_path,
-                layer_params=layer_params,
-                reader_params=reader_params,
-                image_params=image_params,
-                dataset_params=dataset_params,
-                stats_params=stats_params,
+                stats_params={
+                    **stats_params,
+                    **layer_params,
+                    **dataset_params,
+                    **image_params
+                },
                 histogram_params=histogram_params,
+                multi_assets=True
             )
 
         # POST endpoint
@@ -1098,19 +1102,22 @@ class MultiBaseTilerFactory(TilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Get Statistics from a geojson feature or featureCollection."""
-            return gt.call_with_read(
-                gt.geojson_statistics,
+            return gt.geojson_statistics(
                 reader=self.reader,
                 env=env,
                 src_path=src_path,
                 reader_params=reader_params,
                 geojson=geojson,
                 multi_assets=True,
-                layer_params=layer_params,
-                image_params=image_params,
-                dataset_params=dataset_params,
-                stats_params=stats_params,
-                histogram_params=histogram_params,
+                feature_params={
+                    **layer_params,
+                    **image_params,
+                    **dataset_params,
+                },
+                stats_params={
+                    **stats_params,
+                    **histogram_params
+                }
             )
 
 @dataclass
@@ -1155,8 +1162,7 @@ class MultiBandTilerFactory(TilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Return dataset's basic info."""
-            return gt.call_with_read(
-                func=gt.info,
+            return gt.info(
                 reader=self.reader,
                 env=env,
                 src_path=src_path,
@@ -1183,8 +1189,7 @@ class MultiBandTilerFactory(TilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Return dataset's basic info as a GeoJSON feature."""
-            return gt.call_with_read(
-                func=gt.info_geojson,
+            return gt.info_geojson(
                 reader=self.reader,
                 env=env,
                 src_path=src_path,
@@ -1203,8 +1208,7 @@ class MultiBandTilerFactory(TilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Return a list of supported bands."""
-            return gt.call_with_read(
-                func=gt.bands,
+            return gt.bands(
                 reader=self.reader,
                 env=env,
                 src_path=src_path,
@@ -1238,19 +1242,19 @@ class MultiBandTilerFactory(TilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Create image from a geojson feature."""
-            return gt.call_with_read(
-                gt.statistics,
+            return gt.statistics(
                 reader=self.reader,
                 env=env,
                 src_path=src_path,
                 reader_params=reader_params,
-                bands_params=bands_params,
-                image_params=image_params,
-                dataset_params=dataset_params,
-                stats_params=stats_params,
+                stat_params={
+                    **bands_params,
+                    **image_params,
+                    **dataset_params,
+                    **stats_params,
+                },
                 histogram_params=histogram_params,
             )
-
 
         # POST endpoint
         @self.router.post(
@@ -1280,18 +1284,21 @@ class MultiBandTilerFactory(TilerFactory):
         ):
             """Get Statistics from a geojson feature or featureCollection."""
 
-            return gt.call_with_read(
-                gt.geojson_statistics,
+            return gt.geojson_statistics(
                 geojson=geojson,
                 reader=self.reader,
                 env=env,
                 src_path=src_path,
                 reader_params=reader_params,
-                layer_params=bands_params,
-                image_params=image_params,
-                dataset_params=dataset_params,
-                stats_params=stats_params,
-                histogram_params=histogram_params,
+                feature_params={
+                    **bands_params,
+                    **image_params,
+                    **dataset_params
+                },
+                stats_params={
+                    **stats_params,
+                    **histogram_params,
+                }
             )
 
 

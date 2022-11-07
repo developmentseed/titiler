@@ -22,136 +22,127 @@ except ImportError:
 # TODO: mypy fails in python 3.9, we need to find a proper way to do this
 templates = Jinja2Templates(directory=str(resources_files(__package__) / "templates"))  # type: ignore
 
-def call_with_read(func, reader, env, src_path, reader_params, *args, **kwargs):
+def info_geojson(reader: BaseReader, env: Dict, src_path: str, reader_params: Dict, info_params: Dict={}) -> Feature:
+    """Return dataset's basic info as a GeoJSON feature."""
     with rasterio.Env(**env):
         with reader(src_path, **reader_params) as src_dst:
-            return func(src_dst, *args, **kwargs)
+            return Feature(
+                geometry=Polygon.from_bounds(*src_dst.geographic_bounds),
+                properties=src_dst.info(**info_params),
+            )
 
-def info_geojson(src_dst: BaseReader, info_params={}) -> Feature:
+def info_geojson_multi(reader: BaseReader, env: Dict, src_path: str, reader_params: Dict, asset_params: Dict) -> Feature:
     """Return dataset's basic info as a GeoJSON feature."""
-    return Feature(
-        geometry=Polygon.from_bounds(*src_dst.geographic_bounds),
-        properties=src_dst.info(**info_params),
-    )
+    with rasterio.Env(**env):
+        with reader(src_path, **reader_params) as src_dst:
+            return Feature(
+                geometry=Polygon.from_bounds(*src_dst.geographic_bounds),
+                properties={
+                    asset: asset_info
+                    for asset, asset_info in src_dst.info(
+                        **asset_params
+                    ).items()
+                },
+            )
 
-def info_geojson_multi(src_dst: BaseReader, asset_params) -> Feature:
-    """Return dataset's basic info as a GeoJSON feature."""
-    return Feature(
-        geometry=Polygon.from_bounds(*src_dst.geographic_bounds),
-        properties={
-            asset: asset_info
-            for asset, asset_info in src_dst.info(
-                **asset_params
-            ).items()
-        },
-    )
-
-def info(src_dst: BaseReader, info_params={}) -> Info:
+def info(reader: BaseReader, env: Dict, src_path: str, reader_params: Dict, info_params={}) -> Info:
     """Return dataset's basic info."""
-    return src_dst.info(**info_params)
+    with rasterio.Env(**env):
+        with reader(src_path, **reader_params) as src_dst:
+            return src_dst.info(**info_params)
 
-def assets(src_dst: BaseReader) -> Info:
+def assets(reader: BaseReader, env: Dict, src_path: str, reader_params) -> Info:
     """Return a list of supported assets."""
-    return src_dst.assets
+    with rasterio.Env(**env):
+        with reader(src_path, **reader_params) as src_dst:
+            return src_dst.assets
 
-def bands(src_dst: BaseReader) -> Info:
+def bands(reader: BaseReader, env: Dict, src_path: str, reader_params) -> Info:
     """Return a list of supported bands."""
-    return src_dst.bands
+    with rasterio.Env(**env):
+        with reader(src_path, **reader_params) as src_dst:
+            return src_dst.bands
 
-def bounds(src_dst: BaseReader) -> Bounds:
+def bounds(reader: BaseReader, env: Dict, src_path: str, reader_params) -> Bounds:
     """Return the bounds of the COG."""
-    return {"bounds": src_dst.geographic_bounds}
+    with rasterio.Env(**env):
+        with reader(src_path, **reader_params) as src_dst:
+            return {"bounds": src_dst.geographic_bounds}
 
-def statistics(src_dst: BaseReader, layer_params, image_params, dataset_params, stats_params, histogram_params, asset_params={}, band_params={}) -> Dict[str, BandStatistics]:
+def statistics(reader: BaseReader, env: Dict, src_path: str, reader_params: Dict, stats_params, histogram_params, multi_assets: bool=False) -> Dict[str, BandStatistics]:
     """Get Dataset statistics."""
-    return src_dst.statistics(
-        **asset_params,
-        **layer_params,
-        **image_params,
-        **dataset_params,
-        **stats_params,
-        hist_options={**histogram_params},
-    )
+    with rasterio.Env(**env):
+        with reader(src_path, **reader_params) as src_dst:
+            # Default to all available assets
+            if multi_assets and not stats_params.assets and not stats_params.expression:
+                stats_params.assets = src_dst.assets
 
-def merged_statistics(src_dst: BaseReader, layer_params, image_params, dataset_params, stats_params, histogram_params) -> Dict[str, BandStatistics]:
-    """Merged assets statistics."""
-    # Default to all available assets
-    if not layer_params.assets and not layer_params.expression:
-        layer_params.assets = src_dst.assets
-
-    return src_dst.merged_statistics(
-        **layer_params,
-        **image_params,
-        **dataset_params,
-        **stats_params,
-        hist_options={**histogram_params},
-    )
-
-def geojson_statistics(src_dst: BaseReader, geojson: Union[FeatureCollection, Feature], layer_params, image_params, dataset_params, stats_params, histogram_params, multi_assets: bool=False, multi_bands: bool=False):
-    """Get Statistics from a geojson feature or featureCollection."""
-    # Default to all available assets
-    if multi_assets and not layer_params.assets and not layer_params.expression:
-        layer_params.assets = src_dst.assets
-
-    # Default to all available bands
-    if multi_bands and not layer_params.bands and not layer_params.expression:
-        layer_params.bands = src_dst.bands
-
-    # TODO: stream features for FeatureCollection
-    if isinstance(geojson, FeatureCollection):
-        for feature in geojson:
-            data = src_dst.feature(
-                feature.dict(exclude_none=True),
-                **layer_params,
-                **image_params,
-                **dataset_params,
-            )
-            stats = get_array_statistics(
-                data.as_masked(),
+            return src_dst.statistics(
                 **stats_params,
-                **histogram_params,
+                hist_options={**histogram_params},
             )
 
-        feature.properties = feature.properties or {}
-        feature.properties.update(
-            {
-                # NOTE: because we use `src_dst.feature` the statistics will be in form of
-                # `Dict[str, BandStatistics]` and not `Dict[str, Dict[str, BandStatistics]]`
-                "statistics": {
-                    f"{data.band_names[ix]}": BandStatistics(
-                        **stats[ix]
+def geojson_statistics(reader: BaseReader, env: Dict, src_path: str, reader_params: Dict, geojson: Union[FeatureCollection, Feature], feature_params, stats_params, multi_assets: bool=False, multi_bands: bool=False):
+    """Get Statistics from a geojson feature or featureCollection."""
+    with rasterio.Env(**env):
+        with reader(src_path, **reader_params) as src_dst:
+            # Default to all available assets
+            if multi_assets and not feature_params.assets and not feature_params.expression:
+                feature_params.assets = src_dst.assets
+
+            # Default to all available bands
+            if multi_bands and not feature_params.bands and not feature_params.expression:
+                feature_params.bands = src_dst.bands
+
+            # TODO: stream features for FeatureCollection
+            if isinstance(geojson, FeatureCollection):
+                for feature in geojson:
+                    data = src_dst.feature(
+                        feature.dict(exclude_none=True),
+                        **feature_params,
                     )
-                    for ix in range(len(stats))
-                }
-            }
-        )
-
-    else:  # simple feature
-        data = src_dst.feature(
-            geojson.dict(exclude_none=True),
-            **layer_params,
-            **image_params,
-            **dataset_params,
-        )
-        stats = get_array_statistics(
-            data.as_masked(),
-            **stats_params,
-            **histogram_params,
-        )
-
-        geojson.properties = geojson.properties or {}
-        geojson.properties.update(
-            {
-                "statistics": {
-                    f"{data.band_names[ix]}": BandStatistics(
-                        **stats[ix]
+                    stats = get_array_statistics(
+                        data.as_masked(),
+                        **stats_params,
                     )
-                    for ix in range(len(stats))
-                }
-            }
-        )
 
-    return geojson
+                feature.properties = feature.properties or {}
+                feature.properties.update(
+                    {
+                        # NOTE: because we use `src_dst.feature` the statistics will be in form of
+                        # `Dict[str, BandStatistics]` and not `Dict[str, Dict[str, BandStatistics]]`
+                        "statistics": {
+                            f"{data.band_names[ix]}": BandStatistics(
+                                **stats[ix]
+                            )
+                            for ix in range(len(stats))
+                        }
+                    }
+                )
+
+            else:  # simple feature
+                data = src_dst.feature(
+                    geojson.dict(exclude_none=True),
+                    **feature_params,
+                )
+                stats = get_array_statistics(
+                    data.as_masked(),
+                    **stats_params,
+                )
+
+                geojson.properties = geojson.properties or {}
+                geojson.properties.update(
+                    {
+                        "statistics": {
+                            f"{data.band_names[ix]}": BandStatistics(
+                                **stats[ix]
+                            )
+                            for ix in range(len(stats))
+                        }
+                    }
+                )
+
+            return geojson
 
 def tile(
     reader: BaseReader,
@@ -169,7 +160,7 @@ def tile(
     render_params,
     tile_buffer: Optional[float],
     reader_params,
-    env,
+    env: Dict,
 ):
     """Create map tile from a dataset."""
     timings = []
@@ -210,18 +201,20 @@ def tile(
     return content, timings
 
 def tilejson(
-    src_dst: BaseReader,
+    reader: BaseReader, env: Dict, src_path: str, reader_params,
     tiles_url: str,
     minzoom: Optional[int],
     maxzoom: Optional[int],
 ) -> Dict:
     """Return TileJSON document for a dataset."""
-    return {
-        "bounds": src_dst.geographic_bounds,
-        "minzoom": minzoom if minzoom is not None else src_dst.minzoom,
-        "maxzoom": maxzoom if maxzoom is not None else src_dst.maxzoom,
-        "tiles": [tiles_url],
-    }
+    with rasterio.Env(**env):
+        with reader(src_path, **reader_params) as src_dst:
+            return {
+                "bounds": src_dst.geographic_bounds,
+                "minzoom": minzoom if minzoom is not None else src_dst.minzoom,
+                "maxzoom": maxzoom if maxzoom is not None else src_dst.maxzoom,
+                "tiles": [tiles_url],
+            }
 
 def wmts(
     request: Request,
@@ -231,7 +224,7 @@ def wmts(
     tiles_url: str,
     src_path,
     reader_params,
-    env,
+    env: Dict,
 ):
     """Returns a WMTS xml document."""
     with rasterio.Env(**env):
@@ -270,29 +263,29 @@ def wmts(
         media_type=MediaType.xml.value,
     )
 
-def point(src_dst: BaseReader, lon: float, lat: float, layer_params, dataset_params):
+def point(reader: BaseReader, env: Dict, src_path: str, reader_params: Dict, lon: float, lat: float, layer_params, dataset_params):
     """Get Point value for a dataset."""
-    values = src_dst.point(
-        lon,
-        lat,
-        **layer_params,
-        **dataset_params,
-    )
-    return {"coordinates": [lon, lat], "values": values}
+    with rasterio.Env(**env):
+        with reader(src_path, **reader_params) as src_dst:
+            values = src_dst.point(
+                lon,
+                lat,
+                **layer_params,
+                **dataset_params,
+            )
+            return {"coordinates": [lon, lat], "values": values}
 
 
 def preview(
     reader: BaseReader,
     format: ImageType,
     src_path,
-    layer_params,
-    dataset_params,
-    img_params,
+    preview_params,
     postprocess_params,
     colormap,
     render_params,
     reader_params,
-    env,
+    env: Dict,
 ):
     """Create preview of a dataset."""
     timings = []
@@ -301,9 +294,7 @@ def preview(
         with rasterio.Env(**env):
             with reader(src_path, **reader_params) as src_dst:
                 data = src_dst.preview(
-                    **layer_params,
-                    **img_params,
-                    **dataset_params,
+                    **preview_params
                 )
                 dst_colormap = getattr(src_dst, "colormap", None)
     timings.append(("dataread", round(t.elapsed * 1000, 2)))
@@ -334,14 +325,12 @@ def part(
     reader: BaseReader,
     format: ImageType,
     src_path,
-    layer_params,
-    dataset_params,
-    image_params,
+    part_params,
     postprocess_params,
     colormap,
     render_params,
     reader_params,
-    env,
+    env: Dict,
 ):
     timings = []
 
@@ -350,9 +339,7 @@ def part(
             with reader(src_path, **reader_params) as src_dst:
                 data = src_dst.part(
                     [minx, miny, maxx, maxy],
-                    **layer_params,
-                    **image_params,
-                    **dataset_params,
+                    **part_params
                 )
                 dst_colormap = getattr(src_dst, "colormap", None)
     timings.append(("dataread", round(t.elapsed * 1000, 2)))
@@ -377,27 +364,22 @@ def geojson_crop(
     reader: BaseReader,
     format: ImageType,
     src_path,
-    layer_params,
-    dataset_params,
-    image_params,
+    feature_params,
     postprocess_params,
     colormap,
     render_params,
     reader_params,
-    env,
+    env: Dict,
 ):
     """Create image from a geojson feature."""
     timings = []
-    headers: Dict[str, str] = {}
 
     with Timer() as t:
         with rasterio.Env(**env):
             with reader(src_path, **reader_params) as src_dst:
                 data = src_dst.feature(
                     geojson.dict(exclude_none=True),
-                    **layer_params,
-                    **image_params,
-                    **dataset_params,
+                    **feature_params,
                 )
                 dst_colormap = getattr(src_dst, "colormap", None)
     timings.append(("dataread", round(t.elapsed * 1000, 2)))
