@@ -5,14 +5,12 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 from urllib.parse import urlencode
 
-import rasterio
+import titiler.core.gis_tools as gt
 from geojson_pydantic.features import Feature, FeatureCollection
-from geojson_pydantic.geometries import Polygon
-from morecantile import TileMatrixSet
 from rio_tiler.io import BaseReader, COGReader, MultiBandReader, MultiBaseReader
-from rio_tiler.models import BandStatistics, Bounds, Info
+from rio_tiler.models import Bounds, Info
 from rio_tiler.types import ColorMapType
-from rio_tiler.utils import get_array_statistics
+from morecantile import TileMatrixSet
 
 from titiler.core.dependencies import (
     AssetsBidxExprParams,
@@ -59,16 +57,7 @@ from fastapi.dependencies.utils import get_parameterless_sub_dependant
 from starlette.requests import Request
 from starlette.responses import Response
 from starlette.routing import Match
-from starlette.templating import Jinja2Templates
 
-try:
-    from importlib.resources import files as resources_files  # type: ignore
-except ImportError:
-    # Try backported to PY<39 `importlib_resources`.
-    from importlib_resources import files as resources_files  # type: ignore
-
-# TODO: mypy fails in python 3.9, we need to find a proper way to do this
-templates = Jinja2Templates(directory=str(resources_files(__package__) / "templates"))  # type: ignore
 
 
 img_endpoint_params: Dict[str, Any] = {
@@ -274,9 +263,13 @@ class TilerFactory(BaseTilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Return the bounds of the COG."""
-            with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
-                    return {"bounds": src_dst.geographic_bounds}
+            return gt.call_with_read(
+                func=gt.bounds,
+                reader=self.reader,
+                env=env,
+                src_path=src_path,
+                reader_params=reader_params
+            )
 
     ############################################################################
     # /info
@@ -297,9 +290,14 @@ class TilerFactory(BaseTilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Return dataset's basic info."""
-            with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
-                    return src_dst.info()
+            return gt.call_with_read(
+                func=gt.info,
+                reader=self.reader,
+                env=env,
+                src_path=src_path,
+                reader_params=reader_params
+            )
+            
 
         @self.router.get(
             "/info.geojson",
@@ -319,12 +317,13 @@ class TilerFactory(BaseTilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Return dataset's basic info as a GeoJSON feature."""
-            with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
-                    return Feature(
-                        geometry=Polygon.from_bounds(*src_dst.geographic_bounds),
-                        properties=src_dst.info(),
-                    )
+            return gt.call_with_read(
+                func=gt.info_geojson,
+                reader=self.reader,
+                env=env,
+                src_path=src_path,
+                reader_params=reader_params
+            )
 
     ############################################################################
     # /statistics
@@ -355,15 +354,18 @@ class TilerFactory(BaseTilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Get Dataset statistics."""
-            with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
-                    return src_dst.statistics(
-                        **layer_params,
-                        **image_params,
-                        **dataset_params,
-                        **stats_params,
-                        hist_options={**histogram_params},
-                    )
+            return gt.call_with_read(
+                gt.statistics,
+                reader=self.reader,
+                env=env,
+                src_path=src_path,
+                reader_params=reader_params,
+                layer_params=layer_params,
+                image_params=image_params,
+                dataset_params=dataset_params,
+                stats_params=stats_params,
+                histogram_params=histogram_params,
+            )
 
         # POST endpoint
         @self.router.post(
@@ -392,61 +394,19 @@ class TilerFactory(BaseTilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Get Statistics from a geojson feature or featureCollection."""
-            with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
-                    # TODO: stream features for FeatureCollection
-                    if isinstance(geojson, FeatureCollection):
-                        for feature in geojson:
-                            data = src_dst.feature(
-                                feature.dict(exclude_none=True),
-                                **layer_params,
-                                **image_params,
-                                **dataset_params,
-                            )
-                            stats = get_array_statistics(
-                                data.as_masked(),
-                                **stats_params,
-                                **histogram_params,
-                            )
-
-                        feature.properties = feature.properties or {}
-                        feature.properties.update(
-                            {
-                                "statistics": {
-                                    f"{data.band_names[ix]}": BandStatistics(
-                                        **stats[ix]
-                                    )
-                                    for ix in range(len(stats))
-                                }
-                            }
-                        )
-
-                    else:  # simple feature
-                        data = src_dst.feature(
-                            geojson.dict(exclude_none=True),
-                            **layer_params,
-                            **image_params,
-                            **dataset_params,
-                        )
-                        stats = get_array_statistics(
-                            data.as_masked(),
-                            **stats_params,
-                            **histogram_params,
-                        )
-
-                        geojson.properties = geojson.properties or {}
-                        geojson.properties.update(
-                            {
-                                "statistics": {
-                                    f"{data.band_names[ix]}": BandStatistics(
-                                        **stats[ix]
-                                    )
-                                    for ix in range(len(stats))
-                                }
-                            }
-                        )
-
-                    return geojson
+            return gt.call_with_read(
+                gt.geojson_statistics,
+                geojson=geojson,
+                reader=self.reader,
+                env=env,
+                src_path=src_path,
+                reader_params=reader_params,
+                layer_params=layer_params,
+                image_params=image_params,
+                dataset_params=dataset_params,
+                stats_params=stats_params,
+                histogram_params=histogram_params,
+            )
 
     ############################################################################
     # /tiles
@@ -497,41 +457,26 @@ class TilerFactory(BaseTilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Create map tile from a dataset."""
-            timings = []
             headers: Dict[str, str] = {}
-
-            tilesize = scale * 256
-
-            with Timer() as t:
-                with rasterio.Env(**env):
-                    with self.reader(src_path, tms=tms, **reader_params) as src_dst:
-                        data = src_dst.tile(
-                            x,
-                            y,
-                            z,
-                            tilesize=tilesize,
-                            tile_buffer=tile_buffer,
-                            **layer_params,
-                            **dataset_params,
-                        )
-                        dst_colormap = getattr(src_dst, "colormap", None)
-            timings.append(("dataread", round(t.elapsed * 1000, 2)))
-
-            if not format:
-                format = ImageType.jpeg if data.mask.all() else ImageType.png
-
-            with Timer() as t:
-                image = data.post_process(**postprocess_params)
-            timings.append(("postprocess", round(t.elapsed * 1000, 2)))
-
-            with Timer() as t:
-                content = image.render(
-                    img_format=format.driver,
-                    colormap=colormap or dst_colormap,
-                    **format.profile,
-                    **render_params,
-                )
-            timings.append(("format", round(t.elapsed * 1000, 2)))
+            
+            content, timings = gt.tile(
+                reader=self.reader,
+                z=z,
+                x=x,
+                y=y,
+                tms=tms,
+                scale=scale,
+                format=format,
+                src_path=src_path,
+                layer_params=layer_params,
+                dataset_params=dataset_params,
+                postprocess_params=postprocess_params,
+                colormap=colormap,
+                render_params=render_params,
+                tile_buffer=tile_buffer,
+                reader_params=reader_params,
+                env=env
+            )
 
             if OptionalHeader.server_timing in self.optional_headers:
                 headers["Server-Timing"] = ", ".join(
@@ -613,14 +558,17 @@ class TilerFactory(BaseTilerFactory):
             if qs:
                 tiles_url += f"?{urlencode(qs)}"
 
-            with rasterio.Env(**env):
-                with self.reader(src_path, tms=tms, **reader_params) as src_dst:
-                    return {
-                        "bounds": src_dst.geographic_bounds,
-                        "minzoom": minzoom if minzoom is not None else src_dst.minzoom,
-                        "maxzoom": maxzoom if maxzoom is not None else src_dst.maxzoom,
-                        "tiles": [tiles_url],
-                    }
+            reader_params['tms'] = tms
+            return gt.call_with_read(
+                gt.tilejson,
+                reader=self.reader,
+                env=env,
+                src_path=src_path,
+                reader_params=reader_params,
+                tiles_url=tiles_url,
+                minzoom=minzoom,
+                maxzoom=maxzoom
+            )
 
     def wmts(self):  # noqa: C901
         """Register /wmts endpoint."""
@@ -680,41 +628,16 @@ class TilerFactory(BaseTilerFactory):
             ]
             if qs:
                 tiles_url += f"?{urlencode(qs)}"
-
-            with rasterio.Env(**env):
-                with self.reader(src_path, tms=tms, **reader_params) as src_dst:
-                    bounds = src_dst.geographic_bounds
-                    minzoom = minzoom if minzoom is not None else src_dst.minzoom
-                    maxzoom = maxzoom if maxzoom is not None else src_dst.maxzoom
-
-            tileMatrix = []
-            for zoom in range(minzoom, maxzoom + 1):
-                matrix = tms.matrix(zoom)
-                tm = f"""
-                        <TileMatrix>
-                            <ows:Identifier>{matrix.identifier}</ows:Identifier>
-                            <ScaleDenominator>{matrix.scaleDenominator}</ScaleDenominator>
-                            <TopLeftCorner>{matrix.topLeftCorner[0]} {matrix.topLeftCorner[1]}</TopLeftCorner>
-                            <TileWidth>{matrix.tileWidth}</TileWidth>
-                            <TileHeight>{matrix.tileHeight}</TileHeight>
-                            <MatrixWidth>{matrix.matrixWidth}</MatrixWidth>
-                            <MatrixHeight>{matrix.matrixHeight}</MatrixHeight>
-                        </TileMatrix>"""
-                tileMatrix.append(tm)
-
-            return templates.TemplateResponse(
-                "wmts.xml",
-                {
-                    "request": request,
-                    "tiles_endpoint": tiles_url,
-                    "bounds": bounds,
-                    "tileMatrix": tileMatrix,
-                    "tms": tms,
-                    "title": "Cloud Optimized GeoTIFF",
-                    "layer_name": "cogeo",
-                    "media_type": tile_format.mediatype,
-                },
-                media_type=MediaType.xml.value,
+            
+            return gt.wmts(
+                request=request,
+                reader=self.reader,
+                tile_format=tile_format,
+                tms=tms,
+                tiles_url=tiles_url,
+                src_path=src_path,
+                reader_params=reader_params,
+                env=env,
             )
 
     ############################################################################
@@ -741,16 +664,19 @@ class TilerFactory(BaseTilerFactory):
         ):
             """Get Point value for a dataset."""
             timings = []
-
             with Timer() as t:
-                with rasterio.Env(**env):
-                    with self.reader(src_path, **reader_params) as src_dst:
-                        values = src_dst.point(
-                            lon,
-                            lat,
-                            **layer_params,
-                            **dataset_params,
-                        )
+                result = gt.call_with_read(
+                    gt.point,
+                    reader=self.reader,
+                    env=env,
+                    src_path=src_path,
+                    reader_params=reader_params,
+                    lon=lon,
+                    lat=lat,
+                    layer_params=layer_params,
+                    dataset_params=dataset_params
+
+                )
             timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
             if OptionalHeader.server_timing in self.optional_headers:
@@ -758,7 +684,7 @@ class TilerFactory(BaseTilerFactory):
                     [f"{name};dur={time}" for (name, time) in timings]
                 )
 
-            return {"coordinates": [lon, lat], "values": values}
+            return result
 
     ############################################################################
     # /preview (Optional)
@@ -783,35 +709,21 @@ class TilerFactory(BaseTilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Create preview of a dataset."""
-            timings = []
             headers: Dict[str, str] = {}
 
-            with Timer() as t:
-                with rasterio.Env(**env):
-                    with self.reader(src_path, **reader_params) as src_dst:
-                        data = src_dst.preview(
-                            **layer_params,
-                            **img_params,
-                            **dataset_params,
-                        )
-                        dst_colormap = getattr(src_dst, "colormap", None)
-            timings.append(("dataread", round(t.elapsed * 1000, 2)))
-
-            if not format:
-                format = ImageType.jpeg if data.mask.all() else ImageType.png
-
-            with Timer() as t:
-                image = data.post_process(**postprocess_params)
-            timings.append(("postprocess", round(t.elapsed * 1000, 2)))
-
-            with Timer() as t:
-                content = image.render(
-                    img_format=format.driver,
-                    colormap=colormap or dst_colormap,
-                    **format.profile,
-                    **render_params,
-                )
-            timings.append(("format", round(t.elapsed * 1000, 2)))
+            timings, content = gt.preview(
+                reader=self.reader,
+                format=format,
+                src_path=src_path,
+                layer_params=layer_params,
+                dataset_params=dataset_params,
+                img_params=img_params,
+                postprocess_params=postprocess_params,
+                colormap=colormap,
+                render_params=render_params,
+                reader_params=reader_params,
+                env=env
+            )
 
             if OptionalHeader.server_timing in self.optional_headers:
                 headers["Server-Timing"] = ", ".join(
@@ -852,33 +764,25 @@ class TilerFactory(BaseTilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Create image from part of a dataset."""
-            timings = []
             headers: Dict[str, str] = {}
 
-            with Timer() as t:
-                with rasterio.Env(**env):
-                    with self.reader(src_path, **reader_params) as src_dst:
-                        data = src_dst.part(
-                            [minx, miny, maxx, maxy],
-                            **layer_params,
-                            **image_params,
-                            **dataset_params,
-                        )
-                        dst_colormap = getattr(src_dst, "colormap", None)
-            timings.append(("dataread", round(t.elapsed * 1000, 2)))
-
-            with Timer() as t:
-                image = data.post_process(**postprocess_params)
-            timings.append(("postprocess", round(t.elapsed * 1000, 2)))
-
-            with Timer() as t:
-                content = image.render(
-                    img_format=format.driver,
-                    colormap=colormap or dst_colormap,
-                    **format.profile,
-                    **render_params,
-                )
-            timings.append(("format", round(t.elapsed * 1000, 2)))
+            timings, content = gt.part(
+                minx=minx,
+                miny=miny,
+                maxx=maxx,
+                maxy=maxy,
+                reader=self.reader,
+                format=format,
+                src_path=src_path,
+                layer_params=layer_params,
+                image_params=image_params,
+                dataset_params=dataset_params,
+                postprocess_params=postprocess_params,
+                colormap=colormap,
+                render_params=render_params,
+                reader_params=reader_params,
+                env=env
+            )
 
             if OptionalHeader.server_timing in self.optional_headers:
                 headers["Server-Timing"] = ", ".join(
@@ -916,36 +820,22 @@ class TilerFactory(BaseTilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Create image from a geojson feature."""
-            timings = []
             headers: Dict[str, str] = {}
 
-            with Timer() as t:
-                with rasterio.Env(**env):
-                    with self.reader(src_path, **reader_params) as src_dst:
-                        data = src_dst.feature(
-                            geojson.dict(exclude_none=True),
-                            **layer_params,
-                            **image_params,
-                            **dataset_params,
-                        )
-                        dst_colormap = getattr(src_dst, "colormap", None)
-            timings.append(("dataread", round(t.elapsed * 1000, 2)))
-
-            with Timer() as t:
-                image = data.post_process(**postprocess_params)
-            timings.append(("postprocess", round(t.elapsed * 1000, 2)))
-
-            if not format:
-                format = ImageType.jpeg if data.mask.all() else ImageType.png
-
-            with Timer() as t:
-                content = image.render(
-                    img_format=format.driver,
-                    colormap=colormap or dst_colormap,
-                    **format.profile,
-                    **render_params,
-                )
-            timings.append(("format", round(t.elapsed * 1000, 2)))
+            timings, content = gt.part(
+                geojson=geojson,
+                reader=self.reader,
+                format=format,
+                src_path=src_path,
+                layer_params=layer_params,
+                dataset_params=dataset_params,
+                image_params=image_params,
+                postprocess_params=postprocess_params,
+                colormap=colormap,
+                render_params=render_params,
+                reader_params=reader_params,
+                env=env
+            )
 
             if OptionalHeader.server_timing in self.optional_headers:
                 headers["Server-Timing"] = ", ".join(
@@ -1002,16 +892,19 @@ class MultiBaseTilerFactory(TilerFactory):
         ):
             """Get Point value for a dataset."""
             timings = []
-
             with Timer() as t:
-                with rasterio.Env(**env):
-                    with self.reader(src_path, **reader_params) as src_dst:
-                        values = src_dst.point(
-                            lon,
-                            lat,
-                            **layer_params,
-                            **dataset_params,
-                        )
+                result = gt.call_with_read(
+                    gt.point,
+                    reader=self.reader,
+                    env=env,
+                    src_path=src_path,
+                    reader_params=reader_params,
+                    lon=lon,
+                    lat=lat,
+                    layer_params=layer_params,
+                    dataset_params=dataset_params
+
+                )
             timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
             if OptionalHeader.server_timing in self.optional_headers:
@@ -1019,7 +912,7 @@ class MultiBaseTilerFactory(TilerFactory):
                     [f"{name};dur={time}" for (name, time) in timings]
                 )
 
-            return {"coordinates": [lon, lat], "values": values}
+            return result
 
     # Overwrite the `/info` endpoint to return the list of assets when no assets is passed.
     def info(self):
@@ -1043,9 +936,14 @@ class MultiBaseTilerFactory(TilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Return dataset's basic info or the list of available assets."""
-            with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
-                    return src_dst.info(**asset_params)
+            return gt.call_with_read(
+                func=gt.info,
+                reader=self.reader,
+                env=env,
+                src_path=src_path,
+                reader_params=reader_params,
+                info_params=asset_params
+            )
 
         @self.router.get(
             "/info.geojson",
@@ -1066,17 +964,14 @@ class MultiBaseTilerFactory(TilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Return dataset's basic info as a GeoJSON feature."""
-            with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
-                    return Feature(
-                        geometry=Polygon.from_bounds(*src_dst.geographic_bounds),
-                        properties={
-                            asset: asset_info
-                            for asset, asset_info in src_dst.info(
-                                **asset_params
-                            ).items()
-                        },
-                    )
+            return gt.call_with_read(
+                func=gt.info_geojson_multi,
+                reader=self.reader,
+                env=env,
+                src_path=src_path,
+                reader_params=reader_params,
+                asset_params=asset_params
+            )
 
         @self.router.get(
             "/assets",
@@ -1089,9 +984,13 @@ class MultiBaseTilerFactory(TilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Return a list of supported assets."""
-            with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
-                    return src_dst.assets
+            return gt.call_with_read(
+                func=gt.assets,
+                reader=self.reader,
+                env=env,
+                src_path=src_path,
+                reader_params=reader_params
+            )
 
     # Overwrite the `/statistics` endpoint because the MultiBaseReader output model is different (Dict[str, Dict[str, BandStatistics]])
     # and MultiBaseReader.statistics() method also has `assets` arguments to defaults to the list of assets.
@@ -1121,15 +1020,18 @@ class MultiBaseTilerFactory(TilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Per Asset statistics"""
-            with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
-                    return src_dst.statistics(
-                        **asset_params,
-                        **image_params,
-                        **dataset_params,
-                        **stats_params,
-                        hist_options={**histogram_params},
-                    )
+            return gt.call_with_read(
+                gt.statistics,
+                reader=self.reader,
+                env=env,
+                src_path=src_path,
+                reader_params=reader_params,
+                asset_params=asset_params,
+                image_params=image_params,
+                dataset_params=dataset_params,
+                stats_params=stats_params,
+                histogram_params=histogram_params,
+            )
 
         # MultiBaseReader merged statistics
         # https://github.com/cogeotiff/rio-tiler/blob/master/rio_tiler/io/base.py#L455-L468
@@ -1156,19 +1058,18 @@ class MultiBaseTilerFactory(TilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Merged assets statistics."""
-            with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
-                    # Default to all available assets
-                    if not layer_params.assets and not layer_params.expression:
-                        layer_params.assets = src_dst.assets
-
-                    return src_dst.merged_statistics(
-                        **layer_params,
-                        **image_params,
-                        **dataset_params,
-                        **stats_params,
-                        hist_options={**histogram_params},
-                    )
+            return gt.call_with_read(
+                gt.merged_statistics,
+                reader=self.reader,
+                env=env,
+                src_path=src_path,
+                layer_params=layer_params,
+                reader_params=reader_params,
+                image_params=image_params,
+                dataset_params=dataset_params,
+                stats_params=stats_params,
+                histogram_params=histogram_params,
+            )
 
         # POST endpoint
         @self.router.post(
@@ -1197,71 +1098,20 @@ class MultiBaseTilerFactory(TilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Get Statistics from a geojson feature or featureCollection."""
-            with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
-                    # Default to all available assets
-                    if not layer_params.assets and not layer_params.expression:
-                        layer_params.assets = src_dst.assets
-
-                    # TODO: stream features for FeatureCollection
-                    if isinstance(geojson, FeatureCollection):
-                        for feature in geojson:
-                            data = src_dst.feature(
-                                feature.dict(exclude_none=True),
-                                **layer_params,
-                                **image_params,
-                                **dataset_params,
-                            )
-
-                            stats = get_array_statistics(
-                                data.as_masked(),
-                                **stats_params,
-                                **histogram_params,
-                            )
-
-                        feature.properties = feature.properties or {}
-                        feature.properties.update(
-                            {
-                                # NOTE: because we use `src_dst.feature` the statistics will be in form of
-                                # `Dict[str, BandStatistics]` and not `Dict[str, Dict[str, BandStatistics]]`
-                                "statistics": {
-                                    f"{data.band_names[ix]}": BandStatistics(
-                                        **stats[ix]
-                                    )
-                                    for ix in range(len(stats))
-                                }
-                            }
-                        )
-
-                    else:  # simple feature
-                        data = src_dst.feature(
-                            geojson.dict(exclude_none=True),
-                            **layer_params,
-                            **image_params,
-                            **dataset_params,
-                        )
-                        stats = get_array_statistics(
-                            data.as_masked(),
-                            **stats_params,
-                            **histogram_params,
-                        )
-
-                        geojson.properties = geojson.properties or {}
-                        geojson.properties.update(
-                            {
-                                # NOTE: because we use `src_dst.feature` the statistics will be in form of
-                                # `Dict[str, BandStatistics]` and not `Dict[str, Dict[str, BandStatistics]]`
-                                "statistics": {
-                                    f"{data.band_names[ix]}": BandStatistics(
-                                        **stats[ix]
-                                    )
-                                    for ix in range(len(stats))
-                                }
-                            }
-                        )
-
-            return geojson
-
+            return gt.call_with_read(
+                gt.geojson_statistics,
+                reader=self.reader,
+                env=env,
+                src_path=src_path,
+                reader_params=reader_params,
+                geojson=geojson,
+                multi_assets=True,
+                layer_params=layer_params,
+                image_params=image_params,
+                dataset_params=dataset_params,
+                stats_params=stats_params,
+                histogram_params=histogram_params,
+            )
 
 @dataclass
 class MultiBandTilerFactory(TilerFactory):
@@ -1305,9 +1155,14 @@ class MultiBandTilerFactory(TilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Return dataset's basic info."""
-            with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
-                    return src_dst.info(**bands_params)
+            return gt.call_with_read(
+                func=gt.info,
+                reader=self.reader,
+                env=env,
+                src_path=src_path,
+                reader_params=reader_params,
+                info_params=bands_params
+            )
 
         @self.router.get(
             "/info.geojson",
@@ -1328,12 +1183,14 @@ class MultiBandTilerFactory(TilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Return dataset's basic info as a GeoJSON feature."""
-            with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
-                    return Feature(
-                        geometry=Polygon.from_bounds(*src_dst.geographic_bounds),
-                        properties=src_dst.info(**bands_params),
-                    )
+            return gt.call_with_read(
+                func=gt.info_geojson,
+                reader=self.reader,
+                env=env,
+                src_path=src_path,
+                reader_params=reader_params,
+                info_params=bands_params
+            )
 
         @self.router.get(
             "/bands",
@@ -1346,9 +1203,13 @@ class MultiBandTilerFactory(TilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Return a list of supported bands."""
-            with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
-                    return src_dst.bands
+            return gt.call_with_read(
+                func=gt.bands,
+                reader=self.reader,
+                env=env,
+                src_path=src_path,
+                reader_params=reader_params
+            )
 
     # Overwrite the `/statistics` endpoint because we need bands to default to the list of bands.
     def statistics(self):  # noqa: C901
@@ -1377,15 +1238,19 @@ class MultiBandTilerFactory(TilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Create image from a geojson feature."""
-            with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
-                    return src_dst.statistics(
-                        **bands_params,
-                        **image_params,
-                        **dataset_params,
-                        **stats_params,
-                        hist_options={**histogram_params},
-                    )
+            return gt.call_with_read(
+                gt.statistics,
+                reader=self.reader,
+                env=env,
+                src_path=src_path,
+                reader_params=reader_params,
+                bands_params=bands_params,
+                image_params=image_params,
+                dataset_params=dataset_params,
+                stats_params=stats_params,
+                histogram_params=histogram_params,
+            )
+
 
         # POST endpoint
         @self.router.post(
@@ -1414,65 +1279,20 @@ class MultiBandTilerFactory(TilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Get Statistics from a geojson feature or featureCollection."""
-            with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
-                    # Default to all available bands
-                    if not bands_params.bands and not bands_params.expression:
-                        bands_params.bands = src_dst.bands
 
-                    # TODO: stream features for FeatureCollection
-                    if isinstance(geojson, FeatureCollection):
-                        for feature in geojson:
-                            data = src_dst.feature(
-                                feature.dict(exclude_none=True),
-                                **bands_params,
-                                **image_params,
-                                **dataset_params,
-                            )
-                            stats = get_array_statistics(
-                                data.as_masked(),
-                                **stats_params,
-                                **histogram_params,
-                            )
-
-                            feature.properties = feature.properties or {}
-                            feature.properties.update(
-                                {
-                                    "statistics": {
-                                        f"{data.band_names[ix]}": BandStatistics(
-                                            **stats[ix]
-                                        )
-                                        for ix in range(len(stats))
-                                    }
-                                }
-                            )
-
-                    else:  # simple feature
-                        data = src_dst.feature(
-                            geojson.dict(exclude_none=True),
-                            **bands_params,
-                            **image_params,
-                            **dataset_params,
-                        )
-                        stats = get_array_statistics(
-                            data.as_masked(),
-                            **stats_params,
-                            **histogram_params,
-                        )
-
-                        geojson.properties = geojson.properties or {}
-                        geojson.properties.update(
-                            {
-                                "statistics": {
-                                    f"{data.band_names[ix]}": BandStatistics(
-                                        **stats[ix]
-                                    )
-                                    for ix in range(len(stats))
-                                }
-                            }
-                        )
-
-                    return geojson
+            return gt.call_with_read(
+                gt.geojson_statistics,
+                geojson=geojson,
+                reader=self.reader,
+                env=env,
+                src_path=src_path,
+                reader_params=reader_params,
+                layer_params=bands_params,
+                image_params=image_params,
+                dataset_params=dataset_params,
+                stats_params=stats_params,
+                histogram_params=histogram_params,
+            )
 
 
 @dataclass
