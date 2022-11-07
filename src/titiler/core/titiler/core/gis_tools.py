@@ -102,19 +102,26 @@ def statistics(
     reader_params: Dict,
     stats_params,
     histogram_params,
-    multi_assets: bool = False,
+    layer_params=None,
 ) -> Dict[str, BandStatistics]:
     """Get Dataset statistics."""
     with rasterio.Env(**env):
         with reader(src_path, **reader_params) as src_dst:
             # Default to all available assets
-            if multi_assets and not stats_params.assets and not stats_params.expression:
-                stats_params.assets = src_dst.assets
+            if layer_params:
+                if not layer_params.assets and not layer_params.expression:
+                    layer_params.assets = src_dst.assets
+                stats_params = {**stats_params, **layer_params}
 
-            return src_dst.statistics(
-                **stats_params,
-                hist_options={**histogram_params},
-            )
+                return src_dst.merged_statistics(
+                    **stats_params,
+                    hist_options={**histogram_params},
+                )
+            else:
+                return src_dst.statistics(
+                    **stats_params,
+                    hist_options={**histogram_params},
+                )
 
 
 def geojson_statistics(
@@ -125,27 +132,23 @@ def geojson_statistics(
     geojson: Union[FeatureCollection, Feature],
     feature_params,
     stats_params,
-    multi_assets: bool = False,
-    multi_bands: bool = False,
+    layer_params=None,
+    bands_params=None,
 ):
     """Get Statistics from a geojson feature or featureCollection."""
     with rasterio.Env(**env):
         with reader(src_path, **reader_params) as src_dst:
             # Default to all available assets
-            if (
-                multi_assets
-                and not feature_params.assets
-                and not feature_params.expression
-            ):
-                feature_params.assets = src_dst.assets
+            if layer_params:
+                if not layer_params.assets and not layer_params.expression:
+                    layer_params.assets = src_dst.assets
+                feature_params = {**feature_params, **layer_params}
 
             # Default to all available bands
-            if (
-                multi_bands
-                and not feature_params.bands
-                and not feature_params.expression
-            ):
-                feature_params.bands = src_dst.bands
+            if bands_params:
+                if not bands_params.bands and not bands_params.expression:
+                    bands_params.bands = src_dst.bands
+                feature_params = {**feature_params, **bands_params}
 
             # TODO: stream features for FeatureCollection
             if isinstance(geojson, FeatureCollection):
@@ -241,7 +244,7 @@ def tile(
         )
     timings.append(("format", round(t.elapsed * 1000, 2)))
 
-    return content, timings
+    return content, timings, format
 
 
 def tilejson(
@@ -252,10 +255,11 @@ def tilejson(
     tiles_url: str,
     minzoom: Optional[int],
     maxzoom: Optional[int],
+    tms: TileMatrixSet,
 ) -> Dict:
     """Return TileJSON document for a dataset."""
     with rasterio.Env(**env):
-        with reader(src_path, **reader_params) as src_dst:
+        with reader(src_path, tms=tms, **reader_params) as src_dst:
             return {
                 "bounds": src_dst.geographic_bounds,
                 "minzoom": minzoom if minzoom is not None else src_dst.minzoom,
@@ -373,7 +377,7 @@ def preview(
         )
     timings.append(("format", round(t.elapsed * 1000, 2)))
 
-    return timings, content
+    return content, timings, format
 
 
 def part(
@@ -457,4 +461,4 @@ def geojson_crop(
             **render_params,
         )
     timings.append(("format", round(t.elapsed * 1000, 2)))
-    return timings, content
+    return timings, content, format

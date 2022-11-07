@@ -353,7 +353,7 @@ class TilerFactory(BaseTilerFactory):
                 env=env,
                 src_path=src_path,
                 reader_params=reader_params,
-                stat_params={
+                stats_params={
                     **layer_params,
                     **image_params,
                     **dataset_params,
@@ -450,7 +450,7 @@ class TilerFactory(BaseTilerFactory):
             """Create map tile from a dataset."""
             headers: Dict[str, str] = {}
 
-            content, timings = gt.tile(
+            content, timings, format = gt.tile(
                 reader=self.reader,
                 env=env,
                 src_path=src_path,
@@ -548,7 +548,6 @@ class TilerFactory(BaseTilerFactory):
             if qs:
                 tiles_url += f"?{urlencode(qs)}"
 
-            reader_params["tms"] = tms
             return gt.tilejson(
                 reader=self.reader,
                 env=env,
@@ -557,6 +556,7 @@ class TilerFactory(BaseTilerFactory):
                 tiles_url=tiles_url,
                 minzoom=minzoom,
                 maxzoom=maxzoom,
+                tms=tms,
             )
 
     def wmts(self):  # noqa: C901
@@ -700,7 +700,7 @@ class TilerFactory(BaseTilerFactory):
             """Create preview of a dataset."""
             headers: Dict[str, str] = {}
 
-            timings, content = gt.preview(
+            content, timings, format = gt.preview(
                 reader=self.reader,
                 format=format,
                 src_path=src_path,
@@ -758,13 +758,15 @@ class TilerFactory(BaseTilerFactory):
             headers: Dict[str, str] = {}
 
             timings, content = gt.part(
+                reader=self.reader,
+                env=env,
+                src_path=src_path,
+                reader_params=reader_params,
                 minx=minx,
                 miny=miny,
                 maxx=maxx,
                 maxy=maxy,
-                reader=self.reader,
                 format=format,
-                src_path=src_path,
                 part_params={
                     **layer_params,
                     **image_params,
@@ -773,8 +775,6 @@ class TilerFactory(BaseTilerFactory):
                 postprocess_params=postprocess_params,
                 colormap=colormap,
                 render_params=render_params,
-                reader_params=reader_params,
-                env=env,
             )
 
             if OptionalHeader.server_timing in self.optional_headers:
@@ -815,13 +815,13 @@ class TilerFactory(BaseTilerFactory):
             """Create image from a geojson feature."""
             headers: Dict[str, str] = {}
 
-            timings, content = gt.geojson_crop(
+            timings, content, format = gt.geojson_crop(
                 geojson=geojson,
                 reader=self.reader,
                 reader_params=reader_params,
                 format=format,
                 src_path=src_path,
-                part_params={
+                feature_params={
                     **layer_params,
                     **dataset_params,
                     **image_params,
@@ -1015,7 +1015,7 @@ class MultiBaseTilerFactory(TilerFactory):
                 env=env,
                 src_path=src_path,
                 reader_params=reader_params,
-                stat_params={
+                stats_params={
                     **asset_params,
                     **image_params,
                     **dataset_params,
@@ -1056,12 +1056,11 @@ class MultiBaseTilerFactory(TilerFactory):
                 src_path=src_path,
                 stats_params={
                     **stats_params,
-                    **layer_params,
                     **dataset_params,
                     **image_params,
                 },
                 histogram_params=histogram_params,
-                multi_assets=True,
+                layer_params=layer_params,
             )
 
         # POST endpoint
@@ -1097,9 +1096,8 @@ class MultiBaseTilerFactory(TilerFactory):
                 src_path=src_path,
                 reader_params=reader_params,
                 geojson=geojson,
-                multi_assets=True,
+                layer_params=layer_params,
                 feature_params={
-                    **layer_params,
                     **image_params,
                     **dataset_params,
                 },
@@ -1234,7 +1232,7 @@ class MultiBandTilerFactory(TilerFactory):
                 env=env,
                 src_path=src_path,
                 reader_params=reader_params,
-                stat_params={
+                stats_params={
                     **bands_params,
                     **image_params,
                     **dataset_params,
@@ -1277,7 +1275,8 @@ class MultiBandTilerFactory(TilerFactory):
                 env=env,
                 src_path=src_path,
                 reader_params=reader_params,
-                feature_params={**bands_params, **image_params, **dataset_params},
+                feature_params={**image_params, **dataset_params},
+                bands_params=bands_params,
                 stats_params={
                     **stats_params,
                     **histogram_params,
