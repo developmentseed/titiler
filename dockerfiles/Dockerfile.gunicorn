@@ -2,7 +2,7 @@
 # Size ~1.4GB
 ARG PYTHON_VERSION=3.9
 
-FROM tiangolo/uvicorn-gunicorn:python${PYTHON_VERSION}
+FROM tiangolo/uvicorn-gunicorn:python${PYTHON_VERSION}-small
 
 # Ensure root certificates are always updated at evey container build
 # and curl is using the latest version of them
