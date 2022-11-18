@@ -11,9 +11,9 @@ from unittest.mock import patch
 from urllib.parse import urlencode
 
 import attr
+import httpx
 import morecantile
 import numpy
-from requests.auth import HTTPBasicAuth
 from rio_tiler.io import BaseReader, COGReader, MultiBandReader, STACReader
 
 from titiler.core.dependencies import DefaultDependency, TMSParams, WebMercatorTMSParams
@@ -68,20 +68,11 @@ def test_TilerFactory():
     response = client.get(f"/tiles/8/87/48?url={DATA_DIR}/cog.tif&rescale=0,1000")
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/jpeg"
-    timing = response.headers["server-timing"]
-    assert "dataread;dur" in timing
-    assert "postprocess;dur" in timing
-    assert "format;dur" in timing
-
     response = client.get(
         f"/tiles/8/87/48?url={DATA_DIR}/cog.tif&rescale=-3.4028235e+38,3.4028235e+38"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/jpeg"
-    timing = response.headers["server-timing"]
-    assert "dataread;dur" in timing
-    assert "postprocess;dur" in timing
-    assert "format;dur" in timing
 
     response = client.get(
         f"/tiles/8/87/48.tif?url={DATA_DIR}/cog.tif&bidx=1&bidx=1&bidx=1&return_mask=false"
@@ -179,26 +170,16 @@ def test_TilerFactory():
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/jpeg"
-    timing = response.headers["server-timing"]
-    assert "dataread;dur" in timing
-    assert "postprocess;dur" in timing
-    assert "format;dur" in timing
 
     response = client.get(
         f"/crop/-56.228,72.715,-54.547,73.188.png?url={DATA_DIR}/cog.tif&rescale=0,1000&max_size=256"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
-    timing = response.headers["server-timing"]
-    assert "dataread;dur" in timing
-    assert "postprocess;dur" in timing
-    assert "format;dur" in timing
 
     response = client.get(f"/point/-56.228,72.715?url={DATA_DIR}/cog.tif")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
-    timing = response.headers["server-timing"]
-    assert "dataread;dur" in timing
 
     response = client.get(f"/tilejson.json?url={DATA_DIR}/cog.tif")
     assert response.status_code == 200
@@ -1262,8 +1243,8 @@ def test_TilerFactory_WithDependencies():
     app.include_router(cog.router, prefix="/something")
     client = TestClient(app)
 
-    auth_bob = HTTPBasicAuth(username="bob", password="ILoveSponge")
-    auth_notbob = HTTPBasicAuth(username="notbob", password="IHateSponge")
+    auth_bob = httpx.BasicAuth(username="bob", password="ILoveSponge")
+    auth_notbob = httpx.BasicAuth(username="notbob", password="IHateSponge")
 
     response = client.get(f"/something/tilejson.json?url={DATA_DIR}/cog.tif")
     assert response.status_code == 200

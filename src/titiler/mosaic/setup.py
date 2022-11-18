@@ -7,7 +7,7 @@ with open("README.md") as f:
 
 inst_reqs = ["titiler.core>=0.7,<0.8", "cogeo-mosaic>=4.1,<4.2"]
 extra_reqs = {
-    "test": ["pytest", "pytest-cov", "pytest-asyncio", "requests"],
+    "test": ["pytest", "pytest-cov", "pytest-asyncio", "httpx"],
 }
 
 

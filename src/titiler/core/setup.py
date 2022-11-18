@@ -6,7 +6,7 @@ with open("README.md") as f:
     long_description = f.read()
 
 inst_reqs = [
-    "fastapi>=0.73.0",
+    "fastapi>=0.87.0",
     "geojson-pydantic",
     "jinja2>=2.11.2,<4.0.0",
     "numpy",
@@ -18,7 +18,7 @@ inst_reqs = [
     "typing_extensions;python_version<'3.8'",
 ]
 extra_reqs = {
-    "test": ["pytest", "pytest-cov", "pytest-asyncio", "requests"],
+    "test": ["pytest", "pytest-cov", "pytest-asyncio", "httpx"],
 }
 
 

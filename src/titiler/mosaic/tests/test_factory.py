@@ -96,18 +96,10 @@ def test_MosaicTilerFactory():
             params={"url": mosaic_file},
         )
         assert response.status_code == 200
-        timing = response.headers["server-timing"]
-        assert "mosaicread;dur" in timing
-        assert "dataread;dur" in timing
 
         response = client.get("/mosaic/tiles/7/37/45", params={"url": mosaic_file})
         assert response.status_code == 200
         assert response.headers["X-Assets"]
-        timing = response.headers["server-timing"]
-        assert "mosaicread;dur" in timing
-        assert "dataread;dur" in timing
-        assert "postprocess;dur" in timing
-        assert "format;dur" in timing
 
         # Buffer
         response = client.get(
