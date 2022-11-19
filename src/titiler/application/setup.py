@@ -13,7 +13,7 @@ inst_reqs = [
     "python-dotenv",
 ]
 extra_reqs = {
-    "test": ["pytest", "pytest-cov", "pytest-asyncio", "requests", "brotlipy"],
+    "test": ["pytest", "pytest-cov", "pytest-asyncio", "httpx", "brotlipy"],
     "server": ["uvicorn[standard]>=0.12.0,<0.16.0"],
 }
 

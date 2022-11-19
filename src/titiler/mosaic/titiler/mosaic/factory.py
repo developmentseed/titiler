@@ -22,7 +22,6 @@ from titiler.core.factory import BaseTilerFactory, img_endpoint_params, template
 from titiler.core.models.mapbox import TileJSON
 from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
-from titiler.core.utils import Timer
 from titiler.mosaic.models.responses import Point
 from titiler.mosaic.resources.enums import PixelSelectionMethod
 
@@ -258,57 +257,39 @@ class MosaicTilerFactory(BaseTilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Create map tile from a COG."""
-            timings = []
-            headers: Dict[str, str] = {}
-
-            tilesize = scale * 256
-
             threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
-            with Timer() as t:
-                with rasterio.Env(**env):
-                    with self.reader(
-                        src_path,
-                        reader=self.dataset_reader,
-                        reader_options={**reader_params},
-                        **backend_params,
-                    ) as src_dst:
-                        mosaic_read = t.from_start
-                        timings.append(("mosaicread", round(mosaic_read * 1000, 2)))
 
-                        data, _ = src_dst.tile(
-                            x,
-                            y,
-                            z,
-                            pixel_selection=pixel_selection,
-                            tilesize=tilesize,
-                            threads=threads,
-                            tile_buffer=tile_buffer,
-                            **layer_params,
-                            **dataset_params,
-                        )
-            timings.append(("dataread", round((t.elapsed - mosaic_read) * 1000, 2)))
+            with rasterio.Env(**env):
+                with self.reader(
+                    src_path,
+                    reader=self.dataset_reader,
+                    reader_options={**reader_params},
+                    **backend_params,
+                ) as src_dst:
+                    data, _ = src_dst.tile(
+                        x,
+                        y,
+                        z,
+                        pixel_selection=pixel_selection,
+                        tilesize=scale * 256,
+                        threads=threads,
+                        tile_buffer=tile_buffer,
+                        **layer_params,
+                        **dataset_params,
+                    )
 
             if not format:
                 format = ImageType.jpeg if data.mask.all() else ImageType.png
 
-            with Timer() as t:
-                image = data.post_process(**postprocess_params)
-            timings.append(("postprocess", round(t.elapsed * 1000, 2)))
+            image = data.post_process(**postprocess_params)
+            content = image.render(
+                img_format=format.driver,
+                colormap=colormap,
+                **format.profile,
+                **render_params,
+            )
 
-            with Timer() as t:
-                content = image.render(
-                    img_format=format.driver,
-                    colormap=colormap,
-                    **format.profile,
-                    **render_params,
-                )
-            timings.append(("format", round(t.elapsed * 1000, 2)))
-
-            if OptionalHeader.server_timing in self.optional_headers:
-                headers["Server-Timing"] = ", ".join(
-                    [f"{name};dur={time}" for (name, time) in timings]
-                )
-
+            headers: Dict[str, str] = {}
             if OptionalHeader.x_assets in self.optional_headers:
                 headers["X-Assets"] = ",".join(data.assets)
 
@@ -533,32 +514,22 @@ class MosaicTilerFactory(BaseTilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Get Point value for a Mosaic."""
-            timings = []
             threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
 
-            with Timer() as t:
-                with rasterio.Env(**env):
-                    with self.reader(
-                        src_path,
-                        reader=self.dataset_reader,
-                        reader_options={**reader_params},
-                        **backend_params,
-                    ) as src_dst:
-                        mosaic_read = t.from_start
-                        timings.append(("mosaicread", round(mosaic_read * 1000, 2)))
-                        values = src_dst.point(
-                            lon,
-                            lat,
-                            threads=threads,
-                            **layer_params,
-                            **dataset_params,
-                        )
-            timings.append(("dataread", round((t.elapsed - mosaic_read) * 1000, 2)))
-
-            if OptionalHeader.server_timing in self.optional_headers:
-                response.headers["Server-Timing"] = ", ".join(
-                    [f"{name};dur={time}" for (name, time) in timings]
-                )
+            with rasterio.Env(**env):
+                with self.reader(
+                    src_path,
+                    reader=self.dataset_reader,
+                    reader_options={**reader_params},
+                    **backend_params,
+                ) as src_dst:
+                    values = src_dst.point(
+                        lon,
+                        lat,
+                        threads=threads,
+                        **layer_params,
+                        **dataset_params,
+                    )
 
             return {"coordinates": [lon, lat], "values": values}
 

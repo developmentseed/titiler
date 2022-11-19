@@ -2,10 +2,10 @@
 
 from concurrent import futures
 
+import httpx
 import pytest
 import rasterio
 from rasterio._env import get_gdal_config
-from requests.auth import HTTPBasicAuth
 
 from titiler.core.routing import add_route_dependencies, apiroute_factory
 
@@ -156,8 +156,8 @@ def test_register_deps():
         """two."""
         return "two"
 
-    auth_bob = HTTPBasicAuth(username="bob", password="ILoveSponge")
-    auth_notbob = HTTPBasicAuth(username="notbob", password="IHateSponge")
+    auth_bob = httpx.BasicAuth(username="bob", password="ILoveSponge")
+    auth_notbob = httpx.BasicAuth(username="notbob", password="IHateSponge")
 
     add_route_dependencies(
         app.routes,

@@ -1,5 +1,24 @@
 # Release Notes
 
+## NEXT (TBD)
+
+### titiler.core
+
+* update FastAPI requirement to `>=0.87`
+
+**breaking changes**
+
+* remove `timing headers` and `titiler.core.utils` submodule
+
+### titiler.mosaic
+
+**breaking changes**
+
+* remove `timing headers`
+
+### titiler.application
+
+
 ## 0.7.1 (2022-09-21)
 
 ### titiler.mosaic

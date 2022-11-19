@@ -51,7 +51,6 @@ from titiler.core.models.responses import (
 from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
 from titiler.core.routing import EndpointScope
-from titiler.core.utils import Timer
 
 from fastapi import APIRouter, Body, Depends, Path, Query, params
 from fastapi.dependencies.utils import get_parameterless_sub_dependant
@@ -497,48 +496,31 @@ class TilerFactory(BaseTilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Create map tile from a dataset."""
-            timings = []
-            headers: Dict[str, str] = {}
-
-            tilesize = scale * 256
-
-            with Timer() as t:
-                with rasterio.Env(**env):
-                    with self.reader(src_path, tms=tms, **reader_params) as src_dst:
-                        data = src_dst.tile(
-                            x,
-                            y,
-                            z,
-                            tilesize=tilesize,
-                            tile_buffer=tile_buffer,
-                            **layer_params,
-                            **dataset_params,
-                        )
-                        dst_colormap = getattr(src_dst, "colormap", None)
-            timings.append(("dataread", round(t.elapsed * 1000, 2)))
+            with rasterio.Env(**env):
+                with self.reader(src_path, tms=tms, **reader_params) as src_dst:
+                    data = src_dst.tile(
+                        x,
+                        y,
+                        z,
+                        tilesize=scale * 256,
+                        tile_buffer=tile_buffer,
+                        **layer_params,
+                        **dataset_params,
+                    )
+                    dst_colormap = getattr(src_dst, "colormap", None)
 
             if not format:
                 format = ImageType.jpeg if data.mask.all() else ImageType.png
 
-            with Timer() as t:
-                image = data.post_process(**postprocess_params)
-            timings.append(("postprocess", round(t.elapsed * 1000, 2)))
+            image = data.post_process(**postprocess_params)
+            content = image.render(
+                img_format=format.driver,
+                colormap=colormap or dst_colormap,
+                **format.profile,
+                **render_params,
+            )
 
-            with Timer() as t:
-                content = image.render(
-                    img_format=format.driver,
-                    colormap=colormap or dst_colormap,
-                    **format.profile,
-                    **render_params,
-                )
-            timings.append(("format", round(t.elapsed * 1000, 2)))
-
-            if OptionalHeader.server_timing in self.optional_headers:
-                headers["Server-Timing"] = ", ".join(
-                    [f"{name};dur={time}" for (name, time) in timings]
-                )
-
-            return Response(content, media_type=format.mediatype, headers=headers)
+            return Response(content, media_type=format.mediatype)
 
     def tilejson(self):  # noqa: C901
         """Register /tilejson.json endpoint."""
@@ -730,7 +712,6 @@ class TilerFactory(BaseTilerFactory):
             responses={200: {"description": "Return a value for a point"}},
         )
         def point(
-            response: Response,
             lon: float = Path(..., description="Longitude"),
             lat: float = Path(..., description="Latitude"),
             src_path=Depends(self.path_dependency),
@@ -740,23 +721,14 @@ class TilerFactory(BaseTilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Get Point value for a dataset."""
-            timings = []
-
-            with Timer() as t:
-                with rasterio.Env(**env):
-                    with self.reader(src_path, **reader_params) as src_dst:
-                        values = src_dst.point(
-                            lon,
-                            lat,
-                            **layer_params,
-                            **dataset_params,
-                        )
-            timings.append(("dataread", round(t.elapsed * 1000, 2)))
-
-            if OptionalHeader.server_timing in self.optional_headers:
-                response.headers["Server-Timing"] = ", ".join(
-                    [f"{name};dur={time}" for (name, time) in timings]
-                )
+            with rasterio.Env(**env):
+                with self.reader(src_path, **reader_params) as src_dst:
+                    values = src_dst.point(
+                        lon,
+                        lat,
+                        **layer_params,
+                        **dataset_params,
+                    )
 
             return {"coordinates": [lon, lat], "values": values}
 
@@ -783,42 +755,27 @@ class TilerFactory(BaseTilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Create preview of a dataset."""
-            timings = []
-            headers: Dict[str, str] = {}
-
-            with Timer() as t:
-                with rasterio.Env(**env):
-                    with self.reader(src_path, **reader_params) as src_dst:
-                        data = src_dst.preview(
-                            **layer_params,
-                            **img_params,
-                            **dataset_params,
-                        )
-                        dst_colormap = getattr(src_dst, "colormap", None)
-            timings.append(("dataread", round(t.elapsed * 1000, 2)))
+            with rasterio.Env(**env):
+                with self.reader(src_path, **reader_params) as src_dst:
+                    data = src_dst.preview(
+                        **layer_params,
+                        **img_params,
+                        **dataset_params,
+                    )
+                    dst_colormap = getattr(src_dst, "colormap", None)
 
             if not format:
                 format = ImageType.jpeg if data.mask.all() else ImageType.png
 
-            with Timer() as t:
-                image = data.post_process(**postprocess_params)
-            timings.append(("postprocess", round(t.elapsed * 1000, 2)))
+            image = data.post_process(**postprocess_params)
+            content = image.render(
+                img_format=format.driver,
+                colormap=colormap or dst_colormap,
+                **format.profile,
+                **render_params,
+            )
 
-            with Timer() as t:
-                content = image.render(
-                    img_format=format.driver,
-                    colormap=colormap or dst_colormap,
-                    **format.profile,
-                    **render_params,
-                )
-            timings.append(("format", round(t.elapsed * 1000, 2)))
-
-            if OptionalHeader.server_timing in self.optional_headers:
-                headers["Server-Timing"] = ", ".join(
-                    [f"{name};dur={time}" for (name, time) in timings]
-                )
-
-            return Response(content, media_type=format.mediatype, headers=headers)
+            return Response(content, media_type=format.mediatype)
 
     ############################################################################
     # /crop (Optional)
@@ -852,40 +809,25 @@ class TilerFactory(BaseTilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Create image from part of a dataset."""
-            timings = []
-            headers: Dict[str, str] = {}
+            with rasterio.Env(**env):
+                with self.reader(src_path, **reader_params) as src_dst:
+                    data = src_dst.part(
+                        [minx, miny, maxx, maxy],
+                        **layer_params,
+                        **image_params,
+                        **dataset_params,
+                    )
+                    dst_colormap = getattr(src_dst, "colormap", None)
 
-            with Timer() as t:
-                with rasterio.Env(**env):
-                    with self.reader(src_path, **reader_params) as src_dst:
-                        data = src_dst.part(
-                            [minx, miny, maxx, maxy],
-                            **layer_params,
-                            **image_params,
-                            **dataset_params,
-                        )
-                        dst_colormap = getattr(src_dst, "colormap", None)
-            timings.append(("dataread", round(t.elapsed * 1000, 2)))
+            image = data.post_process(**postprocess_params)
+            content = image.render(
+                img_format=format.driver,
+                colormap=colormap or dst_colormap,
+                **format.profile,
+                **render_params,
+            )
 
-            with Timer() as t:
-                image = data.post_process(**postprocess_params)
-            timings.append(("postprocess", round(t.elapsed * 1000, 2)))
-
-            with Timer() as t:
-                content = image.render(
-                    img_format=format.driver,
-                    colormap=colormap or dst_colormap,
-                    **format.profile,
-                    **render_params,
-                )
-            timings.append(("format", round(t.elapsed * 1000, 2)))
-
-            if OptionalHeader.server_timing in self.optional_headers:
-                headers["Server-Timing"] = ", ".join(
-                    [f"{name};dur={time}" for (name, time) in timings]
-                )
-
-            return Response(content, media_type=format.mediatype, headers=headers)
+            return Response(content, media_type=format.mediatype)
 
         # POST endpoints
         @self.router.post(
@@ -916,43 +858,28 @@ class TilerFactory(BaseTilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Create image from a geojson feature."""
-            timings = []
-            headers: Dict[str, str] = {}
-
-            with Timer() as t:
-                with rasterio.Env(**env):
-                    with self.reader(src_path, **reader_params) as src_dst:
-                        data = src_dst.feature(
-                            geojson.dict(exclude_none=True),
-                            **layer_params,
-                            **image_params,
-                            **dataset_params,
-                        )
-                        dst_colormap = getattr(src_dst, "colormap", None)
-            timings.append(("dataread", round(t.elapsed * 1000, 2)))
-
-            with Timer() as t:
-                image = data.post_process(**postprocess_params)
-            timings.append(("postprocess", round(t.elapsed * 1000, 2)))
+            with rasterio.Env(**env):
+                with self.reader(src_path, **reader_params) as src_dst:
+                    data = src_dst.feature(
+                        geojson.dict(exclude_none=True),
+                        **layer_params,
+                        **image_params,
+                        **dataset_params,
+                    )
+                    dst_colormap = getattr(src_dst, "colormap", None)
 
             if not format:
                 format = ImageType.jpeg if data.mask.all() else ImageType.png
 
-            with Timer() as t:
-                content = image.render(
-                    img_format=format.driver,
-                    colormap=colormap or dst_colormap,
-                    **format.profile,
-                    **render_params,
-                )
-            timings.append(("format", round(t.elapsed * 1000, 2)))
+            image = data.post_process(**postprocess_params)
+            content = image.render(
+                img_format=format.driver,
+                colormap=colormap or dst_colormap,
+                **format.profile,
+                **render_params,
+            )
 
-            if OptionalHeader.server_timing in self.optional_headers:
-                headers["Server-Timing"] = ", ".join(
-                    [f"{name};dur={time}" for (name, time) in timings]
-                )
-
-            return Response(content, media_type=format.mediatype, headers=headers)
+            return Response(content, media_type=format.mediatype)
 
 
 @dataclass
@@ -991,7 +918,6 @@ class MultiBaseTilerFactory(TilerFactory):
             responses={200: {"description": "Return a value for a point"}},
         )
         def point(
-            response: Response,
             lon: float = Path(..., description="Longitude"),
             lat: float = Path(..., description="Latitude"),
             src_path=Depends(self.path_dependency),
@@ -1001,23 +927,14 @@ class MultiBaseTilerFactory(TilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Get Point value for a dataset."""
-            timings = []
-
-            with Timer() as t:
-                with rasterio.Env(**env):
-                    with self.reader(src_path, **reader_params) as src_dst:
-                        values = src_dst.point(
-                            lon,
-                            lat,
-                            **layer_params,
-                            **dataset_params,
-                        )
-            timings.append(("dataread", round(t.elapsed * 1000, 2)))
-
-            if OptionalHeader.server_timing in self.optional_headers:
-                response.headers["Server-Timing"] = ", ".join(
-                    [f"{name};dur={time}" for (name, time) in timings]
-                )
+            with rasterio.Env(**env):
+                with self.reader(src_path, **reader_params) as src_dst:
+                    values = src_dst.point(
+                        lon,
+                        lat,
+                        **layer_params,
+                        **dataset_params,
+                    )
 
             return {"coordinates": [lon, lat], "values": values}
 
