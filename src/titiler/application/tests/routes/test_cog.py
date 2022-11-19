@@ -187,12 +187,6 @@ def test_tile(rio, app):
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
 
-    response = app.get(
-        "/cog/tiles/8/53/50.png?url=https://myurl.com/above_cog.tif&bidx=1&colormap_name=above"
-    )
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "image/png"
-
     cmap = urlencode(
         {
             "colormap": json.dumps(
@@ -224,7 +218,7 @@ def test_tile(rio, app):
     assert response.status_code == 400
 
     response = app.get(
-        "/cog/tiles/8/53/50.png?url=https://myurl.com/above_cog.tif&bidx=1&colormap_name=above&resampling=somethingwrong"
+        "/cog/tiles/8/53/50.png?url=https://myurl.com/above_cog.tif&bidx=1&resampling=somethingwrong"
     )
     assert response.status_code == 422
 
