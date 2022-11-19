@@ -18,6 +18,13 @@
 
 ### titiler.application
 
+* code simplification by removing custom code and submodules from endpoints
+
+**breaking changes**
+
+* remove custom TMS and custom Colormap dependencies
+* remove middleware submodule
+
 
 ## 0.7.1 (2022-09-21)
 
