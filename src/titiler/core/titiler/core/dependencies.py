@@ -3,7 +3,7 @@
 import json
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Sequence, Union
+from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy
 from morecantile import tms
@@ -373,29 +373,19 @@ class ImageRenderingParams(DefaultDependency):
     )
 
 
-@dataclass
-class PostProcessParams(DefaultDependency):
-    """Data Post-Processing options."""
-
-    in_range: Optional[List[str]] = Query(
+def RescalingParams(
+    rescale: Optional[List[str]] = Query(
         None,
-        alias="rescale",
         title="Min/Max data Rescaling",
         description="comma (',') delimited Min,Max range. Can set multiple time for multiple bands.",
         example=["0,2000", "0,1000", "0,10000"],  # band 1  # band 2  # band 3
     )
-    color_formula: Optional[str] = Query(
-        None,
-        title="Color Formula",
-        description="rio-color formula (info: https://github.com/mapbox/rio-color)",
-    )
+) -> Optional[List[Tuple[float, ...]]]:
+    """Min/Max data Rescaling"""
+    if rescale:
+        return [tuple(map(float, r.replace(" ", "").split(","))) for r in rescale]
 
-    def __post_init__(self):
-        """Post Init."""
-        if self.in_range:
-            self.in_range = [  # type: ignore
-                tuple(map(float, r.replace(" ", "").split(","))) for r in self.in_range
-            ]
+    return None
 
 
 @dataclass
