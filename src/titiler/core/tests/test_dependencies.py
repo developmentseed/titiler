@@ -387,28 +387,3 @@ def test_render():
 
     response = client.get("/?return_mask=True")
     assert response.json()["add_mask"] is True
-
-
-def test_postprocess():
-    """test postprocess deps."""
-
-    app = FastAPI()
-
-    @app.get("/")
-    def _endpoint(params=Depends(dependencies.PostProcessParams)):
-        """return params."""
-        return params
-
-    client = TestClient(app)
-    response = client.get("/")
-    assert not response.json()["in_range"]
-    assert not response.json()["color_formula"]
-
-    response = client.get("/?rescale=0,1000")
-    assert response.json()["in_range"] == [[0, 1000]]
-
-    response = client.get("/?rescale=0,1000&rescale=0,255")
-    assert response.json()["in_range"] == [[0, 1000], [0, 255]]
-
-    response = client.get("/?color_formula=gamma RGB 3")
-    assert response.json()["color_formula"] == "gamma RGB 3"

@@ -30,7 +30,7 @@ from titiler.core.dependencies import (
     HistogramParams,
     ImageParams,
     ImageRenderingParams,
-    PostProcessParams,
+    RescalingParams,
     StatisticsParams,
     TileMatrixSetName,
     TMSParams,
@@ -136,8 +136,8 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
     stats_dependency: Type[DefaultDependency] = StatisticsParams
     histogram_dependency: Type[DefaultDependency] = HistogramParams
 
-    # Post Processing Dependencies (rescaling, color-formula)
-    process_dependency: Type[DefaultDependency] = PostProcessParams
+    # Post Processing Dependencies (algorithm)
+    process_dependency: Type[DefaultDependency] = DefaultDependency
 
     # TileMatrixSet dependency
     tms_dependency: Callable[..., TileMatrixSet] = TMSParams
@@ -458,22 +458,27 @@ class TilerFactory(BaseTilerFactory):
             src_path=Depends(self.path_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
-            postprocess_params=Depends(self.process_dependency),
-            colormap=Depends(self.colormap_dependency),
-            render_params=Depends(self.render_dependency),
             buffer: Optional[float] = Query(
                 None,
                 gt=0,
                 title="Tile buffer.",
                 description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
             ),
+            rescale: Optional[List[Tuple[float, ...]]] = Depends(RescalingParams),
+            color_formula: Optional[str] = Query(
+                None,
+                title="Color Formula",
+                description="rio-color formula (info: https://github.com/mapbox/rio-color)",
+            ),
+            colormap=Depends(self.colormap_dependency),
+            render_params=Depends(self.render_dependency),
             reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
         ):
             """Create map tile from a dataset."""
             with rasterio.Env(**env):
                 with self.reader(src_path, tms=tms, **reader_params) as src_dst:
-                    data = src_dst.tile(
+                    image = src_dst.tile(
                         x,
                         y,
                         z,
@@ -485,9 +490,14 @@ class TilerFactory(BaseTilerFactory):
                     dst_colormap = getattr(src_dst, "colormap", None)
 
             if not format:
-                format = ImageType.jpeg if data.mask.all() else ImageType.png
+                format = ImageType.jpeg if image.mask.all() else ImageType.png
 
-            image = data.post_process(**postprocess_params)
+            if rescale:
+                image.rescale(rescale)
+
+            if color_formula:
+                image.apply_color_formula(color_formula)
+
             content = image.render(
                 img_format=format.driver,
                 colormap=colormap or dst_colormap,
@@ -530,15 +540,22 @@ class TilerFactory(BaseTilerFactory):
             ),
             layer_params=Depends(self.layer_dependency),  # noqa
             dataset_params=Depends(self.dataset_dependency),  # noqa
-            postprocess_params=Depends(self.process_dependency),  # noqa
-            colormap=Depends(self.colormap_dependency),  # noqa
-            render_params=Depends(self.render_dependency),  # noqa
             buffer: Optional[float] = Query(  # noqa
                 None,
                 gt=0,
                 title="Tile buffer.",
                 description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
             ),
+            rescale: Optional[List[Tuple[float, ...]]] = Depends(
+                RescalingParams
+            ),  # noqa
+            color_formula: Optional[str] = Query(  # noqa
+                None,
+                title="Color Formula",
+                description="rio-color formula (info: https://github.com/mapbox/rio-color)",
+            ),
+            colormap=Depends(self.colormap_dependency),  # noqa
+            render_params=Depends(self.render_dependency),  # noqa
             reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
         ):
@@ -603,7 +620,20 @@ class TilerFactory(BaseTilerFactory):
             ),
             layer_params=Depends(self.layer_dependency),  # noqa
             dataset_params=Depends(self.dataset_dependency),  # noqa
-            postprocess_params=Depends(self.process_dependency),  # noqa
+            buffer: Optional[float] = Query(  # noqa
+                None,
+                gt=0,
+                title="Tile buffer.",
+                description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
+            ),
+            rescale: Optional[List[Tuple[float, ...]]] = Depends(
+                RescalingParams
+            ),  # noqa
+            color_formula: Optional[str] = Query(  # noqa
+                None,
+                title="Color Formula",
+                description="rio-color formula (info: https://github.com/mapbox/rio-color)",
+            ),
             colormap=Depends(self.colormap_dependency),  # noqa
             render_params=Depends(self.render_dependency),  # noqa
             reader_params=Depends(self.reader_dependency),
@@ -726,7 +756,12 @@ class TilerFactory(BaseTilerFactory):
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             img_params=Depends(self.img_dependency),
-            postprocess_params=Depends(self.process_dependency),
+            rescale: Optional[List[Tuple[float, ...]]] = Depends(RescalingParams),
+            color_formula: Optional[str] = Query(
+                None,
+                title="Color Formula",
+                description="rio-color formula (info: https://github.com/mapbox/rio-color)",
+            ),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -735,7 +770,7 @@ class TilerFactory(BaseTilerFactory):
             """Create preview of a dataset."""
             with rasterio.Env(**env):
                 with self.reader(src_path, **reader_params) as src_dst:
-                    data = src_dst.preview(
+                    image = src_dst.preview(
                         **layer_params,
                         **img_params,
                         **dataset_params,
@@ -743,9 +778,14 @@ class TilerFactory(BaseTilerFactory):
                     dst_colormap = getattr(src_dst, "colormap", None)
 
             if not format:
-                format = ImageType.jpeg if data.mask.all() else ImageType.png
+                format = ImageType.jpeg if image.mask.all() else ImageType.png
 
-            image = data.post_process(**postprocess_params)
+            if rescale:
+                image.rescale(rescale)
+
+            if color_formula:
+                image.apply_color_formula(color_formula)
+
             content = image.render(
                 img_format=format.driver,
                 colormap=colormap or dst_colormap,
@@ -780,7 +820,12 @@ class TilerFactory(BaseTilerFactory):
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_dependency),
-            postprocess_params=Depends(self.process_dependency),
+            rescale: Optional[List[Tuple[float, ...]]] = Depends(RescalingParams),
+            color_formula: Optional[str] = Query(
+                None,
+                title="Color Formula",
+                description="rio-color formula (info: https://github.com/mapbox/rio-color)",
+            ),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -789,7 +834,7 @@ class TilerFactory(BaseTilerFactory):
             """Create image from part of a dataset."""
             with rasterio.Env(**env):
                 with self.reader(src_path, **reader_params) as src_dst:
-                    data = src_dst.part(
+                    image = src_dst.part(
                         [minx, miny, maxx, maxy],
                         **layer_params,
                         **image_params,
@@ -797,7 +842,12 @@ class TilerFactory(BaseTilerFactory):
                     )
                     dst_colormap = getattr(src_dst, "colormap", None)
 
-            image = data.post_process(**postprocess_params)
+            if rescale:
+                image.rescale(rescale)
+
+            if color_formula:
+                image.apply_color_formula(color_formula)
+
             content = image.render(
                 img_format=format.driver,
                 colormap=colormap or dst_colormap,
@@ -829,7 +879,12 @@ class TilerFactory(BaseTilerFactory):
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_dependency),
-            postprocess_params=Depends(self.process_dependency),
+            rescale: Optional[List[Tuple[float, ...]]] = Depends(RescalingParams),
+            color_formula: Optional[str] = Query(
+                None,
+                title="Color Formula",
+                description="rio-color formula (info: https://github.com/mapbox/rio-color)",
+            ),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -838,7 +893,7 @@ class TilerFactory(BaseTilerFactory):
             """Create image from a geojson feature."""
             with rasterio.Env(**env):
                 with self.reader(src_path, **reader_params) as src_dst:
-                    data = src_dst.feature(
+                    image = src_dst.feature(
                         geojson.dict(exclude_none=True),
                         **layer_params,
                         **image_params,
@@ -847,9 +902,14 @@ class TilerFactory(BaseTilerFactory):
                     dst_colormap = getattr(src_dst, "colormap", None)
 
             if not format:
-                format = ImageType.jpeg if data.mask.all() else ImageType.png
+                format = ImageType.jpeg if image.mask.all() else ImageType.png
 
-            image = data.post_process(**postprocess_params)
+            if rescale:
+                image.rescale(rescale)
+
+            if color_formula:
+                image.apply_color_formula(color_formula)
+
             content = image.render(
                 img_format=format.driver,
                 colormap=colormap or dst_colormap,

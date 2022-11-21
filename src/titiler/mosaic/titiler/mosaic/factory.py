@@ -2,7 +2,7 @@
 
 import os
 from dataclasses import dataclass
-from typing import Callable, Dict, Optional, Type, Union
+from typing import Callable, Dict, List, Optional, Tuple, Type, Union
 from urllib.parse import urlencode
 
 import rasterio
@@ -17,7 +17,11 @@ from rio_tiler.io import BaseReader, MultiBandReader, MultiBaseReader, Reader
 from rio_tiler.models import Bounds
 from rio_tiler.mosaic.methods.base import MosaicMethodBase
 
-from titiler.core.dependencies import DefaultDependency, WebMercatorTMSParams
+from titiler.core.dependencies import (
+    DefaultDependency,
+    RescalingParams,
+    WebMercatorTMSParams,
+)
 from titiler.core.factory import BaseTilerFactory, img_endpoint_params, templates
 from titiler.core.models.mapbox import TileJSON
 from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
@@ -242,15 +246,20 @@ class MosaicTilerFactory(BaseTilerFactory):
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             pixel_selection=Depends(self.pixel_selection_dependency),
-            postprocess_params=Depends(self.process_dependency),
-            colormap=Depends(self.colormap_dependency),
-            render_params=Depends(self.render_dependency),
             buffer: Optional[float] = Query(
                 None,
                 gt=0,
                 title="Tile buffer.",
                 description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * tile_buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
             ),
+            rescale: Optional[List[Tuple[float, ...]]] = Depends(RescalingParams),
+            color_formula: Optional[str] = Query(
+                None,
+                title="Color Formula",
+                description="rio-color formula (info: https://github.com/mapbox/rio-color)",
+            ),
+            colormap=Depends(self.colormap_dependency),
+            render_params=Depends(self.render_dependency),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
@@ -265,7 +274,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                     reader_options={**reader_params},
                     **backend_params,
                 ) as src_dst:
-                    data, _ = src_dst.tile(
+                    image, assets = src_dst.tile(
                         x,
                         y,
                         z,
@@ -278,9 +287,14 @@ class MosaicTilerFactory(BaseTilerFactory):
                     )
 
             if not format:
-                format = ImageType.jpeg if data.mask.all() else ImageType.png
+                format = ImageType.jpeg if image.mask.all() else ImageType.png
 
-            image = data.post_process(**postprocess_params)
+            if rescale:
+                image.rescale(rescale)
+
+            if color_formula:
+                image.apply_color_formula(color_formula)
+
             content = image.render(
                 img_format=format.driver,
                 colormap=colormap,
@@ -290,7 +304,7 @@ class MosaicTilerFactory(BaseTilerFactory):
 
             headers: Dict[str, str] = {}
             if OptionalHeader.x_assets in self.optional_headers:
-                headers["X-Assets"] = ",".join(data.assets)
+                headers["X-Assets"] = ",".join(assets)
 
             return Response(content, media_type=format.mediatype, headers=headers)
 
@@ -328,16 +342,22 @@ class MosaicTilerFactory(BaseTilerFactory):
             layer_params=Depends(self.layer_dependency),  # noqa
             dataset_params=Depends(self.dataset_dependency),  # noqa
             pixel_selection=Depends(self.pixel_selection_dependency),  # noqa
-            postprocess_params=Depends(self.process_dependency),  # noqa
-            colormap=Depends(self.colormap_dependency),  # noqa
-            render_params=Depends(self.render_dependency),  # noqa
-            tile_buffer: Optional[float] = Query(  # noqa
+            buffer: Optional[float] = Query(  # noqa
                 None,
                 gt=0,
-                alias="buffer",
                 title="Tile buffer.",
                 description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * tile_buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
             ),
+            rescale: Optional[List[Tuple[float, ...]]] = Depends(
+                RescalingParams
+            ),  # noqa
+            color_formula: Optional[str] = Query(  # noqa
+                None,
+                title="Color Formula",
+                description="rio-color formula (info: https://github.com/mapbox/rio-color)",
+            ),
+            colormap=Depends(self.colormap_dependency),  # noqa
+            render_params=Depends(self.render_dependency),  # noqa
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
@@ -413,7 +433,20 @@ class MosaicTilerFactory(BaseTilerFactory):
             layer_params=Depends(self.layer_dependency),  # noqa
             dataset_params=Depends(self.dataset_dependency),  # noqa
             pixel_selection=Depends(self.pixel_selection_dependency),  # noqa
-            postprocess_params=Depends(self.process_dependency),  # noqa
+            buffer: Optional[float] = Query(  # noqa
+                None,
+                gt=0,
+                title="Tile buffer.",
+                description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * tile_buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
+            ),
+            rescale: Optional[List[Tuple[float, ...]]] = Depends(
+                RescalingParams
+            ),  # noqa
+            color_formula: Optional[str] = Query(  # noqa
+                None,
+                title="Color Formula",
+                description="rio-color formula (info: https://github.com/mapbox/rio-color)",
+            ),
             colormap=Depends(self.colormap_dependency),  # noqa
             render_params=Depends(self.render_dependency),  # noqa
             backend_params=Depends(self.backend_dependency),
@@ -514,7 +547,7 @@ class MosaicTilerFactory(BaseTilerFactory):
         ):
             """Get Point value for a Mosaic."""
             threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
-            print(reader_params)
+
             with rasterio.Env(**env):
                 with self.reader(
                     src_path,
