@@ -252,6 +252,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                 title="Tile buffer.",
                 description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * tile_buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
             ),
+            post_process=Depends(self.process_dependency),
             rescale: Optional[List[Tuple[float, ...]]] = Depends(RescalingParams),
             color_formula: Optional[str] = Query(
                 None,
@@ -286,14 +287,17 @@ class MosaicTilerFactory(BaseTilerFactory):
                         **dataset_params,
                     )
 
-            if not format:
-                format = ImageType.jpeg if image.mask.all() else ImageType.png
+            if post_process:
+                image = post_process.apply(image)
 
             if rescale:
                 image.rescale(rescale)
 
             if color_formula:
                 image.apply_color_formula(color_formula)
+
+            if not format:
+                format = ImageType.jpeg if image.mask.all() else ImageType.png
 
             content = image.render(
                 img_format=format.driver,
@@ -348,6 +352,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                 title="Tile buffer.",
                 description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * tile_buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
             ),
+            post_process=Depends(self.process_dependency),  # noqa
             rescale: Optional[List[Tuple[float, ...]]] = Depends(
                 RescalingParams
             ),  # noqa
@@ -439,6 +444,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                 title="Tile buffer.",
                 description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * tile_buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
             ),
+            post_process=Depends(self.process_dependency),  # noqa
             rescale: Optional[List[Tuple[float, ...]]] = Depends(
                 RescalingParams
             ),  # noqa

@@ -13,6 +13,9 @@ from rio_tiler.colormap import cmap, parse_color
 from rio_tiler.errors import MissingAssets, MissingBands
 from rio_tiler.types import ColorMapType
 
+from titiler.core.algorithm import algos
+from titiler.core.algorithm.base import BaseAlgorithm
+
 from fastapi import HTTPException, Query
 
 ColorMapName = Enum(  # type: ignore
@@ -468,3 +471,17 @@ link: https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
 
         if self.range:
             self.range = list(map(float, self.range.split(",")))  # type: ignore
+
+
+def PostProcessParams(
+    algorithm: algos.names = Query(None, description="Algorithm name", alias="algo"),
+    algorithm_params: str = Query(
+        None, description="Algorithm parameter", alias="algo_params"
+    ),
+) -> Optional[BaseAlgorithm]:
+    """Data Post-Processing options."""
+    kwargs = json.loads(algorithm_params) if algorithm_params else {}
+    if algorithm:
+        return algos.get(algorithm.name)(**kwargs)
+
+    return None

@@ -8,9 +8,15 @@ from rio_tiler.io import STACReader
 
 from titiler.application import __version__ as titiler_version
 from titiler.application.settings import ApiSettings
+from titiler.core.algorithm import algos
 from titiler.core.dependencies import DatasetPathParams
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
-from titiler.core.factory import MultiBaseTilerFactory, TilerFactory, TMSFactory
+from titiler.core.factory import (
+    AlgosFactory,
+    MultiBaseTilerFactory,
+    TilerFactory,
+    TMSFactory,
+)
 from titiler.core.middleware import (
     CacheControlMiddleware,
     LoggerMiddleware,
@@ -116,9 +122,13 @@ if not api_settings.disable_mosaic:
 tms = TMSFactory()
 app.include_router(tms.router, tags=["TileMatrixSets"])
 
+###############################################################################
+# Algorithms endpoints
+al = AlgosFactory(algos)
+app.include_router(al.router, tags=["Algorithms"])
+
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
 add_exception_handlers(app, MOSAIC_STATUS_CODES)
-
 
 # Set all CORS enabled origins
 if api_settings.cors_origins:

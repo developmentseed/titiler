@@ -14,6 +14,7 @@ from rio_tiler.models import BandStatistics, Bounds, Info
 from rio_tiler.types import ColorMapType
 from rio_tiler.utils import get_array_statistics
 
+from titiler.core.algorithm import AlgorithmMetadata, Algorithms, BaseAlgorithm
 from titiler.core.dependencies import (
     AssetsBidxExprParams,
     AssetsBidxExprParamsOptional,
@@ -30,6 +31,7 @@ from titiler.core.dependencies import (
     HistogramParams,
     ImageParams,
     ImageRenderingParams,
+    PostProcessParams,
     RescalingParams,
     StatisticsParams,
     TileMatrixSetName,
@@ -137,7 +139,7 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
     histogram_dependency: Type[DefaultDependency] = HistogramParams
 
     # Post Processing Dependencies (algorithm)
-    process_dependency: Type[DefaultDependency] = DefaultDependency
+    process_dependency: Callable[..., Optional[BaseAlgorithm]] = PostProcessParams
 
     # TileMatrixSet dependency
     tms_dependency: Callable[..., TileMatrixSet] = TMSParams
@@ -464,6 +466,7 @@ class TilerFactory(BaseTilerFactory):
                 title="Tile buffer.",
                 description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
             ),
+            post_process=Depends(self.process_dependency),
             rescale: Optional[List[Tuple[float, ...]]] = Depends(RescalingParams),
             color_formula: Optional[str] = Query(
                 None,
@@ -489,14 +492,17 @@ class TilerFactory(BaseTilerFactory):
                     )
                     dst_colormap = getattr(src_dst, "colormap", None)
 
-            if not format:
-                format = ImageType.jpeg if image.mask.all() else ImageType.png
+            if post_process:
+                image = post_process.apply(image)
 
             if rescale:
                 image.rescale(rescale)
 
             if color_formula:
                 image.apply_color_formula(color_formula)
+
+            if not format:
+                format = ImageType.jpeg if image.mask.all() else ImageType.png
 
             content = image.render(
                 img_format=format.driver,
@@ -546,6 +552,7 @@ class TilerFactory(BaseTilerFactory):
                 title="Tile buffer.",
                 description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
             ),
+            post_process=Depends(self.process_dependency),  # noqa
             rescale: Optional[List[Tuple[float, ...]]] = Depends(
                 RescalingParams
             ),  # noqa
@@ -626,6 +633,7 @@ class TilerFactory(BaseTilerFactory):
                 title="Tile buffer.",
                 description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
             ),
+            post_process=Depends(self.process_dependency),  # noqa
             rescale: Optional[List[Tuple[float, ...]]] = Depends(
                 RescalingParams
             ),  # noqa
@@ -756,6 +764,7 @@ class TilerFactory(BaseTilerFactory):
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             img_params=Depends(self.img_dependency),
+            post_process=Depends(self.process_dependency),
             rescale: Optional[List[Tuple[float, ...]]] = Depends(RescalingParams),
             color_formula: Optional[str] = Query(
                 None,
@@ -777,14 +786,17 @@ class TilerFactory(BaseTilerFactory):
                     )
                     dst_colormap = getattr(src_dst, "colormap", None)
 
-            if not format:
-                format = ImageType.jpeg if image.mask.all() else ImageType.png
+            if post_process:
+                image = post_process.apply(image)
 
             if rescale:
                 image.rescale(rescale)
 
             if color_formula:
                 image.apply_color_formula(color_formula)
+
+            if not format:
+                format = ImageType.jpeg if image.mask.all() else ImageType.png
 
             content = image.render(
                 img_format=format.driver,
@@ -820,6 +832,7 @@ class TilerFactory(BaseTilerFactory):
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_dependency),
+            post_process=Depends(self.process_dependency),
             rescale: Optional[List[Tuple[float, ...]]] = Depends(RescalingParams),
             color_formula: Optional[str] = Query(
                 None,
@@ -841,6 +854,9 @@ class TilerFactory(BaseTilerFactory):
                         **dataset_params,
                     )
                     dst_colormap = getattr(src_dst, "colormap", None)
+
+            if post_process:
+                image = post_process.apply(image)
 
             if rescale:
                 image.rescale(rescale)
@@ -879,6 +895,7 @@ class TilerFactory(BaseTilerFactory):
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_dependency),
+            post_process=Depends(self.process_dependency),
             rescale: Optional[List[Tuple[float, ...]]] = Depends(RescalingParams),
             color_formula: Optional[str] = Query(
                 None,
@@ -901,14 +918,17 @@ class TilerFactory(BaseTilerFactory):
                     )
                     dst_colormap = getattr(src_dst, "colormap", None)
 
-            if not format:
-                format = ImageType.jpeg if image.mask.all() else ImageType.png
+            if post_process:
+                image = post_process.apply(image)
 
             if rescale:
                 image.rescale(rescale)
 
             if color_formula:
                 image.apply_color_formula(color_formula)
+
+            if not format:
+                format = ImageType.jpeg if image.mask.all() else ImageType.png
 
             content = image.render(
                 img_format=format.driver,
@@ -1420,3 +1440,63 @@ class TMSFactory:
         async def TileMatrixSet_info(tms: TileMatrixSet = Depends(self.tms_dependency)):
             """Return TileMatrixSet JSON document."""
             return tms
+
+
+@dataclass
+class AlgosFactory:
+    """algorithm endpoints Factory."""
+
+    # Supported algorithm
+    supported_algorithm: Algorithms
+
+    # FastAPI router
+    router: APIRouter = field(default_factory=APIRouter)
+
+    # Router Prefix is needed to find the path for /tile if the TilerFactory.router is mounted
+    # with other router (multiple `.../tile` routes).
+    # e.g if you mount the route with `/cog` prefix, set router_prefix to cog and
+    router_prefix: str = ""
+
+    def __post_init__(self):
+        """Post Init: register route and configure specific options."""
+        self.register_routes()
+
+    def url_for(self, request: Request, name: str, **path_params: Any) -> str:
+        """Return full url (with prefix) for a specific endpoint."""
+        url_path = self.router.url_path_for(name, **path_params)
+        base_url = str(request.base_url)
+        if self.router_prefix:
+            base_url += self.router_prefix.lstrip("/")
+        return url_path.make_absolute_url(base_url=base_url)
+
+    def register_routes(self):
+        """Register TMS endpoint routes."""
+
+        @self.router.get("/algorithms", response_model=Dict[str, AlgorithmMetadata])
+        def algo(request: Request):
+            """Return the bounds of the COG."""
+            algos = {}
+            for k, v in self.supported_algorithm.algos.items():
+                props = v.schema()["properties"]
+                ins = {
+                    k.replace("input_", ""): v
+                    for k, v in props.items()
+                    if k.startswith("input_")
+                }
+
+                outs = {
+                    k.replace("output_", ""): v
+                    for k, v in props.items()
+                    if k.startswith("output_")
+                }
+
+                params = {
+                    k: v
+                    for k, v in props.items()
+                    if not k.startswith("input_") and not k.startswith("output_")
+                }
+                algos[k] = AlgorithmMetadata(
+                    name=k, inputs=ins, outputs=outs, params=params
+                )
+
+            return algos
