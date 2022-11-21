@@ -390,22 +390,24 @@ class TilerFactory(BaseTilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Get Statistics from a geojson feature or featureCollection."""
+            fc = geojson
+            if isinstance(fc, Feature):
+                fc = FeatureCollection(features=[geojson])
+
             with rasterio.Env(**env):
                 with self.reader(src_path, **reader_params) as src_dst:
-                    # TODO: stream features for FeatureCollection
-                    if isinstance(geojson, FeatureCollection):
-                        for feature in geojson:
-                            data = src_dst.feature(
-                                feature.dict(exclude_none=True),
-                                **layer_params,
-                                **image_params,
-                                **dataset_params,
-                            )
-                            stats = get_array_statistics(
-                                data.as_masked(),
-                                **stats_params,
-                                **histogram_params,
-                            )
+                    for feature in fc:
+                        data = src_dst.feature(
+                            feature.dict(exclude_none=True),
+                            **layer_params,
+                            **image_params,
+                            **dataset_params,
+                        )
+                        stats = get_array_statistics(
+                            data.as_masked(),
+                            **stats_params,
+                            **histogram_params,
+                        )
 
                         feature.properties = feature.properties or {}
                         feature.properties.update(
@@ -419,32 +421,7 @@ class TilerFactory(BaseTilerFactory):
                             }
                         )
 
-                    else:  # simple feature
-                        data = src_dst.feature(
-                            geojson.dict(exclude_none=True),
-                            **layer_params,
-                            **image_params,
-                            **dataset_params,
-                        )
-                        stats = get_array_statistics(
-                            data.as_masked(),
-                            **stats_params,
-                            **histogram_params,
-                        )
-
-                        geojson.properties = geojson.properties or {}
-                        geojson.properties.update(
-                            {
-                                "statistics": {
-                                    f"{data.band_names[ix]}": BandStatistics(
-                                        **stats[ix]
-                                    )
-                                    for ix in range(len(stats))
-                                }
-                            }
-                        )
-
-                    return geojson
+            return fc.features[0] if isinstance(geojson, Feature) else fc
 
     ############################################################################
     # /tiles
@@ -1082,70 +1059,43 @@ class MultiBaseTilerFactory(TilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Get Statistics from a geojson feature or featureCollection."""
+            fc = geojson
+            if isinstance(fc, Feature):
+                fc = FeatureCollection(features=[geojson])
+
             with rasterio.Env(**env):
                 with self.reader(src_path, **reader_params) as src_dst:
                     # Default to all available assets
                     if not layer_params.assets and not layer_params.expression:
                         layer_params.assets = src_dst.assets
 
-                    # TODO: stream features for FeatureCollection
-                    if isinstance(geojson, FeatureCollection):
-                        for feature in geojson:
-                            data = src_dst.feature(
-                                feature.dict(exclude_none=True),
-                                **layer_params,
-                                **image_params,
-                                **dataset_params,
-                            )
-
-                            stats = get_array_statistics(
-                                data.as_masked(),
-                                **stats_params,
-                                **histogram_params,
-                            )
-
-                        feature.properties = feature.properties or {}
-                        feature.properties.update(
-                            {
-                                # NOTE: because we use `src_dst.feature` the statistics will be in form of
-                                # `Dict[str, BandStatistics]` and not `Dict[str, Dict[str, BandStatistics]]`
-                                "statistics": {
-                                    f"{data.band_names[ix]}": BandStatistics(
-                                        **stats[ix]
-                                    )
-                                    for ix in range(len(stats))
-                                }
-                            }
-                        )
-
-                    else:  # simple feature
+                    for feature in fc:
                         data = src_dst.feature(
-                            geojson.dict(exclude_none=True),
+                            feature.dict(exclude_none=True),
                             **layer_params,
                             **image_params,
                             **dataset_params,
                         )
+
                         stats = get_array_statistics(
                             data.as_masked(),
                             **stats_params,
                             **histogram_params,
                         )
 
-                        geojson.properties = geojson.properties or {}
-                        geojson.properties.update(
-                            {
-                                # NOTE: because we use `src_dst.feature` the statistics will be in form of
-                                # `Dict[str, BandStatistics]` and not `Dict[str, Dict[str, BandStatistics]]`
-                                "statistics": {
-                                    f"{data.band_names[ix]}": BandStatistics(
-                                        **stats[ix]
-                                    )
-                                    for ix in range(len(stats))
-                                }
+                    feature.properties = feature.properties or {}
+                    feature.properties.update(
+                        {
+                            # NOTE: because we use `src_dst.feature` the statistics will be in form of
+                            # `Dict[str, BandStatistics]` and not `Dict[str, Dict[str, BandStatistics]]`
+                            "statistics": {
+                                f"{data.band_names[ix]}": BandStatistics(**stats[ix])
+                                for ix in range(len(stats))
                             }
-                        )
+                        }
+                    )
 
-            return geojson
+            return fc.features[0] if isinstance(geojson, Feature) else fc
 
 
 @dataclass
@@ -1261,7 +1211,7 @@ class MultiBandTilerFactory(TilerFactory):
             reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
         ):
-            """Create image from a geojson feature."""
+            """Get Dataset statistics."""
             with rasterio.Env(**env):
                 with self.reader(src_path, **reader_params) as src_dst:
                     return src_dst.statistics(
@@ -1299,42 +1249,19 @@ class MultiBandTilerFactory(TilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Get Statistics from a geojson feature or featureCollection."""
+            fc = geojson
+            if isinstance(fc, Feature):
+                fc = FeatureCollection(features=[geojson])
+
             with rasterio.Env(**env):
                 with self.reader(src_path, **reader_params) as src_dst:
                     # Default to all available bands
                     if not bands_params.bands and not bands_params.expression:
                         bands_params.bands = src_dst.bands
 
-                    # TODO: stream features for FeatureCollection
-                    if isinstance(geojson, FeatureCollection):
-                        for feature in geojson:
-                            data = src_dst.feature(
-                                feature.dict(exclude_none=True),
-                                **bands_params,
-                                **image_params,
-                                **dataset_params,
-                            )
-                            stats = get_array_statistics(
-                                data.as_masked(),
-                                **stats_params,
-                                **histogram_params,
-                            )
-
-                            feature.properties = feature.properties or {}
-                            feature.properties.update(
-                                {
-                                    "statistics": {
-                                        f"{data.band_names[ix]}": BandStatistics(
-                                            **stats[ix]
-                                        )
-                                        for ix in range(len(stats))
-                                    }
-                                }
-                            )
-
-                    else:  # simple feature
+                    for feature in fc:
                         data = src_dst.feature(
-                            geojson.dict(exclude_none=True),
+                            feature.dict(exclude_none=True),
                             **bands_params,
                             **image_params,
                             **dataset_params,
@@ -1345,8 +1272,8 @@ class MultiBandTilerFactory(TilerFactory):
                             **histogram_params,
                         )
 
-                        geojson.properties = geojson.properties or {}
-                        geojson.properties.update(
+                        feature.properties = feature.properties or {}
+                        feature.properties.update(
                             {
                                 "statistics": {
                                     f"{data.band_names[ix]}": BandStatistics(
@@ -1357,7 +1284,7 @@ class MultiBandTilerFactory(TilerFactory):
                             }
                         )
 
-                    return geojson
+            return fc.features[0] if isinstance(geojson, Feature) else fc
 
 
 @dataclass
