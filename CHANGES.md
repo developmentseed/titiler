@@ -2,6 +2,9 @@
 
 ## NEXT (TBD)
 
+* remove python 3.7 support
+* add python 3.10 and 3.11 in CI
+
 ### titiler.core
 
 * update FastAPI requirement to `>=0.87`
