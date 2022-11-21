@@ -40,7 +40,6 @@ jobs:
             --overwrite \
             titiler.core.dependencies \
             titiler.core.factory \
-            titiler.core.utils \
             titiler.core.routing \
             titiler.core.errors \
             titiler.core.resources.enums \

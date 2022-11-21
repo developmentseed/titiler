@@ -65,7 +65,6 @@ nav:
     - titiler.core:
       - dependencies: api/titiler/core/dependencies.md
       - factory: api/titiler/core/factory.md
-      - utils: api/titiler/core/utils.md
       - routing: api/titiler/core/routing.md
       - errors: api/titiler/core/errors.md
       - enums: api/titiler/core/resources/enums.md
