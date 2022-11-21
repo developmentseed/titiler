@@ -158,7 +158,7 @@ class AssetsParams(DefaultDependency):
 
 @dataclass
 class AssetsBidxExprParams(DefaultDependency):
-    """Assets, Band Indexes and Expression parameters."""
+    """Assets, Expression and Asset's band Indexes parameters."""
 
     assets: Optional[List[str]] = Query(
         None,
@@ -182,7 +182,7 @@ class AssetsBidxExprParams(DefaultDependency):
         examples={
             "simple": {
                 "description": "Return results of expression between assets.",
-                "value": "asset1 + asset2 / asset3",
+                "value": "asset1_b1 + asset2_b1 / asset3_b1",
             },
         },
     )
@@ -204,22 +204,6 @@ class AssetsBidxExprParams(DefaultDependency):
         },
     )
 
-    asset_expression: Optional[Sequence[str]] = Query(
-        None,
-        title="Per asset band expression",
-        description="Per asset band expression",
-        examples={
-            "one-asset": {
-                "description": "Return results for expression `b1*b2+b3` of asset `data`.",
-                "value": ["data|b1*b2+b3"],
-            },
-            "multi-assets": {
-                "description": "Return results for expressions `b1*b2+b3` for asset `data` and `b1+b3` for asset `cog`.",
-                "value": ["data|b1*b2+b3", "cog|b1+b3"],
-            },
-        },
-    )
-
     def __post_init__(self):
         """Post Init."""
         if not self.assets and not self.expression:
@@ -233,15 +217,10 @@ class AssetsBidxExprParams(DefaultDependency):
                 for idx in self.asset_indexes
             }
 
-        if self.asset_expression:
-            self.asset_expression: Dict[str, str] = {  # type: ignore
-                idx.split("|")[0]: idx.split("|")[1] for idx in self.asset_expression
-            }
-
 
 @dataclass
 class AssetsBidxExprParamsOptional(AssetsBidxExprParams):
-    """Assets, Band Indexes and Expression parameters but with no requirement."""
+    """Assets, Expression and Asset's band Indexes parameters but with no requirement."""
 
     def __post_init__(self):
         """Post Init."""
@@ -251,15 +230,10 @@ class AssetsBidxExprParamsOptional(AssetsBidxExprParams):
                 for idx in self.asset_indexes
             }
 
-        if self.asset_expression:
-            self.asset_expression: Dict[str, str] = {  # type: ignore
-                idx.split("|")[0]: idx.split("|")[1] for idx in self.asset_expression
-            }
-
 
 @dataclass
 class AssetsBidxParams(AssetsParams):
-    """asset and extra."""
+    """Assets, Asset's band Indexes and Asset's band Expression parameters."""
 
     asset_indexes: Optional[Sequence[str]] = Query(
         None,

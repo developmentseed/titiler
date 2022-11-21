@@ -238,12 +238,6 @@ def test_assets():
     assert response.json()["assets"] == ["data", "image"]
     assert response.json()["asset_indexes"] == {"data": [1, 2, 3], "image": [1]}
 
-    response = client.get(
-        "/second?assets=data&assets=image&asset_expression=data|b1\b2&asset_expression=image|b1*b2"
-    )
-    assert response.json()["assets"] == ["data", "image"]
-    assert response.json()["asset_expression"] == {"data": "b1\b2", "image": "b1*b2"}
-
     response = client.get("/third?assets=data&assets=image")
     assert response.json()["assets"] == ["data", "image"]
 

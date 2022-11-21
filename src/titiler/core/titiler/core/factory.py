@@ -9,7 +9,7 @@ import rasterio
 from geojson_pydantic.features import Feature, FeatureCollection
 from geojson_pydantic.geometries import Polygon
 from morecantile import TileMatrixSet
-from rio_tiler.io import BaseReader, COGReader, MultiBandReader, MultiBaseReader
+from rio_tiler.io import BaseReader, MultiBandReader, MultiBaseReader, Reader
 from rio_tiler.models import BandStatistics, Bounds, Info
 from rio_tiler.types import ColorMapType
 from rio_tiler.utils import get_array_statistics
@@ -41,7 +41,6 @@ from titiler.core.models.responses import (
     InfoGeoJSON,
     MultiBaseInfo,
     MultiBaseInfoGeoJSON,
-    MultiBasePoint,
     MultiBaseStatistics,
     MultiBaseStatisticsGeoJSON,
     Point,
@@ -97,7 +96,7 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
     Abstract Base Class which defines most inputs used by dynamic tiler.
 
     Attributes:
-        reader (rio_tiler.io.base.BaseReader): A rio-tiler reader (e.g COGReader).
+        reader (rio_tiler.io.base.BaseReader): A rio-tiler reader (e.g Reader).
         router (fastapi.APIRouter): Application router to register endpoints to.
         path_dependency (Callable): Endpoint dependency defining `path` to pass to the reader init.
         dataset_dependency (titiler.core.dependencies.DefaultDependency): Endpoint dependency defining dataset overwriting options (e.g nodata).
@@ -220,8 +219,8 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
 class TilerFactory(BaseTilerFactory):
     """Tiler Factory."""
 
-    # Default reader is set to COGReader
-    reader: Type[BaseReader] = COGReader
+    # Default reader is set to rio_tiler.io.Reader
+    reader: Type[BaseReader] = Reader
 
     # Crop/Preview endpoints Dependencies
     img_dependency: Type[DefaultDependency] = ImageParams
@@ -485,12 +484,11 @@ class TilerFactory(BaseTilerFactory):
             postprocess_params=Depends(self.process_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
-            tile_buffer: Optional[float] = Query(
+            buffer: Optional[float] = Query(
                 None,
                 gt=0,
-                alias="buffer",
                 title="Tile buffer.",
-                description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * tile_buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
+                description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
             ),
             reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
@@ -503,7 +501,7 @@ class TilerFactory(BaseTilerFactory):
                         y,
                         z,
                         tilesize=scale * 256,
-                        tile_buffer=tile_buffer,
+                        buffer=buffer,
                         **layer_params,
                         **dataset_params,
                     )
@@ -558,12 +556,11 @@ class TilerFactory(BaseTilerFactory):
             postprocess_params=Depends(self.process_dependency),  # noqa
             colormap=Depends(self.colormap_dependency),  # noqa
             render_params=Depends(self.render_dependency),  # noqa
-            tile_buffer: Optional[float] = Query(  # noqa
+            buffer: Optional[float] = Query(  # noqa
                 None,
                 gt=0,
-                alias="buffer",
                 title="Tile buffer.",
-                description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * tile_buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
+                description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
             ),
             reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
@@ -723,14 +720,18 @@ class TilerFactory(BaseTilerFactory):
             """Get Point value for a dataset."""
             with rasterio.Env(**env):
                 with self.reader(src_path, **reader_params) as src_dst:
-                    values = src_dst.point(
+                    pts = src_dst.point(
                         lon,
                         lat,
                         **layer_params,
                         **dataset_params,
                     )
 
-            return {"coordinates": [lon, lat], "values": values}
+            return {
+                "coordinates": [lon, lat],
+                "values": pts.data.tolist(),
+                "band_names": pts.band_names,
+            }
 
     ############################################################################
     # /preview (Optional)
@@ -904,39 +905,6 @@ class MultiBaseTilerFactory(TilerFactory):
 
     # Assets dependency
     assets_dependency: Type[DefaultDependency] = AssetsParams
-
-    ############################################################################
-    # /point
-    ############################################################################
-    def point(self):
-        """Register /point endpoints."""
-
-        @self.router.get(
-            r"/point/{lon},{lat}",
-            response_model=MultiBasePoint,
-            response_class=JSONResponse,
-            responses={200: {"description": "Return a value for a point"}},
-        )
-        def point(
-            lon: float = Path(..., description="Longitude"),
-            lat: float = Path(..., description="Latitude"),
-            src_path=Depends(self.path_dependency),
-            layer_params=Depends(self.layer_dependency),
-            dataset_params=Depends(self.dataset_dependency),
-            reader_params=Depends(self.reader_dependency),
-            env=Depends(self.environment_dependency),
-        ):
-            """Get Point value for a dataset."""
-            with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
-                    values = src_dst.point(
-                        lon,
-                        lat,
-                        **layer_params,
-                        **dataset_params,
-                    )
-
-            return {"coordinates": [lon, lat], "values": values}
 
     # Overwrite the `/info` endpoint to return the list of assets when no assets is passed.
     def info(self):

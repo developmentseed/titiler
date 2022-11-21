@@ -13,7 +13,7 @@ from geojson_pydantic.features import Feature
 from geojson_pydantic.geometries import Polygon
 from morecantile import TileMatrixSet
 from rio_tiler.constants import MAX_THREADS
-from rio_tiler.io import BaseReader, COGReader, MultiBandReader, MultiBaseReader
+from rio_tiler.io import BaseReader, MultiBandReader, MultiBaseReader, Reader
 from rio_tiler.models import Bounds
 from rio_tiler.mosaic.methods.base import MosaicMethodBase
 
@@ -57,7 +57,7 @@ class MosaicTilerFactory(BaseTilerFactory):
         Type[BaseReader],
         Type[MultiBaseReader],
         Type[MultiBandReader],
-    ] = COGReader
+    ] = Reader
 
     # BaseBackend does not support other TMS than WebMercator
     tms_dependency: Callable[..., TileMatrixSet] = WebMercatorTMSParams
@@ -245,10 +245,9 @@ class MosaicTilerFactory(BaseTilerFactory):
             postprocess_params=Depends(self.process_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
-            tile_buffer: Optional[float] = Query(
+            buffer: Optional[float] = Query(
                 None,
                 gt=0,
-                alias="buffer",
                 title="Tile buffer.",
                 description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * tile_buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
             ),
@@ -273,7 +272,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                         pixel_selection=pixel_selection,
                         tilesize=scale * 256,
                         threads=threads,
-                        tile_buffer=tile_buffer,
+                        buffer=buffer,
                         **layer_params,
                         **dataset_params,
                     )
@@ -515,7 +514,7 @@ class MosaicTilerFactory(BaseTilerFactory):
         ):
             """Get Point value for a Mosaic."""
             threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
-
+            print(reader_params)
             with rasterio.Env(**env):
                 with self.reader(
                     src_path,
@@ -531,7 +530,12 @@ class MosaicTilerFactory(BaseTilerFactory):
                         **dataset_params,
                     )
 
-            return {"coordinates": [lon, lat], "values": values}
+            return {
+                "coordinates": [lon, lat],
+                "values": [
+                    (src, pts.data.tolist(), pts.band_names) for src, pts in values
+                ],
+            }
 
     def validate(self):
         """Register /validate endpoint."""

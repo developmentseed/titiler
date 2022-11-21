@@ -3,7 +3,6 @@
 import json
 import os
 import pathlib
-from dataclasses import dataclass
 from enum import Enum
 from io import BytesIO
 from typing import Dict, Type
@@ -16,7 +15,7 @@ import morecantile
 import numpy
 from rio_tiler.io import BaseReader, COGReader, MultiBandReader, STACReader
 
-from titiler.core.dependencies import DefaultDependency, TMSParams, WebMercatorTMSParams
+from titiler.core.dependencies import TMSParams, WebMercatorTMSParams
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 from titiler.core.factory import (
     MultiBandTilerFactory,
@@ -180,6 +179,18 @@ def test_TilerFactory():
     response = client.get(f"/point/-56.228,72.715?url={DATA_DIR}/cog.tif")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
+    assert len(response.json()["values"]) == 1
+    assert response.json()["band_names"] == ["b1"]
+
+    response = client.get(f"/point/-56.228,72.715?url={DATA_DIR}/cog.tif&bidx=1&bidx=1")
+    assert len(response.json()["values"]) == 2
+    assert response.json()["band_names"] == ["b1", "b1"]
+
+    response = client.get(
+        f"/point/-56.228,72.715?url={DATA_DIR}/cog.tif&expression=b1*2"
+    )
+    assert len(response.json()["values"]) == 1
+    assert response.json()["band_names"] == ["b1*2"]
 
     response = client.get(f"/tilejson.json?url={DATA_DIR}/cog.tif")
     assert response.status_code == 200
@@ -330,7 +341,7 @@ def test_TilerFactory():
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
     assert len(resp) == 1
-    assert set(resp["1"].keys()) == {
+    assert set(resp["b1"].keys()) == {
         "min",
         "max",
         "mean",
@@ -348,7 +359,7 @@ def test_TilerFactory():
         "percentile_2",
         "percentile_98",
     }
-    assert len(resp["1"]["histogram"][0]) == 10
+    assert len(resp["b1"]["histogram"][0]) == 10
 
     response = client.get(f"/statistics?url={DATA_DIR}/cog.tif&expression=b1*2")
     assert response.status_code == 200
@@ -381,7 +392,7 @@ def test_TilerFactory():
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
     assert len(resp) == 1
-    assert set(resp["1"].keys()) == {
+    assert set(resp["b1"].keys()) == {
         "min",
         "max",
         "mean",
@@ -405,7 +416,7 @@ def test_TilerFactory():
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
     assert len(resp) == 1
-    assert set(resp["1"].keys()) == {
+    assert set(resp["b1"].keys()) == {
         "min",
         "max",
         "mean",
@@ -424,7 +435,7 @@ def test_TilerFactory():
         "percentile_98",
     }
     # categories are stored in the histogram
-    assert len(resp["1"]["histogram"][1]) == 15
+    assert len(resp["b1"]["histogram"][1]) == 15
 
     response = client.get(
         f"/statistics?url={DATA_DIR}/cog.tif&categorical=true&c=1&c=2&c=3&c=4"
@@ -433,7 +444,7 @@ def test_TilerFactory():
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
     assert len(resp) == 1
-    assert set(resp["1"].keys()) == {
+    assert set(resp["b1"].keys()) == {
         "min",
         "max",
         "mean",
@@ -451,15 +462,15 @@ def test_TilerFactory():
         "percentile_2",
         "percentile_98",
     }
-    assert resp["1"]["histogram"][1] == [1.0, 2.0, 3.0, 4.0]  # categories
-    assert resp["1"]["histogram"][0][3] == 0  # 4.0 is not present in the array
+    assert resp["b1"]["histogram"][1] == [1.0, 2.0, 3.0, 4.0]  # categories
+    assert resp["b1"]["histogram"][0][3] == 0  # 4.0 is not present in the array
 
     response = client.get(f"/statistics?url={DATA_DIR}/cog.tif&bidx=1&histogram_bins=3")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
     assert len(resp) == 1
-    assert len(resp["1"]["histogram"][0]) == 3
+    assert len(resp["b1"]["histogram"][0]) == 3
 
     response = client.get(
         f"/statistics?url={DATA_DIR}/cog.tif&bidx=1&histogram_range=5,10"
@@ -468,8 +479,8 @@ def test_TilerFactory():
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
     assert len(resp) == 1
-    assert min(resp["1"]["histogram"][1]) == 5.0
-    assert max(resp["1"]["histogram"][1]) == 10.0
+    assert min(resp["b1"]["histogram"][1]) == 5.0
+    assert max(resp["b1"]["histogram"][1]) == 10.0
 
     # POST - statistics
     response = client.post(
@@ -480,7 +491,7 @@ def test_TilerFactory():
     resp = response.json()
     assert resp["type"] == "Feature"
     assert len(resp["properties"]["statistics"]) == 1
-    assert set(resp["properties"]["statistics"]["1"].keys()) == {
+    assert set(resp["properties"]["statistics"]["b1"].keys()) == {
         "min",
         "max",
         "mean",
@@ -508,7 +519,7 @@ def test_TilerFactory():
     resp = response.json()
     assert resp["type"] == "FeatureCollection"
     assert len(resp["features"][0]["properties"]["statistics"]) == 1
-    assert set(resp["features"][0]["properties"]["statistics"]["1"].keys()) == {
+    assert set(resp["features"][0]["properties"]["statistics"]["b1"].keys()) == {
         "min",
         "max",
         "mean",
@@ -535,7 +546,7 @@ def test_TilerFactory():
     resp = response.json()
     assert resp["type"] == "Feature"
     assert len(resp["properties"]["statistics"]) == 1
-    assert set(resp["properties"]["statistics"]["1"].keys()) == {
+    assert set(resp["properties"]["statistics"]["b1"].keys()) == {
         "min",
         "max",
         "mean",
@@ -553,7 +564,7 @@ def test_TilerFactory():
         "masked_pixels",
         "valid_percent",
     }
-    assert len(resp["properties"]["statistics"]["1"]["histogram"][1]) == 12
+    assert len(resp["properties"]["statistics"]["b1"]["histogram"][1]) == 12
 
     response = client.post(
         f"/statistics?url={DATA_DIR}/cog.tif&categorical=true&c=1&c=2&c=3&c=4",
@@ -564,7 +575,7 @@ def test_TilerFactory():
     resp = response.json()
     assert resp["type"] == "Feature"
     assert len(resp["properties"]["statistics"]) == 1
-    assert set(resp["properties"]["statistics"]["1"].keys()) == {
+    assert set(resp["properties"]["statistics"]["b1"].keys()) == {
         "min",
         "max",
         "mean",
@@ -582,32 +593,11 @@ def test_TilerFactory():
         "masked_pixels",
         "valid_percent",
     }
-    assert len(resp["properties"]["statistics"]["1"]["histogram"][0]) == 4
-    assert resp["properties"]["statistics"]["1"]["histogram"][0][3] == 0
+    assert len(resp["properties"]["statistics"]["b1"]["histogram"][0]) == 4
+    assert resp["properties"]["statistics"]["b1"]["histogram"][0][3] == 0
 
 
-@dataclass
-class ReaderParams(DefaultDependency):
-    """Reader options to overwrite min/max zoom."""
-
-    minzoom: int = 4
-    maxzoom: int = 8
-
-
-def test_TilerFactory_ReaderParams():
-    """Test TilerFactory factory with Reader dependency."""
-    cog = TilerFactory(reader_dependency=ReaderParams)
-    app = FastAPI()
-    app.include_router(cog.router)
-    client = TestClient(app)
-
-    response = client.get(f"/tilejson.json?url={DATA_DIR}/cog.tif")
-    tj = response.json()
-    assert tj["minzoom"] == 4
-    assert tj["maxzoom"] == 8
-
-
-@patch("rio_tiler.io.cogeo.rasterio")
+@patch("rio_tiler.io.rasterio.rasterio")
 def test_MultiBaseTilerFactory(rio):
     """test MultiBaseTilerFactory."""
     rio.open = mock_rasterio_open
@@ -660,7 +650,7 @@ def test_MultiBaseTilerFactory(rio):
         "/preview.tif",
         params={
             "url": f"{DATA_DIR}/item.json",
-            "expression": "B01;B01;B01",
+            "expression": "B01_b1;B01_b1;B01_b1",
             "return_mask": False,
         },
     )
@@ -683,8 +673,7 @@ def test_MultiBaseTilerFactory(rio):
         "/preview.tif",
         params={
             "url": f"{DATA_DIR}/item.json",
-            "assets": "B01",
-            "asset_expression": "B01|b1;b1;b1",
+            "expression": "B01_b1;B01_b1;B01_b1",
             "return_mask": False,
         },
     )
@@ -702,7 +691,7 @@ def test_MultiBaseTilerFactory(rio):
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
     assert len(resp) == 2
-    assert set(resp["B01"]["1"].keys()) == {
+    assert set(resp["B01"]["b1"].keys()) == {
         "min",
         "max",
         "mean",
@@ -727,15 +716,15 @@ def test_MultiBaseTilerFactory(rio):
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
     assert len(resp) == 2
-    assert resp["B01"]["1"]
-    assert resp["B09"]["1"]
+    assert resp["B01"]["b1"]
+    assert resp["B09"]["b1"]
 
     response = client.get(f"/statistics?url={DATA_DIR}/item.json&assets=B01&assets=B09")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
-    assert list(resp) == ["B01_1", "B09_1"]
-    assert set(resp["B01_1"].keys()) == {
+    assert list(resp) == ["B01_b1", "B09_b1"]
+    assert set(resp["B01_b1"].keys()) == {
         "min",
         "max",
         "mean",
@@ -761,8 +750,8 @@ def test_MultiBaseTilerFactory(rio):
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
     assert len(resp) == 2
-    assert resp["B01_1"]
-    assert resp["B09_1"]
+    assert resp["B01_b1"]
+    assert resp["B09_b1"]
 
     stac_feature = {
         "type": "FeatureCollection",
@@ -796,7 +785,7 @@ def test_MultiBaseTilerFactory(rio):
     resp = response.json()
     props = resp["properties"]["statistics"]
     assert len(props) == 2
-    assert set(props["B01_1"].keys()) == {
+    assert set(props["B01_b1"].keys()) == {
         "min",
         "max",
         "mean",
@@ -814,7 +803,7 @@ def test_MultiBaseTilerFactory(rio):
         "percentile_2",
         "percentile_98",
     }
-    assert props["B09_1"]
+    assert props["B09_b1"]
 
     response = client.post(
         f"/statistics?url={DATA_DIR}/item.json&assets=B01&assets=B09", json=stac_feature
@@ -824,7 +813,7 @@ def test_MultiBaseTilerFactory(rio):
     resp = response.json()
     props = resp["features"][0]["properties"]["statistics"]
     assert len(props) == 2
-    assert set(props["B01_1"].keys()) == {
+    assert set(props["B01_b1"].keys()) == {
         "min",
         "max",
         "mean",
@@ -842,7 +831,7 @@ def test_MultiBaseTilerFactory(rio):
         "percentile_2",
         "percentile_98",
     }
-    assert props["B09_1"]
+    assert props["B09_b1"]
 
     response = client.post(
         f"/statistics?url={DATA_DIR}/item.json&assets=B01&assets=B09&asset_bidx=B01|1&asset_bidx=B09|1",
@@ -853,7 +842,7 @@ def test_MultiBaseTilerFactory(rio):
     resp = response.json()
     props = resp["properties"]["statistics"]
     assert len(props) == 2
-    assert set(props["B01_1"].keys()) == {
+    assert set(props["B01_b1"].keys()) == {
         "min",
         "max",
         "mean",
@@ -871,7 +860,7 @@ def test_MultiBaseTilerFactory(rio):
         "percentile_2",
         "percentile_98",
     }
-    assert props["B09_1"]
+    assert props["B09_b1"]
 
 
 @attr.s
@@ -885,6 +874,17 @@ class BandFileReader(MultiBandReader):
     reader_options: Dict = attr.ib(factory=dict)
 
     reader: Type[BaseReader] = attr.ib(default=COGReader)
+
+    minzoom: int = attr.ib()
+    maxzoom: int = attr.ib()
+
+    @minzoom.default
+    def _minzoom(self):
+        return self.tms.minzoom
+
+    @maxzoom.default
+    def _maxzoom(self):
+        return self.tms.maxzoom
 
     def __attrs_post_init__(self):
         """Parse Sceneid and get grid bounds."""

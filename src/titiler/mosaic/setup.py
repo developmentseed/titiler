@@ -5,7 +5,7 @@ from setuptools import find_namespace_packages, setup
 with open("README.md") as f:
     long_description = f.read()
 
-inst_reqs = ["titiler.core>=0.7,<0.8", "cogeo-mosaic>=4.1,<4.2"]
+inst_reqs = ["titiler.core>=0.7,<0.8", "cogeo-mosaic>=4.2,<4.3"]
 extra_reqs = {
     "test": ["pytest", "pytest-cov", "pytest-asyncio", "httpx"],
 }
@@ -16,14 +16,15 @@ setup(
     description="MosaicJSON plugin for TiTiler.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    python_requires=">=3.7",
+    python_requires=">=3.8",
     classifiers=[
         "Intended Audience :: Information Technology",
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: BSD License",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
     ],
     keywords="MosaicJSON",
     author="Vincent Sarago",

@@ -4,7 +4,7 @@ import logging
 
 from rio_cogeo.cogeo import cog_info as rio_cogeo_info
 from rio_cogeo.models import Info
-from rio_tiler.io import COGReader, STACReader
+from rio_tiler.io import STACReader
 
 from titiler.application import __version__ as titiler_version
 from titiler.application.settings import ApiSettings
@@ -53,7 +53,7 @@ app = FastAPI(
 ###############################################################################
 # Simple Dataset endpoints (e.g Cloud Optimized GeoTIFF)
 if not api_settings.disable_cog:
-    cog = TilerFactory(reader=COGReader, router_prefix="/cog")
+    cog = TilerFactory(router_prefix="/cog")
 
     # Add validate and viewer endpoints
     @cog.router.get("/validate", response_model=Info)
