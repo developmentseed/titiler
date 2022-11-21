@@ -1,6 +1,6 @@
 """TiTiler.mosaic response models."""
 
-from typing import List, Tuple, Union
+from typing import List, Tuple
 
 from pydantic import BaseModel
 
@@ -14,4 +14,4 @@ class Point(BaseModel):
     """
 
     coordinates: List[float]
-    values: List[Tuple[str, Union[List[float], List[float]]]]
+    values: List[Tuple[str, List[float], List[str]]]

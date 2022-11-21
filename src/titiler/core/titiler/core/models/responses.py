@@ -18,13 +18,7 @@ class Point(BaseModel):
 
     coordinates: List[float]
     values: List[float]
-
-
-class MultiBasePoint(BaseModel):
-    """Point model for MultiBaseReader."""
-
-    coordinates: List[float]
-    values: List[List[float]]
+    band_names: List[str]
 
 
 InfoGeoJSON = Feature[Polygon, Info]

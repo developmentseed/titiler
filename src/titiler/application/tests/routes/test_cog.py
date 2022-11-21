@@ -12,7 +12,7 @@ import pytest
 from ..conftest import DATA_DIR, mock_rasterio_open, parse_img
 
 
-@patch("rio_tiler.io.cogeo.rasterio")
+@patch("rio_tiler.io.rasterio.rasterio")
 def test_bounds(rio, app):
     """test /bounds endpoint."""
     rio.open = mock_rasterio_open
@@ -24,7 +24,7 @@ def test_bounds(rio, app):
     assert response.headers["Cache-Control"] == "private, max-age=3600"
 
 
-@patch("rio_tiler.io.cogeo.rasterio")
+@patch("rio_tiler.io.rasterio.rasterio")
 def test_info(rio, app):
     """test /info endpoint."""
     rio.open = mock_rasterio_open
@@ -33,7 +33,7 @@ def test_info(rio, app):
     assert response.status_code == 200
     body = response.json()
     assert len(body["bounds"]) == 4
-    assert body["band_descriptions"] == [["1", ""]]
+    assert body["band_descriptions"] == [["b1", ""]]
     assert body["dtype"] == "uint16"
     assert body["colorinterp"] == ["gray"]
     assert body["nodata_type"] == "None"
@@ -43,13 +43,13 @@ def test_info(rio, app):
     assert response.headers["content-type"] == "application/geo+json"
     body = response.json()
     assert body["geometry"]
-    assert body["properties"]["band_descriptions"] == [["1", ""]]
+    assert body["properties"]["band_descriptions"] == [["b1", ""]]
     assert body["properties"]["dtype"] == "uint16"
     assert body["properties"]["colorinterp"] == ["gray"]
     assert body["properties"]["nodata_type"] == "None"
 
 
-@patch("rio_tiler.io.cogeo.rasterio")
+@patch("rio_tiler.io.rasterio.rasterio")
 def test_wmts(rio, app):
     """test wmts endpoints."""
     rio.open = mock_rasterio_open
@@ -79,7 +79,7 @@ def test_wmts(rio, app):
     )
 
 
-@patch("rio_tiler.io.cogeo.rasterio")
+@patch("rio_tiler.io.rasterio.rasterio")
 def test_tile(rio, app):
     """test tile endpoints."""
     rio.open = mock_rasterio_open
@@ -234,7 +234,7 @@ def test_tile(rio, app):
     assert meta["height"] == 512
 
 
-@patch("rio_tiler.io.cogeo.rasterio")
+@patch("rio_tiler.io.rasterio.rasterio")
 def test_tilejson(rio, app):
     """test /tilejson endpoint."""
     rio.open = mock_rasterio_open
@@ -282,7 +282,7 @@ def test_tilejson(rio, app):
     assert json.loads(query["colormap"]) == cmap_dict
 
 
-@patch("rio_tiler.io.cogeo.rasterio")
+@patch("rio_tiler.io.rasterio.rasterio")
 def test_preview(rio, app):
     """test /preview endpoint."""
     rio.open = mock_rasterio_open
@@ -338,7 +338,7 @@ def test_preview(rio, app):
     assert data.shape == (2, 1024, 1021)
 
 
-@patch("rio_tiler.io.cogeo.rasterio")
+@patch("rio_tiler.io.rasterio.rasterio")
 def test_part(rio, app):
     """test /crop endpoint."""
     rio.open = mock_rasterio_open
@@ -394,7 +394,7 @@ def test_part(rio, app):
     assert data.shape == (2, 73, 256)
 
 
-@patch("rio_tiler.io.cogeo.rasterio")
+@patch("rio_tiler.io.rasterio.rasterio")
 def test_point(rio, app):
     """test /point endpoint."""
     rio.open = mock_rasterio_open
@@ -412,7 +412,7 @@ def test_file_not_found_error(app):
     assert response.status_code == 500
 
 
-@patch("rio_tiler.io.cogeo.rasterio")
+@patch("rio_tiler.io.rasterio.rasterio")
 def test_tile_outside_bounds_error(rio, app):
     """raise 404 when tile is not found."""
     rio.open = mock_rasterio_open
@@ -433,7 +433,7 @@ def test_validate_cog(app, url):
     assert response.json()["COG"]
 
 
-@patch("rio_tiler.io.cogeo.rasterio")
+@patch("rio_tiler.io.rasterio.rasterio")
 def test_json_response_with_nan(rio, app):
     """test /info endpoint."""
     rio.open = mock_rasterio_open
