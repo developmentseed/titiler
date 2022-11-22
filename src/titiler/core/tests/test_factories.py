@@ -15,7 +15,6 @@ import morecantile
 import numpy
 from rio_tiler.io import BaseReader, COGReader, MultiBandReader, STACReader
 
-from titiler.core.algorithm import algos
 from titiler.core.dependencies import TMSParams, WebMercatorTMSParams
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 from titiler.core.factory import (
@@ -1359,7 +1358,7 @@ def test_TilerFactory_WithGdalEnv():
 
 def test_algorithm():
     """Test Algorithms endpoint."""
-    algorithm = AlgorithmFactory(algos)
+    algorithm = AlgorithmFactory()
 
     app = FastAPI()
     app.include_router(algorithm.router)
