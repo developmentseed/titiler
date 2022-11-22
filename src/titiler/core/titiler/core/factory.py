@@ -1,7 +1,7 @@
 """TiTiler Router factories."""
-
 import abc
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 from urllib.parse import urlencode
 
@@ -15,6 +15,7 @@ from rio_tiler.types import ColorMapType
 from rio_tiler.utils import get_array_statistics
 
 from titiler.core.algorithm import AlgorithmMetadata, Algorithms, BaseAlgorithm
+from titiler.core.algorithm import algorithms as available_algorithms
 from titiler.core.dependencies import (
     AssetsBidxExprParams,
     AssetsBidxExprParamsOptional,
@@ -1443,60 +1444,58 @@ class TMSFactory:
 
 
 @dataclass
-class AlgosFactory:
-    """algorithm endpoints Factory."""
+class AlgorithmFactory:
+    """Algorithm endpoints Factory."""
 
     # Supported algorithm
-    supported_algorithm: Algorithms
+    supported_algorithm: Algorithms = available_algorithms
 
     # FastAPI router
     router: APIRouter = field(default_factory=APIRouter)
 
-    # Router Prefix is needed to find the path for /tile if the TilerFactory.router is mounted
-    # with other router (multiple `.../tile` routes).
-    # e.g if you mount the route with `/cog` prefix, set router_prefix to cog and
-    router_prefix: str = ""
-
     def __post_init__(self):
-        """Post Init: register route and configure specific options."""
-        self.register_routes()
+        """Post Init: register routes"""
+        # Algorithm Enum
+        AlgorithmName = Enum(  # type: ignore
+            "AlgorithmName", [(a, a) for a in self.supported_algorithm.list()]
+        )
 
-    def url_for(self, request: Request, name: str, **path_params: Any) -> str:
-        """Return full url (with prefix) for a specific endpoint."""
-        url_path = self.router.url_path_for(name, **path_params)
-        base_url = str(request.base_url)
-        if self.router_prefix:
-            base_url += self.router_prefix.lstrip("/")
-        return url_path.make_absolute_url(base_url=base_url)
+        def metadata(algorithm: BaseAlgorithm) -> AlgorithmMetadata:
+            """Algorithm Metadata"""
+            props = algorithm.schema()["properties"]
 
-    def register_routes(self):
-        """Register TMS endpoint routes."""
+            # Inputs Metadata
+            ins = {
+                k.replace("input_", ""): v["default"]
+                for k, v in props.items()
+                if k.startswith("input_") and "default" in v
+            }
+
+            # Output Metadata
+            outs = {
+                k.replace("output_", ""): v["default"]
+                for k, v in props.items()
+                if k.startswith("output_") and "default" in v
+            }
+
+            # Algorithm Parameters
+            params = {
+                k: v
+                for k, v in props.items()
+                if not k.startswith("input_") and not k.startswith("output_")
+            }
+            return AlgorithmMetadata(inputs=ins, outputs=outs, parameters=params)
 
         @self.router.get("/algorithms", response_model=Dict[str, AlgorithmMetadata])
-        def algo(request: Request):
-            """Return the bounds of the COG."""
-            algos = {}
-            for k, v in self.supported_algorithm.algos.items():
-                props = v.schema()["properties"]
-                ins = {
-                    k.replace("input_", ""): v
-                    for k, v in props.items()
-                    if k.startswith("input_")
-                }
+        def available_algorithms(request: Request):
+            """Return the available algorithm."""
+            return {k: metadata(v) for k, v in self.supported_algorithm.data.items()}
 
-                outs = {
-                    k.replace("output_", ""): v
-                    for k, v in props.items()
-                    if k.startswith("output_")
-                }
-
-                params = {
-                    k: v
-                    for k, v in props.items()
-                    if not k.startswith("input_") and not k.startswith("output_")
-                }
-                algos[k] = AlgorithmMetadata(
-                    name=k, inputs=ins, outputs=outs, params=params
-                )
-
-            return algos
+        @self.router.get("/algorithms/{algorithmId}", response_model=AlgorithmMetadata)
+        def algorithm_metadata(
+            algorithm: AlgorithmName = Path(
+                ..., description="Algorithm name", alias="algorithmId"
+            ),
+        ):
+            """Return the available algorithm."""
+            return metadata(self.supported_algorithm.get(algorithm.name))

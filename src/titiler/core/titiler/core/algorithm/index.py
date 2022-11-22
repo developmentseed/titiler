@@ -11,8 +11,8 @@ from titiler.core.algorithm.base import BaseAlgorithm
 class NormalizedIndex(BaseAlgorithm):
     """Normalized Difference Index."""
 
+    # metadata
     input_nbands: int = 2
-
     output_nbands: int = 1
     output_dtype: str = "float32"
     output_min: Sequence[float] = [-1.0]

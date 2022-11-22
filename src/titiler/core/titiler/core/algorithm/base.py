@@ -8,10 +8,14 @@ from rio_tiler.models import ImageData
 
 
 class BaseAlgorithm(BaseModel, metaclass=abc.ABCMeta):
-    """Algorithm baseclass."""
+    """Algorithm baseclass.
 
+    Note: attribute starting with `input_` or `output_` are considered as metadata
+
+    """
+
+    # metadata
     input_nbands: int
-
     output_nbands: int
     output_dtype: str
     output_min: Optional[Sequence]
@@ -19,7 +23,7 @@ class BaseAlgorithm(BaseModel, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def apply(self, img: ImageData) -> ImageData:
-        """Apply"""
+        """Apply algorithm"""
         ...
 
     class Config:
@@ -31,7 +35,6 @@ class BaseAlgorithm(BaseModel, metaclass=abc.ABCMeta):
 class AlgorithmMetadata(BaseModel):
     """Algorithm metadata."""
 
-    name: str
     inputs: Dict
     outputs: Dict
-    params: Dict
+    parameters: Dict

@@ -11,12 +11,13 @@ from titiler.core.algorithm.base import BaseAlgorithm
 class HillShade(BaseAlgorithm):
     """Hillshade."""
 
+    # parameters
     azimuth: int = 90
     angle_altitude: float = 90
     buffer: int = 3
 
+    # metadata
     input_nbands: int = 1
-
     output_nbands: int = 1
     output_dtype: str = "uint8"
 
@@ -59,13 +60,14 @@ class Contours(BaseAlgorithm):
     Original idea from https://custom-scripts.sentinel-hub.com/dem/contour-lines/
     """
 
+    # parameters
     increment: int = 35
     thickness: int = 1
     minz: int = -12000
     maxz: int = 8000
 
+    # metadata
     input_nbands: int = 1
-
     output_nbands: int = 3
     output_dtype: str = "uint8"
 
@@ -92,8 +94,8 @@ class Contours(BaseAlgorithm):
 class Terrarium(BaseAlgorithm):
     """Encode DEM into RGB (Mapzen Terrarium)."""
 
+    # metadata
     input_nbands: int = 1
-
     output_nbands: int = 3
     output_dtype: str = "uint8"
 
@@ -104,7 +106,7 @@ class Terrarium(BaseAlgorithm):
         g = data % 256
         b = (data * 256) % 256
         arr = numpy.stack([r, g, b]).astype(numpy.uint8)
-        print(arr.shape)
+
         return ImageData(
             arr,
             img.mask,
@@ -117,11 +119,12 @@ class Terrarium(BaseAlgorithm):
 class TerrainRGB(BaseAlgorithm):
     """Encode DEM into RGB (Mapbox Terrain RGB)."""
 
+    # parameters
     interval: int = 1
     baseval: int = -10000
 
+    # metadata
     input_nbands: int = 1
-
     output_nbands: int = 3
     output_dtype: str = "uint8"
 

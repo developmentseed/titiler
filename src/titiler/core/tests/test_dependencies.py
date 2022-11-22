@@ -387,3 +387,36 @@ def test_render():
 
     response = client.get("/?return_mask=True")
     assert response.json()["add_mask"] is True
+
+
+def test_algo():
+    """test algorithm deps."""
+
+    app = FastAPI()
+
+    @app.get("/")
+    def _endpoint(algorithm=Depends(dependencies.PostProcessParams)):
+        """return params."""
+        if algorithm:
+            return algorithm.dict()
+        return {}
+
+    client = TestClient(app)
+    response = client.get("/")
+    assert not response.json()
+
+    response = client.get("/?algo=hillshade")
+    assert response.json()["azimuth"] == 90
+    assert response.json()["buffer"] == 3
+    assert response.json()["input_nbands"] == 1
+
+    response = client.get(
+        "/",
+        params={
+            "algo": "hillshade",
+            "algo_params": json.dumps({"azimuth": 30, "buffer": 4}),
+        },
+    )
+    assert response.json()["azimuth"] == 30
+    assert response.json()["buffer"] == 4
+    assert response.json()["input_nbands"] == 1

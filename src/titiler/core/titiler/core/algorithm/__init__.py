@@ -23,18 +23,18 @@ default_algorithms: Dict[str, Type[BaseAlgorithm]] = {
 class Algorithms:
     """Algorithms."""
 
-    algos: Dict[str, Type[BaseAlgorithm]] = attr.ib()
+    data: Dict[str, Type[BaseAlgorithm]] = attr.ib()
 
     def get(self, name: str) -> BaseAlgorithm:
         """Fetch a TMS."""
-        if name not in self.algos:
+        if name not in self.data:
             raise KeyError(f"Invalid name: {name}")
 
-        return self.algos[name]
+        return self.data[name]
 
     def list(self) -> List[str]:
         """List registered Algorithm."""
-        return list(self.algos.keys())
+        return list(self.data.keys())
 
     def register(
         self,
@@ -43,17 +43,15 @@ class Algorithms:
     ) -> "Algorithms":
         """Register Algorithm(s)."""
         for name, algo in algorithms.items():
-            if name in self.algos and not overwrite:
+            if name in self.data and not overwrite:
                 raise Exception(f"{name} is already a registered. Use overwrite=True.")
 
-        return Algorithms({**self.algos, **algorithms})
+        return Algorithms({**self.data, **algorithms})
 
     @property
     def names(self) -> Enum:
         """return algorithms enumerations."""
-        return Enum(  # type: ignore
-            "AlgorithmName", [(a, a) for a in self.algos.keys()]
-        )
+        return Enum("AlgorithmName", [(a, a) for a in self.data.keys()])  # type: ignore
 
 
-algos = Algorithms(copy(default_algorithms))  # noqa
+algorithms = Algorithms(copy(default_algorithms))  # noqa

@@ -15,9 +15,11 @@ import morecantile
 import numpy
 from rio_tiler.io import BaseReader, COGReader, MultiBandReader, STACReader
 
+from titiler.core.algorithm import algos
 from titiler.core.dependencies import TMSParams, WebMercatorTMSParams
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 from titiler.core.factory import (
+    AlgorithmFactory,
     MultiBandTilerFactory,
     MultiBaseTilerFactory,
     TilerFactory,
@@ -1353,3 +1355,19 @@ def test_TilerFactory_WithGdalEnv():
 
     response = client.get(f"/info?url={DATA_DIR}/non_cog.tif&disable_read=empty_dir")
     assert not response.json()["overviews"]
+
+
+def test_algorithm():
+    """Test Algorithms endpoint."""
+    algorithm = AlgorithmFactory(algos)
+
+    app = FastAPI()
+    app.include_router(algorithm.router)
+    client = TestClient(app)
+
+    response = client.get("/algorithms")
+    assert response.status_code == 200
+    assert "hillshade" in response.json()
+
+    response = client.get("/algorithms/hillshade")
+    assert response.status_code == 200
