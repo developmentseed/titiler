@@ -1,4 +1,6 @@
 
+![](https://user-images.githubusercontent.com/10407788/203526990-f58783cf-a288-4801-8fa6-ee511de91a48.png)
+
 `TiTiler` is a set of python modules whose goal are to help users in creating a dynamic tile server. To learn more about `dynamic tiling` please refer to the [docs](dynamic_tiling.md).
 
 Users can choose to extend or use `TiTiler` as it is.

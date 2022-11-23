@@ -1,6 +1,8 @@
 
 
-Starting with `titiler>=0.8`, we added the possibility to apply complexes operations on Image outputs from `tile`, `crop` or `preview` endpoints.
+Starting with `titiler>=0.8`, we added the possibility to apply custom algorithms on Image outputs from `tile`, `crop` or `preview` endpoints.
+
+The algorithms are meant to overcome the limitation of `expression` (using [numexpr](https://numexpr.readthedocs.io/projects/NumExpr3/en/latest/)) by allowing more complex operations.
 
 We added a set of custom algorithms:
 
@@ -38,8 +40,6 @@ httpx.get(
 ```
 <img width="300" src="https://user-images.githubusercontent.com/10407788/203510073-d9ff329a-d272-4c34-bf94-4841c68529fe.jpeg"/>
 
-
-
 ### Create your own Algorithm
 
 A titiler'w `Algorithm` must be defined using `titiler.core.algorithm.BaseAlgorithm` base class.
@@ -72,9 +72,11 @@ class BaseAlgorithm(BaseModel, metaclass=abc.ABCMeta):
 
 This base class defines that algorithm:
 
-- HAVE TO implement an `apply()` method which takes an ImageData as input and return an ImageData
-- can have input/output metadata (Those are moslty informative)
-- the `extra = "allow"` means we can add more `parameters` to the class
+- **HAVE TO** implement an `apply()` method which takes an [ImageData](https://cogeotiff.github.io/rio-tiler/models/#imagedata) as input and return an [ImageData](https://cogeotiff.github.io/rio-tiler/models/#imagedata)
+
+- can have input/output metadata (informative)
+
+- can have`parameters` (enabled by `extra = "allow"` pydantic config)
 
 Here is a simple example of a custom Algorithm:
 
@@ -82,7 +84,9 @@ Here is a simple example of a custom Algorithm:
 class Multiply(BaseAlgorithm):
 
     # Parameters
-    factor: int
+    factor: int # There is no default, which means calls to this algorithm without any parameter will fail
+
+    # We don't set any metadata for this Algorithm
 
     def apply(self, img: ImageData) -> ImageData:
         # Multiply image data bcy factor
