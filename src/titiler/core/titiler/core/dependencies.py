@@ -13,7 +13,6 @@ from rio_tiler.colormap import cmap, parse_color
 from rio_tiler.errors import MissingAssets, MissingBands
 from rio_tiler.types import ColorMapType
 
-from titiler.core.algorithm import Algorithms, BaseAlgorithm
 from titiler.core.algorithm import algorithms as available_algorithms
 
 from fastapi import HTTPException, Query
@@ -29,9 +28,6 @@ WebMercatorTileMatrixSetName = Enum(  # type: ignore
 )
 TileMatrixSetName = Enum(  # type: ignore
     "TileMatrixSetName", [(a, a) for a in sorted(tms.list())]
-)
-AlgorithmName = Enum(  # type: ignore
-    "AlgorithmName", [(a, a) for a in available_algorithms.list()]
 )
 
 
@@ -476,31 +472,4 @@ link: https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
             self.range = list(map(float, self.range.split(",")))  # type: ignore
 
 
-class PostProcessParamsFactory:
-    """PostProcess dependency factory."""
-
-    def __init__(self, algorithms: Algorithms):
-        """Set available algorithms."""
-        self.available_algorithms = algorithms
-        self.names = Enum(  # type: ignore
-            "AlgorithmName", [(a, a) for a in self.available_algorithms.list()]
-        )
-
-    def __call__(
-        self,
-        algorithm: AlgorithmName = Query(
-            None, description="Algorithm name", alias="algo"
-        ),
-        algorithm_params: str = Query(
-            None, description="Algorithm parameter", alias="algo_params"
-        ),
-    ) -> Optional[BaseAlgorithm]:
-        """Data Post-Processing options."""
-        kwargs = json.loads(algorithm_params) if algorithm_params else {}
-        if algorithm:
-            return self.available_algorithms.get(algorithm.name)(**kwargs)
-
-        return None
-
-
-PostProcessParams = PostProcessParamsFactory(available_algorithms)
+PostProcessParams = available_algorithms.dependency

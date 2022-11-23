@@ -15,9 +15,9 @@ class BaseAlgorithm(BaseModel, metaclass=abc.ABCMeta):
     """
 
     # metadata
-    input_nbands: int
-    output_nbands: int
-    output_dtype: str
+    input_nbands: Optional[int]
+    output_nbands: Optional[int]
+    output_dtype: Optional[str]
     output_min: Optional[Sequence]
     output_max: Optional[Sequence]
 

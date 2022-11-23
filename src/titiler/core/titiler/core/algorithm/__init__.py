@@ -1,14 +1,18 @@
 """titiler.core.algorithm."""
 
+import json
 from copy import copy
 from enum import Enum
-from typing import Dict, List, Type
+from typing import Dict, List, Optional, Type
 
 import attr
+from pydantic import ValidationError
 
 from titiler.core.algorithm.base import AlgorithmMetadata, BaseAlgorithm  # noqa
 from titiler.core.algorithm.dem import Contours, HillShade, TerrainRGB, Terrarium
 from titiler.core.algorithm.index import NormalizedIndex
+
+from fastapi import HTTPException, Query
 
 default_algorithms: Dict[str, Type[BaseAlgorithm]] = {
     "hillshade": HillShade,
@@ -49,9 +53,31 @@ class Algorithms:
         return Algorithms({**self.data, **algorithms})
 
     @property
-    def names(self) -> Enum:
-        """return algorithms enumerations."""
-        return Enum("AlgorithmName", [(a, a) for a in self.data.keys()])  # type: ignore
+    def dependency(self):
+        """FastAPI PostProcess dependency."""
+        AlgorithmName = Enum(
+            "AlgorithmName", [(a, a) for a in self.data.keys()]
+        )  # type: ignore
+
+        def post_process(
+            algorithm: AlgorithmName = Query(
+                None, description="Algorithm name", alias="algo"
+            ),
+            algorithm_params: str = Query(
+                None, description="Algorithm parameter", alias="algo_params"
+            ),
+        ) -> Optional[BaseAlgorithm]:
+            """Data Post-Processing options."""
+            kwargs = json.loads(algorithm_params) if algorithm_params else {}
+            if algorithm:
+                try:
+                    return self.get(algorithm.name)(**kwargs)
+                except ValidationError as e:
+                    raise HTTPException(status_code=400, detail=str(e))
+
+            return None
+
+        return post_process
 
 
 algorithms = Algorithms(copy(default_algorithms))  # noqa
