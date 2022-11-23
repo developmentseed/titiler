@@ -28,8 +28,6 @@ class HillShade(BaseAlgorithm):
 
         x, y = numpy.gradient(data)
 
-        print(self.azimuth)
-
         slope = numpy.pi / 2.0 - numpy.arctan(numpy.sqrt(x * x + y * y))
         aspect = numpy.arctan2(-x, y)
         azimuthrad = self.azimuth * numpy.pi / 180.0
