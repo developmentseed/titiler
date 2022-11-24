@@ -24,20 +24,21 @@ app.include_router(stac.router, prefix="/stac", tags=["SpatioTemporal Asset Cata
 | `GET`  | `/stac/asset_statistics`                                             | JSON      | return per asset statistics
 | `GET`  | `/stac/statistics`                                                   | JSON      | return asset's statistics
 | `POST` | `/stac/statistics`                                                   | GeoJSON   | return asset's statistics for a GeoJSON
-| `GET`  | `/stac/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`  | image/bin | create a web map tile image from assets
-| `GET`  | `/stac/[{TileMatrixSetId}]/tilejson.json`                            | JSON      | return a Mapbox TileJSON document
-| `GET`  | `/stac/{TileMatrixSetId}/WMTSCapabilities.xml`                       | XML       | return OGC WMTS Get Capabilities
+| `GET`  | `/stac/tiles[/{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`  | image/bin | create a web map tile image from assets
+| `GET`  | `/stac[/{TileMatrixSetId}]/tilejson.json`                            | JSON      | return a Mapbox TileJSON document
+| `GET`  | `/stac[/{TileMatrixSetId}]/WMTSCapabilities.xml`                       | XML       | return OGC WMTS Get Capabilities
 | `GET`  | `/stac/point/{lon},{lat}`                                            | JSON      | return pixel value from assets
 | `GET`  | `/stac/preview[.{format}]`                                           | image/bin | create a preview image from assets
 | `GET`  | `/stac/crop/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin | create an image from part of assets
 | `POST` | `/stac/crop[/{width}x{height}][].{format}]`                          | image/bin | create an image from a geojson covering the assets
+| `GET`  | `/stac[/{TileMatrixSetId}]/map`                                      | HTML      | simple map viewer
 | `GET`  | `/stac/viewer`                                                       | HTML      | demo webpage (Not in `MultiBaseTilerFactory`)
 
 ## Description
 
 ### Tiles
 
-`:endpoint:/stac/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`
+`:endpoint:/stac/tiles[/{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`
 
 - PathParams:
     - **TileMatrixSetId** (str): TileMatrixSet name, default is `WebMercatorQuad`. **Optional**
@@ -112,6 +113,7 @@ Example:
 ### Crop / Part
 
 `:endpoint:/stac/crop/{minx},{miny},{maxx},{maxy}.{format}`
+
 `:endpoint:/stac/crop/{minx},{miny},{maxx},{maxy}/{width}x{height}.{format}`
 
 - PathParams:
@@ -209,7 +211,7 @@ Example:
 
 ### TilesJSON
 
-`:endpoint:/stac/[{TileMatrixSetId}]/tilejson.json` tileJSON document
+`:endpoint:/stac[/{TileMatrixSetId}]/tilejson.json` tileJSON document
 
 - PathParams:
     - **TileMatrixSetId**: TileMatrixSet name, default is `WebMercatorQuad`.
@@ -242,6 +244,43 @@ Example:
 - `https://myendpoint/stac/tilejson.json?url=https://somewhere.com/item.json&assets=B01`
 - `https://myendpoint/stac/tilejson.json?url=https://somewhere.com/item.json&assets=B01&tile_format=png`
 - `https://myendpoint/stac/WorldCRS84Quad/tilejson.json?url=https://somewhere.com/item.json&tile_scale=2&expression=B01/B02`
+
+### Map
+
+`:endpoint:/stac[/{TileMatrixSetId}]/map`  Simple viewer
+
+- PathParams:
+    - **TileMatrixSetId**: TileMatrixSet name (only `WebMercatorQuad` is supported). **Optional**
+
+- QueryParams:
+    - **url** (str): STAC Item URL. **Required**
+    - **assets** (array[str]): asset names.
+    - **expression** (str): rio-tiler's math expression with asset names (e.g `Asset1/Asset2`).
+    - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1;2;3`).
+    - **asset_expression** (array[str]): Per asset band math expression (e.g `Asset1|b1\*b2`).
+    - **tile_format** (str): Output image format, default is set to None and will be either JPEG or PNG depending on masked value.
+    - **tile_scale** (int): Tile size scale, default is set to 1 (256x256).
+    - **minzoom** (int): Overwrite default minzoom.
+    - **maxzoom** (int): Overwrite default maxzoom.
+    - **nodata** (str, int, float): Overwrite internal Nodata value.
+    - **unscale** (bool): Apply dataset internal Scale/Offset.
+    - **resampling** (str): rasterio resampling method. Default is `nearest`.
+    - **rescale** (array[str]): Comma (',') delimited Min,Max range (e.g `rescale=0,1000`, `rescale=0,1000&rescale=0,3000&rescale=0,2000`).
+    - **color_formula** (str): rio-color formula.
+    - **colormap** (str): JSON encoded custom Colormap.
+    - **colormap_name** (str): rio-tiler color map name.
+    - **return_mask** (bool): Add mask to the output data. Default is True.
+    - **buffer** (float): Add buffer on each side of the tile (e.g 0.5 = 257x257, 1.0 = 258x258).
+
+!!! important
+    **assets** OR **expression** is required
+
+Example:
+
+- `https://myendpoint/stac/tilejson.json?url=https://somewhere.com/item.json&assets=B01`
+- `https://myendpoint/stac/tilejson.json?url=https://somewhere.com/item.json&assets=B01&tile_format=png`
+- `https://myendpoint/stac/WorldCRS84Quad/tilejson.json?url=https://somewhere.com/item.json&tile_scale=2&expression=B01/B02`
+
 
 ### Bounds
 

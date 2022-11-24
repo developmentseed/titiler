@@ -22,13 +22,14 @@ app.include_router(cog.router, prefix="/cog", tags=["Cloud Optimized GeoTIFF"])
 | `GET`  | `/cog/info.geojson`                                                 | GeoJSON   | return dataset's basic info as a GeoJSON feature
 | `GET`  | `/cog/statistics`                                                   | JSON      | return dataset's statistics
 | `POST` | `/cog/statistics`                                                   | GeoJSON   | return dataset's statistics for a GeoJSON
-| `GET`  | `/cog/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`  | image/bin | create a web map tile image from a dataset
-| `GET`  | `/cog/[{TileMatrixSetId}]/tilejson.json`                            | JSON      | return a Mapbox TileJSON document
-| `GET`  | `/cog/{TileMatrixSetId}/WMTSCapabilities.xml`                       | XML       | return OGC WMTS Get Capabilities
+| `GET`  | `/cog/tiles[/{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`  | image/bin | create a web map tile image from a dataset
+| `GET`  | `/cog[/{TileMatrixSetId}]/tilejson.json`                            | JSON      | return a Mapbox TileJSON document
+| `GET`  | `/cog[/{TileMatrixSetId}]/WMTSCapabilities.xml`                     | XML       | return OGC WMTS Get Capabilities
 | `GET`  | `/cog/point/{lon},{lat}`                                            | JSON      | return pixel values from a dataset
 | `GET`  | `/cog/preview[.{format}]`                                           | image/bin | create a preview image from a dataset
 | `GET`  | `/cog/crop/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin | create an image from part of a dataset
 | `POST` | `/cog/crop[/{width}x{height}][].{format}]`                          | image/bin | create an image from a GeoJSON feature
+| `GET`  | `/cog[/{TileMatrixSetId}]/map`                                      | HTML      | simple map viewer
 | `GET`  | `/cog/validate`                                                     | JSON      | validate a COG and return dataset info (Not in `TilerFactory`)
 | `GET`  | `/cog/viewer`                                                       | HTML      | demo webpage (Not in `TilerFactory`)
 
@@ -36,7 +37,7 @@ app.include_router(cog.router, prefix="/cog", tags=["Cloud Optimized GeoTIFF"])
 
 ### Tiles
 
-`:endpoint:/cog/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`
+`:endpoint:/cog/tiles[/{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`
 
 - PathParams:
     - **TileMatrixSetId** (str): TileMatrixSet name, default is `WebMercatorQuad`. **Optional**
@@ -102,6 +103,7 @@ Example:
 ### Crop / Part
 
 `:endpoint:/cog/crop/{minx},{miny},{maxx},{maxy}.{format}`
+
 `:endpoint:/cog/crop/{minx},{miny},{maxx},{maxy}/{width}x{height}.{format}`
 
 - PathParams:
@@ -190,7 +192,7 @@ Example:
 
 ### TilesJSON
 
-`:endpoint:/cog/[{TileMatrixSetId}]/tilejson.json` tileJSON document
+`:endpoint:/cog[/{TileMatrixSetId}]/tilejson.json` tileJSON document
 
 - PathParams:
     - **TileMatrixSetId**: TileMatrixSet name, default is `WebMercatorQuad`. **Optional**
@@ -218,6 +220,39 @@ Example:
 - `https://myendpoint/cog/tilejson.json?url=https://somewhere.com/mycog.tif`
 - `https://myendpoint/cog/tilejson.json?url=https://somewhere.com/mycog.tif&tile_format=png`
 - `https://myendpoint/cog/WorldCRS84Quad/tilejson.json?url=https://somewhere.com/mycog.tif&tile_scale=2&bidx=1,2,3`
+
+
+### Map
+
+`:endpoint:/cog[/{TileMatrixSetId}]/map` Simple viewer
+
+- PathParams:
+    - **TileMatrixSetId**: TileMatrixSet name (only `WebMercatorQuad` is supported). **Optional**
+
+- QueryParams:
+    - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
+    - **tile_format** (str): Output image format, default is set to None and will be either JPEG or PNG depending on masked value.
+    - **tile_scale** (int): Tile size scale, default is set to 1 (256x256).
+    - **minzoom** (int): Overwrite default minzoom.
+    - **maxzoom** (int): Overwrite default maxzoom.
+    - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
+    - **expression** (str): rio-tiler's band math expression (e.g B1/B2).
+    - **nodata** (str, int, float): Overwrite internal Nodata value.
+    - **unscale** (bool): Apply dataset internal Scale/Offset.
+    - **resampling** (str): rasterio resampling method. Default is `nearest`.
+    - **rescale** (array[str]): Comma (',') delimited Min,Max range (e.g `rescale=0,1000`, `rescale=0,1000&rescale=0,3000&rescale=0,2000`).
+    - **color_formula** (str): rio-color formula.
+    - **colormap** (str): JSON encoded custom Colormap.
+    - **colormap_name** (str): rio-tiler color map name.
+    - **return_mask** (bool): Add mask to the output data. Default is True.
+    - **buffer** (float): Add buffer on each side of the tile (e.g 0.5 = 257x257, 1.0 = 258x258).
+
+Example:
+
+- `https://myendpoint/cog/map?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/cog/map?url=https://somewhere.com/mycog.tif&tile_format=png`
+- `https://myendpoint/cog/WebMercatorQuad/map?url=https://somewhere.com/mycog.tif&tile_scale=2&bidx=1,2,3`
+
 
 ### Bounds
 

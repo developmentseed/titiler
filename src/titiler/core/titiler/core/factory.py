@@ -34,6 +34,7 @@ from titiler.core.dependencies import (
     StatisticsParams,
     TileMatrixSetName,
     TMSParams,
+    WebMercatorTMSParams,
 )
 from titiler.core.models.mapbox import TileJSON
 from titiler.core.models.OGC import TileMatrixSetList
@@ -602,10 +603,12 @@ class TilerFactory(BaseTilerFactory):
     def map_viewer(self):  # noqa: C901
         """Register /map endpoint."""
 
+        @self.router.get("/{TileMatrixSetId}/map", response_class=HTMLResponse)
         @self.router.get("/map", response_class=HTMLResponse)
         def map_viewer(
             request: Request,
             src_path=Depends(self.path_dependency),
+            tms: TileMatrixSet = Depends(WebMercatorTMSParams),  # noqa
             tile_format: Optional[ImageType] = Query(
                 None, description="Output image type. Default is auto."
             ),  # noqa

@@ -32,7 +32,7 @@ from titiler.mosaic.resources.enums import PixelSelectionMethod
 from fastapi import Depends, Path, Query
 
 from starlette.requests import Request
-from starlette.responses import Response
+from starlette.responses import HTMLResponse, Response
 
 
 def PixelSelectionParams(
@@ -70,6 +70,9 @@ class MosaicTilerFactory(BaseTilerFactory):
 
     pixel_selection_dependency: Callable[..., MosaicMethodBase] = PixelSelectionParams
 
+    # Add/Remove some endpoints
+    add_viewer: bool = True
+
     def register_routes(self):
         """
         This Method register routes to the router.
@@ -89,6 +92,10 @@ class MosaicTilerFactory(BaseTilerFactory):
         self.point()
         self.validate()
         self.assets()
+
+        # Optional Routes
+        if self.add_viewer:
+            self.map_viewer()
 
     ############################################################################
     # /read
@@ -406,6 +413,64 @@ class MosaicTilerFactory(BaseTilerFactory):
                         "maxzoom": maxzoom if maxzoom is not None else src_dst.maxzoom,
                         "tiles": [tiles_url],
                     }
+
+    def map_viewer(self):  # noqa: C901
+        """Register /map endpoint."""
+
+        @self.router.get("/{TileMatrixSetId}/map", response_class=HTMLResponse)
+        @self.router.get("/map", response_class=HTMLResponse)
+        def map_viewer(
+            request: Request,
+            src_path=Depends(self.path_dependency),
+            tms: TileMatrixSet = Depends(WebMercatorTMSParams),  # noqa
+            tile_format: Optional[ImageType] = Query(
+                None, description="Output image type. Default is auto."
+            ),
+            tile_scale: int = Query(
+                1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
+            ),
+            minzoom: Optional[int] = Query(
+                None, description="Overwrite default minzoom."
+            ),
+            maxzoom: Optional[int] = Query(
+                None, description="Overwrite default maxzoom."
+            ),
+            layer_params=Depends(self.layer_dependency),  # noqa
+            dataset_params=Depends(self.dataset_dependency),  # noqa
+            pixel_selection=Depends(self.pixel_selection_dependency),  # noqa
+            buffer: Optional[float] = Query(  # noqa
+                None,
+                gt=0,
+                title="Tile buffer.",
+                description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * tile_buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
+            ),
+            rescale: Optional[List[Tuple[float, ...]]] = Depends(
+                RescalingParams
+            ),  # noqa
+            color_formula: Optional[str] = Query(  # noqa
+                None,
+                title="Color Formula",
+                description="rio-color formula (info: https://github.com/mapbox/rio-color)",
+            ),
+            colormap=Depends(self.colormap_dependency),  # noqa
+            render_params=Depends(self.render_dependency),  # noqa
+            backend_params=Depends(self.backend_dependency),  # noqa
+            reader_params=Depends(self.reader_dependency),  # noqa
+            env=Depends(self.environment_dependency),  # noqa
+        ):
+            """Return TileJSON document for a dataset."""
+            tilejson_url = self.url_for(request, "tilejson")
+            if request.query_params._list:
+                tilejson_url += f"?{urlencode(request.query_params._list)}"
+
+            return templates.TemplateResponse(
+                name="index.html",
+                context={
+                    "request": request,
+                    "tilejson_endpoint": tilejson_url,
+                },
+                media_type="text/html",
+            )
 
     def wmts(self):  # noqa: C901
         """Add wmts endpoint."""
