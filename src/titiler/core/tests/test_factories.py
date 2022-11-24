@@ -597,6 +597,23 @@ def test_TilerFactory():
     assert len(resp["properties"]["statistics"]["b1"]["histogram"][0]) == 4
     assert resp["properties"]["statistics"]["b1"]["histogram"][0][3] == 0
 
+    # Test with Algorithm
+    response = client.get(f"/preview.tif?url={DATA_DIR}/dem.tif&return_mask=False")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/tiff; application=geotiff"
+    meta = parse_img(response.content)
+    assert meta["dtype"] == "float32"
+    assert meta["count"] == 1
+
+    response = client.get(
+        f"/preview.tif?url={DATA_DIR}/dem.tif&return_mask=False&algo=terrarium"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/tiff; application=geotiff"
+    meta = parse_img(response.content)
+    assert meta["dtype"] == "uint8"
+    assert meta["count"] == 3
+
 
 @patch("rio_tiler.io.rasterio.rasterio")
 def test_MultiBaseTilerFactory(rio):
