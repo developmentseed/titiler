@@ -1,6 +1,7 @@
 """titiler.core.algorithm DEM."""
 
 import numpy
+from rasterio import windows
 from rio_tiler.colormap import apply_cmap, cmap
 from rio_tiler.models import ImageData
 from rio_tiler.utils import linear_rescale
@@ -25,6 +26,7 @@ class HillShade(BaseAlgorithm):
         """Create hillshade from DEM dataset."""
         data = img.data[0]
         mask = img.mask
+        bounds = img.bounds
 
         x, y = numpy.gradient(data)
 
@@ -37,20 +39,26 @@ class HillShade(BaseAlgorithm):
         ) * numpy.cos(slope) * numpy.cos(azimuthrad - aspect)
         hillshade_array = 255 * (shaded + 1) / 2
 
-        if self.buffer:
-            hillshade_array = hillshade_array[
-                self.buffer : -self.buffer, self.buffer : -self.buffer
-            ]
+        data = numpy.expand_dims(hillshade_array, axis=0).astype(dtype=numpy.uint8)
 
-        # ImageData only accept image in form of (count, height, width)
-        arr = numpy.expand_dims(hillshade_array, axis=0).astype(dtype=numpy.uint8)
+        if self.buffer:
+            data = data[:, self.buffer : -self.buffer, self.buffer : -self.buffer]
+            mask = mask[self.buffer : -self.buffer, self.buffer : -self.buffer]
+            # image bounds without buffer
+            window = windows.Window(
+                col_off=self.buffer,
+                row_off=self.buffer,
+                width=mask.shape[1],
+                height=mask.shape[0],
+            )
+            bounds = windows.bounds(window, img.transform)
 
         return ImageData(
-            arr,
+            data,
             mask,
             assets=img.assets,
             crs=img.crs,
-            bounds=img.bounds,
+            bounds=bounds,
         )
 
 
