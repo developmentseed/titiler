@@ -37,7 +37,7 @@ NB_DEFAULT_TMS = len(morecantile.tms.list())
 def test_TilerFactory():
     """Test TilerFactory class."""
     cog = TilerFactory()
-    assert len(cog.router.routes) == 25
+    assert len(cog.router.routes) == 26
     assert cog.tms_dependency == TMSParams
 
     cog = TilerFactory(router_prefix="something", tms_dependency=WebMercatorTMSParams)
@@ -53,7 +53,7 @@ def test_TilerFactory():
     response = client.get(f"/something/NZTM2000/tilejson.json?url={DATA_DIR}/cog.tif")
     assert response.status_code == 422
 
-    cog = TilerFactory(add_preview=False, add_part=False)
+    cog = TilerFactory(add_preview=False, add_part=False, add_viewer=False)
     assert len(cog.router.routes) == 18
 
     app = FastAPI()
@@ -603,7 +603,7 @@ def test_MultiBaseTilerFactory(rio):
     rio.open = mock_rasterio_open
 
     stac = MultiBaseTilerFactory(reader=STACReader)
-    assert len(stac.router.routes) == 27
+    assert len(stac.router.routes) == 28
 
     app = FastAPI()
     app.include_router(stac.router)
@@ -911,7 +911,7 @@ def test_MultiBandTilerFactory():
     bands = MultiBandTilerFactory(
         reader=BandFileReader, path_dependency=CustomPathParams
     )
-    assert len(bands.router.routes) == 26
+    assert len(bands.router.routes) == 27
 
     app = FastAPI()
     app.include_router(bands.router)
@@ -1236,7 +1236,7 @@ def test_TilerFactory_WithDependencies():
         ],
         router_prefix="something",
     )
-    assert len(cog.router.routes) == 25
+    assert len(cog.router.routes) == 26
     assert cog.tms_dependency == TMSParams
 
     app = FastAPI()
