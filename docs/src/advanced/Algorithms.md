@@ -60,7 +60,7 @@ class BaseAlgorithm(BaseModel, metaclass=abc.ABCMeta):
     output_max: Optional[Sequence]
 
     @abc.abstractmethod
-    def apply(self, img: ImageData) -> ImageData:
+    def __call__(self, img: ImageData) -> ImageData:
         """Apply algorithm"""
         ...
 
@@ -72,7 +72,7 @@ class BaseAlgorithm(BaseModel, metaclass=abc.ABCMeta):
 
 This base class defines that algorithm:
 
-- **HAVE TO** implement an `apply()` method which takes an [ImageData](https://cogeotiff.github.io/rio-tiler/models/#imagedata) as input and return an [ImageData](https://cogeotiff.github.io/rio-tiler/models/#imagedata)
+- **HAVE TO** implement an `__call__` method which takes an [ImageData](https://cogeotiff.github.io/rio-tiler/models/#imagedata) as input and return an [ImageData](https://cogeotiff.github.io/rio-tiler/models/#imagedata). Using `__call__` let us use the object as a callable (e.g `Algorithm(**kwargs)(image)`).
 
 - can have input/output metadata (informative)
 
@@ -81,6 +81,9 @@ This base class defines that algorithm:
 Here is a simple example of a custom Algorithm:
 
 ```python
+from titiler.core.algorithm import BaseAlgorithm
+from rio_tiler.models import ImageData
+
 class Multiply(BaseAlgorithm):
 
     # Parameters
@@ -88,7 +91,7 @@ class Multiply(BaseAlgorithm):
 
     # We don't set any metadata for this Algorithm
 
-    def apply(self, img: ImageData) -> ImageData:
+    def __call__(self, img: ImageData) -> ImageData:
         # Multiply image data bcy factor
         data = img.data * self.factor
 
@@ -102,41 +105,36 @@ class Multiply(BaseAlgorithm):
         )
 ```
 
-### Order of operation
+#### Class Vs script
 
-When creating a map tile (or other images), we will fist apply the `algorithm` then the `rescaling` and finally the `color_formula`.
+Using a Pydantic's `BaseModel` class to construct the custom algorithm enables two things **parametrization** and **type casting/validation**.
+
+If we look at the `Multiply` algorithm, we can see it needs a `factor` parameter. In Titiler we will pass this parameter via query string (e.g `/preview.png?algo=multiply&algo_parameter={"factor":3}`) and pydantic will make sure we use the right types/values.
 
 ```python
-with reader(url as src_dst:
-    image = src_dst.tile(
-        x,
-        y,
-        z,
-    )
-    dst_colormap = getattr(src_dst, "colormap", None)
-
-# Apply algorithm
-if post_process:
-    image = post_process.apply(image)
-
-# Apply data rescaling
-if rescale:
-    image.rescale(rescale)
-
-# Apply color-formula
-if color_formula:
-    image.apply_color_formula(color_formula)
-
-# Determine the format
-if not format:
-    format = ImageType.jpeg if image.mask.all() else ImageType.png
-
-# Image Rendering
-return image.render(
-    img_format=format.driver,
-    colormap=colormap or dst_colormap,
-    **format.profile,
+# Available algorithm
+algo = {
+    "multiply": Multiply
+}
+# Available algorithms Enum
+AlgorithmName = Enum(
+    "AlgorithmName", [(a, a) for a in algo.keys()]
 )
+
+def post_process_dependency(
+    algorithm: AlgorithmName = Query(None, description="Algorithm name", alias="algo"),
+    algorithm_params: str = Query(None, description="Algorithm parameter", alias="algo_params"),
+) -> Optional[BaseAlgorithm]:
+    """Data Post-Processing dependency."""
+    kwargs = json.loads(algorithm_params) if algorithm_params else {}
+    if algorithm:
+        try:
+            # Here we construct the Algorithm Object with the kwargs from the `algo_params` query-parameter
+            return algo[algorithm.name](**kwargs)
+        except ValidationError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+
+    return None
 ```
 
 ## Dependency
@@ -159,3 +157,40 @@ endpoints = TilerFactory(process_dependency=PostProcessParams)
 ```
 
 The `titiler.core.algorithm.Algorithms` class, which acts as the algorithms store, has a `dependency` property which will return a FastAPI dependency to be added to the endpoints.
+
+### Order of operation
+
+When creating a map tile (or other images), we will fist apply the `algorithm` then the `rescaling` and finally the `color_formula`.
+
+```python
+with reader(url as src_dst:
+    image = src_dst.tile(
+        x,
+        y,
+        z,
+    )
+    dst_colormap = getattr(src_dst, "colormap", None)
+
+# Apply algorithm
+if post_process:
+    image = post_process(image)
+
+# Apply data rescaling
+if rescale:
+    image.rescale(rescale)
+
+# Apply color-formula
+if color_formula:
+    image.apply_color_formula(color_formula)
+
+# Determine the format
+if not format:
+    format = ImageType.jpeg if image.mask.all() else ImageType.png
+
+# Image Rendering
+return image.render(
+    img_format=format.driver,
+    colormap=colormap or dst_colormap,
+    **format.profile,
+)
+```

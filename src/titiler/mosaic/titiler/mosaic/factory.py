@@ -288,7 +288,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                     )
 
             if post_process:
-                image = post_process.apply(image)
+                image = post_process(image)
 
             if rescale:
                 image.rescale(rescale)

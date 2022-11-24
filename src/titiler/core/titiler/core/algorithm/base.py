@@ -22,7 +22,7 @@ class BaseAlgorithm(BaseModel, metaclass=abc.ABCMeta):
     output_max: Optional[Sequence]
 
     @abc.abstractmethod
-    def apply(self, img: ImageData) -> ImageData:
+    def __call__(self, img: ImageData) -> ImageData:
         """Apply algorithm"""
         ...
 

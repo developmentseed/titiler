@@ -19,7 +19,7 @@ class Multiply(BaseAlgorithm):
     # Parameters
     factor: int
 
-    def apply(self, img: ImageData) -> ImageData:
+    def __call__(self, img: ImageData) -> ImageData:
         """Apply Multiplication factor."""
         # Multiply image data bcy factor
         data = img.data * self.factor
@@ -48,7 +48,7 @@ def test_algo():
         """endpoint."""
         img = ImageData(arr)
         if algorithm:
-            return algorithm.apply(img).data.max().tolist()
+            return algorithm(img).data.max().tolist()
 
         return img.data.max().tolist()
 

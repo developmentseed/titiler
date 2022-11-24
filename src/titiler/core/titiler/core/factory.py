@@ -494,7 +494,7 @@ class TilerFactory(BaseTilerFactory):
                     dst_colormap = getattr(src_dst, "colormap", None)
 
             if post_process:
-                image = post_process.apply(image)
+                image = post_process(image)
 
             if rescale:
                 image.rescale(rescale)
@@ -788,7 +788,7 @@ class TilerFactory(BaseTilerFactory):
                     dst_colormap = getattr(src_dst, "colormap", None)
 
             if post_process:
-                image = post_process.apply(image)
+                image = post_process(image)
 
             if rescale:
                 image.rescale(rescale)
@@ -857,7 +857,7 @@ class TilerFactory(BaseTilerFactory):
                     dst_colormap = getattr(src_dst, "colormap", None)
 
             if post_process:
-                image = post_process.apply(image)
+                image = post_process(image)
 
             if rescale:
                 image.rescale(rescale)
@@ -920,7 +920,7 @@ class TilerFactory(BaseTilerFactory):
                     dst_colormap = getattr(src_dst, "colormap", None)
 
             if post_process:
-                image = post_process.apply(image)
+                image = post_process(image)
 
             if rescale:
                 image.rescale(rescale)

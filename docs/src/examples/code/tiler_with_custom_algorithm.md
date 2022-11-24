@@ -25,7 +25,7 @@ class Multiply(BaseAlgorithm):
 
     # We don't set any metadata for this Algorithm
 
-    def apply(self, img: ImageData) -> ImageData:
+    def __call__(self, img: ImageData) -> ImageData:
         # Multiply image data bcy factor
         data = img.data * self.factor
 

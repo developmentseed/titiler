@@ -18,7 +18,7 @@ class NormalizedIndex(BaseAlgorithm):
     output_min: Sequence[float] = [-1.0]
     output_max: Sequence[float] = [1.0]
 
-    def apply(self, img: ImageData) -> ImageData:
+    def __call__(self, img: ImageData) -> ImageData:
         """Normalized difference."""
         b1 = img.data[0].astype("float32")
         b2 = img.data[1].astype("float32")

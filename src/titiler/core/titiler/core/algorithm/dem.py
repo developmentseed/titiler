@@ -21,7 +21,7 @@ class HillShade(BaseAlgorithm):
     output_nbands: int = 1
     output_dtype: str = "uint8"
 
-    def apply(self, img: ImageData) -> ImageData:
+    def __call__(self, img: ImageData) -> ImageData:
         """Create hillshade from DEM dataset."""
         data = img.data[0]
         mask = img.mask
@@ -71,7 +71,7 @@ class Contours(BaseAlgorithm):
     output_nbands: int = 3
     output_dtype: str = "uint8"
 
-    def apply(self, img: ImageData) -> ImageData:
+    def __call__(self, img: ImageData) -> ImageData:
         """Add contours."""
         data = img.data
 
@@ -99,7 +99,7 @@ class Terrarium(BaseAlgorithm):
     output_nbands: int = 3
     output_dtype: str = "uint8"
 
-    def apply(self, img: ImageData) -> ImageData:
+    def __call__(self, img: ImageData) -> ImageData:
         """Encode DEM into RGB."""
         data = numpy.clip(img.data[0] + 32768.0, 0.0, 65535.0)
         r = data / 256
@@ -128,7 +128,7 @@ class TerrainRGB(BaseAlgorithm):
     output_nbands: int = 3
     output_dtype: str = "uint8"
 
-    def apply(self, img: ImageData) -> ImageData:
+    def __call__(self, img: ImageData) -> ImageData:
         """Encode DEM into RGB (Mapbox Terrain RGB).
 
         Code from https://github.com/mapbox/rio-rgbify/blob/master/rio_rgbify/encoders.py (MIT)
