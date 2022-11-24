@@ -10,6 +10,7 @@
 * update FastAPI requirement to `>=0.87`
 * update rio-tiler requirement to `>=4.0,<4.1`
 * remove `rescale` and `color_formula` from the `post_process` dependency
+* add `/map` endpoint in TilerFactory to display tiles given query-parameters
 
 **breaking changes**
 
