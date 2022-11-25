@@ -117,12 +117,9 @@ algo = {
     "multiply": Multiply
 }
 # Available algorithms Enum
-AlgorithmName = Enum(
-    "AlgorithmName", [(a, a) for a in algo.keys()]
-)
 
 def post_process_dependency(
-    algorithm: AlgorithmName = Query(None, description="Algorithm name", alias="algo"),
+    algorithm: Literal[tuple(algo.keys())] = Query(None, description="Algorithm name", alias="algo"),
     algorithm_params: str = Query(None, description="Algorithm parameter", alias="algo_params"),
 ) -> Optional[BaseAlgorithm]:
     """Data Post-Processing dependency."""
@@ -130,7 +127,7 @@ def post_process_dependency(
     if algorithm:
         try:
             # Here we construct the Algorithm Object with the kwargs from the `algo_params` query-parameter
-            return algo[algorithm.name](**kwargs)
+            return algo[algorithm](**kwargs)
         except ValidationError as e:
             raise HTTPException(status_code=400, detail=str(e))
 

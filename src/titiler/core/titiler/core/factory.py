@@ -1,8 +1,7 @@
 """TiTiler Router factories."""
 import abc
 from dataclasses import dataclass, field
-from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
+from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Type, Union
 from urllib.parse import urlencode
 
 import rasterio
@@ -32,7 +31,6 @@ from titiler.core.dependencies import (
     HistogramParams,
     ImageParams,
     ImageRenderingParams,
-    PostProcessParams,
     RescalingParams,
     StatisticsParams,
     TileMatrixSetName,
@@ -141,7 +139,9 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
     histogram_dependency: Type[DefaultDependency] = HistogramParams
 
     # Post Processing Dependencies (algorithm)
-    process_dependency: Callable[..., Optional[BaseAlgorithm]] = PostProcessParams
+    process_dependency: Callable[
+        ..., Optional[BaseAlgorithm]
+    ] = available_algorithms.dependency
 
     # TileMatrixSet dependency
     tms_dependency: Callable[..., TileMatrixSet] = TMSParams
@@ -1517,10 +1517,6 @@ class AlgorithmFactory:
 
     def __post_init__(self):
         """Post Init: register routes"""
-        # Algorithm Enum
-        AlgorithmName = Enum(  # type: ignore
-            "AlgorithmName", [(a, a) for a in self.supported_algorithm.list()]
-        )
 
         def metadata(algorithm: BaseAlgorithm) -> AlgorithmMetadata:
             """Algorithm Metadata"""
@@ -1555,9 +1551,9 @@ class AlgorithmFactory:
 
         @self.router.get("/algorithms/{algorithmId}", response_model=AlgorithmMetadata)
         def algorithm_metadata(
-            algorithm: AlgorithmName = Path(
+            algorithm: Literal[tuple(self.supported_algorithm.list())] = Path(
                 ..., description="Algorithm name", alias="algorithmId"
             ),
         ):
             """Return the available algorithm."""
-            return metadata(self.supported_algorithm.get(algorithm.name))
+            return metadata(self.supported_algorithm.get(algorithm))

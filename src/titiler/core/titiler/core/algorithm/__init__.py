@@ -2,8 +2,7 @@
 
 import json
 from copy import copy
-from enum import Enum
-from typing import Dict, List, Optional, Type
+from typing import Dict, List, Literal, Optional, Type
 
 import attr
 from pydantic import ValidationError
@@ -55,12 +54,9 @@ class Algorithms:
     @property
     def dependency(self):
         """FastAPI PostProcess dependency."""
-        AlgorithmName = Enum(
-            "AlgorithmName", [(a, a) for a in self.data.keys()]
-        )  # type: ignore
 
         def post_process(
-            algorithm: AlgorithmName = Query(
+            algorithm: Literal[tuple(self.data.keys())] = Query(
                 None, description="Algorithm name", alias="algo"
             ),
             algorithm_params: str = Query(
@@ -71,7 +67,7 @@ class Algorithms:
             kwargs = json.loads(algorithm_params) if algorithm_params else {}
             if algorithm:
                 try:
-                    return self.get(algorithm.name)(**kwargs)
+                    return self.get(algorithm)(**kwargs)
                 except ValidationError as e:
                     raise HTTPException(status_code=400, detail=str(e))
 
