@@ -603,8 +603,8 @@ class TilerFactory(BaseTilerFactory):
     def map_viewer(self):  # noqa: C901
         """Register /map endpoint."""
 
-        @self.router.get("/{TileMatrixSetId}/map", response_class=HTMLResponse)
         @self.router.get("/map", response_class=HTMLResponse)
+        @self.router.get("/{TileMatrixSetId}/map", response_class=HTMLResponse)
         def map_viewer(
             request: Request,
             src_path=Depends(self.path_dependency),
