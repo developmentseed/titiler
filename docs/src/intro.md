@@ -71,12 +71,9 @@ from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 
 from fastapi import FastAPI
 
-app = FastAPI(
-    title="My super app", description="It's something great",
-)
-
-cog = TilerFactory(router_prefix="cog")
-app.include_router(cog.router, prefix="/cog", tags=["Cloud Optimized GeoTIFF"])
+app = FastAPI()
+cog = TilerFactory()
+app.include_router(cog.router)
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
 ```
 

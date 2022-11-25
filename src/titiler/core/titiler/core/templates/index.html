@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset='utf-8' />
+        <title>TiTiler Map Viewer</title>
+        <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+        <script src='https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js'></script>
+        <link href='https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css' rel='stylesheet' />
+
+        <style>
+            body { margin:0; padding:0; width:100%; height:100%;}
+            #map { position:absolute; top:0; bottom:0; width:100%; }
+            .zoom-info {
+                z-index: 10;
+                position: absolute;
+                bottom: 17px;
+                right: 0;
+                padding: 5px;
+                width: auto;
+                height: auto;
+                font-size: 12px;
+                color: #000;
+            }
+            @media(max-width: 767px) {
+              .maplibrectrl-attrib {
+                  font-size: 10px;
+              }
+            }
+        </style>
+    </head>
+    <body>
+
+    <div id='map'>
+      <div class="zoom-info"><span id="zoom"></span></div>
+    </div>
+
+    <script>
+
+var map = new maplibregl.Map({
+  container: 'map',
+  style: {
+    version: 8,
+    sources: {
+      'toner-lite': {
+        type: 'raster',
+        tiles: [
+          'https://stamen-tiles-a.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png',
+          'https://stamen-tiles-b.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png',
+          'https://stamen-tiles-c.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png',
+          'https://stamen-tiles-d.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png'
+        ],
+        tileSize: 256,
+        attribution:
+          'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.'
+      }
+    },
+    layers: [
+      {
+        'id': 'basemap',
+        'type': 'raster',
+        'source': 'toner-lite',
+        'minzoom': 0,
+        'maxzoom': 14
+      }
+    ]
+  },
+  center: [0, 0],
+  zoom: 1
+})
+
+map.on('zoom', function (e) {
+  const z = (map.getZoom()).toString().slice(0, 6)
+  document.getElementById('zoom').textContent = z
+})
+
+const bboxPolygon = (bounds) => {
+    return {
+        'type': 'Feature',
+        'geometry': {
+            'type': 'Polygon',
+            'coordinates': [[
+                [bounds[0], bounds[1]],
+                [bounds[2], bounds[1]],
+                [bounds[2], bounds[3]],
+                [bounds[0], bounds[3]],
+                [bounds[0], bounds[1]]
+            ]]
+        },
+        'properties': {}
+    }
+}
+
+const addAOI = (bounds) => {
+  if (map.getLayer('aoi-polygon')) map.removeLayer('aoi-polygon')
+  if (map.getSource('aoi')) map.removeSource('aoi')
+  const geojson = {
+      "type": "FeatureCollection",
+      "features": [bboxPolygon(bounds)]
+  }
+
+  map.addSource('aoi', {
+    'type': 'geojson',
+    'data': geojson
+  })
+
+  map.addLayer({
+    id: 'aoi-polygon',
+    type: 'line',
+    source: 'aoi',
+    layout: {
+      'line-cap': 'round',
+      'line-join': 'round'
+    },
+    paint: {
+      'line-color': '#3bb2d0',
+      'line-width': 1
+    }
+  })
+  return
+}
+
+map.on('load', () => {
+
+  fetch('{{ tilejson_endpoint|safe }}')
+    .then(res => {
+      if (res.ok) return res.json()
+      throw new Error('Network response was not ok.')
+    })
+    .then(data => {
+      console.log(data)
+
+      let bounds = [...data.bounds]
+      // Bounds crossing dateline
+      if (bounds[0] > bounds[2]) {
+        bounds[0] = bounds[0] - 360
+      }
+      map.fitBounds(
+        [[bounds[0], bounds[1]], [bounds[2], bounds[3]]]
+      )
+      addAOI(bounds)
+
+      map.addSource(
+        'raster',
+        {
+          type: 'raster',
+          bounds: data.bounds,
+          minzoom: data.minzoom,
+          maxzoom: data.maxzoom,
+          tiles: data.tiles,
+        }
+      )
+
+      map.addLayer(
+        {
+          id: 'raster',
+          type: 'raster',
+          source: 'raster',
+        }
+      )
+
+    })
+    .catch(err => {
+      console.warn(err)
+    })
+})
+    </script>
+    </body>
+    </html>
