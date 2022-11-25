@@ -44,10 +44,10 @@ def tmpmosaic():
 def test_MosaicTilerFactory():
     """Test MosaicTilerFactory class."""
     mosaic = MosaicTilerFactory(
-        optional_headers=[OptionalHeader.server_timing, OptionalHeader.x_assets],
+        optional_headers=[OptionalHeader.x_assets],
         router_prefix="mosaic",
     )
-    assert len(mosaic.router.routes) == 22
+    assert len(mosaic.router.routes) == 24
     assert mosaic.tms_dependency == WebMercatorTMSParams
 
     app = FastAPI()

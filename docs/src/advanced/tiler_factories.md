@@ -20,13 +20,15 @@ app.include_router(cog.router, tags=["Cloud Optimized GeoTIFF"])
 | `GET`  | `/info.geojson`                                                 | GeoJSON ([InfoGeoJSON][info_geojson_model]) | return dataset's basic info as a GeoJSON feature
 | `GET`  | `/statistics`                                                   | JSON ([Statistics][stats_model])            | return dataset's statistics
 | `POST` | `/statistics`                                                   | GeoJSON ([Statistics][stats_geojson_model]) | return dataset's statistics for a GeoJSON
-| `GET`  | `/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`  | image/bin                                   | create a web map tile image from a dataset
-| `GET`  | `/[{TileMatrixSetId}]/tilejson.json`                            | JSON ([TileJSON][tilejson_model])           | return a Mapbox TileJSON document
-| `GET`  | `/{TileMatrixSetId}/WMTSCapabilities.xml`                       | XML                                         | return OGC WMTS Get Capabilities
+| `GET`  | `/tiles[/{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`  | image/bin                                   | create a web map tile image from a dataset
+| `GET`  | `[/{TileMatrixSetId}]/tilejson.json`                            | JSON ([TileJSON][tilejson_model])           | return a Mapbox TileJSON document
+| `GET`  | `[/{TileMatrixSetId}]/WMTSCapabilities.xml`                     | XML                                         | return OGC WMTS Get Capabilities
 | `GET`  | `/point/{lon},{lat}`                                            | JSON ([Point][point_model])                 | return pixel values from a dataset
 | `GET`  | `/preview[.{format}]`                                           | image/bin                                   | create a preview image from a dataset (**Optional**)
 | `GET`  | `/crop/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                   | create an image from part of a dataset (**Optional**)
 | `POST` | `/crop[/{width}x{height}][.{format}]`                           | image/bin                                   | create an image from a GeoJSON feature (**Optional**)
+| `GET`  | `/map`                                                          | HTML                                        | return a simple map viewer
+| `GET`  | `[/{TileMatrixSetId}]/map`                                      | HTML                                        | return a simple map viewer
 
 ### `titiler.core.factory.MultiBaseTilerFactory`
 
@@ -52,13 +54,14 @@ app.include_router(cog.router, tags=["STAC"])
 | `GET`  | `/asset_statistics`                                             | JSON ([Statistics][multistats_model])            | return per asset statistics
 | `GET`  | `/statistics`                                                   | JSON ([Statistics][stats_model])                 | return assets statistics (merged)
 | `POST` | `/statistics`                                                   | GeoJSON ([Statistics][multistats_geojson_model]) | return assets statistics for a GeoJSON (merged)
-| `GET`  | `/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`  | image/bin                                        | create a web map tile image from assets
+| `GET`  | `/tiles[/{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`  | image/bin                                        | create a web map tile image from assets
 | `GET`  | `/[{TileMatrixSetId}]/tilejson.json`                            | JSON ([TileJSON][tilejson_model])                | return a Mapbox TileJSON document
 | `GET`  | `/{TileMatrixSetId}/WMTSCapabilities.xml`                       | XML                                              | return OGC WMTS Get Capabilities
 | `GET`  | `/point/{lon},{lat}`                                            | JSON ([Point][multipoint_model])                 | return pixel values from assets
 | `GET`  | `/preview[.{format}]`                                           | image/bin                                        | create a preview image from assets (**Optional**)
 | `GET`  | `/crop/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                        | create an image from part of assets (**Optional**)
 | `POST` | `/crop[/{width}x{height}][.{format}]`                           | image/bin                                        | create an image from a geojson feature intersecting assets (**Optional**)
+| `GET`  | `[/{TileMatrixSetId}]/map`                                      | HTML                                             | return a simple map viewer
 
 ### `titiler.core.factory.MultiBandTilerFactory`
 
@@ -89,14 +92,14 @@ app.include_router(cog.router, tags=["Landsat"])
 | `GET`  | `/info.geojson`                                                 | GeoJSON ([InfoGeoJSON][info_geojson_model])  | return basic info for a dataset as a GeoJSON feature
 | `GET`  | `/statistics`                                                   | JSON ([Statistics][stats_model])             | return info and statistics for a dataset
 | `POST` | `/statistics`                                                   | GeoJSON ([Statistics][stats_geojson_model])  | return info and statistics for a dataset
-| `GET`  | `/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`  | image/bin                                    | create a web map tile image from a dataset
+| `GET`  | `/tiles[/{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`  | image/bin                                    | create a web map tile image from a dataset
 | `GET`  | `/[{TileMatrixSetId}]/tilejson.json`                            | JSON ([TileJSON][tilejson_model])            | return a Mapbox TileJSON document
 | `GET`  | `/{TileMatrixSetId}/WMTSCapabilities.xml`                       | XML                                          | return OGC WMTS Get Capabilities
 | `GET`  | `/point/{lon},{lat}`                                            | JSON ([Point][point_model])                  | return pixel value from a dataset
 | `GET`  | `/preview[.{format}]`                                           | image/bin                                    | create a preview image from a dataset
 | `GET`  | `/crop/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                    | create an image from part of a dataset
 | `POST` | `/crop[/{width}x{height}][.{format}]`                           | image/bin                                    | create an image from a geojson feature
-
+| `GET`  | `[/{TileMatrixSetId}]/map`                                      | HTML                                         | return a simple map viewer
 
 ### `titiler.mosaic.factory.MosaicTilerFactory`
 
@@ -107,13 +110,14 @@ app.include_router(cog.router, tags=["Landsat"])
 | `GET`  | `/bounds`                                                       | JSON ([Bounds][bounds_model])                      | return mosaic's bounds
 | `GET`  | `/info`                                                         | JSON ([Info][mosaic_info_model])                   | return mosaic's basic info
 | `GET`  | `/info.geojson`                                                 | GeoJSON ([InfoGeoJSON][mosaic_geojson_info_model]) | return mosaic's basic info  as a GeoJSON feature
-| `GET`  | `/tiles/[{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`  | image/bin                                          | create a web map tile image from a MosaicJSON
-| `GET`  | `/[{TileMatrixSetId}]/tilejson.json`                            | JSON ([TileJSON][tilejson_model])                  | return a Mapbox TileJSON document
-| `GET`  | `/{TileMatrixSetId}/WMTSCapabilities.xml`                       | XML                                                | return OGC WMTS Get Capabilities
+| `GET`  | `/tiles[/{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`  | image/bin                                          | create a web map tile image from a MosaicJSON
+| `GET`  | `[/{TileMatrixSetId}]/tilejson.json`                            | JSON ([TileJSON][tilejson_model])                  | return a Mapbox TileJSON document
+| `GET`  | `[/{TileMatrixSetId}]/WMTSCapabilities.xml`                     | XML                                                | return OGC WMTS Get Capabilities
 | `GET`  | `/point/{lon},{lat}`                                            | JSON ([Point][mosaic_point])                       | return pixel value from a MosaicJSON dataset
 | `GET`  | `/{z}/{x}/{y}/assets`                                           | JSON                                               | return list of assets intersecting a XYZ tile
 | `GET`  | `/{lon},{lat}/assets`                                           | JSON                                               | return list of assets intersecting a point
 | `GET`  | `/{minx},{miny},{maxx},{maxy}/assets`                           | JSON                                               | return list of assets intersecting a bounding box
+| `GET`  | `[/{TileMatrixSetId}]/map`                                      | HTML                                               | return a simple map viewer
 
 
 !!! Important
