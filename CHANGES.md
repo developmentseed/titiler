@@ -10,7 +10,6 @@
 * update FastAPI requirement to `>=0.87`
 * update rio-tiler requirement to `>=4.0,<4.1`
 * remove `rescale` and `color_formula` from the `post_process` dependency
-* add `/map` endpoint in TilerFactory to display tiles given query-parameters
 
 **breaking changes**
 
@@ -18,6 +17,7 @@
 * remove `asset_expression` (except in `/asset_statistics` endpoint) (see https://cogeotiff.github.io/rio-tiler/v4_migration/#multibasereader-expressions)
 * update Point output model to include `band_names`
 * histogram and info band names are prefixed with `b` (e.g `b1`) (ref: https://cogeotiff.github.io/rio-tiler/v4_migration/#band-names)
+* add `/map` endpoint in TilerFactory to display tiles given query-parameters
 
 ### titiler.mosaic
 
