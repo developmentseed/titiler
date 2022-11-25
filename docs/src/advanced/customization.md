@@ -62,26 +62,8 @@ EPSG6933 = TileMatrixSet.custom(
 # 2. Register TMS
 tms = tms.register([EPSG6933])
 
-# 3. Create ENUM with available TMS
-TileMatrixSetNames = Enum(  # type: ignore
-    "TileMatrixSetNames", [(a, a) for a in sorted(tms.list())]
-)
-
-# 4. Create Custom TMS dependency
-def TMSParams(
-    TileMatrixSetId: TileMatrixSetNames = Query(
-        TileMatrixSetNames.WebMercatorQuad,  # type: ignore
-        description="TileMatrixSet Name (default: 'WebMercatorQuad')",
-    )
-) -> TileMatrixSet:
-    """TileMatrixSet Dependency."""
-    return tms.get(TileMatrixSetId.name)
-
-# 5. Create Tiler
-COGTilerWithCustomTMS = TilerFactory(
-    reader=COGReader,
-    tms_dependency=TMSParams,
-)
+# 3. Create Tiler
+COGTilerWithCustomTMS = TilerFactory(supported_tms=tms)
 ```
 
 ### Add a MosaicJSON creation endpoint

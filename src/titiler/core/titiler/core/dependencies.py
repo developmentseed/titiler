@@ -6,8 +6,6 @@ from enum import Enum
 from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy
-from morecantile import tms
-from morecantile.models import TileMatrixSet
 from rasterio.enums import Resampling
 from rio_tiler.colormap import cmap, parse_color
 from rio_tiler.errors import MissingAssets, MissingBands
@@ -21,32 +19,6 @@ ColorMapName = Enum(  # type: ignore
 ResamplingName = Enum(  # type: ignore
     "ResamplingName", [(r.name, r.name) for r in Resampling]
 )
-WebMercatorTileMatrixSetName = Enum(  # type: ignore
-    "WebMercatorTileMatrixSetName", [("WebMercatorQuad", "WebMercatorQuad")]
-)
-TileMatrixSetName = Enum(  # type: ignore
-    "TileMatrixSetName", [(a, a) for a in sorted(tms.list())]
-)
-
-
-def WebMercatorTMSParams(
-    TileMatrixSetId: WebMercatorTileMatrixSetName = Query(
-        WebMercatorTileMatrixSetName.WebMercatorQuad,  # type: ignore
-        description="TileMatrixSet Name (default: 'WebMercatorQuad')",
-    )
-) -> TileMatrixSet:
-    """TileMatrixSet Dependency."""
-    return tms.get(TileMatrixSetId.name)
-
-
-def TMSParams(
-    TileMatrixSetId: TileMatrixSetName = Query(
-        TileMatrixSetName.WebMercatorQuad,  # type: ignore
-        description="TileMatrixSet Name (default: 'WebMercatorQuad')",
-    )
-) -> TileMatrixSet:
-    """TileMatrixSet Dependency."""
-    return tms.get(TileMatrixSetId.name)
 
 
 def ColorMapParams(

@@ -13,9 +13,9 @@ import attr
 import httpx
 import morecantile
 import numpy
+from morecantile.defaults import TileMatrixSets
 from rio_tiler.io import BaseReader, COGReader, MultiBandReader, STACReader
 
-from titiler.core.dependencies import TMSParams, WebMercatorTMSParams
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 from titiler.core.factory import (
     MultiBandTilerFactory,
@@ -30,16 +30,20 @@ from fastapi import Depends, FastAPI, HTTPException, Query, security, status
 
 from starlette.testclient import TestClient
 
-NB_DEFAULT_TMS = len(morecantile.tms.list())
+DEFAULT_TMS = morecantile.tms
+NB_DEFAULT_TMS = len(DEFAULT_TMS.list())
+WEB_TMS = TileMatrixSets({"WebMercatorQuad": morecantile.tms.get("WebMercatorQuad")})
 
 
 def test_TilerFactory():
     """Test TilerFactory class."""
     cog = TilerFactory()
     assert len(cog.router.routes) == 27
-    assert cog.tms_dependency == TMSParams
+    assert len(cog.supported_tms.list()) == NB_DEFAULT_TMS
 
-    cog = TilerFactory(router_prefix="something", tms_dependency=WebMercatorTMSParams)
+    cog = TilerFactory(router_prefix="something", supported_tms=WEB_TMS)
+    assert len(cog.supported_tms.list()) == 1
+
     app = FastAPI()
     app.include_router(cog.router, prefix="/something")
     client = TestClient(app)
@@ -1208,6 +1212,28 @@ def test_TMSFactory():
     assert body["type"] == "TileMatrixSetType"
     assert body["identifier"] == "WebMercatorQuad"
 
+    response = client.get("/tms/tileMatrixSets/WebMercatorQua")
+    assert response.status_code == 422
+
+    app = FastAPI()
+    tms_endpoints = TMSFactory(supported_tms=WEB_TMS)
+    app.include_router(
+        tms_endpoints.router,
+    )
+
+    client = TestClient(app)
+
+    response = client.get("/tileMatrixSets")
+    assert response.status_code == 200
+    body = response.json()
+    assert len(body["tileMatrixSets"]) == 1
+
+    response = client.get("/tileMatrixSets/WebMercatorQuad")
+    assert response.status_code == 200
+
+    response = client.get("/tileMatrixSets/LINZAntarticaMapTilegrid")
+    assert response.status_code == 422
+
 
 def test_TilerFactory_WithDependencies():
     """Test TilerFactory class."""
@@ -1236,7 +1262,6 @@ def test_TilerFactory_WithDependencies():
         router_prefix="something",
     )
     assert len(cog.router.routes) == 27
-    assert cog.tms_dependency == TMSParams
 
     app = FastAPI()
     app.include_router(cog.router, prefix="/something")
