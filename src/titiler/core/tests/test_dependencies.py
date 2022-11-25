@@ -392,10 +392,14 @@ def test_render():
 def test_algo():
     """test algorithm deps."""
 
+    from titiler.core.algorithm import algorithms as default_algorithms
+
+    PostProcessParams = default_algorithms.dependency
+
     app = FastAPI()
 
     @app.get("/")
-    def _endpoint(algorithm=Depends(dependencies.PostProcessParams)):
+    def _endpoint(algorithm=Depends(PostProcessParams)):
         """return params."""
         if algorithm:
             return algorithm.dict()
@@ -404,6 +408,9 @@ def test_algo():
     client = TestClient(app)
     response = client.get("/")
     assert not response.json()
+
+    response = client.get("/?algo=hillshad")
+    assert response.status_code == 422
 
     response = client.get("/?algo=hillshade")
     assert response.json()["azimuth"] == 90
