@@ -109,27 +109,22 @@ class Multiply(BaseAlgorithm):
 
 Using a Pydantic's `BaseModel` class to construct the custom algorithm enables two things **parametrization** and **type casting/validation**.
 
-If we look at the `Multiply` algorithm, we can see it needs a `factor` parameter. In Titiler we will pass this parameter via query string (e.g `/preview.png?algo=multiply&algo_parameter={"factor":3}`) and pydantic will make sure we use the right types/values.
+If we look at the `Multiply` algorithm, we can see it needs a `factor` parameter. In Titiler (in the post_process dependency) we will pass this parameter via query string (e.g `/preview.png?algo=multiply&algo_parameter={"factor":3}`) and pydantic will make sure we use the right types/values.
 
 ```python
 # Available algorithm
-algo = {
-    "multiply": Multiply
-}
-# Available algorithms Enum
+algo = {"multiply": Multiply}
 
 def post_process_dependency(
     algorithm: Literal[tuple(algo.keys())] = Query(None, description="Algorithm name", alias="algo"),
     algorithm_params: str = Query(None, description="Algorithm parameter", alias="algo_params"),
 ) -> Optional[BaseAlgorithm]:
     """Data Post-Processing dependency."""
+    # Parse `algorithm_params` JSON parameters
     kwargs = json.loads(algorithm_params) if algorithm_params else {}
     if algorithm:
-        try:
-            # Here we construct the Algorithm Object with the kwargs from the `algo_params` query-parameter
-            return algo[algorithm](**kwargs)
-        except ValidationError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+        # Here we construct the Algorithm Object with the kwargs from the `algo_params` query-parameter
+        return algo[algorithm](**kwargs)
 
     return None
 ```
@@ -137,6 +132,10 @@ def post_process_dependency(
 ## Dependency
 
 To be able to use your own algorithm in titiler's endpoint you need to create a `Dependency` to tell the application what algorithm are available.
+
+To ease the dependency creation, we added a `dependency` property in the `titiler.core.algorithm.Algorithms` class, which will return a FastAPI dependency to be added to the endpoints.
+
+Note: The `Algorithms` class is a store for the algorithm that can be extented using the `.register()` method.
 
 ```python
 from typing import Callable
@@ -152,8 +151,6 @@ PostProcessParams: Callable = algorithms.dependency
 
 endpoints = TilerFactory(process_dependency=PostProcessParams)
 ```
-
-The `titiler.core.algorithm.Algorithms` class, which acts as the algorithms store, has a `dependency` property which will return a FastAPI dependency to be added to the endpoints.
 
 ### Order of operation
 
