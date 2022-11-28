@@ -2,7 +2,7 @@
 
 import os
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Optional, Tuple, Type, Union
+from typing import Callable, Dict, List, Literal, Optional, Tuple, Type, Union
 from urllib.parse import urlencode
 
 import rasterio
@@ -11,17 +11,14 @@ from cogeo_mosaic.models import Info as mosaicInfo
 from cogeo_mosaic.mosaic import MosaicJSON
 from geojson_pydantic.features import Feature
 from geojson_pydantic.geometries import Polygon
-from morecantile import TileMatrixSet
+from morecantile import tms
+from morecantile.defaults import TileMatrixSets
 from rio_tiler.constants import MAX_THREADS
 from rio_tiler.io import BaseReader, MultiBandReader, MultiBaseReader, Reader
 from rio_tiler.models import Bounds
 from rio_tiler.mosaic.methods.base import MosaicMethodBase
 
-from titiler.core.dependencies import (
-    DefaultDependency,
-    RescalingParams,
-    WebMercatorTMSParams,
-)
+from titiler.core.dependencies import DefaultDependency, RescalingParams
 from titiler.core.factory import BaseTilerFactory, img_endpoint_params, templates
 from titiler.core.models.mapbox import TileJSON
 from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
@@ -33,6 +30,9 @@ from fastapi import Depends, Path, Query
 
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, Response
+
+# BaseBackend does not support other TMS than WebMercator
+default_tms = TileMatrixSets({"WebMercatorQuad": tms.get("WebMercatorQuad")})
 
 
 def PixelSelectionParams(
@@ -63,12 +63,11 @@ class MosaicTilerFactory(BaseTilerFactory):
         Type[MultiBandReader],
     ] = Reader
 
-    # BaseBackend does not support other TMS than WebMercator
-    tms_dependency: Callable[..., TileMatrixSet] = WebMercatorTMSParams
-
     backend_dependency: Type[DefaultDependency] = DefaultDependency
 
     pixel_selection_dependency: Callable[..., MosaicMethodBase] = PixelSelectionParams
+
+    supported_tms: TileMatrixSets = default_tms
 
     # Add/Remove some endpoints
     add_viewer: bool = True
@@ -242,7 +241,10 @@ class MosaicTilerFactory(BaseTilerFactory):
             z: int = Path(..., ge=0, le=30, description="Mercator tiles's zoom level"),
             x: int = Path(..., description="Mercator tiles's column"),
             y: int = Path(..., description="Mercator tiles's row"),
-            tms: TileMatrixSet = Depends(self.tms_dependency),
+            TileMatrixSetId: Literal[tuple(self.supported_tms.list())] = Query(
+                "WebMercatorQuad",
+                description="TileMatrixSet Name (default: 'WebMercatorQuad')",
+            ),  # noqa
             scale: int = Query(
                 1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
             ),
@@ -336,7 +338,10 @@ class MosaicTilerFactory(BaseTilerFactory):
         )
         def tilejson(
             request: Request,
-            tms: TileMatrixSet = Depends(self.tms_dependency),
+            TileMatrixSetId: Literal[tuple(self.supported_tms.list())] = Query(
+                "WebMercatorQuad",
+                description="TileMatrixSet Name (default: 'WebMercatorQuad')",
+            ),  # noqa
             src_path=Depends(self.path_dependency),
             tile_format: Optional[ImageType] = Query(
                 None, description="Output image type. Default is auto."
@@ -380,7 +385,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                 "x": "{x}",
                 "y": "{y}",
                 "scale": tile_scale,
-                "TileMatrixSetId": tms.identifier,
+                "TileMatrixSetId": TileMatrixSetId,
             }
             if tile_format:
                 route_params["format"] = tile_format.value
@@ -427,7 +432,10 @@ class MosaicTilerFactory(BaseTilerFactory):
         def map_viewer(
             request: Request,
             src_path=Depends(self.path_dependency),
-            tms: TileMatrixSet = Depends(WebMercatorTMSParams),  # noqa
+            TileMatrixSetId: Literal["WebMercatorQuad"] = Query(
+                "WebMercatorQuad",
+                description="TileMatrixSet Name (default: 'WebMercatorQuad')",
+            ),  # noqa
             tile_format: Optional[ImageType] = Query(
                 None, description="Output image type. Default is auto."
             ),
@@ -486,7 +494,10 @@ class MosaicTilerFactory(BaseTilerFactory):
         )
         def wmts(
             request: Request,
-            tms: TileMatrixSet = Depends(self.tms_dependency),
+            TileMatrixSetId: Literal[tuple(self.supported_tms.list())] = Query(
+                "WebMercatorQuad",
+                description="TileMatrixSet Name (default: 'WebMercatorQuad')",
+            ),  # noqa
             src_path=Depends(self.path_dependency),
             tile_format: ImageType = Query(
                 ImageType.png, description="Output image type. Default is png."
@@ -531,7 +542,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                 "y": "{TileRow}",
                 "scale": tile_scale,
                 "format": tile_format.value,
-                "TileMatrixSetId": tms.identifier,
+                "TileMatrixSetId": TileMatrixSetId,
             }
             tiles_url = self.url_for(request, "tile", **route_params)
 
@@ -552,6 +563,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             if qs:
                 tiles_url += f"?{urlencode(qs)}"
 
+            tms = self.supported_tms.get(TileMatrixSetId)
             with rasterio.Env(**env):
                 with self.reader(
                     src_path,

@@ -76,33 +76,6 @@ def DatasetPathParams(
     return url
 ```
 
-#### tms_dependency
-
-The TMS dependency sets the available TMS for a tile endpoint.
-
-```python
-# Allow all morecantile TMS
-def TMSParams(
-    TileMatrixSetId: TileMatrixSetNames = Query(
-        TileMatrixSetNames.WebMercatorQuad,  # type: ignore
-        description="TileMatrixSet Name (default: 'WebMercatorQuad')",
-    )
-) -> morecantile.TileMatrixSet:
-    """TileMatrixSet Dependency."""
-    return morecantile.tms.get(TileMatrixSetId.name)
-
-# or
-# Restrict the TMS to `WebMercatorQuad` only
-def WebMercatorTMSParams(
-    TileMatrixSetId: WebMercatorTileMatrixSetName = Query(
-        WebMercatorTileMatrixSetName.WebMercatorQuad,  # type: ignore
-        description="TileMatrixSet Name (default: 'WebMercatorQuad')",
-    )
-) -> morecantile.TileMatrixSet:
-    """TileMatrixSet Dependency."""
-    return morecantile.tms.get(TileMatrixSetId.name)
-```
-
 #### layer_dependency
 
 Define band indexes or expression
@@ -174,37 +147,6 @@ class DatasetParams(DefaultDependency):
         self.resampling_method = self.resampling_method.value  # type: ignore
 ```
 
-
-#### process_dependency
-
-Post-Process data before rendering.
-
-```python
-@dataclass
-class PostProcessParams(DefaultDependency):
-    """Data Post-Processing options."""
-
-    in_range: Optional[List[str]] = Query(
-        None,
-        alias="rescale",
-        title="Min/Max data Rescaling",
-        description="comma (',') delimited Min,Max range. Can set multiple time for multiple bands.",
-        example=["0,2000", "0,1000", "0,10000"],  # band 1  # band 2  # band 3
-    )
-    color_formula: Optional[str] = Query(
-        None,
-        title="Color Formula",
-        description="rio-color formula (info: https://github.com/mapbox/rio-color)",
-    )
-
-    def __post_init__(self):
-        """Post Init."""
-        if self.in_range:
-            self.in_range = [  # type: ignore
-                tuple(map(float, r.replace(" ", "").split(","))) for r in self.in_range
-            ]
-```
-
 #### render_dependency
 
 Image rendering options.
@@ -249,6 +191,30 @@ def ColorMapParams(
 #### reader_dependency
 
 Additional reader options. Defaults to `DefaultDependency` (empty).
+
+
+#### Other Attributes
+
+##### Supported TMS
+
+
+The TMS dependency sets the available TMS for a tile endpoint.
+
+```python
+# Allow all morecantile TMS
+from morecantile import tms as default_tms
+
+tiler = TilerFactory(supported_tms=default_tms)
+
+
+# Restrict the TMS to `WebMercatorQuad` only
+from morecantile import tms
+from morecantile.defaults import TileMatrixSets
+
+# Construct a TileMatrixSets object with only the `WebMercatorQuad` tms
+default_tms = TileMatrixSets({"WebMercatorQuad": tms.get("WebMercatorQuad")})
+tiler = TilerFactory(supported_tms=default_tms)
+```
 
 ### TilerFactory
 

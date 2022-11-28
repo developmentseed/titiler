@@ -2,15 +2,16 @@
 
 import json
 from dataclasses import dataclass
+from typing import Literal
 
 import pytest
-from morecantile import TileMatrixSet
+from morecantile import tms
 from rio_tiler.types import ColorMapType
 
 from titiler.core import dependencies, errors
 from titiler.core.resources.responses import JSONResponse
 
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, Query
 
 from starlette.testclient import TestClient
 
@@ -20,14 +21,14 @@ def test_tms():
     app = FastAPI()
 
     @app.get("/web/{TileMatrixSetId}")
-    def web(tms: TileMatrixSet = Depends(dependencies.WebMercatorTMSParams)):
+    def web(TileMatrixSetId: Literal["WebMercatorQuad"] = Query(...)):
         """return tms id."""
-        return tms.identifier
+        return TileMatrixSetId
 
     @app.get("/all/{TileMatrixSetId}")
-    def all(tms: TileMatrixSet = Depends(dependencies.TMSParams)):
+    def all(TileMatrixSetId: Literal[tuple(tms.list())] = Query(...)):
         """return tms id."""
-        return tms.identifier
+        return TileMatrixSetId
 
     client = TestClient(app)
     response = client.get("/web/WebMercatorQuad")

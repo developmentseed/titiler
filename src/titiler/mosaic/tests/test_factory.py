@@ -12,7 +12,7 @@ import numpy
 from cogeo_mosaic.backends import FileBackend
 from cogeo_mosaic.mosaic import MosaicJSON
 
-from titiler.core.dependencies import DefaultDependency, WebMercatorTMSParams
+from titiler.core.dependencies import DefaultDependency
 from titiler.core.resources.enums import OptionalHeader
 from titiler.mosaic.factory import MosaicTilerFactory
 from titiler.mosaic.resources.enums import PixelSelectionMethod
@@ -48,7 +48,6 @@ def test_MosaicTilerFactory():
         router_prefix="mosaic",
     )
     assert len(mosaic.router.routes) == 24
-    assert mosaic.tms_dependency == WebMercatorTMSParams
 
     app = FastAPI()
     app.include_router(mosaic.router, prefix="/mosaic")
