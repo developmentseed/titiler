@@ -1,8 +1,8 @@
 # Dockerfile for running titiler application with gunicorn server
 # Size ~1.4GB
-ARG PYTHON_VERSION=3.9
+ARG PYTHON_VERSION=3.11
 
-FROM tiangolo/uvicorn-gunicorn:python${PYTHON_VERSION}
+FROM ghcr.io/vincentsarago/uvicorn-gunicorn:${PYTHON_VERSION}
 
 # Ensure root certificates are always updated at evey container build
 # and curl is using the latest version of them

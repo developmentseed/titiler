@@ -89,3 +89,21 @@ services:
       # rio-tiler config
       # - RIO_TILER_MAX_THREADS=
 
+  nginx-titiler:
+    extends:
+      service: titiler
+    ports:
+      - 8081:8081
+    environment:
+      - PORT=8081
+      - TITILER_API_ROOT_PATH=/api/v1/titiler
+
+  nginx:
+    image: nginx
+    ports:
+      - 80:80
+    volumes:
+      - ./dockerfiles/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - nginx-titiler
+    command: ["nginx-debug", "-g", "daemon off;"]

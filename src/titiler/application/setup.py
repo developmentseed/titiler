@@ -14,7 +14,7 @@ inst_reqs = [
 ]
 extra_reqs = {
     "test": ["pytest", "pytest-cov", "pytest-asyncio", "httpx", "brotlipy"],
-    "server": ["uvicorn[standard]>=0.12.0,<0.16.0"],
+    "server": ["uvicorn[standard]>=0.12.0,<0.19.0"],
 }
 
 

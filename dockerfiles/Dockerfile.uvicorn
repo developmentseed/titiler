@@ -1,5 +1,5 @@
 # Dockerfile for running titiler application with uvicorn server
-ARG PYTHON_VERSION=3.9
+ARG PYTHON_VERSION=3.11
 
 FROM bitnami/python:${PYTHON_VERSION}
 RUN apt update && apt upgrade -y \
