@@ -609,7 +609,7 @@ def test_TilerFactory():
     assert meta["count"] == 1
 
     response = client.get(
-        f"/preview.tif?url={DATA_DIR}/dem.tif&return_mask=False&algo=terrarium"
+        f"/preview.tif?url={DATA_DIR}/dem.tif&return_mask=False&algorithm=terrarium"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/tiff; application=geotiff"

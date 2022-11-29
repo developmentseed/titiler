@@ -410,10 +410,10 @@ def test_algo():
     response = client.get("/")
     assert not response.json()
 
-    response = client.get("/?algo=hillshad")
+    response = client.get("/?algorithm=hillshad")
     assert response.status_code == 422
 
-    response = client.get("/?algo=hillshade")
+    response = client.get("/?algorithm=hillshade")
     assert response.json()["azimuth"] == 90
     assert response.json()["buffer"] == 3
     assert response.json()["input_nbands"] == 1
@@ -421,8 +421,8 @@ def test_algo():
     response = client.get(
         "/",
         params={
-            "algo": "hillshade",
-            "algo_params": json.dumps({"azimuth": 30, "buffer": 4}),
+            "algorithm": "hillshade",
+            "algorithm_params": json.dumps({"azimuth": 30, "buffer": 4}),
         },
     )
     assert response.json()["azimuth"] == 30

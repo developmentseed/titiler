@@ -57,10 +57,11 @@ def test_algo():
     assert response.json() == arr.max().tolist()
 
     # Missing factor input
-    response = client.get("/", params={"algo": "multiply"})
+    response = client.get("/", params={"algorithm": "multiply"})
     assert response.status_code == 400
 
     response = client.get(
-        "/", params={"algo": "multiply", "algo_params": json.dumps({"factor": 3})}
+        "/",
+        params={"algorithm": "multiply", "algorithm_params": json.dumps({"factor": 3})},
     )
     assert response.json() == arr.max().tolist() * 3
