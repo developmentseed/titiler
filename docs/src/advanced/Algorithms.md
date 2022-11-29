@@ -21,7 +21,7 @@ httpx.get(
     params={
         "url": "https://data.geo.admin.ch/ch.swisstopo.swissalti3d/swissalti3d_2019_2573-1085/swissalti3d_2019_2573-1085_0.5_2056_5728.tif",
         "buffer": 3,  # By default hillshade will crop the output with a 3pixel buffer, so we need to apply a buffer on the tile
-        "algo": "hillshade",
+        "algorithm": "hillshade",
     },
 )
 ```
@@ -33,8 +33,8 @@ httpx.get(
     "http://127.0.0.1:8081/cog/preview",
     params={
         "url": "https://data.geo.admin.ch/ch.swisstopo.swissalti3d/swissalti3d_2019_2573-1085/swissalti3d_2019_2573-1085_0.5_2056_5728.tif",
-        "algo": "contour",
-        "algo_params": json.dumps({"minz": 1600, "maxz": 2100}) # algorithm params HAVE TO be provided as a JSON string
+        "algorithm": "contour",
+        "algorithm_params": json.dumps({"minz": 1600, "maxz": 2100}) # algorithm params HAVE TO be provided as a JSON string
     },
 )
 ```
@@ -116,8 +116,8 @@ If we look at the `Multiply` algorithm, we can see it needs a `factor` parameter
 algo = {"multiply": Multiply}
 
 def post_process_dependency(
-    algorithm: Literal[tuple(algo.keys())] = Query(None, description="Algorithm name", alias="algo"),
-    algorithm_params: str = Query(None, description="Algorithm parameter", alias="algo_params"),
+    algorithm: Literal[tuple(algo.keys())] = Query(None, description="Algorithm name"),
+    algorithm_params: str = Query(None, description="Algorithm parameter"),
 ) -> Optional[BaseAlgorithm]:
     """Data Post-Processing dependency."""
     # Parse `algorithm_params` JSON parameters
