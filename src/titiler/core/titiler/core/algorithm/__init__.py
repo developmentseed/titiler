@@ -57,11 +57,9 @@ class Algorithms:
 
         def post_process(
             algorithm: Literal[tuple(self.data.keys())] = Query(
-                None, description="Algorithm name", alias="algo"
+                None, description="Algorithm name"
             ),
-            algorithm_params: str = Query(
-                None, description="Algorithm parameter", alias="algo_params"
-            ),
+            algorithm_params: str = Query(None, description="Algorithm parameter"),
         ) -> Optional[BaseAlgorithm]:
             """Data Post-Processing options."""
             kwargs = json.loads(algorithm_params) if algorithm_params else {}
