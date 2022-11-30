@@ -8,12 +8,12 @@
         <link href='https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css' rel='stylesheet' />
 
         <style>
-            body { margin:0; padding:0; width:100%; height:100%;}
+            body { margin:0; padding:0; width:100%; height:100%; background-color: #e5e5e5;}
             #map { position:absolute; top:0; bottom:0; width:100%; }
             .zoom-info {
                 z-index: 10;
                 position: absolute;
-                bottom: 17px;
+                bottom: 0;
                 right: 0;
                 padding: 5px;
                 width: auto;
@@ -31,7 +31,7 @@
     <body>
 
     <div id='map'>
-      <div class="zoom-info"><span id="zoom"></span></div>
+      <div class="zoom-info">Zoom: <span id="zoom"></span></div>
     </div>
 
     <script>
@@ -40,36 +40,15 @@ var map = new maplibregl.Map({
   container: 'map',
   style: {
     version: 8,
-    sources: {
-      'toner-lite': {
-        type: 'raster',
-        tiles: [
-          'https://stamen-tiles-a.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png',
-          'https://stamen-tiles-b.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png',
-          'https://stamen-tiles-c.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png',
-          'https://stamen-tiles-d.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png'
-        ],
-        tileSize: 256,
-        attribution:
-          'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.'
-      }
-    },
-    layers: [
-      {
-        'id': 'basemap',
-        'type': 'raster',
-        'source': 'toner-lite',
-        'minzoom': 0,
-        'maxzoom': 14
-      }
-    ]
+    sources: {},
+    layers: []
   },
   center: [0, 0],
   zoom: 1
 })
 
 map.on('zoom', function (e) {
-  const z = (map.getZoom()).toString().slice(0, 6)
+  const z = (map.getZoom()).toString().slice(0, 4)
   document.getElementById('zoom').textContent = z
 })
 

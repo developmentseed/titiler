@@ -1477,12 +1477,12 @@ class TMSFactory:
             r"/tileMatrixSets",
             response_model=TileMatrixSetList,
             response_model_exclude_none=True,
+            summary="Retrieve the list of available tiling schemes (tile matrix sets).",
+            operation_id="getTileMatrixSetsList",
         )
         async def TileMatrixSet_list(request: Request):
             """
-            Return list of supported TileMatrixSets.
-
-            Specs: http://docs.opengeospatial.org/per/19-069.html#_tilematrixsets
+            OGC Specification: http://docs.opengeospatial.org/per/19-069.html#_tilematrixsets
             """
             return {
                 "tileMatrixSets": [
@@ -1509,13 +1509,17 @@ class TMSFactory:
             r"/tileMatrixSets/{TileMatrixSetId}",
             response_model=TileMatrixSet,
             response_model_exclude_none=True,
+            summary="Retrieve the definition of the specified tiling scheme (tile matrix set).",
+            operation_id="getTileMatrixSet",
         )
         async def TileMatrixSet_info(
             TileMatrixSetId: Literal[tuple(self.supported_tms.list())] = Path(
                 ..., description="TileMatrixSet Name."
             )
         ):
-            """Return TileMatrixSet JSON document."""
+            """
+            OGC Specification: http://docs.opengeospatial.org/per/19-069.html#_tilematrixset
+            """
             return self.supported_tms.get(TileMatrixSetId)
 
 
@@ -1558,16 +1562,26 @@ class AlgorithmFactory:
             }
             return AlgorithmMetadata(inputs=ins, outputs=outs, parameters=params)
 
-        @self.router.get("/algorithms", response_model=Dict[str, AlgorithmMetadata])
+        @self.router.get(
+            "/algorithms",
+            response_model=Dict[str, AlgorithmMetadata],
+            summary="Retrieve the list of available Algorithms.",
+            operation_id="getAlgorithms",
+        )
         def available_algorithms(request: Request):
-            """Return the available algorithm."""
+            """Retrieve the list of available Algorithms."""
             return {k: metadata(v) for k, v in self.supported_algorithm.data.items()}
 
-        @self.router.get("/algorithms/{algorithmId}", response_model=AlgorithmMetadata)
+        @self.router.get(
+            "/algorithms/{algorithmId}",
+            response_model=AlgorithmMetadata,
+            summary="Retrieve the metadata of the specified algorithm.",
+            operation_id="getAlgorithm",
+        )
         def algorithm_metadata(
             algorithm: Literal[tuple(self.supported_algorithm.list())] = Path(
                 ..., description="Algorithm name", alias="algorithmId"
             ),
         ):
-            """Return the available algorithm."""
+            """Retrieve the metadata of the specified algorithm."""
             return metadata(self.supported_algorithm.get(algorithm))
