@@ -348,7 +348,7 @@ const set1bViz = () => {
   params = {
     url: scope.url
   }
-  params.bidx = document.getElementById('layer-selector').selectedOptions[0].getAttribute("band")
+  params.bidx = document.getElementById('layer-selector').selectedOptions[0].getAttribute("bidx")
 
   if (['uint8','int8'].indexOf(scope.data_type) === -1 && !scope.colormap) {
     params.rescale = `${document.getElementById('data-min').value},${document.getElementById('data-max').value}`
@@ -366,9 +366,9 @@ const set1bViz = () => {
 }
 
 const set3bViz = () => {
-  const r = document.getElementById('r-selector').selectedOptions[0].getAttribute("band")
-  const g = document.getElementById('g-selector').selectedOptions[0].getAttribute("band")
-  const b = document.getElementById('b-selector').selectedOptions[0].getAttribute("band")
+  const r = document.getElementById('r-selector').selectedOptions[0].getAttribute("bidx")
+  const g = document.getElementById('g-selector').selectedOptions[0].getAttribute("bidx")
+  const b = document.getElementById('b-selector').selectedOptions[0].getAttribute("bidx")
 
   params = {
     url: scope.url
@@ -742,7 +742,7 @@ const addCogeo = () => {
       const layerList = document.getElementById('layer-selector')
       for (var i = 0; i < nbands; i++) {
         let l = document.createElement('option')
-        l.setAttribute('band', band_descr[i][0])
+        l.setAttribute('bidx', i + 1)
         let name = band_descr[i][1] || band_descr[i][0]
         l.setAttribute('name', name)
         l.text = name
@@ -753,7 +753,7 @@ const addCogeo = () => {
       const rList = document.getElementById('r-selector')
       for (var i = 0; i < nbands; i++) {
         let l = document.createElement('option')
-        l.setAttribute('band', band_descr[i][0])
+        l.setAttribute('bidx', i + 1)
         let name = band_descr[i][1] || band_descr[i][0]
         l.setAttribute('name', name)
         l.text = name
@@ -764,7 +764,7 @@ const addCogeo = () => {
       const gList = document.getElementById('g-selector')
       for (var i = 0; i < nbands; i++) {
         let l = document.createElement('option')
-        l.setAttribute('band', band_descr[i][0])
+        l.setAttribute('bidx', i + 1)
         let name = band_descr[i][1] || band_descr[i][0]
         l.setAttribute('name', name)
         l.text = name
@@ -775,7 +775,7 @@ const addCogeo = () => {
       const bList = document.getElementById('b-selector')
       for (var i = 0; i < nbands; i++) {
         let l = document.createElement('option')
-        l.setAttribute('band', band_descr[i][0])
+        l.setAttribute('bidx', i + 1)
         let name = band_descr[i][1] || band_descr[i][0]
         l.setAttribute('name', name)
         l.text = name

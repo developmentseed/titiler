@@ -18,6 +18,7 @@ from rio_tiler.io import BaseReader, COGReader, MultiBandReader, STACReader
 
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 from titiler.core.factory import (
+    AlgorithmFactory,
     MultiBandTilerFactory,
     MultiBaseTilerFactory,
     TilerFactory,
@@ -598,6 +599,23 @@ def test_TilerFactory():
     }
     assert len(resp["properties"]["statistics"]["b1"]["histogram"][0]) == 4
     assert resp["properties"]["statistics"]["b1"]["histogram"][0][3] == 0
+
+    # Test with Algorithm
+    response = client.get(f"/preview.tif?url={DATA_DIR}/dem.tif&return_mask=False")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/tiff; application=geotiff"
+    meta = parse_img(response.content)
+    assert meta["dtype"] == "float32"
+    assert meta["count"] == 1
+
+    response = client.get(
+        f"/preview.tif?url={DATA_DIR}/dem.tif&return_mask=False&algorithm=terrarium"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/tiff; application=geotiff"
+    meta = parse_img(response.content)
+    assert meta["dtype"] == "uint8"
+    assert meta["count"] == 3
 
 
 @patch("rio_tiler.io.rasterio.rasterio")
@@ -1377,3 +1395,19 @@ def test_TilerFactory_WithGdalEnv():
 
     response = client.get(f"/info?url={DATA_DIR}/non_cog.tif&disable_read=empty_dir")
     assert not response.json()["overviews"]
+
+
+def test_algorithm():
+    """Test Algorithms endpoint."""
+    algorithm = AlgorithmFactory()
+
+    app = FastAPI()
+    app.include_router(algorithm.router)
+    client = TestClient(app)
+
+    response = client.get("/algorithms")
+    assert response.status_code == 200
+    assert "hillshade" in response.json()
+
+    response = client.get("/algorithms/hillshade")
+    assert response.status_code == 200

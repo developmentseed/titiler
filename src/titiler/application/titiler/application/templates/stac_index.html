@@ -376,7 +376,7 @@ const set1bViz = () => {
     const asset = document.getElementById('asset-selector').value
     params.assets = asset
 
-    const bidx = document.getElementById('layer-selector').value
+    const bidx = document.getElementById('layer-selector').selectedOptions[0].getAttribute("bidx")
     params.asset_bidx = `${asset}|${bidx}`
 
     if (['uint8','int8'].indexOf(scope.dataset_info[asset].dtype) === -1) {
@@ -399,9 +399,9 @@ const set1bViz = () => {
 }
 
 const set3bViz = () => {
-  const r = document.getElementById('r-selector').value
-  const g = document.getElementById('g-selector').value
-  const b = document.getElementById('b-selector').value
+  const r = document.getElementById('r-selector').selectedOptions[0].getAttribute("bidx")
+  const g = document.getElementById('g-selector').selectedOptions[0].getAttribute("bidx")
+  const b = document.getElementById('b-selector').selectedOptions[0].getAttribute("bidx")
 
   params = {
     url: scope.url
@@ -435,17 +435,17 @@ const set3bViz = () => {
 }
 
 const addHisto3Bands = () => {
-  const r = document.getElementById('r-selector').value
-  const g = document.getElementById('g-selector').value
-  const b = document.getElementById('b-selector').value
+  const r = document.getElementById('r-selector').selectedOptions[0].getAttribute("name")
+  const g = document.getElementById('g-selector').selectedOptions[0].getAttribute("name")
+  const b = document.getElementById('b-selector').selectedOptions[0].getAttribute("name")
 
   let rStats
   let gStats
   let bStats
   if (document.getElementById("compose-switch").checked === true) {
-    rStats = scope.dataset_statistics[r][1]
-    gStats = scope.dataset_statistics[g][1]
-    bStats = scope.dataset_statistics[b][1]
+    rStats = scope.dataset_statistics[r]['b1']
+    gStats = scope.dataset_statistics[g]['b1']
+    bStats = scope.dataset_statistics[b]['b1']
   } else {
     const asset = document.getElementById('asset-selector').value
     rStats = scope.dataset_statistics[asset][r]
@@ -540,7 +540,7 @@ const addHisto3Bands = () => {
 
 const addHisto1Band = () => {
   const asset = document.getElementById('asset-selector').value
-  const band = document.getElementById('layer-selector').value
+  const band = document.getElementById('layer-selector').selectedOptions[0].getAttribute("name")
   const stats = scope.dataset_statistics[asset][band]
 
   let counts = stats.histogram[0]
@@ -766,7 +766,8 @@ const updateUI = () => {
     for (var i = 0; i < nbands; i++) {
       let l = document.createElement('option')
       l.value = scope.assets[i]
-      l.setAttribute('band', scope.assets[i])
+      l.setAttribute('bidx', scope.assets[i])
+      l.setAttribute('name', scope.assets[i])
       l.text = scope.assets[i]
       if (i === 0) l.selected = "selected"
       rList.appendChild(l)
@@ -775,7 +776,8 @@ const updateUI = () => {
     for (var i = 0; i < nbands; i++) {
       let l = document.createElement('option')
       l.value = scope.assets[i]
-      l.setAttribute('band', scope.assets[i])
+      l.setAttribute('bidx', scope.assets[i])
+      l.setAttribute('name', scope.assets[i])
       l.text = scope.assets[i]
       if (i === 1) l.selected = "selected"
       gList.appendChild(l)
@@ -784,7 +786,8 @@ const updateUI = () => {
     for (var i = 0; i < nbands; i++) {
       let l = document.createElement('option')
       l.value = scope.assets[i]
-      l.setAttribute('band', scope.assets[i])
+      l.setAttribute('bidx', scope.assets[i])
+      l.setAttribute('name', scope.assets[i])
       l.text = scope.assets[i]
       l.selected = "selected"
       bList.appendChild(l)
@@ -810,7 +813,7 @@ const updateUI = () => {
     //Populate Band (1b) selector
     for (var i = 0; i < nbands; i++) {
       let l = document.createElement('option')
-      l.setAttribute('band', band_descr[i][0])
+      l.setAttribute('bidx', i + 1)
       let name = band_descr[i][1] || band_descr[i][0]
       l.setAttribute('name', name)
       l.text = name
@@ -821,7 +824,7 @@ const updateUI = () => {
     const rList = document.getElementById('r-selector')
     for (var i = 0; i < nbands; i++) {
       let l = document.createElement('option')
-      l.setAttribute('band', band_descr[i][0])
+      l.setAttribute('bidx', i + 1)
       let name = band_descr[i][1] || band_descr[i][0]
       l.setAttribute('name', name)
       l.text = name
@@ -832,7 +835,7 @@ const updateUI = () => {
     const gList = document.getElementById('g-selector')
     for (var i = 0; i < nbands; i++) {
       let l = document.createElement('option')
-      l.setAttribute('band', band_descr[i][0])
+      l.setAttribute('bidx', i + 1)
       let name = band_descr[i][1] || band_descr[i][0]
       l.setAttribute('name', name)
       l.text = name
@@ -843,7 +846,7 @@ const updateUI = () => {
     const bList = document.getElementById('b-selector')
     for (var i = 0; i < nbands; i++) {
       let l = document.createElement('option')
-      l.setAttribute('band', band_descr[i][0])
+      l.setAttribute('bidx', i + 1)
       let name = band_descr[i][1] || band_descr[i][0]
       l.setAttribute('name', name)
       l.text = name

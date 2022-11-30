@@ -6,7 +6,7 @@ import pydantic
 class ApiSettings(pydantic.BaseSettings):
     """FASTAPI application settings."""
 
-    name: str = "titiler"
+    name: str = "TiTiler"
     cors_origins: str = "*"
     cachecontrol: str = "public, max-age=3600"
     root_path: str = ""
