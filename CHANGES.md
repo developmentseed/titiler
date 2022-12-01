@@ -1,5 +1,11 @@
 # Release Notes
 
+## 0.8.1 (2022-12-01)
+
+### titiler.core
+
+* remove useless `titiler.core.version` file
+
 ## 0.8.0 (2022-12-01)
 
 * remove python 3.7 support
