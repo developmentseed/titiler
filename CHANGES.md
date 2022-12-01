@@ -1,6 +1,6 @@
 # Release Notes
 
-## 0.8.0 (TBD)
+## 0.8.0 (2022-12-01)
 
 * remove python 3.7 support
 * add python 3.10 and 3.11 in CI
