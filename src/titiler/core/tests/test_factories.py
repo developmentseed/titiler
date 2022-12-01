@@ -704,6 +704,22 @@ def test_MultiBaseTilerFactory(rio):
     assert meta["dtype"] == "int32"
     assert meta["count"] == 3
 
+    # Use asset_as_band option
+    response = client.get(
+        "/preview.tif",
+        params={
+            "url": f"{DATA_DIR}/item.json",
+            "expression": "B01;B01;B01",
+            "asset_as_band": True,
+            "return_mask": False,
+        },
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/tiff; application=geotiff"
+    meta = parse_img(response.content)
+    assert meta["dtype"] == "int32"
+    assert meta["count"] == 3
+
     # GET - statistics
     response = client.get(
         f"/asset_statistics?url={DATA_DIR}/item.json&assets=B01&assets=B09"

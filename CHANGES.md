@@ -1,6 +1,6 @@
 # Release Notes
 
-## NEXT (TBD)
+## 0.8.0 (TBD)
 
 * remove python 3.7 support
 * add python 3.10 and 3.11 in CI
@@ -8,7 +8,7 @@
 ### titiler.core
 
 * update FastAPI requirement to `>=0.87`
-* update rio-tiler requirement to `>=4.0,<4.1`
+* update rio-tiler requirement to `>=4.1,<4.2`
 * remove `rescale` and `color_formula` from the `post_process` dependency
 * add `algorithm` support and introduce new `algorithm` and `algorithm_params` query parameters
 
@@ -23,6 +23,7 @@
 * replace `TilerFactory.tms_dependency` attribute by `TilerFactory.supported_tms`. This attribute gets a `morecantile.defaults.TileMatrixSets` store and will create the tms dependencies dynamically
 * replace `TMSFactory.tms_dependency` attribute by `TMSFactory.supported_tms`. This attribute gets a `morecantile.defaults.TileMatrixSets` store and will create the tms dependencies dynamically
 * move `stats_dependency` and `histogram_dependency` from `BaseTilerFactory` to `TilerFactory`
+* per rio-tiler changes, `;` has be to used in expression to indicate multiple bands. `b1*2,b2+b3,b1/b3` -> `b1*2;b2+b3;b1/b3`
 
 ### titiler.mosaic
 

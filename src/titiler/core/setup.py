@@ -12,7 +12,7 @@ inst_reqs = [
     "numpy",
     "pydantic",
     "rasterio",
-    "rio-tiler>=4.0,<4.1",
+    "rio-tiler>=4.1,<4.2",
     "simplejson",
     "importlib_resources>=1.1.0;python_version<'3.9'",
     "typing_extensions;python_version<'3.8'",

@@ -44,7 +44,7 @@ To install and run `Titiler` from sources and for developing the `Titiler` code 
 ```
 $ git clone https://github.com/developmentseed/titiler.git
 $ cd titiler
-$ pip install uvicorn -e titiler/core -e titiler/mosaic -e titiler/application
+$ pip install uvicorn -e src/titiler/core -e src/titiler/mosaic -e src/titiler/application
 $ uvicorn titiler.application.main:app --reload
 
 > INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
