@@ -198,6 +198,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      # Let's wait a bit to make sure Pypi is up to date
+      - name: Sleep for 120 seconds
+        run: sleep 120s
+        shell: bash
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
