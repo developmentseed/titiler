@@ -1,0 +1,41 @@
+name: benchmark
+
+# On every pull request, but only on push to master
+on:
+  push:
+    branches:
+    - master
+    tags:
+    - '*'
+  pull_request:
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: install siege
+        run: |
+          sudo apt update
+          sudo apt install --yes siege
+      - name: Start containers
+        run: docker-compose -f "docker-compose.yml" up -d --build benchmark
+
+      # Let's wait a bit to make sure the docker are up
+      - name: Sleep for 10 seconds
+        run: sleep 10s
+        shell: bash
+
+      - name: Run siege (WebMercator TMS)
+        run: |
+          siege --file .github/data/urls.txt -b -c 1 -r 100 > /dev/null
+
+      - name: Run siege (WGS1984Quad TMS)
+        run: |
+          siege --file .github/data/urls_wgs84.txt -b -c 1 -r 100 > /dev/null
+
+      - name: Stop containers
+        if: always()
+        run: docker-compose -f "docker-compose.yml" down
