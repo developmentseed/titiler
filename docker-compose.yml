@@ -89,6 +89,12 @@ services:
       # rio-tiler config
       # - RIO_TILER_MAX_THREADS=
 
+  benchmark:
+    extends:
+      service: titiler-uvicorn
+    volumes:
+      - ./.github/data:/data
+
   nginx-titiler:
     extends:
       service: titiler

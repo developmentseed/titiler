@@ -21,16 +21,16 @@ jobs:
           sudo apt update
           sudo apt install --yes siege
       - name: Start containers
-        run: docker-compose -f "docker-compose.yml" up -d --build titiler
+        run: docker-compose -f "docker-compose.yml" up -d --build benchmark
 
       # Let's wait a bit to make sure the docker are up
-      - name: Sleep for 60 seconds
-        run: sleep 60s
+      - name: Sleep for 10 seconds
+        run: sleep 10s
         shell: bash
 
       - name: Run siege (WebMercator - default TMS)
         run: |
-          siege --file .github/data/urls.txt -b -c 20 -r 100 > /dev/null
+          siege --file .github/data/urls.txt -b -c 1 -r 100 > /dev/null
 
       - name: Stop containers
         if: always()

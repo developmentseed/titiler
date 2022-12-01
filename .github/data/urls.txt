@@ -3,7 +3,7 @@ HOST=localhost
 PORT=8000
 PATH=cog/tiles/
 EXT=.png
-QUERYSTRING=?url=.github/data/world.tif
+QUERYSTRING=?url=/data/world.tif
 $(PROT)://$(HOST):$(PORT)/$(PATH)0/0/0$(EXT)$(QUERYSTRING)
 $(PROT)://$(HOST):$(PORT)/$(PATH)0/0/0$(EXT)$(QUERYSTRING)
 $(PROT)://$(HOST):$(PORT)/$(PATH)0/0/0$(EXT)$(QUERYSTRING)
