@@ -104,8 +104,6 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
         layer_dependency (titiler.core.dependencies.DefaultDependency): Endpoint dependency defining dataset indexes/bands/assets options.
         render_dependency (titiler.core.dependencies.DefaultDependency): Endpoint dependency defining image rendering options (e.g add_mask).
         colormap_dependency (Callable): Endpoint dependency defining ColorMap options (e.g colormap_name).
-        stats_dependency (titiler.core.dependencies.DefaultDependency): Endpoint dependency defining options for rio-tiler's statistics method.
-        histogram_dependency (titiler.core.dependencies.DefaultDependency): Endpoint dependency defining options for numpy's histogram method.
         process_dependency (titiler.core.dependencies.DefaultDependency): Endpoint dependency defining image post-processing options (e.g rescaling, color-formula).
         tms_dependency (Callable): Endpoint dependency defining TileMatrixSet to use.
         reader_dependency (titiler.core.dependencies.DefaultDependency): Endpoint dependency defining BaseReader options.
@@ -132,10 +130,6 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
     # Image rendering Dependencies
     render_dependency: Type[DefaultDependency] = ImageRenderingParams
     colormap_dependency: Callable[..., Optional[ColorMapType]] = ColorMapParams
-
-    # Statistics/Histogram Dependencies
-    stats_dependency: Type[DefaultDependency] = StatisticsParams
-    histogram_dependency: Type[DefaultDependency] = HistogramParams
 
     # Post Processing Dependencies (algorithm)
     process_dependency: Callable[
@@ -220,10 +214,25 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
 
 @dataclass
 class TilerFactory(BaseTilerFactory):
-    """Tiler Factory."""
+    """Tiler Factory.
+
+    Attributes:
+        reader (rio_tiler.io.base.BaseReader): A rio-tiler reader. Defaults to `rio_tiler.io.Reader`.
+        stats_dependency (titiler.core.dependencies.DefaultDependency): Endpoint dependency defining options for rio-tiler's statistics method.
+        histogram_dependency (titiler.core.dependencies.DefaultDependency): Endpoint dependency defining options for numpy's histogram method.
+        img_dependency (titiler.core.dependencies.DefaultDependency): Endpoint dependency defining options for rio-tiler's preview/crop method.
+        add_preview (bool): add `/preview` endpoints. Defaults to True.
+        add_part (bool): add `/crop` endpoints. Defaults to True.
+        add_viewer (bool): add `/map` endpoints. Defaults to True.
+
+    """
 
     # Default reader is set to rio_tiler.io.Reader
     reader: Type[BaseReader] = Reader
+
+    # Statistics/Histogram Dependencies
+    stats_dependency: Type[DefaultDependency] = StatisticsParams
+    histogram_dependency: Type[DefaultDependency] = HistogramParams
 
     # Crop/Preview endpoints Dependencies
     img_dependency: Type[DefaultDependency] = ImageParams
