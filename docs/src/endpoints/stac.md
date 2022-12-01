@@ -51,9 +51,9 @@ app.include_router(stac.router, prefix="/stac", tags=["SpatioTemporal Asset Cata
 - QueryParams:
     - **url** (str): STAC Item URL. **Required**
     - **assets** (array[str]): asset names.
-    - **expression** (str): rio-tiler's math expression with asset names (e.g `Asset1/Asset2`).
+    - **expression** (str): rio-tiler's math expression with asset names (e.g `Asset1_b1/Asset2_b1`).
+    - **asset_as_band** (bool): tell rio-tiler that each asset is a 1 band dataset, so expression `Asset1/Asset2` can be passed.
     - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1;2;3`).
-    - **asset_expression** (array[str]): Per asset band math expression (e.g `Asset1|b1\*b2`).
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
     - **resampling** (str): rasterio resampling method. Default is `nearest`.
@@ -63,6 +63,8 @@ app.include_router(stac.router, prefix="/stac", tags=["SpatioTemporal Asset Cata
     - **colormap_name** (str): rio-tiler color map name.
     - **return_mask** (bool): Add mask to the output data. Default is True.
     - **buffer** (float): Add buffer on each side of the tile (e.g 0.5 = 257x257, 1.0 = 258x258).
+    - **algorithm** (str): Custom algorithm name (e.g `hillshade`).
+    - **algorithm_params** (str): JSON encoded algorithm parameters.
 
 !!! important
     **assets** OR **expression** is required
@@ -84,9 +86,9 @@ Example:
 - QueryParams:
     - **url** (str): STAC Item URL. **Required**
     - **assets** (array[str]): asset names.
-    - **expression** (str): rio-tiler's math expression with asset names (e.g `Asset1/Asset2`).
+    - **expression** (str): rio-tiler's math expression with asset names (e.g `Asset1_b1/Asset2_b1`).
+    - **asset_as_band** (bool): tell rio-tiler that each asset is a 1 band dataset, so expression `Asset1/Asset2` can be passed.
     - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1;2;3`).
-    - **asset_expression** (array[str]): Per asset band math expression (e.g `Asset1|b1\*b2`).
     - **max_size** (int): Max image size, default is 1024.
     - **height** (int): Force output image height.
     - **width** (int): Force output image width.
@@ -98,6 +100,8 @@ Example:
     - **colormap** (str): JSON encoded custom Colormap.
     - **colormap_name** (str): rio-tiler color map name.
     - **return_mask** (bool): Add mask to the output data. Default is True.
+    - **algorithm** (str): Custom algorithm name (e.g `hillshade`).
+    - **algorithm_params** (str): JSON encoded algorithm parameters.
 
 !!! important
     - **assets** OR **expression** is required
@@ -125,9 +129,9 @@ Example:
 - QueryParams:
     - **url** (str): STAC Item URL. **Required**
     - **assets** (array[str]): asset names.
-    - **expression** (str): rio-tiler's math expression with asset names (e.g `Asset1/Asset2`).
+    - **expression** (str): rio-tiler's math expression with asset names (e.g `Asset1_b1/Asset2_b1`).
+    - **asset_as_band** (bool): tell rio-tiler that each asset is a 1 band dataset, so expression `Asset1/Asset2` can be passed.
     - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1;2;3`).
-    - **asset_expression** (array[str]): Per asset band math expression (e.g `Asset1|b1\*b2`).
     - **max_size** (int): Max image size, default is 1024.
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
@@ -137,6 +141,8 @@ Example:
     - **colormap** (str): JSON encoded custom Colormap.
     - **colormap_name** (str): rio-tiler color map name.
     - **return_mask** (bool): Add mask to the output data. Default is True.
+    - **algorithm** (str): Custom algorithm name (e.g `hillshade`).
+    - **algorithm_params** (str): JSON encoded algorithm parameters.
 
 !!! important
     - **assets** OR **expression** is required
@@ -161,9 +167,9 @@ Example:
 - QueryParams:
     - **url** (str): STAC Item URL. **Required**
     - **assets** (array[str]): asset names.
-    - **expression** (str): rio-tiler's math expression with asset names (e.g `Asset1/Asset2`).
+    - **expression** (str): rio-tiler's math expression with asset names (e.g `Asset1_b1/Asset2_b1`).
+    - **asset_as_band** (bool): tell rio-tiler that each asset is a 1 band dataset, so expression `Asset1/Asset2` can be passed.
     - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1;2;3`).
-    - **asset_expression** (array[str]): Per asset band math expression (e.g `Asset1|b1\*b2`).
     - **max_size** (int): Max image size, default is 1024.
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
@@ -173,6 +179,8 @@ Example:
     - **colormap** (str): JSON encoded custom Colormap.
     - **colormap_name** (str): rio-tiler color map name.
     - **return_mask** (bool): Add mask to the output data. Default is True.
+    - **algorithm** (str): Custom algorithm name (e.g `hillshade`).
+    - **algorithm_params** (str): JSON encoded algorithm parameters.
 
 !!! important
     - **assets** OR **expression** is required
@@ -195,9 +203,9 @@ Example:
 - QueryParams:
     - **url** (str): STAC Item URL. **Required**
     - **assets** (array[str]): asset names.
-    - **expression** (str): rio-tiler's math expression with asset names (e.g `Asset1/Asset2`).
+    - **expression** (str): rio-tiler's math expression with asset names (e.g `Asset1_b1/Asset2_b1`).
+    - **asset_as_band** (bool): tell rio-tiler that each asset is a 1 band dataset, so expression `Asset1/Asset2` can be passed.
     - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1;2;3`).
-    - **asset_expression** (array[str]): Per asset band math expression (e.g `Asset1|b1\*b2`).
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
     - **resampling** (str): rasterio resampling method. Default is `nearest`.
@@ -219,9 +227,9 @@ Example:
 - QueryParams:
     - **url** (str): STAC Item URL. **Required**
     - **assets** (array[str]): asset names.
-    - **expression** (str): rio-tiler's math expression with asset names (e.g `Asset1/Asset2`).
+    - **expression** (str): rio-tiler's math expression with asset names (e.g `Asset1_b1/Asset2_b1`).
+    - **asset_as_band** (bool): tell rio-tiler that each asset is a 1 band dataset, so expression `Asset1/Asset2` can be passed.
     - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1;2;3`).
-    - **asset_expression** (array[str]): Per asset band math expression (e.g `Asset1|b1\*b2`).
     - **tile_format** (str): Output image format, default is set to None and will be either JPEG or PNG depending on masked value.
     - **tile_scale** (int): Tile size scale, default is set to 1 (256x256).
     - **minzoom** (int): Overwrite default minzoom.
@@ -235,6 +243,8 @@ Example:
     - **colormap_name** (str): rio-tiler color map name.
     - **return_mask** (bool): Add mask to the output data. Default is True.
     - **buffer** (float): Add buffer on each side of the tile (e.g 0.5 = 257x257, 1.0 = 258x258).
+    - **algorithm** (str): Custom algorithm name (e.g `hillshade`).
+    - **algorithm_params** (str): JSON encoded algorithm parameters.
 
 !!! important
     **assets** OR **expression** is required
@@ -255,9 +265,9 @@ Example:
 - QueryParams:
     - **url** (str): STAC Item URL. **Required**
     - **assets** (array[str]): asset names.
-    - **expression** (str): rio-tiler's math expression with asset names (e.g `Asset1/Asset2`).
+    - **expression** (str): rio-tiler's math expression with asset names (e.g `Asset1_b1/Asset2_b1`).
+    - **asset_as_band** (bool): tell rio-tiler that each asset is a 1 band dataset, so expression `Asset1/Asset2` can be passed.
     - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1;2;3`).
-    - **asset_expression** (array[str]): Per asset band math expression (e.g `Asset1|b1\*b2`).
     - **tile_format** (str): Output image format, default is set to None and will be either JPEG or PNG depending on masked value.
     - **tile_scale** (int): Tile size scale, default is set to 1 (256x256).
     - **minzoom** (int): Overwrite default minzoom.
@@ -271,6 +281,8 @@ Example:
     - **colormap_name** (str): rio-tiler color map name.
     - **return_mask** (bool): Add mask to the output data. Default is True.
     - **buffer** (float): Add buffer on each side of the tile (e.g 0.5 = 257x257, 1.0 = 258x258).
+    - **algorithm** (str): Custom algorithm name (e.g `hillshade`).
+    - **algorithm_params** (str): JSON encoded algorithm parameters.
 
 !!! important
     **assets** OR **expression** is required
@@ -354,9 +366,9 @@ Example:
 - QueryParams:
     - **url** (str): STAC Item URL. **Required**
     - **assets** (array[str]): asset names. Default to all available assets.
-    - **expression** (str): rio-tiler's math expression with asset names (e.g `Asset1/Asset2`).
+    - **expression** (str): rio-tiler's math expression with asset names (e.g `Asset1_b1/Asset2_b1`).
+    - **asset_as_band** (bool): tell rio-tiler that each asset is a 1 band dataset, so expression `Asset1/Asset2` can be passed.
     - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1;2;3`).
-    - **asset_expression** (array[str]): Per asset band math expression (e.g `Asset1|b1\*b2`).
     - **max_size** (int): Max image size from which to calculate statistics, default is 1024.
     - **height** (int): Force image height from which to calculate statistics.
     - **width** (int): Force image width from which to calculate statistics.
@@ -382,8 +394,9 @@ Example:
 - QueryParams:
     - **url** (str): STAC Item URL. **Required**
     - **assets** (array[str]): asset names. Default to all available assets.
+    - **expression** (str): rio-tiler's math expression with asset names (e.g `Asset1_b1/Asset2_b1`).
+    - **asset_as_band** (bool): tell rio-tiler that each asset is a 1 band dataset, so expression `Asset1/Asset2` can be passed.
     - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1;2;3`).
-    - **asset_expression** (array[str]): Per asset band math expression (e.g `Asset1|b1\*b2`).
     - **max_size** (int): Max image size from which to calculate statistics, default is 1024.
     - **height** (int): Force image height from which to calculate statistics.
     - **width** (int): Force image width from which to calculate statistics.

@@ -60,6 +60,8 @@ app.include_router(cog.router, prefix="/cog", tags=["Cloud Optimized GeoTIFF"])
     - **colormap_name** (str): rio-tiler color map name.
     - **return_mask** (bool): Add mask to the output data. Default is True.
     - **buffer** (float): Add buffer on each side of the tile (e.g 0.5 = 257x257, 1.0 = 258x258).
+    - **algorithm** (str): Custom algorithm name (e.g `hillshade`).
+    - **algorithm_params** (str): JSON encoded algorithm parameters.
 
 Example:
 
@@ -90,6 +92,8 @@ Example:
     - **colormap** (str): JSON encoded custom Colormap.
     - **colormap_name** (str): rio-tiler color map name.
     - **return_mask** (bool): Add mask to the output data. Default is True.
+    - **algorithm** (str): Custom algorithm name (e.g `hillshade`).
+    - **algorithm_params** (str): JSON encoded algorithm parameters.
 
 !!! important
     if **height** and **width** are provided **max_size** will be ignored.
@@ -125,6 +129,8 @@ Example:
     - **colormap** (str): JSON encoded custom Colormap.
     - **colormap_name** (str): rio-tiler color map name.
     - **return_mask** (bool): Add mask to the output data. Default is True.
+    - **algorithm** (str): Custom algorithm name (e.g `hillshade`).
+    - **algorithm_params** (str): JSON encoded algorithm parameters.
 
 !!! important
     if **height** and **width** are provided **max_size** will be ignored.
@@ -158,6 +164,8 @@ Example:
     - **colormap** (str): JSON encoded custom Colormap.
     - **colormap_name** (str): rio-tiler color map name.
     - **return_mask** (bool): Add mask to the output data. Default is True.
+    - **algorithm** (str): Custom algorithm name (e.g `hillshade`).
+    - **algorithm_params** (str): JSON encoded algorithm parameters.
 
 !!! important
     if **height** and **width** are provided **max_size** will be ignored.
@@ -214,6 +222,8 @@ Example:
     - **colormap_name** (str): rio-tiler color map name.
     - **return_mask** (bool): Add mask to the output data. Default is True.
     - **buffer** (float): Add buffer on each side of the tile (e.g 0.5 = 257x257, 1.0 = 258x258).
+    - **algorithm** (str): Custom algorithm name (e.g `hillshade`).
+    - **algorithm_params** (str): JSON encoded algorithm parameters.
 
 Example:
 
@@ -246,6 +256,8 @@ Example:
     - **colormap_name** (str): rio-tiler color map name.
     - **return_mask** (bool): Add mask to the output data. Default is True.
     - **buffer** (float): Add buffer on each side of the tile (e.g 0.5 = 257x257, 1.0 = 258x258).
+    - **algorithm** (str): Custom algorithm name (e.g `hillshade`).
+    - **algorithm_params** (str): JSON encoded algorithm parameters.
 
 Example:
 

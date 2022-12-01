@@ -176,6 +176,12 @@ class AssetsBidxExprParams(DefaultDependency):
         },
     )
 
+    asset_as_band: Optional[bool] = Query(
+        None,
+        title="Consider asset as a 1 band dataset",
+        description="Asset as Band",
+    )
+
     def __post_init__(self):
         """Post Init."""
         if not self.assets and not self.expression:
