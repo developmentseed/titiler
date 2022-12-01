@@ -28,9 +28,13 @@ jobs:
         run: sleep 10s
         shell: bash
 
-      - name: Run siege (WebMercator - default TMS)
+      - name: Run siege (WebMercator TMS)
         run: |
           siege --file .github/data/urls.txt -b -c 1 -r 100 > /dev/null
+
+      - name: Run siege (WGS1984Quad TMS)
+        run: |
+          siege --file .github/data/urls_wgs84.txt -b -c 1 -r 100 > /dev/null
 
       - name: Stop containers
         if: always()
