@@ -8,7 +8,7 @@ import rasterio
 from geojson_pydantic.features import Feature, FeatureCollection
 from geojson_pydantic.geometries import Polygon
 from morecantile import TileMatrixSet
-from morecantile import tms as default_tms
+from morecantile import tms as morecantile_tms
 from morecantile.defaults import TileMatrixSets
 from rio_tiler.io import BaseReader, MultiBandReader, MultiBaseReader, Reader
 from rio_tiler.models import BandStatistics, Bounds, Info
@@ -143,7 +143,8 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
     environment_dependency: Callable[..., Dict] = lambda: dict()
 
     # TileMatrixSet dependency
-    supported_tms: TileMatrixSets = default_tms
+    supported_tms: TileMatrixSets = morecantile_tms
+    default_tms: str = "WebMercatorQuad"
 
     # Router Prefix is needed to find the path for /tile if the TilerFactory.router is mounted
     # with other router (multiple `.../tile` routes).
@@ -465,8 +466,8 @@ class TilerFactory(BaseTilerFactory):
             x: int = Path(..., description="TMS tiles's column"),
             y: int = Path(..., description="TMS tiles's row"),
             TileMatrixSetId: Literal[tuple(self.supported_tms.list())] = Query(
-                "WebMercatorQuad",
-                description="TileMatrixSet Name (default: 'WebMercatorQuad')",
+                self.default_tms,
+                description=f"TileMatrixSet Name (default: '{self.default_tms}')",
             ),
             scale: int = Query(
                 1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
@@ -549,8 +550,8 @@ class TilerFactory(BaseTilerFactory):
         def tilejson(
             request: Request,
             TileMatrixSetId: Literal[tuple(self.supported_tms.list())] = Query(
-                "WebMercatorQuad",
-                description="TileMatrixSet Name (default: 'WebMercatorQuad')",
+                self.default_tms,
+                description=f"TileMatrixSet Name (default: '{self.default_tms}')",
             ),
             src_path=Depends(self.path_dependency),
             tile_format: Optional[ImageType] = Query(
@@ -694,8 +695,8 @@ class TilerFactory(BaseTilerFactory):
         def wmts(
             request: Request,
             TileMatrixSetId: Literal[tuple(self.supported_tms.list())] = Query(
-                "WebMercatorQuad",
-                description="TileMatrixSet Name (default: 'WebMercatorQuad')",
+                self.default_tms,
+                description=f"TileMatrixSet Name (default: '{self.default_tms}')",
             ),
             src_path=Depends(self.path_dependency),
             tile_format: ImageType = Query(
@@ -1457,7 +1458,7 @@ class MultiBandTilerFactory(TilerFactory):
 class TMSFactory:
     """TileMatrixSet endpoints Factory."""
 
-    supported_tms: TileMatrixSets = default_tms
+    supported_tms: TileMatrixSets = morecantile_tms
 
     # FastAPI router
     router: APIRouter = field(default_factory=APIRouter)
