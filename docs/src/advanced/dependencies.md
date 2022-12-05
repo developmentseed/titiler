@@ -197,7 +197,6 @@ Additional reader options. Defaults to `DefaultDependency` (empty).
 
 ##### Supported TMS
 
-
 The TMS dependency sets the available TMS for a tile endpoint.
 
 ```python
@@ -214,6 +213,15 @@ from morecantile.defaults import TileMatrixSets
 # Construct a TileMatrixSets object with only the `WebMercatorQuad` tms
 default_tms = TileMatrixSets({"WebMercatorQuad": tms.get("WebMercatorQuad")})
 tiler = TilerFactory(supported_tms=default_tms)
+```
+
+##### Default TMS
+
+Set the default's TMS Identifier (default to `WebMercatorQuad`).
+
+```python
+# Create a Tile with it's default TMS being `WGS1984Quad`
+tiler = TilerFactory(default_tms="WGS1984Quad")
 ```
 
 ### TilerFactory

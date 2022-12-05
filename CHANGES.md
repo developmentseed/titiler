@@ -1,5 +1,11 @@
 # Release Notes
 
+## 0.9.0 (2022-12-05)
+
+### titiler.core
+
+* add `default_tms` in `BaseTilerFactory` to set the default TMS identifier supported by the tiler (e.g `WebMercatorQuad`)
+
 ## 0.8.1 (2022-12-01)
 
 ### titiler.core

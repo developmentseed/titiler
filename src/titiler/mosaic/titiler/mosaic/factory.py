@@ -32,7 +32,7 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse, Response
 
 # BaseBackend does not support other TMS than WebMercator
-default_tms = TileMatrixSets({"WebMercatorQuad": tms.get("WebMercatorQuad")})
+mosaic_tms = TileMatrixSets({"WebMercatorQuad": tms.get("WebMercatorQuad")})
 
 
 def PixelSelectionParams(
@@ -67,7 +67,8 @@ class MosaicTilerFactory(BaseTilerFactory):
 
     pixel_selection_dependency: Callable[..., MosaicMethodBase] = PixelSelectionParams
 
-    supported_tms: TileMatrixSets = default_tms
+    supported_tms: TileMatrixSets = mosaic_tms
+    default_tms: str = "WebMercatorQuad"
 
     # Add/Remove some endpoints
     add_viewer: bool = True
@@ -242,8 +243,8 @@ class MosaicTilerFactory(BaseTilerFactory):
             x: int = Path(..., description="Mercator tiles's column"),
             y: int = Path(..., description="Mercator tiles's row"),
             TileMatrixSetId: Literal[tuple(self.supported_tms.list())] = Query(
-                "WebMercatorQuad",
-                description="TileMatrixSet Name (default: 'WebMercatorQuad')",
+                self.default_tms,
+                description=f"TileMatrixSet Name (default: '{self.default_tms}')",
             ),  # noqa
             scale: int = Query(
                 1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
@@ -339,8 +340,8 @@ class MosaicTilerFactory(BaseTilerFactory):
         def tilejson(
             request: Request,
             TileMatrixSetId: Literal[tuple(self.supported_tms.list())] = Query(
-                "WebMercatorQuad",
-                description="TileMatrixSet Name (default: 'WebMercatorQuad')",
+                self.default_tms,
+                description=f"TileMatrixSet Name (default: '{self.default_tms}')",
             ),  # noqa
             src_path=Depends(self.path_dependency),
             tile_format: Optional[ImageType] = Query(
@@ -495,8 +496,8 @@ class MosaicTilerFactory(BaseTilerFactory):
         def wmts(
             request: Request,
             TileMatrixSetId: Literal[tuple(self.supported_tms.list())] = Query(
-                "WebMercatorQuad",
-                description="TileMatrixSet Name (default: 'WebMercatorQuad')",
+                self.default_tms,
+                description=f"TileMatrixSet Name (default: '{self.default_tms}')",
             ),  # noqa
             src_path=Depends(self.path_dependency),
             tile_format: ImageType = Query(

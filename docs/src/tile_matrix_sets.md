@@ -12,19 +12,18 @@ As one of the first requirements, we built `TiTiler` with support for serving ti
 
 ```python
 $ curl http://127.0.0.1:8000/tileMatrixSets | jq '.tileMatrixSets[] | .id'
-"CanadianNAD83_LCC"
-"EPSG3413"
-"EPSG6933"
-"EuropeanETRS89_LAEAQuad"
 "LINZAntarticaMapTilegrid"
+"EuropeanETRS89_LAEAQuad"
+"CanadianNAD83_LCC"
+"UPSArcticWGS84Quad"
 "NZTM2000"
 "NZTM2000Quad"
-"UPSAntarcticWGS84Quad"
-"UPSArcticWGS84Quad"
 "UTM31WGS84Quad"
-"WebMercatorQuad"
-"WorldCRS84Quad"
+"UPSAntarcticWGS84Quad"
 "WorldMercatorWGS84Quad"
+"WGS1984Quad"
+"WorldCRS84Quad"
+"WebMercatorQuad"
 ```
 
 You can easily add more TileMatrixSet support, see [custom tms](advanced/customization.md#custom-tms).
