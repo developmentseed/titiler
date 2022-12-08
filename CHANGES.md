@@ -1,5 +1,9 @@
 # Release Notes
 
+## 0.9.1 (2022-12-08)
+
+* fix the `wmts.xml` template to work with non-epsg based CRS
+
 ## 0.9.0 (2022-12-05)
 
 ### titiler.core

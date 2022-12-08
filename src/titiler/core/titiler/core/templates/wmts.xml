@@ -52,7 +52,7 @@
         </Layer>
         <TileMatrixSet>
             <ows:Identifier>{{ tms.identifier }}</ows:Identifier>
-            <ows:SupportedCRS>EPSG:{{ tms.crs.to_epsg() }}</ows:SupportedCRS>
+            <ows:SupportedCRS>{{ tms.crs.srs }}</ows:SupportedCRS>
             {% for item in tileMatrix %}
             {{ item | safe }}
             {% endfor %}

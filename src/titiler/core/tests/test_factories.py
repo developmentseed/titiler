@@ -229,6 +229,18 @@ def test_TilerFactory():
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/xml"
+    meta = parse_img(response.content)
+    assert meta["driver"] == "WMTS"
+    assert meta["crs"] == "EPSG:3857"
+
+    response = client.get(
+        f"/WorldCRS84Quad/WMTSCapabilities.xml?url={DATA_DIR}/cog.tif&minzoom=5&maxzoom=12"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/xml"
+    meta = parse_img(response.content)
+    assert meta["driver"] == "WMTS"
+    assert str(meta["crs"]) == "OGC:CRS84"
 
     response = client.get(f"/bounds?url={DATA_DIR}/cog.tif")
     assert response.status_code == 200
