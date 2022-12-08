@@ -428,15 +428,15 @@ class MosaicTilerFactory(BaseTilerFactory):
     def map_viewer(self):  # noqa: C901
         """Register /map endpoint."""
 
-        @self.router.get("/{TileMatrixSetId}/map", response_class=HTMLResponse)
         @self.router.get("/map", response_class=HTMLResponse)
+        @self.router.get("/{TileMatrixSetId}/map", response_class=HTMLResponse)
         def map_viewer(
             request: Request,
             src_path=Depends(self.path_dependency),
-            TileMatrixSetId: Literal["WebMercatorQuad"] = Query(
-                "WebMercatorQuad",
-                description="TileMatrixSet Name (default: 'WebMercatorQuad')",
-            ),  # noqa
+            TileMatrixSetId: Literal[tuple(self.supported_tms.list())] = Query(
+                self.default_tms,
+                description=f"TileMatrixSet Name (default: '{self.default_tms}')",
+            ),
             tile_format: Optional[ImageType] = Query(
                 None, description="Output image type. Default is auto."
             ),
@@ -473,15 +473,20 @@ class MosaicTilerFactory(BaseTilerFactory):
             env=Depends(self.environment_dependency),  # noqa
         ):
             """Return TileJSON document for a dataset."""
-            tilejson_url = self.url_for(request, "tilejson")
+            tilejson_url = self.url_for(
+                request, "tilejson", TileMatrixSetId=TileMatrixSetId
+            )
             if request.query_params._list:
                 tilejson_url += f"?{urlencode(request.query_params._list)}"
 
+            tms = self.supported_tms.get(TileMatrixSetId)
             return templates.TemplateResponse(
                 name="index.html",
                 context={
                     "request": request,
                     "tilejson_endpoint": tilejson_url,
+                    "tms": tms,
+                    "resolutions": [tms._resolution(matrix) for matrix in tms],
                 },
                 media_type="text/html",
             )
