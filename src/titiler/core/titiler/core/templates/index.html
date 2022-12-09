@@ -41,20 +41,23 @@ const bboxPolygon = (bounds) => {
 var crs = new L.Proj.CRS(
     '{{ tms.crs.srs }}',
     '{{ tms.crs.to_proj4() }}', {
-    origin: [{{ tms.xy_bbox[0] }}, {{ tms.xy_bbox[3] }}],
-    // bounds: [[{{ tms.xy_bbox[0] }}, {{ tms.xy_bbox[1] }}], [{{ tms.xy_bbox[2] }}, {{ tms.xy_bbox[3] }}]],
+    origin: [{{ tms.xy_bbox.left }}, {{ tms.xy_bbox.top }}],
+    //bounds: [[{{ tms.xy_bbox[3] }}, {{ tms.xy_bbox[0] }}], [{{ tms.xy_bbox[1] }}, {{ tms.xy_bbox[2] }}]],
     resolutions: {{ resolutions|safe }},
   }
 );
 
 
 var map = L.map('map', {
-  zoom: 0,
-  center: [0, 0],
   crs: crs,
-  continuousWorld: true,
-  worldCopyJump: false
+  minZoom: {{ tms.minzoom }},
+  maxZoom: {{ tms.maxzoom }}
 });
+
+// TODO: remove
+const madrid = L.marker([40, -3]).addTo(map);
+const auckland = L.marker([-36.864664, 174.792059]).addTo(map);
+const seatle = L.marker([47.596842, -122.333087]).addTo(map);
 
 fetch('{{ tilejson_endpoint|safe }}')
   .then(res => {
@@ -86,7 +89,6 @@ fetch('{{ tilejson_endpoint|safe }}')
         minZoom: data.minzoom,
         maxZoom: data.maxzoom,
         bounds: L.latLngBounds([bottom, left], [top, right]),
-        continuousWorld: true,
       }
     ).addTo(map);
   })
