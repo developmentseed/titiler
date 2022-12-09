@@ -1,6 +1,10 @@
 # Release Notes
 
-## Next
+## 0.10.0 (2022-12-09)
+
+**breaking change**
+
+* Simplify dependency requirements for titiler.mosaic and titiler.application and using `=={currentVersion}`
 
 ### titiler.core
 
