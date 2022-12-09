@@ -229,8 +229,8 @@ jobs:
           python -m pip install -r requirements.txt
 
       # Let's wait a bit to make sure package is available on pypi
-      - name: Sleep for 60 seconds
-        run: sleep 60s
+      - name: Sleep for 120 seconds
+        run: sleep 120s
         shell: bash
 
       # Build and Deploy CDK application
