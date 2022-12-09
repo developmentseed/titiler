@@ -405,9 +405,9 @@ const updateViz = () => {
 }
 
 const addHisto3Bands = () => {
-  const r = document.getElementById('r-selector').selectedOptions[0].getAttribute("name")
-  const g = document.getElementById('g-selector').selectedOptions[0].getAttribute("name")
-  const b = document.getElementById('b-selector').selectedOptions[0].getAttribute("name")
+  const r = document.getElementById('r-selector').selectedOptions[0].getAttribute("bname")
+  const g = document.getElementById('g-selector').selectedOptions[0].getAttribute("bname")
+  const b = document.getElementById('b-selector').selectedOptions[0].getAttribute("bname")
 
   const rStats = scope.dataset_statistics[r]
   const gStats = scope.dataset_statistics[g]
@@ -520,7 +520,7 @@ const addHisto3Bands = () => {
 }
 
 const addHisto1Band = () => {
-  const stats = scope.dataset_statistics[document.getElementById('layer-selector').selectedOptions[0].getAttribute("name")]
+  const stats = scope.dataset_statistics[document.getElementById('layer-selector').selectedOptions[0].getAttribute("bname")]
 
   let counts = stats.histogram[0]
   const sum = counts.reduce(function(a, b){
@@ -743,9 +743,8 @@ const addCogeo = () => {
       for (var i = 0; i < nbands; i++) {
         let l = document.createElement('option')
         l.setAttribute('bidx', i + 1)
-        let name = band_descr[i][1] || band_descr[i][0]
-        l.setAttribute('name', name)
-        l.text = name
+        l.setAttribute('bname', band_descr[i][0])
+        l.text = band_descr[i][1] || band_descr[i][0]
         layerList.appendChild(l)
       }
 
@@ -754,9 +753,8 @@ const addCogeo = () => {
       for (var i = 0; i < nbands; i++) {
         let l = document.createElement('option')
         l.setAttribute('bidx', i + 1)
-        let name = band_descr[i][1] || band_descr[i][0]
-        l.setAttribute('name', name)
-        l.text = name
+        l.setAttribute('bname', band_descr[i][0])
+        l.text = band_descr[i][1] || band_descr[i][0]
         if (i === 0) l.selected="selected"
         rList.appendChild(l)
       }
@@ -765,9 +763,8 @@ const addCogeo = () => {
       for (var i = 0; i < nbands; i++) {
         let l = document.createElement('option')
         l.setAttribute('bidx', i + 1)
-        let name = band_descr[i][1] || band_descr[i][0]
-        l.setAttribute('name', name)
-        l.text = name
+        l.setAttribute('bname', band_descr[i][0])
+        l.text = band_descr[i][1] || band_descr[i][0]
         if (i === 1) l.selected="selected"
         gList.appendChild(l)
       }
@@ -776,9 +773,8 @@ const addCogeo = () => {
       for (var i = 0; i < nbands; i++) {
         let l = document.createElement('option')
         l.setAttribute('bidx', i + 1)
-        let name = band_descr[i][1] || band_descr[i][0]
-        l.setAttribute('name', name)
-        l.text = name
+        l.setAttribute('bname', band_descr[i][0])
+        l.text = band_descr[i][1] || band_descr[i][0]
         if (band_descr.length > 2 && i === 2) {
           l.selected="selected"
         } else {

@@ -1,8 +1,14 @@
 # Release Notes
 
-## 0.9.1 (2022-12-08)
+## Next
+
+### titiler.core
 
 * fix the `wmts.xml` template to work with non-epsg based CRS
+
+### titiler.application
+
+* fix titiler.application viewer when using dataset with band name in metadata
 
 ## 0.9.0 (2022-12-05)
 
