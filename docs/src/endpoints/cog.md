@@ -237,7 +237,7 @@ Example:
 `:endpoint:/cog[/{TileMatrixSetId}]/map` Simple viewer
 
 - PathParams:
-    - **TileMatrixSetId**: TileMatrixSet name (only `WebMercatorQuad` is supported). **Optional**
+    - **TileMatrixSetId**: TileMatrixSet name, default is `WebMercatorQuad`. **Optional**
 
 - QueryParams:
     - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
