@@ -1,5 +1,9 @@
 # Release Notes
 
+## 0.10.1 (2022-12-15)
+
+* update `/map` endpoint and template to support multiple TMS (https://github.com/developmentseed/titiler/pull/560)
+
 ## 0.10.0 (2022-12-09)
 
 **breaking change**
