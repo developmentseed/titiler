@@ -42,7 +42,10 @@ var crs = new L.Proj.CRS(
     '{{ tms.crs.srs }}',
     '{{ tms.crs.to_proj4() }}', {
     origin: [{{ tms.xy_bbox.left }}, {{ tms.xy_bbox.top }}],
-    //bounds: [[{{ tms.xy_bbox[3] }}, {{ tms.xy_bbox[0] }}], [{{ tms.xy_bbox[1] }}, {{ tms.xy_bbox[2] }}]],
+    bounds: L.bounds(
+      L.Point({{ tms.xy_bbox.left}}, {{ tms.xy_bbox.bottom }}),
+      L.Point({{ tms.xy_bbox.right}}, {{ tms.xy_bbox.top }})
+    ),
     resolutions: {{ resolutions|safe }},
   }
 );
@@ -55,9 +58,11 @@ var map = L.map('map', {
 });
 
 // TODO: remove
+const nullIsland = L.marker([0, 0]).addTo(map);
 const madrid = L.marker([40, -3]).addTo(map);
+const london = L.marker([51.50722, -0.1275]).addTo(map)
 const auckland = L.marker([-36.864664, 174.792059]).addTo(map);
-const seatle = L.marker([47.596842, -122.333087]).addTo(map);
+const seattle = L.marker([47.596842, -122.333087]).addTo(map);
 
 fetch('{{ tilejson_endpoint|safe }}')
   .then(res => {
@@ -87,7 +92,7 @@ fetch('{{ tilejson_endpoint|safe }}')
     L.tileLayer(
       data.tiles[0], {
         minZoom: data.minzoom,
-        maxZoom: data.maxzoom,
+        maxNativeZoom: data.maxzoom,
         bounds: L.latLngBounds([bottom, left], [top, right]),
       }
     ).addTo(map);
