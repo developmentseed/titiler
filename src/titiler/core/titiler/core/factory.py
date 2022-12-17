@@ -57,7 +57,7 @@ from fastapi.dependencies.utils import get_parameterless_sub_dependant
 
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, Response
-from starlette.routing import Match
+from starlette.routing import Match, compile_path, replace_params
 from starlette.templating import Jinja2Templates
 
 try:
@@ -176,8 +176,18 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
         url_path = self.router.url_path_for(name, **path_params)
         base_url = str(request.base_url)
         if self.router_prefix:
-            base_url += self.router_prefix.lstrip("/")
-        return url_path.make_absolute_url(base_url=base_url)
+            prefix = self.router_prefix.lstrip("/")
+            # If we have prefix with custom path param we check and replace them with
+            # the path params provided
+            if "{" in prefix:
+                _, path_format, param_convertors = compile_path(prefix)
+                prefix, _ = replace_params(
+                    path_format, param_convertors, request.path_params
+                )
+            base_url += prefix
+
+        url = url_path.make_absolute_url(base_url=base_url)
+        return url
 
     def add_route_dependencies(
         self,
@@ -1502,21 +1512,21 @@ class TMSFactory:
             return {
                 "tileMatrixSets": [
                     {
-                        "id": tms.identifier,
-                        "title": tms.identifier,
+                        "id": tms,
+                        "title": tms,
                         "links": [
                             {
                                 "href": self.url_for(
                                     request,
                                     "TileMatrixSet_info",
-                                    TileMatrixSetId=tms.identifier,
+                                    TileMatrixSetId=tms,
                                 ),
                                 "rel": "item",
                                 "type": "application/json",
                             }
                         ],
                     }
-                    for tms in self.supported_tms.tms.values()
+                    for tms in self.supported_tms.list()
                 ]
             }
 

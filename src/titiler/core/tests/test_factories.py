@@ -3,6 +3,7 @@
 import json
 import os
 import pathlib
+from dataclasses import dataclass
 from enum import Enum
 from io import BytesIO
 from typing import Dict, Type
@@ -14,11 +15,12 @@ import httpx
 import morecantile
 import numpy
 from morecantile.defaults import TileMatrixSets
-from rio_tiler.io import BaseReader, COGReader, MultiBandReader, STACReader
+from rio_tiler.io import BaseReader, MultiBandReader, Reader, STACReader
 
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 from titiler.core.factory import (
     AlgorithmFactory,
+    BaseTilerFactory,
     MultiBandTilerFactory,
     MultiBaseTilerFactory,
     TilerFactory,
@@ -27,8 +29,9 @@ from titiler.core.factory import (
 
 from .conftest import DATA_DIR, mock_rasterio_open, parse_img
 
-from fastapi import Depends, FastAPI, HTTPException, Query, security, status
+from fastapi import Depends, FastAPI, HTTPException, Path, Query, security, status
 
+from starlette.requests import Request
 from starlette.testclient import TestClient
 
 DEFAULT_TMS = morecantile.tms
@@ -922,7 +925,7 @@ class BandFileReader(MultiBandReader):
     )
     reader_options: Dict = attr.ib(factory=dict)
 
-    reader: Type[BaseReader] = attr.ib(default=COGReader)
+    reader: Type[BaseReader] = attr.ib(default=Reader)
 
     minzoom: int = attr.ib()
     maxzoom: int = attr.ib()
@@ -1439,3 +1442,38 @@ def test_algorithm():
 
     response = client.get("/algorithms/hillshade")
     assert response.status_code == 200
+
+
+def test_path_param_in_prefix():
+    """Test path params in prefix."""
+
+    @dataclass
+    class EndpointFactory(BaseTilerFactory):
+        def register_routes(self):
+            """register endpoints."""
+
+            @self.router.get("/{param2}.json")
+            def route2(
+                request: Request, param1: int = Path(...), param2: str = Path(...)
+            ):
+                """return url."""
+                return {"url": self.url_for(request, "route1", param2=param2)}
+
+            @self.router.get("/{param2}")
+            def route1(param1: int = Path(...), param2: str = Path(...)):
+                """return param."""
+                return {"value": param2}
+
+    app = FastAPI()
+    endpoints = EndpointFactory(reader=Reader, router_prefix="/prefixed/{param1}")
+    app.include_router(endpoints.router, prefix="/prefixed/{param1}")
+    client = TestClient(app)
+
+    response = client.get("/p")
+    assert response.status_code == 404
+
+    response = client.get("/prefixed/100/value")
+    assert response.json()["value"] == "value"
+
+    response = client.get("/prefixed/100/value.json")
+    assert response.json()["url"] == "http://testserver/prefixed/100/value"
