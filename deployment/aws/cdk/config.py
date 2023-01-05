@@ -18,7 +18,6 @@ class StackSettings(pydantic.BaseSettings):
     # For more information on GDAL env see: https://gdal.org/user/configoptions.html
     # or https://developmentseed.org/titiler/advanced/performance_tuning/
     env: Dict = {
-        "CPL_VSIL_CURL_ALLOWED_EXTENSIONS": ".tif,.TIF,.tiff",
         "GDAL_CACHEMAX": "200",  # 200 mb
         "GDAL_DISABLE_READDIR_ON_OPEN": "EMPTY_DIR",
         "GDAL_INGESTED_BYTES_AT_OPEN": "32768",  # get more bytes when opening the files.
