@@ -1,8 +1,9 @@
 """TiTiler Router factories."""
+
 import abc
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Type, Union
-from urllib.parse import urlencode, parse_qsl
+from urllib.parse import urlencode
 
 import rasterio
 from geojson_pydantic.features import Feature, FeatureCollection
@@ -10,6 +11,7 @@ from geojson_pydantic.geometries import Polygon
 from morecantile import TileMatrixSet
 from morecantile import tms as morecantile_tms
 from morecantile.defaults import TileMatrixSets
+from rasterio.crs import CRS
 from rio_tiler.io import BaseReader, MultiBandReader, MultiBaseReader, Reader
 from rio_tiler.models import BandStatistics, Bounds, Info
 from rio_tiler.types import ColorMapType
@@ -49,18 +51,15 @@ from titiler.core.models.responses import (
     StatisticsGeoJSON,
 )
 from titiler.core.resources.enums import (
-    ImageType, 
-    MediaType, 
-    OptionalHeader, 
-    WMSRequestType, 
-    WMSVersion, 
+    ImageType,
+    MediaType,
+    OptionalHeader,
     WMSMediaType,
-    EPSGCodes
 )
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
 from titiler.core.routing import EndpointScope
 
-from fastapi import APIRouter, Body, Depends, Path, Query, params, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, params
 from fastapi.dependencies.utils import get_parameterless_sub_dependant
 
 from starlette.requests import Request
@@ -290,7 +289,7 @@ class TilerFactory(BaseTilerFactory):
 
         if self.add_viewer:
             self.map_viewer()
-            
+
         if self.add_wms:
             self.wms()
 
@@ -824,189 +823,301 @@ class TilerFactory(BaseTilerFactory):
                 },
                 media_type=MediaType.xml.value,
             )
-        
+
     def wms(self):  # noqa: C901
         """
         Registers /wms endpoint.
-        
+
         Notes:
-            - Not sure where to place WMS helper function. Is here fine?"""
-        
-        
-        # The following wms params are ignored: styles, dpi, map_resolution, forma_options, transparent
-        base_wms_params = (
-            "service",
-            "version",
-            "request",
-            "bbox",
-            "crs",
-            "srs",
-            "width",
-            "height",
-            "layers",
-            "format",
+            - Not sure where to place WMS helper function. Is here fine?
+        """
+
+        supported_crs: List[str] = ["EPSG:4326"]
+        supported_format: List[str] = [
+            "image/png",
+            "image/jpeg",
+            "image/jpg",
+            "image/webp",
+            "image/jp2",
+            "image/tiff; application=geotiff",
+        ]
+        supported_version: List[str] = ["1.0.0", "1.1.0", "1.3.0"]
+
+        @self.router.get(
+            "/wms",
+            response_class=Response,
+            responses={
+                200: {
+                    "description": "Web Map Server responses",
+                    "content": {
+                        "application/xml": {},
+                        "image/png": {},
+                        "image/jpeg": {},
+                        "image/jpg": {},
+                        "image/webp": {},
+                        "image/jp2": {},
+                        "image/tiff; application=geotiff": {},
+                    },
+                },
+            },
+            openapi_extra={
+                "parameters": [
+                    {
+                        "required": True,
+                        "schema": {
+                            "title": "Request name",
+                            "type": "string",
+                            "enum": [
+                                "GetCapabilities",
+                                "GetMap",
+                            ],
+                        },
+                        "name": "REQUEST",
+                        "in": "query",
+                    },
+                    {
+                        "required": False,
+                        "schema": {
+                            "title": "WMS Service type",
+                            "type": "string",
+                            "enum": ["wms"],
+                        },
+                        "name": "SERVICE",
+                        "in": "query",
+                    },
+                    {
+                        "required": False,
+                        "schema": {
+                            "title": "WMS Request version",
+                            "type": "string",
+                            "enum": [
+                                "1.1.0",
+                                "1.1.1",
+                                "1.3.0",
+                            ],
+                        },
+                        "name": "VERSION",
+                        "in": "query",
+                    },
+                    {
+                        "required": True,
+                        "schema": {
+                            "title": "Comma-separated list of one or more map layers."
+                        },
+                        "name": "LAYERS",
+                        "in": "query",
+                    },
+                    {
+                        "required": False,
+                        "schema": {
+                            "title": "Output format of service metadata/map",
+                            "type": "string",
+                            "enum": [
+                                "application/xml",
+                                "image/png",
+                                "image/jpeg",
+                                "image/jpg",
+                                "image/webp",
+                                "image/jp2",
+                                "image/tiff; application=geotiff",
+                            ],
+                        },
+                        "name": "FORMAT",
+                        "in": "query",
+                    },
+                    {
+                        "required": False,
+                        "schema": {
+                            "title": "Sequence number or string for cache control"
+                        },
+                        "name": "UPDATESEQUENCE",
+                        "in": "query",
+                    },
+                    {
+                        "required": False,
+                        "schema": {
+                            "title": "Coordinate reference system.",
+                            "type": "string",
+                        },
+                        "name": "CRS",
+                        "in": "query",
+                    },
+                    {
+                        "required": False,
+                        "schema": {
+                            "title": "Bounding box corners (lower left, upper right) in CRS units.",
+                            "type": "string",
+                        },
+                        "name": "BBOX",
+                        "in": "query",
+                    },
+                    {
+                        "required": False,
+                        "schema": {
+                            "title": "Width in pixels of map picture.",
+                            "type": "integer",
+                        },
+                        "name": "WIDTH",
+                        "in": "query",
+                    },
+                    {
+                        "required": False,
+                        "schema": {
+                            "title": "Height in pixels of map picture.",
+                            "type": "integer",
+                        },
+                        "name": "HEIGHT",
+                        "in": "query",
+                    },
+                    # Non-Used
+                    {
+                        "required": False,
+                        "schema": {
+                            "title": "Comma-separated list of one rendering style per requested layer."
+                        },
+                        "name": "STYLES",
+                        "in": "query",
+                    },
+                    # {
+                    #     "required": False,
+                    #     "schema": {
+                    #         "title": "Background transparency of map (default=FALSE).",
+                    #         "type": "boolean",
+                    #         "default": False,
+                    #     },
+                    #     "name": "TRANSPARENT",
+                    #     "in": "query",
+                    # },
+                    # {
+                    #     "required": False,
+                    #     "schema": {
+                    #         "title": "Hexadecimal red-green-blue colour value for the background color (default=0xFFFFFF).",
+                    #         "type": "string",
+                    #     },
+                    #     "name": "BGCOLOR",
+                    #     "in": "query",
+                    # },
+                    # {
+                    #     "required": False,
+                    #     "schema": {
+                    #         "title": "The format in which exceptions are to be reported by the WMS (default=XML).",
+                    #         "type": "string",
+                    #     },
+                    #     "name": "EXCEPTIONS",
+                    #     "in": "query",
+                    # },
+                    # {
+                    #     "required": False,
+                    #     "schema": {
+                    #         "title": "Time value of layer desired.",
+                    #         "type": "string",
+                    #     },
+                    #     "name": "TIME",
+                    #     "in": "query",
+                    # },
+                    # {
+                    #     "required": False,
+                    #     "schema": {
+                    #         "title": "Elevation of layer desired.",
+                    #         "type": "string",
+                    #     },
+                    #     "name": "ELEVATION",
+                    #     "in": "query",
+                    # },
+                ]
+            },
         )
-        # Ignoring: ['styles', 'dpi', 'map_resolution', 'format_options', 'transparent']
-
-        @staticmethod
-        def process_wms_params(request: Request):
-            """
-            Process request params for WMS.
-            
-            Will make all parameters lower case and flip bbox values around in 
-            the event of EPSG:4326 with WMS 1.3.0.
-
-            Returns
-            -------
-            out_wms_params : dict
-                WMS parameters processed for use in TiTiler
-
-            """
-            request_args = parse_qsl(str(request.url).split('?')[1])
-
-            out_wms_params = {'layers':[]}
-            for param in request_args:
-                key = param[0].lower()
-                
-                if key not in base_wms_params:
-                    continue
-
-                value = param[1]
-
-                if key in ("height", "width"):
-                    value = int(value)
-                    
-                elif key in ["crs", "srs"]:
-                    key = "srs"
-                    out_wms_params["dst_crs"] = value
-                    out_wms_params["bounds_crs"] = value
-                    
-                elif key == "bbox":
-                    value = [float(xy) for xy in value.split(",")]
-                    if len(value) != 4:
-                        raise HTTPException(
-                            status_code=400,
-                            detail="bbox needs 4 coordinates separated by commas",
-                        )
-                elif key == "version" and value not in set(WMSVersion):
-                    raise HTTPException(
-                        status_code=400,
-                        detail=f"Version specified not allowed. Allowed versions include: {[w.value for w in list(WMSVersion)]}",
-                    )
-                elif key == 'format':
-                    value = WMSMediaType(value)
-                    
-                if key == "layers":
-                    out_wms_params[key] += [value]
-                else:
-                    out_wms_params[key] = value
-                    
-            if out_wms_params.get("bbox"):
-
-                # WMS 1.3.0 is lame and flips the coords of EPSG:4326
-                if (
-                    out_wms_params.get("version") == "1.3.0"
-                    and out_wms_params.get("srs")
-                    and out_wms_params.get("srs") == "EPSG:4326"
-                ):
-                    out_wms_params["bbox"] = [
-                        out_wms_params["bbox"][1],
-                        out_wms_params["bbox"][0],
-                        out_wms_params["bbox"][3],
-                        out_wms_params["bbox"][2],
-                    ]
-                    
-                # Overwrite CRS:84 with EPSG:4326 when specified
-                elif (
-                    out_wms_params.get("version") == "1.3.0"
-                    and out_wms_params.get("srs") == "CRS:84"
-                ):
-                    out_wms_params["srs"] = "EPSG:4326"
-                    
-                # `bounds` is compatible with reading from rio.io.reader
-                out_wms_params['bounds'] = out_wms_params['bbox']
-                    
-            print(out_wms_params)
-            return out_wms_params
-
-        @self.router.get("/wms")
         def wms(
-            _request: Request,
-            request: WMSRequestType = "GetCapabilities",
-            version: WMSVersion = "1.1.1",
-            format: WMSMediaType = Query(
-                default=None, 
-                description="Output image type. Default is auto."
-            ),
-            bbox: Union[str, None] = Query(
-                default=None,
-                description="Bounding box for the WMS query. Should be in format of 'minx,miny,maxx,maxy'.",
-            ),
-            width: Union[int, None] = Query( 
-                default=None,
-                description="Width (in pixels) of returned GetMap image."
-            ),
-            height: Union[int, None]  = Query( 
-                default=None,
-                description="Height (in pixels) of returned GetMap image."
-            ),
-            srs: Union[EPSGCodes, None] = Query(
-                default=None,
-                description="Coordinate system of bbox as an EPSG code",
-            ),
-            # crs: Ignore if we stick with 
-            layers: list[str] = Query(
-                [""], 
-                description="COG dataset URL(s) or local path(s) to a COG"
-            ),
-            layer_params=Depends(self.layer_dependency),  # noqa
-            dataset_params=Depends(self.dataset_dependency),  # noqa
-            buffer: Optional[float] = Query(  # noqa
-                None,
-                gt=0,
-                title="Tile buffer.",
-                description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
-            ),
-            post_process=Depends(self.process_dependency),  # noqa
-            rescale: Optional[List[Tuple[float, ...]]] = Depends(
-                RescalingParams
-            ),  # noqa
-            color_formula: Optional[str] = Query(  # noqa
+            request: Request,
+            # vendor (titiler) parameters
+            layer_params=Depends(self.layer_dependency),
+            dataset_params=Depends(self.dataset_dependency),
+            post_process=Depends(self.process_dependency),
+            rescale: Optional[List[Tuple[float, ...]]] = Depends(RescalingParams),
+            color_formula: Optional[str] = Query(
                 None,
                 title="Color Formula",
                 description="rio-color formula (info: https://github.com/mapbox/rio-color)",
             ),
-            colormap=Depends(self.colormap_dependency),  # noqa
-            render_params=Depends(self.render_dependency),  # noqa
+            colormap=Depends(self.colormap_dependency),
+            render_params=Depends(self.render_dependency),
             reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
         ):
-            """
-            Return a WMS query for a single COG.
+            """Return a WMS query for a single COG.
 
             GetCapability will generate a WMS XML definition.
 
             GetMap is mostly copied from titiler.core.factory.TilerFactory.part.part
             """
-            processed_wms_params = process_wms_params(_request)
-            print(processed_wms_params)
+            req = {k.lower(): v for k, v in request.query_params.items()}
 
-            # Return a WMS XML
-            if processed_wms_params["request"] == "GetCapabilities":
+            # Request is mandatory
+            request_type = req.get("request")
+            if not request_type:
+                raise HTTPException(
+                    status_code=400, detail="Missing WMS REQUEST parameter."
+                )
 
-                base_url = str(_request.url).split("?")[0]
+            # GetCapabilities: Return a WMS XML
+            if request_type.lower() == "getcapabilities":
+                # Required parameters:
+                # - SERVICE=WMS
+                # - REQUEST=GetCapabilities
+                # Optional parameters: VERSION, FORMAT, UPDATESEQUENCE
 
-                non_wms_params = [
-                    param for param 
-                    in parse_qsl(str(_request.url))[1:] 
-                    if param[0].lower() not in base_wms_params
+                # List of required parameters (layers is added for titiler)
+                req_keys = {"service", "request", "layers"}
+
+                intrs = set(req.keys()).intersection(req_keys)
+                missing_keys = req_keys.difference(intrs)
+                if len(missing_keys) > 0:
+                    raise HTTPException(
+                        status_code=500,
+                        detail=f"Missing 'GetCapabilities' parameters: {missing_keys}",
+                    )
+
+                if not req["service"].lower() == "wms":
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Invalid 'SERVICE' parameter: {req['service']}. Only 'wms' is accepted",
+                    )
+
+                layers = list(req["layers"].split(","))
+                if not layers:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Invalid 'LAYERS' parameter: {req['layers']}.",
+                    )
+
+                version = req.get("version", "1.3.0")
+                if version not in supported_version:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Invalid 'VERSION' parameter: {version}. Allowed versions include: {supported_version}",
+                    )
+
+                wms_url = self.url_for(request, "wms")
+
+                qs_key_to_remove = [
+                    "service",
+                    "request",
+                    "layers",
+                    "version",
+                    "format",
+                    "updatesequence",
                 ]
-
-                wms_url = f"{base_url}?{urlencode(non_wms_params)}"
+                qs = [
+                    (key, value)
+                    for (key, value) in request.query_params._list
+                    if key.lower() not in qs_key_to_remove
+                ]
+                if qs:
+                    wms_url += f"?{urlencode(qs)}"
 
                 # Grab information from each layer provided
-                layers_dict = {}
-                for layer in processed_wms_params["layers"]:
+                layers_dict: Dict[str, Any] = {}
+                for layer in layers:
                     layers_dict[layer] = {}
                     with rasterio.Env(**env):
                         with self.reader(layer, **reader_params) as src_dst:
@@ -1016,44 +1127,123 @@ class TilerFactory(BaseTilerFactory):
                                 "bounds_wgs84"
                             ] = src_dst.geographic_bounds
                             layers_dict[layer]["abstract"] = src_dst.info().json()
-                
-                # Build information for the whole service
-                service_dict = {
-                    "xmin": min([layers_dict[layer]["bounds_wgs84"][0] for layer in layers_dict]),
-                    "ymin": min([layers_dict[layer]["bounds_wgs84"][1] for layer in layers_dict]),
-                    "xmax": max([layers_dict[layer]["bounds_wgs84"][2] for layer in layers_dict]),
-                    "ymax": max([layers_dict[layer]["bounds_wgs84"][3] for layer in layers_dict]),
-                }
 
-                template = f"wms_{processed_wms_params.get('version')}.xml"
+                # Build information for the whole service
+                minx, miny, maxx, maxy = zip(
+                    *[layers_dict[layer]["bounds_wgs84"] for layer in layers_dict]
+                )
 
                 return templates.TemplateResponse(
-                    template,
+                    f"wms_{version}.xml",
                     {
-                        "request": _request,
+                        "request": request,
                         "request_url": wms_url,
-                        "formats": [v.value for v in list(WMSMediaType)],
-                        "available_epsgs": [e.value for e in list(EPSGCodes)],
+                        "formats": supported_format,
+                        "available_epsgs": supported_crs,
                         "layers_dict": layers_dict,
-                        "service_dict": service_dict,
+                        "service_dict": {
+                            "xmin": min(minx),
+                            "ymin": min(miny),
+                            "xmax": max(maxx),
+                            "ymax": max(maxy),
+                        },
                     },
                     media_type=MediaType.xml.value,
                 )
-            # Return an image chip
-            elif processed_wms_params["request"] == "GetMap":
 
-                wms_read_params = {
-                    k: processed_wms_params[k]
-                    for k in processed_wms_params
-                    if k in ["width", "height", "dst_crs", "bounds_crs", "bbox"]
+            # GetMap: Return an image chip
+            if request_type.lower() == "getmap":
+                # Required parameters:
+                # - VERSION
+                # - REQUEST=GetMap,
+                # - LAYERS
+                # - STYLES
+                # - CRS
+                # - BBOX
+                # - WIDTH
+                # - HEIGHT
+                # - FORMAT
+                # Optional parameters: TRANSPARENT, BGCOLOR, EXCEPTIONS, TIME, ELEVATION, ...
+
+                # List of required parameters (styles and crs are excluded)
+                req_keys = {
+                    "version",
+                    "request",
+                    "layers",
+                    "bbox",
+                    "width",
+                    "height",
+                    "format",
                 }
-                src_path = processed_wms_params["layers"][0]
-                
+
+                intrs = set(req.keys()).intersection(req_keys)
+                missing_keys = req_keys.difference(intrs)
+                if len(missing_keys) > 0:
+                    raise HTTPException(
+                        status_code=500,
+                        detail=f"Missing 'GetMap' parameters: {missing_keys}",
+                    )
+
+                version = req["version"]
+                if version not in supported_version:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Invalid 'VERSION' parameter: {version}. Allowed versions include: {supported_version}",
+                    )
+
+                if not set(req.keys()).intersection({"crs", "srs"}):
+                    raise HTTPException(
+                        status_code=500, detail="Missing 'CRS' or 'SRS parameters."
+                    )
+
+                crs = CRS.from_user_input(req.get("crs", req.get("srs")))
+
+                bbox = list(map(float, req["bbox"].split(",")))
+                if len(bbox) != 4:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Invalid 'BBOX' parameters: {req['bbox']}. Needs 4 coordinates separated by commas",
+                    )
+
+                # TODO: check this
+                if version == "1.3.0":
+                    # WMS 1.3.0 is lame and flips the coords of EPSG:4326
+                    if crs == CRS.from_epsg(4326):
+                        bbox = [
+                            bbox[1],
+                            bbox[0],
+                            bbox[3],
+                            bbox[2],
+                        ]
+                    # Overwrite CRS:84 with EPSG:4326 when specified
+                    elif crs == CRS.from_user_input("CRS:84"):
+                        crs = CRS.from_epsg(4326)
+
+                if req["format"] not in supported_format:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Invalid 'FORMAT' parameter: {req['format'] }. Should be one of {supported_format}.",
+                    )
+                format = ImageType(WMSMediaType(req["format"]).name)
+
+                height, width = int(req["height"]), int(req["width"])
+
+                layers = list(req["layers"].split(","))
+                if not layers:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Invalid 'LAYERS' parameter: {req['layers']}.",
+                    )
+
+                src_path = layers[0]
                 with rasterio.Env(**env):
                     with self.reader(src_path, **reader_params) as src_dst:
                         image = src_dst.part(
-                            buffer=buffer,
-                            **wms_read_params,
+                            bbox,
+                            width=width,
+                            height=height,
+                            dst_crs=crs,
+                            bounds_crs=crs,
                             **layer_params,
                             **dataset_params,
                         )
@@ -1068,55 +1258,23 @@ class TilerFactory(BaseTilerFactory):
                 if color_formula:
                     image.apply_color_formula(color_formula)
 
-                if processed_wms_params.get('format'):
-                    imagetype = ImageType(MediaType(processed_wms_params['format'])._name_)
-                else:
-                    imagetype = ImageType.jpeg if image.mask.all() else ImageType.png
-
                 content = image.render(
-                    img_format=imagetype.driver,
+                    img_format=format.driver,
                     colormap=colormap or dst_colormap,
-                    **imagetype.profile,
+                    **format.profile,
                     **render_params,
                 )
 
-                # with rasterio.Env(**env):
-                #     with self.reader(
-                #         processed_wms_params["layers"][0], **reader_params
-                #     ) as src_dst:
+                return Response(content, media_type=format.mediatype)
 
-                #         if not layer_params.indexes:
-                #             if len(src_dst.dataset.indexes) >= 3:
-                #                 layer_params.indexes = src_dst.dataset.indexes[0:3]
-                #             else:
-                #                 layer_params.indexes = 1
-                #         data = src_dst.part(
-                #             **wms_read_params,
-                #             **layer_params,
-                #             **dataset_params,
-                #         )
+            elif request_type.lower() == "getfeatureinfo":
+                return Response("Not Implemented", 400)
 
-                #         dst_colormap = getattr(src_dst, "colormap", None)
-                # if not processed_wms_params.get("format"):
-                #     imagetype = ImageType.jpeg if data.mask.all() else ImageType.png
-                # else:
-                #     imagetype = mediatype_2_imagetype[processed_wms_params["format"]]
-                # image = data.post_process(**postprocess_params)
-
-                # content = image.render(
-                #     img_format=imagetype.driver,
-                #     colormap=colormap or dst_colormap,
-                #     **imagetype.profile,
-                #     **render_params,
-                # )
-
-                return Response(content, media_type=imagetype.mediatype)
-            
-            elif processed_wms_params["request"] == "GetFeatureInfo":
-                return Response('Not Implemented', 400)
-            
             else:
-                return Response(f'Invalid WMS request: {processed_wms_params["request"]}', 400)
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid 'REQUEST' parameter: {request_type}. Should be one of ['GetCapabilities', 'GetMap'].",
+                )
 
     ############################################################################
     # /point
