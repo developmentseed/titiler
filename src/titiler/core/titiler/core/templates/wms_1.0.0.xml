@@ -1,0 +1,55 @@
+<?xml version='1.0' encoding="UTF-8" standalone="no" ?>
+<WMT_MS_Capabilities version="1.0.0">
+
+<Service>
+  <Name>TiTiler WMS</Name>
+  <Title>TiTiler WMS</Title>
+  <Abstract>COG URLs specified in the "LAYERS" parameter will show up as available layers</Abstract>
+</Service>
+
+<Capability>
+  <Request>
+    <Map>
+      <Format><PNG /><JPEG /></Format>
+      <DCPType>
+        <HTTP>
+          <Get onlineResource="{{ request_url }}" />
+          <Post onlineResource="{{ request_url }}" />
+        </HTTP>
+      </DCPType>
+    </Map>
+    <Capabilities>
+      <Format><WMS_XML /></Format>
+      <DCPType>
+        <HTTP>
+          <Get onlineResource="{{ request_url }}" />
+          <Post onlineResource="{{ request_url }}" />
+        </HTTP>
+      </DCPType>
+    </Capabilities>
+  </Request>
+  <Exception>
+    <Format><BLANK /><INIMAGE /><WMS_XML /></Format>
+  </Exception>
+  <VendorSpecificCapabilities />
+  <Layer>
+    <Name>FastAPI WMS</Name>
+    <Title>FastAPI WMS</Title>
+    <Abstract>COGs specified in the "LAYERS" parameter will show up as available layers</Abstract>
+    <SRS>{{" ".join(available_epsgs)}}</SRS>
+    <LatLonBoundingBox minx="{{service_dict['xmin']}}" miny="{{service_dict['ymin']}}" maxx="{{service_dict['xmax']}}" maxy="{{service_dict['ymax']}}" />
+    <BoundingBox SRS="EPSG:4326"
+                minx="{{service_dict['xmin']}}" miny="{{service_dict['ymin']}}" maxx="{{service_dict['xmax']}}" maxy="{{service_dict['ymax']}}" />
+    {% for layer in layers_dict.keys() %}
+    <Layer queryable="0">
+        <Name>{{layer}}</Name>
+        <Title>{{layer}}</Title>
+        <Abstract>{{layers_dict[layer]['abstract']}}</Abstract>
+        <SRS>{{" ".join(available_epsgs)}}</SRS>
+        <LatLonBoundingBox minx="{{layers_dict[layer]['bounds_wgs84'][0]}}" miny="{{layers_dict[layer]['bounds_wgs84'][1]}}" maxx="{{layers_dict[layer]['bounds_wgs84'][2]}}" maxy="{{layers_dict[layer]['bounds_wgs84'][3]}}" />
+        <BoundingBox SRS="{{layers_dict[layer]['srs']}}" minx="{{layers_dict[layer]['bounds'][0]}}" miny="{{layers_dict[layer]['bounds'][1]}}" maxx="{{layers_dict[layer]['bounds'][2]}}" maxy="{{layers_dict[layer]['bounds'][3]}}"/>
+    </Layer>
+    {% endfor %}
+  </Layer>
+</Capability>
+</WMT_MS_Capabilities>

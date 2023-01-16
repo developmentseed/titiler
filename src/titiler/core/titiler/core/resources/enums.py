@@ -4,6 +4,7 @@ from enum import Enum
 from types import DynamicClassAttribute
 
 from rio_tiler.profiles import img_profiles
+from morecantile import tms as morecantile_tms
 
 
 class MediaType(str, Enum):
@@ -72,3 +73,31 @@ class OptionalHeader(str, Enum):
 
     server_timing = "Server-Timing"
     x_assets = "X-Assets"
+    
+class WMSRequestType(str, Enum):
+    GetCapabilities = "GetCapabilities"
+    GetMap = "GetMap"
+
+class WMSVersion(str, Enum):
+    v100 = "1.0.0"
+    v111 = "1.1.1"
+    v130 = "1.3.0"
+
+class WMSMediaType(str, Enum):
+    """Responses Media types for WMS"""
+
+    tif = "image/tiff; application=geotiff"
+    jp2 = "image/jp2"
+    png = "image/png"
+    jpeg = "image/jpeg"
+    jpg = "image/jpg"
+    webp = "image/webp"
+    
+# Dynamically create EPSG enum based on registered Morecantiles TMS
+morecantile_registered_epsgs = {
+    morecantile_tms.get(m).identifier: f'EPSG:{morecantile_tms.get(m).rasterio_crs.to_epsg()}'
+    for m in morecantile_tms.list()
+    if morecantile_tms.get(m).rasterio_crs.to_epsg() 
+}
+morecantile_registered_epsgs['WorldCRS84Quad'] = 'CRS:84'
+EPSGCodes = Enum('str', morecantile_registered_epsgs)
