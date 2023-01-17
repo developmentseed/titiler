@@ -262,7 +262,6 @@ class TilerFactory(BaseTilerFactory):
     add_preview: bool = True
     add_part: bool = True
     add_viewer: bool = True
-    add_wms: bool = True
 
     def register_routes(self):
         """
