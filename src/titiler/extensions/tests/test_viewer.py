@@ -21,13 +21,13 @@ def test_cogViewerExtension():
     with TestClient(app) as client:
         response = client.get("/viewer")
         assert response.status_code == 200
-        assert response.headers["content-type"] == "text/html"
+        assert response.headers["content-type"] == "text/html; charset=utf-8"
 
 
 def test_stacViewerExtension():
     """Test stacViewerExtension class."""
     tiler = MultiBaseTilerFactory(reader=STACReader)
-    tiler_plus_viewer = TilerFactory(extensions=[stacViewerExtension()])
+    tiler_plus_viewer = MultiBaseTilerFactory(extensions=[stacViewerExtension()])
     assert len(tiler_plus_viewer.router.routes) == len(tiler.router.routes) + 1
 
     app = FastAPI()
@@ -35,4 +35,4 @@ def test_stacViewerExtension():
     with TestClient(app) as client:
         response = client.get("/viewer")
         assert response.status_code == 200
-        assert response.headers["content-type"] == "text/html"
+        assert response.headers["content-type"] == "text/html; charset=utf-8"
