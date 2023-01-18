@@ -2,13 +2,10 @@
 
 import logging
 
-from rio_cogeo.cogeo import cog_info as rio_cogeo_info
-from rio_cogeo.models import Info
 from rio_tiler.io import STACReader
 
 from titiler.application import __version__ as titiler_version
 from titiler.application.settings import ApiSettings
-from titiler.core.dependencies import DatasetPathParams
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 from titiler.core.factory import (
     AlgorithmFactory,
@@ -22,10 +19,15 @@ from titiler.core.middleware import (
     LowerCaseQueryStringMiddleware,
     TotalTimeMiddleware,
 )
+from titiler.extensions import (
+    cogValidateExtension,
+    cogViewerExtension,
+    stacViewerExtension,
+)
 from titiler.mosaic.errors import MOSAIC_STATUS_CODES
 from titiler.mosaic.factory import MosaicTilerFactory
 
-from fastapi import Depends, FastAPI, Query
+from fastapi import FastAPI
 
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
@@ -67,30 +69,13 @@ app = FastAPI(
 ###############################################################################
 # Simple Dataset endpoints (e.g Cloud Optimized GeoTIFF)
 if not api_settings.disable_cog:
-    cog = TilerFactory(router_prefix="/cog")
-
-    # Add validate and viewer endpoints
-    @cog.router.get("/validate", response_model=Info)
-    def validate(
-        src_path: str = Depends(DatasetPathParams),
-        strict: bool = Query(False, description="Treat warnings as errors"),
-    ):
-        """Validate a COG"""
-        return rio_cogeo_info(src_path, strict=strict)
-
-    @cog.router.get("/viewer", response_class=HTMLResponse)
-    def cog_viewer(request: Request):
-        """COG Viewer."""
-        return templates.TemplateResponse(
-            name="cog_index.html",
-            context={
-                "request": request,
-                "tilejson_endpoint": cog.url_for(request, "tilejson"),
-                "info_endpoint": cog.url_for(request, "info"),
-                "statistics_endpoint": cog.url_for(request, "statistics"),
-            },
-            media_type="text/html",
-        )
+    cog = TilerFactory(
+        router_prefix="/cog",
+        extensions=[
+            cogValidateExtension(),
+            cogViewerExtension(),
+        ],
+    )
 
     app.include_router(cog.router, prefix="/cog", tags=["Cloud Optimized GeoTIFF"])
 
@@ -98,22 +83,13 @@ if not api_settings.disable_cog:
 ###############################################################################
 # STAC endpoints
 if not api_settings.disable_stac:
-    stac = MultiBaseTilerFactory(reader=STACReader, router_prefix="/stac")
-
-    # Add viewer endpoint
-    @stac.router.get("/viewer", response_class=HTMLResponse)
-    def stac_viewer(request: Request):
-        """STAC Viewer."""
-        return templates.TemplateResponse(
-            name="stac_index.html",
-            context={
-                "request": request,
-                "tilejson_endpoint": stac.url_for(request, "tilejson"),
-                "info_endpoint": stac.url_for(request, "info"),
-                "statistics_endpoint": stac.url_for(request, "asset_statistics"),
-            },
-            media_type="text/html",
-        )
+    stac = MultiBaseTilerFactory(
+        reader=STACReader,
+        router_prefix="/stac",
+        extensions=[
+            stacViewerExtension(),
+        ],
+    )
 
     app.include_router(
         stac.router, prefix="/stac", tags=["SpatioTemporal Asset Catalog"]

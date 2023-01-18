@@ -1,27 +1,20 @@
-"""Setup titiler.application."""
+"""Setup titiler.extensions."""
 
 from setuptools import find_namespace_packages, setup
 
 with open("README.md") as f:
     long_description = f.read()
 
-inst_reqs = [
-    "titiler.core==0.10.2",
-    "titiler.extensions==0.10.2",
-    "titiler.mosaic==0.10.2",
-    "rio-cogeo>=3.1,<4.0",  # for cogeo extension
-    "starlette-cramjam>=0.3,<0.4",
-    "python-dotenv",
-]
+inst_reqs = ["titiler.core==0.10.2"]
 extra_reqs = {
-    "test": ["pytest", "pytest-cov", "pytest-asyncio", "httpx", "brotlipy"],
-    "server": ["uvicorn[standard]>=0.12.0,<0.19.0"],
+    "cogeo": ["rio-cogeo>=3.1,<4.0"],
+    "test": ["pytest", "pytest-cov", "pytest-asyncio", "httpx"],
 }
 
 
 setup(
-    name="titiler.application",
-    description="A modern dynamic tile server built on top of FastAPI and Rasterio/GDAL.",
+    name="titiler.extensions",
+    description="Extensions for TiTiler Factories",
     long_description=long_description,
     long_description_content_type="text/markdown",
     python_requires=">=3.8",
@@ -34,13 +27,13 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
     ],
-    keywords="COG STAC MosaicJSON FastAPI",
+    keywords="TiTiler",
     author="Vincent Sarago",
     author_email="vincent@developmentseed.org",
     url="https://github.com/developmentseed/titiler",
     license="MIT",
     packages=find_namespace_packages(exclude=["tests*"]),
-    package_data={"titiler": ["application/templates/*.html"]},
+    package_data={"titiler": ["extensions/templates/*.html"]},
     include_package_data=True,
     zip_safe=False,
     install_requires=inst_reqs,
