@@ -22,6 +22,7 @@ from titiler.core.middleware import (
 from titiler.extensions import (
     cogValidateExtension,
     cogViewerExtension,
+    stacExtension,
     stacViewerExtension,
 )
 from titiler.mosaic.errors import MOSAIC_STATUS_CODES
@@ -74,6 +75,7 @@ if not api_settings.disable_cog:
         extensions=[
             cogValidateExtension(),
             cogViewerExtension(),
+            stacExtension(),
         ],
     )
 

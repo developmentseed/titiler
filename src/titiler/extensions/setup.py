@@ -8,7 +8,8 @@ with open("README.md") as f:
 inst_reqs = ["titiler.core==0.10.2"]
 extra_reqs = {
     "cogeo": ["rio-cogeo>=3.1,<4.0"],
-    "test": ["pytest", "pytest-cov", "pytest-asyncio", "httpx"],
+    "stac": ["rio-stac>=0.6,<0.7"],
+    "test": ["pytest", "pytest-cov", "pytest-asyncio", "httpx", "jsonschema>=3.0"],
 }
 
 

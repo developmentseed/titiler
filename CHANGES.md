@@ -1,5 +1,21 @@
 # Release Notes
 
+## 0.11.0 (TBD)
+
+* add `titiler.extension` package
+
+**breaking change**
+
+### titiler.core
+
+* add `extensions` option to the `BaseTilerFactory` to specify a list of extension we want to register. Each extension will be then registered in the `__post_init__` object creation step.
+
+### titiler.application
+
+* uses Extension to add more endpoints to default `titiler.core` factories
+* move all `viewer` code into `titiler.extensions`
+* add `/cog/stac` endpoint from `titiler.extension.stacExtension` to create STAC Items from raster dataset
+
 ## 0.10.2 (2022-12-17)
 
 * fix issue with new morecantile version

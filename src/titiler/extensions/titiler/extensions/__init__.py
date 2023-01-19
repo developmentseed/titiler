@@ -3,4 +3,5 @@
 __version__ = "0.10.2"
 
 from .cogeo import cogValidateExtension  # noqa
+from .stac import stacExtension  # noqa
 from .viewer import cogViewerExtension, stacViewerExtension  # noqa

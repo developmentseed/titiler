@@ -15,7 +15,7 @@ RUN update-ca-certificates
 ENV CURL_CA_BUNDLE /etc/ssl/certs/ca-certificates.crt
 
 COPY src/titiler/ /tmp/titiler/
-RUN pip install /tmp/titiler/core /tmp/titiler/extensions /tmp/titiler/mosaic /tmp/titiler/application["server"] --no-cache-dir --upgrade
+RUN pip install /tmp/titiler/core /tmp/titiler/extensions["cogeo,stac"] /tmp/titiler/mosaic /tmp/titiler/application["server"] --no-cache-dir --upgrade
 RUN rm -rf /tmp/titiler
 
 ENV HOST 0.0.0.0

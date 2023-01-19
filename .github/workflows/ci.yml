@@ -44,7 +44,7 @@ jobs:
 
       - name: Test titiler.extensions
         run: |
-          python -m pip install -e src/titiler/extensions["test,cogeo"]
+          python -m pip install -e src/titiler/extensions["test,cogeo,stac"]
           python -m pytest src/titiler/extensions --cov=titiler.extensions --cov-report=xml --cov-append --cov-report=term-missing
 
       - name: Test titiler.mosaic

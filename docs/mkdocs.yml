@@ -75,6 +75,7 @@ nav:
       - middleware: api/titiler/core/middleware.md
     - titiler.extensions:
       - cogeo: api/titiler/extensions/cogeo.md
+      - stac: api/titiler/extensions/stac.md
       - viewer: api/titiler/extensions/viewer.md
     - titiler.mosaic:
       - factory: api/titiler/mosaic/factory.md
