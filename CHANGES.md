@@ -4,6 +4,10 @@
 
 * add `titiler.extension` package
 
+### titiler.mosaic
+
+* update `cogeo-mosaic` version requirement to `>=5.0,<5.2` (allow using `az://` prefix from uri)
+
 **breaking change**
 
 ### titiler.core
