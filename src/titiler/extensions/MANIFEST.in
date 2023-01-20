@@ -1,0 +1,2 @@
+recursive-exclude tests *
+include titiler/extensions/templates/*.html

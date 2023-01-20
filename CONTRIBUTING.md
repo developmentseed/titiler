@@ -10,6 +10,7 @@ $ cd titiler
 $ pip install \
    pre-commit \
    -e src/titiler/core["test"] \
+   -e src/titiler/extensions["test,cogeo,stac"] \
    -e src/titiler/mosaic["test"] \
    -e src/titiler/application["test"]
 ```
@@ -55,6 +56,14 @@ $ mkdocs gh-deploy -f docs/mkdocs.yml
    titiler.core.errors \
    titiler.core.resources.enums \
    titiler.core.middleware
+
+   pdocs as_markdown \
+   --output_dir docs/src/api \
+   --exclude_source \
+   --overwrite \
+   titiler.extensions.cogeo \
+   titiler.extensions.viewer \
+   titiler.extensions.stac
 
    pdocs as_markdown \
    --output_dir docs/src/api \

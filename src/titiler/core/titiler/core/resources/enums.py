@@ -72,14 +72,3 @@ class OptionalHeader(str, Enum):
 
     server_timing = "Server-Timing"
     x_assets = "X-Assets"
-
-
-class WMSMediaType(str, Enum):
-    """Responses Media types for WMS"""
-
-    tif = "image/tiff; application=geotiff"
-    jp2 = "image/jp2"
-    png = "image/png"
-    jpeg = "image/jpeg"
-    jpg = "image/jpg"
-    webp = "image/webp"

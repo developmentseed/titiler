@@ -9,6 +9,7 @@ __version__ = "0.10.2"
 
 inst_reqs = [
     f"titiler.core=={__version__}",
+    f"titiler.extensions=={__version__}",
     f"titiler.mosaic=={__version__}",
     f"titiler.application=={__version__}",
 ]
