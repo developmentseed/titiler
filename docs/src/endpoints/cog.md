@@ -3,15 +3,7 @@ The `titiler.application` package comes with a full FastAPI application with COG
 
 # Cloud Optimized GeoTIFF
 
-The `cog` router extend the default `titiler.core.factory.TilerFactory`.
-
-```python
-from fastapi import FastAPI
-from titiler.application.routers.cog import cog
-
-app = FastAPI()
-app.include_router(cog.router, prefix="/cog", tags=["Cloud Optimized GeoTIFF"])
-```
+The `/cog` routes are based on `titiler.core.factory.TilerFactory` but with `cogValidateExtension` and `cogViewerExtension` extensions.
 
 ## API
 
@@ -30,8 +22,8 @@ app.include_router(cog.router, prefix="/cog", tags=["Cloud Optimized GeoTIFF"])
 | `GET`  | `/cog/crop/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin | create an image from part of a dataset
 | `POST` | `/cog/crop[/{width}x{height}][].{format}]`                          | image/bin | create an image from a GeoJSON feature
 | `GET`  | `/cog[/{TileMatrixSetId}]/map`                                      | HTML      | simple map viewer
-| `GET`  | `/cog/validate`                                                     | JSON      | validate a COG and return dataset info (Not in `TilerFactory`)
-| `GET`  | `/cog/viewer`                                                       | HTML      | demo webpage (Not in `TilerFactory`)
+| `GET`  | `/cog/validate`                                                     | JSON      | validate a COG and return dataset info (from `titiler.extensions.cogValidateExtension`)
+| `GET`  | `/cog/viewer`                                                       | HTML      | demo webpage (from `titiler.extensions.cogViewerExtension`)
 
 ## Description
 
@@ -344,7 +336,7 @@ Example:
 - `https://myendpoint/cog/statistics?url=https://somewhere.com/mycog.tif&bidx=1,2,3&categorical=true&c=1&c=2&c=3&p=2&p98`
 
 
-### Demo
+### Viewer
 
 `:endpoint:/cog/viewer` - COG Viewer
 

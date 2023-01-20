@@ -52,8 +52,9 @@ from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
 from titiler.core.routing import EndpointScope
 
-from fastapi import APIRouter, Body, Depends, Path, Query, params
+from fastapi import APIRouter, Body, Depends, Path, Query
 from fastapi.dependencies.utils import get_parameterless_sub_dependant
+from fastapi.params import Depends as DependsFunc
 
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, Response
@@ -87,6 +88,16 @@ img_endpoint_params: Dict[str, Any] = {
     },
     "response_class": Response,
 }
+
+
+@dataclass  # type: ignore
+class FactoryExtension(metaclass=abc.ABCMeta):
+    """Factory Extension."""
+
+    @abc.abstractmethod
+    def register(self, factory: "BaseTilerFactory"):
+        """Register extension to the factory."""
+        ...
 
 
 # ref: https://github.com/python/mypy/issues/5374
@@ -155,13 +166,18 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
     optional_headers: List[OptionalHeader] = field(default_factory=list)
 
     # add dependencies to specific routes
-    route_dependencies: List[Tuple[List[EndpointScope], List[params.Depends]]] = field(
+    route_dependencies: List[Tuple[List[EndpointScope], List[DependsFunc]]] = field(
         default_factory=list
     )
+
+    extensions: List[FactoryExtension] = field(default_factory=list)
 
     def __post_init__(self):
         """Post Init: register route and configure specific options."""
         self.register_routes()
+
+        for ext in self.extensions:
+            ext.register(self)
 
         for scopes, dependencies in self.route_dependencies:
             self.add_route_dependencies(scopes=scopes, dependencies=dependencies)
@@ -193,7 +209,7 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
         self,
         *,
         scopes: List[EndpointScope],
-        dependencies=List[params.Depends],
+        dependencies=List[DependsFunc],
     ):
         """Add dependencies to routes.
 

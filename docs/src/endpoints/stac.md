@@ -3,15 +3,7 @@ The `titiler.application` package comes with a full FastAPI application with COG
 
 # SpatioTemporal Asset Catalog
 
-The `stac` router extend the default `titiler.core.factory.MultiBaseTilerFactory`.
-
-```python
-from fastapi import FastAPI
-from titiler.application.routers.stac import stac
-
-app = FastAPI()
-app.include_router(stac.router, prefix="/stac", tags=["SpatioTemporal Asset Catalog"])
-```
+The `/stac` routes are based on `titiler.core.factory.MultiBaseTilerFactory` but with `stacViewerExtension` extension.
 
 ## API
 
@@ -32,7 +24,7 @@ app.include_router(stac.router, prefix="/stac", tags=["SpatioTemporal Asset Cata
 | `GET`  | `/stac/crop/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin | create an image from part of assets
 | `POST` | `/stac/crop[/{width}x{height}][].{format}]`                          | image/bin | create an image from a geojson covering the assets
 | `GET`  | `/stac[/{TileMatrixSetId}]/map`                                      | HTML      | simple map viewer
-| `GET`  | `/stac/viewer`                                                       | HTML      | demo webpage (Not in `MultiBaseTilerFactory`)
+| `GET`  | `/stac/viewer`                                                       | HTML      | demo webpage (from `titiler.extensions.stacViewerExtension`)
 
 ## Description
 
@@ -414,9 +406,7 @@ Example:
 - `https://myendpoint/stac/statistics?url=https://somewhere.com/item.json&assets=B01&categorical=true&c=1&c=2&c=3&p=2&p98`
 
 
-### Demo
-
-Demonstration viewer added to the router created by the factory (https://github.com/developmentseed/titiler/blob/1f6b00cd50d60acae7b41ee108f80ad08fa52094/titiler/endpoints/stac.py#L14-L26).
+### Viewer
 
 `:endpoint:/stac/viewer` - STAC viewer
 
