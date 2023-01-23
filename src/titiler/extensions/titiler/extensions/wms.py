@@ -448,7 +448,6 @@ class wmsExtension(FactoryExtension):
                         detail=f"Invalid 'BBOX' parameters: {req['bbox']}. Needs 4 coordinates separated by commas",
                     )
 
-                # TODO: check this
                 if version == "1.3.0":
                     # WMS 1.3.0 is lame and flips the coords of EPSG:4326
                     # EPSG:4326 refers to WGS 84 geographic latitude, then longitude.
