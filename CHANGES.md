@@ -3,6 +3,7 @@
 ## 0.11.0 (TBD)
 
 * add `titiler.extension` package
+* add `titiler.extension.WMSExtension`
 
 ### titiler.mosaic
 

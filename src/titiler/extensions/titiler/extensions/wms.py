@@ -423,7 +423,7 @@ class wmsExtension(FactoryExtension):
                 missing_keys = req_keys.difference(intrs)
                 if len(missing_keys) > 0:
                     raise HTTPException(
-                        status_code=500,
+                        status_code=400,
                         detail=f"Missing 'GetMap' parameters: {missing_keys}",
                     )
 
@@ -436,7 +436,7 @@ class wmsExtension(FactoryExtension):
 
                 if not set(req.keys()).intersection({"crs", "srs"}):
                     raise HTTPException(
-                        status_code=500, detail="Missing 'CRS' or 'SRS parameters."
+                        status_code=400, detail="Missing 'CRS' or 'SRS parameters."
                     )
 
                 crs = CRS.from_user_input(req.get("crs", req.get("srs")))
@@ -451,6 +451,8 @@ class wmsExtension(FactoryExtension):
                 # TODO: check this
                 if version == "1.3.0":
                     # WMS 1.3.0 is lame and flips the coords of EPSG:4326
+                    # EPSG:4326 refers to WGS 84 geographic latitude, then longitude.
+                    # That is, in this CRS the x axis corresponds to latitude, and the y axis to longitude.
                     if crs == CRS.from_epsg(4326):
                         bbox = [
                             bbox[1],
@@ -458,15 +460,17 @@ class wmsExtension(FactoryExtension):
                             bbox[3],
                             bbox[2],
                         ]
+
                     # Overwrite CRS:84 with EPSG:4326 when specified
+                    # “CRS:84” refers to WGS 84 geographic longitude and latitude expressed in decimal degrees
                     elif crs == CRS.from_user_input("CRS:84"):
                         crs = CRS.from_epsg(4326)
 
-                if transparent := req.get("TRANSPARENT", False):
-                    if transparent.lower() == "true":
+                if transparent := req.get("transparent", False):
+                    if str(transparent).lower() == "true":
                         transparent = True
 
-                    elif transparent.lower() == "false":
+                    elif str(transparent).lower() == "false":
                         transparent = False
 
                     else:
