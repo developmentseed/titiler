@@ -14,28 +14,50 @@ MAX_THREADS
 img_endpoint_params
 ```
 
+```python3
+mosaic_tms
+```
+
+## Functions
+
+    
+### PixelSelectionParams
+
+```python3
+def PixelSelectionParams(
+    pixel_selection: titiler.mosaic.resources.enums.PixelSelectionMethod = Query(first)
+) -> rio_tiler.mosaic.methods.base.MosaicMethodBase
+```
+
+    
+Returns the mosaic method used to combine datasets together.
+
 ## Classes
 
 ### MosaicTilerFactory
 
 ```python3
 class MosaicTilerFactory(
-    reader: Type[cogeo_mosaic.backends.base.BaseBackend] = <function MosaicBackend at 0x1396f40d0>,
-    reader_options: Dict = <factory>,
+    reader: Type[cogeo_mosaic.backends.base.BaseBackend] = <function MosaicBackend at 0x14133d8b0>,
     router: fastapi.routing.APIRouter = <factory>,
-    path_dependency: Callable[..., str] = <function DatasetPathParams at 0x139dd9550>,
+    path_dependency: Callable[..., Any] = <function DatasetPathParams at 0x145463550>,
     dataset_dependency: Type[titiler.core.dependencies.DefaultDependency] = <class 'titiler.core.dependencies.DatasetParams'>,
     layer_dependency: Type[titiler.core.dependencies.DefaultDependency] = <class 'titiler.core.dependencies.BidxExprParams'>,
     render_dependency: Type[titiler.core.dependencies.DefaultDependency] = <class 'titiler.core.dependencies.ImageRenderingParams'>,
-    colormap_dependency: Callable[..., Union[Dict, NoneType]] = <function ColorMapParams at 0x139dd94c0>,
-    process_dependency: Type[titiler.core.dependencies.DefaultDependency] = <class 'titiler.core.dependencies.PostProcessParams'>,
-    tms_dependency: Callable[..., morecantile.models.TileMatrixSet] = <function WebMercatorTMSParams at 0x1398e6940>,
-    additional_dependency: Callable[..., Dict] = <function BaseTilerFactory.<lambda> at 0x139f0aa60>,
+    colormap_dependency: Callable[..., Union[Dict[int, Tuple[int, int, int, int]], Sequence[Tuple[Tuple[Union[float, int], Union[float, int]], Tuple[int, int, int, int]]], NoneType]] = <function ColorMapParams at 0x1454633a0>,
+    process_dependency: Callable[..., Optional[titiler.core.algorithm.base.BaseAlgorithm]] = <function Algorithms.dependency.<locals>.post_process at 0x146adc670>,
+    reader_dependency: Type[titiler.core.dependencies.DefaultDependency] = <class 'titiler.core.dependencies.DefaultDependency'>,
+    environment_dependency: Callable[..., Dict] = <function BaseTilerFactory.<lambda> at 0x146adc5e0>,
+    supported_tms: morecantile.defaults.TileMatrixSets = TileMatrixSets(tms={'WebMercatorQuad': <TileMatrixSet title='Google Maps Compatible for the World' identifier='WebMercatorQuad'>}),
+    default_tms: str = 'WebMercatorQuad',
     router_prefix: str = '',
-    gdal_config: Dict = <factory>,
     optional_headers: List[titiler.core.resources.enums.OptionalHeader] = <factory>,
-    dataset_reader: Type[rio_tiler.io.base.BaseReader] = <class 'rio_tiler.io.cogeo.COGReader'>,
-    backend_options: Dict = <factory>
+    route_dependencies: List[Tuple[List[titiler.core.routing.EndpointScope], List[fastapi.params.Depends]]] = <factory>,
+    extensions: List[titiler.core.factory.FactoryExtension] = <factory>,
+    dataset_reader: Union[Type[rio_tiler.io.base.BaseReader], Type[rio_tiler.io.base.MultiBaseReader], Type[rio_tiler.io.base.MultiBandReader]] = <class 'rio_tiler.io.rasterio.Reader'>,
+    backend_dependency: Type[titiler.core.dependencies.DefaultDependency] = <class 'titiler.core.dependencies.DefaultDependency'>,
+    pixel_selection_dependency: Callable[..., rio_tiler.mosaic.methods.base.MosaicMethodBase] = <function PixelSelectionParams at 0x14133d820>,
+    add_viewer: bool = True
 )
 ```
 
@@ -46,6 +68,14 @@ class MosaicTilerFactory(
 #### Class variables
 
 ```python3
+add_viewer
+```
+
+```python3
+backend_dependency
+```
+
+```python3
 dataset_dependency
 ```
 
@@ -54,11 +84,15 @@ dataset_reader
 ```
 
 ```python3
+default_tms
+```
+
+```python3
 layer_dependency
 ```
 
 ```python3
-process_dependency
+reader_dependency
 ```
 
 ```python3
@@ -69,18 +103,28 @@ render_dependency
 router_prefix
 ```
 
+```python3
+supported_tms
+```
+
 #### Methods
 
     
-#### additional_dependency
+#### add_route_dependencies
 
 ```python3
-def additional_dependency(
-    
+def add_route_dependencies(
+    self,
+    *,
+    scopes: List[titiler.core.routing.EndpointScope],
+    dependencies=typing.List[fastapi.params.Depends]
 )
 ```
 
     
+Add dependencies to routes.
+
+Allows a developer to add dependencies to a route after the route has been defined.
 
     
 #### assets
@@ -113,11 +157,22 @@ Register /bounds endpoint.
 def colormap_dependency(
     colormap_name: titiler.core.dependencies.ColorMapName = Query(None),
     colormap: str = Query(None)
-) -> Union[Dict, Sequence, NoneType]
+) -> Union[Dict[int, Tuple[int, int, int, int]], Sequence[Tuple[Tuple[Union[float, int], Union[float, int]], Tuple[int, int, int, int]]], NoneType]
 ```
 
     
 Colormap Dependency.
+
+    
+#### environment_dependency
+
+```python3
+def environment_dependency(
+    
+)
+```
+
+    
 
     
 #### info
@@ -132,6 +187,18 @@ def info(
 Register /info endpoint
 
     
+#### map_viewer
+
+```python3
+def map_viewer(
+    self
+)
+```
+
+    
+Register /map endpoint.
+
+    
 #### path_dependency
 
 ```python3
@@ -144,6 +211,18 @@ def path_dependency(
 Create dataset path from args
 
     
+#### pixel_selection_dependency
+
+```python3
+def pixel_selection_dependency(
+    pixel_selection: titiler.mosaic.resources.enums.PixelSelectionMethod = Query(first)
+) -> rio_tiler.mosaic.methods.base.MosaicMethodBase
+```
+
+    
+Returns the mosaic method used to combine datasets together.
+
+    
 #### point
 
 ```python3
@@ -154,6 +233,19 @@ def point(
 
     
 Register /point endpoint.
+
+    
+#### process_dependency
+
+```python3
+def process_dependency(
+    algorithm: Literal['hillshade', 'contours', 'normalizedIndex', 'terrarium', 'terrainrgb'] = Query(None),
+    algorithm_params: str = Query(None)
+) -> Optional[titiler.core.algorithm.base.BaseAlgorithm]
+```
+
+    
+Data Post-Processing options.
 
     
 #### read
@@ -172,14 +264,14 @@ Register / (Get) Read endpoint.
 
 ```python3
 def reader(
-    url: str,
+    input: str,
     *args: Any,
     **kwargs: Any
 ) -> cogeo_mosaic.backends.base.BaseBackend
 ```
 
     
-Select mosaic backend for url.
+Select mosaic backend for input.
 
     
 #### register_routes
@@ -195,7 +287,7 @@ This Method register routes to the router.
 
 Because we wrap the endpoints in a class we cannot define the routes as
 methods (because of the self argument). The HACK is to define routes inside
-the class method and register them after the class initialisation.
+the class method and register them after the class initialization.
 
     
 #### tile
@@ -220,18 +312,6 @@ def tilejson(
 
     
 Add tilejson endpoint.
-
-    
-#### tms_dependency
-
-```python3
-def tms_dependency(
-    TileMatrixSetId: titiler.core.dependencies.WebMercatorTileMatrixSetName = Query(WebMercatorTileMatrixSetName.WebMercatorQuad)
-) -> morecantile.models.TileMatrixSet
-```
-
-    
-TileMatrixSet Dependency.
 
     
 #### url_for

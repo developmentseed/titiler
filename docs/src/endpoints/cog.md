@@ -24,6 +24,7 @@ The `/cog` routes are based on `titiler.core.factory.TilerFactory` but with `cog
 | `GET`  | `/cog[/{TileMatrixSetId}]/map`                                      | HTML      | simple map viewer
 | `GET`  | `/cog/validate`                                                     | JSON      | validate a COG and return dataset info (from `titiler.extensions.cogValidateExtension`)
 | `GET`  | `/cog/viewer`                                                       | HTML      | demo webpage (from `titiler.extensions.cogViewerExtension`)
+| `GET`  | `/cog/stac`                                                         | GeoJSON   | create STAC Items from a dataset (from `titiler.extensions.stacExtension`)
 
 ## Description
 
@@ -104,7 +105,7 @@ Example:
 
 - PathParams:
     - **minx,miny,maxx,maxy** (str): Comma (',') delimited bounding box in WGS84.
-    - **format** (str): Output image format
+    - **format** (str): Output image format.
     - **height** (int): Force output image height.
     - **width** (int): Force output image width.
 
@@ -304,7 +305,7 @@ Advanced raster statistics
     - **c** (array[float]): Pixels values for categories.
     - **p** (array[int]): Percentile values.
     - **histogram_bins** (str): Histogram bins.
-    - **histogram_range** (str): Comma (',') delimited Min,Max histogram bounds
+    - **histogram_range** (str): Comma (',') delimited Min,Max histogram bounds.
 
 Example:
 
@@ -329,7 +330,7 @@ Example:
     - **c** (array[float]): Pixels values for categories.
     - **p** (array[int]): Percentile values.
     - **histogram_bins** (str): Histogram bins.
-    - **histogram_range** (str): Comma (',') delimited Min,Max histogram bounds
+    - **histogram_range** (str): Comma (',') delimited Min,Max histogram bounds.
 
 Example:
 
@@ -359,3 +360,28 @@ Example:
 Example:
 
 - `https://myendpoint/cog/validate?url=https://somewhere.com/mycog.tif`
+
+
+### Stac
+
+`:endpoint:/cog/stac` - Create STAC Item
+
+- QueryParams:
+    - **url**: Cloud Optimized GeoTIFF URL. **Required**
+    - **datetime** (str): The date and time of the assets, in UTC (e.g 2020-01-01, 2020-01-01T01:01:01).
+    - **extension** (array[uri]): STAC extension URL the Item implements.
+    - **collection** (str): The Collection ID that this item belongs to.
+    - **collection_url** (uri): Link to the STAC Collection.
+    - **id** (str): Id to assign to the item (default to the source basename).
+    - **asset_name** (str): asset name for the source (default to 'data').
+    - **asset_roles** (array[str]): List of asset's roles.
+    - **asset_media_type** (str): Asset's media type.
+    - **asset_href** (uri): Asset's URI (default to source's path).
+    - **with_proj** (bool): Add the `projection` extension and properties.
+    - **with_raster** (bool): Add the `raster` extension and properties.
+    - **with_eo** (bool): Add the `eo` extension and properties.
+    - **max_size** (int): Limit array size from which to get the raster statistics.
+
+Example:
+
+- `https://myendpoint/cog/stac?url=https://somewhere.com/mycog.tif`

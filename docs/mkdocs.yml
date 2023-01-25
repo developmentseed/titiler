@@ -33,14 +33,8 @@ nav:
       - Customization: "advanced/customization.md"
       - Performance Tuning: "advanced/performance_tuning.md"
       - Custom Algorithm: "advanced/Algorithms.md"
-
+      - Extensions: "advanced/Extensions.md"
       # - APIRoute and environment variables: "advanced/APIRoute_and_environment_variables.md"
-
-  - Default Endpoints:
-    - /cog: "endpoints/cog.md"
-    - /stac: "endpoints/stac.md"
-    - /mosaicjson: "endpoints/mosaic.md"
-    - /tileMatrixSets: "endpoints/tms.md"
 
   - Examples:
     - Create dynamic tilers with TiTiler:
@@ -81,6 +75,12 @@ nav:
       - factory: api/titiler/mosaic/factory.md
       - enums: api/titiler/mosaic/resources/enums.md
       - errors: api/titiler/mosaic/errors.md
+
+  - titiler.application:
+    - /cog: "endpoints/cog.md"
+    - /stac: "endpoints/stac.md"
+    - /mosaicjson: "endpoints/mosaic.md"
+    - /tileMatrixSets: "endpoints/tms.md"
 
   - Deployment:
     - Amazon Web Services:

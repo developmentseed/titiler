@@ -75,7 +75,7 @@ class stacExtension(FactoryExtension):
             # properties: Optional[Dict] = Query(None, description="Additional properties to add in the item."),
             id: Optional[str] = Query(
                 None,
-                description=" Id to assign to the item (default to the source basename)",
+                description="Id to assign to the item (default to the source basename).",
             ),
             asset_name: Optional[str] = Query(
                 "data", description="asset name for the source (default to 'data')."

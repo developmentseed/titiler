@@ -2,7 +2,7 @@
 
 ## 0.11.0 (TBD)
 
-* add `titiler.extension` package
+* add `titiler.extensions` package
 
 ### titiler.mosaic
 
