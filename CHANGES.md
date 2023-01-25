@@ -2,8 +2,7 @@
 
 ## 0.11.0 (TBD)
 
-* add `titiler.extension` package
-* add `titiler.extension.WMSExtension`
+* add `titiler.extensions` package (`cogValidateExtension`, `stacExtension`, `cogViewerExtension`,  `stacViewerExtension`, `wmsExtension`)
 
 ### titiler.mosaic
 
@@ -14,6 +13,7 @@
 ### titiler.core
 
 * add `extensions` option to the `BaseTilerFactory` to specify a list of extension we want to register. Each extension will be then registered in the `__post_init__` object creation step.
+* remove `BaseHTTPMiddleware` class inheritance for middleware (write pure ASGI middleware)
 
 ### titiler.application
 
