@@ -1,2 +1,3 @@
 recursive-exclude tests *
 include titiler/extensions/templates/*.html
+include titiler/extensions/templates/*.xml
