@@ -439,7 +439,13 @@ class wmsExtension(FactoryExtension):
                         status_code=400, detail="Missing 'CRS' or 'SRS parameters."
                     )
 
-                crs = CRS.from_user_input(req.get("crs", req.get("srs")))
+                crs_value = req.get("crs", req.get("srs"))
+                if not crs_value:
+                    raise HTTPException(
+                        status_code=400, detail="Invalid 'CRS' parameter."
+                    )
+
+                crs = CRS.from_user_input(crs_value)
 
                 bbox = list(map(float, req["bbox"].split(",")))
                 if len(bbox) != 4:

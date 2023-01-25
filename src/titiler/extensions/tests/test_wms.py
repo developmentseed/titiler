@@ -258,6 +258,23 @@ def test_wmsExtension_GetMap():
         response = client.get(
             "/wms",
             params={
+                "VERSION": "1.3.0",
+                "REQUEST": "GetMap",
+                "LAYERS": cog,
+                "BBOX": "373185.0,8019284.949381611,639014.9492102272,8286015.0",
+                "CRS": "",
+                "WIDTH": 334,
+                "HEIGHT": 333,
+                "FORMAT": "image/png",
+                "TRANSPARENT": True,
+            },
+        )
+        assert response.status_code == 400
+        assert "Invalid 'CRS' parameter" in response.text
+
+        response = client.get(
+            "/wms",
+            params={
                 "VERSION": "1.3.1",
                 "REQUEST": "GetMap",
                 "LAYERS": cog,
