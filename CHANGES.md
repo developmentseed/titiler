@@ -2,7 +2,7 @@
 
 ## 0.11.0 (TBD)
 
-* add `titiler.extensions` package
+* add `titiler.extensions` package (`cogValidateExtension`, `stacExtension`, `cogViewerExtension`,  `stacViewerExtension`, `wmsExtension`)
 
 ### titiler.mosaic
 

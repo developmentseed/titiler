@@ -34,7 +34,9 @@ setup(
     url="https://github.com/developmentseed/titiler",
     license="MIT",
     packages=find_namespace_packages(exclude=["tests*"]),
-    package_data={"titiler": ["extensions/templates/*.html"]},
+    package_data={
+        "titiler": ["extensions/templates/*.html", "extensions/templates/*.xml"]
+    },
     include_package_data=True,
     zip_safe=False,
     install_requires=inst_reqs,

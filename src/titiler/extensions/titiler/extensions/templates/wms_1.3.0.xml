@@ -1,0 +1,79 @@
+<?xml version='1.0' encoding="UTF-8" standalone="no" ?>
+<WMS_Capabilities version="1.3.0">
+
+<Service>
+  <Name>TiTiler WMS</Name>
+  <Title>TiTiler WMS</Title>
+  <Abstract>COG URLs specified in the "LAYERS" parameter will show up as available layers</Abstract>
+</Service>
+
+<Capability>
+  <Request>
+    <GetCapabilities>
+      <Format>text/xml</Format>
+      <DCPType>
+        <HTTP>
+          <Get><OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{{ request_url }}"/></Get>
+          <Post><OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{{ request_url }}"/></Post>
+        </HTTP>
+      </DCPType>
+    </GetCapabilities>
+    <GetMap>
+      {% for format in formats %}
+      <Format>{{format}}</Format>
+      {% endfor %}
+      <DCPType>
+        <HTTP>
+          <Get><OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{{ request_url }}"/></Get>
+          <Post><OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{{ request_url }}"/></Post>
+        </HTTP>
+      </DCPType>
+    </GetMap>
+  </Request>
+  <Exception>
+    <Format>XML</Format>
+    <Format>INIMAGE</Format>
+    <Format>BLANK</Format>
+  </Exception>
+
+  <Layer>
+    <Name>TiTiler WMS</Name>
+    <Title>TiTiler WMS</Title>
+    <Abstract>COG URLs specified in the "LAYERS" parameter will show up as available layers</Abstract>
+    
+    {% for crs in available_epsgs %}
+    <CRS>{{crs}}</CRS>
+    {% endfor %}
+    
+    <EX_GeographicBoundingBox>
+        <westBoundLongitude>{{service_dict['xmin']}}</westBoundLongitude>
+        <eastBoundLongitude>{{service_dict['xmax']}}</eastBoundLongitude>
+        <southBoundLatitude>{{service_dict['ymin']}}</southBoundLatitude>
+        <northBoundLatitude>{{service_dict['ymax']}}</northBoundLatitude>
+    </EX_GeographicBoundingBox>
+    
+    <BoundingBox CRS="CRS:84" minx="{{service_dict['ymin']}}" miny="{{service_dict['xmin']}}" maxx="{{service_dict['ymax']}}" maxy="{{service_dict['xmax']}}" />
+    <BoundingBox CRS="EPSG:4326" minx="{{service_dict['xmin']}}" miny="{{service_dict['ymin']}}" maxx="{{service_dict['xmax']}}" maxy="{{service_dict['ymax']}}" />
+    
+    {% for layer in layers_dict.keys() %}
+    <Layer queryable="0" opaque="0" cascaded="0">
+        <Name>{{layer}}</Name>
+        <Title>{{layer}}</Title>
+        <Abstract>{{layers_dict[layer]['abstract']}}</Abstract>
+        {% for crs in available_epsgs %}
+        <CRS>{{crs}}</CRS>
+        {% endfor %}
+        <EX_GeographicBoundingBox>
+            <westBoundLongitude>{{layers_dict[layer]['bounds_wgs84'][0]}}</westBoundLongitude>
+            <eastBoundLongitude>{{layers_dict[layer]['bounds_wgs84'][2]}}</eastBoundLongitude>
+            <southBoundLatitude>{{layers_dict[layer]['bounds_wgs84'][1]}}</southBoundLatitude>
+            <northBoundLatitude>{{layers_dict[layer]['bounds_wgs84'][3]}}</northBoundLatitude>
+        </EX_GeographicBoundingBox>
+        <BoundingBox CRS="CRS:84" minx="{{layers_dict[layer]['bounds_wgs84'][0]}}" miny="{{layers_dict[layer]['bounds_wgs84'][1]}}" maxx="{{layers_dict[layer]['bounds_wgs84'][2]}}" maxy="{{layers_dict[layer]['bounds_wgs84'][3]}}"/>
+        <BoundingBox CRS="{{layers_dict[layer]['srs']}}" minx="{{layers_dict[layer]['bounds'][1]}}" miny="{{layers_dict[layer]['bounds'][0]}}" maxx="{{layers_dict[layer]['bounds'][3]}}" maxy="{{layers_dict[layer]['bounds'][2]}}"/>
+    </Layer>
+    {% endfor %}
+    
+  </Layer>
+</Capability>
+</WMS_Capabilities>
