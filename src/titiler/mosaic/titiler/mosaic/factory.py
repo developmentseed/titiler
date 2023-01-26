@@ -26,7 +26,7 @@ from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLR
 from titiler.mosaic.models.responses import Point
 from titiler.mosaic.resources.enums import PixelSelectionMethod
 
-from fastapi import Depends, Path, Query
+from fastapi import Depends, HTTPException, Path, Query
 
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, Response
@@ -103,13 +103,6 @@ class MosaicTilerFactory(BaseTilerFactory):
     def read(self):
         """Register / (Get) Read endpoint."""
 
-        @self.router.get(
-            "",
-            response_model=MosaicJSON,
-            response_model_exclude_none=True,
-            responses={200: {"description": "Return MosaicJSON definition"}},
-            deprecated=True,
-        )
         @self.router.get(
             "/",
             response_model=MosaicJSON,
@@ -278,6 +271,8 @@ class MosaicTilerFactory(BaseTilerFactory):
             """Create map tile from a COG."""
             threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
 
+            strict_zoom = str(os.getenv("MOSAIC_STRICT_ZOOM", False)).lower() == "true"
+
             with rasterio.Env(**env):
                 with self.reader(
                     src_path,
@@ -285,6 +280,13 @@ class MosaicTilerFactory(BaseTilerFactory):
                     reader_options={**reader_params},
                     **backend_params,
                 ) as src_dst:
+
+                    if strict_zoom and (z < src_dst.minzoom or z > src_dst.maxzoom):
+                        raise HTTPException(
+                            400,
+                            f"Invalid ZOOM level {z}. Should be between {src_dst.minzoom} and {src_dst.maxzoom}",
+                        )
+
                     image, assets = src_dst.tile(
                         x,
                         y,
