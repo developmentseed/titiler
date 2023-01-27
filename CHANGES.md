@@ -7,6 +7,7 @@
 ### titiler.mosaic
 
 * update `cogeo-mosaic` version requirement to `>=5.0,<5.2` (allow using `az://` prefix from uri)
+* add `MOSAIC_STRICT_ZOOM` environment variable to control if the application should allow fetching tiles outside mosaic min/max zooms
 
 **breaking change**
 
@@ -20,6 +21,10 @@
 * uses Extension to add more endpoints to default `titiler.core` factories
 * move all `viewer` code into `titiler.extensions`
 * add `/cog/stac` endpoint from `titiler.extension.stacExtension` to create STAC Items from raster dataset
+
+### titiler.mosaic
+
+* removed deprecated *empty* path (`/` is the correct route path, which enable prefixed and non-prefixed mosaic application)
 
 ## 0.10.2 (2022-12-17)
 
