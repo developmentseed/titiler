@@ -271,7 +271,10 @@ class MosaicTilerFactory(BaseTilerFactory):
             """Create map tile from a COG."""
             threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
 
-            strict_zoom = str(os.getenv("MOSAIC_STRICT_ZOOM", False)).lower() == "true"
+            strict_zoom = str(os.getenv("MOSAIC_STRICT_ZOOM", False)).lower() in [
+                "true",
+                "yes",
+            ]
 
             with rasterio.Env(**env):
                 with self.reader(
