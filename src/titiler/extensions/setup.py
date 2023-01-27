@@ -5,7 +5,7 @@ from setuptools import find_namespace_packages, setup
 with open("README.md") as f:
     long_description = f.read()
 
-inst_reqs = ["titiler.core==0.10.2"]
+inst_reqs = ["titiler.core==0.11.0"]
 extra_reqs = {
     "cogeo": ["rio-cogeo>=3.1,<4.0"],
     "stac": ["rio-stac>=0.6,<0.7"],

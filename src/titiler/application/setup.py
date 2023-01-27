@@ -6,9 +6,9 @@ with open("README.md") as f:
     long_description = f.read()
 
 inst_reqs = [
-    "titiler.core==0.10.2",
-    "titiler.extensions[cogeo,stac]==0.10.2",
-    "titiler.mosaic==0.10.2",
+    "titiler.core==0.11.0",
+    "titiler.extensions[cogeo,stac]==0.11.0",
+    "titiler.mosaic==0.11.0",
     "starlette-cramjam>=0.3,<0.4",
     "python-dotenv",
 ]
