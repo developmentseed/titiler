@@ -1,6 +1,6 @@
 # Release Notes
 
-## 0.11.0 (TBD)
+## 0.11.0 (2023-01-27)
 
 * add `titiler.extensions` package (`cogValidateExtension`, `stacExtension`, `cogViewerExtension`,  `stacViewerExtension`, `wmsExtension`)
 
