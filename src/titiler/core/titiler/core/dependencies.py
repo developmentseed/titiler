@@ -6,12 +6,11 @@ from enum import Enum
 from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy
+from fastapi import HTTPException, Query
 from rasterio.enums import Resampling
 from rio_tiler.colormap import cmap, parse_color
 from rio_tiler.errors import MissingAssets, MissingBands
 from rio_tiler.types import ColorMapType
-
-from fastapi import HTTPException, Query
 
 ColorMapName = Enum(  # type: ignore
     "ColorMapName", [(a, a) for a in sorted(cmap.list())]
@@ -41,10 +40,10 @@ def ColorMapParams(
                 c = [(tuple(inter), parse_color(v)) for (inter, v) in c]
 
             return c
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as e:
             raise HTTPException(
                 status_code=400, detail="Could not parse the colormap value."
-            )
+            ) from e
 
     return None
 

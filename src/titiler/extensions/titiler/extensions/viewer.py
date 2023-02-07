@@ -2,11 +2,11 @@
 
 from dataclasses import dataclass
 
-from titiler.core.factory import BaseTilerFactory, FactoryExtension
-
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
 from starlette.templating import Jinja2Templates
+
+from titiler.core.factory import BaseTilerFactory, FactoryExtension
 
 try:
     from importlib.resources import files as resources_files  # type: ignore

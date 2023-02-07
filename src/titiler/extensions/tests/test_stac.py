@@ -3,13 +3,11 @@
 import os
 
 import pystac
+from fastapi import FastAPI
+from starlette.testclient import TestClient
 
 from titiler.core.factory import TilerFactory
 from titiler.extensions import stacExtension
-
-from fastapi import FastAPI
-
-from starlette.testclient import TestClient
 
 cog = os.path.join(os.path.dirname(__file__), "fixtures", "cog.tif")
 

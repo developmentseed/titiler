@@ -3,14 +3,12 @@
 import json
 
 import numpy
+from fastapi import Depends, FastAPI
 from rio_tiler.models import ImageData
+from starlette.testclient import TestClient
 
 from titiler.core.algorithm import BaseAlgorithm
 from titiler.core.algorithm import algorithms as default_algorithms
-
-from fastapi import Depends, FastAPI
-
-from starlette.testclient import TestClient
 
 
 class Multiply(BaseAlgorithm):

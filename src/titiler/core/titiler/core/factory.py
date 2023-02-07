@@ -6,6 +6,9 @@ from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Type, Un
 from urllib.parse import urlencode
 
 import rasterio
+from fastapi import APIRouter, Body, Depends, Path, Query
+from fastapi.dependencies.utils import get_parameterless_sub_dependant
+from fastapi.params import Depends as DependsFunc
 from geojson_pydantic.features import Feature, FeatureCollection
 from geojson_pydantic.geometries import Polygon
 from morecantile import TileMatrixSet
@@ -15,6 +18,10 @@ from rio_tiler.io import BaseReader, MultiBandReader, MultiBaseReader, Reader
 from rio_tiler.models import BandStatistics, Bounds, Info
 from rio_tiler.types import ColorMapType
 from rio_tiler.utils import get_array_statistics
+from starlette.requests import Request
+from starlette.responses import HTMLResponse, Response
+from starlette.routing import Match, compile_path, replace_params
+from starlette.templating import Jinja2Templates
 
 from titiler.core.algorithm import AlgorithmMetadata, Algorithms, BaseAlgorithm
 from titiler.core.algorithm import algorithms as available_algorithms
@@ -52,15 +59,6 @@ from titiler.core.models.responses import (
 from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
 from titiler.core.routing import EndpointScope
-
-from fastapi import APIRouter, Body, Depends, Path, Query
-from fastapi.dependencies.utils import get_parameterless_sub_dependant
-from fastapi.params import Depends as DependsFunc
-
-from starlette.requests import Request
-from starlette.responses import HTMLResponse, Response
-from starlette.routing import Match, compile_path, replace_params
-from starlette.templating import Jinja2Templates
 
 try:
     from importlib.resources import files as resources_files  # type: ignore
@@ -152,7 +150,7 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
     reader_dependency: Type[DefaultDependency] = DefaultDependency
 
     # GDAL ENV dependency
-    environment_dependency: Callable[..., Dict] = lambda: dict()
+    environment_dependency: Callable[..., Dict] = field(default=lambda: {})
 
     # TileMatrixSet dependency
     supported_tms: TileMatrixSets = morecantile_tms

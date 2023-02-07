@@ -2,9 +2,9 @@
 
 from dataclasses import dataclass
 
-from titiler.core.factory import BaseTilerFactory, FactoryExtension
-
 from fastapi import Depends, Query
+
+from titiler.core.factory import BaseTilerFactory, FactoryExtension
 
 try:
     from rio_cogeo.cogeo import cog_info

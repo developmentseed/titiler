@@ -4,9 +4,9 @@ import sys
 from dataclasses import dataclass
 from typing import Any, Dict, List, Literal, Optional
 
-from titiler.core.factory import BaseTilerFactory, FactoryExtension
-
 from fastapi import Depends, Query
+
+from titiler.core.factory import BaseTilerFactory, FactoryExtension
 
 # Avoids a Pydantic error:
 # TypeError: You should use `typing_extensions.TypedDict` instead of `typing.TypedDict` with Python < 3.9.2.

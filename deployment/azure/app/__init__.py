@@ -1,6 +1,11 @@
 """Microsoft Azure Function."""
 
 import azure.functions as func
+from fastapi import FastAPI
+from starlette.middleware.cors import CORSMiddleware
+from starlette.requests import Request
+from starlette.responses import HTMLResponse
+from starlette_cramjam.middleware import CompressionMiddleware
 
 from titiler.application import __version__ as titiler_version
 from titiler.application.custom import templates
@@ -15,13 +20,6 @@ from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 #     TotalTimeMiddleware,
 # )
 from titiler.mosaic.errors import MOSAIC_STATUS_CODES
-
-from fastapi import FastAPI
-
-from starlette.middleware.cors import CORSMiddleware
-from starlette.requests import Request
-from starlette.responses import HTMLResponse
-from starlette_cramjam.middleware import CompressionMiddleware
 
 api_settings = ApiSettings()
 

@@ -1,12 +1,11 @@
 """Test titiler.core.CacheControlMiddleware."""
 
 
-from titiler.core.middleware import CacheControlMiddleware
-
 from fastapi import FastAPI, Path
-
 from starlette.responses import Response
 from starlette.testclient import TestClient
+
+from titiler.core.middleware import CacheControlMiddleware
 
 
 def test_cachecontrol_middleware_exclude():

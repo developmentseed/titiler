@@ -102,7 +102,7 @@ class titilerECSStack(core.Stack):
         cluster = ecs.Cluster(self, f"{id}-cluster", vpc=vpc)
 
         task_env = environment.copy()
-        task_env.update(dict(LOG_LEVEL="error"))
+        task_env.update({"LOG_LEVEL": "error"})
 
         # GUNICORN configuration
         if settings.workers_per_core:

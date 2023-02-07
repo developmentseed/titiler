@@ -4,15 +4,13 @@ from dataclasses import dataclass
 from typing import Optional, Union
 
 import numpy
+from fastapi import FastAPI, Query
+from starlette.testclient import TestClient
 
 from titiler.core.dependencies import ImageRenderingParams
 from titiler.core.factory import TilerFactory
 
 from .conftest import DATA_DIR, parse_img
-
-from fastapi import FastAPI, Query
-
-from starlette.testclient import TestClient
 
 
 @dataclass

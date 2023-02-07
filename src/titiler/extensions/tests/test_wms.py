@@ -3,16 +3,14 @@
 import os
 import xml.etree.ElementTree as ET
 
+from fastapi import FastAPI
 from rasterio.crs import CRS
+from starlette.testclient import TestClient
 
 from titiler.core.factory import TilerFactory
 from titiler.extensions import wmsExtension
 
 from .conftest import parse_img
-
-from fastapi import FastAPI
-
-from starlette.testclient import TestClient
 
 cog = os.path.join(os.path.dirname(__file__), "fixtures", "cog.tif")
 cog1 = os.path.join(os.path.dirname(__file__), "fixtures", "cog1.tif")
