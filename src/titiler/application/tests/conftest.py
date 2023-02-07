@@ -7,7 +7,6 @@ from typing import Any, Dict
 import pytest
 import rasterio
 from rasterio.io import MemoryFile
-
 from starlette.testclient import TestClient
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "fixtures")

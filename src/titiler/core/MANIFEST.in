@@ -1,4 +1,0 @@
-include titiler/core/templates/*.xml
-include titiler/core/templates/*.html
-
-recursive-exclude tests *

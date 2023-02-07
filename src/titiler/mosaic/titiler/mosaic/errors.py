@@ -7,7 +7,6 @@ from cogeo_mosaic.errors import (
     NoAssetFoundError,
 )
 from rio_tiler.errors import EmptyMosaicError
-
 from starlette import status
 
 MOSAIC_STATUS_CODES = {

@@ -3,13 +3,12 @@
 import os
 import re
 
+from fastapi import FastAPI, HTTPException, Query
+from starlette.testclient import TestClient
+
 from titiler.core.factory import TilerFactory
 
 from .conftest import DATA_DIR
-
-from fastapi import FastAPI, HTTPException, Query
-
-from starlette.testclient import TestClient
 
 
 def CustomPathParams(

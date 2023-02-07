@@ -3,7 +3,6 @@
 from typing import Any
 
 import simplejson as json
-
 from starlette import responses
 
 

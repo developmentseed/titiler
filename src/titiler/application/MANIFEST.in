@@ -1,3 +1,0 @@
-include titiler/application/templates/*.html
-
-recursive-exclude tests *

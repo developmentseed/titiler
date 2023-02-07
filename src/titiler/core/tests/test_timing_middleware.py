@@ -2,12 +2,11 @@
 
 import time
 
-from titiler.core.middleware import TotalTimeMiddleware
-
 from fastapi import FastAPI
-
 from starlette.responses import Response
 from starlette.testclient import TestClient
+
+from titiler.core.middleware import TotalTimeMiddleware
 
 
 def test_timing_middleware_exclude():

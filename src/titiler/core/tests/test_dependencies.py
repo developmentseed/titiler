@@ -5,15 +5,13 @@ from dataclasses import dataclass
 from typing import Literal
 
 import pytest
+from fastapi import Depends, FastAPI, Query
 from morecantile import tms
 from rio_tiler.types import ColorMapType
+from starlette.testclient import TestClient
 
 from titiler.core import dependencies, errors
 from titiler.core.resources.responses import JSONResponse
-
-from fastapi import Depends, FastAPI, Query
-
-from starlette.testclient import TestClient
 
 
 def test_tms():

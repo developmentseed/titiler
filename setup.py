@@ -1,42 +1,32 @@
-"""Setup titiler metapackage."""
+"""Fake titiler setup.py for github."""
+import sys
 
 from setuptools import setup
 
-with open("README.md") as f:
-    long_description = f.read()
+sys.stderr.write(
+    """
+===============================
+Unsupported installation method
+===============================
+titiler no longer supports installation with `python setup.py install`.
+Please use `python -m pip install .` instead.
+"""
+)
+sys.exit(1)
 
-__version__ = "0.11.0"
 
-inst_reqs = [
-    f"titiler.core=={__version__}",
-    f"titiler.extensions=={__version__}",
-    f"titiler.mosaic=={__version__}",
-    f"titiler.application=={__version__}",
-]
-
+# The below code will never execute, however GitHub is particularly
+# picky about where it finds Python packaging metadata.
+# See: https://github.com/github/feedback/discussions/6456
+#
+# To be removed once GitHub catches up.
 
 setup(
     name="titiler",
-    version=__version__,
-    description="A modern dynamic tile server built on top of FastAPI and Rasterio/GDAL.",
-    long_description=long_description,
-    long_description_content_type="text/markdown",
-    python_requires=">=3.8",
-    classifiers=[
-        "Intended Audience :: Information Technology",
-        "Intended Audience :: Science/Research",
-        "License :: OSI Approved :: BSD License",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
-        "Programming Language :: Python :: 3.11",
+    install_requires=[
+        "titiler.core",
+        "titiler.extensions",
+        "titiler.mosaic",
+        "titiler.application",
     ],
-    keywords="COG STAC MosaicJSON FastAPI Tile Server Dynamic",
-    author="Vincent Sarago",
-    author_email="vincent@developmentseed.org",
-    url="https://github.com/developmentseed/titiler",
-    license="MIT",
-    zip_safe=False,
-    install_requires=inst_reqs,
-    packages=[],
 )

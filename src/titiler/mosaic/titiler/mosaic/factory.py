@@ -9,6 +9,7 @@ import rasterio
 from cogeo_mosaic.backends import BaseBackend, MosaicBackend
 from cogeo_mosaic.models import Info as mosaicInfo
 from cogeo_mosaic.mosaic import MosaicJSON
+from fastapi import Depends, HTTPException, Path, Query
 from geojson_pydantic.features import Feature
 from geojson_pydantic.geometries import Polygon
 from morecantile import tms
@@ -17,6 +18,8 @@ from rio_tiler.constants import MAX_THREADS
 from rio_tiler.io import BaseReader, MultiBandReader, MultiBaseReader, Reader
 from rio_tiler.models import Bounds
 from rio_tiler.mosaic.methods.base import MosaicMethodBase
+from starlette.requests import Request
+from starlette.responses import HTMLResponse, Response
 
 from titiler.core.dependencies import DefaultDependency, RescalingParams
 from titiler.core.factory import BaseTilerFactory, img_endpoint_params, templates
@@ -25,11 +28,6 @@ from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
 from titiler.mosaic.models.responses import Point
 from titiler.mosaic.resources.enums import PixelSelectionMethod
-
-from fastapi import Depends, HTTPException, Path, Query
-
-from starlette.requests import Request
-from starlette.responses import HTMLResponse, Response
 
 # BaseBackend does not support other TMS than WebMercator
 mosaic_tms = TileMatrixSets({"WebMercatorQuad": tms.get("WebMercatorQuad")})

@@ -1,6 +1,6 @@
 name: Lint and Test Charts
 
-on: 
+on:
   push:
     branches:
     - master
@@ -11,7 +11,7 @@ on:
       # Only run test and docker publish if some code have changed
       - 'deployment/k8s/charts/**'
       - '.github/workflows/check_charts.yaml'
-      - 'setup.cfg'
+      - 'pyproject.toml'
   pull_request:
 
 jobs:
@@ -25,10 +25,10 @@ jobs:
 
       - name: Check Version
         run: |
-          current_version=$(grep 'current_version =' setup.cfg | cut -f2 -d= | tr -d ' ')
+          current_version=$(grep 'version=' pyproject.toml | cut -f2 -d= | tr -d ' ' | tr -d '"')
           app_version=$(grep 'appVersion:' deployment/k8s/charts/Chart.yaml | cut -f2 -d: | tr -d ' ')
           if [[ "$current_version" != "$app_version" ]]; then
-            echo "❌ current version from setup.cfg ($current_version) and appVersion from Chart.yaml ($app_version) differs";
+            echo "❌ current version from pyproject.toml ($current_version) and appVersion from Chart.yaml ($app_version) differs";
             exit 1;
           fi
 

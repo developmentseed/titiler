@@ -1,13 +1,11 @@
 """Test TiTiler viewer Extension."""
 
+from fastapi import FastAPI
 from rio_tiler.io import STACReader
+from starlette.testclient import TestClient
 
 from titiler.core.factory import MultiBaseTilerFactory, TilerFactory
 from titiler.extensions import cogViewerExtension, stacViewerExtension
-
-from fastapi import FastAPI
-
-from starlette.testclient import TestClient
 
 
 def test_cogViewerExtension():

@@ -2,11 +2,10 @@
 
 from typing import List
 
-from titiler.core.middleware import LowerCaseQueryStringMiddleware
-
 from fastapi import FastAPI, Query
-
 from starlette.testclient import TestClient
+
+from titiler.core.middleware import LowerCaseQueryStringMiddleware
 
 
 def test_lowercase_middleware():
