@@ -11,6 +11,8 @@ import attr
 import numpy
 from cogeo_mosaic.backends import FileBackend
 from cogeo_mosaic.mosaic import MosaicJSON
+from fastapi import FastAPI
+from starlette.testclient import TestClient
 
 from titiler.core.dependencies import DefaultDependency
 from titiler.core.resources.enums import OptionalHeader
@@ -18,10 +20,6 @@ from titiler.mosaic.factory import MosaicTilerFactory
 from titiler.mosaic.resources.enums import PixelSelectionMethod
 
 from .conftest import DATA_DIR
-
-from fastapi import FastAPI
-
-from starlette.testclient import TestClient
 
 assets = [os.path.join(DATA_DIR, asset) for asset in ["cog1.tif", "cog2.tif"]]
 

@@ -2,6 +2,7 @@
 
 from typing import Callable, Dict, Type
 
+from fastapi import FastAPI
 from rasterio.errors import RasterioError, RasterioIOError
 from rio_tiler.errors import (
     InvalidAssetName,
@@ -12,9 +13,6 @@ from rio_tiler.errors import (
     RioTilerError,
     TileOutsideBounds,
 )
-
-from fastapi import FastAPI
-
 from starlette import status
 from starlette.requests import Request
 from starlette.responses import JSONResponse

@@ -5,13 +5,12 @@ from copy import copy
 from typing import Dict, List, Literal, Optional, Type
 
 import attr
+from fastapi import HTTPException, Query
 from pydantic import ValidationError
 
 from titiler.core.algorithm.base import AlgorithmMetadata, BaseAlgorithm  # noqa
 from titiler.core.algorithm.dem import Contours, HillShade, TerrainRGB, Terrarium
 from titiler.core.algorithm.index import NormalizedIndex
-
-from fastapi import HTTPException, Query
 
 default_algorithms: Dict[str, Type[BaseAlgorithm]] = {
     "hillshade": HillShade,
@@ -45,7 +44,7 @@ class Algorithms:
         overwrite: bool = False,
     ) -> "Algorithms":
         """Register Algorithm(s)."""
-        for name, algo in algorithms.items():
+        for name, _algo in algorithms.items():
             if name in self.data and not overwrite:
                 raise Exception(f"{name} is already a registered. Use overwrite=True.")
 
@@ -66,8 +65,9 @@ class Algorithms:
             if algorithm:
                 try:
                     return self.get(algorithm)(**kwargs)
+
                 except ValidationError as e:
-                    raise HTTPException(status_code=400, detail=str(e))
+                    raise HTTPException(status_code=400, detail=str(e)) from e
 
             return None
 

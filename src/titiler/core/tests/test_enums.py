@@ -25,10 +25,10 @@ def test_imagetype(value, driver, mediatype):
     assert ImageType[value].mediatype == mediatype
 
 
-def test_imageprofile():
+@pytest.mark.parametrize(
+    "driver",
+    ["png", "pngraw", "jpg", "jpeg", "webp"],
+)
+def test_imageprofile(driver):
     """test image profile."""
-    ImageType.png.profile == img_profiles.get("png")
-    ImageType.pngraw.profile == img_profiles.get("pngraw")
-    ImageType.jpg.profile == img_profiles.get("jpg")
-    ImageType.jpeg.profile == img_profiles.get("jpeg")
-    ImageType.webp.profile == img_profiles.get("webp")
+    assert ImageType[driver].profile == img_profiles.get(driver)

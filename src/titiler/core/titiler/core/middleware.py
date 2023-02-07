@@ -6,7 +6,6 @@ import time
 from typing import Optional, Set
 
 from fastapi.logger import logger
-
 from starlette.datastructures import MutableHeaders
 from starlette.requests import Request
 from starlette.types import ASGIApp, Message, Receive, Scope, Send

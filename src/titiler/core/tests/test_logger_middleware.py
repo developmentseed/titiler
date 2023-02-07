@@ -1,10 +1,9 @@
 """Test titiler.core.middleware.TotalTimeMiddleware."""
 
-from titiler.core.middleware import LoggerMiddleware
-
 from fastapi import FastAPI
-
 from starlette.testclient import TestClient
+
+from titiler.core.middleware import LoggerMiddleware
 
 
 def test_timing_middleware_exclude(caplog):

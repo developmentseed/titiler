@@ -7,19 +7,17 @@ from urllib.parse import urlencode
 
 import numpy
 import rasterio
+from fastapi import Depends, HTTPException, Query
 from rasterio.crs import CRS
 from rio_tiler.mosaic import mosaic_reader
 from rio_tiler.mosaic.methods.base import MosaicMethodBase
+from starlette.requests import Request
+from starlette.responses import Response
+from starlette.templating import Jinja2Templates
 
 from titiler.core.dependencies import RescalingParams
 from titiler.core.factory import BaseTilerFactory, FactoryExtension
 from titiler.core.resources.enums import ImageType, MediaType
-
-from fastapi import Depends, HTTPException, Query
-
-from starlette.requests import Request
-from starlette.responses import Response
-from starlette.templating import Jinja2Templates
 
 try:
     from importlib.resources import files as resources_files  # type: ignore
@@ -265,7 +263,7 @@ class wmsExtension(FactoryExtension):
                 ]
             },
         )
-        def wms(
+        def wms(  # noqa: C901
             request: Request,
             # vendor (titiler) parameters
             layer_params=Depends(factory.layer_dependency),

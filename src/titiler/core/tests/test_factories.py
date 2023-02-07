@@ -14,8 +14,11 @@ import attr
 import httpx
 import morecantile
 import numpy
+from fastapi import Depends, FastAPI, HTTPException, Path, Query, security, status
 from morecantile.defaults import TileMatrixSets
 from rio_tiler.io import BaseReader, MultiBandReader, Reader, STACReader
+from starlette.requests import Request
+from starlette.testclient import TestClient
 
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 from titiler.core.factory import (
@@ -28,11 +31,6 @@ from titiler.core.factory import (
 )
 
 from .conftest import DATA_DIR, mock_rasterio_open, parse_img
-
-from fastapi import Depends, FastAPI, HTTPException, Path, Query, security, status
-
-from starlette.requests import Request
-from starlette.testclient import TestClient
 
 DEFAULT_TMS = morecantile.tms
 NB_DEFAULT_TMS = len(DEFAULT_TMS.list())
