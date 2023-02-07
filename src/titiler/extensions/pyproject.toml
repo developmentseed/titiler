@@ -1,2 +1,67 @@
+[project]
+name = "titiler.extensions"
+description = "Extensions for TiTiler Factories."
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [
+    {name = "Vincent Sarago", email = "vincent@developmentseed.com"},
+]
+license = {text = "MIT"}
+keywords = [
+    "COG",
+    "STAC",
+    "MosaicJSON",
+    "Fastapi",
+    "Dynamic tile server",
+    "GDAL",
+    "Rasterio",
+    "OGC",
+]
+classifiers = [
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: GIS",
+]
+dynamic = ["version"]
+dependencies = [
+    "titiler.core==0.11.0"
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-cov",
+    "pytest-asyncio",
+    "httpx",
+    "jsonschema>=3.0",
+]
+cogeo = [
+    "rio-cogeo>=3.1,<4.0",
+]
+stac = [
+    "rio-stac>=0.6,<0.7",
+]
+
+[project.urls]
+Homepage = "https://developmentseed.org/titiler/"
+Documentation = "https://developmentseed.org/titiler/"
+Issues = "https://github.com/developmentseed/titiler/issues"
+Source = "https://github.com/developmentseed/titiler"
+Changelog = "https://developmentseed.org/titiler/release-notes/"
+
 [build-system]
-requires = ["setuptools>=46.4", "wheel"]
+requires = ["pdm-pep517"]
+build-backend = "pdm.pep517.api"
+
+[tool.pdm.version]
+source = "file"
+path = "titiler/extensions/__init__.py"
+
+[tool.pdm.build]
+includes = ["titiler/extensions"]
+excludes = ["tests/", "**/.mypy_cache", "**/.DS_Store"]
