@@ -34,10 +34,6 @@ $ cd titiler && pip install -e titiler/core -e titiler/extensions
 
 - Goal: adds a `/wms` endpoint to support OGC Web Map Service (`GetTile` and `GetCapabilities`) specification
 
-#### gdalwmtsExtension
-
-- Goal: adds a `/wmts.xml` endpoint to support [GDAL WMTS Service description](https://gdal.org/drivers/raster/wmts.html#local-service-description-xml-file)
-
 ## Use extensions
 
 Extensions must be set at TilerFactory's creation using the `extensions=` options.

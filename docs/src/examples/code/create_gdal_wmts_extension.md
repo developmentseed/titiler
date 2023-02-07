@@ -1,15 +1,24 @@
+
+**Goal**: add a `/wmts.xml` endpoint to return a GDAL WMTS service description XML file
+
+**requirements**: titiler.extension >=0.11
+
+1 - Create an extension
+
+```python
+# wmts.py
 """gdal WMTS service Extension."""
 
 import xml.etree.ElementTree as ET
+from dataclasses import dataclass
 from typing import Literal
 from urllib.parse import urlencode
 
-from dataclasses import dataclass
-from titiler.core.resources.responses import XMLResponse
-from titiler.core.factory import BaseTilerFactory, FactoryExtension
-
-from fastapi import Query, Depends
+from fastapi import Depends, Query
 from starlette.requests import Request
+
+from titiler.core.factory import BaseTilerFactory, FactoryExtension
+from titiler.core.resources.responses import XMLResponse
 
 
 @dataclass
@@ -50,10 +59,17 @@ class gdalwmtsExtension(FactoryExtension):
                 description=f"TileMatrixSet Name (default: '{factory.default_tms}')",
             ),
             url: str = Depends(factory.path_dependency),  # noqa
-            bandscount: int = Query(..., description="Number of band returned by the tiler"),
+            bandscount: int = Query(
+                ..., description="Number of band returned by the tiler"
+            ),
             datatype: str = Query(..., description="Datatype returned by the tiler"),
-            maxconnections: int = Query(None, description="Maximum number of simultaneous connections (defaults to 2)."),
-            timeout: int = Query(None, description="Connection timeout in seconds (defaults to 30)."),
+            maxconnections: int = Query(
+                None,
+                description="Maximum number of simultaneous connections (defaults to 2).",
+            ),
+            timeout: int = Query(
+                None, description="Connection timeout in seconds (defaults to 30)."
+            ),
             cache: bool = Query(None, description="Allow local cache."),
         ):
             """Return a GDAL WMTS Service description."""
@@ -102,3 +118,45 @@ class gdalwmtsExtension(FactoryExtension):
             excepel.text = "true"
 
             return XMLResponse(ET.tostring(xml))
+```
+
+2 - Create app and register our extension
+
+```python
+"""app.
+
+app/main.py
+
+"""
+
+from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
+from titiler.core.factory import TilerFactory
+
+from fastapi import FastAPI
+
+from .wmts import gdalwmtsExtension
+
+app = FastAPI(title="My simple app with custom TMS")
+
+# Create  a set of endpoints using TilerFactory and add our extension
+tiler = TilerFactory(extensions=[gdalwmtsExtension()])
+
+app.include_router(tiler.router)
+add_exception_handlers(app, DEFAULT_STATUS_CODES)
+```
+
+
+3 - Use it
+
+```python
+from rio_tiler.io import Reader
+
+with Reader("http://0.0.0.0/wmts.xml?url=file.tif&bidx=1&bandscount=1&datatype=float32&tile_format=tif") as src:
+    im = src.preview()
+```
+
+!!! Notes
+    The `/wmts.xml` endpoint has no idea about the data itself and do not care about the `bidx` or `expression` which is why we need to
+    set `bandscount` and `datatype` parameters.
+
+    In the example above we use `tile_format=tif` so GDAL will fetch `tif` tiles and keep the datatype from the data (which we assume to be float32)

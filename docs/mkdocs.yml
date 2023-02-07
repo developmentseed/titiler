@@ -48,6 +48,7 @@ nav:
       - STAC endpoints with custom `/validate`: "examples/code/tiler_with_custom_stac_validation.md"
       - Custom Sentinel 2 Tiler: "examples/code/tiler_for_sentinel2.md"
       - Add custom algorithms: "examples/code/tiler_with_custom_algorithm.md"
+      - GDAL WMTS Extension: "examples/code/create_gdal_wmts_extension.md"
 
     - Use TiTiler endpoints:
       - COG: "examples/notebooks/Working_with_CloudOptimizedGeoTIFF_simple.ipynb"
