@@ -1,5 +1,11 @@
 # Release Notes
 
+## Next (TBD)
+
+* switch to `hatch` and `pdm-pep517` as build system and use `pyproject.toml` for python module metadata
+* switch to `ruff` for python linting
+* update pre-commit configuration
+
 ## 0.11.0 (2023-01-27)
 
 * add `titiler.extensions` package (`cogValidateExtension`, `stacExtension`, `cogViewerExtension`,  `stacViewerExtension`, `wmsExtension`)
