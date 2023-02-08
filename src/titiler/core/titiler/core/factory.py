@@ -11,7 +11,7 @@ from fastapi.dependencies.utils import get_parameterless_sub_dependant
 from fastapi.params import Depends as DependsFunc
 from geojson_pydantic.features import Feature, FeatureCollection
 from geojson_pydantic.geometries import Polygon
-from morecantile import TileMatrixSet
+from morecantile import Tile, TileMatrixSet
 from morecantile import tms as morecantile_tms
 from morecantile.defaults import TileMatrixSets
 from rio_tiler.io import BaseReader, MultiBandReader, MultiBaseReader, Reader
@@ -43,6 +43,7 @@ from titiler.core.dependencies import (
     ImageRenderingParams,
     RescalingParams,
     StatisticsParams,
+    TileParams,
 )
 from titiler.core.models.mapbox import TileJSON
 from titiler.core.models.OGC import TileMatrixSetList
@@ -490,9 +491,7 @@ class TilerFactory(BaseTilerFactory):
             **img_endpoint_params,
         )
         def tile(
-            z: int = Path(..., ge=0, le=30, description="TMS tiles's zoom level"),
-            x: int = Path(..., description="TMS tiles's column"),
-            y: int = Path(..., description="TMS tiles's row"),
+            tms_tile: Tile = Depends(TileParams),
             TileMatrixSetId: Literal[tuple(self.supported_tms.list())] = Query(
                 self.default_tms,
                 description=f"TileMatrixSet Name (default: '{self.default_tms}')",
@@ -529,9 +528,9 @@ class TilerFactory(BaseTilerFactory):
             with rasterio.Env(**env):
                 with self.reader(src_path, tms=tms, **reader_params) as src_dst:
                     image = src_dst.tile(
-                        x,
-                        y,
-                        z,
+                        tms_tile.x,
+                        tms_tile.y,
+                        tms_tile.z,
                         tilesize=scale * 256,
                         buffer=buffer,
                         **layer_params,
@@ -582,6 +581,9 @@ class TilerFactory(BaseTilerFactory):
                 description=f"TileMatrixSet Name (default: '{self.default_tms}')",
             ),
             src_path=Depends(self.path_dependency),
+            scheme: Optional[Literal[("xyz", "tms")]] = Query(
+                None, description="Tile Scheme (default to XYZ)."
+            ),
             tile_format: Optional[ImageType] = Query(
                 None, description="Output image type. Default is auto."
             ),
@@ -648,6 +650,7 @@ class TilerFactory(BaseTilerFactory):
                 with self.reader(src_path, tms=tms, **reader_params) as src_dst:
                     return {
                         "bounds": src_dst.geographic_bounds,
+                        "scheme": scheme or "xyz",
                         "minzoom": minzoom if minzoom is not None else src_dst.minzoom,
                         "maxzoom": maxzoom if maxzoom is not None else src_dst.maxzoom,
                         "tiles": [tiles_url],

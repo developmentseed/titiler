@@ -3,10 +3,11 @@
 import json
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Sequence, Tuple, Union
+from typing import Dict, List, Literal, Optional, Sequence, Tuple, Union
 
 import numpy
-from fastapi import HTTPException, Query
+from fastapi import HTTPException, Path, Query
+from morecantile import Tile
 from rasterio.enums import Resampling
 from rio_tiler.colormap import cmap, parse_color
 from rio_tiler.errors import MissingAssets, MissingBands
@@ -445,3 +446,18 @@ link: https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
 
         if self.range:
             self.range = list(map(float, self.range.split(",")))  # type: ignore
+
+
+def TileParams(
+    z: int = Path(..., ge=0, le=30, description="Tiles's zoom level"),
+    x: int = Path(..., description="Tiles's column"),
+    y: int = Path(..., description="Tiles's row"),
+    scheme: Optional[Literal[("xyz", "tms")]] = Query(
+        None, description="Tile Scheme (default to XYZ)."
+    ),
+) -> Tile:
+    """Tile parameters."""
+    if scheme == "tms":
+        y = 2**z - y - 1
+
+    return Tile(x, y, z)
