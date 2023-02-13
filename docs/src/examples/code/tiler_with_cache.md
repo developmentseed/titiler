@@ -323,7 +323,7 @@ app/main.py
 
 """
 
-from titiler.errors import DEFAULT_STATUS_CODES, add_exception_handlers
+from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 
 from fastapi import FastAPI
 
