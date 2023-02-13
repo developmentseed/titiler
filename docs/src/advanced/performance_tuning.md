@@ -114,7 +114,7 @@ Recommended: **200** (200Mb)
 
 A global least-recently-used cache shared among all downloaded content and may be reused after a file handle has been closed and reopen
 
-Recommended: **20000000** (200Mb)
+Recommended: **200000000** (200Mb)
 
 #### `VSI_CACHE`
 
@@ -172,7 +172,7 @@ The `PROJ_LIB` variable tells rasterio/GDAL where the PROJ C libraries have been
 
   200 Mb Cache.
 
-- `CPL_VSIL_CURL_CACHE_SIZE="20000000`
+- `CPL_VSIL_CURL_CACHE_SIZE="200000000`
 
   200 Mb VSI Cache.
 
