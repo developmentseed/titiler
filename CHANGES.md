@@ -10,6 +10,7 @@
 ### titiler.core
 
 * Algorithm change, make terrainrgb interval and baseval floats to support more quantizers (author @AndrewAnnex, https://github.com/developmentseed/titiler/pull/587)
+* update `rio-tiler` minimum version to `4.1.6`
 * Apply colormap before defining image output format (when not provided)
 
 ### titiler.mosaic
