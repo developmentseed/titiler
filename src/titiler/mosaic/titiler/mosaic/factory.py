@@ -309,12 +309,14 @@ class MosaicTilerFactory(BaseTilerFactory):
             if color_formula:
                 image.apply_color_formula(color_formula)
 
+            if colormap:
+                image = image.apply_colormap(colormap)
+
             if not format:
                 format = ImageType.jpeg if image.mask.all() else ImageType.png
 
             content = image.render(
                 img_format=format.driver,
-                colormap=colormap,
                 **format.profile,
                 **render_params,
             )
