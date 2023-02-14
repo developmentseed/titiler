@@ -5,6 +5,11 @@
 * switch to `hatch` and `pdm-pep517` as build system and use `pyproject.toml` for python module metadata
 * switch to `ruff` for python linting
 * update pre-commit configuration
+* documentation fixes 🙏 (authors @jthetzel, @neilsh)
+
+### titiler.core
+
+* Algorithm change, make terrainrgb interval and baseval floats to support more quantizers (author @AndrewAnnex, https://github.com/developmentseed/titiler/pull/587)
 
 ## 0.11.0 (2023-01-27)
 
