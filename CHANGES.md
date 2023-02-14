@@ -10,6 +10,11 @@
 ### titiler.core
 
 * Algorithm change, make terrainrgb interval and baseval floats to support more quantizers (author @AndrewAnnex, https://github.com/developmentseed/titiler/pull/587)
+* Apply colormap before defining image output format (when not provided)
+
+### titiler.mosaic
+
+* Apply colormap before defining image output format (when not provided)
 
 ## 0.11.0 (2023-01-27)
 
