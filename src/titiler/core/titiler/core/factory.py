@@ -548,12 +548,14 @@ class TilerFactory(BaseTilerFactory):
             if color_formula:
                 image.apply_color_formula(color_formula)
 
+            if cmap := colormap or dst_colormap:
+                image = image.apply_colormap(cmap)
+
             if not format:
                 format = ImageType.jpeg if image.mask.all() else ImageType.png
 
             content = image.render(
                 img_format=format.driver,
-                colormap=colormap or dst_colormap,
                 **format.profile,
                 **render_params,
             )
@@ -915,12 +917,14 @@ class TilerFactory(BaseTilerFactory):
             if color_formula:
                 image.apply_color_formula(color_formula)
 
+            if cmap := colormap or dst_colormap:
+                image = image.apply_colormap(cmap)
+
             if not format:
                 format = ImageType.jpeg if image.mask.all() else ImageType.png
 
             content = image.render(
                 img_format=format.driver,
-                colormap=colormap or dst_colormap,
                 **format.profile,
                 **render_params,
             )
@@ -930,7 +934,7 @@ class TilerFactory(BaseTilerFactory):
     ############################################################################
     # /crop (Optional)
     ############################################################################
-    def part(self):
+    def part(self):  # noqa: C901
         """Register /crop endpoint."""
 
         # GET endpoints
@@ -984,9 +988,11 @@ class TilerFactory(BaseTilerFactory):
             if color_formula:
                 image.apply_color_formula(color_formula)
 
+            if cmap := colormap or dst_colormap:
+                image = image.apply_colormap(cmap)
+
             content = image.render(
                 img_format=format.driver,
-                colormap=colormap or dst_colormap,
                 **format.profile,
                 **render_params,
             )
@@ -1047,12 +1053,14 @@ class TilerFactory(BaseTilerFactory):
             if color_formula:
                 image.apply_color_formula(color_formula)
 
+            if cmap := colormap or dst_colormap:
+                image = image.apply_colormap(cmap)
+
             if not format:
                 format = ImageType.jpeg if image.mask.all() else ImageType.png
 
             content = image.render(
                 img_format=format.driver,
-                colormap=colormap or dst_colormap,
                 **format.profile,
                 **render_params,
             )
