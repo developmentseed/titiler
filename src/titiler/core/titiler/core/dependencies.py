@@ -161,16 +161,16 @@ class AssetsBidxExprParams(DefaultDependency):
     asset_indexes: Optional[Sequence[str]] = Query(
         None,
         title="Per asset band indexes",
-        description="Per asset band indexes",
+        description="Per asset band indexes (coma separated indexes)",
         alias="asset_bidx",
         examples={
             "one-asset": {
                 "description": "Return indexes 1,2,3 of asset `data`.",
-                "value": ["data|1;2;3"],
+                "value": ["data|1,2,3"],
             },
             "multi-assets": {
                 "description": "Return indexes 1,2,3 of asset `data` and indexes 1 of asset `cog`",
-                "value": ["data|1;2;3", "cog|1"],
+                "value": ["data|1,2,3", "cog|1"],
             },
         },
     )

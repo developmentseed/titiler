@@ -6,6 +6,7 @@
 * switch to `ruff` for python linting
 * update pre-commit configuration
 * documentation fixes 🙏 (authors @jthetzel, @neilsh)
+* fix documentation about `asset_bidx`
 
 ### titiler.core
 
