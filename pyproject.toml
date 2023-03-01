@@ -57,6 +57,11 @@ Changelog = "https://developmentseed.org/titiler/release-notes/"
 
 [tool.hatch.build.targets.sdist]
 exclude = [
+  ".binder",
+  ".pytest_cache",
+  ".ruff_cache",
+  ".vscode",
+  ".dockerignore",
   "src/",
   "deployment/",
   "docs/",

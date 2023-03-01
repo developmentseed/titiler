@@ -86,7 +86,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install setuptools twine build
+          pip install twine build hatch
 
       - name: Set tag version
         id: tag
@@ -96,7 +96,7 @@ jobs:
       - name: Set module version
         id: module
         # https://stackoverflow.com/questions/58177786/get-the-current-pushed-tag-in-github-actions
-        run: echo ::set-output name=version::$(python setup.py --version)
+        run: echo ::set-output name=version::$(hatch --quiet version)
 
       - name: Build and publish titiler packages
         if: steps.tag.outputs.tag == steps.module.outputs.version
