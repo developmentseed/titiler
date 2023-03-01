@@ -1078,7 +1078,7 @@ class MultiBaseTilerFactory(TilerFactory):
         .tile(), .point(), .preview() and the .part() methods will receive assets, expression or indexes arguments.
 
         The rio_tiler.io.MultiBaseReader  `.info()` and `.metadata()` have `assets` as
-        a requirement arguments (https://github.com/cogeotiff/rio-tiler/blob/master/rio_tiler/io/base.py#L365).
+        a requirement arguments (https://github.com/cogeotiff/rio-tiler/blob/main/rio_tiler/io/base.py#L365).
         This means we have to update the /info and /metadata endpoints in order to add the `assets` dependency.
 
     """
@@ -1202,7 +1202,7 @@ class MultiBaseTilerFactory(TilerFactory):
                     )
 
         # MultiBaseReader merged statistics
-        # https://github.com/cogeotiff/rio-tiler/blob/master/rio_tiler/io/base.py#L455-L468
+        # https://github.com/cogeotiff/rio-tiler/blob/main/rio_tiler/io/base.py#L455-L468
         # GET endpoint
         @self.router.get(
             "/statistics",
@@ -1316,7 +1316,7 @@ class MultiBandTilerFactory(TilerFactory):
         .tile(), .point(), .preview() and the .part() methods will receive bands or expression arguments.
 
         The rio_tiler.io.MultiBandReader  `.info()` and `.metadata()` have `bands` as
-        a requirement arguments (https://github.com/cogeotiff/rio-tiler/blob/master/rio_tiler/io/base.py#L775).
+        a requirement arguments (https://github.com/cogeotiff/rio-tiler/blob/main/rio_tiler/io/base.py#L775).
         This means we have to update the /info and /metadata endpoints in order to add the `bands` dependency.
 
         For implementation example see https://github.com/developmentseed/titiler-pds

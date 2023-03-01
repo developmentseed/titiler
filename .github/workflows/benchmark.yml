@@ -1,10 +1,10 @@
 name: benchmark
 
-# On every pull request, but only on push to master
+# On every pull request, but only on push to main
 on:
   push:
     branches:
-    - master
+    - main
     tags:
     - '*'
   pull_request:

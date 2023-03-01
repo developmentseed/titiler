@@ -8,15 +8,15 @@
       <img src="https://github.com/developmentseed/titiler/workflows/CI/badge.svg" alt="Test">
   </a>
   <a href="https://codecov.io/gh/developmentseed/titiler" target="_blank">
-      <img src="https://codecov.io/gh/developmentseed/titiler/branch/master/graph/badge.svg" alt="Coverage">
+      <img src="https://codecov.io/gh/developmentseed/titiler/branch/main/graph/badge.svg" alt="Coverage">
   </a>
   <a href="https://pypi.org/project/titiler" target="_blank">
       <img src="https://img.shields.io/pypi/v/titiler?color=%2334D058&label=pypi%20package" alt="Package version">
   </a>
-  <a href="https://github.com/developmentseed/titiler/blob/master/LICENSE" target="_blank">
+  <a href="https://github.com/developmentseed/titiler/blob/main/LICENSE" target="_blank">
       <img src="https://img.shields.io/github/license/developmentseed/titiler.svg" alt="Downloads">
   </a>
-  <a href="https://mybinder.org/v2/gh/developmentseed/titiler/master" target="_blank">
+  <a href="https://mybinder.org/v2/gh/developmentseed/titiler/main" target="_blank">
       <img src="https://mybinder.org/badge_logo.svg" alt="Downloads">
   </a>
   <a href="https://hub.docker.com/r/developmentseed/titiler" target="_blank">
@@ -54,10 +54,10 @@ Starting with version `0.3.0`, the `TiTiler` python module has been split into a
 
 | Package | Version |  Description
 | ------- | ------- |-------------
-[**titiler.core**](https://github.com/developmentseed/titiler/tree/master/src/titiler/core) | [![titiler.core](https://img.shields.io/pypi/v/titiler.core?color=%2334D058&label=pypi)](https://pypi.org/project/titiler.core) | The `Core` package contains libraries to help create a  dynamic tiler for COG and STAC
-[**titiler.extensions**](https://github.com/developmentseed/titiler/tree/master/src/titiler/extensions) | [![titiler.extensions](https://img.shields.io/pypi/v/titiler.extensions?color=%2334D058&label=pypi)](https://pypi.org/project/titiler.extensions) | TiTiler's extensions package. Contains extensions for Tiler Factories.
-[**titiler.mosaic**](https://github.com/developmentseed/titiler/tree/master/src/titiler/mosaic) | [![titiler.mosaic](https://img.shields.io/pypi/v/titiler.mosaic?color=%2334D058&label=pypi)](https://pypi.org/project/titiler.mosaic) | The `mosaic` package contains libraries to help create a dynamic tiler for MosaicJSON (adds `cogeo-mosaic` requirement)
-[**titiler.application**](https://github.com/developmentseed/titiler/tree/master/src/titiler/application) | [![titiler.application](https://img.shields.io/pypi/v/titiler.application?color=%2334D058&label=pypi)](https://pypi.org/project/titiler.application) | TiTiler's `demo` package. Contains a FastAPI application with full support of COG, STAC and MosaicJSON
+[**titiler.core**](https://github.com/developmentseed/titiler/tree/main/src/titiler/core) | [![titiler.core](https://img.shields.io/pypi/v/titiler.core?color=%2334D058&label=pypi)](https://pypi.org/project/titiler.core) | The `Core` package contains libraries to help create a  dynamic tiler for COG and STAC
+[**titiler.extensions**](https://github.com/developmentseed/titiler/tree/main/src/titiler/extensions) | [![titiler.extensions](https://img.shields.io/pypi/v/titiler.extensions?color=%2334D058&label=pypi)](https://pypi.org/project/titiler.extensions) | TiTiler's extensions package. Contains extensions for Tiler Factories.
+[**titiler.mosaic**](https://github.com/developmentseed/titiler/tree/main/src/titiler/mosaic) | [![titiler.mosaic](https://img.shields.io/pypi/v/titiler.mosaic?color=%2334D058&label=pypi)](https://pypi.org/project/titiler.mosaic) | The `mosaic` package contains libraries to help create a dynamic tiler for MosaicJSON (adds `cogeo-mosaic` requirement)
+[**titiler.application**](https://github.com/developmentseed/titiler/tree/main/src/titiler/application) | [![titiler.application](https://img.shields.io/pypi/v/titiler.application?color=%2334D058&label=pypi)](https://pypi.org/project/titiler.application) | TiTiler's `demo` package. Contains a FastAPI application with full support of COG, STAC and MosaicJSON
 
 
 ## Installation
@@ -122,11 +122,11 @@ src/titiler/                     - titiler modules.
 
 ## Contribution & Development
 
-See [CONTRIBUTING.md](https://github.com/developmentseed/titiler/blob/master/CONTRIBUTING.md)
+See [CONTRIBUTING.md](https://github.com/developmentseed/titiler/blob/main/CONTRIBUTING.md)
 
 ## License
 
-See [LICENSE](https://github.com/developmentseed/titiler/blob/master/LICENSE)
+See [LICENSE](https://github.com/developmentseed/titiler/blob/main/LICENSE)
 
 ## Authors
 
@@ -136,4 +136,4 @@ See [contributors](https://github.com/developmentseed/titiler/graphs/contributor
 
 ## Changes
 
-See [CHANGES.md](https://github.com/developmentseed/titiler/blob/master/CHANGES.md).
+See [CHANGES.md](https://github.com/developmentseed/titiler/blob/main/CHANGES.md).

@@ -1,10 +1,10 @@
 # Amazon Web Services deployments
 
-Examples of AWS deployments can be found in https://github.com/developmentseed/titiler/tree/master/deployment/aws. Those examples use [AWS Cloud Development Kit](https://aws.amazon.com/cdk/) to define stacks using python code.
+Examples of AWS deployments can be found in https://github.com/developmentseed/titiler/tree/main/deployment/aws. Those examples use [AWS Cloud Development Kit](https://aws.amazon.com/cdk/) to define stacks using python code.
 
 # Configuration/Settings
 
-Deployment settings are managed via [pydantic.BaseSettings](https://pydantic-docs.helpmanual.io/usage/settings/) and stored in [config.py](https://github.com/developmentseed/titiler/blob/master/stack/config.py). Pydantic BaseSettings can receive input to overwrite the default value from a `.env` file or from environment variables. 
+Deployment settings are managed via [pydantic.BaseSettings](https://pydantic-docs.helpmanual.io/usage/settings/) and stored in [config.py](https://github.com/developmentseed/titiler/blob/main/deployment/aws/cdk/config.py). Pydantic BaseSettings can receive input to overwrite the default value from a `.env` file or from environment variables.
 
 Variables in `.env` or in environment variable need to be prefixed with `TITILER_STACK_`:
 
@@ -24,7 +24,7 @@ TITILER_STACK_MEMORY=3008
 # TITILER_STACK_ENV='{"TITILER_API_DISABLE_STAC": "TRUE", "TITILER_API_DISABLE_MOSAIC": "TRUE"}'
 ```
 
-Default values from [config.py](https://github.com/developmentseed/titiler/blob/master/deployment/aws/cdk/config.py):
+Default values from [config.py](https://github.com/developmentseed/titiler/blob/main/deployment/aws/cdk/config.py):
 ```python
 name: str = "titiler"
 stage: str = "production"
@@ -43,7 +43,7 @@ env: Dict = {
     "GDAL_HTTP_VERSION": "2",
     "PYTHONWARNINGS": "ignore",
     "VSI_CACHE": "TRUE",
-    "VSI_CACHE_SIZE": "5000000" # 5 MB (per file-handle)      
+    "VSI_CACHE_SIZE": "5000000" # 5 MB (per file-handle)
 }
 
 # add S3 bucket where TiTiler could do HEAD and GET Requests

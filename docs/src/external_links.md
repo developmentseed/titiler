@@ -1,7 +1,7 @@
 
 
 !!! tip
-    If you have an article, project, tool, or anything related to TiTiler that is not yet listed here, create a [Pull Request adding it](https://github.com/developmentseed/titiler/edit/master/docs/external-links.md).
+    If you have an article, project, tool, or anything related to TiTiler that is not yet listed here, create a [Pull Request adding it](https://github.com/developmentseed/titiler/edit/main/docs/external-links.md).
 
 ## Mentions
 

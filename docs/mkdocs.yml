@@ -6,7 +6,7 @@ site_dir: 'build'
 
 repo_name: "developmentseed/titiler"
 repo_url: "https://github.com/developmentseed/titiler"
-edit_uri: "blob/master/docs/src/"
+edit_uri: "blob/main/docs/src/"
 site_url: "https://developmentseed.org/titiler/"
 
 extra:
