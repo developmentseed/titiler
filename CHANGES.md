@@ -1,6 +1,6 @@
 # Release Notes
 
-## Next (TBD)
+## 0.11.1a0 (2023-03-01)
 
 * switch to `hatch` and `pdm-pep517` as build system and use `pyproject.toml` for python module metadata
 * switch to `ruff` for python linting
