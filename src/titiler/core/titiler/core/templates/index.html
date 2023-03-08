@@ -61,6 +61,12 @@ var map = L.map('map', {
 // const auckland = L.marker([-36.864664, 174.792059]).addTo(map);
 // const seattle = L.marker([47.596842, -122.333087]).addTo(map);
 
+if ("{{ tms.identifier }}" === "WebMercatorQuad") {
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(map);
+}
+
 fetch('{{ tilejson_endpoint|safe }}')
   .then(res => {
     if (res.ok) return res.json()
