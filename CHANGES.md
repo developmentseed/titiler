@@ -1,5 +1,9 @@
 # Release Notes
 
+## 0.11.2 (2023-03-08)
+
+* Add OSM background in `/map` viewer when using WebMercator TMS
+
 ## 0.11.1 (2023-03-01)
 
 * no change since 0.11.1a0
