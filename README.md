@@ -65,14 +65,20 @@ Starting with version `0.3.0`, the `TiTiler` python module has been split into a
 To install from PyPI and run:
 
 ```bash
-$ pip install -U pip
-$ pip install uvicorn
-$ pip install titiler.{package}
+# Make sure you have pip up to date
+$ python -m pip install -U pip
+
+$ python -m pip  install titiler.{package}
 # e.g.,
-# pip install titiler.core
-# pip install titiler.extensions
-# pip install titiler.mosaic
-# pip install titiler.application (also installs core, extensions and mosaic)
+# python -m pip  install titiler.core
+# python -m pip  install titiler.extensions
+# python -m pip  install titiler.mosaic
+# python -m pip  install titiler.application (also installs core, extensions and mosaic)
+
+# Install uvicorn to run the FastAPI application locally
+$ python -m pip install uvicorn
+
+# Launch application locally
 $ uvicorn titiler.application.main:app
 ```
 
@@ -81,8 +87,9 @@ To install from sources and run for development:
 ```
 $ git clone https://github.com/developmentseed/titiler.git
 $ cd titiler
-$ pip install -e src/titiler/core -e src/titiler/extensions -e src/titiler/mosaic -e src/titiler/application
-$ pip install uvicorn
+$ python -m pip install -U pip
+$ python -m pip install -e src/titiler/core -e src/titiler/extensions -e src/titiler/mosaic -e src/titiler/application
+$ python -m pip install uvicorn
 $ uvicorn titiler.application.main:app --reload
 ```
 

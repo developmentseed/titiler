@@ -10,7 +10,8 @@ Users can choose to extend or use `TiTiler` as it is.
 `TiTiler` comes with a default (complete) application with support for COG, STAC, and MosaicJSON. You can install and start the application locally by doing:
 
 ```bash
-$ pip install uvicorn titiler.application
+$ python -m pip install -U pip
+$ python -m pip install uvicorn titiler.application
 $ uvicorn titiler.application.main:app
 
 > INFO: Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
@@ -58,9 +59,9 @@ $ uvicorn titiler.application.main:app --reload
 When building a custom application, you may wish to only install the `core` and/or `mosaic` modules. To install these from PyPI:
 
 ```bash
-$ pip install -U pip
-$ pip install titiler.core
-$ pip install titiler.mosaic
+$ python -m pip install -U pip
+$ python -m pip install titiler.core
+$ python -m pip install titiler.mosaic
 ```
 
 These can then be used like:
@@ -85,8 +86,8 @@ If you want to include all of Titiler's built-in endpoints, but also include
 customized endpoints, you can import and extend the app directly.
 
 ```bash
-$ pip install -U pip
-$ pip install titiler.application # also installs titiler.core and titiler.mosaic
+$ python -m pip install -U pip
+$ python -m pip install titiler.application # also installs titiler.core and titiler.mosaic
 ```
 
 These can then be used like:
