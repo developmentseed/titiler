@@ -75,4 +75,5 @@ jobs:
         if: steps.list-changed.outputs.changed == 'true'
 
       - name: Run chart-testing (install)
-        run: ct install --chart-dirs deployment/k8s
+        run: ct install --chart-dirs deployment/k8s --target-branch ${{ github.event.repository.default_branch }}
+        if: steps.list-changed.outputs.changed == 'true'
