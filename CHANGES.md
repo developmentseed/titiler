@@ -1,5 +1,9 @@
 # Release Notes
 
+## Next (TBD)
+
+* handle dateline crossing dataset in COG/STAC Viewer
+
 ## 0.11.2 (2023-03-08)
 
 * Add OSM background in `/map` viewer when using WebMercator TMS
