@@ -90,9 +90,9 @@ you can find the image's header size:
 
 [aiocogeo]: https://github.com/geospatial-jeff/aiocogeo
 
-```
-> export AWS_REQUEST_PAYER="requester"
-> aiocogeo info s3://usgs-landsat/collection02/level-2/standard/oli-tirs/2020/072/076/LC08_L2SR_072076_20201203_20201218_02_T2/LC08_L2SR_072076_20201203_20201218_02_T2_SR_B1.TIF
+```bash
+export AWS_REQUEST_PAYER="requester"
+aiocogeo info s3://usgs-landsat/collection02/level-2/standard/oli-tirs/2020/072/076/LC08_L2SR_072076_20201203_20210313_02_T2/LC08_L2SR_072076_20201203_20210313_02_T2_SR_B1.TIF
 
           PROFILE
             ...
