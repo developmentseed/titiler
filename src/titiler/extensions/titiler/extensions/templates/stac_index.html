@@ -369,6 +369,63 @@ map.on('zoom', function (e) {
     document.getElementById('zoom').textContent = z
 })
 
+const setMapLayers = (url) => {
+  fetch(url)
+    .then(res => {
+      if (res.ok) return res.json()
+      throw new Error('Network response was not ok.');
+    })
+    .then(data => {
+      let bounds = [...data.bounds]
+      if (bounds[0] > bounds[2]) {
+        if (map.getLayer('raster-l')) map.removeLayer('raster-l')
+        if (map.getSource('raster-l')) map.removeSource('raster-l')
+        if (map.getLayer('raster-r')) map.removeLayer('raster-r')
+        if (map.getSource('raster-r')) map.removeSource('raster-r')
+
+        // 2 sources and 2 layers
+        // left
+        map.addSource('raster-l', {
+          type: 'raster',
+          bounds: [-180, bounds[1], bounds[2], bounds[3]],
+          minzoom: data.minzoom,
+          maxzoom: data.maxzoom,
+          tiles: data.tiles,
+          tileSize: 256
+        })
+        map.addLayer({id: 'raster-l', type: 'raster', source: 'raster-l'})
+
+        //right
+        map.addSource('raster-r', {
+          type: 'raster',
+          bounds: [bounds[0], bounds[1], 180, bounds[3]],
+          minzoom: data.minzoom,
+          maxzoom: data.maxzoom,
+          tiles: data.tiles,
+          tileSize: 256
+        })
+        map.addLayer({id: 'raster-r', type: 'raster', source: 'raster-r'})
+
+      } else {
+        if (map.getLayer('raster')) map.removeLayer('raster')
+        if (map.getSource('raster')) map.removeSource('raster')
+
+        map.addSource('raster', {
+          type: 'raster',
+          bounds: data.bounds,
+          minzoom: data.minzoom,
+          maxzoom: data.maxzoom,
+          tiles: data.tiles,
+          tileSize: 256
+        })
+        map.addLayer({id: 'raster', type: 'raster', source: 'raster'})
+      }
+    })
+    .catch(err => {
+      console.warn(err)
+    })
+}
+
 const set1bViz = () => {
     params = {
       url: scope.url
@@ -392,9 +449,7 @@ const set1bViz = () => {
 
     const url_params = Object.keys(params).map(i => `${i}=${params[i]}`).join('&')
     let url = `${tilejson_endpoint}?${url_params}`
-
-    map.addSource('raster', { type: 'raster', url: url , tileSize: 256})
-    map.addLayer({ id: 'raster', type: 'raster', source: 'raster' })
+    setMapLayers(url)
     if (scope.dataset_statistics) addHisto1Band()
 }
 
@@ -429,9 +484,7 @@ const set3bViz = () => {
 
   const url_params = Object.keys(params).map(i => `${i}=${params[i]}`).join('&')
   let url = `{{ tilejson_endpoint }}?${url_params}&${asset_params}&${indexes_params}`
-
-  map.addSource('raster', { type: 'raster', url: url, tileSize: 256 })
-  map.addLayer({ id: 'raster', type: 'raster', source: 'raster' })
+  setMapLayers(url)
   if (scope.dataset_statistics) addHisto3Bands()
 }
 
@@ -716,15 +769,28 @@ const addAOI = (bounds) => {
   if (map.getLayer('aoi-polygon')) map.removeLayer('aoi-polygon')
   if (map.getSource('aoi')) map.removeSource('aoi')
 
-  const geojson = {
-    "type": "FeatureCollection",
-    "features": [bboxPolygon(bounds)]
-  }
+  // handle files that span accross dateline
+  if (bounds[0] > bounds[2]) {
+    map.addSource('aoi', {
+      'type': 'geojson',
+      'data': {
+        "type": "FeatureCollection",
+        "features": [
+          bboxPolygon([-180, bounds[1], bounds[2], bounds[3]]),
+          bboxPolygon([bounds[0], bounds[1], 180, bounds[3]]),
+        ]
+      }
+    })
 
-  map.addSource('aoi', {
-    'type': 'geojson',
-    'data': geojson
-  })
+  } else {
+    map.addSource('aoi', {
+      'type': 'geojson',
+      'data': {
+        "type": "FeatureCollection",
+        "features": [bboxPolygon(bounds)]
+      }
+    })
+  }
 
   map.addLayer({
     id: 'aoi-polygon',
@@ -874,7 +940,7 @@ const updateUI = () => {
     map.fitBounds(
       [[bounds[0], bounds[1]], [bounds[2], bounds[3]]]
     )
-    addAOI(bounds)
+    addAOI(info.bounds)
 
     if (nbands === 1) {
       document.getElementById('3b').classList.add('disabled')

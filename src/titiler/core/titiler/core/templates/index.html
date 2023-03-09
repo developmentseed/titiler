@@ -55,11 +55,11 @@ var map = L.map('map', {
   maxZoom: {{ tms.maxzoom }}
 });
 
-// const nullIsland = L.marker([0, 0]).addTo(map);
-// const madrid = L.marker([40, -3]).addTo(map);
-// const london = L.marker([51.50722, -0.1275]).addTo(map)
-// const auckland = L.marker([-36.864664, 174.792059]).addTo(map);
-// const seattle = L.marker([47.596842, -122.333087]).addTo(map);
+const nullIsland = L.marker([0, 0]).addTo(map);
+const madrid = L.marker([40, -3]).addTo(map);
+const london = L.marker([51.50722, -0.1275]).addTo(map)
+const auckland = L.marker([-36.864664, 174.792059]).addTo(map);
+const seattle = L.marker([47.596842, -122.333087]).addTo(map);
 
 if ("{{ tms.identifier }}" === "WebMercatorQuad") {
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -76,6 +76,29 @@ fetch('{{ tilejson_endpoint|safe }}')
     console.log(data)
 
     let bounds = [...data.bounds]
+
+    let geo;
+    // handle files that span accross dateline
+    if (bounds[0] > bounds[2]) {
+      geo = {
+        "type": "FeatureCollection",
+        "features": [
+          bboxPolygon([-180, bounds[1], bounds[2], bounds[3]]),
+          bboxPolygon([bounds[0], bounds[1], 180, bounds[3]]),
+        ]
+      }
+    } else {
+      geo = {
+        "type": "FeatureCollection",
+        "features": [bboxPolygon(bounds)]
+      }
+    }
+
+    var aoi = L.geoJSON(geo, {
+        color: '#3bb2d0', fill: false
+    }).addTo(map);
+    map.fitBounds(aoi.getBounds());
+
     // Bounds crossing dateline
     if (bounds[0] > bounds[2]) {
       bounds[0] = bounds[0] - 360
@@ -84,13 +107,6 @@ fetch('{{ tilejson_endpoint|safe }}')
       bottom = bounds[1],
       right = bounds[2],
       top = bounds[3];
-
-    var aoi = L.geoJSON(
-      bboxPolygon(bounds), {
-        color: '#3bb2d0', fill: false
-      }
-    ).addTo(map);
-    map.fitBounds(aoi.getBounds());
 
     L.tileLayer(
       data.tiles[0], {
