@@ -76,3 +76,4 @@ jobs:
 
       - name: Run chart-testing (install)
         run: ct install --chart-dirs deployment/k8s
+        if: steps.list-changed.outputs.changed == 'true'
