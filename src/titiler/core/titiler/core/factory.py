@@ -1518,7 +1518,8 @@ class TMSFactory:
         base_url = str(request.base_url)
         if self.router_prefix:
             base_url += self.router_prefix.lstrip("/")
-        return url_path.make_absolute_url(base_url=base_url)
+
+        return str(url_path.make_absolute_url(base_url=base_url))
 
     def register_routes(self):
         """Register TMS endpoint routes."""
