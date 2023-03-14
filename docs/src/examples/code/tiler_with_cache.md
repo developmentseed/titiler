@@ -155,7 +155,7 @@ def setup_cache():
 app/routes.py
 """
 from dataclasses import dataclass
-from typing import Callable, Dict, Type, Literal, List, Tuple
+from typing import Callable, Dict, Type, Literal, List, Tuple, Optional
 from urllib.parse import urlencode
 
 from fastapi import Depends, Path, Query
