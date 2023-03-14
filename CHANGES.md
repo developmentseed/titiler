@@ -1,8 +1,9 @@
 # Release Notes
 
-## Next (TBD)
+## 0.11.3 (2023-03-14)
 
 * handle dateline crossing dataset in COG/STAC Viewer
+* update Factories `url_for` method to make sure we return a string (https://github.com/developmentseed/titiler/pull/607)
 
 ## 0.11.2 (2023-03-08)
 
