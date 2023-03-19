@@ -231,7 +231,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt
+          python -m pip install -r requirements-cdk.txt
 
       # Let's wait a bit to make sure package is available on pypi
       - name: Sleep for 120 seconds
@@ -240,7 +240,7 @@ jobs:
 
       # Build and Deploy CDK application
       - name: Build & Deploy
-        run: npm run cdk deploy ${{ secrets.STACK_NAME }}-lambda-${{ secrets.STACK_STAGE }} --require-approval never
+        run: npm run cdk -- deploy ${{ secrets.STACK_NAME }}-lambda-${{ secrets.STACK_STAGE }} --require-approval never
         env:
           TITILER_STACK_NAME: ${{ secrets.STACK_NAME }}
           TITILER_STACK_STAGE: ${{ secrets.STACK_STAGE }}
