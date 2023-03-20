@@ -1,5 +1,9 @@
 # Release Notes
 
+## 0.11.4 (2023-03-20)
+
+* set FastAPI version lower than 0.95 (https://github.com/tiangolo/fastapi/discussions/9278)
+
 ## 0.11.3 (2023-03-14)
 
 * handle dateline crossing dataset in COG/STAC Viewer
