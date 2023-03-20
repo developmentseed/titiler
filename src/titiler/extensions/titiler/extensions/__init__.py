@@ -1,6 +1,6 @@
 """titiler.extensions"""
 
-__version__ = "0.11.3"
+__version__ = "0.11.4"
 
 from .cogeo import cogValidateExtension  # noqa
 from .stac import stacExtension  # noqa

@@ -29,7 +29,7 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-    "titiler.core==0.11.3",
+    "titiler.core==0.11.4",
     "cogeo-mosaic>=5.0,<5.2",
 ]
 
