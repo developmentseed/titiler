@@ -674,17 +674,17 @@ const addHisto1Band = () => {
     table.classList.remove('none')
 }
 
-var centerMarker;
+let centerMarker;
 
 document.getElementById('zoom-to-point-form').addEventListener('submit', (e) => {
   e.preventDefault()
   if (map) {
     let lng = document.getElementById('zoomLng').value
     let lat = document.getElementById('zoomLat').value
-    console.log(`${lng}, ${lat}`)
     map.flyTo({
       center: [lng, lat],
-      essential: false // this animation is considered essential with respect to prefers-reduced-motion
+      zoom: 10,
+      essential: false
     });
 
     if (!centerMarker) {
@@ -694,10 +694,7 @@ document.getElementById('zoom-to-point-form').addEventListener('submit', (e) => 
     } else {
       centerMarker.setLngLat([lng, lat])
     }
-
   }
-
-
 })
 
 document.getElementById('btn-stats').addEventListener('click', () => {
