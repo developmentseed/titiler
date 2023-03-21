@@ -2,11 +2,22 @@
 
 import abc
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Type, Union
+from typing import (
+    Annotated,
+    Any,
+    Callable,
+    Dict,
+    List,
+    Literal,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+)
 from urllib.parse import urlencode
 
 import rasterio
-from fastapi import APIRouter, Body, Depends, Path, Query
+from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query
 from fastapi.dependencies.utils import get_parameterless_sub_dependant
 from fastapi.params import Depends as DependsFunc
 from geojson_pydantic.features import Feature, FeatureCollection
@@ -14,6 +25,7 @@ from geojson_pydantic.geometries import Polygon
 from morecantile import TileMatrixSet
 from morecantile import tms as morecantile_tms
 from morecantile.defaults import TileMatrixSets
+from pydantic import conint
 from rio_tiler.io import BaseReader, MultiBandReader, MultiBaseReader, Reader
 from rio_tiler.models import BandStatistics, Bounds, Info
 from rio_tiler.types import ColorMapType
@@ -489,19 +501,20 @@ class TilerFactory(BaseTilerFactory):
             **img_endpoint_params,
         )
         def tile(
-            z: int = Path(..., ge=0, le=30, description="TMS tiles's zoom level"),
-            x: int = Path(..., description="TMS tiles's column"),
-            y: int = Path(..., description="TMS tiles's row"),
-            TileMatrixSetId: Literal[tuple(self.supported_tms.list())] = Query(
-                self.default_tms,
-                description=f"TileMatrixSet Name (default: '{self.default_tms}')",
-            ),
-            scale: int = Query(
-                1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
-            ),
-            format: ImageType = Query(
-                None, description="Output image type. Default is auto."
-            ),
+            z: Annotated[int, "TMS tiles's zoom level"],
+            x: Annotated[int, "TMS tiles's column"],
+            y: Annotated[int, "TMS tiles's row"],
+            TileMatrixSetId: Annotated[
+                Literal[tuple(self.supported_tms.list())],
+                f"TileMatrixSet Name (default: '{self.default_tms}')",
+            ] = self.default_tms,
+            scale: Annotated[
+                conint(gt=0, le=4), "Tile size scale. 1=256x256, 2=512x512..."
+            ] = 1,
+            format: Annotated[
+                ImageType,
+                "Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
+            ] = None,
             src_path=Depends(self.path_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
@@ -578,13 +591,14 @@ class TilerFactory(BaseTilerFactory):
         )
         def tilejson(
             request: Request,
-            TileMatrixSetId: Literal[tuple(self.supported_tms.list())] = Query(
-                self.default_tms,
-                description=f"TileMatrixSet Name (default: '{self.default_tms}')",
-            ),
+            TileMatrixSetId: Annotated[
+                Literal[tuple(self.supported_tms.list())],
+                f"TileMatrixSet Name (default: '{self.default_tms}')",
+            ] = self.default_tms,
             src_path=Depends(self.path_dependency),
             tile_format: Optional[ImageType] = Query(
-                None, description="Output image type. Default is auto."
+                None,
+                description="Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
             ),
             tile_scale: int = Query(
                 1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
@@ -662,12 +676,13 @@ class TilerFactory(BaseTilerFactory):
         def map_viewer(
             request: Request,
             src_path=Depends(self.path_dependency),
-            TileMatrixSetId: Literal[tuple(self.supported_tms.list())] = Query(
-                self.default_tms,
-                description=f"TileMatrixSet Name (default: '{self.default_tms}')",
-            ),  # noqa
+            TileMatrixSetId: Annotated[
+                Literal[tuple(self.supported_tms.list())],
+                f"TileMatrixSet Name (default: '{self.default_tms}')",
+            ] = self.default_tms,
             tile_format: Optional[ImageType] = Query(
-                None, description="Output image type. Default is auto."
+                None,
+                description="Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
             ),  # noqa
             tile_scale: int = Query(
                 1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
@@ -728,10 +743,10 @@ class TilerFactory(BaseTilerFactory):
         )
         def wmts(
             request: Request,
-            TileMatrixSetId: Literal[tuple(self.supported_tms.list())] = Query(
-                self.default_tms,
-                description=f"TileMatrixSet Name (default: '{self.default_tms}')",
-            ),
+            TileMatrixSetId: Annotated[
+                Literal[tuple(self.supported_tms.list())],
+                f"TileMatrixSet Name (default: '{self.default_tms}')",
+            ] = self.default_tms,
             src_path=Depends(self.path_dependency),
             tile_format: ImageType = Query(
                 ImageType.png, description="Output image type. Default is png."
@@ -878,9 +893,10 @@ class TilerFactory(BaseTilerFactory):
         @self.router.get(r"/preview", **img_endpoint_params)
         @self.router.get(r"/preview.{format}", **img_endpoint_params)
         def preview(
-            format: ImageType = Query(
-                None, description="Output image type. Default is auto."
-            ),
+            format: Annotated[
+                ImageType,
+                "Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
+            ] = None,
             src_path=Depends(self.path_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
@@ -950,7 +966,10 @@ class TilerFactory(BaseTilerFactory):
             miny: float = Path(..., description="Bounding box min Y"),
             maxx: float = Path(..., description="Bounding box max X"),
             maxy: float = Path(..., description="Bounding box max Y"),
-            format: ImageType = Query(..., description="Output image type."),
+            format: Annotated[
+                ImageType,
+                "Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
+            ] = None,
             src_path=Depends(self.path_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
@@ -1013,9 +1032,10 @@ class TilerFactory(BaseTilerFactory):
         )
         def geojson_crop(
             geojson: Feature = Body(..., description="GeoJSON Feature."),
-            format: ImageType = Query(
-                None, description="Output image type. Default is auto."
-            ),
+            format: Annotated[
+                ImageType,
+                "Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
+            ] = None,
             src_path=Depends(self.path_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),

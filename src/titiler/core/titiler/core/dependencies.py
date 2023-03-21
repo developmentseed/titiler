@@ -3,7 +3,7 @@
 import json
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Sequence, Tuple, Union
+from typing import Annotated, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy
 from fastapi import HTTPException, Query
@@ -304,11 +304,9 @@ class BandsExprParams(ExpressionParams, BandsParams):
 class ImageParams(DefaultDependency):
     """Common Preview/Crop parameters."""
 
-    max_size: Optional[int] = Query(
-        1024, description="Maximum image size to read onto."
-    )
-    height: Optional[int] = Query(None, description="Force output image height.")
-    width: Optional[int] = Query(None, description="Force output image width.")
+    max_size: Annotated[int, "Maximum image size to read onto."] = 1024
+    height: Annotated[Optional[int], "Force output image height."] = None
+    width: Annotated[Optional[int], "Force output image width."] = None
 
     def __post_init__(self):
         """Post Init."""

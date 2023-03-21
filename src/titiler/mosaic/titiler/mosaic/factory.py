@@ -2,7 +2,17 @@
 
 import os
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Literal, Optional, Tuple, Type, Union
+from typing import (
+    Annotated,
+    Callable,
+    Dict,
+    List,
+    Literal,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+)
 from urllib.parse import urlencode
 
 import rasterio
@@ -233,16 +243,15 @@ class MosaicTilerFactory(BaseTilerFactory):
             z: int = Path(..., ge=0, le=30, description="Mercator tiles's zoom level"),
             x: int = Path(..., description="Mercator tiles's column"),
             y: int = Path(..., description="Mercator tiles's row"),
-            TileMatrixSetId: Literal[tuple(self.supported_tms.list())] = Query(
-                self.default_tms,
-                description=f"TileMatrixSet Name (default: '{self.default_tms}')",
-            ),  # noqa
-            scale: int = Query(
-                1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
-            ),
-            format: ImageType = Query(
-                None, description="Output image type. Default is auto."
-            ),
+            TileMatrixSetId: Annotated[
+                Literal[tuple(self.supported_tms.list())],
+                f"TileMatrixSet Name (default: '{self.default_tms}')",
+            ] = self.default_tms,
+            scale: Annotated[int, "Tile size scale. 1=256x256, 2=512x512..."] = 1,
+            format: Annotated[
+                ImageType,
+                "Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
+            ] = None,
             src_path=Depends(self.path_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
@@ -267,6 +276,12 @@ class MosaicTilerFactory(BaseTilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Create map tile from a COG."""
+            if scale < 1 or scale > 4:
+                raise HTTPException(
+                    400,
+                    f"Invalid 'scale' parameter: {scale}. Scale HAVE TO be between 1 and 4",
+                )
+
             threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
 
             strict_zoom = str(os.getenv("MOSAIC_STRICT_ZOOM", False)).lower() in [
@@ -344,10 +359,10 @@ class MosaicTilerFactory(BaseTilerFactory):
         )
         def tilejson(
             request: Request,
-            TileMatrixSetId: Literal[tuple(self.supported_tms.list())] = Query(
-                self.default_tms,
-                description=f"TileMatrixSet Name (default: '{self.default_tms}')",
-            ),  # noqa
+            TileMatrixSetId: Annotated[
+                Literal[tuple(self.supported_tms.list())],
+                f"TileMatrixSet Name (default: '{self.default_tms}')",
+            ] = self.default_tms,
             src_path=Depends(self.path_dependency),
             tile_format: Optional[ImageType] = Query(
                 None, description="Output image type. Default is auto."
@@ -438,10 +453,10 @@ class MosaicTilerFactory(BaseTilerFactory):
         def map_viewer(
             request: Request,
             src_path=Depends(self.path_dependency),
-            TileMatrixSetId: Literal[tuple(self.supported_tms.list())] = Query(
-                self.default_tms,
-                description=f"TileMatrixSet Name (default: '{self.default_tms}')",
-            ),
+            TileMatrixSetId: Annotated[
+                Literal[tuple(self.supported_tms.list())],
+                f"TileMatrixSet Name (default: '{self.default_tms}')",
+            ] = self.default_tms,
             tile_format: Optional[ImageType] = Query(
                 None, description="Output image type. Default is auto."
             ),
@@ -505,10 +520,10 @@ class MosaicTilerFactory(BaseTilerFactory):
         )
         def wmts(
             request: Request,
-            TileMatrixSetId: Literal[tuple(self.supported_tms.list())] = Query(
-                self.default_tms,
-                description=f"TileMatrixSet Name (default: '{self.default_tms}')",
-            ),  # noqa
+            TileMatrixSetId: Annotated[
+                Literal[tuple(self.supported_tms.list())],
+                f"TileMatrixSet Name (default: '{self.default_tms}')",
+            ] = self.default_tms,
             src_path=Depends(self.path_dependency),
             tile_format: ImageType = Query(
                 ImageType.png, description="Output image type. Default is png."
@@ -681,10 +696,10 @@ class MosaicTilerFactory(BaseTilerFactory):
         )
         def assets_for_bbox(
             src_path=Depends(self.path_dependency),
-            minx: float = Query(None, description="Left side of bounding box"),
-            miny: float = Query(None, description="Bottom of bounding box"),
-            maxx: float = Query(None, description="Right side of bounding box"),
-            maxy: float = Query(None, description="Top of bounding box"),
+            minx: float = Path(description="Left side of bounding box"),
+            miny: float = Path(description="Bottom of bounding box"),
+            maxx: float = Path(description="Right side of bounding box"),
+            maxy: float = Path(description="Top of bounding box"),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
@@ -705,8 +720,8 @@ class MosaicTilerFactory(BaseTilerFactory):
         )
         def assets_for_lon_lat(
             src_path=Depends(self.path_dependency),
-            lng: float = Query(None, description="Longitude"),
-            lat: float = Query(None, description="Latitude"),
+            lng: float = Path(description="Longitude"),
+            lat: float = Path(description="Latitude"),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
