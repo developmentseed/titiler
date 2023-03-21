@@ -180,7 +180,7 @@
     <div id='selector' class='fixed top right bottom left scroll-auto bg-darken25 z3'>
       <div class='bg-white middle-center w600 px12 py12 round'>
         <div class='txt-h5 mt6 mb6 color-black'>Enter COG url</div>
-        <input id="cogeo" class='input wmax-full inline-block' value="" placeholder='cogeo url here' />
+        <input id="cogeo" class='input wmax-full inline-block' value="https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/36/Q/WD/2020/7/S2A_36QWD_20200701_0_L2A/TCI.tif" placeholder='cogeo url here' />
         <button id="launch" class='btn bts--xs btn--stroke bg-darken25-on-hover inline-block mt12 '>Apply</button>
       </div>
     </div>
@@ -254,6 +254,24 @@
           <input id="data-min" class='input input--s w120-ml w60 inline-block align-center color-black' value='0' />
           <input id="data-max" class='input input--s w120-ml w60 inline-block align-center color-black' value='0' />
           <button id="btn-rescale" class='btn bts--xs btn--stroke bg-darken25-on-hover inline-block txt-s color-black mt6'>Apply</button>
+        </div>
+
+        <!-- Zoom to point -->
+        <div class="px6 py6 w-full">
+          <div class='txt-h5 color-black'><svg class='icon icon--l inline-block'><use xlink:href='#icon-marker'/></svg> Zoom to point</div>
+          <form class='grid grid--gut12 mx12 mt12' id="zoom-to-point-form">
+            <div class="col">
+              <label for="zoomLng" class='row'>Longitude:</label>
+              <input name="zoomLng" id="zoomLng" type="number" class="input input--s row" min="-180" max="180" required/>
+            </div>
+            <div class="col">
+              <label for="zoomLat" class='row'>Latitude:</label>
+              <input name="zoomLat" id="zoomLat" type="number" class="input input--s row" min="-90" max="90" required/>
+            </div>
+            <div id='zoom-to-point-div' class='w-full align-center'>
+              <button type="submit" class='btn bts--xs btn--stroke bg-darken25-on-hover inline-block txt-s color-black mx12 my12'>Zoom to point</button>
+            </div>
+          </form>
         </div>
 
         <!-- Histogram -->
@@ -454,6 +472,10 @@ const updateViz = () => {
   }
 }
 
+const addZoomToPoint = () => {
+
+}
+
 const addHisto3Bands = () => {
   const r = document.getElementById('r-selector').selectedOptions[0].getAttribute("bname")
   const g = document.getElementById('g-selector').selectedOptions[0].getAttribute("bname")
@@ -651,6 +673,32 @@ const addHisto1Band = () => {
     }
     table.classList.remove('none')
 }
+
+var centerMarker;
+
+document.getElementById('zoom-to-point-form').addEventListener('submit', (e) => {
+  e.preventDefault()
+  if (map) {
+    let lng = document.getElementById('zoomLng').value
+    let lat = document.getElementById('zoomLat').value
+    console.log(`${lng}, ${lat}`)
+    map.flyTo({
+      center: [lng, lat],
+      essential: false // this animation is considered essential with respect to prefers-reduced-motion
+    });
+
+    if (!centerMarker) {
+      centerMarker = new mapboxgl.Marker()
+      .setLngLat([lng, lat])
+      .addTo(map);
+    } else {
+      centerMarker.setLngLat([lng, lat])
+    }
+
+  }
+
+
+})
 
 document.getElementById('btn-stats').addEventListener('click', () => {
   document.getElementById('fetch-stats-div').classList.add('none')
