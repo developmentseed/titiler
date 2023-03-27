@@ -59,6 +59,7 @@ nav:
       - Non-WebMercator TMS: "examples/notebooks/Working_with_nonWebMercatorTMS.ipynb"
       - NumpyTile: "examples/notebooks/Working_with_NumpyTile.ipynb"
       - Algorithm: "examples/notebooks/Working_with_Algorithm.ipynb"
+      - Statistics: "examples/notebooks/Working_with_Statistics.ipynb"
 
   - API:
     - titiler.core:
