@@ -6,7 +6,7 @@ import pathlib
 from dataclasses import dataclass
 from enum import Enum
 from io import BytesIO
-from typing import Dict, Type
+from typing import Dict, Optional, Type
 from unittest.mock import patch
 from urllib.parse import urlencode
 
@@ -21,6 +21,7 @@ from rio_tiler.io import BaseReader, MultiBandReader, Reader, STACReader
 from starlette.requests import Request
 from starlette.testclient import TestClient
 
+from titiler.core.dependencies import RescaleType
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 from titiler.core.factory import (
     AlgorithmFactory,
@@ -1513,3 +1514,34 @@ def test_AutoFormat_Colormap():
                     0,
                 ]  # when creating a PNG, GDAL will set masked value to 0
                 assert img[:, 500, 500].tolist() == [255, 0, 0, 255]
+
+
+def test_rescale_dependency():
+    """Ensure that we can set default rescale values via the rescale_dependency"""
+
+    def custom_rescale_params() -> Optional[RescaleType]:
+        return [(0, 100)]
+
+    cog = TilerFactory()
+    cog_custom_range = TilerFactory(rescale_dependency=custom_rescale_params)
+
+    app = FastAPI()
+    app.include_router(cog.router, prefix="/cog")
+    app.include_router(cog_custom_range.router, prefix="/cog_custom")
+
+    with TestClient(app) as client:
+        response = client.get(
+            f"/cog/tiles/8/87/48.npy?url={DATA_DIR}/cog.tif&rescale=0,1000"
+        )
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "application/x-binary"
+        npy_tile = numpy.load(BytesIO(response.content))
+        assert npy_tile.shape == (2, 256, 256)  # mask + data
+
+        response = client.get(
+            f"/cog_custom/tiles/8/87/48.npy?url={DATA_DIR}/cog.tif&rescale=0,1000"
+        )
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "application/x-binary"
+        npy_tile_custom = numpy.load(BytesIO(response.content))
+        assert npy_tile.shape == (2, 256, 256)  # mask + data
