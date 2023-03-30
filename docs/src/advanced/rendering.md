@@ -5,7 +5,7 @@ When using Titiler to visualize imagery, there are some helper options that chan
 2. Apply color maps to create heat maps, colorful terrain based on band value
 3. Rescale images on a per-band basis
 
-## Color Maps
+## Color Map
 
 Color maps are arrays of colors, used to map pixel values to specific colors. For example, it is possible to map a single band DEM, where pixel values denote height, to a color map which shows higher values as white:
 
@@ -57,7 +57,7 @@ Titiler supports colormaps that are both discrete (where pixels will be one of t
 
 For more information, please check out [rio-tiler's docs](https://cogeotiff.github.io/rio-tiler/colormap/).
 
-## Color Formulae
+## Color Formula
 
 Color formulae are simple commands that apply color corrections to images. This is useful for reducing artefacts like atmospheric haze, dark shadows, or muted colors.
 
