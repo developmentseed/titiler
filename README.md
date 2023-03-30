@@ -66,9 +66,9 @@ To install from PyPI and run:
 
 ```bash
 # Make sure you have pip up to date
-$ python -m pip install -U pip
+python -m pip install -U pip
 
-$ python -m pip  install titiler.{package}
+python -m pip  install titiler.{package}
 # e.g.,
 # python -m pip  install titiler.core
 # python -m pip  install titiler.extensions
@@ -76,21 +76,23 @@ $ python -m pip  install titiler.{package}
 # python -m pip  install titiler.application (also installs core, extensions and mosaic)
 
 # Install uvicorn to run the FastAPI application locally
-$ python -m pip install uvicorn
+python -m pip install uvicorn
 
 # Launch application locally
-$ uvicorn titiler.application.main:app
+uvicorn titiler.application.main:app
 ```
 
 To install from sources and run for development:
 
 ```
-$ git clone https://github.com/developmentseed/titiler.git
-$ cd titiler
-$ python -m pip install -U pip
-$ python -m pip install -e src/titiler/core -e src/titiler/extensions -e src/titiler/mosaic -e src/titiler/application
-$ python -m pip install uvicorn
-$ uvicorn titiler.application.main:app --reload
+git clone https://github.com/developmentseed/titiler.git
+cd titiler
+
+python -m pip install -U pip
+python -m pip install -e src/titiler/core -e src/titiler/extensions -e src/titiler/mosaic -e src/titiler/application
+python -m pip install uvicorn
+
+uvicorn titiler.application.main:app --reload
 ```
 
 ## Docker
@@ -109,10 +111,10 @@ docker run --name titiler \
 
 - Built the docker locally
 ```
-$ git clone https://github.com/developmentseed/titiler.git
-$ cd titiler
+git clone https://github.com/developmentseed/titiler.git
+cd titiler
 
-$ docker-compose up --build titiler  # or titiler-uvicorn
+docker-compose up --build titiler  # or titiler-uvicorn
 ```
 
 Some options can be set via environment variables, see: https://github.com/tiangolo/uvicorn-gunicorn-docker#advanced-usage

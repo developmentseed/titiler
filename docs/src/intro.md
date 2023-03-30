@@ -10,9 +10,14 @@ Users can choose to extend or use `TiTiler` as it is.
 `TiTiler` comes with a default (complete) application with support for COG, STAC, and MosaicJSON. You can install and start the application locally by doing:
 
 ```bash
-$ python -m pip install -U pip
-$ python -m pip install uvicorn titiler.application
-$ uvicorn titiler.application.main:app
+# Update pip
+python -m pip install -U pip
+
+# Install titiler packages
+python -m pip install uvicorn titiler.application
+
+# Start application using uvicorn
+uvicorn titiler.application.main:app
 
 > INFO: Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
 ```
@@ -38,20 +43,6 @@ The default application can be customized using environment variables defined in
 - `DISABLE_MOSAIC` (bool): disable `/mosaic` endpoints.
 - `LOWER_CASE_QUERY_PARAMETERS` (bool): transform all query-parameters to lower case (see https://github.com/developmentseed/titiler/pull/321).
 
-## Development
-
-To install and run `Titiler` from sources and for developing the `Titiler` code itself:
-
-```
-$ git clone https://github.com/developmentseed/titiler.git
-$ cd titiler
-$ pip install uvicorn -e src/titiler/core -e src/titiler/mosaic -e src/titiler/application
-$ uvicorn titiler.application.main:app --reload
-
-> INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
-> INFO:     Started reloader process [66665] using statreload
-```
-
 ## Customized, minimal app
 
 `TiTiler` has been developed so users can build their own app using only the portions they need. Using [TilerFactories](advanced/tiler_factories.md), users can create a fully customized application with only the endpoints needed.
@@ -59,14 +50,18 @@ $ uvicorn titiler.application.main:app --reload
 When building a custom application, you may wish to only install the `core` and/or `mosaic` modules. To install these from PyPI:
 
 ```bash
-$ python -m pip install -U pip
-$ python -m pip install titiler.core
-$ python -m pip install titiler.mosaic
+# Update pip
+python -m pip install -U pip
+
+# Install titiler.core and uvicorn packages
+python -m pip install titiler.core uvicorn
 ```
 
 These can then be used like:
 
 ```py
+# app.py
+import uvicorn
 from titiler.core.factory import TilerFactory
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 
@@ -76,6 +71,10 @@ app = FastAPI()
 cog = TilerFactory()
 app.include_router(cog.router)
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
+
+
+if __name__ == '__main__':
+    uvicorn.run(app=app, host="127.0.0.1", port=8080, log_level="info")
 ```
 
 ![](img/custom_app.png)
@@ -86,8 +85,7 @@ If you want to include all of Titiler's built-in endpoints, but also include
 customized endpoints, you can import and extend the app directly.
 
 ```bash
-$ python -m pip install -U pip
-$ python -m pip install titiler.application # also installs titiler.core and titiler.mosaic
+python -m pip install titiler.application uvicorn # also installs titiler.core and titiler.mosaic
 ```
 
 These can then be used like:
@@ -110,6 +108,7 @@ def token_validation(access_token: str = Security(api_key_query)):
     if not access_token:
         raise HTTPException(status_code=403, detail="Missing `access_token`")
 
+    # if access_token == `token` then OK
     if not access_token == "token":
         raise HTTPException(status_code=403, detail="Invalid `access_token`")
 
@@ -121,6 +120,10 @@ router = APIRouter(dependencies=[Depends(token_validation)])
 tiler = TilerFactory(router_prefix="private/cog", router=router)
 
 app.include_router(tiler.router, prefix="/private/cog", tags=["Private"])
+
+
+if __name__ == '__main__':
+    uvicorn.run(app=app, host="127.0.0.1", port=8080, log_level="info")
 ```
 
 More on [customization](advanced/customization.md)
