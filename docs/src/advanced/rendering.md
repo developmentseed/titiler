@@ -17,7 +17,7 @@ Titiler supports both default colormaps (each with a name) and custom color maps
 
 Default colormaps pre-made, each with a given name. These maps come from the `rio-tiler` library, which has taken colormaps packaged with Matplotlib and has added others that are commonly used with raster data. 
 
-A list of available color maps can be found in Titiler's Swagger docs, or in the [rio-tiler](https://cogeotiff.github.io/rio-tiler/colormap/) documentation.
+A list of available color maps can be found in Titiler's Swagger docs, or in the [rio-tiler documentation](https://cogeotiff.github.io/rio-tiler/colormap/#default-rio-tilers-colormaps).
 
 To use a default colormap, simply use the parameter `colormap_name`:
 
@@ -34,7 +34,7 @@ You can take any of the colormaps listed on `rio-tiler`, and add `_r` to reverse
 
 ### Custom Colormaps
 
-If you'd like to specify your own colormap, you can specify your own using a JSON:
+If you'd like to specify your own colormap, you can specify your own using an encoded JSON:
 
 ```python3 
 import requests
@@ -84,3 +84,21 @@ response = requests.get(
 ```
 
 ## Rescaling
+
+Rescaling is the act of adjusting the minimum and maximum values when rendering an image. In an image with a single band, the rescaled minimum value will be set to black, and the rescaled maximum value will be set to white. This is useful if you want to accentuate features that only appear at a certain pixel value (e.g. you have a DEM, but you want to highlight how the terrain changes between sea level and 100m).
+
+Titiler supports rescaling on a per-band basis, using the `rescaling` parameter. The input is a list of comma-delimited min-max ranges (e.g. ["0,100", "100,200", "0,1000]).
+
+```python3
+import requests
+
+response = requests.get(
+    f"titiler.xyz/cog/preview",
+    params={
+        "url": "<YOUR COG HERE>",
+        "rescaling": ["0,100", "0,1000", "0,10000"]
+    }
+)
+```
+
+By default, Titiler will render the maximum value in a band as red (or green, or blue, depending on which band), and the minimum value as black. 
