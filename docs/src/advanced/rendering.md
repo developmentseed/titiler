@@ -1,6 +1,7 @@
 # Rendering Options
 
 When using Titiler to visualize imagery, there are some helper options that change how the data appears on the screen. You can:
+
 1. Adjust band values using basic color-oriented image operations
 2. Apply color maps to create heat maps, colorful terrain based on band value
 3. Rescale images on a per-band basis
@@ -69,7 +70,7 @@ Titiler supports color formulae as defined in [Mapbox's `rio-color` plugin](http
 
 - **Saturation** can be thought of as the "colorfulness" of a pixel. Highly saturated colors are intense and almost cartoon-like, low saturation is more muted, closer to black and white. You can adjust saturation independently of brightness and hue but the data must be transformed into a different color space.
 
-In Titiler, color_formulae are applied through the `color_formula` parameter. An example of this option in action:
+In Titiler, color_formulae are applied through the `color_formula` parameter as a string. An example of this option in action:
 
 ```python3
 import requests

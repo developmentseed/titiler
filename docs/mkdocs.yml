@@ -34,6 +34,7 @@ nav:
       - Performance Tuning: "advanced/performance_tuning.md"
       - Custom Algorithm: "advanced/Algorithms.md"
       - Extensions: "advanced/Extensions.md"
+      - Rendering: "advanced/rendering.md"
       # - APIRoute and environment variables: "advanced/APIRoute_and_environment_variables.md"
 
   - Examples:
