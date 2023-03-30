@@ -59,4 +59,28 @@ For more information, please check out [rio-tiler's docs](https://cogeotiff.gith
 
 ## Color Formulae
 
+Color formulae are simple commands that apply color corrections to images. This is useful for reducing artefacts like atmospheric haze, dark shadows, or muted colors.
+
+Titiler supports color formulae as defined in [Mapbox's `rio-color` plugin](https://github.com/mapbox/rio-color). These include the operations ([taken from the `rio-color` docs](https://github.com/mapbox/rio-color#operations)):
+
+- **Gamma** adjustment adjusts RGB values according to a power law, effectively brightening or darkening the midtones. It can be very effective in satellite imagery for reducing atmospheric haze in the blue and green bands.
+
+- **Sigmoidal** contrast adjustment can alter the contrast and brightness of an image in a way that matches human's non-linear visual perception. It works well to increase contrast without blowing out the very dark shadows or already-bright parts of the image.
+
+- **Saturation** can be thought of as the "colorfulness" of a pixel. Highly saturated colors are intense and almost cartoon-like, low saturation is more muted, closer to black and white. You can adjust saturation independently of brightness and hue but the data must be transformed into a different color space.
+
+In Titiler, color_formulae are applied through the `color_formula` parameter. An example of this option in action:
+
+```python3
+import requests
+
+response = requests.get(
+    f"titiler.xyz/cog/preview",
+    params={
+        "url": "<YOUR COG HERE>",
+        "color_formula": "gamma rg 1.3, sigmoidal rgb 22 0.1, saturation 1.5"
+    }
+)
+```
+
 ## Rescaling
