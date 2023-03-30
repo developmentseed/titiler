@@ -1,5 +1,9 @@
 # Release Notes
 
+## Next
+
+* Allow a default `rescale` parameter to be set via a dependency (author @samn, https://github.com/developmentseed/titiler/pull/619)
+
 ## 0.11.5 (2023-03-22)
 
 * fix `TerrainRGB` (change interval from `1.0` to `0.1`)

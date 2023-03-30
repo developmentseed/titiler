@@ -41,6 +41,7 @@ from titiler.core.dependencies import (
     HistogramParams,
     ImageParams,
     ImageRenderingParams,
+    RescaleType,
     RescalingParams,
     StatisticsParams,
 )
@@ -140,6 +141,8 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
     # Image rendering Dependencies
     render_dependency: Type[DefaultDependency] = ImageRenderingParams
     colormap_dependency: Callable[..., Optional[ColorMapType]] = ColorMapParams
+
+    rescale_dependency: Callable[..., Optional[RescaleType]] = RescalingParams
 
     # Post Processing Dependencies (algorithm)
     process_dependency: Callable[
@@ -512,7 +515,7 @@ class TilerFactory(BaseTilerFactory):
                 description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
             ),
             post_process=Depends(self.process_dependency),
-            rescale: Optional[List[Tuple[float, ...]]] = Depends(RescalingParams),
+            rescale=Depends(self.rescale_dependency),
             color_formula: Optional[str] = Query(
                 None,
                 title="Color Formula",
@@ -604,9 +607,7 @@ class TilerFactory(BaseTilerFactory):
                 description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
             ),
             post_process=Depends(self.process_dependency),  # noqa
-            rescale: Optional[List[Tuple[float, ...]]] = Depends(
-                RescalingParams
-            ),  # noqa
+            rescale=Depends(self.rescale_dependency),  # noqa
             color_formula: Optional[str] = Query(  # noqa
                 None,
                 title="Color Formula",
@@ -687,9 +688,7 @@ class TilerFactory(BaseTilerFactory):
                 description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
             ),
             post_process=Depends(self.process_dependency),  # noqa
-            rescale: Optional[List[Tuple[float, ...]]] = Depends(
-                RescalingParams
-            ),  # noqa
+            rescale=Depends(self.rescale_dependency),  # noqa
             color_formula: Optional[str] = Query(  # noqa
                 None,
                 title="Color Formula",
@@ -754,9 +753,7 @@ class TilerFactory(BaseTilerFactory):
                 description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
             ),
             post_process=Depends(self.process_dependency),  # noqa
-            rescale: Optional[List[Tuple[float, ...]]] = Depends(
-                RescalingParams
-            ),  # noqa
+            rescale=Depends(self.rescale_dependency),  # noqa
             color_formula: Optional[str] = Query(  # noqa
                 None,
                 title="Color Formula",
@@ -886,7 +883,7 @@ class TilerFactory(BaseTilerFactory):
             dataset_params=Depends(self.dataset_dependency),
             img_params=Depends(self.img_dependency),
             post_process=Depends(self.process_dependency),
-            rescale: Optional[List[Tuple[float, ...]]] = Depends(RescalingParams),
+            rescale=Depends(self.rescale_dependency),  # noqa
             color_formula: Optional[str] = Query(
                 None,
                 title="Color Formula",
@@ -956,7 +953,7 @@ class TilerFactory(BaseTilerFactory):
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_dependency),
             post_process=Depends(self.process_dependency),
-            rescale: Optional[List[Tuple[float, ...]]] = Depends(RescalingParams),
+            rescale=Depends(self.rescale_dependency),
             color_formula: Optional[str] = Query(
                 None,
                 title="Color Formula",
@@ -1021,7 +1018,7 @@ class TilerFactory(BaseTilerFactory):
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_dependency),
             post_process=Depends(self.process_dependency),
-            rescale: Optional[List[Tuple[float, ...]]] = Depends(RescalingParams),
+            rescale=Depends(self.rescale_dependency),
             color_formula: Optional[str] = Query(
                 None,
                 title="Color Formula",
