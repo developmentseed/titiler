@@ -58,6 +58,9 @@ Titiler supports colormaps that are both discrete (where pixels will be one of t
 
 For more information, please check out [rio-tiler's docs](https://cogeotiff.github.io/rio-tiler/colormap/).
 
+It is also possible to add a [colormap dependency](../../examples/code/tiler_with_custom_colormap) to automatically apply
+a default colormap.
+
 ## Color Formula
 
 Color formulae are simple commands that apply color corrections to images. This is useful for reducing artefacts like atmospheric haze, dark shadows, or muted colors.
@@ -102,4 +105,11 @@ response = requests.get(
 )
 ```
 
-By default, Titiler will render the maximum value in a band as red (or green, or blue, depending on which band), and the minimum value as black. 
+By default, Titiler will rescale the bands using the min/max values of the input datatype. For example, PNG images 8- or 16-bit unsigned pixels,
+giving a possible range of 0 to 255 or 0 to 65,536, so Titiler will use these ranges to rescale to the output format. 
+
+For certain datasets (e.g. DEMs) this default behaviour can make the image seem washed out (or even entirely one color), 
+so if you see this happen look into rescaling your images to something that makes sense for your data.
+
+It is also possible to add a [rescaling dependency](../../api/titiler/core/dependencies/#rescalingparams) to automatically apply
+a default rescale.
