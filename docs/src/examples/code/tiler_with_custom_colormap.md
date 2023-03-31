@@ -15,7 +15,7 @@ cmap = urlencode(
     }
 )
 response = requests.get(
-    f"http://127.0.0.1:8000/cog/tiles/8/53/50.png?url=https://myurl.com/cog.tif&bidx=1&rescale=0,10000&{cmap}&colormap_type=linear"
+    f"http://127.0.0.1:8000/cog/tiles/8/53/50.png?url=https://myurl.com/cog.tif&bidx=1&rescale=0,10000&{cmap}"
 )
 ```
 
