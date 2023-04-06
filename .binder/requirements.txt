@@ -7,7 +7,7 @@ rasterio
 boto3
 tqdm
 
-
+geojson
 geojson_pydantic
 cogeo-mosaic
 
