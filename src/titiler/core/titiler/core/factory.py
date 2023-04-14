@@ -14,6 +14,8 @@ from geojson_pydantic.geometries import Polygon
 from morecantile import TileMatrixSet
 from morecantile import tms as morecantile_tms
 from morecantile.defaults import TileMatrixSets
+from rasterio.crs import CRS
+from rio_tiler.constants import WGS84_CRS
 from rio_tiler.io import BaseReader, MultiBandReader, MultiBaseReader, Reader
 from rio_tiler.models import BandStatistics, Bounds, Info
 from rio_tiler.types import ColorMapType
@@ -35,6 +37,7 @@ from titiler.core.dependencies import (
     BandsParams,
     BidxExprParams,
     ColorMapParams,
+    CRSParams,
     DatasetParams,
     DatasetPathParams,
     DefaultDependency,
@@ -367,6 +370,7 @@ class TilerFactory(BaseTilerFactory):
             with rasterio.Env(**env):
                 with self.reader(src_path, **reader_params) as src_dst:
                     return Feature(
+                        type="Feature",
                         geometry=Polygon.from_bounds(*src_dst.geographic_bounds),
                         properties=src_dst.info(),
                     )
@@ -428,6 +432,7 @@ class TilerFactory(BaseTilerFactory):
                 ..., description="GeoJSON Feature or FeatureCollection."
             ),
             src_path=Depends(self.path_dependency),
+            coord_crs: Optional[CRS] = Depends(CRSParams),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_dependency),
@@ -439,13 +444,14 @@ class TilerFactory(BaseTilerFactory):
             """Get Statistics from a geojson feature or featureCollection."""
             fc = geojson
             if isinstance(fc, Feature):
-                fc = FeatureCollection(features=[geojson])
+                fc = FeatureCollection(type="FeatureCollection", features=[geojson])
 
             with rasterio.Env(**env):
                 with self.reader(src_path, **reader_params) as src_dst:
                     for feature in fc:
                         data = src_dst.feature(
                             feature.dict(exclude_none=True),
+                            shape_crs=coord_crs or WGS84_CRS,
                             **layer_params,
                             **image_params,
                             **dataset_params,
@@ -845,17 +851,20 @@ class TilerFactory(BaseTilerFactory):
             lon: float = Path(..., description="Longitude"),
             lat: float = Path(..., description="Latitude"),
             src_path=Depends(self.path_dependency),
+            coord_crs: Optional[CRS] = Depends(CRSParams),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
         ):
             """Get Point value for a dataset."""
+
             with rasterio.Env(**env):
                 with self.reader(src_path, **reader_params) as src_dst:
                     pts = src_dst.point(
                         lon,
                         lat,
+                        coord_crs=coord_crs or WGS84_CRS,
                         **layer_params,
                         **dataset_params,
                     )
@@ -949,6 +958,7 @@ class TilerFactory(BaseTilerFactory):
             maxy: float = Path(..., description="Bounding box max Y"),
             format: ImageType = Query(..., description="Output image type."),
             src_path=Depends(self.path_dependency),
+            coord_crs: Optional[CRS] = Depends(CRSParams),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_dependency),
@@ -969,6 +979,7 @@ class TilerFactory(BaseTilerFactory):
                 with self.reader(src_path, **reader_params) as src_dst:
                     image = src_dst.part(
                         [minx, miny, maxx, maxy],
+                        bounds_crs=coord_crs or WGS84_CRS,
                         **layer_params,
                         **image_params,
                         **dataset_params,
@@ -1014,6 +1025,7 @@ class TilerFactory(BaseTilerFactory):
                 None, description="Output image type. Default is auto."
             ),
             src_path=Depends(self.path_dependency),
+            coord_crs: Optional[CRS] = Depends(CRSParams),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_dependency),
@@ -1034,6 +1046,7 @@ class TilerFactory(BaseTilerFactory):
                 with self.reader(src_path, **reader_params) as src_dst:
                     image = src_dst.feature(
                         geojson.dict(exclude_none=True),
+                        shape_crs=coord_crs or WGS84_CRS,
                         **layer_params,
                         **image_params,
                         **dataset_params,
@@ -1135,6 +1148,7 @@ class MultiBaseTilerFactory(TilerFactory):
             with rasterio.Env(**env):
                 with self.reader(src_path, **reader_params) as src_dst:
                     return Feature(
+                        type="Feature",
                         geometry=Polygon.from_bounds(*src_dst.geographic_bounds),
                         properties={
                             asset: asset_info
@@ -1254,6 +1268,7 @@ class MultiBaseTilerFactory(TilerFactory):
                 ..., description="GeoJSON Feature or FeatureCollection."
             ),
             src_path=Depends(self.path_dependency),
+            coord_crs: Optional[CRS] = Depends(CRSParams),
             layer_params=Depends(AssetsBidxExprParamsOptional),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_dependency),
@@ -1265,7 +1280,7 @@ class MultiBaseTilerFactory(TilerFactory):
             """Get Statistics from a geojson feature or featureCollection."""
             fc = geojson
             if isinstance(fc, Feature):
-                fc = FeatureCollection(features=[geojson])
+                fc = FeatureCollection(type="FeatureCollection", features=[geojson])
 
             with rasterio.Env(**env):
                 with self.reader(src_path, **reader_params) as src_dst:
@@ -1276,6 +1291,7 @@ class MultiBaseTilerFactory(TilerFactory):
                     for feature in fc:
                         data = src_dst.feature(
                             feature.dict(exclude_none=True),
+                            shape_crs=coord_crs or WGS84_CRS,
                             **layer_params,
                             **image_params,
                             **dataset_params,
@@ -1370,6 +1386,7 @@ class MultiBandTilerFactory(TilerFactory):
             with rasterio.Env(**env):
                 with self.reader(src_path, **reader_params) as src_dst:
                     return Feature(
+                        type="Feature",
                         geometry=Polygon.from_bounds(*src_dst.geographic_bounds),
                         properties=src_dst.info(**bands_params),
                     )
@@ -1444,6 +1461,7 @@ class MultiBandTilerFactory(TilerFactory):
                 ..., description="GeoJSON Feature or FeatureCollection."
             ),
             src_path=Depends(self.path_dependency),
+            coord_crs: Optional[CRS] = Depends(CRSParams),
             bands_params=Depends(BandsExprParamsOptional),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_dependency),
@@ -1455,7 +1473,7 @@ class MultiBandTilerFactory(TilerFactory):
             """Get Statistics from a geojson feature or featureCollection."""
             fc = geojson
             if isinstance(fc, Feature):
-                fc = FeatureCollection(features=[geojson])
+                fc = FeatureCollection(type="FeatureCollection", features=[geojson])
 
             with rasterio.Env(**env):
                 with self.reader(src_path, **reader_params) as src_dst:
@@ -1466,6 +1484,7 @@ class MultiBandTilerFactory(TilerFactory):
                     for feature in fc:
                         data = src_dst.feature(
                             feature.dict(exclude_none=True),
+                            shape_crs=coord_crs or WGS84_CRS,
                             **bands_params,
                             **image_params,
                             **dataset_params,

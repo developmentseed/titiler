@@ -189,6 +189,14 @@ def test_TilerFactory():
     assert len(response.json()["values"]) == 1
     assert response.json()["band_names"] == ["b1"]
 
+    response = client.get(
+        f"/point/-6259272.328324187,12015838.020930404?url={DATA_DIR}/cog.tif&coord-crs=EPSG:3857"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    assert len(response.json()["values"]) == 1
+    assert response.json()["band_names"] == ["b1"]
+
     response = client.get(f"/point/-56.228,72.715?url={DATA_DIR}/cog.tif&bidx=1&bidx=1")
     assert len(response.json()["values"]) == 2
     assert response.json()["band_names"] == ["b1", "b1"]

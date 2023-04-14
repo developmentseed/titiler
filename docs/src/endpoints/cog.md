@@ -113,6 +113,7 @@ Example:
     - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
     - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
     - **expression** (str): rio-tiler's band math expression (e.g B1/B2).
+    - **coord-crs** (str): Coordinate Reference System of the input coordinates. Default to `epsg:4326`.
     - **max_size** (int): Max image size, default is 1024.
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
@@ -148,6 +149,7 @@ Example:
     - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
     - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
     - **expression** (str): rio-tiler's band math expression (e.g B1/B2).
+    - **coord-crs** (str): Coordinate Reference System of the input geometry coordinates. Default to `epsg:4326`.
     - **max_size** (int): Max image size, default is 1024.
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
@@ -182,6 +184,7 @@ Note: if `height` and `width` are provided `max_size` will be ignored.
     - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
     - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
     - **expression** (str): rio-tiler's band math expression (e.g B1/B2).
+    - **coord-crs** (str): Coordinate Reference System of the input coordinates. Default to `epsg:4326`.
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
     - **resampling** (str): rasterio resampling method. Default is `nearest`.
@@ -320,6 +323,7 @@ Example:
     - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
     - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
     - **expression** (str): rio-tiler's band math expression (e.g B1/B2).
+    - **coord-crs** (str): Coordinate Reference System of the input geometry coordinates. Default to `epsg:4326`.
     - **max_size** (int): Max image size from which to calculate statistics, default is 1024.
     - **height** (int): Force image height from which to calculate statistics.
     - **width** (int): Force image width from which to calculate statistics.
