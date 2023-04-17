@@ -1,8 +1,9 @@
 # Release Notes
 
-## Next
+## 0.11.6 (2023-04-14)
 
 * Allow a default `rescale` parameter to be set via a dependency (author @samn, https://github.com/developmentseed/titiler/pull/619)
+* add `coord-crs` parameter for `/point`, `/part` and `/feature` endpoints
 
 ## 0.11.5 (2023-03-22)
 

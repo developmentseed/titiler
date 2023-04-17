@@ -205,7 +205,9 @@ class MosaicTilerFactory(BaseTilerFactory):
                 ) as src_dst:
                     info = src_dst.info()
                     return Feature(
-                        geometry=Polygon.from_bounds(*info.bounds), properties=info
+                        type="Feature",
+                        geometry=Polygon.from_bounds(*info.bounds),
+                        properties=info,
                     )
 
     ############################################################################

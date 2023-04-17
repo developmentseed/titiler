@@ -7,6 +7,7 @@ from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy
 from fastapi import HTTPException, Query
+from rasterio.crs import CRS
 from rasterio.enums import Resampling
 from rio_tiler.colormap import cmap, parse_color
 from rio_tiler.errors import MissingAssets, MissingBands
@@ -448,3 +449,17 @@ link: https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
 
         if self.range:
             self.range = list(map(float, self.range.split(",")))  # type: ignore
+
+
+def CRSParams(
+    crs: str = Query(
+        None,
+        alias="coord-crs",
+        description="Coordinate Reference System of the input coords. Default to `epsg:4326`.",
+    )
+) -> Optional[CRS]:
+    """Coordinate Reference System Coordinates Param."""
+    if crs:
+        return CRS.from_user_input(crs)
+
+    return None
