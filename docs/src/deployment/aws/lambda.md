@@ -26,7 +26,7 @@ The Lambda stack is also deployed by the [AWS CDK](https://aws.amazon.com/cdk/) 
     source .venv/bin/activate
 
     # Install CDK dependencies
-    python -m install -r requirements-cdk.txt
+    python -m pip install -r requirements-cdk.txt
 
     # Install NodeJS dependencies
     npm install

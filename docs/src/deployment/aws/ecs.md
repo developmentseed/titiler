@@ -15,21 +15,27 @@ The example handles tasks such as generating a docker image and setting up an ap
     # Download titiler repo
     $ git clone https://github.com/developmentseed/titiler.git
 
-    # install cdk dependencies
-    $ cd titiler/deployment/aws
-    $ pip install -r requirements.txt
-    $ npm install
+    # Create a virtual environment
+    python -m pip install --upgrade virtualenv
+    virtualenv .venv
+    source .venv/bin/activate
 
-    $ npm run cdk bootstrap # Deploys the CDK toolkit stack into an AWS environment
+    # Install CDK dependencies
+    python -m pip install -r requirements-cdk.txt
 
-    # in specific region
-    $ npm run cdk bootstrap aws://${AWS_ACCOUNT_ID}/eu-central-1
+    # Install NodeJS dependencies
+    npm install
+
+    $ npm run cdk -- bootstrap # Deploys the CDK toolkit stack into an AWS environment
+
+    # or in specific region
+    $ npm run cdk -- bootstrap aws://${AWS_ACCOUNT_ID}/eu-central-1
     ```
 
 2. Generate CloudFormation template
 
     ```bash
-    $ npm run cdk synth  # Synthesizes and prints the CloudFormation template for this stack
+    $ npm run cdk -- synth  # Synthesizes and prints the CloudFormation template for this stack
     ```
 
 3. Update settings (see [intro.md](intro.md))
@@ -79,5 +85,5 @@ The example handles tasks such as generating a docker image and setting up an ap
 
     ```bash
     # Deploys the stack(s) mytiler-ecs-dev in cdk/app.py
-    $ npm run cdk deploy mytiler-ecs-dev
+    $ npm run cdk -- deploy mytiler-ecs-dev
     ```
