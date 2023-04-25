@@ -2,7 +2,7 @@
 
 import os
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Literal, Optional, Tuple, Type, Union
+from typing import Callable, Dict, Literal, Optional, Type, Union
 from urllib.parse import urlencode
 
 import rasterio
