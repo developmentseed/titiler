@@ -1551,5 +1551,5 @@ def test_rescale_dependency():
         )
         assert response.status_code == 200
         assert response.headers["content-type"] == "application/x-binary"
-        npy_tile_custom = numpy.load(BytesIO(response.content))
+        numpy.load(BytesIO(response.content))
         assert npy_tile.shape == (2, 256, 256)  # mask + data

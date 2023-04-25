@@ -112,6 +112,7 @@ select = [
     "D1",  # pydocstyle errors
     "E",  # pycodestyle errors
     "W",  # pycodestyle warnings
+    "F",  # flake8
     "C",  # flake8-comprehensions
     "B",  # flake8-bugbear
 ]
