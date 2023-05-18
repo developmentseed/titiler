@@ -256,6 +256,24 @@
           <button id="btn-rescale" class='btn bts--xs btn--stroke bg-darken25-on-hover inline-block txt-s color-black mt6'>Apply</button>
         </div>
 
+        <!-- Zoom to point -->
+        <div class="px6 py6 w-full">
+          <div class='txt-h5 color-black'><svg class='icon icon--l inline-block'><use xlink:href='#icon-marker'/></svg> Zoom to point</div>
+          <form class='grid grid--gut12 mx12 mt12' id="zoom-to-point-form">
+            <div class="col">
+              <label for="zoomLng" class='row'>Longitude:</label>
+              <input name="zoomLng" id="zoomLng" type="number" class="input input--s row" min="-180" max="180" required/>
+            </div>
+            <div class="col">
+              <label for="zoomLat" class='row'>Latitude:</label>
+              <input name="zoomLat" id="zoomLat" type="number" class="input input--s row" min="-90" max="90" required/>
+            </div>
+            <div id='zoom-to-point-div' class='w-full align-center'>
+              <button type="submit" class='btn bts--xs btn--stroke bg-darken25-on-hover inline-block txt-s color-black mx12 my12'>Zoom to point</button>
+            </div>
+          </form>
+        </div>
+
         <!-- Histogram -->
         <div class='px6 py6 w-full'>
           <div class='txt-h5 color-black'><svg class='icon icon--l inline-block'><use xlink:href='#icon-graph'/></svg> Histogram</div>
@@ -452,6 +470,10 @@ const updateViz = () => {
     default:
       throw new Error(`Invalid ${rasterType}`)
   }
+}
+
+const addZoomToPoint = () => {
+
 }
 
 const addHisto3Bands = () => {
@@ -651,6 +673,29 @@ const addHisto1Band = () => {
     }
     table.classList.remove('none')
 }
+
+let centerMarker;
+
+document.getElementById('zoom-to-point-form').addEventListener('submit', (e) => {
+  e.preventDefault()
+  if (map) {
+    let lng = document.getElementById('zoomLng').value
+    let lat = document.getElementById('zoomLat').value
+    map.flyTo({
+      center: [lng, lat],
+      zoom: 10,
+      essential: false
+    });
+
+    if (!centerMarker) {
+      centerMarker = new mapboxgl.Marker()
+      .setLngLat([lng, lat])
+      .addTo(map);
+    } else {
+      centerMarker.setLngLat([lng, lat])
+    }
+  }
+})
 
 document.getElementById('btn-stats').addEventListener('click', () => {
   document.getElementById('fetch-stats-div').classList.add('none')
