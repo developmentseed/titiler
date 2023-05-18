@@ -24,6 +24,24 @@ This repo is set to use `pre-commit` to run *isort*, *flake8*, *pydocstring*, *b
 pre-commit install
 ```
 
+### Run tests
+
+Each `titiler`'s modules has its own test suite which can be ran independently
+
+```
+# titiler.core
+python -m pytest src/titiler/core --cov=titiler.core --cov-report=xml --cov-append --cov-report=term-missing
+
+# titiler.extensions
+python -m pytest src/titiler/extensions --cov=titiler.extensions --cov-report=xml --cov-append --cov-report=term-missing
+
+# titiler.mosaic
+python -m pytest src/titiler/mosaic --cov=titiler.mosaic --cov-report=xml --cov-append --cov-report=term-missing
+
+# titiler.application
+python -m pytest src/titiler/application --cov=titiler.application --cov-report=xml --cov-append --cov-report=term-missing
+```
+
 ### Docs
 
 ```bash

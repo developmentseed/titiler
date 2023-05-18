@@ -451,11 +451,25 @@ link: https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
             self.range = list(map(float, self.range.split(",")))  # type: ignore
 
 
-def CRSParams(
+def CoordCRSParams(
     crs: str = Query(
         None,
         alias="coord-crs",
         description="Coordinate Reference System of the input coords. Default to `epsg:4326`.",
+    )
+) -> Optional[CRS]:
+    """Coordinate Reference System Coordinates Param."""
+    if crs:
+        return CRS.from_user_input(crs)
+
+    return None
+
+
+def DstCRSParams(
+    crs: str = Query(
+        None,
+        alias="dst-crs",
+        description="Output Coordinate Reference System.",
     )
 ) -> Optional[CRS]:
     """Coordinate Reference System Coordinates Param."""

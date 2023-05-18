@@ -6,6 +6,8 @@
 
 * make HTML `templates` configurable in the factories
 * rename `index.html` to `map.html`
+* rename `dependencies.CRSParams` to `dependencies.CoordCRSParams`
+* add `dst-crs` option for `/preview` and `/crop` endpoints to specify the output Coordinate Reference System.
 
 ### titiler.mosaic
 

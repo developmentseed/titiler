@@ -16,6 +16,7 @@ import morecantile
 import numpy
 from fastapi import Depends, FastAPI, HTTPException, Path, Query, security, status
 from morecantile.defaults import TileMatrixSets
+from rasterio.crs import CRS
 from rasterio.io import MemoryFile
 from rio_tiler.io import BaseReader, MultiBandReader, Reader, STACReader
 from starlette.requests import Request
@@ -1553,3 +1554,54 @@ def test_rescale_dependency():
         assert response.headers["content-type"] == "application/x-binary"
         numpy.load(BytesIO(response.content))
         assert npy_tile.shape == (2, 256, 256)  # mask + data
+
+
+def test_dst_crs_option():
+    """test dst-crs parameter."""
+    app = FastAPI()
+    app.include_router(TilerFactory().router)
+
+    with TestClient(app) as client:
+        # preview endpoints
+        response = client.get(f"/preview.tif?url={DATA_DIR}/cog.tif")
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "image/tiff; application=geotiff"
+        meta = parse_img(response.content)
+        assert meta["crs"] == CRS.from_epsg(
+            32621
+        )  # return the image in the original CRS
+
+        response = client.get(f"/preview.tif?url={DATA_DIR}/cog.tif&dst-crs=epsg:4326")
+        meta = parse_img(response.content)
+        assert meta["crs"] == CRS.from_epsg(4326)
+        assert not meta["crs"] == CRS.from_epsg(32621)
+
+        # /crop endpoints
+        response = client.get(
+            f"/crop/-56.228,72.715,-54.547,73.188.tif?url={DATA_DIR}/cog.tif"
+        )
+        meta = parse_img(response.content)
+        assert meta["crs"] == CRS.from_epsg(
+            4326
+        )  # default is to return image in the bounds-crs
+        assert not meta["crs"] == CRS.from_epsg(32621)
+
+        # Force output in epsg:32621
+        response = client.get(
+            f"/crop/-56.228,72.715,-54.547,73.188.tif?url={DATA_DIR}/cog.tif&dst-crs=epsg:32621"
+        )
+        meta = parse_img(response.content)
+        assert meta["crs"] == CRS.from_epsg(32621)
+
+        # coord-crs + dst-crs
+        response = client.get(
+            f"/crop/-6259272.328324187,12015838.020930404,-6072144.264300693,12195445.265479913.tif?url={DATA_DIR}/cog.tif&coord-crs=epsg:3857"
+        )
+        meta = parse_img(response.content)
+        assert meta["crs"] == CRS.from_epsg(3857)
+
+        response = client.get(
+            f"/crop/-6259272.328324187,12015838.020930404,-6072144.264300693,12195445.265479913.tif?url={DATA_DIR}/cog.tif&coord-crs=epsg:3857&dst-crs=epsg:32621"
+        )
+        meta = parse_img(response.content)
+        assert meta["crs"] == CRS.from_epsg(32621)
