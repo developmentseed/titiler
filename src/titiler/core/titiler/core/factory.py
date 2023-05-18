@@ -38,10 +38,11 @@ from titiler.core.dependencies import (
     BandsParams,
     BidxExprParams,
     ColorMapParams,
-    CRSParams,
+    CoordCRSParams,
     DatasetParams,
     DatasetPathParams,
     DefaultDependency,
+    DstCRSParams,
     HistogramParams,
     ImageParams,
     ImageRenderingParams,
@@ -431,7 +432,7 @@ class TilerFactory(BaseTilerFactory):
                 ..., description="GeoJSON Feature or FeatureCollection."
             ),
             src_path=Depends(self.path_dependency),
-            coord_crs: Optional[CRS] = Depends(CRSParams),
+            coord_crs: Optional[CRS] = Depends(CoordCRSParams),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_dependency),
@@ -850,7 +851,7 @@ class TilerFactory(BaseTilerFactory):
             lon: float = Path(..., description="Longitude"),
             lat: float = Path(..., description="Latitude"),
             src_path=Depends(self.path_dependency),
-            coord_crs: Optional[CRS] = Depends(CRSParams),
+            coord_crs: Optional[CRS] = Depends(CoordCRSParams),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -888,8 +889,9 @@ class TilerFactory(BaseTilerFactory):
             ),
             src_path=Depends(self.path_dependency),
             layer_params=Depends(self.layer_dependency),
+            dst_crs: Optional[CRS] = Depends(DstCRSParams),
             dataset_params=Depends(self.dataset_dependency),
-            img_params=Depends(self.img_dependency),
+            image_params=Depends(self.img_dependency),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),  # noqa
             color_formula: Optional[str] = Query(
@@ -907,8 +909,9 @@ class TilerFactory(BaseTilerFactory):
                 with self.reader(src_path, **reader_params) as src_dst:
                     image = src_dst.preview(
                         **layer_params,
-                        **img_params,
+                        **image_params,
                         **dataset_params,
+                        dst_crs=dst_crs,
                     )
                     dst_colormap = getattr(src_dst, "colormap", None)
 
@@ -957,7 +960,8 @@ class TilerFactory(BaseTilerFactory):
             maxy: float = Path(..., description="Bounding box max Y"),
             format: ImageType = Query(..., description="Output image type."),
             src_path=Depends(self.path_dependency),
-            coord_crs: Optional[CRS] = Depends(CRSParams),
+            dst_crs: Optional[CRS] = Depends(DstCRSParams),
+            coord_crs: Optional[CRS] = Depends(CoordCRSParams),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_dependency),
@@ -978,6 +982,7 @@ class TilerFactory(BaseTilerFactory):
                 with self.reader(src_path, **reader_params) as src_dst:
                     image = src_dst.part(
                         [minx, miny, maxx, maxy],
+                        dst_crs=dst_crs,
                         bounds_crs=coord_crs or WGS84_CRS,
                         **layer_params,
                         **image_params,
@@ -1024,7 +1029,7 @@ class TilerFactory(BaseTilerFactory):
                 None, description="Output image type. Default is auto."
             ),
             src_path=Depends(self.path_dependency),
-            coord_crs: Optional[CRS] = Depends(CRSParams),
+            coord_crs: Optional[CRS] = Depends(CoordCRSParams),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_dependency),
@@ -1267,7 +1272,7 @@ class MultiBaseTilerFactory(TilerFactory):
                 ..., description="GeoJSON Feature or FeatureCollection."
             ),
             src_path=Depends(self.path_dependency),
-            coord_crs: Optional[CRS] = Depends(CRSParams),
+            coord_crs: Optional[CRS] = Depends(CoordCRSParams),
             layer_params=Depends(AssetsBidxExprParamsOptional),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_dependency),
@@ -1460,7 +1465,7 @@ class MultiBandTilerFactory(TilerFactory):
                 ..., description="GeoJSON Feature or FeatureCollection."
             ),
             src_path=Depends(self.path_dependency),
-            coord_crs: Optional[CRS] = Depends(CRSParams),
+            coord_crs: Optional[CRS] = Depends(CoordCRSParams),
             bands_params=Depends(BandsExprParamsOptional),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_dependency),
