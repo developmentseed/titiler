@@ -1,5 +1,22 @@
 # Release Notes
 
+## 0.11.7 (2023-05-18)
+
+### titiler.core
+
+* make HTML `templates` configurable in the factories
+* rename `index.html` to `map.html`
+
+### titiler.mosaic
+
+* make HTML `templates` configurable in the factories
+
+### titiler.extensions
+
+* make HTML `templates` configurable in the factories
+* rename `cog_index.html` to `cog_viewer.html`
+* rename `stac_index.html` to `stac_viewer.html`
+
 ## 0.11.6 (2023-04-14)
 
 * Allow a default `rescale` parameter to be set via a dependency (author @samn, https://github.com/developmentseed/titiler/pull/619)
