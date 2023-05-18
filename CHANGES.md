@@ -16,6 +16,7 @@
 * make HTML `templates` configurable in the factories
 * rename `cog_index.html` to `cog_viewer.html`
 * rename `stac_index.html` to `stac_viewer.html`
+* add `zoom to point` in `stac` and `cog` viewers (author @dchirst, https://github.com/developmentseed/titiler/pull/614)
 
 ## 0.11.6 (2023-04-14)
 
