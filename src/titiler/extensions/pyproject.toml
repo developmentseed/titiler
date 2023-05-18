@@ -29,7 +29,7 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-    "titiler.core==0.11.6"
+    "titiler.core==0.11.7"
 ]
 
 [project.optional-dependencies]
