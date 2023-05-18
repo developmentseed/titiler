@@ -2,6 +2,7 @@
 
 import logging
 
+import jinja2
 from fastapi import FastAPI
 from rio_tiler.io import STACReader
 from starlette.middleware.cors import CORSMiddleware
@@ -35,17 +36,20 @@ from titiler.mosaic.errors import MOSAIC_STATUS_CODES
 from titiler.mosaic.factory import MosaicTilerFactory
 
 try:
-    from importlib.resources import files as resources_files  # type: ignore
+    pass  # type: ignore
 except ImportError:
     # Try backported to PY<39 `importlib_resources`.
-    from importlib_resources import files as resources_files  # type: ignore
+    pass  # type: ignore
 
 logging.getLogger("botocore.credentials").disabled = True
 logging.getLogger("botocore.utils").disabled = True
 logging.getLogger("rio-tiler").setLevel(logging.ERROR)
 
-# TODO: mypy fails in python 3.9, we need to find a proper way to do this
-templates = Jinja2Templates(directory=str(resources_files(__package__) / "templates"))  # type: ignore
+templates = Jinja2Templates(
+    directory="",
+    loader=jinja2.ChoiceLoader([jinja2.PackageLoader(__package__, "templates")]),
+)  # type:ignore
+
 
 api_settings = ApiSettings()
 

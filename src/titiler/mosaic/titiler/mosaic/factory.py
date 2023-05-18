@@ -22,7 +22,7 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse, Response
 
 from titiler.core.dependencies import DefaultDependency
-from titiler.core.factory import BaseTilerFactory, img_endpoint_params, templates
+from titiler.core.factory import BaseTilerFactory, img_endpoint_params
 from titiler.core.models.mapbox import TileJSON
 from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
@@ -483,8 +483,8 @@ class MosaicTilerFactory(BaseTilerFactory):
                 tilejson_url += f"?{urlencode(request.query_params._list)}"
 
             tms = self.supported_tms.get(TileMatrixSetId)
-            return templates.TemplateResponse(
-                name="index.html",
+            return self.templates.TemplateResponse(
+                name="map.html",
                 context={
                     "request": request,
                     "tilejson_endpoint": tilejson_url,
@@ -597,7 +597,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                         </TileMatrix>"""
                 tileMatrix.append(tm)
 
-            return templates.TemplateResponse(
+            return self.templates.TemplateResponse(
                 "wmts.xml",
                 {
                     "request": request,

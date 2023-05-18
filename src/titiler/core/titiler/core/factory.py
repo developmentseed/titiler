@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Type, Union
 from urllib.parse import urlencode
 
+import jinja2
 import rasterio
 from fastapi import APIRouter, Body, Depends, Path, Query
 from fastapi.dependencies.utils import get_parameterless_sub_dependant
@@ -64,14 +65,10 @@ from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
 from titiler.core.routing import EndpointScope
 
-try:
-    from importlib.resources import files as resources_files  # type: ignore
-except ImportError:
-    # Try backported to PY<39 `importlib_resources`.
-    from importlib_resources import files as resources_files  # type: ignore
-
-# TODO: mypy fails in python 3.9, we need to find a proper way to do this
-templates = Jinja2Templates(directory=str(resources_files(__package__) / "templates"))  # type: ignore
+DEFAULT_TEMPLATES = Jinja2Templates(
+    directory="",
+    loader=jinja2.ChoiceLoader([jinja2.PackageLoader(__package__, "templates")]),
+)  # type:ignore
 
 
 img_endpoint_params: Dict[str, Any] = {
@@ -176,6 +173,8 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
     )
 
     extensions: List[FactoryExtension] = field(default_factory=list)
+
+    templates: Jinja2Templates = DEFAULT_TEMPLATES
 
     def __post_init__(self):
         """Post Init: register route and configure specific options."""
@@ -713,8 +712,8 @@ class TilerFactory(BaseTilerFactory):
                 tilejson_url += f"?{urlencode(request.query_params._list)}"
 
             tms = self.supported_tms.get(TileMatrixSetId)
-            return templates.TemplateResponse(
-                name="index.html",
+            return self.templates.TemplateResponse(
+                name="map.html",
                 context={
                     "request": request,
                     "tilejson_endpoint": tilejson_url,
@@ -820,7 +819,7 @@ class TilerFactory(BaseTilerFactory):
                         </TileMatrix>"""
                 tileMatrix.append(tm)
 
-            return templates.TemplateResponse(
+            return self.templates.TemplateResponse(
                 "wmts.xml",
                 {
                     "request": request,
