@@ -2,7 +2,7 @@
 
 import os
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Literal, Optional, Tuple, Type, Union
+from typing import Callable, Dict, Literal, Optional, Type, Union
 from urllib.parse import urlencode
 
 import rasterio
@@ -21,8 +21,8 @@ from rio_tiler.mosaic.methods.base import MosaicMethodBase
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, Response
 
-from titiler.core.dependencies import DefaultDependency, RescalingParams
-from titiler.core.factory import BaseTilerFactory, img_endpoint_params, templates
+from titiler.core.dependencies import DefaultDependency
+from titiler.core.factory import BaseTilerFactory, img_endpoint_params
 from titiler.core.models.mapbox import TileJSON
 from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
@@ -205,7 +205,9 @@ class MosaicTilerFactory(BaseTilerFactory):
                 ) as src_dst:
                     info = src_dst.info()
                     return Feature(
-                        geometry=Polygon.from_bounds(*info.bounds), properties=info
+                        type="Feature",
+                        geometry=Polygon.from_bounds(*info.bounds),
+                        properties=info,
                     )
 
     ############################################################################
@@ -254,7 +256,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                 description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * tile_buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
             ),
             post_process=Depends(self.process_dependency),
-            rescale: Optional[List[Tuple[float, ...]]] = Depends(RescalingParams),
+            rescale=Depends(self.rescale_dependency),
             color_formula: Optional[str] = Query(
                 None,
                 title="Color Formula",
@@ -371,9 +373,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                 description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * tile_buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
             ),
             post_process=Depends(self.process_dependency),  # noqa
-            rescale: Optional[List[Tuple[float, ...]]] = Depends(
-                RescalingParams
-            ),  # noqa
+            rescale=Depends(self.rescale_dependency),  # noqa
             color_formula: Optional[str] = Query(  # noqa
                 None,
                 title="Color Formula",
@@ -463,9 +463,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                 title="Tile buffer.",
                 description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * tile_buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
             ),
-            rescale: Optional[List[Tuple[float, ...]]] = Depends(
-                RescalingParams
-            ),  # noqa
+            rescale=Depends(self.rescale_dependency),  # noqa
             color_formula: Optional[str] = Query(  # noqa
                 None,
                 title="Color Formula",
@@ -485,8 +483,8 @@ class MosaicTilerFactory(BaseTilerFactory):
                 tilejson_url += f"?{urlencode(request.query_params._list)}"
 
             tms = self.supported_tms.get(TileMatrixSetId)
-            return templates.TemplateResponse(
-                name="index.html",
+            return self.templates.TemplateResponse(
+                name="map.html",
                 context={
                     "request": request,
                     "tilejson_endpoint": tilejson_url,
@@ -532,9 +530,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                 description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * tile_buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
             ),
             post_process=Depends(self.process_dependency),  # noqa
-            rescale: Optional[List[Tuple[float, ...]]] = Depends(
-                RescalingParams
-            ),  # noqa
+            rescale=Depends(self.rescale_dependency),  # noqa
             color_formula: Optional[str] = Query(  # noqa
                 None,
                 title="Color Formula",
@@ -601,7 +597,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                         </TileMatrix>"""
                 tileMatrix.append(tm)
 
-            return templates.TemplateResponse(
+            return self.templates.TemplateResponse(
                 "wmts.xml",
                 {
                     "request": request,

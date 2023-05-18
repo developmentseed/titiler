@@ -128,7 +128,7 @@ class TerrainRGB(BaseAlgorithm):
     """Encode DEM into RGB (Mapbox Terrain RGB)."""
 
     # parameters
-    interval: float = 1.0
+    interval: float = 0.1
     baseval: float = -10000.0
 
     # metadata

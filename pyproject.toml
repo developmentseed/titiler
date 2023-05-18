@@ -27,12 +27,12 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Topic :: Scientific/Engineering :: GIS",
 ]
-version="0.11.4"
+version="0.11.6"
 dependencies = [
-    "titiler.core==0.11.4",
-    "titiler.extensions==0.11.4",
-    "titiler.mosaic==0.11.4",
-    "titiler.application==0.11.4",
+    "titiler.core==0.11.6",
+    "titiler.extensions==0.11.6",
+    "titiler.mosaic==0.11.6",
+    "titiler.application==0.11.6",
 ]
 
 [project.optional-dependencies]
@@ -112,6 +112,7 @@ select = [
     "D1",  # pydocstyle errors
     "E",  # pycodestyle errors
     "W",  # pycodestyle warnings
+    "F",  # flake8
     "C",  # flake8-comprehensions
     "B",  # flake8-bugbear
 ]
