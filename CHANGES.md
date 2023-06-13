@@ -1,5 +1,40 @@
 # Release Notes
 
+## Next (TDB)
+
+### titiler.extensions
+
+* use TiTiler's custom JSONResponse for the `/validate` endpoint to avoid issue when COG has `NaN` nodata value
+
+## 0.11.7 (2023-05-18)
+
+### titiler.core
+
+* make HTML `templates` configurable in the factories
+* rename `index.html` to `map.html`
+* rename `dependencies.CRSParams` to `dependencies.CoordCRSParams`
+* add `dst-crs` option for `/preview` and `/crop` endpoints to specify the output Coordinate Reference System.
+
+### titiler.mosaic
+
+* make HTML `templates` configurable in the factories
+
+### titiler.extensions
+
+* make HTML `templates` configurable in the factories
+* rename `cog_index.html` to `cog_viewer.html`
+* rename `stac_index.html` to `stac_viewer.html`
+* add `zoom to point` in `stac` and `cog` viewers (author @dchirst, https://github.com/developmentseed/titiler/pull/614)
+
+## 0.11.6 (2023-04-14)
+
+* Allow a default `rescale` parameter to be set via a dependency (author @samn, https://github.com/developmentseed/titiler/pull/619)
+* add `coord-crs` parameter for `/point`, `/part` and `/feature` endpoints
+
+## 0.11.5 (2023-03-22)
+
+* fix `TerrainRGB` (change interval from `1.0` to `0.1`)
+
 ## 0.11.4 (2023-03-20)
 
 * set FastAPI version lower than 0.95 (https://github.com/tiangolo/fastapi/discussions/9278)

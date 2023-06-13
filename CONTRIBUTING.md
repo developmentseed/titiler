@@ -5,9 +5,10 @@ Issues and pull requests are more than welcome: https://github.com/developmentse
 **dev install**
 
 ```bash
-$ git clone https://github.com/developmentseed/titiler.git
-$ cd titiler
-$ pip install \
+git clone https://github.com/developmentseed/titiler.git
+cd titiler
+
+python -m pip install \
    pre-commit \
    -e src/titiler/core["test"] \
    -e src/titiler/extensions["test,cogeo,stac"] \
@@ -20,32 +21,50 @@ $ pip install \
 This repo is set to use `pre-commit` to run *isort*, *flake8*, *pydocstring*, *black* ("uncompromising Python code formatter") and mypy when committing new code.
 
 ```bash
-$ pre-commit install
+pre-commit install
+```
+
+### Run tests
+
+Each `titiler`'s modules has its own test suite which can be ran independently
+
+```
+# titiler.core
+python -m pytest src/titiler/core --cov=titiler.core --cov-report=xml --cov-append --cov-report=term-missing
+
+# titiler.extensions
+python -m pytest src/titiler/extensions --cov=titiler.extensions --cov-report=xml --cov-append --cov-report=term-missing
+
+# titiler.mosaic
+python -m pytest src/titiler/mosaic --cov=titiler.mosaic --cov-report=xml --cov-append --cov-report=term-missing
+
+# titiler.application
+python -m pytest src/titiler/application --cov=titiler.application --cov-report=xml --cov-append --cov-report=term-missing
 ```
 
 ### Docs
 
 ```bash
-$ git clone https://github.com/developmentseed/titiler.git
-$ cd titiler
-$ pip install nbconvert mkdocs mkdocs-material mkdocs-jupyter pygments pdocs
+git clone https://github.com/developmentseed/titiler.git
+cd titiler
+python -m pip install nbconvert mkdocs mkdocs-material mkdocs-jupyter pygments pdocs
 ```
 
 Hot-reloading docs:
 
 ```bash
-$ mkdocs serve -f docs/mkdocs.yml
+mkdocs serve -f docs/mkdocs.yml
 ```
 
 To manually deploy docs (note you should never need to do this because Github
 Actions deploys automatically for new commits.):
 
 ```bash
-$ mkdocs gh-deploy -f docs/mkdocs.yml
+mkdocs gh-deploy -f docs/mkdocs.yml
 ```
 
 ```bash
-   pdocs as_markdown \
+pdocs as_markdown \
    --output_dir docs/src/api \
    --exclude_source \
    --overwrite \
@@ -57,7 +76,7 @@ $ mkdocs gh-deploy -f docs/mkdocs.yml
    titiler.core.resources.enums \
    titiler.core.middleware
 
-   pdocs as_markdown \
+pdocs as_markdown \
    --output_dir docs/src/api \
    --exclude_source \
    --overwrite \
@@ -65,7 +84,7 @@ $ mkdocs gh-deploy -f docs/mkdocs.yml
    titiler.extensions.viewer \
    titiler.extensions.stac
 
-   pdocs as_markdown \
+pdocs as_markdown \
    --output_dir docs/src/api \
    --exclude_source \
    --overwrite \

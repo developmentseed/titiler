@@ -37,7 +37,6 @@ dependencies = [
     "rasterio",
     "rio-tiler>=4.1.6,<4.2",
     "simplejson",
-    "importlib_resources>=1.1.0;python_version<'3.9'",
     "typing_extensions;python_version<'3.8'",
 ]
 

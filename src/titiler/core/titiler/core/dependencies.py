@@ -7,6 +7,7 @@ from typing import Annotated, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy
 from fastapi import HTTPException, Query
+from rasterio.crs import CRS
 from rasterio.enums import Resampling
 from rio_tiler.colormap import cmap, parse_color
 from rio_tiler.errors import MissingAssets, MissingBands
@@ -348,6 +349,9 @@ class ImageRenderingParams(DefaultDependency):
     )
 
 
+RescaleType = List[Tuple[float, ...]]
+
+
 def RescalingParams(
     rescale: Optional[List[str]] = Query(
         None,
@@ -355,7 +359,7 @@ def RescalingParams(
         description="comma (',') delimited Min,Max range. Can set multiple time for multiple bands.",
         example=["0,2000", "0,1000", "0,10000"],  # band 1  # band 2  # band 3
     )
-) -> Optional[List[Tuple[float, ...]]]:
+) -> Optional[RescaleType]:
     """Min/Max data Rescaling"""
     if rescale:
         return [tuple(map(float, r.replace(" ", "").split(","))) for r in rescale]
@@ -443,3 +447,31 @@ link: https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
 
         if self.range:
             self.range = list(map(float, self.range.split(",")))  # type: ignore
+
+
+def CoordCRSParams(
+    crs: str = Query(
+        None,
+        alias="coord-crs",
+        description="Coordinate Reference System of the input coords. Default to `epsg:4326`.",
+    )
+) -> Optional[CRS]:
+    """Coordinate Reference System Coordinates Param."""
+    if crs:
+        return CRS.from_user_input(crs)
+
+    return None
+
+
+def DstCRSParams(
+    crs: str = Query(
+        None,
+        alias="dst-crs",
+        description="Output Coordinate Reference System.",
+    )
+) -> Optional[CRS]:
+    """Coordinate Reference System Coordinates Param."""
+    if crs:
+        return CRS.from_user_input(crs)
+
+    return None

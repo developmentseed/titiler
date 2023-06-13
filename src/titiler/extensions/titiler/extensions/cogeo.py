@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from fastapi import Depends, Query
 
 from titiler.core.factory import BaseTilerFactory, FactoryExtension
+from titiler.core.resources.responses import JSONResponse
 
 try:
     from rio_cogeo.cogeo import cog_info
@@ -25,7 +26,11 @@ class cogValidateExtension(FactoryExtension):
             cog_info is not None
         ), "'rio_cogeo' must be installed to use CogValidateExtension"
 
-        @factory.router.get("/validate", response_model=Info)
+        @factory.router.get(
+            "/validate",
+            response_model=Info,
+            response_class=JSONResponse,
+        )
         def validate(
             src_path: str = Depends(factory.path_dependency),
             strict: bool = Query(False, description="Treat warnings as errors"),

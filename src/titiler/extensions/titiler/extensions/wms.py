@@ -5,6 +5,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import urlencode
 
+import jinja2
 import numpy
 import rasterio
 from fastapi import Depends, HTTPException, Query
@@ -19,14 +20,10 @@ from titiler.core.dependencies import RescalingParams
 from titiler.core.factory import BaseTilerFactory, FactoryExtension
 from titiler.core.resources.enums import ImageType, MediaType
 
-try:
-    from importlib.resources import files as resources_files  # type: ignore
-except ImportError:
-    # Try backported to PY<39 `importlib_resources`.
-    from importlib_resources import files as resources_files  # type: ignore
-
-# TODO: mypy fails in python 3.9, we need to find a proper way to do this
-templates = Jinja2Templates(directory=str(resources_files(__package__) / "templates"))  # type: ignore
+DEFAULT_TEMPLATES = Jinja2Templates(
+    directory="",
+    loader=jinja2.ChoiceLoader([jinja2.PackageLoader(__package__, "templates")]),
+)  # type:ignore
 
 
 class WMSMediaType(str, Enum):
@@ -73,6 +70,7 @@ class wmsExtension(FactoryExtension):
     supported_version: List[str] = field(
         default_factory=lambda: ["1.0.0", "1.1.1", "1.3.0"]
     )
+    templates: Jinja2Templates = DEFAULT_TEMPLATES
 
     def register(self, factory: BaseTilerFactory):  # noqa: C901
         """Register endpoint to the tiler factory."""
@@ -374,7 +372,7 @@ class wmsExtension(FactoryExtension):
                     *[layers_dict[layer]["bounds_wgs84"] for layer in layers_dict]
                 )
 
-                return templates.TemplateResponse(
+                return self.templates.TemplateResponse(
                     f"wms_{version}.xml",
                     {
                         "request": request,

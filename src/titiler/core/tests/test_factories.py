@@ -6,7 +6,7 @@ import pathlib
 from dataclasses import dataclass
 from enum import Enum
 from io import BytesIO
-from typing import Dict, Type
+from typing import Dict, Optional, Type
 from unittest.mock import patch
 from urllib.parse import urlencode
 
@@ -16,11 +16,13 @@ import morecantile
 import numpy
 from fastapi import Depends, FastAPI, HTTPException, Path, Query, security, status
 from morecantile.defaults import TileMatrixSets
+from rasterio.crs import CRS
 from rasterio.io import MemoryFile
 from rio_tiler.io import BaseReader, MultiBandReader, Reader, STACReader
 from starlette.requests import Request
 from starlette.testclient import TestClient
 
+from titiler.core.dependencies import RescaleType
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 from titiler.core.factory import (
     AlgorithmFactory,
@@ -183,6 +185,14 @@ def test_TilerFactory():
     assert response.headers["content-type"] == "image/png"
 
     response = client.get(f"/point/-56.228,72.715?url={DATA_DIR}/cog.tif")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    assert len(response.json()["values"]) == 1
+    assert response.json()["band_names"] == ["b1"]
+
+    response = client.get(
+        f"/point/-6259272.328324187,12015838.020930404?url={DATA_DIR}/cog.tif&coord-crs=EPSG:3857"
+    )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
     assert len(response.json()["values"]) == 1
@@ -1513,3 +1523,85 @@ def test_AutoFormat_Colormap():
                     0,
                 ]  # when creating a PNG, GDAL will set masked value to 0
                 assert img[:, 500, 500].tolist() == [255, 0, 0, 255]
+
+
+def test_rescale_dependency():
+    """Ensure that we can set default rescale values via the rescale_dependency"""
+
+    def custom_rescale_params() -> Optional[RescaleType]:
+        return [(0, 100)]
+
+    cog = TilerFactory()
+    cog_custom_range = TilerFactory(rescale_dependency=custom_rescale_params)
+
+    app = FastAPI()
+    app.include_router(cog.router, prefix="/cog")
+    app.include_router(cog_custom_range.router, prefix="/cog_custom")
+
+    with TestClient(app) as client:
+        response = client.get(
+            f"/cog/tiles/8/87/48.npy?url={DATA_DIR}/cog.tif&rescale=0,1000"
+        )
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "application/x-binary"
+        npy_tile = numpy.load(BytesIO(response.content))
+        assert npy_tile.shape == (2, 256, 256)  # mask + data
+
+        response = client.get(
+            f"/cog_custom/tiles/8/87/48.npy?url={DATA_DIR}/cog.tif&rescale=0,1000"
+        )
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "application/x-binary"
+        numpy.load(BytesIO(response.content))
+        assert npy_tile.shape == (2, 256, 256)  # mask + data
+
+
+def test_dst_crs_option():
+    """test dst-crs parameter."""
+    app = FastAPI()
+    app.include_router(TilerFactory().router)
+
+    with TestClient(app) as client:
+        # preview endpoints
+        response = client.get(f"/preview.tif?url={DATA_DIR}/cog.tif")
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "image/tiff; application=geotiff"
+        meta = parse_img(response.content)
+        assert meta["crs"] == CRS.from_epsg(
+            32621
+        )  # return the image in the original CRS
+
+        response = client.get(f"/preview.tif?url={DATA_DIR}/cog.tif&dst-crs=epsg:4326")
+        meta = parse_img(response.content)
+        assert meta["crs"] == CRS.from_epsg(4326)
+        assert not meta["crs"] == CRS.from_epsg(32621)
+
+        # /crop endpoints
+        response = client.get(
+            f"/crop/-56.228,72.715,-54.547,73.188.tif?url={DATA_DIR}/cog.tif"
+        )
+        meta = parse_img(response.content)
+        assert meta["crs"] == CRS.from_epsg(
+            4326
+        )  # default is to return image in the bounds-crs
+        assert not meta["crs"] == CRS.from_epsg(32621)
+
+        # Force output in epsg:32621
+        response = client.get(
+            f"/crop/-56.228,72.715,-54.547,73.188.tif?url={DATA_DIR}/cog.tif&dst-crs=epsg:32621"
+        )
+        meta = parse_img(response.content)
+        assert meta["crs"] == CRS.from_epsg(32621)
+
+        # coord-crs + dst-crs
+        response = client.get(
+            f"/crop/-6259272.328324187,12015838.020930404,-6072144.264300693,12195445.265479913.tif?url={DATA_DIR}/cog.tif&coord-crs=epsg:3857"
+        )
+        meta = parse_img(response.content)
+        assert meta["crs"] == CRS.from_epsg(3857)
+
+        response = client.get(
+            f"/crop/-6259272.328324187,12015838.020930404,-6072144.264300693,12195445.265479913.tif?url={DATA_DIR}/cog.tif&coord-crs=epsg:3857&dst-crs=epsg:32621"
+        )
+        meta = parse_img(response.content)
+        assert meta["crs"] == CRS.from_epsg(32621)
