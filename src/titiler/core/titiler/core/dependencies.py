@@ -1,9 +1,10 @@
 """Common dependency."""
 
 import json
+import sys
 from dataclasses import dataclass
 from enum import Enum
-from typing import Annotated, Dict, List, Optional, Sequence, Tuple, Union
+from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy
 from fastapi import HTTPException, Query
@@ -12,6 +13,12 @@ from rasterio.enums import Resampling
 from rio_tiler.colormap import cmap, parse_color
 from rio_tiler.errors import MissingAssets, MissingBands
 from rio_tiler.types import ColorMapType
+
+if sys.version_info >= (3, 9):
+    from typing import Annotated  # pylint: disable=no-name-in-module
+else:
+    from typing_extensions import Annotated
+
 
 ColorMapName = Enum(  # type: ignore
     "ColorMapName", [(a, a) for a in sorted(cmap.list())]
