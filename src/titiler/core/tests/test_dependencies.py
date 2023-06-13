@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 import pytest
-from fastapi import Depends, FastAPI, Query
+from fastapi import Depends, FastAPI, Path
 from morecantile import tms
 from rio_tiler.types import ColorMapType
 from starlette.testclient import TestClient
@@ -19,12 +19,12 @@ def test_tms():
     app = FastAPI()
 
     @app.get("/web/{TileMatrixSetId}")
-    def web(TileMatrixSetId: Literal["WebMercatorQuad"] = Query(...)):
+    def web(TileMatrixSetId: Literal["WebMercatorQuad"] = Path(...)):
         """return tms id."""
         return TileMatrixSetId
 
     @app.get("/all/{TileMatrixSetId}")
-    def all(TileMatrixSetId: Literal[tuple(tms.list())] = Query(...)):
+    def all(TileMatrixSetId: Literal[tuple(tms.list())] = Path(...)):
         """return tms id."""
         return TileMatrixSetId
 
