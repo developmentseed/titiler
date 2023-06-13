@@ -1,5 +1,11 @@
 # Release Notes
 
+## Next (TDB)
+
+### titiler.extensions
+
+* use TiTiler's custom JSONResponse for the `/validate` endpoint to avoid issue when COG has `NaN` nodata value
+
 ## 0.11.7 (2023-05-18)
 
 ### titiler.core
