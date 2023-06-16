@@ -15,6 +15,7 @@ from geojson_pydantic.features import Feature
 from geojson_pydantic.geometries import Polygon
 from morecantile import tms
 from morecantile.defaults import TileMatrixSets
+from pydantic import conint
 from rio_tiler.constants import MAX_THREADS
 from rio_tiler.io import BaseReader, MultiBandReader, MultiBaseReader, Reader
 from rio_tiler.models import Bounds
@@ -41,10 +42,9 @@ mosaic_tms = TileMatrixSets({"WebMercatorQuad": tms.get("WebMercatorQuad")})
 
 
 def PixelSelectionParams(
-    pixel_selection: PixelSelectionMethod = Query(
-        PixelSelectionMethod.first,
-        description="Pixel selection method.",
-    )
+    pixel_selection: Annotated[
+        PixelSelectionMethod, Query(description="Pixel selection method.")
+    ] = PixelSelectionMethod.first,
 ) -> MosaicMethodBase:
     """
     Returns the mosaic method used to combine datasets together.
@@ -239,14 +239,16 @@ class MosaicTilerFactory(BaseTilerFactory):
             **img_endpoint_params,
         )
         def tile(
-            z: int = Path(..., ge=0, le=30, description="Mercator tiles's zoom level"),
-            x: int = Path(..., description="Mercator tiles's column"),
-            y: int = Path(..., description="Mercator tiles's row"),
+            z: Annotated[int, Path(description="TMS tiles's zoom level")],
+            x: Annotated[int, Path(description="TMS tiles's column")],
+            y: Annotated[int, Path(description="TMS tiles's row")],
             TileMatrixSetId: Annotated[
                 Literal[tuple(self.supported_tms.list())],
                 f"TileMatrixSet Name (default: '{self.default_tms}')",
             ] = self.default_tms,
-            scale: Annotated[int, "Tile size scale. 1=256x256, 2=512x512..."] = 1,
+            scale: Annotated[
+                conint(gt=0, le=4), "Tile size scale. 1=256x256, 2=512x512..."
+            ] = 1,
             format: Annotated[
                 ImageType,
                 "Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
@@ -255,19 +257,23 @@ class MosaicTilerFactory(BaseTilerFactory):
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             pixel_selection=Depends(self.pixel_selection_dependency),
-            buffer: Optional[float] = Query(
-                None,
-                gt=0,
-                title="Tile buffer.",
-                description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * tile_buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
-            ),
+            buffer: Annotated[
+                Optional[float],
+                Query(
+                    gt=0,
+                    title="Tile buffer.",
+                    description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
+                ),
+            ] = None,
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
-            color_formula: Optional[str] = Query(
-                None,
-                title="Color Formula",
-                description="rio-color formula (info: https://github.com/mapbox/rio-color)",
-            ),
+            color_formula: Annotated[
+                Optional[str],
+                Query(
+                    title="Color Formula",
+                    description="rio-color formula (info: https://github.com/mapbox/rio-color)",
+                ),
+            ] = None,
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             backend_params=Depends(self.backend_dependency),
@@ -363,36 +369,48 @@ class MosaicTilerFactory(BaseTilerFactory):
                 f"TileMatrixSet Name (default: '{self.default_tms}')",
             ] = self.default_tms,
             src_path=Depends(self.path_dependency),
-            tile_format: Optional[ImageType] = Query(
-                None, description="Output image type. Default is auto."
-            ),
-            tile_scale: int = Query(
-                1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
-            ),
-            minzoom: Optional[int] = Query(
-                None, description="Overwrite default minzoom."
-            ),
-            maxzoom: Optional[int] = Query(
-                None, description="Overwrite default maxzoom."
-            ),
-            layer_params=Depends(self.layer_dependency),  # noqa
-            dataset_params=Depends(self.dataset_dependency),  # noqa
-            pixel_selection=Depends(self.pixel_selection_dependency),  # noqa
-            buffer: Optional[float] = Query(  # noqa
-                None,
-                gt=0,
-                title="Tile buffer.",
-                description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * tile_buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
-            ),
-            post_process=Depends(self.process_dependency),  # noqa
-            rescale=Depends(self.rescale_dependency),  # noqa
-            color_formula: Optional[str] = Query(  # noqa
-                None,
-                title="Color Formula",
-                description="rio-color formula (info: https://github.com/mapbox/rio-color)",
-            ),
-            colormap=Depends(self.colormap_dependency),  # noqa
-            render_params=Depends(self.render_dependency),  # noqa
+            tile_format: Annotated[
+                Optional[ImageType],
+                Query(
+                    description="Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
+                ),
+            ] = None,
+            tile_scale: Annotated[
+                int,
+                Query(
+                    gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
+                ),
+            ] = 1,
+            minzoom: Annotated[
+                Optional[int],
+                Query(description="Overwrite default minzoom."),
+            ] = None,
+            maxzoom: Annotated[
+                Optional[int],
+                Query(description="Overwrite default maxzoom."),
+            ] = None,
+            layer_params=Depends(self.layer_dependency),
+            dataset_params=Depends(self.dataset_dependency),
+            pixel_selection=Depends(self.pixel_selection_dependency),
+            buffer: Annotated[
+                Optional[float],
+                Query(
+                    gt=0,
+                    title="Tile buffer.",
+                    description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
+                ),
+            ] = None,
+            post_process=Depends(self.process_dependency),
+            rescale=Depends(self.rescale_dependency),
+            color_formula: Annotated[
+                Optional[str],
+                Query(
+                    title="Color Formula",
+                    description="rio-color formula (info: https://github.com/mapbox/rio-color)",
+                ),
+            ] = None,
+            colormap=Depends(self.colormap_dependency),
+            render_params=Depends(self.render_dependency),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
@@ -454,38 +472,50 @@ class MosaicTilerFactory(BaseTilerFactory):
                 Literal[tuple(self.supported_tms.list())],
                 f"TileMatrixSet Name (default: '{self.default_tms}')",
             ] = self.default_tms,
-            tile_format: Optional[ImageType] = Query(
-                None, description="Output image type. Default is auto."
-            ),
-            tile_scale: int = Query(
-                1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
-            ),
-            minzoom: Optional[int] = Query(
-                None, description="Overwrite default minzoom."
-            ),
-            maxzoom: Optional[int] = Query(
-                None, description="Overwrite default maxzoom."
-            ),
-            layer_params=Depends(self.layer_dependency),  # noqa
-            dataset_params=Depends(self.dataset_dependency),  # noqa
-            pixel_selection=Depends(self.pixel_selection_dependency),  # noqa
-            buffer: Optional[float] = Query(  # noqa
-                None,
-                gt=0,
-                title="Tile buffer.",
-                description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * tile_buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
-            ),
-            rescale=Depends(self.rescale_dependency),  # noqa
-            color_formula: Optional[str] = Query(  # noqa
-                None,
-                title="Color Formula",
-                description="rio-color formula (info: https://github.com/mapbox/rio-color)",
-            ),
-            colormap=Depends(self.colormap_dependency),  # noqa
-            render_params=Depends(self.render_dependency),  # noqa
-            backend_params=Depends(self.backend_dependency),  # noqa
-            reader_params=Depends(self.reader_dependency),  # noqa
-            env=Depends(self.environment_dependency),  # noqa
+            tile_format: Annotated[
+                Optional[ImageType],
+                Query(
+                    description="Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
+                ),
+            ] = None,
+            tile_scale: Annotated[
+                int,
+                Query(
+                    gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
+                ),
+            ] = 1,
+            minzoom: Annotated[
+                Optional[int],
+                Query(description="Overwrite default minzoom."),
+            ] = None,
+            maxzoom: Annotated[
+                Optional[int],
+                Query(description="Overwrite default maxzoom."),
+            ] = None,
+            layer_params=Depends(self.layer_dependency),
+            dataset_params=Depends(self.dataset_dependency),
+            pixel_selection=Depends(self.pixel_selection_dependency),
+            buffer: Annotated[
+                Optional[float],
+                Query(
+                    gt=0,
+                    title="Tile buffer.",
+                    description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
+                ),
+            ] = None,
+            rescale=Depends(self.rescale_dependency),
+            color_formula: Annotated[
+                Optional[str],
+                Query(
+                    title="Color Formula",
+                    description="rio-color formula (info: https://github.com/mapbox/rio-color)",
+                ),
+            ] = None,
+            colormap=Depends(self.colormap_dependency),
+            render_params=Depends(self.render_dependency),
+            backend_params=Depends(self.backend_dependency),
+            reader_params=Depends(self.reader_dependency),
+            env=Depends(self.environment_dependency),
         ):
             """Return TileJSON document for a dataset."""
             tilejson_url = self.url_for(
@@ -520,34 +550,44 @@ class MosaicTilerFactory(BaseTilerFactory):
                 f"TileMatrixSet Name (default: '{self.default_tms}')",
             ] = self.default_tms,
             src_path=Depends(self.path_dependency),
-            tile_format: ImageType = Query(
-                ImageType.png, description="Output image type. Default is png."
-            ),
-            tile_scale: int = Query(
-                1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
-            ),
-            minzoom: Optional[int] = Query(
-                None, description="Overwrite default minzoom."
-            ),
-            maxzoom: Optional[int] = Query(
-                None, description="Overwrite default maxzoom."
-            ),
+            tile_format: Annotated[
+                ImageType,
+                Query(description="Output image type. Default is png."),
+            ] = ImageType.png,
+            tile_scale: Annotated[
+                int,
+                Query(
+                    gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
+                ),
+            ] = 1,
+            minzoom: Annotated[
+                Optional[int],
+                Query(description="Overwrite default minzoom."),
+            ] = None,
+            maxzoom: Annotated[
+                Optional[int],
+                Query(description="Overwrite default maxzoom."),
+            ] = None,
             layer_params=Depends(self.layer_dependency),  # noqa
             dataset_params=Depends(self.dataset_dependency),  # noqa
             pixel_selection=Depends(self.pixel_selection_dependency),  # noqa
-            buffer: Optional[float] = Query(  # noqa
-                None,
-                gt=0,
-                title="Tile buffer.",
-                description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * tile_buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
-            ),
+            buffer: Annotated[
+                Optional[float],
+                Query(
+                    gt=0,
+                    title="Tile buffer.",
+                    description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
+                ),
+            ] = None,
             post_process=Depends(self.process_dependency),  # noqa
             rescale=Depends(self.rescale_dependency),  # noqa
-            color_formula: Optional[str] = Query(  # noqa
-                None,
-                title="Color Formula",
-                description="rio-color formula (info: https://github.com/mapbox/rio-color)",
-            ),
+            color_formula: Annotated[
+                Optional[str],
+                Query(
+                    title="Color Formula",
+                    description="rio-color formula (info: https://github.com/mapbox/rio-color)",
+                ),
+            ] = None,
             colormap=Depends(self.colormap_dependency),  # noqa
             render_params=Depends(self.render_dependency),  # noqa
             backend_params=Depends(self.backend_dependency),
@@ -638,8 +678,8 @@ class MosaicTilerFactory(BaseTilerFactory):
         )
         def point(
             response: Response,
-            lon: float = Path(..., description="Longitude"),
-            lat: float = Path(..., description="Latitude"),
+            lon: Annotated[float, Path(description="Longitude")],
+            lat: Annotated[float, Path(description="Latitude")],
             src_path=Depends(self.path_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
@@ -688,11 +728,11 @@ class MosaicTilerFactory(BaseTilerFactory):
             responses={200: {"description": "Return list of COGs in bounding box"}},
         )
         def assets_for_bbox(
+            minx: Annotated[float, Path(description="Bounding box min X")],
+            miny: Annotated[float, Path(description="Bounding box min Y")],
+            maxx: Annotated[float, Path(description="Bounding box max X")],
+            maxy: Annotated[float, Path(description="Bounding box max Y")],
             src_path=Depends(self.path_dependency),
-            minx: float = Path(description="Left side of bounding box"),
-            miny: float = Path(description="Bottom of bounding box"),
-            maxx: float = Path(description="Right side of bounding box"),
-            maxy: float = Path(description="Top of bounding box"),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
@@ -708,13 +748,13 @@ class MosaicTilerFactory(BaseTilerFactory):
                     return src_dst.assets_for_bbox(minx, miny, maxx, maxy)
 
         @self.router.get(
-            r"/{lng},{lat}/assets",
+            r"/{lon},{lat}/assets",
             responses={200: {"description": "Return list of COGs"}},
         )
         def assets_for_lon_lat(
+            lon: Annotated[float, Path(description="Longitude")],
+            lat: Annotated[float, Path(description="Latitude")],
             src_path=Depends(self.path_dependency),
-            lng: float = Path(description="Longitude"),
-            lat: float = Path(description="Latitude"),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
@@ -727,16 +767,16 @@ class MosaicTilerFactory(BaseTilerFactory):
                     reader_options={**reader_params},
                     **backend_params,
                 ) as src_dst:
-                    return src_dst.assets_for_point(lng, lat)
+                    return src_dst.assets_for_point(lon, lat)
 
         @self.router.get(
             r"/{z}/{x}/{y}/assets",
             responses={200: {"description": "Return list of COGs"}},
         )
         def assets_for_tile(
-            z: int = Path(..., ge=0, le=30, description="Mercator tiles's zoom level"),
-            x: int = Path(..., description="Mercator tiles's column"),
-            y: int = Path(..., description="Mercator tiles's row"),
+            z: Annotated[int, Path(description="TMS tiles's zoom level")],
+            x: Annotated[int, Path(description="TMS tiles's column")],
+            y: Annotated[int, Path(description="TMS tiles's row")],
             src_path=Depends(self.path_dependency),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),

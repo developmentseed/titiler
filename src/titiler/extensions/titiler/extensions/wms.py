@@ -1,8 +1,9 @@
 """wms Extension."""
 
+import sys
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 from urllib.parse import urlencode
 
 import jinja2
@@ -19,6 +20,12 @@ from starlette.templating import Jinja2Templates
 from titiler.core.dependencies import RescalingParams
 from titiler.core.factory import BaseTilerFactory, FactoryExtension
 from titiler.core.resources.enums import ImageType, MediaType
+
+if sys.version_info >= (3, 9):
+    from typing import Annotated  # pylint: disable=no-name-in-module
+else:
+    from typing_extensions import Annotated
+
 
 DEFAULT_TEMPLATES = Jinja2Templates(
     directory="",
@@ -267,12 +274,14 @@ class wmsExtension(FactoryExtension):
             layer_params=Depends(factory.layer_dependency),
             dataset_params=Depends(factory.dataset_dependency),
             post_process=Depends(factory.process_dependency),
-            rescale: Optional[List[Tuple[float, ...]]] = Depends(RescalingParams),
-            color_formula: Optional[str] = Query(
-                None,
-                title="Color Formula",
-                description="rio-color formula (info: https://github.com/mapbox/rio-color)",
-            ),
+            rescale=Depends(RescalingParams),
+            color_formula: Annotated[
+                Optional[str],
+                Query(
+                    title="Color Formula",
+                    description="rio-color formula (info: https://github.com/mapbox/rio-color)",
+                ),
+            ] = None,
             colormap=Depends(factory.colormap_dependency),
             reader_params=Depends(factory.reader_dependency),
             env=Depends(factory.environment_dependency),
