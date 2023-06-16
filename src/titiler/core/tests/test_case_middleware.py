@@ -1,5 +1,6 @@
 """Test titiler.core.middleware.LowerCaseQueryStringMiddleware."""
 
+import sys
 from typing import List
 
 from fastapi import FastAPI, Query
@@ -7,13 +8,18 @@ from starlette.testclient import TestClient
 
 from titiler.core.middleware import LowerCaseQueryStringMiddleware
 
+if sys.version_info >= (3, 9):
+    from typing import Annotated  # pylint: disable=no-name-in-module
+else:
+    from typing_extensions import Annotated
+
 
 def test_lowercase_middleware():
     """Make sure upper and lower case QS are accepted."""
     app = FastAPI()
 
     @app.get("/route1")
-    async def route1(value: str = Query(...)):
+    async def route1(value: Annotated[str, Query()] = ...):  # type: ignore
         """route1."""
         return {"value": value}
 
@@ -33,7 +39,7 @@ def test_lowercase_middleware_multiple_values():
     app = FastAPI()
 
     @app.get("/route1")
-    async def route1(value: List[str] = Query(...)):
+    async def route1(value: Annotated[List[str], Query()] = ...):  # type: ignore
         """route1."""
         return {"value": value}
 

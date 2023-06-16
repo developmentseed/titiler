@@ -1,5 +1,6 @@
 """Test TiTiler Custom Colormap Params."""
 
+import sys
 from enum import Enum
 from io import BytesIO
 from typing import Dict, Optional
@@ -13,6 +14,12 @@ from titiler.core.factory import TilerFactory
 
 from .conftest import DATA_DIR
 
+if sys.version_info >= (3, 9):
+    from typing import Annotated  # pylint: disable=no-name-in-module
+else:
+    from typing_extensions import Annotated
+
+
 cmap_values = {
     "cmap1": {6: (4, 5, 6, 255)},
 }
@@ -23,7 +30,10 @@ ColorMapName = Enum(  # type: ignore
 
 
 def ColorMapParams(
-    colormap_name: ColorMapName = Query(None, description="Colormap name"),
+    colormap_name: Annotated[
+        ColorMapName,
+        Query(description="Colormap name"),
+    ] = None,
 ) -> Optional[Dict]:
     """Colormap Dependency."""
     if colormap_name:
