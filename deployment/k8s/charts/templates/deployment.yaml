@@ -49,10 +49,31 @@ spec:
             - mountPath: /config
               name: config
               readOnly: true
+          {{- range .Values.extraHostPathMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .mountPath }}
+              readOnly: {{ .readOnly }}
+            {{- if .mountPropagation }}
+              mountPropagation: {{ .mountPropagation }}
+            {{- end }}
+          {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.env.terminationGracePeriodSeconds }}
       volumes:
         - name: config
           configMap:
             name: {{ include "titiler.fullname" . }}-configmap
+      {{- range .Values.extraHostPathMounts }}
+        - name: {{ .name }}
+          hostPath:
+            path: {{ .hostPath }}
+            type: Directory
+      {{- end }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- range . }}
+      - name: {{ .name }}
+        {{- end }}
+      {{- end }}
       {{- with .Values.serviceAccountName }}
       serviceAccountName: {{ . | quote }}
       {{- end }}
