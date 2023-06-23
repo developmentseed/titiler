@@ -65,3 +65,17 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #     - ALL
+  # readOnlyRootFilesystem: true
+  # allowPrivilegeEscalation: false
+  # runAsNonRoot: true
+  # runAsUser: 1001
+
+podSecurityContext: {}
+  # fsGroup: 1001
+  # runAsNonRoot: true
+  # runAsUser: 1001
