@@ -2,6 +2,8 @@
 
 ## Next (TDB)
 
+* use `Annotated` Type for Query/Path parameters
+
 ### titiler.extensions
 
 * use TiTiler's custom JSONResponse for the `/validate` endpoint to avoid issue when COG has `NaN` nodata value

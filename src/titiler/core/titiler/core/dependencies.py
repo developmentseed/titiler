@@ -61,9 +61,7 @@ def ColorMapParams(
     return None
 
 
-def DatasetPathParams(
-    url: Annotated[str, Query(description="Dataset URL")] = ...,  # type: ignore
-) -> str:
+def DatasetPathParams(url: Annotated[str, Query(description="Dataset URL")]) -> str:
     """Create dataset path from args"""
     return url
 

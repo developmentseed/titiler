@@ -19,7 +19,7 @@ def test_lowercase_middleware():
     app = FastAPI()
 
     @app.get("/route1")
-    async def route1(value: Annotated[str, Query()] = ...):  # type: ignore
+    async def route1(value: Annotated[str, Query()]):
         """route1."""
         return {"value": value}
 
@@ -39,7 +39,7 @@ def test_lowercase_middleware_multiple_values():
     app = FastAPI()
 
     @app.get("/route1")
-    async def route1(value: Annotated[List[str], Query()] = ...):  # type: ignore
+    async def route1(value: Annotated[List[str], Query()]):
         """route1."""
         return {"value": value}
 

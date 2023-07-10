@@ -24,7 +24,7 @@ def CustomPathParams(
             alias="file",
             description="Give me a url.",
         ),
-    ] = ...  # type: ignore
+    ],
 ) -> str:
     """Custom path Dependency."""
     if not re.match(".+tif$", name):

@@ -435,9 +435,10 @@ class TilerFactory(BaseTilerFactory):
             },
         )
         def geojson_statistics(
-            geojson: Union[FeatureCollection, Feature] = Body(
-                ..., description="GeoJSON Feature or FeatureCollection."
-            ),
+            geojson: Annotated[
+                Union[FeatureCollection, Feature],
+                Body(description="GeoJSON Feature or FeatureCollection."),
+            ],
             src_path=Depends(self.path_dependency),
             coord_crs=Depends(CoordCRSParams),
             layer_params=Depends(self.layer_dependency),
@@ -1078,7 +1079,7 @@ class TilerFactory(BaseTilerFactory):
             **img_endpoint_params,
         )
         def geojson_crop(
-            geojson: Feature = Body(..., description="GeoJSON Feature."),
+            geojson: Annotated[Feature, Body(description="GeoJSON Feature.")],
             format: Annotated[
                 ImageType,
                 "Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
@@ -1325,9 +1326,10 @@ class MultiBaseTilerFactory(TilerFactory):
             },
         )
         def geojson_statistics(
-            geojson: Union[FeatureCollection, Feature] = Body(
-                ..., description="GeoJSON Feature or FeatureCollection."
-            ),
+            geojson: Annotated[
+                Union[FeatureCollection, Feature],
+                Body(description="GeoJSON Feature or FeatureCollection."),
+            ],
             src_path=Depends(self.path_dependency),
             coord_crs=Depends(CoordCRSParams),
             layer_params=Depends(AssetsBidxExprParamsOptional),
@@ -1518,9 +1520,10 @@ class MultiBandTilerFactory(TilerFactory):
             },
         )
         def geojson_statistics(
-            geojson: Union[FeatureCollection, Feature] = Body(
-                ..., description="GeoJSON Feature or FeatureCollection."
-            ),
+            geojson: Annotated[
+                Union[FeatureCollection, Feature],
+                Body(description="GeoJSON Feature or FeatureCollection."),
+            ],
             src_path=Depends(self.path_dependency),
             coord_crs=Depends(CoordCRSParams),
             bands_params=Depends(BandsExprParamsOptional),

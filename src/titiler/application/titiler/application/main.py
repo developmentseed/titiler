@@ -35,12 +35,6 @@ from titiler.extensions import (
 from titiler.mosaic.errors import MOSAIC_STATUS_CODES
 from titiler.mosaic.factory import MosaicTilerFactory
 
-try:
-    pass  # type: ignore
-except ImportError:
-    # Try backported to PY<39 `importlib_resources`.
-    pass  # type: ignore
-
 logging.getLogger("botocore.credentials").disabled = True
 logging.getLogger("botocore.utils").disabled = True
 logging.getLogger("rio-tiler").setLevel(logging.ERROR)
