@@ -19,9 +19,8 @@ from morecantile.defaults import TileMatrixSets
 from pydantic import conint
 from rio_tiler.constants import WGS84_CRS
 from rio_tiler.io import BaseReader, MultiBandReader, MultiBaseReader, Reader
-from rio_tiler.models import BandStatistics, Bounds, Info
+from rio_tiler.models import Bounds, Info
 from rio_tiler.types import ColorMapType
-from rio_tiler.utils import get_array_statistics
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, Response
 from starlette.routing import Match, compile_path, replace_params
@@ -464,23 +463,13 @@ class TilerFactory(BaseTilerFactory):
                             **image_params,
                             **dataset_params,
                         )
-                        stats = get_array_statistics(
-                            data.as_masked(),
-                            **stats_params,
-                            **histogram_params,
+
+                        stats = data.statistics(
+                            **stats_params, hist_options={**histogram_params}
                         )
 
                         feature.properties = feature.properties or {}
-                        feature.properties.update(
-                            {
-                                "statistics": {
-                                    f"{data.band_names[ix]}": BandStatistics(
-                                        **stats[ix]
-                                    )
-                                    for ix in range(len(stats))
-                                }
-                            }
-                        )
+                        feature.properties.update({"statistics": stats})
 
             return fc.features[0] if isinstance(geojson, Feature) else fc
 
@@ -1360,23 +1349,14 @@ class MultiBaseTilerFactory(TilerFactory):
                             **dataset_params,
                         )
 
-                        stats = get_array_statistics(
-                            data.as_masked(),
-                            **stats_params,
-                            **histogram_params,
+                        stats = data.statistics(
+                            **stats_params, hist_options={**histogram_params}
                         )
 
                     feature.properties = feature.properties or {}
-                    feature.properties.update(
-                        {
-                            # NOTE: because we use `src_dst.feature` the statistics will be in form of
-                            # `Dict[str, BandStatistics]` and not `Dict[str, Dict[str, BandStatistics]]`
-                            "statistics": {
-                                f"{data.band_names[ix]}": BandStatistics(**stats[ix])
-                                for ix in range(len(stats))
-                            }
-                        }
-                    )
+                    # NOTE: because we use `src_dst.feature` the statistics will be in form of
+                    # `Dict[str, BandStatistics]` and not `Dict[str, Dict[str, BandStatistics]]`
+                    feature.properties.update({"statistics": stats})
 
             return fc.features[0] if isinstance(geojson, Feature) else fc
 
@@ -1553,23 +1533,12 @@ class MultiBandTilerFactory(TilerFactory):
                             **image_params,
                             **dataset_params,
                         )
-                        stats = get_array_statistics(
-                            data.as_masked(),
-                            **stats_params,
-                            **histogram_params,
+                        stats = data.statistics(
+                            **stats_params, hist_options={**histogram_params}
                         )
 
                         feature.properties = feature.properties or {}
-                        feature.properties.update(
-                            {
-                                "statistics": {
-                                    f"{data.band_names[ix]}": BandStatistics(
-                                        **stats[ix]
-                                    )
-                                    for ix in range(len(stats))
-                                }
-                            }
-                        )
+                        feature.properties.update({"statistics": stats})
 
             return fc.features[0] if isinstance(geojson, Feature) else fc
 
