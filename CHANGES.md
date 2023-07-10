@@ -8,6 +8,8 @@
 
 * update FastAPI dependency to `>=0.95.1`
 * set `pydantic` dependency to `~=1.0`
+* update `rio-tiler` dependency to `>=5.0,<6.0`
+* update TMS endpoints to match OGC Tiles specification
 
 ### titiler.extensions
 

@@ -9,10 +9,9 @@ from typing import Dict, List, Optional, Sequence, Tuple, Union
 import numpy
 from fastapi import HTTPException, Query
 from rasterio.crs import CRS
-from rasterio.enums import Resampling
 from rio_tiler.colormap import cmap, parse_color
 from rio_tiler.errors import MissingAssets, MissingBands
-from rio_tiler.types import ColorMapType
+from rio_tiler.types import ColorMapType, RIOResampling
 
 if sys.version_info >= (3, 9):
     from typing import Annotated  # pylint: disable=no-name-in-module
@@ -22,9 +21,6 @@ else:
 
 ColorMapName = Enum(  # type: ignore
     "ColorMapName", [(a, a) for a in sorted(cmap.list())]
-)
-ResamplingName = Enum(  # type: ignore
-    "ResamplingName", [(r.name, r.name) for r in Resampling]
 )
 
 
@@ -349,18 +345,18 @@ class DatasetParams(DefaultDependency):
         ),
     ] = False
     resampling_method: Annotated[
-        ResamplingName,
+        RIOResampling,
         Query(
             alias="resampling",
             description="Resampling method.",
         ),
-    ] = ResamplingName.nearest  # type: ignore
+    ] = "nearest"
 
     def __post_init__(self):
         """Post Init."""
         if self.nodata is not None:
             self.nodata = numpy.nan if self.nodata == "nan" else float(self.nodata)
-        self.resampling_method = self.resampling_method.value  # type: ignore
+        self.resampling_method = self.resampling_method
 
 
 @dataclass
@@ -418,7 +414,7 @@ class StatisticsParams(DefaultDependency):
         Query(
             alias="p",
             title="Percentile values",
-            description="List of percentile values.",
+            description="List of percentile values (default to [2, 98]).",
             example=[2, 5, 95, 98],
         ),
     ] = None

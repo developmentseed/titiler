@@ -37,12 +37,10 @@ class HillShade(BaseAlgorithm):
         shaded = numpy.sin(altituderad) * numpy.sin(slope) + numpy.cos(
             altituderad
         ) * numpy.cos(slope) * numpy.cos(azimuthrad - aspect)
-        hillshade_array = 255 * (shaded + 1) / 2
-
-        data = numpy.expand_dims(hillshade_array, axis=0).astype(dtype=numpy.uint8)
+        data = 255 * (shaded + 1) / 2
 
         if self.buffer:
-            data = data[:, self.buffer : -self.buffer, self.buffer : -self.buffer]
+            data = data[self.buffer : -self.buffer, self.buffer : -self.buffer]
             mask = mask[self.buffer : -self.buffer, self.buffer : -self.buffer]
             # image bounds without buffer
             window = windows.Window(
@@ -53,12 +51,15 @@ class HillShade(BaseAlgorithm):
             )
             bounds = windows.bounds(window, img.transform)
 
+        data = numpy.ma.MaskedArray(data, dtype=numpy.uint8)
+        data.mask = mask
+
         return ImageData(
             data,
-            mask,
             assets=img.assets,
             crs=img.crs,
             bounds=bounds,
+            band_names=["hillshade"],
         )
 
 
@@ -84,15 +85,19 @@ class Contours(BaseAlgorithm):
         data = img.data
 
         # Apply rescaling for minz,maxz to 1->255 and apply Terrain colormap
-        arr = linear_rescale(data, (self.minz, self.maxz), (1, 255)).astype("uint8")
+        arr = linear_rescale(data, (self.minz, self.maxz), (1, 255)).astype(
+            self.output_dtype
+        )
         arr, _ = apply_cmap(arr, cmap.get("terrain"))
 
         # set black (0) for contour lines
         arr = numpy.where(data % self.increment < self.thickness, 0, arr)
 
+        data = numpy.ma.MaskedArray(arr)
+        data.mask = img.mask
+
         return ImageData(
-            arr,
-            img.mask,
+            data,
             assets=img.assets,
             crs=img.crs,
             bounds=img.bounds,
@@ -113,11 +118,15 @@ class Terrarium(BaseAlgorithm):
         r = data / 256
         g = data % 256
         b = (data * 256) % 256
-        arr = numpy.stack([r, g, b]).astype(numpy.uint8)
+
+        data = numpy.ma.MaskedArray(
+            numpy.stack([r, g, b]),
+            dtype=self.output_dtype,
+        )
+        data.mask = img.mask
 
         return ImageData(
-            arr,
-            img.mask,
+            data,
             assets=img.assets,
             crs=img.crs,
             bounds=img.bounds,
@@ -164,16 +173,16 @@ class TerrainRGB(BaseAlgorithm):
         if _range_check(datarange):
             raise ValueError("Data of {} larger than 256 ** 3".format(datarange))
 
-        rgb = numpy.zeros((3, rows, cols), dtype=numpy.uint8)
+        rgb = numpy.ma.MaskedArray(numpy.zeros((3, rows, cols), dtype=numpy.uint8))
         rgb[2] = ((data / 256) - (data // 256)) * 256
         rgb[1] = (((data // 256) / 256) - ((data // 256) // 256)) * 256
         rgb[0] = (
             (((data // 256) // 256) / 256) - (((data // 256) // 256) // 256)
         ) * 256
+        rgb.mask = img.mask
 
         return ImageData(
             rgb,
-            img.mask,
             assets=img.assets,
             crs=img.crs,
             bounds=img.bounds,

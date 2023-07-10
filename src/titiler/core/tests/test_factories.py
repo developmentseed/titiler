@@ -1267,8 +1267,7 @@ def test_TMSFactory():
     response = client.get("/tms/tileMatrixSets/WebMercatorQuad")
     assert response.status_code == 200
     body = response.json()
-    assert body["type"] == "TileMatrixSetType"
-    assert body["identifier"] == "WebMercatorQuad"
+    assert body["id"] == "WebMercatorQuad"
 
     response = client.get("/tms/tileMatrixSets/WebMercatorQua")
     assert response.status_code == 422

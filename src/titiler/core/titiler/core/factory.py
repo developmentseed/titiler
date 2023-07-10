@@ -857,9 +857,9 @@ class TilerFactory(BaseTilerFactory):
                 matrix = tms.matrix(zoom)
                 tm = f"""
                         <TileMatrix>
-                            <ows:Identifier>{matrix.identifier}</ows:Identifier>
+                            <ows:Identifier>{matrix.id}</ows:Identifier>
                             <ScaleDenominator>{matrix.scaleDenominator}</ScaleDenominator>
-                            <TopLeftCorner>{matrix.topLeftCorner[0]} {matrix.topLeftCorner[1]}</TopLeftCorner>
+                            <TopLeftCorner>{matrix.pointOfOrigin[0]} {matrix.pointOfOrigin[1]}</TopLeftCorner>
                             <TileWidth>{matrix.tileWidth}</TileWidth>
                             <TileHeight>{matrix.tileHeight}</TileHeight>
                             <MatrixWidth>{matrix.matrixWidth}</MatrixWidth>
@@ -1610,49 +1610,66 @@ class TMSFactory:
             response_model_exclude_none=True,
             summary="Retrieve the list of available tiling schemes (tile matrix sets).",
             operation_id="getTileMatrixSetsList",
+            responses={
+                200: {
+                    "content": {
+                        MediaType.json.value: {},
+                    },
+                },
+            },
         )
-        async def TileMatrixSet_list(request: Request):
+        async def tilematrixsets(request: Request):
             """
             OGC Specification: http://docs.opengeospatial.org/per/19-069.html#_tilematrixsets
             """
-            return {
-                "tileMatrixSets": [
+            data = TileMatrixSetList(
+                tileMatrixSets=[
                     {
-                        "id": tms,
-                        "title": tms,
+                        "id": tms_id,
                         "links": [
                             {
                                 "href": self.url_for(
                                     request,
-                                    "TileMatrixSet_info",
-                                    TileMatrixSetId=tms,
+                                    "tilematrixset",
+                                    tileMatrixSetId=tms_id,
                                 ),
-                                "rel": "item",
+                                "rel": "http://www.opengis.net/def/rel/ogc/1.0/tiling-schemes",
                                 "type": "application/json",
+                                "title": f"Definition of {tms_id} tileMatrixSet",
                             }
                         ],
                     }
-                    for tms in self.supported_tms.list()
+                    for tms_id in self.supported_tms.list()
                 ]
-            }
+            )
+
+            return data
 
         @self.router.get(
-            r"/tileMatrixSets/{TileMatrixSetId}",
+            "/tileMatrixSets/{tileMatrixSetId}",
             response_model=TileMatrixSet,
             response_model_exclude_none=True,
             summary="Retrieve the definition of the specified tiling scheme (tile matrix set).",
             operation_id="getTileMatrixSet",
+            responses={
+                200: {
+                    "content": {
+                        MediaType.json.value: {},
+                    },
+                },
+            },
         )
-        async def TileMatrixSet_info(
-            TileMatrixSetId: Annotated[
+        async def tilematrixset(
+            request: Request,
+            tileMatrixSetId: Annotated[
                 Literal[tuple(self.supported_tms.list())],
-                Path(description="TileMatrixSet Name."),
-            ]
+                Path(description="Identifier for a supported TileMatrixSet."),
+            ],
         ):
             """
             OGC Specification: http://docs.opengeospatial.org/per/19-069.html#_tilematrixset
             """
-            return self.supported_tms.get(TileMatrixSetId)
+            return self.supported_tms.get(tileMatrixSetId)
 
 
 @dataclass

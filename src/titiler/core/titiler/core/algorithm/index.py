@@ -24,14 +24,14 @@ class NormalizedIndex(BaseAlgorithm):
         b2 = img.data[1].astype("float32")
 
         arr = numpy.where(img.mask, (b2 - b1) / (b2 + b1), 0)
+        arr = numpy.ma.MaskedArray(arr, dtype=self.output_dtype)
+        arr.mask = img.mask
 
-        # ImageData only accept image in form of (count, height, width)
-        arr = numpy.expand_dims(arr, axis=0).astype(self.output_dtype)
-
+        bnames = img.band_names
         return ImageData(
             arr,
-            img.mask,
             assets=img.assets,
             crs=img.crs,
             bounds=img.bounds,
+            band_names=[f"({bnames[1]} - {bnames[0]}) / ({bnames[1]} + {bnames[0]})"],
         )
