@@ -2,6 +2,13 @@
 
 ## Next (TDB)
 
+* use `Annotated` Type for Query/Path parameters
+
+### titiler.core
+
+* update FastAPI dependency to `>=0.95.1`
+* set `pydantic` dependency to `~=1.0`
+
 ### titiler.extensions
 
 * use TiTiler's custom JSONResponse for the `/validate` endpoint to avoid issue when COG has `NaN` nodata value

@@ -1,11 +1,12 @@
 """test dependencies."""
 
 import json
+import sys
 from dataclasses import dataclass
 from typing import Literal
 
 import pytest
-from fastapi import Depends, FastAPI, Query
+from fastapi import Depends, FastAPI, Path
 from morecantile import tms
 from rio_tiler.types import ColorMapType
 from starlette.testclient import TestClient
@@ -13,18 +14,28 @@ from starlette.testclient import TestClient
 from titiler.core import dependencies, errors
 from titiler.core.resources.responses import JSONResponse
 
+if sys.version_info >= (3, 9):
+    from typing import Annotated  # pylint: disable=no-name-in-module
+else:
+    from typing_extensions import Annotated
+
 
 def test_tms():
     """Create App."""
     app = FastAPI()
 
     @app.get("/web/{TileMatrixSetId}")
-    def web(TileMatrixSetId: Literal["WebMercatorQuad"] = Query(...)):
+    def web(
+        TileMatrixSetId: Annotated[
+            Literal["WebMercatorQuad"],
+            Path(),
+        ],
+    ):
         """return tms id."""
         return TileMatrixSetId
 
     @app.get("/all/{TileMatrixSetId}")
-    def all(TileMatrixSetId: Literal[tuple(tms.list())] = Query(...)):
+    def all(TileMatrixSetId: Annotated[Literal[tuple(tms.list())], Path()]):
         """return tms id."""
         return TileMatrixSetId
 

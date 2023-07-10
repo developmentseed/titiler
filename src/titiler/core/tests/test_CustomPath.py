@@ -2,6 +2,7 @@
 
 import os
 import re
+import sys
 
 from fastapi import FastAPI, HTTPException, Query
 from starlette.testclient import TestClient
@@ -10,13 +11,20 @@ from titiler.core.factory import TilerFactory
 
 from .conftest import DATA_DIR
 
+if sys.version_info >= (3, 9):
+    from typing import Annotated  # pylint: disable=no-name-in-module
+else:
+    from typing_extensions import Annotated
+
 
 def CustomPathParams(
-    name: str = Query(
-        ...,
-        alias="file",
-        description="Give me a url.",
-    )
+    name: Annotated[
+        str,
+        Query(
+            alias="file",
+            description="Give me a url.",
+        ),
+    ],
 ) -> str:
     """Custom path Dependency."""
     if not re.match(".+tif$", name):

@@ -1,6 +1,7 @@
 """TiTiler Router factories."""
 
 import abc
+import sys
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Type, Union
 from urllib.parse import urlencode
@@ -15,7 +16,7 @@ from geojson_pydantic.geometries import Polygon
 from morecantile import TileMatrixSet
 from morecantile import tms as morecantile_tms
 from morecantile.defaults import TileMatrixSets
-from rasterio.crs import CRS
+from pydantic import conint
 from rio_tiler.constants import WGS84_CRS
 from rio_tiler.io import BaseReader, MultiBandReader, MultiBaseReader, Reader
 from rio_tiler.models import BandStatistics, Bounds, Info
@@ -65,6 +66,12 @@ from titiler.core.models.responses import (
 from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
 from titiler.core.routing import EndpointScope
+
+if sys.version_info >= (3, 9):
+    from typing import Annotated  # pylint: disable=no-name-in-module
+else:
+    from typing_extensions import Annotated
+
 
 DEFAULT_TEMPLATES = Jinja2Templates(
     directory="",
@@ -428,11 +435,12 @@ class TilerFactory(BaseTilerFactory):
             },
         )
         def geojson_statistics(
-            geojson: Union[FeatureCollection, Feature] = Body(
-                ..., description="GeoJSON Feature or FeatureCollection."
-            ),
+            geojson: Annotated[
+                Union[FeatureCollection, Feature],
+                Body(description="GeoJSON Feature or FeatureCollection."),
+            ],
             src_path=Depends(self.path_dependency),
-            coord_crs: Optional[CRS] = Depends(CoordCRSParams),
+            coord_crs=Depends(CoordCRSParams),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_dependency),
@@ -498,35 +506,40 @@ class TilerFactory(BaseTilerFactory):
             **img_endpoint_params,
         )
         def tile(
-            z: int = Path(..., ge=0, le=30, description="TMS tiles's zoom level"),
-            x: int = Path(..., description="TMS tiles's column"),
-            y: int = Path(..., description="TMS tiles's row"),
-            TileMatrixSetId: Literal[tuple(self.supported_tms.list())] = Query(
-                self.default_tms,
-                description=f"TileMatrixSet Name (default: '{self.default_tms}')",
-            ),
-            scale: int = Query(
-                1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
-            ),
-            format: ImageType = Query(
-                None, description="Output image type. Default is auto."
-            ),
+            z: Annotated[int, Path(description="TMS tiles's zoom level")],
+            x: Annotated[int, Path(description="TMS tiles's column")],
+            y: Annotated[int, Path(description="TMS tiles's row")],
+            TileMatrixSetId: Annotated[
+                Literal[tuple(self.supported_tms.list())],
+                f"TileMatrixSet Name (default: '{self.default_tms}')",
+            ] = self.default_tms,
+            scale: Annotated[
+                conint(gt=0, le=4), "Tile size scale. 1=256x256, 2=512x512..."
+            ] = 1,
+            format: Annotated[
+                ImageType,
+                "Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
+            ] = None,
             src_path=Depends(self.path_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
-            buffer: Optional[float] = Query(
-                None,
-                gt=0,
-                title="Tile buffer.",
-                description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
-            ),
+            buffer: Annotated[
+                Optional[float],
+                Query(
+                    gt=0,
+                    title="Tile buffer.",
+                    description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
+                ),
+            ] = None,
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
-            color_formula: Optional[str] = Query(
-                None,
-                title="Color Formula",
-                description="rio-color formula (info: https://github.com/mapbox/rio-color)",
-            ),
+            color_formula: Annotated[
+                Optional[str],
+                Query(
+                    title="Color Formula",
+                    description="rio-color formula (info: https://github.com/mapbox/rio-color)",
+                ),
+            ] = None,
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -587,40 +600,52 @@ class TilerFactory(BaseTilerFactory):
         )
         def tilejson(
             request: Request,
-            TileMatrixSetId: Literal[tuple(self.supported_tms.list())] = Query(
-                self.default_tms,
-                description=f"TileMatrixSet Name (default: '{self.default_tms}')",
-            ),
+            TileMatrixSetId: Annotated[
+                Literal[tuple(self.supported_tms.list())],
+                f"TileMatrixSet Name (default: '{self.default_tms}')",
+            ] = self.default_tms,
             src_path=Depends(self.path_dependency),
-            tile_format: Optional[ImageType] = Query(
-                None, description="Output image type. Default is auto."
-            ),
-            tile_scale: int = Query(
-                1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
-            ),
-            minzoom: Optional[int] = Query(
-                None, description="Overwrite default minzoom."
-            ),
-            maxzoom: Optional[int] = Query(
-                None, description="Overwrite default maxzoom."
-            ),
-            layer_params=Depends(self.layer_dependency),  # noqa
-            dataset_params=Depends(self.dataset_dependency),  # noqa
-            buffer: Optional[float] = Query(  # noqa
-                None,
-                gt=0,
-                title="Tile buffer.",
-                description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
-            ),
-            post_process=Depends(self.process_dependency),  # noqa
-            rescale=Depends(self.rescale_dependency),  # noqa
-            color_formula: Optional[str] = Query(  # noqa
-                None,
-                title="Color Formula",
-                description="rio-color formula (info: https://github.com/mapbox/rio-color)",
-            ),
-            colormap=Depends(self.colormap_dependency),  # noqa
-            render_params=Depends(self.render_dependency),  # noqa
+            tile_format: Annotated[
+                Optional[ImageType],
+                Query(
+                    description="Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
+                ),
+            ] = None,
+            tile_scale: Annotated[
+                int,
+                Query(
+                    gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
+                ),
+            ] = 1,
+            minzoom: Annotated[
+                Optional[int],
+                Query(description="Overwrite default minzoom."),
+            ] = None,
+            maxzoom: Annotated[
+                Optional[int],
+                Query(description="Overwrite default maxzoom."),
+            ] = None,
+            layer_params=Depends(self.layer_dependency),
+            dataset_params=Depends(self.dataset_dependency),
+            buffer: Annotated[
+                Optional[float],
+                Query(
+                    gt=0,
+                    title="Tile buffer.",
+                    description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
+                ),
+            ] = None,
+            post_process=Depends(self.process_dependency),
+            rescale=Depends(self.rescale_dependency),
+            color_formula: Annotated[
+                Optional[str],
+                Query(
+                    title="Color Formula",
+                    description="rio-color formula (info: https://github.com/mapbox/rio-color)",
+                ),
+            ] = None,
+            colormap=Depends(self.colormap_dependency),
+            render_params=Depends(self.render_dependency),
             reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
         ):
@@ -669,41 +694,53 @@ class TilerFactory(BaseTilerFactory):
         def map_viewer(
             request: Request,
             src_path=Depends(self.path_dependency),
-            TileMatrixSetId: Literal[tuple(self.supported_tms.list())] = Query(
-                self.default_tms,
-                description=f"TileMatrixSet Name (default: '{self.default_tms}')",
-            ),  # noqa
-            tile_format: Optional[ImageType] = Query(
-                None, description="Output image type. Default is auto."
-            ),  # noqa
-            tile_scale: int = Query(
-                1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
-            ),  # noqa
-            minzoom: Optional[int] = Query(
-                None, description="Overwrite default minzoom."
-            ),  # noqa
-            maxzoom: Optional[int] = Query(
-                None, description="Overwrite default maxzoom."
-            ),  # noqa
-            layer_params=Depends(self.layer_dependency),  # noqa
-            dataset_params=Depends(self.dataset_dependency),  # noqa
-            buffer: Optional[float] = Query(  # noqa
-                None,
-                gt=0,
-                title="Tile buffer.",
-                description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
-            ),
-            post_process=Depends(self.process_dependency),  # noqa
-            rescale=Depends(self.rescale_dependency),  # noqa
-            color_formula: Optional[str] = Query(  # noqa
-                None,
-                title="Color Formula",
-                description="rio-color formula (info: https://github.com/mapbox/rio-color)",
-            ),
-            colormap=Depends(self.colormap_dependency),  # noqa
-            render_params=Depends(self.render_dependency),  # noqa
-            reader_params=Depends(self.reader_dependency),  # noqa
-            env=Depends(self.environment_dependency),  # noqa
+            TileMatrixSetId: Annotated[
+                Literal[tuple(self.supported_tms.list())],
+                f"TileMatrixSet Name (default: '{self.default_tms}')",
+            ] = self.default_tms,
+            tile_format: Annotated[
+                Optional[ImageType],
+                Query(
+                    description="Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
+                ),
+            ] = None,
+            tile_scale: Annotated[
+                int,
+                Query(
+                    gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
+                ),
+            ] = 1,
+            minzoom: Annotated[
+                Optional[int],
+                Query(description="Overwrite default minzoom."),
+            ] = None,
+            maxzoom: Annotated[
+                Optional[int],
+                Query(description="Overwrite default maxzoom."),
+            ] = None,
+            layer_params=Depends(self.layer_dependency),
+            dataset_params=Depends(self.dataset_dependency),
+            buffer: Annotated[
+                Optional[float],
+                Query(
+                    gt=0,
+                    title="Tile buffer.",
+                    description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
+                ),
+            ] = None,
+            post_process=Depends(self.process_dependency),
+            rescale=Depends(self.rescale_dependency),
+            color_formula: Annotated[
+                Optional[str],
+                Query(
+                    title="Color Formula",
+                    description="rio-color formula (info: https://github.com/mapbox/rio-color)",
+                ),
+            ] = None,
+            colormap=Depends(self.colormap_dependency),
+            render_params=Depends(self.render_dependency),
+            reader_params=Depends(self.reader_dependency),
+            env=Depends(self.environment_dependency),
         ):
             """Return TileJSON document for a dataset."""
             tilejson_url = self.url_for(
@@ -733,40 +770,50 @@ class TilerFactory(BaseTilerFactory):
         )
         def wmts(
             request: Request,
-            TileMatrixSetId: Literal[tuple(self.supported_tms.list())] = Query(
-                self.default_tms,
-                description=f"TileMatrixSet Name (default: '{self.default_tms}')",
-            ),
+            TileMatrixSetId: Annotated[
+                Literal[tuple(self.supported_tms.list())],
+                f"TileMatrixSet Name (default: '{self.default_tms}')",
+            ] = self.default_tms,
             src_path=Depends(self.path_dependency),
-            tile_format: ImageType = Query(
-                ImageType.png, description="Output image type. Default is png."
-            ),
-            tile_scale: int = Query(
-                1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
-            ),
-            minzoom: Optional[int] = Query(
-                None, description="Overwrite default minzoom."
-            ),
-            maxzoom: Optional[int] = Query(
-                None, description="Overwrite default maxzoom."
-            ),
-            layer_params=Depends(self.layer_dependency),  # noqa
-            dataset_params=Depends(self.dataset_dependency),  # noqa
-            buffer: Optional[float] = Query(  # noqa
-                None,
-                gt=0,
-                title="Tile buffer.",
-                description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
-            ),
-            post_process=Depends(self.process_dependency),  # noqa
-            rescale=Depends(self.rescale_dependency),  # noqa
-            color_formula: Optional[str] = Query(  # noqa
-                None,
-                title="Color Formula",
-                description="rio-color formula (info: https://github.com/mapbox/rio-color)",
-            ),
-            colormap=Depends(self.colormap_dependency),  # noqa
-            render_params=Depends(self.render_dependency),  # noqa
+            tile_format: Annotated[
+                ImageType,
+                Query(description="Output image type. Default is png."),
+            ] = ImageType.png,
+            tile_scale: Annotated[
+                int,
+                Query(
+                    gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
+                ),
+            ] = 1,
+            minzoom: Annotated[
+                Optional[int],
+                Query(description="Overwrite default minzoom."),
+            ] = None,
+            maxzoom: Annotated[
+                Optional[int],
+                Query(description="Overwrite default maxzoom."),
+            ] = None,
+            layer_params=Depends(self.layer_dependency),
+            dataset_params=Depends(self.dataset_dependency),
+            buffer: Annotated[
+                Optional[float],
+                Query(
+                    gt=0,
+                    title="Tile buffer.",
+                    description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
+                ),
+            ] = None,
+            post_process=Depends(self.process_dependency),
+            rescale=Depends(self.rescale_dependency),
+            color_formula: Annotated[
+                Optional[str],
+                Query(
+                    title="Color Formula",
+                    description="rio-color formula (info: https://github.com/mapbox/rio-color)",
+                ),
+            ] = None,
+            colormap=Depends(self.colormap_dependency),
+            render_params=Depends(self.render_dependency),
             reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
         ):
@@ -848,10 +895,10 @@ class TilerFactory(BaseTilerFactory):
             responses={200: {"description": "Return a value for a point"}},
         )
         def point(
-            lon: float = Path(..., description="Longitude"),
-            lat: float = Path(..., description="Latitude"),
+            lon: Annotated[float, Path(description="Longitude")],
+            lat: Annotated[float, Path(description="Latitude")],
             src_path=Depends(self.path_dependency),
-            coord_crs: Optional[CRS] = Depends(CoordCRSParams),
+            coord_crs=Depends(CoordCRSParams),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -884,21 +931,24 @@ class TilerFactory(BaseTilerFactory):
         @self.router.get(r"/preview", **img_endpoint_params)
         @self.router.get(r"/preview.{format}", **img_endpoint_params)
         def preview(
-            format: ImageType = Query(
-                None, description="Output image type. Default is auto."
-            ),
+            format: Annotated[
+                ImageType,
+                "Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
+            ] = None,
             src_path=Depends(self.path_dependency),
             layer_params=Depends(self.layer_dependency),
-            dst_crs: Optional[CRS] = Depends(DstCRSParams),
+            dst_crs=Depends(DstCRSParams),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_dependency),
             post_process=Depends(self.process_dependency),
-            rescale=Depends(self.rescale_dependency),  # noqa
-            color_formula: Optional[str] = Query(
-                None,
-                title="Color Formula",
-                description="rio-color formula (info: https://github.com/mapbox/rio-color)",
-            ),
+            rescale=Depends(self.rescale_dependency),
+            color_formula: Annotated[
+                Optional[str],
+                Query(
+                    title="Color Formula",
+                    description="rio-color formula (info: https://github.com/mapbox/rio-color)",
+                ),
+            ] = None,
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -954,24 +1004,29 @@ class TilerFactory(BaseTilerFactory):
             **img_endpoint_params,
         )
         def part(
-            minx: float = Path(..., description="Bounding box min X"),
-            miny: float = Path(..., description="Bounding box min Y"),
-            maxx: float = Path(..., description="Bounding box max X"),
-            maxy: float = Path(..., description="Bounding box max Y"),
-            format: ImageType = Query(..., description="Output image type."),
+            minx: Annotated[float, Path(description="Bounding box min X")],
+            miny: Annotated[float, Path(description="Bounding box min Y")],
+            maxx: Annotated[float, Path(description="Bounding box max X")],
+            maxy: Annotated[float, Path(description="Bounding box max Y")],
+            format: Annotated[
+                ImageType,
+                "Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
+            ] = None,
             src_path=Depends(self.path_dependency),
-            dst_crs: Optional[CRS] = Depends(DstCRSParams),
-            coord_crs: Optional[CRS] = Depends(CoordCRSParams),
+            dst_crs=Depends(DstCRSParams),
+            coord_crs=Depends(CoordCRSParams),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_dependency),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
-            color_formula: Optional[str] = Query(
-                None,
-                title="Color Formula",
-                description="rio-color formula (info: https://github.com/mapbox/rio-color)",
-            ),
+            color_formula: Annotated[
+                Optional[str],
+                Query(
+                    title="Color Formula",
+                    description="rio-color formula (info: https://github.com/mapbox/rio-color)",
+                ),
+            ] = None,
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -1024,22 +1079,25 @@ class TilerFactory(BaseTilerFactory):
             **img_endpoint_params,
         )
         def geojson_crop(
-            geojson: Feature = Body(..., description="GeoJSON Feature."),
-            format: ImageType = Query(
-                None, description="Output image type. Default is auto."
-            ),
+            geojson: Annotated[Feature, Body(description="GeoJSON Feature.")],
+            format: Annotated[
+                ImageType,
+                "Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
+            ] = None,
             src_path=Depends(self.path_dependency),
-            coord_crs: Optional[CRS] = Depends(CoordCRSParams),
+            coord_crs=Depends(CoordCRSParams),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_dependency),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
-            color_formula: Optional[str] = Query(
-                None,
-                title="Color Formula",
-                description="rio-color formula (info: https://github.com/mapbox/rio-color)",
-            ),
+            color_formula: Annotated[
+                Optional[str],
+                Query(
+                    title="Color Formula",
+                    description="rio-color formula (info: https://github.com/mapbox/rio-color)",
+                ),
+            ] = None,
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -1268,11 +1326,12 @@ class MultiBaseTilerFactory(TilerFactory):
             },
         )
         def geojson_statistics(
-            geojson: Union[FeatureCollection, Feature] = Body(
-                ..., description="GeoJSON Feature or FeatureCollection."
-            ),
+            geojson: Annotated[
+                Union[FeatureCollection, Feature],
+                Body(description="GeoJSON Feature or FeatureCollection."),
+            ],
             src_path=Depends(self.path_dependency),
-            coord_crs: Optional[CRS] = Depends(CoordCRSParams),
+            coord_crs=Depends(CoordCRSParams),
             layer_params=Depends(AssetsBidxExprParamsOptional),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_dependency),
@@ -1461,11 +1520,12 @@ class MultiBandTilerFactory(TilerFactory):
             },
         )
         def geojson_statistics(
-            geojson: Union[FeatureCollection, Feature] = Body(
-                ..., description="GeoJSON Feature or FeatureCollection."
-            ),
+            geojson: Annotated[
+                Union[FeatureCollection, Feature],
+                Body(description="GeoJSON Feature or FeatureCollection."),
+            ],
             src_path=Depends(self.path_dependency),
-            coord_crs: Optional[CRS] = Depends(CoordCRSParams),
+            coord_crs=Depends(CoordCRSParams),
             bands_params=Depends(BandsExprParamsOptional),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_dependency),
@@ -1584,9 +1644,10 @@ class TMSFactory:
             operation_id="getTileMatrixSet",
         )
         async def TileMatrixSet_info(
-            TileMatrixSetId: Literal[tuple(self.supported_tms.list())] = Path(
-                ..., description="TileMatrixSet Name."
-            )
+            TileMatrixSetId: Annotated[
+                Literal[tuple(self.supported_tms.list())],
+                Path(description="TileMatrixSet Name."),
+            ]
         ):
             """
             OGC Specification: http://docs.opengeospatial.org/per/19-069.html#_tilematrixset
@@ -1650,9 +1711,10 @@ class AlgorithmFactory:
             operation_id="getAlgorithm",
         )
         def algorithm_metadata(
-            algorithm: Literal[tuple(self.supported_algorithm.list())] = Path(
-                ..., description="Algorithm name", alias="algorithmId"
-            ),
+            algorithm: Annotated[
+                Literal[tuple(self.supported_algorithm.list())],
+                Path(description="Algorithm name", alias="algorithmId"),
+            ],
         ):
             """Retrieve the metadata of the specified algorithm."""
             return metadata(self.supported_algorithm.get(algorithm))
