@@ -3,6 +3,7 @@
 ## Next (TDB)
 
 * use `Annotated` Type for Query/Path parameters
+* replace variable `TileMatrixSetId` by `tileMatrixSetId`
 
 ### titiler.core
 
@@ -14,6 +15,12 @@
 ### titiler.extensions
 
 * use TiTiler's custom JSONResponse for the `/validate` endpoint to avoid issue when COG has `NaN` nodata value
+* update `rio-cogeo` dependency to `>=4.0,<5.0`
+
+## titiler.mosaic
+
+* update `cogeo-mosaic` dependency to `>=6.0,<7.0`
+* remove `titiler.mosaic.resources.enum.PixelSelectionMethod` and use `rio_tiler.mosaic.methods.PixelSelectionMethod`
 
 ## 0.11.7 (2023-05-18)
 

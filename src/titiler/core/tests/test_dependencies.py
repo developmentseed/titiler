@@ -24,20 +24,20 @@ def test_tms():
     """Create App."""
     app = FastAPI()
 
-    @app.get("/web/{TileMatrixSetId}")
+    @app.get("/web/{tileMatrixSetId}")
     def web(
-        TileMatrixSetId: Annotated[
+        tileMatrixSetId: Annotated[
             Literal["WebMercatorQuad"],
             Path(),
         ],
     ):
         """return tms id."""
-        return TileMatrixSetId
+        return tileMatrixSetId
 
-    @app.get("/all/{TileMatrixSetId}")
-    def all(TileMatrixSetId: Annotated[Literal[tuple(tms.list())], Path()]):
+    @app.get("/all/{tileMatrixSetId}")
+    def all(tileMatrixSetId: Annotated[Literal[tuple(tms.list())], Path()]):
         """return tms id."""
-        return TileMatrixSetId
+        return tileMatrixSetId
 
     client = TestClient(app)
     response = client.get("/web/WebMercatorQuad")

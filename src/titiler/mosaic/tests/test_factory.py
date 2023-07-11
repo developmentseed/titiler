@@ -5,19 +5,17 @@ import tempfile
 from contextlib import contextmanager
 from dataclasses import dataclass
 from io import BytesIO
-from typing import Optional
 
-import attr
 import numpy
 from cogeo_mosaic.backends import FileBackend
 from cogeo_mosaic.mosaic import MosaicJSON
 from fastapi import FastAPI
+from rio_tiler.mosaic.methods import PixelSelectionMethod
 from starlette.testclient import TestClient
 
 from titiler.core.dependencies import DefaultDependency
 from titiler.core.resources.enums import OptionalHeader
 from titiler.mosaic.factory import MosaicTilerFactory
-from titiler.mosaic.resources.enums import PixelSelectionMethod
 
 from .conftest import DATA_DIR
 
@@ -45,7 +43,7 @@ def test_MosaicTilerFactory():
         optional_headers=[OptionalHeader.x_assets],
         router_prefix="mosaic",
     )
-    assert len(mosaic.router.routes) == 23
+    assert len(mosaic.router.routes) == 24
 
     app = FastAPI()
     app.include_router(mosaic.router, prefix="/mosaic")
@@ -132,7 +130,7 @@ def test_MosaicTilerFactory():
                 "tile_format": "png",
                 "minzoom": 6,
                 "maxzoom": 9,
-                "TileMatrixSetId": "WebMercatorQuad",
+                "tileMatrixSetId": "WebMercatorQuad",
             },
         )
         assert response.status_code == 200
@@ -143,7 +141,7 @@ def test_MosaicTilerFactory():
         )
         assert body["minzoom"] == 6
         assert body["maxzoom"] == 9
-        assert "TileMatrixSetId" not in body["tiles"][0]
+        assert "tileMatrixSetId" not in body["tiles"][0]
 
         response = client.get(
             "/mosaic/WMTSCapabilities.xml",
@@ -205,25 +203,10 @@ class BackendParams(DefaultDependency):
     maxzoom: int = 8
 
 
-@attr.s
-class CustomFileBackend(FileBackend):
-    """Fake backend to prove we can overwrite min/max zoom."""
-
-    minzoom: Optional[int] = attr.ib(default=None)
-    maxzoom: Optional[int] = attr.ib(default=None)
-
-    def __attrs_post_init__(self):
-        """Post Init: if not passed in init, try to read from self.input."""
-        self.mosaic_def = self.mosaic_def or self._read()
-        self.minzoom = self.minzoom or self.mosaic_def.minzoom
-        self.maxzoom = self.maxzoom or self.mosaic_def.maxzoom
-        self.bounds = self.mosaic_def.bounds
-
-
 def test_MosaicTilerFactory_BackendParams():
     """Test MosaicTilerFactory factory with Backend dependency."""
     mosaic = MosaicTilerFactory(
-        reader=CustomFileBackend,
+        reader=FileBackend,
         backend_dependency=BackendParams,
         router_prefix="/mosaic",
     )
@@ -250,7 +233,7 @@ def test_MosaicTilerFactory_PixelSelectionParams():
     """Test MosaicTilerFactory factory with a customized default PixelSelectionMethod."""
     mosaic = MosaicTilerFactory(router_prefix="/mosaic")
     mosaic_highest = MosaicTilerFactory(
-        pixel_selection_dependency=lambda: PixelSelectionMethod.highest.method(),
+        pixel_selection_dependency=lambda: PixelSelectionMethod.highest.value,
         router_prefix="/mosaic_highest",
     )
 

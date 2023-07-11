@@ -41,7 +41,7 @@ class gdalwmtsExtension(FactoryExtension):
             },
         )
         @factory.router.get(
-            "/{TileMatrixSetId}/wmts.xml",
+            "/{tileMatrixSetId}/wmts.xml",
             response_class=XMLResponse,
             responses={
                 200: {
@@ -54,7 +54,7 @@ class gdalwmtsExtension(FactoryExtension):
         )
         def gdal_wmts(
             request: Request,
-            TileMatrixSetId: Literal[tuple(factory.supported_tms.list())] = Query(  # type: ignore
+            tileMatrixSetId: Literal[tuple(factory.supported_tms.list())] = Query(  # type: ignore
                 factory.default_tms,
                 description=f"TileMatrixSet Name (default: '{factory.default_tms}')",
             ),
@@ -74,7 +74,7 @@ class gdalwmtsExtension(FactoryExtension):
         ):
             """Return a GDAL WMTS Service description."""
             route_params = {
-                "TileMatrixSetId": TileMatrixSetId,
+                "tileMatrixSetId": tileMatrixSetId,
             }
             wmts_url = factory.url_for(request, "wmts", **route_params)
 

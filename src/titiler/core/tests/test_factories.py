@@ -219,7 +219,7 @@ def test_TilerFactory():
     assert response.json()["tilejson"]
 
     response_qs = client.get(
-        f"/tilejson.json?url={DATA_DIR}/cog.tif&TileMatrixSetId=WorldCRS84Quad"
+        f"/tilejson.json?url={DATA_DIR}/cog.tif&tileMatrixSetId=WorldCRS84Quad"
     )
     assert response.json()["tiles"] == response_qs.json()["tiles"]
 

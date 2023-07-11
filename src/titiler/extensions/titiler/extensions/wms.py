@@ -50,7 +50,7 @@ class OverlayMethod(MosaicMethodBase):
 
     def feed(self, array: numpy.ma.MaskedArray):
         """Add data to the mosaic array."""
-        if self.mosaic is None:
+        if self.mosaic is None:  # type: ignore
             self.mosaic = array
 
         else:

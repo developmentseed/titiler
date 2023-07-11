@@ -36,6 +36,7 @@ dependencies = [
     "pydantic~=1.0",
     "rasterio",
     "rio-tiler>=5.0,<6.0",
+    "morecantile>=4.3,<5.0",
     "simplejson",
     "typing_extensions;python_version<'3.8'",
 ]

@@ -52,7 +52,7 @@
         </Layer>
         <TileMatrixSet>
             <ows:Identifier>{{ tms.id }}</ows:Identifier>
-            <ows:SupportedCRS>{{ tms.crs._pyproj_crs.srs }}</ows:SupportedCRS>
+            <ows:SupportedCRS>{{ tms.crs.srs }}</ows:SupportedCRS>
             {% for item in tileMatrix %}
             {{ item | safe }}
             {% endfor %}
