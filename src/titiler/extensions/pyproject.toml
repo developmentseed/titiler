@@ -41,7 +41,7 @@ test = [
     "jsonschema>=3.0",
 ]
 cogeo = [
-    "rio-cogeo>=3.1,<4.0",
+    "rio-cogeo>=4.0,<5.0",
 ]
 stac = [
     "rio-stac>=0.6,<0.7",

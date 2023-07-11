@@ -44,19 +44,21 @@ class WMSMediaType(str, Enum):
     webp = "image/webp"
 
 
+@dataclass
 class OverlayMethod(MosaicMethodBase):
     """Overlay data on top."""
 
-    def feed(self, tile):
-        """Add data to tile."""
-        if self.tile is None:
-            self.tile = tile
+    def feed(self, array: numpy.ma.MaskedArray):
+        """Add data to the mosaic array."""
+        if self.mosaic is None:
+            self.mosaic = array
 
-        pidex = self.tile.mask & ~tile.mask
+        else:
+            pidex = self.mosaic.mask & ~array.mask
 
-        mask = numpy.where(pidex, tile.mask, self.tile.mask)
-        self.tile = numpy.ma.where(pidex, tile, self.tile)
-        self.tile.mask = mask
+            mask = numpy.where(pidex, array.mask, self.mosaic.mask)
+            self.mosaic = numpy.ma.where(pidex, array, self.mosaic)
+            self.mosaic.mask = mask
 
 
 @dataclass
@@ -526,9 +528,11 @@ class wmsExtension(FactoryExtension):
                 if color_formula:
                     image.apply_color_formula(color_formula)
 
+                if colormap:
+                    image = image.apply_colormap(colormap)
+
                 content = image.render(
                     img_format=format.driver,
-                    colormap=colormap,
                     add_mask=transparent,
                     **format.profile,
                 )
