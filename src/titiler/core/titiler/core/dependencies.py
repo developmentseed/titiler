@@ -381,7 +381,7 @@ def RescalingParams(
         Query(
             title="Min/Max data Rescaling",
             description="comma (',') delimited Min,Max range. Can set multiple time for multiple bands.",
-            example=["0,2000", "0,1000", "0,10000"],  # band 1  # band 2  # band 3
+            examples=["0,2000", "0,1000", "0,10000"],  # band 1  # band 2  # band 3
         ),
     ] = None,
 ) -> Optional[RescaleType]:
@@ -406,7 +406,7 @@ class StatisticsParams(DefaultDependency):
             alias="c",
             title="Pixels values for categories.",
             description="List of values for which to report counts.",
-            example=[1, 2, 3],
+            examples=[1, 2, 3],
         ),
     ] = None
     percentiles: Annotated[
@@ -415,7 +415,7 @@ class StatisticsParams(DefaultDependency):
             alias="p",
             title="Percentile values",
             description="List of percentile values (default to [2, 98]).",
-            example=[2, 5, 95, 98],
+            examples=[2, 5, 95, 98],
         ),
     ] = None
 
@@ -469,7 +469,7 @@ range affects the automatic bin computation as well.
 
 link: https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
             """,
-            example="0,1000",
+            examples="0,1000",
         ),
     ] = None
 

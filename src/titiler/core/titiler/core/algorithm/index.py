@@ -20,13 +20,9 @@ class NormalizedIndex(BaseAlgorithm):
 
     def __call__(self, img: ImageData) -> ImageData:
         """Normalized difference."""
-        b1 = img.data[0].astype("float32")
-        b2 = img.data[1].astype("float32")
-
-        arr = numpy.where(img.mask, (b2 - b1) / (b2 + b1), 0)
-        arr = numpy.ma.MaskedArray(arr, dtype=self.output_dtype)
-        arr.mask = img.mask
-
+        b1 = img.array[0].astype("float32")
+        b2 = img.array[1].astype("float32")
+        arr = numpy.ma.MaskedArray((b2 - b1) / (b2 + b1), dtype=self.output_dtype)
         bnames = img.band_names
         return ImageData(
             arr,
