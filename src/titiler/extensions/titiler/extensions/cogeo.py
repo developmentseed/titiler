@@ -30,7 +30,7 @@ class cogValidateExtension(FactoryExtension):
 
         assert (
             cog_info is not None
-        ), "'rio_cogeo' must be installed to use CogValidateExtension"
+        ), "'rio-cogeo' must be installed to use CogValidateExtension"
 
         @factory.router.get(
             "/validate",
