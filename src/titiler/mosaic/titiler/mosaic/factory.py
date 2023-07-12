@@ -38,15 +38,15 @@ else:
 
 
 def PixelSelectionParams(
-    pixel_selection: Annotated[
-        PixelSelectionMethod,
+    pixel_selection: Annotated[  # type: ignore
+        Literal[tuple([e.name for e in PixelSelectionMethod])],
         Query(description="Pixel selection method."),
-    ] = PixelSelectionMethod.first,
+    ] = "first",
 ) -> MosaicMethodBase:
     """
     Returns the mosaic method used to combine datasets together.
     """
-    return pixel_selection.value()
+    return PixelSelectionMethod[pixel_selection].value()
 
 
 @dataclass

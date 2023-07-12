@@ -53,6 +53,12 @@ def test_TilerFactory():
     app.include_router(cog.router, prefix="/something")
     client = TestClient(app)
 
+    response = client.get("/openapi.json")
+    assert response.status_code == 200
+
+    response = client.get("/docs")
+    assert response.status_code == 200
+
     response = client.get(f"/something/tilejson.json?url={DATA_DIR}/cog.tif")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
@@ -657,6 +663,12 @@ def test_MultiBaseTilerFactory(rio):
 
     client = TestClient(app)
 
+    response = client.get("/openapi.json")
+    assert response.status_code == 200
+
+    response = client.get("/docs")
+    assert response.status_code == 200
+
     response = client.get(f"/assets?url={DATA_DIR}/item.json")
     assert response.status_code == 200
     assert len(response.json()) == 2
@@ -980,6 +992,12 @@ def test_MultiBandTilerFactory():
     add_exception_handlers(app, DEFAULT_STATUS_CODES)
 
     client = TestClient(app)
+
+    response = client.get("/openapi.json")
+    assert response.status_code == 200
+
+    response = client.get("/docs")
+    assert response.status_code == 200
 
     response = client.get(f"/bands?directory={DATA_DIR}")
     assert response.status_code == 200

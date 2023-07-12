@@ -49,6 +49,12 @@ def test_MosaicTilerFactory():
     app.include_router(mosaic.router, prefix="/mosaic")
     client = TestClient(app)
 
+    response = client.get("/openapi.json")
+    assert response.status_code == 200
+
+    response = client.get("/docs")
+    assert response.status_code == 200
+
     with tmpmosaic() as mosaic_file:
         response = client.get(
             "/mosaic/",
