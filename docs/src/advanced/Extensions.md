@@ -89,6 +89,7 @@ See [titiler.application](../application) for a full example.
 from dataclasses import dataclass, field
 from typing import Tuple, List, Optional
 
+import rasterio
 from starlette.responses import Response
 from fastapi import Depends, FastAPI, Query
 from titiler.core.factory import BaseTilerFactory, FactoryExtension, TilerFactory
@@ -140,8 +141,8 @@ class thumbnailExtension(FactoryExtension):
             env=Depends(factory.environment_dependency),
         ):
             with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
-                    im = src.preview(
+                with factory.reader(src_path, **reader_params) as src:
+                    image = src.preview(
                         max_size=self.max_size,
                         **layer_params,
                         **dataset_params,
@@ -160,7 +161,7 @@ class thumbnailExtension(FactoryExtension):
 
             content = image.render(
                 img_format=format.driver,
-                colormap=colormap or dst_colormap,
+                colormap=colormap,
                 **format.profile,
                 **render_params,
             )
