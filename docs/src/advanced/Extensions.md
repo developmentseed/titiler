@@ -161,7 +161,7 @@ class thumbnailExtension(FactoryExtension):
 
             content = image.render(
                 img_format=format.driver,
-                colormap=colormap or dst_colormap,
+                colormap=colormap,
                 **format.profile,
                 **render_params,
             )
