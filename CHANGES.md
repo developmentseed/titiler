@@ -1,6 +1,6 @@
 # Release Notes
 
-## Next (TDB)
+## 0.12.0 (2023-07-17)
 
 * use `Annotated` Type for Query/Path parameters
 * replace variable `TileMatrixSetId` by `tileMatrixSetId`
