@@ -124,6 +124,22 @@ class stacExtension(FactoryExtension):
                     description="Limit array size from which to get the raster statistics.",
                 ),
             ] = 1024,
+            geom_densify_pts: Annotated[
+                Optional[int],
+                Query(
+                    alias="geom-densify-pts",
+                    ge=0,
+                    description="Number of points to add to each edge to account for nonlinear edges transformation.",
+                ),
+            ] = 0,
+            geom_precision: Annotated[
+                Optional[int],
+                Query(
+                    alias="geom-precision",
+                    ge=-1,
+                    description="Round geometry coordinates to this number of decimal.",
+                ),
+            ] = -1,
         ):
             """Create STAC item."""
             properties = (
@@ -159,4 +175,6 @@ class stacExtension(FactoryExtension):
                 with_raster=with_raster,
                 with_eo=with_eo,
                 raster_max_size=max_size,
+                geom_densify_pts=geom_densify_pts,
+                geom_precision=geom_precision,
             ).to_dict()

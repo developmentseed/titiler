@@ -16,6 +16,7 @@
 
 * use TiTiler's custom JSONResponse for the `/validate` endpoint to avoid issue when COG has `NaN` nodata value
 * update `rio-cogeo` dependency to `>=4.0,<5.0`
+* update `rio-stac` requirement to `>=0.8,<0.9` and add `geom-densify-pts` and `geom-precision` options
 
 ## titiler.mosaic
 
