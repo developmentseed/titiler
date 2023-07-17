@@ -43,7 +43,7 @@ The `/cog` routes are based on `titiler.core.factory.TilerFactory` but with `cog
 - QueryParams:
     - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
     - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
-    - **expression** (str): rio-tiler's band math expression (e.g B1/B2).
+    - **expression** (str): rio-tiler's band math expression (e.g `expression=b1/b2`).
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
     - **resampling** (str): rasterio resampling method. Default is `nearest`.
@@ -73,7 +73,7 @@ Example:
 - QueryParams:
     - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
     - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
-    - **expression** (str): rio-tiler's band math expression (e.g B1/B2).
+    - **expression** (str): rio-tiler's band math expression (e.g `expression=b1/b2`).
     - **max_size** (int): Max image size, default is 1024.
     - **height** (int): Force output image height.
     - **width** (int): Force output image width.
@@ -112,7 +112,7 @@ Example:
 - QueryParams:
     - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
     - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
-    - **expression** (str): rio-tiler's band math expression (e.g B1/B2).
+    - **expression** (str): rio-tiler's band math expression (e.g `expression=b1/b2`).
     - **coord-crs** (str): Coordinate Reference System of the input coordinates. Default to `epsg:4326`.
     - **max_size** (int): Max image size, default is 1024.
     - **nodata** (str, int, float): Overwrite internal Nodata value.
@@ -148,7 +148,7 @@ Example:
 - QueryParams:
     - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
     - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
-    - **expression** (str): rio-tiler's band math expression (e.g B1/B2).
+    - **expression** (str): rio-tiler's band math expression (e.g `expression=b1/b2`).
     - **coord-crs** (str): Coordinate Reference System of the input geometry coordinates. Default to `epsg:4326`.
     - **max_size** (int): Max image size, default is 1024.
     - **nodata** (str, int, float): Overwrite internal Nodata value.
@@ -183,7 +183,7 @@ Note: if `height` and `width` are provided `max_size` will be ignored.
 - QueryParams:
     - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
     - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
-    - **expression** (str): rio-tiler's band math expression (e.g B1/B2).
+    - **expression** (str): rio-tiler's band math expression (e.g `expression=b1/b2`).
     - **coord-crs** (str): Coordinate Reference System of the input coordinates. Default to `epsg:4326`.
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
@@ -208,7 +208,7 @@ Example:
     - **minzoom** (int): Overwrite default minzoom.
     - **maxzoom** (int): Overwrite default maxzoom.
     - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
-    - **expression** (str): rio-tiler's band math expression (e.g B1/B2).
+    - **expression** (str): rio-tiler's band math expression (e.g `expression=b1/b2`).
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
     - **resampling** (str): rasterio resampling method. Default is `nearest`.
@@ -242,7 +242,7 @@ Example:
     - **minzoom** (int): Overwrite default minzoom.
     - **maxzoom** (int): Overwrite default maxzoom.
     - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
-    - **expression** (str): rio-tiler's band math expression (e.g B1/B2).
+    - **expression** (str): rio-tiler's band math expression (e.g `expression=b1/b2`).
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
     - **resampling** (str): rasterio resampling method. Default is `nearest`.
@@ -297,7 +297,7 @@ Advanced raster statistics
 - QueryParams:
     - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
     - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
-    - **expression** (str): rio-tiler's band math expression (e.g B1/B2).
+    - **expression** (str): rio-tiler's band math expression (e.g `expression=b1/b2`).
     - **max_size** (int): Max image size from which to calculate statistics, default is 1024.
     - **height** (int): Force image height from which to calculate statistics.
     - **width** (int): Force image width from which to calculate statistics.
@@ -322,7 +322,7 @@ Example:
 - QueryParams:
     - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
     - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
-    - **expression** (str): rio-tiler's band math expression (e.g B1/B2).
+    - **expression** (str): rio-tiler's band math expression (e.g `expression=b1/b2`).
     - **coord-crs** (str): Coordinate Reference System of the input geometry coordinates. Default to `epsg:4326`.
     - **max_size** (int): Max image size from which to calculate statistics, default is 1024.
     - **height** (int): Force image height from which to calculate statistics.
