@@ -18,7 +18,7 @@ app.include_router(tms.router, tags=["TileMatrixSets"])
 | Method | URL                                 | Output    | Description
 | ------ | ----------------------------------- |---------- |--------------
 | `GET`  | `/tileMatrixSets`                   | JSON      | return the list of supported TileMatrixSet
-| `GET`  | `/tileMatrixSets/{TileMatrixSetId}` | JSON      | return the TileMatrixSet JSON document
+| `GET`  | `/tileMatrixSets/{tileMatrixSetId}` | JSON      | return the TileMatrixSet JSON document
 
 ## Description
 
@@ -50,10 +50,10 @@ $ curl https://myendpoint/tileMatrixSets | jq
 
 ### Get TMS info
 
-`:endpoint:/tileMatrixSets/{TileMatrixSetId}` - Get the TileMatrixSet JSON document
+`:endpoint:/tileMatrixSets/{tileMatrixSetId}` - Get the TileMatrixSet JSON document
 
 - PathParams:
-    - **TileMatrixSetId**: TileMatrixSet name
+    - **tileMatrixSetId**: TileMatrixSet name
 
 ```bash
 $ curl http://127.0.0.1:8000/tileMatrixSets/WebMercatorQuad | jq

@@ -46,12 +46,12 @@
             </Style>
             <Format>{{ media_type }}</Format>
             <TileMatrixSetLink>
-                <TileMatrixSet>{{ tms.identifier }}</TileMatrixSet>
+                <TileMatrixSet>{{ tms.id }}</TileMatrixSet>
             </TileMatrixSetLink>
             <ResourceURL format="{{ media_type }}" resourceType="tile" template="{{ tiles_endpoint }}" />
         </Layer>
         <TileMatrixSet>
-            <ows:Identifier>{{ tms.identifier }}</ows:Identifier>
+            <ows:Identifier>{{ tms.id }}</ows:Identifier>
             <ows:SupportedCRS>{{ tms.crs.srs }}</ows:SupportedCRS>
             {% for item in tileMatrix %}
             {{ item | safe }}

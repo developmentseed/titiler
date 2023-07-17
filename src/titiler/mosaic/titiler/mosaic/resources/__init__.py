@@ -1,1 +1,0 @@
-"""titiler.core.resources."""

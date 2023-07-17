@@ -53,6 +53,12 @@ def test_TilerFactory():
     app.include_router(cog.router, prefix="/something")
     client = TestClient(app)
 
+    response = client.get("/openapi.json")
+    assert response.status_code == 200
+
+    response = client.get("/docs")
+    assert response.status_code == 200
+
     response = client.get(f"/something/tilejson.json?url={DATA_DIR}/cog.tif")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
@@ -219,7 +225,7 @@ def test_TilerFactory():
     assert response.json()["tilejson"]
 
     response_qs = client.get(
-        f"/tilejson.json?url={DATA_DIR}/cog.tif&TileMatrixSetId=WorldCRS84Quad"
+        f"/tilejson.json?url={DATA_DIR}/cog.tif&tileMatrixSetId=WorldCRS84Quad"
     )
     assert response.json()["tiles"] == response_qs.json()["tiles"]
 
@@ -657,6 +663,12 @@ def test_MultiBaseTilerFactory(rio):
 
     client = TestClient(app)
 
+    response = client.get("/openapi.json")
+    assert response.status_code == 200
+
+    response = client.get("/docs")
+    assert response.status_code == 200
+
     response = client.get(f"/assets?url={DATA_DIR}/item.json")
     assert response.status_code == 200
     assert len(response.json()) == 2
@@ -981,6 +993,12 @@ def test_MultiBandTilerFactory():
 
     client = TestClient(app)
 
+    response = client.get("/openapi.json")
+    assert response.status_code == 200
+
+    response = client.get("/docs")
+    assert response.status_code == 200
+
     response = client.get(f"/bands?directory={DATA_DIR}")
     assert response.status_code == 200
     assert response.json() == ["B01", "B09"]
@@ -1267,8 +1285,7 @@ def test_TMSFactory():
     response = client.get("/tms/tileMatrixSets/WebMercatorQuad")
     assert response.status_code == 200
     body = response.json()
-    assert body["type"] == "TileMatrixSetType"
-    assert body["identifier"] == "WebMercatorQuad"
+    assert body["id"] == "WebMercatorQuad"
 
     response = client.get("/tms/tileMatrixSets/WebMercatorQua")
     assert response.status_code == 422

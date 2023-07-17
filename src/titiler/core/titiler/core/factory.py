@@ -19,9 +19,8 @@ from morecantile.defaults import TileMatrixSets
 from pydantic import conint
 from rio_tiler.constants import WGS84_CRS
 from rio_tiler.io import BaseReader, MultiBandReader, MultiBaseReader, Reader
-from rio_tiler.models import BandStatistics, Bounds, Info
+from rio_tiler.models import Bounds, Info
 from rio_tiler.types import ColorMapType
-from rio_tiler.utils import get_array_statistics
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, Response
 from starlette.routing import Match, compile_path, replace_params
@@ -464,23 +463,13 @@ class TilerFactory(BaseTilerFactory):
                             **image_params,
                             **dataset_params,
                         )
-                        stats = get_array_statistics(
-                            data.as_masked(),
-                            **stats_params,
-                            **histogram_params,
+
+                        stats = data.statistics(
+                            **stats_params, hist_options={**histogram_params}
                         )
 
                         feature.properties = feature.properties or {}
-                        feature.properties.update(
-                            {
-                                "statistics": {
-                                    f"{data.band_names[ix]}": BandStatistics(
-                                        **stats[ix]
-                                    )
-                                    for ix in range(len(stats))
-                                }
-                            }
-                        )
+                        feature.properties.update({"statistics": stats})
 
             return fc.features[0] if isinstance(geojson, Feature) else fc
 
@@ -494,24 +483,39 @@ class TilerFactory(BaseTilerFactory):
         @self.router.get(r"/tiles/{z}/{x}/{y}.{format}", **img_endpoint_params)
         @self.router.get(r"/tiles/{z}/{x}/{y}@{scale}x", **img_endpoint_params)
         @self.router.get(r"/tiles/{z}/{x}/{y}@{scale}x.{format}", **img_endpoint_params)
-        @self.router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}", **img_endpoint_params)
+        @self.router.get(r"/tiles/{tileMatrixSetId}/{z}/{x}/{y}", **img_endpoint_params)
         @self.router.get(
-            r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}.{format}", **img_endpoint_params
+            r"/tiles/{tileMatrixSetId}/{z}/{x}/{y}.{format}", **img_endpoint_params
         )
         @self.router.get(
-            r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x", **img_endpoint_params
+            r"/tiles/{tileMatrixSetId}/{z}/{x}/{y}@{scale}x", **img_endpoint_params
         )
         @self.router.get(
-            r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x.{format}",
+            r"/tiles/{tileMatrixSetId}/{z}/{x}/{y}@{scale}x.{format}",
             **img_endpoint_params,
         )
         def tile(
-            z: Annotated[int, Path(description="TMS tiles's zoom level")],
-            x: Annotated[int, Path(description="TMS tiles's column")],
-            y: Annotated[int, Path(description="TMS tiles's row")],
-            TileMatrixSetId: Annotated[
+            z: Annotated[
+                int,
+                Path(
+                    description="Identifier (Z) selecting one of the scales defined in the TileMatrixSet and representing the scaleDenominator the tile.",
+                ),
+            ],
+            x: Annotated[
+                int,
+                Path(
+                    description="Column (X) index of the tile on the selected TileMatrix. It cannot exceed the MatrixHeight-1 for the selected TileMatrix.",
+                ),
+            ],
+            y: Annotated[
+                int,
+                Path(
+                    description="Row (Y) index of the tile on the selected TileMatrix. It cannot exceed the MatrixWidth-1 for the selected TileMatrix.",
+                ),
+            ],
+            tileMatrixSetId: Annotated[
                 Literal[tuple(self.supported_tms.list())],
-                f"TileMatrixSet Name (default: '{self.default_tms}')",
+                f"Identifier selecting one of the TileMatrixSetId supported (default: '{self.default_tms}')",
             ] = self.default_tms,
             scale: Annotated[
                 conint(gt=0, le=4), "Tile size scale. 1=256x256, 2=512x512..."
@@ -546,7 +550,7 @@ class TilerFactory(BaseTilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Create map tile from a dataset."""
-            tms = self.supported_tms.get(TileMatrixSetId)
+            tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
                 with self.reader(src_path, tms=tms, **reader_params) as src_dst:
                     image = src_dst.tile(
@@ -593,16 +597,16 @@ class TilerFactory(BaseTilerFactory):
             response_model_exclude_none=True,
         )
         @self.router.get(
-            "/{TileMatrixSetId}/tilejson.json",
+            "/{tileMatrixSetId}/tilejson.json",
             response_model=TileJSON,
             responses={200: {"description": "Return a tilejson"}},
             response_model_exclude_none=True,
         )
         def tilejson(
             request: Request,
-            TileMatrixSetId: Annotated[
+            tileMatrixSetId: Annotated[
                 Literal[tuple(self.supported_tms.list())],
-                f"TileMatrixSet Name (default: '{self.default_tms}')",
+                f"Identifier selecting one of the TileMatrixSetId supported (default: '{self.default_tms}')",
             ] = self.default_tms,
             src_path=Depends(self.path_dependency),
             tile_format: Annotated[
@@ -655,7 +659,7 @@ class TilerFactory(BaseTilerFactory):
                 "x": "{x}",
                 "y": "{y}",
                 "scale": tile_scale,
-                "TileMatrixSetId": TileMatrixSetId,
+                "tileMatrixSetId": tileMatrixSetId,
             }
             if tile_format:
                 route_params["format"] = tile_format.value
@@ -676,7 +680,7 @@ class TilerFactory(BaseTilerFactory):
             if qs:
                 tiles_url += f"?{urlencode(qs)}"
 
-            tms = self.supported_tms.get(TileMatrixSetId)
+            tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
                 with self.reader(src_path, tms=tms, **reader_params) as src_dst:
                     return {
@@ -690,13 +694,13 @@ class TilerFactory(BaseTilerFactory):
         """Register /map endpoint."""
 
         @self.router.get("/map", response_class=HTMLResponse)
-        @self.router.get("/{TileMatrixSetId}/map", response_class=HTMLResponse)
+        @self.router.get("/{tileMatrixSetId}/map", response_class=HTMLResponse)
         def map_viewer(
             request: Request,
             src_path=Depends(self.path_dependency),
-            TileMatrixSetId: Annotated[
+            tileMatrixSetId: Annotated[
                 Literal[tuple(self.supported_tms.list())],
-                f"TileMatrixSet Name (default: '{self.default_tms}')",
+                f"Identifier selecting one of the TileMatrixSetId supported (default: '{self.default_tms}')",
             ] = self.default_tms,
             tile_format: Annotated[
                 Optional[ImageType],
@@ -744,12 +748,12 @@ class TilerFactory(BaseTilerFactory):
         ):
             """Return TileJSON document for a dataset."""
             tilejson_url = self.url_for(
-                request, "tilejson", TileMatrixSetId=TileMatrixSetId
+                request, "tilejson", tileMatrixSetId=tileMatrixSetId
             )
             if request.query_params._list:
                 tilejson_url += f"?{urlencode(request.query_params._list)}"
 
-            tms = self.supported_tms.get(TileMatrixSetId)
+            tms = self.supported_tms.get(tileMatrixSetId)
             return self.templates.TemplateResponse(
                 name="map.html",
                 context={
@@ -766,13 +770,13 @@ class TilerFactory(BaseTilerFactory):
 
         @self.router.get("/WMTSCapabilities.xml", response_class=XMLResponse)
         @self.router.get(
-            "/{TileMatrixSetId}/WMTSCapabilities.xml", response_class=XMLResponse
+            "/{tileMatrixSetId}/WMTSCapabilities.xml", response_class=XMLResponse
         )
         def wmts(
             request: Request,
-            TileMatrixSetId: Annotated[
+            tileMatrixSetId: Annotated[
                 Literal[tuple(self.supported_tms.list())],
-                f"TileMatrixSet Name (default: '{self.default_tms}')",
+                f"Identifier selecting one of the TileMatrixSetId supported (default: '{self.default_tms}')",
             ] = self.default_tms,
             src_path=Depends(self.path_dependency),
             tile_format: Annotated[
@@ -824,7 +828,7 @@ class TilerFactory(BaseTilerFactory):
                 "y": "{TileRow}",
                 "scale": tile_scale,
                 "format": tile_format.value,
-                "TileMatrixSetId": TileMatrixSetId,
+                "tileMatrixSetId": tileMatrixSetId,
             }
             tiles_url = self.url_for(request, "tile", **route_params)
 
@@ -845,7 +849,7 @@ class TilerFactory(BaseTilerFactory):
             if qs:
                 tiles_url += f"?{urlencode(qs)}"
 
-            tms = self.supported_tms.get(TileMatrixSetId)
+            tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
                 with self.reader(src_path, tms=tms, **reader_params) as src_dst:
                     bounds = src_dst.geographic_bounds
@@ -857,9 +861,9 @@ class TilerFactory(BaseTilerFactory):
                 matrix = tms.matrix(zoom)
                 tm = f"""
                         <TileMatrix>
-                            <ows:Identifier>{matrix.identifier}</ows:Identifier>
+                            <ows:Identifier>{matrix.id}</ows:Identifier>
                             <ScaleDenominator>{matrix.scaleDenominator}</ScaleDenominator>
-                            <TopLeftCorner>{matrix.topLeftCorner[0]} {matrix.topLeftCorner[1]}</TopLeftCorner>
+                            <TopLeftCorner>{matrix.pointOfOrigin[0]} {matrix.pointOfOrigin[1]}</TopLeftCorner>
                             <TileWidth>{matrix.tileWidth}</TileWidth>
                             <TileHeight>{matrix.tileHeight}</TileHeight>
                             <MatrixWidth>{matrix.matrixWidth}</MatrixWidth>
@@ -1360,23 +1364,14 @@ class MultiBaseTilerFactory(TilerFactory):
                             **dataset_params,
                         )
 
-                        stats = get_array_statistics(
-                            data.as_masked(),
-                            **stats_params,
-                            **histogram_params,
+                        stats = data.statistics(
+                            **stats_params, hist_options={**histogram_params}
                         )
 
                     feature.properties = feature.properties or {}
-                    feature.properties.update(
-                        {
-                            # NOTE: because we use `src_dst.feature` the statistics will be in form of
-                            # `Dict[str, BandStatistics]` and not `Dict[str, Dict[str, BandStatistics]]`
-                            "statistics": {
-                                f"{data.band_names[ix]}": BandStatistics(**stats[ix])
-                                for ix in range(len(stats))
-                            }
-                        }
-                    )
+                    # NOTE: because we use `src_dst.feature` the statistics will be in form of
+                    # `Dict[str, BandStatistics]` and not `Dict[str, Dict[str, BandStatistics]]`
+                    feature.properties.update({"statistics": stats})
 
             return fc.features[0] if isinstance(geojson, Feature) else fc
 
@@ -1553,23 +1548,12 @@ class MultiBandTilerFactory(TilerFactory):
                             **image_params,
                             **dataset_params,
                         )
-                        stats = get_array_statistics(
-                            data.as_masked(),
-                            **stats_params,
-                            **histogram_params,
+                        stats = data.statistics(
+                            **stats_params, hist_options={**histogram_params}
                         )
 
                         feature.properties = feature.properties or {}
-                        feature.properties.update(
-                            {
-                                "statistics": {
-                                    f"{data.band_names[ix]}": BandStatistics(
-                                        **stats[ix]
-                                    )
-                                    for ix in range(len(stats))
-                                }
-                            }
-                        )
+                        feature.properties.update({"statistics": stats})
 
             return fc.features[0] if isinstance(geojson, Feature) else fc
 
@@ -1610,49 +1594,66 @@ class TMSFactory:
             response_model_exclude_none=True,
             summary="Retrieve the list of available tiling schemes (tile matrix sets).",
             operation_id="getTileMatrixSetsList",
+            responses={
+                200: {
+                    "content": {
+                        MediaType.json.value: {},
+                    },
+                },
+            },
         )
-        async def TileMatrixSet_list(request: Request):
+        async def tilematrixsets(request: Request):
             """
             OGC Specification: http://docs.opengeospatial.org/per/19-069.html#_tilematrixsets
             """
-            return {
-                "tileMatrixSets": [
+            data = TileMatrixSetList(
+                tileMatrixSets=[
                     {
-                        "id": tms,
-                        "title": tms,
+                        "id": tms_id,
                         "links": [
                             {
                                 "href": self.url_for(
                                     request,
-                                    "TileMatrixSet_info",
-                                    TileMatrixSetId=tms,
+                                    "tilematrixset",
+                                    tileMatrixSetId=tms_id,
                                 ),
-                                "rel": "item",
+                                "rel": "http://www.opengis.net/def/rel/ogc/1.0/tiling-schemes",
                                 "type": "application/json",
+                                "title": f"Definition of {tms_id} tileMatrixSet",
                             }
                         ],
                     }
-                    for tms in self.supported_tms.list()
+                    for tms_id in self.supported_tms.list()
                 ]
-            }
+            )
+
+            return data
 
         @self.router.get(
-            r"/tileMatrixSets/{TileMatrixSetId}",
+            "/tileMatrixSets/{tileMatrixSetId}",
             response_model=TileMatrixSet,
             response_model_exclude_none=True,
             summary="Retrieve the definition of the specified tiling scheme (tile matrix set).",
             operation_id="getTileMatrixSet",
+            responses={
+                200: {
+                    "content": {
+                        MediaType.json.value: {},
+                    },
+                },
+            },
         )
-        async def TileMatrixSet_info(
-            TileMatrixSetId: Annotated[
+        async def tilematrixset(
+            request: Request,
+            tileMatrixSetId: Annotated[
                 Literal[tuple(self.supported_tms.list())],
-                Path(description="TileMatrixSet Name."),
-            ]
+                Path(description="Identifier for a supported TileMatrixSet."),
+            ],
         ):
             """
             OGC Specification: http://docs.opengeospatial.org/per/19-069.html#_tilematrixset
             """
-            return self.supported_tms.get(TileMatrixSetId)
+            return self.supported_tms.get(tileMatrixSetId)
 
 
 @dataclass

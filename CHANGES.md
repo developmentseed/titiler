@@ -3,15 +3,26 @@
 ## Next (TDB)
 
 * use `Annotated` Type for Query/Path parameters
+* replace variable `TileMatrixSetId` by `tileMatrixSetId`
 
 ### titiler.core
 
 * update FastAPI dependency to `>=0.95.1`
 * set `pydantic` dependency to `~=1.0`
+* update `rio-tiler` dependency to `>=5.0,<6.0`
+* update TMS endpoints to match OGC Tiles specification
 
 ### titiler.extensions
 
 * use TiTiler's custom JSONResponse for the `/validate` endpoint to avoid issue when COG has `NaN` nodata value
+* update `rio-cogeo` dependency to `>=4.0,<5.0`
+* update `rio-stac` requirement to `>=0.8,<0.9` and add `geom-densify-pts` and `geom-precision` options
+
+## titiler.mosaic
+
+* update `cogeo-mosaic` dependency to `>=6.0,<7.0`
+* remove `titiler.mosaic.resources.enum.PixelSelectionMethod` and use `rio_tiler.mosaic.methods.PixelSelectionMethod`
+* allow more TileMatrixSet (than only `WebMercatorQuad`)
 
 ## 0.11.7 (2023-05-18)
 

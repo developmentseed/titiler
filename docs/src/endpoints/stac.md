@@ -16,24 +16,24 @@ The `/stac` routes are based on `titiler.core.factory.MultiBaseTilerFactory` but
 | `GET`  | `/stac/asset_statistics`                                             | JSON      | return per asset statistics
 | `GET`  | `/stac/statistics`                                                   | JSON      | return asset's statistics
 | `POST` | `/stac/statistics`                                                   | GeoJSON   | return asset's statistics for a GeoJSON
-| `GET`  | `/stac/tiles[/{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`  | image/bin | create a web map tile image from assets
-| `GET`  | `/stac[/{TileMatrixSetId}]/tilejson.json`                            | JSON      | return a Mapbox TileJSON document
-| `GET`  | `/stac[/{TileMatrixSetId}]/WMTSCapabilities.xml`                       | XML       | return OGC WMTS Get Capabilities
+| `GET`  | `/stac/tiles[/{tileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`  | image/bin | create a web map tile image from assets
+| `GET`  | `/stac[/{tileMatrixSetId}]/tilejson.json`                            | JSON      | return a Mapbox TileJSON document
+| `GET`  | `/stac[/{tileMatrixSetId}]/WMTSCapabilities.xml`                       | XML       | return OGC WMTS Get Capabilities
 | `GET`  | `/stac/point/{lon},{lat}`                                            | JSON      | return pixel value from assets
 | `GET`  | `/stac/preview[.{format}]`                                           | image/bin | create a preview image from assets
 | `GET`  | `/stac/crop/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin | create an image from part of assets
 | `POST` | `/stac/crop[/{width}x{height}][].{format}]`                          | image/bin | create an image from a geojson covering the assets
-| `GET`  | `/stac[/{TileMatrixSetId}]/map`                                      | HTML      | simple map viewer
+| `GET`  | `/stac[/{tileMatrixSetId}]/map`                                      | HTML      | simple map viewer
 | `GET`  | `/stac/viewer`                                                       | HTML      | demo webpage (from `titiler.extensions.stacViewerExtension`)
 
 ## Description
 
 ### Tiles
 
-`:endpoint:/stac/tiles[/{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`
+`:endpoint:/stac/tiles[/{tileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`
 
 - PathParams:
-    - **TileMatrixSetId** (str): TileMatrixSet name, default is `WebMercatorQuad`. **Optional**
+    - **tileMatrixSetId** (str): TileMatrixSet name, default is `WebMercatorQuad`. **Optional**
     - **z** (int): TMS tile's zoom level.
     - **x** (int): TMS tile's column.
     - **y** (int): TMS tile's row.
@@ -214,10 +214,10 @@ Example:
 
 ### TilesJSON
 
-`:endpoint:/stac[/{TileMatrixSetId}]/tilejson.json` tileJSON document
+`:endpoint:/stac[/{tileMatrixSetId}]/tilejson.json` tileJSON document
 
 - PathParams:
-    - **TileMatrixSetId**: TileMatrixSet name, default is `WebMercatorQuad`.
+    - **tileMatrixSetId**: TileMatrixSet name, default is `WebMercatorQuad`.
 
 - QueryParams:
     - **url** (str): STAC Item URL. **Required**
@@ -252,10 +252,10 @@ Example:
 
 ### Map
 
-`:endpoint:/stac[/{TileMatrixSetId}]/map`  Simple viewer
+`:endpoint:/stac[/{tileMatrixSetId}]/map`  Simple viewer
 
 - PathParams:
-    - **TileMatrixSetId**: TileMatrixSet name, default is `WebMercatorQuad`. **Optional**
+    - **tileMatrixSetId**: TileMatrixSet name, default is `WebMercatorQuad`. **Optional**
 
 - QueryParams:
     - **url** (str): STAC Item URL. **Required**

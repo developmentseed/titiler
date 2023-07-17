@@ -13,23 +13,23 @@ from cogeo_mosaic.mosaic import MosaicJSON
 from fastapi import Depends, HTTPException, Path, Query
 from geojson_pydantic.features import Feature
 from geojson_pydantic.geometries import Polygon
-from morecantile import tms
+from morecantile import tms as morecantile_tms
 from morecantile.defaults import TileMatrixSets
 from pydantic import conint
-from rio_tiler.constants import MAX_THREADS
+from rio_tiler.constants import MAX_THREADS, WGS84_CRS
 from rio_tiler.io import BaseReader, MultiBandReader, MultiBaseReader, Reader
 from rio_tiler.models import Bounds
+from rio_tiler.mosaic.methods import PixelSelectionMethod
 from rio_tiler.mosaic.methods.base import MosaicMethodBase
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, Response
 
-from titiler.core.dependencies import DefaultDependency
+from titiler.core.dependencies import CoordCRSParams, DefaultDependency
 from titiler.core.factory import BaseTilerFactory, img_endpoint_params
 from titiler.core.models.mapbox import TileJSON
 from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
 from titiler.mosaic.models.responses import Point
-from titiler.mosaic.resources.enums import PixelSelectionMethod
 
 if sys.version_info >= (3, 9):
     from typing import Annotated  # pylint: disable=no-name-in-module
@@ -37,19 +37,16 @@ else:
     from typing_extensions import Annotated
 
 
-# BaseBackend does not support other TMS than WebMercator
-mosaic_tms = TileMatrixSets({"WebMercatorQuad": tms.get("WebMercatorQuad")})
-
-
 def PixelSelectionParams(
-    pixel_selection: Annotated[
-        PixelSelectionMethod, Query(description="Pixel selection method.")
-    ] = PixelSelectionMethod.first,
+    pixel_selection: Annotated[  # type: ignore
+        Literal[tuple([e.name for e in PixelSelectionMethod])],
+        Query(description="Pixel selection method."),
+    ] = "first",
 ) -> MosaicMethodBase:
     """
     Returns the mosaic method used to combine datasets together.
     """
-    return pixel_selection.method()
+    return PixelSelectionMethod[pixel_selection].value()
 
 
 @dataclass
@@ -72,7 +69,7 @@ class MosaicTilerFactory(BaseTilerFactory):
 
     pixel_selection_dependency: Callable[..., MosaicMethodBase] = PixelSelectionParams
 
-    supported_tms: TileMatrixSets = mosaic_tms
+    supported_tms: TileMatrixSets = morecantile_tms
     default_tms: str = "WebMercatorQuad"
 
     # Add/Remove some endpoints
@@ -223,31 +220,47 @@ class MosaicTilerFactory(BaseTilerFactory):
     def tile(self):  # noqa: C901
         """Register /tiles endpoints."""
 
-        @self.router.get(r"/tiles/{z}/{x}/{y}", **img_endpoint_params)
-        @self.router.get(r"/tiles/{z}/{x}/{y}.{format}", **img_endpoint_params)
-        @self.router.get(r"/tiles/{z}/{x}/{y}@{scale}x", **img_endpoint_params)
-        @self.router.get(r"/tiles/{z}/{x}/{y}@{scale}x.{format}", **img_endpoint_params)
-        @self.router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}", **img_endpoint_params)
+        @self.router.get("/tiles/{z}/{x}/{y}", **img_endpoint_params)
+        @self.router.get("/tiles/{z}/{x}/{y}.{format}", **img_endpoint_params)
+        @self.router.get("/tiles/{z}/{x}/{y}@{scale}x", **img_endpoint_params)
+        @self.router.get("/tiles/{z}/{x}/{y}@{scale}x.{format}", **img_endpoint_params)
+        @self.router.get("/tiles/{tileMatrixSetId}/{z}/{x}/{y}", **img_endpoint_params)
         @self.router.get(
-            r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}.{format}", **img_endpoint_params
+            "/tiles/{tileMatrixSetId}/{z}/{x}/{y}.{format}", **img_endpoint_params
         )
         @self.router.get(
-            r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x", **img_endpoint_params
+            "/tiles/{tileMatrixSetId}/{z}/{x}/{y}@{scale}x", **img_endpoint_params
         )
         @self.router.get(
-            r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x.{format}",
+            "/tiles/{tileMatrixSetId}/{z}/{x}/{y}@{scale}x.{format}",
             **img_endpoint_params,
         )
         def tile(
-            z: Annotated[int, Path(description="TMS tiles's zoom level")],
-            x: Annotated[int, Path(description="TMS tiles's column")],
-            y: Annotated[int, Path(description="TMS tiles's row")],
-            TileMatrixSetId: Annotated[
+            z: Annotated[
+                int,
+                Path(
+                    description="Identifier (Z) selecting one of the scales defined in the TileMatrixSet and representing the scaleDenominator the tile.",
+                ),
+            ],
+            x: Annotated[
+                int,
+                Path(
+                    description="Column (X) index of the tile on the selected TileMatrix. It cannot exceed the MatrixHeight-1 for the selected TileMatrix.",
+                ),
+            ],
+            y: Annotated[
+                int,
+                Path(
+                    description="Row (Y) index of the tile on the selected TileMatrix. It cannot exceed the MatrixWidth-1 for the selected TileMatrix.",
+                ),
+            ],
+            tileMatrixSetId: Annotated[
                 Literal[tuple(self.supported_tms.list())],
-                f"TileMatrixSet Name (default: '{self.default_tms}')",
+                f"Identifier selecting one of the TileMatrixSetId supported (default: '{self.default_tms}')",
             ] = self.default_tms,
             scale: Annotated[
-                conint(gt=0, le=4), "Tile size scale. 1=256x256, 2=512x512..."
+                conint(gt=0, le=4),
+                "Tile size scale. 1=256x256, 2=512x512...",
             ] = 1,
             format: Annotated[
                 ImageType,
@@ -294,9 +307,11 @@ class MosaicTilerFactory(BaseTilerFactory):
                 "yes",
             ]
 
+            tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
                 with self.reader(
                     src_path,
+                    tms=tms,
                     reader=self.dataset_reader,
                     reader_options={**reader_params},
                     **backend_params,
@@ -357,16 +372,16 @@ class MosaicTilerFactory(BaseTilerFactory):
             response_model_exclude_none=True,
         )
         @self.router.get(
-            "/{TileMatrixSetId}/tilejson.json",
+            "/{tileMatrixSetId}/tilejson.json",
             response_model=TileJSON,
             responses={200: {"description": "Return a tilejson"}},
             response_model_exclude_none=True,
         )
         def tilejson(
             request: Request,
-            TileMatrixSetId: Annotated[
+            tileMatrixSetId: Annotated[
                 Literal[tuple(self.supported_tms.list())],
-                f"TileMatrixSet Name (default: '{self.default_tms}')",
+                f"Identifier selecting one of the TileMatrixSetId supported (default: '{self.default_tms}')",
             ] = self.default_tms,
             src_path=Depends(self.path_dependency),
             tile_format: Annotated[
@@ -421,7 +436,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                 "x": "{x}",
                 "y": "{y}",
                 "scale": tile_scale,
-                "TileMatrixSetId": TileMatrixSetId,
+                "tileMatrixSetId": tileMatrixSetId,
             }
             if tile_format:
                 route_params["format"] = tile_format.value
@@ -442,9 +457,11 @@ class MosaicTilerFactory(BaseTilerFactory):
             if qs:
                 tiles_url += f"?{urlencode(qs)}"
 
+            tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
                 with self.reader(
                     src_path,
+                    tms=tms,
                     reader=self.dataset_reader,
                     reader_options={**reader_params},
                     **backend_params,
@@ -452,6 +469,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                     center = list(src_dst.mosaic_def.center)
                     if minzoom is not None:
                         center[-1] = minzoom
+
                     return {
                         "bounds": src_dst.bounds,
                         "center": tuple(center),
@@ -464,13 +482,13 @@ class MosaicTilerFactory(BaseTilerFactory):
         """Register /map endpoint."""
 
         @self.router.get("/map", response_class=HTMLResponse)
-        @self.router.get("/{TileMatrixSetId}/map", response_class=HTMLResponse)
+        @self.router.get("/{tileMatrixSetId}/map", response_class=HTMLResponse)
         def map_viewer(
             request: Request,
             src_path=Depends(self.path_dependency),
-            TileMatrixSetId: Annotated[
+            tileMatrixSetId: Annotated[
                 Literal[tuple(self.supported_tms.list())],
-                f"TileMatrixSet Name (default: '{self.default_tms}')",
+                f"Identifier selecting one of the TileMatrixSetId supported (default: '{self.default_tms}')",
             ] = self.default_tms,
             tile_format: Annotated[
                 Optional[ImageType],
@@ -519,12 +537,12 @@ class MosaicTilerFactory(BaseTilerFactory):
         ):
             """Return TileJSON document for a dataset."""
             tilejson_url = self.url_for(
-                request, "tilejson", TileMatrixSetId=TileMatrixSetId
+                request, "tilejson", tileMatrixSetId=tileMatrixSetId
             )
             if request.query_params._list:
                 tilejson_url += f"?{urlencode(request.query_params._list)}"
 
-            tms = self.supported_tms.get(TileMatrixSetId)
+            tms = self.supported_tms.get(tileMatrixSetId)
             return self.templates.TemplateResponse(
                 name="map.html",
                 context={
@@ -541,13 +559,13 @@ class MosaicTilerFactory(BaseTilerFactory):
 
         @self.router.get("/WMTSCapabilities.xml", response_class=XMLResponse)
         @self.router.get(
-            "/{TileMatrixSetId}/WMTSCapabilities.xml", response_class=XMLResponse
+            "/{tileMatrixSetId}/WMTSCapabilities.xml", response_class=XMLResponse
         )
         def wmts(
             request: Request,
-            TileMatrixSetId: Annotated[
+            tileMatrixSetId: Annotated[
                 Literal[tuple(self.supported_tms.list())],
-                f"TileMatrixSet Name (default: '{self.default_tms}')",
+                f"Identifier selecting one of the TileMatrixSetId supported (default: '{self.default_tms}')",
             ] = self.default_tms,
             src_path=Depends(self.path_dependency),
             tile_format: Annotated[
@@ -601,7 +619,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                 "y": "{TileRow}",
                 "scale": tile_scale,
                 "format": tile_format.value,
-                "TileMatrixSetId": TileMatrixSetId,
+                "tileMatrixSetId": tileMatrixSetId,
             }
             tiles_url = self.url_for(request, "tile", **route_params)
 
@@ -622,10 +640,11 @@ class MosaicTilerFactory(BaseTilerFactory):
             if qs:
                 tiles_url += f"?{urlencode(qs)}"
 
-            tms = self.supported_tms.get(TileMatrixSetId)
+            tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
                 with self.reader(
                     src_path,
+                    tms=tms,
                     reader=self.dataset_reader,
                     reader_options={**reader_params},
                     **backend_params,
@@ -635,13 +654,13 @@ class MosaicTilerFactory(BaseTilerFactory):
                     maxzoom = maxzoom if maxzoom is not None else src_dst.maxzoom
 
             tileMatrix = []
-            for zoom in range(minzoom, maxzoom + 1):
+            for zoom in range(minzoom, maxzoom + 1):  # type: ignore
                 matrix = tms.matrix(zoom)
                 tm = f"""
                         <TileMatrix>
-                            <ows:Identifier>{matrix.identifier}</ows:Identifier>
+                            <ows:Identifier>{matrix.id}</ows:Identifier>
                             <ScaleDenominator>{matrix.scaleDenominator}</ScaleDenominator>
-                            <TopLeftCorner>{matrix.topLeftCorner[0]} {matrix.topLeftCorner[1]}</TopLeftCorner>
+                            <TopLeftCorner>{matrix.pointOfOrigin[0]} {matrix.pointOfOrigin[1]}</TopLeftCorner>
                             <TileWidth>{matrix.tileWidth}</TileWidth>
                             <TileHeight>{matrix.tileHeight}</TileHeight>
                             <MatrixWidth>{matrix.matrixWidth}</MatrixWidth>
@@ -671,7 +690,7 @@ class MosaicTilerFactory(BaseTilerFactory):
         """Register /point endpoint."""
 
         @self.router.get(
-            r"/point/{lon},{lat}",
+            "/point/{lon},{lat}",
             response_model=Point,
             response_class=JSONResponse,
             responses={200: {"description": "Return a value for a point"}},
@@ -681,6 +700,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             lon: Annotated[float, Path(description="Longitude")],
             lat: Annotated[float, Path(description="Latitude")],
             src_path=Depends(self.path_dependency),
+            coord_crs=Depends(CoordCRSParams),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             backend_params=Depends(self.backend_dependency),
@@ -700,6 +720,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                     values = src_dst.point(
                         lon,
                         lat,
+                        coord_crs=coord_crs or WGS84_CRS,
                         threads=threads,
                         **layer_params,
                         **dataset_params,
@@ -724,7 +745,7 @@ class MosaicTilerFactory(BaseTilerFactory):
         """Register /assets endpoint."""
 
         @self.router.get(
-            r"/{minx},{miny},{maxx},{maxy}/assets",
+            "/{minx},{miny},{maxx},{maxy}/assets",
             responses={200: {"description": "Return list of COGs in bounding box"}},
         )
         def assets_for_bbox(
@@ -733,6 +754,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             maxx: Annotated[float, Path(description="Bounding box max X")],
             maxy: Annotated[float, Path(description="Bounding box max Y")],
             src_path=Depends(self.path_dependency),
+            coord_crs=Depends(CoordCRSParams),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
@@ -745,16 +767,23 @@ class MosaicTilerFactory(BaseTilerFactory):
                     reader_options={**reader_params},
                     **backend_params,
                 ) as src_dst:
-                    return src_dst.assets_for_bbox(minx, miny, maxx, maxy)
+                    return src_dst.assets_for_bbox(
+                        minx,
+                        miny,
+                        maxx,
+                        maxy,
+                        coord_crs=coord_crs or WGS84_CRS,
+                    )
 
         @self.router.get(
-            r"/{lon},{lat}/assets",
+            "/{lon},{lat}/assets",
             responses={200: {"description": "Return list of COGs"}},
         )
         def assets_for_lon_lat(
             lon: Annotated[float, Path(description="Longitude")],
             lat: Annotated[float, Path(description="Latitude")],
             src_path=Depends(self.path_dependency),
+            coord_crs=Depends(CoordCRSParams),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
@@ -767,25 +796,54 @@ class MosaicTilerFactory(BaseTilerFactory):
                     reader_options={**reader_params},
                     **backend_params,
                 ) as src_dst:
-                    return src_dst.assets_for_point(lon, lat)
+                    return src_dst.assets_for_point(
+                        lon,
+                        lat,
+                        coord_crs=coord_crs or WGS84_CRS,
+                    )
 
         @self.router.get(
-            r"/{z}/{x}/{y}/assets",
+            "/{z}/{x}/{y}/assets",
+            responses={200: {"description": "Return list of COGs"}},
+        )
+        @self.router.get(
+            "/{tileMatrixSetId}/{z}/{x}/{y}/assets",
             responses={200: {"description": "Return list of COGs"}},
         )
         def assets_for_tile(
-            z: Annotated[int, Path(description="TMS tiles's zoom level")],
-            x: Annotated[int, Path(description="TMS tiles's column")],
-            y: Annotated[int, Path(description="TMS tiles's row")],
+            z: Annotated[
+                int,
+                Path(
+                    description="Identifier (Z) selecting one of the scales defined in the TileMatrixSet and representing the scaleDenominator the tile.",
+                ),
+            ],
+            x: Annotated[
+                int,
+                Path(
+                    description="Column (X) index of the tile on the selected TileMatrix. It cannot exceed the MatrixHeight-1 for the selected TileMatrix.",
+                ),
+            ],
+            y: Annotated[
+                int,
+                Path(
+                    description="Row (Y) index of the tile on the selected TileMatrix. It cannot exceed the MatrixWidth-1 for the selected TileMatrix.",
+                ),
+            ],
+            tileMatrixSetId: Annotated[
+                Literal[tuple(self.supported_tms.list())],
+                f"Identifier selecting one of the TileMatrixSetId supported (default: '{self.default_tms}')",
+            ] = self.default_tms,
             src_path=Depends(self.path_dependency),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
         ):
             """Return a list of assets which overlap a given tile"""
+            tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
                 with self.reader(
                     src_path,
+                    tms=tms,
                     reader=self.dataset_reader,
                     reader_options={**reader_params},
                     **backend_params,

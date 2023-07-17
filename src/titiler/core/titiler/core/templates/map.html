@@ -61,7 +61,7 @@ const london = L.marker([51.50722, -0.1275]).addTo(map)
 const auckland = L.marker([-36.864664, 174.792059]).addTo(map);
 const seattle = L.marker([47.596842, -122.333087]).addTo(map);
 
-if ("{{ tms.identifier }}" === "WebMercatorQuad") {
+if ("{{ tms.id }}" === "WebMercatorQuad") {
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   }).addTo(map);
