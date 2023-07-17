@@ -22,6 +22,7 @@
 
 * update `cogeo-mosaic` dependency to `>=6.0,<7.0`
 * remove `titiler.mosaic.resources.enum.PixelSelectionMethod` and use `rio_tiler.mosaic.methods.PixelSelectionMethod`
+* allow more TileMatrixSet (than only `WebMercatorQuad`)
 
 ## 0.11.7 (2023-05-18)
 
