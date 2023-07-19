@@ -7,8 +7,8 @@ def test_health(app):
     assert response.status_code == 200
     assert response.json() == {"ping": "pong!"}
 
-    response = app.get("/openapi.json")
+    response = app.get("/api")
     assert response.status_code == 200
 
-    response = app.get("/docs")
+    response = app.get("/api.html")
     assert response.status_code == 200

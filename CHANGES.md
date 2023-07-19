@@ -1,5 +1,12 @@
 # Release Notes
 
+## Unreleased
+
+### titiler.application
+
+* use `/api` and `/api.html` for documentation (instead of `/openapi.json` and `/docs`)
+* update landing page
+
 ## 0.12.0 (2023-07-17)
 
 * use `Annotated` Type for Query/Path parameters
