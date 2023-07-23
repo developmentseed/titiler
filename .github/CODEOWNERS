@@ -1,0 +1,14 @@
+# This is the default codeowner for all files in this repository. 
+* @Saildrone/sw-data 
+ 
+# The following lines are exceptions to the above rule intended to allow Leads and the TI Platform team to manage standard functionality within the repository. 
+.circleci/* @Saildrone/ti-platform 
+.github/* @Saildrone/ti-platform @Saildrone/leads
+/deploy @Saildrone/ti-platform 
+/lambda @Saildrone/ti-platform 
+/kubernetes @Saildrone/ti-platform 
+LICENSE @Saildrone/leads 
+ 
+# For more fine-grained ownership within the repository, add additional lines below. 
+ 
+# For more information about the CODEOWNERS file, see https://help.github.com/en/github/creating-cloning-and-archiving-repositories/about-code-owners
