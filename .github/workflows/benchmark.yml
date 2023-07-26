@@ -30,11 +30,11 @@ jobs:
 
       - name: Run siege (WebMercator TMS)
         run: |
-          siege --file .github/data/urls.txt -b -c 1 -r 100 > /dev/null
+          siege --file .github/data/urls.txt -b -c 1 -r 100 --quiet --json-output
 
       - name: Run siege (WGS1984Quad TMS)
         run: |
-          siege --file .github/data/urls_wgs84.txt -b -c 1 -r 100 > /dev/null
+          siege --file .github/data/urls_wgs84.txt -b -c 1 -r 100 --quiet --json-output
 
       - name: Stop containers
         if: always()
