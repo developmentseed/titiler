@@ -1,7 +1,6 @@
 """TiTiler.mosaic Router factories."""
 
 import os
-import sys
 from dataclasses import dataclass
 from typing import Callable, Dict, Literal, Optional, Type, Union
 from urllib.parse import urlencode
@@ -23,6 +22,7 @@ from rio_tiler.mosaic.methods import PixelSelectionMethod
 from rio_tiler.mosaic.methods.base import MosaicMethodBase
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, Response
+from typing_extensions import Annotated
 
 from titiler.core.dependencies import CoordCRSParams, DefaultDependency
 from titiler.core.factory import BaseTilerFactory, img_endpoint_params
@@ -30,11 +30,6 @@ from titiler.core.models.mapbox import TileJSON
 from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
 from titiler.mosaic.models.responses import Point
-
-if sys.version_info >= (3, 9):
-    from typing import Annotated  # pylint: disable=no-name-in-module
-else:
-    from typing_extensions import Annotated
 
 
 def PixelSelectionParams(

@@ -29,16 +29,16 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-    "fastapi>=0.95.1",
-    "geojson-pydantic>=0.4,<0.7",
+    "fastapi>=0.100.0",
+    "geojson-pydantic>=1.0,<2.0",
     "jinja2>=2.11.2,<4.0.0",
     "numpy",
-    "pydantic~=1.0",
+    "pydantic~=2.0",
     "rasterio",
-    "rio-tiler>=5.0,<6.0",
-    "morecantile>=4.3,<5.0",
+    "rio-tiler>=6.0,<7.0",
+    "morecantile>=5.0,<6.0",
     "simplejson",
-    "typing_extensions;python_version<'3.8'",
+    "typing_extensions>=4.6.1",
 ]
 
 [project.optional-dependencies]

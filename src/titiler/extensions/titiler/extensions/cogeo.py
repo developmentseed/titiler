@@ -1,17 +1,12 @@
 """rio-cogeo Extension."""
 
-import sys
 from dataclasses import dataclass
 
 from fastapi import Depends, Query
+from typing_extensions import Annotated
 
 from titiler.core.factory import BaseTilerFactory, FactoryExtension
 from titiler.core.resources.responses import JSONResponse
-
-if sys.version_info >= (3, 9):
-    from typing import Annotated  # pylint: disable=no-name-in-module
-else:
-    from typing_extensions import Annotated
 
 try:
     from rio_cogeo.cogeo import cog_info

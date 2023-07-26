@@ -2,6 +2,28 @@
 
 ## Unreleased
 
+* update core requirements to libraries using pydantic **~=2.0**
+
+### titiler.core
+
+* update requirements:
+  * fastapi `>=0.95.1` --> `>=0.100.0`
+  * pydantic `~=1.0` --> `~=2.0`
+  * rio-tiler `>=5.0,<6.0` --> `>=6.0,<7.0`
+  * morecantile`>=4.3,<5.0` --> `>=5.0,<6.0`
+  * geojson-pydantic `>=0.4,<0.7` --> `>=1.0,<2.0`
+  * typing_extensions `>=4.6.1`
+
+### titiler.extension
+
+* update requirements:
+  * rio-cogeo `>=4.0,<5.0"` --> `>=5.0,<6.0"`
+
+### titiler.mosaic
+
+* update requirements:
+  * cogeo-mosaic `>=6.0,<7.0` --> `>=7.0,<8.0`
+
 ### titiler.application
 
 * use `/api` and `/api.html` for documentation (instead of `/openapi.json` and `/docs`)

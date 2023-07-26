@@ -1,7 +1,6 @@
 """TiTiler Router factories."""
 
 import abc
-import sys
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Type, Union
 from urllib.parse import urlencode
@@ -25,6 +24,7 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse, Response
 from starlette.routing import Match, compile_path, replace_params
 from starlette.templating import Jinja2Templates
+from typing_extensions import Annotated
 
 from titiler.core.algorithm import AlgorithmMetadata, Algorithms, BaseAlgorithm
 from titiler.core.algorithm import algorithms as available_algorithms
@@ -65,12 +65,6 @@ from titiler.core.models.responses import (
 from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
 from titiler.core.routing import EndpointScope
-
-if sys.version_info >= (3, 9):
-    from typing import Annotated  # pylint: disable=no-name-in-module
-else:
-    from typing_extensions import Annotated
-
 
 DEFAULT_TEMPLATES = Jinja2Templates(
     directory="",
@@ -457,7 +451,7 @@ class TilerFactory(BaseTilerFactory):
                 with self.reader(src_path, **reader_params) as src_dst:
                     for feature in fc:
                         data = src_dst.feature(
-                            feature.dict(exclude_none=True),
+                            feature.model_dump(exclude_none=True),
                             shape_crs=coord_crs or WGS84_CRS,
                             **layer_params,
                             **image_params,
@@ -1111,7 +1105,7 @@ class TilerFactory(BaseTilerFactory):
             with rasterio.Env(**env):
                 with self.reader(src_path, **reader_params) as src_dst:
                     image = src_dst.feature(
-                        geojson.dict(exclude_none=True),
+                        geojson.model_dump(exclude_none=True),
                         shape_crs=coord_crs or WGS84_CRS,
                         **layer_params,
                         **image_params,
@@ -1357,7 +1351,7 @@ class MultiBaseTilerFactory(TilerFactory):
 
                     for feature in fc:
                         data = src_dst.feature(
-                            feature.dict(exclude_none=True),
+                            feature.model_dump(exclude_none=True),
                             shape_crs=coord_crs or WGS84_CRS,
                             **layer_params,
                             **image_params,
@@ -1542,7 +1536,7 @@ class MultiBandTilerFactory(TilerFactory):
 
                     for feature in fc:
                         data = src_dst.feature(
-                            feature.dict(exclude_none=True),
+                            feature.model_dump(exclude_none=True),
                             shape_crs=coord_crs or WGS84_CRS,
                             **bands_params,
                             **image_params,
@@ -1671,7 +1665,7 @@ class AlgorithmFactory:
 
         def metadata(algorithm: BaseAlgorithm) -> AlgorithmMetadata:
             """Algorithm Metadata"""
-            props = algorithm.schema()["properties"]
+            props = algorithm.model_json_schema()["properties"]
 
             # Inputs Metadata
             ins = {

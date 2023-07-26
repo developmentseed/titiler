@@ -1,26 +1,12 @@
 """rio-stac Extension."""
 
-import sys
 from dataclasses import dataclass
 from typing import Any, Dict, List, Literal, Optional
 
 from fastapi import Depends, Query
+from typing_extensions import Annotated, TypedDict
 
 from titiler.core.factory import BaseTilerFactory, FactoryExtension
-
-# Avoids a Pydantic error:
-# TypeError: You should use `typing_extensions.TypedDict` instead of `typing.TypedDict` with Python < 3.9.2.
-# Without it, there is no way to differentiate required and optional fields when subclassed.
-# Ref: https://github.com/pydantic/pydantic/pull/3374
-if sys.version_info < (3, 9, 2):
-    from typing_extensions import TypedDict
-else:
-    from typing import TypedDict
-
-if sys.version_info >= (3, 9):
-    from typing import Annotated  # pylint: disable=no-name-in-module
-else:
-    from typing_extensions import Annotated
 
 try:
     import pystac

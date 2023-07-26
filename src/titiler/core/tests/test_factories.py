@@ -3,6 +3,7 @@
 import json
 import os
 import pathlib
+import warnings
 from dataclasses import dataclass
 from enum import Enum
 from io import BytesIO
@@ -14,10 +15,13 @@ import attr
 import httpx
 import morecantile
 import numpy
+import pytest
 from fastapi import Depends, FastAPI, HTTPException, Path, Query, security, status
 from morecantile.defaults import TileMatrixSets
 from rasterio.crs import CRS
+from rasterio.errors import NotGeoreferencedWarning
 from rasterio.io import MemoryFile
+from rio_tiler.errors import NoOverviewWarning
 from rio_tiler.io import BaseReader, MultiBandReader, Reader, STACReader
 from starlette.requests import Request
 from starlette.testclient import TestClient
@@ -1444,14 +1448,21 @@ def test_TilerFactory_WithGdalEnv():
     app.include_router(router)
     client = TestClient(app)
 
-    response = client.get(f"/info?url={DATA_DIR}/non_cog.tif")
-    assert response.json()["overviews"]
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        response = client.get(f"/info?url={DATA_DIR}/non_cog.tif")
+        assert response.json()["overviews"]
 
-    response = client.get(f"/info?url={DATA_DIR}/non_cog.tif&disable_read=false")
-    assert response.json()["overviews"]
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        response = client.get(f"/info?url={DATA_DIR}/non_cog.tif&disable_read=false")
+        assert response.json()["overviews"]
 
-    response = client.get(f"/info?url={DATA_DIR}/non_cog.tif&disable_read=empty_dir")
-    assert not response.json()["overviews"]
+    with pytest.warns(NoOverviewWarning):
+        response = client.get(
+            f"/info?url={DATA_DIR}/non_cog.tif&disable_read=empty_dir"
+        )
+        assert not response.json()["overviews"]
 
 
 def test_algorithm():
@@ -1530,16 +1541,22 @@ def test_AutoFormat_Colormap():
         assert response.status_code == 200
         assert response.headers["content-type"] == "image/png"
 
-        with MemoryFile(response.content) as mem:
-            with mem.open() as dst:
-                img = dst.read()
-                assert img[:, 0, 0].tolist() == [
-                    0,
-                    0,
-                    0,
-                    0,
-                ]  # when creating a PNG, GDAL will set masked value to 0
-                assert img[:, 500, 500].tolist() == [255, 0, 0, 255]
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                category=NotGeoreferencedWarning,
+                module="rasterio",
+            )
+            with MemoryFile(response.content) as mem:
+                with mem.open() as dst:
+                    img = dst.read()
+                    assert img[:, 0, 0].tolist() == [
+                        0,
+                        0,
+                        0,
+                        0,
+                    ]  # when creating a PNG, GDAL will set masked value to 0
+                    assert img[:, 500, 500].tolist() == [255, 0, 0, 255]
 
 
 def test_rescale_dependency():

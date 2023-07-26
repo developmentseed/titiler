@@ -1,6 +1,5 @@
 """Custom routing classes."""
 
-import sys
 import warnings
 from typing import Callable, Dict, List, Optional, Type
 
@@ -11,11 +10,7 @@ from fastapi.routing import APIRoute
 from starlette.requests import Request
 from starlette.responses import Response
 from starlette.routing import BaseRoute, Match
-
-if sys.version_info >= (3, 8):
-    from typing import TypedDict  # pylint: disable=no-name-in-module
-else:
-    from typing_extensions import TypedDict
+from typing_extensions import TypedDict
 
 
 def apiroute_factory(env: Optional[Dict] = None) -> Type[APIRoute]:

@@ -2,17 +2,17 @@
 
 from typing import Dict, List, Optional
 
-import pydantic
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class StackSettings(pydantic.BaseSettings):
+class StackSettings(BaseSettings):
     """Application settings"""
 
     name: str = "titiler"
     stage: str = "production"
 
-    owner: Optional[str]
-    client: Optional[str]
+    owner: Optional[str] = None
+    client: Optional[str] = None
 
     # Default options are optimized for CloudOptimized GeoTIFF
     # For more information on GDAL env see: https://gdal.org/user/configoptions.html
@@ -70,7 +70,7 @@ class StackSettings(pydantic.BaseSettings):
     # Override the automatic definition of number of workers.
     # Set to the number of CPU cores in the current server multiplied by the environment variable WORKERS_PER_CORE.
     # So, in a server with 2 cores, by default it will be set to 2.
-    web_concurrency: Optional[int]
+    web_concurrency: Optional[int] = None
 
     image_version: str = "latest"
 
@@ -83,10 +83,6 @@ class StackSettings(pydantic.BaseSettings):
 
     # The maximum of concurrent executions you want to reserve for the function.
     # Default: - No specific limit - account limit.
-    max_concurrent: Optional[int]
+    max_concurrent: Optional[int] = None
 
-    class Config:
-        """model config"""
-
-        env_file = ".env"
-        env_prefix = "TITILER_STACK_"
+    model_config = SettingsConfigDict(env_prefix="TITILER_STACK_", env_file=".env")

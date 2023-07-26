@@ -181,7 +181,7 @@ def test_MosaicTilerFactory():
 
         response = client.post(
             "/mosaic/validate",
-            json=MosaicJSON.from_urls(assets).dict(),
+            json=MosaicJSON.from_urls(assets).model_dump(),
         )
         assert response.status_code == 200
 

@@ -15,21 +15,18 @@ class BaseAlgorithm(BaseModel, metaclass=abc.ABCMeta):
     """
 
     # metadata
-    input_nbands: Optional[int]
-    output_nbands: Optional[int]
-    output_dtype: Optional[str]
-    output_min: Optional[Sequence]
-    output_max: Optional[Sequence]
+    input_nbands: Optional[int] = None
+    output_nbands: Optional[int] = None
+    output_dtype: Optional[str] = None
+    output_min: Optional[Sequence] = None
+    output_max: Optional[Sequence] = None
+
+    model_config = {"extra": "allow"}
 
     @abc.abstractmethod
     def __call__(self, img: ImageData) -> ImageData:
         """Apply algorithm"""
         ...
-
-    class Config:
-        """Config for model."""
-
-        extra = "allow"
 
 
 class AlgorithmMetadata(BaseModel):
