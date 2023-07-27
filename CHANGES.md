@@ -1,6 +1,6 @@
 # Release Notes
 
-## Unreleased
+## 0.13.0 (2023-07-27)
 
 * update core requirements to libraries using pydantic **~=2.0**
 
