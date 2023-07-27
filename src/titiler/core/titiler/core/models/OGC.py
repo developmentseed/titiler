@@ -26,7 +26,7 @@ class TileMatrixSetRef(BaseModel):
     """
 
     id: str
-    title: Optional[str]
+    title: Optional[str] = None
     links: List[TileMatrixSetLink]
 
 

@@ -1,6 +1,5 @@
 """Test TiTiler Custom Colormap Params."""
 
-import sys
 from enum import Enum
 from io import BytesIO
 from typing import Dict, Optional
@@ -9,16 +8,11 @@ import numpy
 from fastapi import FastAPI, Query
 from rio_tiler.colormap import ColorMaps
 from starlette.testclient import TestClient
+from typing_extensions import Annotated
 
 from titiler.core.factory import TilerFactory
 
 from .conftest import DATA_DIR
-
-if sys.version_info >= (3, 9):
-    from typing import Annotated  # pylint: disable=no-name-in-module
-else:
-    from typing_extensions import Annotated
-
 
 cmap_values = {
     "cmap1": {6: (4, 5, 6, 255)},

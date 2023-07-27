@@ -33,7 +33,7 @@ dependencies = [
     "titiler.extensions[cogeo,stac]==0.12.0",
     "titiler.mosaic==0.12.0",
     "starlette-cramjam>=0.3,<0.4",
-    "python-dotenv",
+    "pydantic-settings~=2.0",
 ]
 
 [project.optional-dependencies]

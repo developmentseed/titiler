@@ -1,17 +1,12 @@
 """Test titiler.core.CacheControlMiddleware."""
 
-import sys
 
 from fastapi import FastAPI, Path
 from starlette.responses import Response
 from starlette.testclient import TestClient
+from typing_extensions import Annotated
 
 from titiler.core.middleware import CacheControlMiddleware
-
-if sys.version_info >= (3, 9):
-    from typing import Annotated  # pylint: disable=no-name-in-module
-else:
-    from typing_extensions import Annotated
 
 
 def test_cachecontrol_middleware_exclude():

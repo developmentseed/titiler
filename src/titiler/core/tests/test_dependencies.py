@@ -1,7 +1,6 @@
 """test dependencies."""
 
 import json
-import sys
 from dataclasses import dataclass
 from typing import Literal
 
@@ -10,14 +9,10 @@ from fastapi import Depends, FastAPI, Path
 from morecantile import tms
 from rio_tiler.types import ColorMapType
 from starlette.testclient import TestClient
+from typing_extensions import Annotated
 
 from titiler.core import dependencies, errors
 from titiler.core.resources.responses import JSONResponse
-
-if sys.version_info >= (3, 9):
-    from typing import Annotated  # pylint: disable=no-name-in-module
-else:
-    from typing_extensions import Annotated
 
 
 def test_tms():
@@ -45,7 +40,7 @@ def test_tms():
 
     response = client.get("/web/WorldCRS84Quad")
     assert response.status_code == 422
-    assert "permitted: 'WebMercatorQuad'" in response.json()["detail"][0]["msg"]
+    assert "Input should be 'WebMercatorQuad'" in response.json()["detail"][0]["msg"]
 
     response = client.get("/all/WebMercatorQuad")
     assert response.json() == "WebMercatorQuad"
@@ -412,7 +407,7 @@ def test_algo():
     def _endpoint(algorithm=Depends(PostProcessParams)):
         """return params."""
         if algorithm:
-            return algorithm.dict()
+            return algorithm.model_dump()
         return {}
 
     client = TestClient(app)

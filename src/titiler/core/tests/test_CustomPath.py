@@ -2,19 +2,14 @@
 
 import os
 import re
-import sys
 
 from fastapi import FastAPI, HTTPException, Query
 from starlette.testclient import TestClient
+from typing_extensions import Annotated
 
 from titiler.core.factory import TilerFactory
 
 from .conftest import DATA_DIR
-
-if sys.version_info >= (3, 9):
-    from typing import Annotated  # pylint: disable=no-name-in-module
-else:
-    from typing_extensions import Annotated
 
 
 def CustomPathParams(

@@ -14,7 +14,7 @@ class HillShade(BaseAlgorithm):
 
     # parameters
     azimuth: int = 90
-    angle_altitude: float = 90
+    angle_altitude: float = 90.0
     buffer: int = 3
 
     # metadata

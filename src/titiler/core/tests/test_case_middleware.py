@@ -1,17 +1,12 @@
 """Test titiler.core.middleware.LowerCaseQueryStringMiddleware."""
 
-import sys
 from typing import List
 
 from fastapi import FastAPI, Query
 from starlette.testclient import TestClient
+from typing_extensions import Annotated
 
 from titiler.core.middleware import LowerCaseQueryStringMiddleware
-
-if sys.version_info >= (3, 9):
-    from typing import Annotated  # pylint: disable=no-name-in-module
-else:
-    from typing_extensions import Annotated
 
 
 def test_lowercase_middleware():

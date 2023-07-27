@@ -5,14 +5,14 @@ Adds support for MosaicJSON in Titiler.
 ## Installation
 
 ```bash
-$ pip install -U pip
+$ python -m pip install -U pip
 
 # From Pypi
-$ pip install titiler.mosaic
+$ python -m pip install titiler.mosaic
 
 # Or from sources
 $ git clone https://github.com/developmentseed/titiler.git
-$ cd titiler && pip install -e titiler/core -e titiler/mosaic
+$ cd titiler && python -m pip install -e src/titiler/core -e src/titiler/mosaic
 ```
 
 ## How To
@@ -41,10 +41,9 @@ See [titiler.application](../application) for a full example.
 titiler/
  └── mosaic/
     ├── tests/                   - Tests suite
-    └── titiler/mosaic/            - `core` namespace package
-        ├── resources/
-        |   ├── enums.py         - mosaicJSON enumerations
+    └── titiler/mosaic/            - `mosaic` namespace package
+        ├── models/
+        |   └── responses.py     - mosaic response models
         ├── errors.py            - cogeo-mosaic known errors
-        ├── factory.py           - MosaicJSON endpoints factory
-        └── version.py           - version
+        └── factory.py           - Mosaic endpoints factory
 ```
