@@ -220,7 +220,7 @@ class MosaicTiler(MosaicTilerFactory):
         )
         @cached()
         def tile(
-            z: int = Path(..., ge=0, le=14, description="Mercator tiles's zoom level"),
+            z: int = Path(..., ge=0, le=15, description="Mercator tiles's zoom level"),
             x: int = Path(..., description="Mercator tiles's column"),
             y: int = Path(..., description="Mercator tiles's row"),
             tms: TileMatrixSet = Depends(self.tms_dependency),
