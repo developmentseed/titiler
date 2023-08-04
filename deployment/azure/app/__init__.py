@@ -8,17 +8,17 @@ from starlette.responses import HTMLResponse
 from starlette_cramjam.middleware import CompressionMiddleware
 
 from titiler.application import __version__ as titiler_version
-from titiler.application.custom import templates
-from titiler.application.routers import cog, mosaic, stac, tms
+from titiler.application.main import templates
+from titiler.application.main import cog, mosaic, stac, tms
 from titiler.application.settings import ApiSettings
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 
-# from titiler.core.middleware import (
-#     CacheControlMiddleware,
-#     LoggerMiddleware,
-#     LowerCaseQueryStringMiddleware,
-#     TotalTimeMiddleware,
-# )
+from titiler.core.middleware import (
+    CacheControlMiddleware,
+    LoggerMiddleware,
+    LowerCaseQueryStringMiddleware,
+    TotalTimeMiddleware,
+)
 from titiler.mosaic.errors import MOSAIC_STATUS_CODES
 
 api_settings = ApiSettings()
@@ -68,19 +68,18 @@ app.add_middleware(
     },
 )
 
-# see https://github.com/encode/starlette/issues/1320
-# app.add_middleware(
-#     CacheControlMiddleware,
-#     cachecontrol=api_settings.cachecontrol,
-#     exclude_path={r"/healthz"},
-# )
+app.add_middleware(
+    CacheControlMiddleware,
+    cachecontrol=api_settings.cachecontrol,
+    exclude_path={r"/healthz"},
+)
 
-# if api_settings.debug:
-#     app.add_middleware(LoggerMiddleware, headers=True, querystrings=True)
-#     app.add_middleware(TotalTimeMiddleware)
+if api_settings.debug:
+    app.add_middleware(LoggerMiddleware, headers=True, querystrings=True)
+    app.add_middleware(TotalTimeMiddleware)
 
-# if api_settings.lower_case_query_parameters:
-#     app.add_middleware(LowerCaseQueryStringMiddleware)
+if api_settings.lower_case_query_parameters:
+    app.add_middleware(LowerCaseQueryStringMiddleware)
 
 
 @app.get("/healthz", description="Health Check", tags=["Health Check"])
@@ -99,9 +98,9 @@ def landing(request: Request):
     )
 
 
-def main(
-    req: func.HttpRequest,
+async def main(
+    req: func.HttpRequest, 
     context: func.Context,
 ) -> func.HttpResponse:
     """Run App in AsgiMiddleware."""
-    return func.AsgiMiddleware(app).handle(req, context)
+    return await func.AsgiMiddleware(app).handle_async(req, context)
