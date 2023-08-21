@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1690466444204,
+  "lastUpdate": 1692618515375,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -294,6 +294,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad longest_transaction",
             "value": 0.09,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "jthetzel@gmail.com",
+            "name": "Jeremy T. Hetzel",
+            "username": "jthetzel"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5023044eddbd00790120586a48d827d160ba94f6",
+          "message": "fix: `LowerCaseQueryStringMiddleware` should not truncate query parameters (#677)\n\n* fix: Lower case string middleware fails on pre signed url\r\n\r\n* test for lower case middleware query string stripping fix\r\n\r\n* note middleware fix in changelog\r\n\r\n---------\r\n\r\nCo-authored-by: Jack Arthur Harrhy <me@jackharrhy.com>",
+          "timestamp": "2023-08-21T13:46:22+02:00",
+          "tree_id": "d53551bd49e78967c8f163c3225cab3eb7aded55",
+          "url": "https://github.com/developmentseed/titiler/commit/5023044eddbd00790120586a48d827d160ba94f6"
+        },
+        "date": 1692618514433,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.05,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.08,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 7.4,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.07,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.18,
             "unit": "s"
           }
         ]
