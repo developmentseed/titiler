@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1692618515375,
+  "lastUpdate": 1692618572329,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -353,6 +353,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad longest_transaction",
             "value": 0.18,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "enricoubaldi@gmail.com",
+            "name": "Enrico Ubaldi",
+            "username": "ubi15"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5c65b89bc3372e6b8e4712cab024e00ec293b8f3",
+          "message": "Corse allow methods in env options. #683 (#684)",
+          "timestamp": "2023-08-21T13:47:29+02:00",
+          "tree_id": "503f5c1962b4165274dd02ef6907431a5cdf824b",
+          "url": "https://github.com/developmentseed/titiler/commit/5c65b89bc3372e6b8e4712cab024e00ec293b8f3"
+        },
+        "date": 1692618571213,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.08,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 6.94,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.07,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.16,
             "unit": "s"
           }
         ]
