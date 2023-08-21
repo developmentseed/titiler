@@ -1,8 +1,14 @@
 # Release Notes
 
-## [unreleased]
+## 0.13.1 (2023-08-21)
 
-- fix `LowerCaseQueryStringMiddleware` unexpectedly truncating query parameters (https://github.com/developmentseed/titiler/pull/677)
+### titiler.core
+
+- fix `LowerCaseQueryStringMiddleware` unexpectedly truncating query parameters (authors @jthetzel and @jackharrhy, @https://github.com/developmentseed/titiler/pull/677)
+
+## titiler.application
+
+- add `cors_allow_methods` in `ApiSettings` to control the CORS allowed methods (author @ubi15, https://github.com/developmentseed/titiler/pull/684)
 
 ## 0.13.0 (2023-07-27)
 
