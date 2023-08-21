@@ -1,5 +1,9 @@
 # Release Notes
 
+## [unreleased]
+
+- fix `LowerCaseQueryStringMiddleware` unexpectedly truncating query parameters (https://github.com/developmentseed/titiler/pull/677)
+
 ## 0.13.0 (2023-07-27)
 
 * update core requirements to libraries using pydantic **~=2.0**
