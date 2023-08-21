@@ -884,11 +884,7 @@ const addCogeo = () => {
         l.setAttribute('bidx', i + 1)
         l.setAttribute('bname', band_descr[i][0])
         l.text = band_descr[i][1] || band_descr[i][0]
-        if (band_descr.length > 2 && i === 2) {
-          l.selected="selected"
-        } else {
-          l.selected="selected"
-        }
+        if (i === 2) l.selected="selected"
         bList.appendChild(l)
       }
 
