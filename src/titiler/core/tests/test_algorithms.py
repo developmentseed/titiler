@@ -1,11 +1,9 @@
 """Test the Algorithms class."""
 
 import json
-import warnings
 
 import numpy
 from fastapi import Depends, FastAPI
-from rasterio.errors import NotGeoreferencedWarning
 from rasterio.io import MemoryFile
 from rio_tiler.models import ImageData
 from starlette.responses import Response
@@ -89,16 +87,9 @@ def test_terrain_algo():
     # MAPBOX Terrain RGB
     response = client.get("/", params={"algorithm": "terrainrgb"})
     assert response.status_code == 200
-
-    with warnings.catch_warnings():
-        warnings.filterwarnings(
-            "ignore",
-            category=NotGeoreferencedWarning,
-            module="rasterio",
-        )
-        with MemoryFile(response.content) as mem:
-            with mem.open() as dst:
-                data = dst.read().astype(numpy.float64)
+    with MemoryFile(response.content) as mem:
+        with mem.open() as dst:
+            data = dst.read().astype(numpy.float64)
 
     # https://docs.mapbox.com/data/tilesets/guides/access-elevation-data/
     elevation = -10000 + (((data[0] * 256 * 256) + (data[1] * 256) + data[2]) * 0.1)
@@ -107,16 +98,9 @@ def test_terrain_algo():
     # TILEZEN Terrarium
     response = client.get("/", params={"algorithm": "terrarium"})
     assert response.status_code == 200
-
-    with warnings.catch_warnings():
-        warnings.filterwarnings(
-            "ignore",
-            category=NotGeoreferencedWarning,
-            module="rasterio",
-        )
-        with MemoryFile(response.content) as mem:
-            with mem.open() as dst:
-                data = dst.read().astype(numpy.float64)
+    with MemoryFile(response.content) as mem:
+        with mem.open() as dst:
+            data = dst.read().astype(numpy.float64)
 
     # https://github.com/tilezen/joerd/blob/master/docs/formats.md#terrarium
     elevation = (data[0] * 256 + data[1] + data[2] / 256) - 32768

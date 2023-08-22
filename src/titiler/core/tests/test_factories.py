@@ -19,7 +19,6 @@ import pytest
 from fastapi import Depends, FastAPI, HTTPException, Path, Query, security, status
 from morecantile.defaults import TileMatrixSets
 from rasterio.crs import CRS
-from rasterio.errors import NotGeoreferencedWarning
 from rasterio.io import MemoryFile
 from rio_tiler.errors import NoOverviewWarning
 from rio_tiler.io import BaseReader, MultiBandReader, Reader, STACReader
@@ -1540,23 +1539,16 @@ def test_AutoFormat_Colormap():
         response = client.get(f"/preview?url={DATA_DIR}/cog.tif&bidx=1&{cmap}")
         assert response.status_code == 200
         assert response.headers["content-type"] == "image/png"
-
-        with warnings.catch_warnings():
-            warnings.filterwarnings(
-                "ignore",
-                category=NotGeoreferencedWarning,
-                module="rasterio",
-            )
-            with MemoryFile(response.content) as mem:
-                with mem.open() as dst:
-                    img = dst.read()
-                    assert img[:, 0, 0].tolist() == [
-                        0,
-                        0,
-                        0,
-                        0,
-                    ]  # when creating a PNG, GDAL will set masked value to 0
-                    assert img[:, 500, 500].tolist() == [255, 0, 0, 255]
+        with MemoryFile(response.content) as mem:
+            with mem.open() as dst:
+                img = dst.read()
+                assert img[:, 0, 0].tolist() == [
+                    0,
+                    0,
+                    0,
+                    0,
+                ]  # when creating a PNG, GDAL will set masked value to 0
+                assert img[:, 500, 500].tolist() == [255, 0, 0, 255]
 
 
 def test_rescale_dependency():

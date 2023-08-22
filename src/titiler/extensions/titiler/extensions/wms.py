@@ -20,6 +20,7 @@ from typing_extensions import Annotated
 from titiler.core.dependencies import RescalingParams
 from titiler.core.factory import BaseTilerFactory, FactoryExtension
 from titiler.core.resources.enums import ImageType, MediaType
+from titiler.core.utils import render_image
 
 DEFAULT_TEMPLATES = Jinja2Templates(
     directory="",
@@ -527,13 +528,13 @@ class wmsExtension(FactoryExtension):
                 if colormap:
                     image = image.apply_colormap(colormap)
 
-                content = image.render(
-                    img_format=format.driver,
+                content, media_type = render_image(
+                    image,
+                    output_format=format,
+                    colormap=colormap,
                     add_mask=transparent,
-                    **format.profile,
                 )
-
-                return Response(content, media_type=format.mediatype)
+                return Response(content, media_type=media_type)
 
             elif request_type.lower() == "getfeatureinfo":
                 return Response("Not Implemented", 400)

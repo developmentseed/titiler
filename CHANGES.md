@@ -1,14 +1,47 @@
 # Release Notes
 
+## unreleased
+
+### titiler.core
+
+* add `titiler.core.utils.render_image` which allow non-binary alpha band created with custom colormap. `render_image` replace `ImageData.render` method.
+
+    ```python
+    # before
+    if cmap := colormap or dst_colormap:
+        image = image.apply_colormap(cmap)
+
+    if not format:
+        format = ImageType.jpeg if image.mask.all() else ImageType.png
+
+    content = image.render(
+        img_format=format.driver,
+        **format.profile,
+        **render_params,
+    )
+
+    # now
+    # render_image will:
+    # - apply the colormap
+    # - choose the right output format if `None`
+    # - create the binary data
+    content, media_type = render_image(
+        image,
+        output_format=format,
+        colormap=colormap or dst_colormap,
+        **render_params,
+    )
+    ```
+
 ## 0.13.1 (2023-08-21)
 
 ### titiler.core
 
-- fix `LowerCaseQueryStringMiddleware` unexpectedly truncating query parameters (authors @jthetzel and @jackharrhy, @https://github.com/developmentseed/titiler/pull/677)
+* fix `LowerCaseQueryStringMiddleware` unexpectedly truncating query parameters (authors @jthetzel and @jackharrhy, @https://github.com/developmentseed/titiler/pull/677)
 
 ## titiler.application
 
-- add `cors_allow_methods` in `ApiSettings` to control the CORS allowed methods (author @ubi15, https://github.com/developmentseed/titiler/pull/684)
+* add `cors_allow_methods` in `ApiSettings` to control the CORS allowed methods (author @ubi15, https://github.com/developmentseed/titiler/pull/684)
 
 ## 0.13.0 (2023-07-27)
 

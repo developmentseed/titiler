@@ -1,12 +1,10 @@
 """``pytest`` configuration."""
 
 import os
-import warnings
 from typing import Any, Dict
 
 import pytest
 import rasterio
-from rasterio.errors import NotGeoreferencedWarning
 from rasterio.io import MemoryFile
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "fixtures")
@@ -25,15 +23,9 @@ def set_env(monkeypatch):
 
 def parse_img(content: bytes) -> Dict[Any, Any]:
     """Read tile image and return metadata."""
-    with warnings.catch_warnings():
-        warnings.filterwarnings(
-            "ignore",
-            category=NotGeoreferencedWarning,
-            module="rasterio",
-        )
-        with MemoryFile(content) as mem:
-            with mem.open() as dst:
-                return dst.profile
+    with MemoryFile(content) as mem:
+        with mem.open() as dst:
+            return dst.profile
 
 
 def mock_rasterio_open(asset):
