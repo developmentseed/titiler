@@ -1,6 +1,6 @@
 # Release Notes
 
-## unreleased
+## 0.13.2 (2023-08-24)
 
 ### titiler.extensions
 
