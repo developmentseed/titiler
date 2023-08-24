@@ -6,6 +6,7 @@
 
 - replace mapbox-gl by maplibre
 - replace Stamen by OpenStreetMap tiles
+- simplify band selection handling (author @tayden, https://github.com/developmentseed/titiler/pull/688)
 
 ## 0.13.1 (2023-08-21)
 

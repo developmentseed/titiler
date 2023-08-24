@@ -893,7 +893,7 @@ const updateUI = () => {
       l.setAttribute('bidx', scope.assets[i])
       l.setAttribute('bname', scope.assets[i])
       l.text = scope.assets[i]
-      l.selected = "selected"
+      if (i === 2) l.selected = "selected"
       bList.appendChild(l)
     }
 
@@ -924,39 +924,17 @@ const updateUI = () => {
     }
 
     // Populate R/G/B (3b) selectors
-    const rList = document.getElementById('r-selector')
-    for (var i = 0; i < nbands; i++) {
-      let l = document.createElement('option')
-      l.setAttribute('bidx', i + 1)
-      l.setAttribute('bname', band_descr[i][0])
-      l.text = band_descr[i][1] || band_descr[i][0]
-      if (i === 0) l.selected="selected"
-      rList.appendChild(l)
-    }
-
-    const gList = document.getElementById('g-selector')
-    for (var i = 0; i < nbands; i++) {
-      let l = document.createElement('option')
-      l.setAttribute('bidx', i + 1)
-      l.setAttribute('bname', band_descr[i][0])
-      l.text = band_descr[i][1] || band_descr[i][0]
-      if (i === 1) l.selected="selected"
-      gList.appendChild(l)
-    }
-
-    const bList = document.getElementById('b-selector')
-    for (var i = 0; i < nbands; i++) {
-      let l = document.createElement('option')
-      l.setAttribute('bidx', i + 1)
-      l.setAttribute('bname', band_descr[i][0])
-      l.text = band_descr[i][1] || band_descr[i][0]
-      if (band_descr.length > 2 && i === 2) {
-          l.selected="selected"
-      } else {
-          l.selected="selected"
+    ['r-selector', 'g-selector', 'b-selector'].forEach((elId, idx) => {
+      const list = document.getElementById(elId)
+      for (var i = 0; i < nbands; i++) {
+        let l = document.createElement('option')
+        l.setAttribute('bidx', i + 1)
+        l.setAttribute('bname', band_descr[i][0])
+        l.text = band_descr[i][1] || band_descr[i][0]
+        if (i === idx) l.selected="selected"
+        list.appendChild(l)
       }
-      bList.appendChild(l)
-    }
+    })
 
     if (['uint8','int8'].indexOf(info.dtype) === -1) {
       document.getElementById('minmax-data').classList.remove('none')
