@@ -1,5 +1,12 @@
 # Release Notes
 
+## unreleased
+
+### titiler.extensions
+
+- replace mapbox-gl by maplibre
+- replace Stamen by OpenStreetMap tiles
+
 ## 0.13.1 (2023-08-21)
 
 ### titiler.core
