@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1692863214670,
+  "lastUpdate": 1692864359616,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -530,6 +530,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad longest_transaction",
             "value": 0.14,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "taylordenouden@gmail.com",
+            "name": "Taylor Denouden",
+            "username": "tayden"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e3c6b25cb8e4ae887a6cceea5e011c59de777fc4",
+          "message": "Simplify band loading (#688)\n\n* By default, load band at index 2 as blue band in cog and stac viewer\r\n\r\n* Make RGB loading logic in viewer more D.R.Y\r\n\r\n* update changelog\r\n\r\n---------\r\n\r\nCo-authored-by: vincentsarago <vincent.sarago@gmail.com>",
+          "timestamp": "2023-08-24T10:03:42+02:00",
+          "tree_id": "325fff8219c6513b28746ba0270a31b7bee7f8b9",
+          "url": "https://github.com/developmentseed/titiler/commit/e3c6b25cb8e4ae887a6cceea5e011c59de777fc4"
+        },
+        "date": 1692864358899,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.07,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 5.59,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.11,
             "unit": "s"
           }
         ]
