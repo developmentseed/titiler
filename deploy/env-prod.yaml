@@ -5,7 +5,7 @@ awsAssumeRole:
 app:
   enabled: true
   containerPort: 3000
-  replicaCount: 4 
+  replicaCount: 8
   extraEnvs:
     - name: SD_ENV
       value: "prod"
