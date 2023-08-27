@@ -1,5 +1,9 @@
 # Release Notes
 
+## 0.13.3 (2023-08-27)
+
+- fix Factories `url_for` method and avoid changing `Request.path_params` object
+
 ## 0.13.2 (2023-08-24)
 
 ### titiler.extensions
