@@ -1,26 +1,42 @@
 # Release Notes
 
+## 0.14.0 (unreleased)
+
+### titiler.core
+
+* replace `-` by `_` in query parameters **breaking change**
+  - `coord-crs` -> `coord_crs`
+  - `dst-crs` -> `dst_crs`
+
+* replace `buffer` and `color_formula` endpoint parameters by external dependencies (`BufferParams` and `ColorFormulaParams`)
+
+### titiler.extension
+
+* rename `geom-densify-pts` to `geometry_densify` **breaking change**
+* rename `geom-precision` to `geometry_precision` **breaking change**
+
+
 ## 0.13.3 (2023-08-27)
 
-- fix Factories `url_for` method and avoid changing `Request.path_params` object
+* fix Factories `url_for` method and avoid changing `Request.path_params` object
 
 ## 0.13.2 (2023-08-24)
 
 ### titiler.extensions
 
-- replace mapbox-gl by maplibre
-- replace Stamen by OpenStreetMap tiles
-- simplify band selection handling (author @tayden, https://github.com/developmentseed/titiler/pull/688)
+* replace mapbox-gl by maplibre
+* replace Stamen by OpenStreetMap tiles
+* simplify band selection handling (author @tayden, https://github.com/developmentseed/titiler/pull/688)
 
 ## 0.13.1 (2023-08-21)
 
 ### titiler.core
 
-- fix `LowerCaseQueryStringMiddleware` unexpectedly truncating query parameters (authors @jthetzel and @jackharrhy, @https://github.com/developmentseed/titiler/pull/677)
+* fix `LowerCaseQueryStringMiddleware` unexpectedly truncating query parameters (authors @jthetzel and @jackharrhy, @https://github.com/developmentseed/titiler/pull/677)
 
 ## titiler.application
 
-- add `cors_allow_methods` in `ApiSettings` to control the CORS allowed methods (author @ubi15, https://github.com/developmentseed/titiler/pull/684)
+* add `cors_allow_methods` in `ApiSettings` to control the CORS allowed methods (author @ubi15, https://github.com/developmentseed/titiler/pull/684)
 
 ## 0.13.0 (2023-07-27)
 

@@ -24,7 +24,12 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse, Response
 from typing_extensions import Annotated
 
-from titiler.core.dependencies import CoordCRSParams, DefaultDependency
+from titiler.core.dependencies import (
+    BufferParams,
+    ColorFormulaParams,
+    CoordCRSParams,
+    DefaultDependency,
+)
 from titiler.core.factory import BaseTilerFactory, img_endpoint_params
 from titiler.core.models.mapbox import TileJSON
 from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
@@ -265,23 +270,10 @@ class MosaicTilerFactory(BaseTilerFactory):
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             pixel_selection=Depends(self.pixel_selection_dependency),
-            buffer: Annotated[
-                Optional[float],
-                Query(
-                    gt=0,
-                    title="Tile buffer.",
-                    description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
-                ),
-            ] = None,
+            buffer=Depends(BufferParams),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
-            color_formula: Annotated[
-                Optional[str],
-                Query(
-                    title="Color Formula",
-                    description="rio-color formula (info: https://github.com/mapbox/rio-color)",
-                ),
-            ] = None,
+            color_formula=Depends(ColorFormulaParams),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             backend_params=Depends(self.backend_dependency),
@@ -402,23 +394,10 @@ class MosaicTilerFactory(BaseTilerFactory):
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             pixel_selection=Depends(self.pixel_selection_dependency),
-            buffer: Annotated[
-                Optional[float],
-                Query(
-                    gt=0,
-                    title="Tile buffer.",
-                    description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
-                ),
-            ] = None,
+            buffer=Depends(BufferParams),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
-            color_formula: Annotated[
-                Optional[str],
-                Query(
-                    title="Color Formula",
-                    description="rio-color formula (info: https://github.com/mapbox/rio-color)",
-                ),
-            ] = None,
+            color_formula=Depends(ColorFormulaParams),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             backend_params=Depends(self.backend_dependency),
@@ -508,22 +487,9 @@ class MosaicTilerFactory(BaseTilerFactory):
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             pixel_selection=Depends(self.pixel_selection_dependency),
-            buffer: Annotated[
-                Optional[float],
-                Query(
-                    gt=0,
-                    title="Tile buffer.",
-                    description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
-                ),
-            ] = None,
+            buffer=Depends(BufferParams),
             rescale=Depends(self.rescale_dependency),
-            color_formula: Annotated[
-                Optional[str],
-                Query(
-                    title="Color Formula",
-                    description="rio-color formula (info: https://github.com/mapbox/rio-color)",
-                ),
-            ] = None,
+            color_formula=Depends(ColorFormulaParams),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             backend_params=Depends(self.backend_dependency),
@@ -581,28 +547,15 @@ class MosaicTilerFactory(BaseTilerFactory):
                 Optional[int],
                 Query(description="Overwrite default maxzoom."),
             ] = None,
-            layer_params=Depends(self.layer_dependency),  # noqa
-            dataset_params=Depends(self.dataset_dependency),  # noqa
-            pixel_selection=Depends(self.pixel_selection_dependency),  # noqa
-            buffer: Annotated[
-                Optional[float],
-                Query(
-                    gt=0,
-                    title="Tile buffer.",
-                    description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
-                ),
-            ] = None,
-            post_process=Depends(self.process_dependency),  # noqa
-            rescale=Depends(self.rescale_dependency),  # noqa
-            color_formula: Annotated[
-                Optional[str],
-                Query(
-                    title="Color Formula",
-                    description="rio-color formula (info: https://github.com/mapbox/rio-color)",
-                ),
-            ] = None,
-            colormap=Depends(self.colormap_dependency),  # noqa
-            render_params=Depends(self.render_dependency),  # noqa
+            layer_params=Depends(self.layer_dependency),
+            dataset_params=Depends(self.dataset_dependency),
+            pixel_selection=Depends(self.pixel_selection_dependency),
+            buffer=Depends(BufferParams),
+            post_process=Depends(self.process_dependency),
+            rescale=Depends(self.rescale_dependency),
+            color_formula=Depends(ColorFormulaParams),
+            colormap=Depends(self.colormap_dependency),
+            render_params=Depends(self.render_dependency),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
