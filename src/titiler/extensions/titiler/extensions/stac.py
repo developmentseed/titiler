@@ -113,7 +113,7 @@ class stacExtension(FactoryExtension):
             geom_densify_pts: Annotated[
                 Optional[int],
                 Query(
-                    alias="geom-densify-pts",
+                    alias="geometry_densify",
                     ge=0,
                     description="Number of points to add to each edge to account for nonlinear edges transformation.",
                 ),
@@ -121,7 +121,7 @@ class stacExtension(FactoryExtension):
             geom_precision: Annotated[
                 Optional[int],
                 Query(
-                    alias="geom-precision",
+                    alias="geometry_precision",
                     ge=-1,
                     description="Round geometry coordinates to this number of decimal.",
                 ),

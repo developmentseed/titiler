@@ -124,7 +124,7 @@ Example:
     - **expression** (str): rio-tiler's math expression with asset names (e.g `Asset1_b1/Asset2_b1`).
     - **asset_as_band** (bool): tell rio-tiler that each asset is a 1 band dataset, so expression `Asset1/Asset2` can be passed.
     - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1,2,3`).
-    - **coord-crs** (str): Coordinate Reference System of the input coordinates. Default to `epsg:4326`.
+    - **coord_crs** (str): Coordinate Reference System of the input coordinates. Default to `epsg:4326`.
     - **max_size** (int): Max image size, default is 1024.
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
@@ -163,7 +163,7 @@ Example:
     - **expression** (str): rio-tiler's math expression with asset names (e.g `Asset1_b1/Asset2_b1`).
     - **asset_as_band** (bool): tell rio-tiler that each asset is a 1 band dataset, so expression `Asset1/Asset2` can be passed.
     - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1,2,3`).
-    - **coord-crs** (str): Coordinate Reference System of the input geometry coordinates. Default to `epsg:4326`.
+    - **coord_crs** (str): Coordinate Reference System of the input geometry coordinates. Default to `epsg:4326`.
     - **max_size** (int): Max image size, default is 1024.
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
@@ -200,7 +200,7 @@ Example:
     - **expression** (str): rio-tiler's math expression with asset names (e.g `Asset1_b1/Asset2_b1`).
     - **asset_as_band** (bool): tell rio-tiler that each asset is a 1 band dataset, so expression `Asset1/Asset2` can be passed.
     - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1,2,3`).
-    - **coord-crs** (str): Coordinate Reference System of the input coordinates. Default to `epsg:4326`.
+    - **coord_crs** (str): Coordinate Reference System of the input coordinates. Default to `epsg:4326`.
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
     - **resampling** (str): rasterio resampling method. Default is `nearest`.
@@ -392,7 +392,7 @@ Example:
     - **expression** (str): rio-tiler's math expression with asset names (e.g `Asset1_b1/Asset2_b1`).
     - **asset_as_band** (bool): tell rio-tiler that each asset is a 1 band dataset, so expression `Asset1/Asset2` can be passed.
     - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1,2,3`).
-    - **coord-crs** (str): Coordinate Reference System of the input geometry coordinates. Default to `epsg:4326`.
+    - **coord_crs** (str): Coordinate Reference System of the input geometry coordinates. Default to `epsg:4326`.
     - **max_size** (int): Max image size from which to calculate statistics, default is 1024.
     - **height** (int): Force image height from which to calculate statistics.
     - **width** (int): Force image width from which to calculate statistics.

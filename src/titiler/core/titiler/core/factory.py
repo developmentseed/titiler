@@ -37,6 +37,8 @@ from titiler.core.dependencies import (
     BandsExprParamsOptional,
     BandsParams,
     BidxExprParams,
+    BufferParams,
+    ColorFormulaParams,
     ColorMapParams,
     CoordCRSParams,
     DatasetParams,
@@ -207,7 +209,7 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
             if "{" in prefix:
                 _, path_format, param_convertors = compile_path(prefix)
                 prefix, _ = replace_params(
-                    path_format, param_convertors, request.path_params
+                    path_format, param_convertors, request.path_params.copy()
                 )
             base_url += prefix
 
@@ -522,23 +524,10 @@ class TilerFactory(BaseTilerFactory):
             src_path=Depends(self.path_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
-            buffer: Annotated[
-                Optional[float],
-                Query(
-                    gt=0,
-                    title="Tile buffer.",
-                    description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
-                ),
-            ] = None,
+            buffer=Depends(BufferParams),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
-            color_formula: Annotated[
-                Optional[str],
-                Query(
-                    title="Color Formula",
-                    description="rio-color formula (info: https://github.com/mapbox/rio-color)",
-                ),
-            ] = None,
+            color_formula=Depends(ColorFormulaParams),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -621,23 +610,10 @@ class TilerFactory(BaseTilerFactory):
             ] = None,
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
-            buffer: Annotated[
-                Optional[float],
-                Query(
-                    gt=0,
-                    title="Tile buffer.",
-                    description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
-                ),
-            ] = None,
+            buffer=Depends(BufferParams),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
-            color_formula: Annotated[
-                Optional[str],
-                Query(
-                    title="Color Formula",
-                    description="rio-color formula (info: https://github.com/mapbox/rio-color)",
-                ),
-            ] = None,
+            color_formula=Depends(ColorFormulaParams),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -714,23 +690,10 @@ class TilerFactory(BaseTilerFactory):
             ] = None,
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
-            buffer: Annotated[
-                Optional[float],
-                Query(
-                    gt=0,
-                    title="Tile buffer.",
-                    description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
-                ),
-            ] = None,
+            buffer=Depends(BufferParams),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
-            color_formula: Annotated[
-                Optional[str],
-                Query(
-                    title="Color Formula",
-                    description="rio-color formula (info: https://github.com/mapbox/rio-color)",
-                ),
-            ] = None,
+            color_formula=Depends(ColorFormulaParams),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -789,23 +752,10 @@ class TilerFactory(BaseTilerFactory):
             ] = None,
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
-            buffer: Annotated[
-                Optional[float],
-                Query(
-                    gt=0,
-                    title="Tile buffer.",
-                    description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
-                ),
-            ] = None,
+            buffer=Depends(BufferParams),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
-            color_formula: Annotated[
-                Optional[str],
-                Query(
-                    title="Color Formula",
-                    description="rio-color formula (info: https://github.com/mapbox/rio-color)",
-                ),
-            ] = None,
+            color_formula=Depends(ColorFormulaParams),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -936,13 +886,7 @@ class TilerFactory(BaseTilerFactory):
             image_params=Depends(self.img_dependency),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
-            color_formula: Annotated[
-                Optional[str],
-                Query(
-                    title="Color Formula",
-                    description="rio-color formula (info: https://github.com/mapbox/rio-color)",
-                ),
-            ] = None,
+            color_formula=Depends(ColorFormulaParams),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -1009,13 +953,7 @@ class TilerFactory(BaseTilerFactory):
             image_params=Depends(self.img_dependency),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
-            color_formula: Annotated[
-                Optional[str],
-                Query(
-                    title="Color Formula",
-                    description="rio-color formula (info: https://github.com/mapbox/rio-color)",
-                ),
-            ] = None,
+            color_formula=Depends(ColorFormulaParams),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -1078,13 +1016,7 @@ class TilerFactory(BaseTilerFactory):
             image_params=Depends(self.img_dependency),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
-            color_formula: Annotated[
-                Optional[str],
-                Query(
-                    title="Color Formula",
-                    description="rio-color formula (info: https://github.com/mapbox/rio-color)",
-                ),
-            ] = None,
+            color_formula=Depends(ColorFormulaParams),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -1559,7 +1491,15 @@ class TMSFactory:
         url_path = self.router.url_path_for(name, **path_params)
         base_url = str(request.base_url)
         if self.router_prefix:
-            base_url += self.router_prefix.lstrip("/")
+            prefix = self.router_prefix.lstrip("/")
+            # If we have prefix with custom path param we check and replace them with
+            # the path params provided
+            if "{" in prefix:
+                _, path_format, param_convertors = compile_path(prefix)
+                prefix, _ = replace_params(
+                    path_format, param_convertors, request.path_params.copy()
+                )
+            base_url += prefix
 
         return str(url_path.make_absolute_url(base_url=base_url))
 
