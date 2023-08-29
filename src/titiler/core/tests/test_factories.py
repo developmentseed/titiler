@@ -201,7 +201,7 @@ def test_TilerFactory():
     assert response.json()["band_names"] == ["b1"]
 
     response = client.get(
-        f"/point/-6259272.328324187,12015838.020930404?url={DATA_DIR}/cog.tif&coord-crs=EPSG:3857"
+        f"/point/-6259272.328324187,12015838.020930404?url={DATA_DIR}/cog.tif&coord_crs=EPSG:3857"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
@@ -1591,7 +1591,7 @@ def test_rescale_dependency():
 
 
 def test_dst_crs_option():
-    """test dst-crs parameter."""
+    """test dst_crs parameter."""
     app = FastAPI()
     app.include_router(TilerFactory().router)
 
@@ -1605,7 +1605,7 @@ def test_dst_crs_option():
             32621
         )  # return the image in the original CRS
 
-        response = client.get(f"/preview.tif?url={DATA_DIR}/cog.tif&dst-crs=epsg:4326")
+        response = client.get(f"/preview.tif?url={DATA_DIR}/cog.tif&dst_crs=epsg:4326")
         meta = parse_img(response.content)
         assert meta["crs"] == CRS.from_epsg(4326)
         assert not meta["crs"] == CRS.from_epsg(32621)
@@ -1622,20 +1622,20 @@ def test_dst_crs_option():
 
         # Force output in epsg:32621
         response = client.get(
-            f"/crop/-56.228,72.715,-54.547,73.188.tif?url={DATA_DIR}/cog.tif&dst-crs=epsg:32621"
+            f"/crop/-56.228,72.715,-54.547,73.188.tif?url={DATA_DIR}/cog.tif&dst_crs=epsg:32621"
         )
         meta = parse_img(response.content)
         assert meta["crs"] == CRS.from_epsg(32621)
 
-        # coord-crs + dst-crs
+        # coord_crs + dst_crs
         response = client.get(
-            f"/crop/-6259272.328324187,12015838.020930404,-6072144.264300693,12195445.265479913.tif?url={DATA_DIR}/cog.tif&coord-crs=epsg:3857"
+            f"/crop/-6259272.328324187,12015838.020930404,-6072144.264300693,12195445.265479913.tif?url={DATA_DIR}/cog.tif&coord_crs=epsg:3857"
         )
         meta = parse_img(response.content)
         assert meta["crs"] == CRS.from_epsg(3857)
 
         response = client.get(
-            f"/crop/-6259272.328324187,12015838.020930404,-6072144.264300693,12195445.265479913.tif?url={DATA_DIR}/cog.tif&coord-crs=epsg:3857&dst-crs=epsg:32621"
+            f"/crop/-6259272.328324187,12015838.020930404,-6072144.264300693,12195445.265479913.tif?url={DATA_DIR}/cog.tif&coord_crs=epsg:3857&dst_crs=epsg:32621"
         )
         meta = parse_img(response.content)
         assert meta["crs"] == CRS.from_epsg(32621)

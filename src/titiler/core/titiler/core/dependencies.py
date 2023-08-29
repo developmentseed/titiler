@@ -486,7 +486,7 @@ def CoordCRSParams(
     crs: Annotated[
         Optional[str],
         Query(
-            alias="coord-crs",
+            alias="coord_crs",
             description="Coordinate Reference System of the input coords. Default to `epsg:4326`.",
         ),
     ] = None,
@@ -502,7 +502,7 @@ def DstCRSParams(
     crs: Annotated[
         Optional[str],
         Query(
-            alias="dst-crs",
+            alias="dst_crs",
             description="Output Coordinate Reference System.",
         ),
     ] = None,
@@ -512,3 +512,30 @@ def DstCRSParams(
         return CRS.from_user_input(crs)
 
     return None
+
+
+def BufferParams(
+    buffer: Annotated[
+        Optional[float],
+        Query(
+            gt=0,
+            title="Tile buffer.",
+            description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
+        ),
+    ] = None,
+) -> Optional[float]:
+    """Tile buffer Parameter."""
+    return buffer
+
+
+def ColorFormulaParams(
+    color_formula: Annotated[
+        Optional[str],
+        Query(
+            title="Color Formula",
+            description="rio-color formula (info: https://github.com/mapbox/rio-color)",
+        ),
+    ] = None,
+) -> Optional[str]:
+    """ColorFormula Parameter."""
+    return color_formula
