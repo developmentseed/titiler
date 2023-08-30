@@ -1,6 +1,6 @@
 # Release Notes
 
-## 0.14.0 (unreleased)
+## 0.14.0 (2023-08-30)
 
 ### titiler.core
 
@@ -43,7 +43,6 @@
 
 * rename `geom-densify-pts` to `geometry_densify` **breaking change**
 * rename `geom-precision` to `geometry_precision` **breaking change**
-
 
 ## 0.13.3 (2023-08-27)
 
