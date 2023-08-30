@@ -10,6 +10,35 @@
 
 * replace `buffer` and `color_formula` endpoint parameters by external dependencies (`BufferParams` and `ColorFormulaParams`)
 
+* add `titiler.core.utils.render_image` which allow non-binary alpha band created with custom colormap. `render_image` replace `ImageData.render` method.
+
+    ```python
+    # before
+    if cmap := colormap or dst_colormap:
+        image = image.apply_colormap(cmap)
+
+    if not format:
+        format = ImageType.jpeg if image.mask.all() else ImageType.png
+
+    content = image.render(
+        img_format=format.driver,
+        **format.profile,
+        **render_params,
+    )
+
+    # now
+    # render_image will:
+    # - apply the colormap
+    # - choose the right output format if `None`
+    # - create the binary data
+    content, media_type = render_image(
+        image,
+        output_format=format,
+        colormap=colormap or dst_colormap,
+        **render_params,
+    )
+    ```
+
 ### titiler.extension
 
 * rename `geom-densify-pts` to `geometry_densify` **breaking change**

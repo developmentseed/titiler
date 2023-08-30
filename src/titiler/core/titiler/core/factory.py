@@ -67,6 +67,7 @@ from titiler.core.models.responses import (
 from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
 from titiler.core.routing import EndpointScope
+from titiler.core.utils import render_image
 
 DEFAULT_TEMPLATES = Jinja2Templates(
     directory="",
@@ -556,19 +557,14 @@ class TilerFactory(BaseTilerFactory):
             if color_formula:
                 image.apply_color_formula(color_formula)
 
-            if cmap := colormap or dst_colormap:
-                image = image.apply_colormap(cmap)
-
-            if not format:
-                format = ImageType.jpeg if image.mask.all() else ImageType.png
-
-            content = image.render(
-                img_format=format.driver,
-                **format.profile,
+            content, media_type = render_image(
+                image,
+                output_format=format,
+                colormap=colormap or dst_colormap,
                 **render_params,
             )
 
-            return Response(content, media_type=format.mediatype)
+            return Response(content, media_type=media_type)
 
     def tilejson(self):  # noqa: C901
         """Register /tilejson.json endpoint."""
@@ -916,19 +912,14 @@ class TilerFactory(BaseTilerFactory):
             if color_formula:
                 image.apply_color_formula(color_formula)
 
-            if cmap := colormap or dst_colormap:
-                image = image.apply_colormap(cmap)
-
-            if not format:
-                format = ImageType.jpeg if image.mask.all() else ImageType.png
-
-            content = image.render(
-                img_format=format.driver,
-                **format.profile,
+            content, media_type = render_image(
+                image,
+                output_format=format,
+                colormap=colormap or dst_colormap,
                 **render_params,
             )
 
-            return Response(content, media_type=format.mediatype)
+            return Response(content, media_type=media_type)
 
     ############################################################################
     # /crop (Optional)
@@ -990,16 +981,14 @@ class TilerFactory(BaseTilerFactory):
             if color_formula:
                 image.apply_color_formula(color_formula)
 
-            if cmap := colormap or dst_colormap:
-                image = image.apply_colormap(cmap)
-
-            content = image.render(
-                img_format=format.driver,
-                **format.profile,
+            content, media_type = render_image(
+                image,
+                output_format=format,
+                colormap=colormap or dst_colormap,
                 **render_params,
             )
 
-            return Response(content, media_type=format.mediatype)
+            return Response(content, media_type=media_type)
 
         # POST endpoints
         @self.router.post(
@@ -1054,19 +1043,14 @@ class TilerFactory(BaseTilerFactory):
             if color_formula:
                 image.apply_color_formula(color_formula)
 
-            if cmap := colormap or dst_colormap:
-                image = image.apply_colormap(cmap)
-
-            if not format:
-                format = ImageType.jpeg if image.mask.all() else ImageType.png
-
-            content = image.render(
-                img_format=format.driver,
-                **format.profile,
+            content, media_type = render_image(
+                image,
+                output_format=format,
+                colormap=colormap or dst_colormap,
                 **render_params,
             )
 
-            return Response(content, media_type=format.mediatype)
+            return Response(content, media_type=media_type)
 
 
 @dataclass

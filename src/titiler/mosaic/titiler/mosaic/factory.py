@@ -34,6 +34,7 @@ from titiler.core.factory import BaseTilerFactory, img_endpoint_params
 from titiler.core.models.mapbox import TileJSON
 from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
+from titiler.core.utils import render_image
 from titiler.mosaic.models.responses import Point
 
 
@@ -331,15 +332,10 @@ class MosaicTilerFactory(BaseTilerFactory):
             if color_formula:
                 image.apply_color_formula(color_formula)
 
-            if colormap:
-                image = image.apply_colormap(colormap)
-
-            if not format:
-                format = ImageType.jpeg if image.mask.all() else ImageType.png
-
-            content = image.render(
-                img_format=format.driver,
-                **format.profile,
+            content, media_type = render_image(
+                image,
+                output_format=format,
+                colormap=colormap,
                 **render_params,
             )
 
@@ -347,7 +343,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             if OptionalHeader.x_assets in self.optional_headers:
                 headers["X-Assets"] = ",".join(assets)
 
-            return Response(content, media_type=format.mediatype, headers=headers)
+            return Response(content, media_type=media_type, headers=headers)
 
     def tilejson(self):  # noqa: C901
         """Add tilejson endpoint."""
