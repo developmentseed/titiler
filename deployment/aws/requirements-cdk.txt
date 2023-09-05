@@ -1,7 +1,7 @@
 # aws cdk
-aws-cdk-lib==2.76.0
-aws_cdk-aws_apigatewayv2_alpha==2.76.0a0
-aws_cdk-aws_apigatewayv2_integrations_alpha==2.76.0a0
+aws-cdk-lib==2.94.0
+aws_cdk-aws_apigatewayv2_alpha==2.94.0a0
+aws_cdk-aws_apigatewayv2_integrations_alpha==2.94.0a0
 constructs>=10.0.0
 
 # pydantic settings
