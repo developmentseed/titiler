@@ -386,3 +386,53 @@ def test_wmsExtension_GetMap():
             -52.301598718454485,
             74.66298001264106,
         ]
+
+
+def test_wmsExtension_GetFeatureInfo():
+    """Test wmsValidateExtension class for GetFeatureInfo request."""
+    tiler_plus_wms = TilerFactory(extensions=[wmsExtension()])
+
+    app = FastAPI()
+    app.include_router(tiler_plus_wms.router)
+
+    with TestClient(app) as client:
+        # Setup the basic GetFeatureInfo request
+        params = {
+            "VERSION": "1.3.0",
+            "REQUEST": "GetFeatureInfo",
+            "LAYERS": cog,
+            "QUERY_LAYERS": cog,
+            "BBOX": "500975.102,8182890.453,501830.647,8183959.884",
+            "CRS": "EPSG:32621",
+            "WIDTH": 334,
+            "HEIGHT": 333,
+            "INFO_FORMAT": "text/html",
+            "I": "0",
+            "J": "0",
+        }
+
+        response = client.get("/wms", params=params)
+
+        assert response.status_code == 200
+        assert response.content == b"2800"
+
+        params = {
+            "VERSION": "1.3.0",
+            "REQUEST": "GetFeatureInfo",
+            "LAYERS": cog,
+            "QUERY_LAYERS": cog,
+            "BBOX": "500975.102,8182890.453,501830.647,8183959.884",
+            "CRS": "EPSG:32621",
+            "WIDTH": 334,
+            "HEIGHT": 333,
+            "INFO_FORMAT": "text/html",
+            "I": "333",
+            "J": "332",
+        }
+
+        response = client.get("/wms", params=params)
+
+        assert response.status_code == 200
+        assert response.content == b"3776"
+
+        # Add additional assertions to check the text response

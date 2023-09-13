@@ -102,10 +102,7 @@ class wmsExtension(FactoryExtension):
                         "schema": {
                             "title": "Request name",
                             "type": "string",
-                            "enum": [
-                                "GetCapabilities",
-                                "GetMap",
-                            ],
+                            "enum": ["GetCapabilities", "GetMap", "GetFeatureInfo"],
                         },
                         "name": "REQUEST",
                         "in": "query",
@@ -148,7 +145,7 @@ class wmsExtension(FactoryExtension):
                             "title": "Output format of service metadata/map",
                             "type": "string",
                             "enum": [
-                                "application/xml",
+                                "text/html" "application/xml",
                                 "image/png",
                                 "image/jpeg",
                                 "image/jpg",
@@ -392,7 +389,7 @@ class wmsExtension(FactoryExtension):
                 )
 
             # GetMap: Return an image chip
-            if request_type.lower() == "getmap":
+            def get_map_data(req, req_keys):  # noqa: C901
                 # Required parameters:
                 # - VERSION
                 # - REQUEST=GetMap,
@@ -404,17 +401,6 @@ class wmsExtension(FactoryExtension):
                 # - HEIGHT
                 # - FORMAT
                 # Optional parameters: TRANSPARENT, BGCOLOR, EXCEPTIONS, TIME, ELEVATION, ...
-
-                # List of required parameters (styles and crs are excluded)
-                req_keys = {
-                    "version",
-                    "request",
-                    "layers",
-                    "bbox",
-                    "width",
-                    "height",
-                    "format",
-                }
 
                 intrs = set(req.keys()).intersection(req_keys)
                 missing_keys = req_keys.difference(intrs)
@@ -481,12 +467,14 @@ class wmsExtension(FactoryExtension):
                             detail=f"Invalid 'TRANSPARENT' parameter: {transparent}. Should be one of ['FALSE', 'TRUE'].",
                         )
 
-                if req["format"] not in self.supported_format:
-                    raise HTTPException(
-                        status_code=400,
-                        detail=f"Invalid 'FORMAT' parameter: {req['format']}. Should be one of {self.supported_format}.",
-                    )
-                format = ImageType(WMSMediaType(req["format"]).name)
+                format = "None"
+                if "format" in req:
+                    if req["format"] not in self.supported_format:
+                        raise HTTPException(
+                            status_code=400,
+                            detail=f"Invalid 'FORMAT' parameter: {req['format']}. Should be one of {self.supported_format}.",
+                        )
+                    format = ImageType(WMSMediaType(req["format"]).name)
 
                 height, width = int(req["height"]), int(req["width"])
 
@@ -508,6 +496,22 @@ class wmsExtension(FactoryExtension):
                     _reader,
                     pixel_selection=OverlayMethod(),
                 )
+                return version, image, format, transparent
+
+            if request_type.lower() == "getmap":
+
+                # List of required parameters (styles and crs are excluded)
+                req_keys = {
+                    "version",
+                    "request",
+                    "layers",
+                    "bbox",
+                    "width",
+                    "height",
+                    "format",
+                }
+
+                version, image, format, transparent = get_map_data(req, req_keys)
 
                 if post_process:
                     image = post_process(image)
@@ -530,8 +534,48 @@ class wmsExtension(FactoryExtension):
                 return Response(content, media_type=media_type)
 
             elif request_type.lower() == "getfeatureinfo":
-                return Response("Not Implemented", 400)
+                # Required parameters:
+                # - VERSION
+                # - REQUEST=GetFeatureInfo
+                # - LAYERS
+                # - CRS or SRS
+                # - WIDTH
+                # - HEIGHT
+                # - QUERY_LAYERS
+                # - I (Pixel column)
+                # - J (Pixel row)
+                # Optional parameters: INFO_FORMAT, FEATURE_COUNT, ...
 
+                req_keys = {
+                    "version",
+                    "request",
+                    "layers",
+                    "width",
+                    "height",
+                    "query_layers",
+                    "i",
+                    "j",
+                }
+                version, image, format, transparent = get_map_data(req, req_keys)
+                if version == "1.3.0":
+                    i = int(req["i"])
+                    j = int(req["j"])
+
+                    num_bands = image.data.shape[
+                        0
+                    ]  # assuming the image data shape is (num_bands, height, width)
+
+                    html_content = ""
+                    bands_info = []
+                    for band in range(num_bands):
+                        pixel_value = image.data[band, j, i]
+                        bands_info.append(pixel_value)
+                        html_content = ",".join(
+                            [str(band_info) for band_info in bands_info]
+                        )
+                    return Response(html_content, 200)
+                else:
+                    return Response("Not Implemented", 400)
             else:
                 raise HTTPException(
                     status_code=400,
