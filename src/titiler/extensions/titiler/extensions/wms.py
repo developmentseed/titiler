@@ -145,7 +145,8 @@ class wmsExtension(FactoryExtension):
                             "title": "Output format of service metadata/map",
                             "type": "string",
                             "enum": [
-                                "text/html" "application/xml",
+                                "text/html",
+                                "application/xml",
                                 "image/png",
                                 "image/jpeg",
                                 "image/jpg",
