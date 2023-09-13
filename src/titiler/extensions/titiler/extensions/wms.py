@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Set, Tuple
 from urllib.parse import urlencode
 
 import jinja2
@@ -10,6 +10,7 @@ import numpy
 import rasterio
 from fastapi import Depends, HTTPException
 from rasterio.crs import CRS
+from rio_tiler.models import ImageData
 from rio_tiler.mosaic import mosaic_reader
 from rio_tiler.mosaic.methods.base import MosaicMethodBase
 from starlette.requests import Request
@@ -202,6 +203,24 @@ class wmsExtension(FactoryExtension):
                         "name": "HEIGHT",
                         "in": "query",
                     },
+                    {
+                        "required": False,
+                        "schema": {
+                            "title": "I Coordinate in pixels of feature in Map CS.",
+                            "type": "integer",
+                        },
+                        "name": "i",
+                        "in": "query",
+                    },
+                    {
+                        "required": False,
+                        "schema": {
+                            "title": "J Coordinate in pixels of feature in Map CS.",
+                            "type": "integer",
+                        },
+                        "name": "j",
+                        "in": "query",
+                    },
                     # Non-Used
                     {
                         "required": False,
@@ -390,7 +409,11 @@ class wmsExtension(FactoryExtension):
                 )
 
             # GetMap: Return an image chip
-            def get_map_data(req, req_keys):  # noqa: C901
+            def get_map_data(  # noqa: C901
+                req: Dict,
+                req_keys: Set,
+                request_type: str,
+            ) -> Tuple[ImageData, Optional[str], bool]:
                 # Required parameters:
                 # - VERSION
                 # - REQUEST=GetMap,
@@ -408,7 +431,7 @@ class wmsExtension(FactoryExtension):
                 if len(missing_keys) > 0:
                     raise HTTPException(
                         status_code=400,
-                        detail=f"Missing 'GetMap' parameters: {missing_keys}",
+                        detail=f"Missing '{request_type}' parameters: {missing_keys}",
                     )
 
                 version = req["version"]
@@ -468,14 +491,13 @@ class wmsExtension(FactoryExtension):
                             detail=f"Invalid 'TRANSPARENT' parameter: {transparent}. Should be one of ['FALSE', 'TRUE'].",
                         )
 
-                format = "None"
-                if "format" in req:
-                    if req["format"] not in self.supported_format:
+                if format := req.get("format", None):
+                    if format not in self.supported_format:
                         raise HTTPException(
                             status_code=400,
-                            detail=f"Invalid 'FORMAT' parameter: {req['format']}. Should be one of {self.supported_format}.",
+                            detail=f"Invalid 'FORMAT' parameter: {format}. Should be one of {self.supported_format}.",
                         )
-                    format = ImageType(WMSMediaType(req["format"]).name)
+                    format = ImageType(WMSMediaType(format).name)
 
                 height, width = int(req["height"]), int(req["width"])
 
@@ -497,7 +519,7 @@ class wmsExtension(FactoryExtension):
                     _reader,
                     pixel_selection=OverlayMethod(),
                 )
-                return version, image, format, transparent
+                return image, format, transparent
 
             if request_type.lower() == "getmap":
 
@@ -512,7 +534,7 @@ class wmsExtension(FactoryExtension):
                     "format",
                 }
 
-                version, image, format, transparent = get_map_data(req, req_keys)
+                image, format, transparent = get_map_data(req, req_keys, request_type)
 
                 if post_process:
                     image = post_process(image)
@@ -557,26 +579,19 @@ class wmsExtension(FactoryExtension):
                     "i",
                     "j",
                 }
-                version, image, format, transparent = get_map_data(req, req_keys)
-                if version == "1.3.0":
-                    i = int(req["i"])
-                    j = int(req["j"])
+                image, _, _ = get_map_data(req, req_keys, request_type)
+                i = int(req["i"])
+                j = int(req["j"])
 
-                    num_bands = image.data.shape[
-                        0
-                    ]  # assuming the image data shape is (num_bands, height, width)
+                html_content = ""
+                bands_info = []
+                for band in range(image.count):
+                    pixel_value = image.data[band, j, i]
+                    bands_info.append(pixel_value)
 
-                    html_content = ""
-                    bands_info = []
-                    for band in range(num_bands):
-                        pixel_value = image.data[band, j, i]
-                        bands_info.append(pixel_value)
-                        html_content = ",".join(
-                            [str(band_info) for band_info in bands_info]
-                        )
-                    return Response(html_content, 200)
-                else:
-                    return Response("Not Implemented", 400)
+                html_content = ",".join([str(band_info) for band_info in bands_info])
+                return Response(html_content, 200)
+
             else:
                 raise HTTPException(
                     status_code=400,
