@@ -1,10 +1,123 @@
 # Release Notes
 
-## Next (TDB)
+## 0.14.0 (2023-08-30)
+
+### titiler.core
+
+* replace `-` by `_` in query parameters **breaking change**
+  - `coord-crs` -> `coord_crs`
+  - `dst-crs` -> `dst_crs`
+
+* replace `buffer` and `color_formula` endpoint parameters by external dependencies (`BufferParams` and `ColorFormulaParams`)
+
+* add `titiler.core.utils.render_image` which allow non-binary alpha band created with custom colormap. `render_image` replace `ImageData.render` method.
+
+    ```python
+    # before
+    if cmap := colormap or dst_colormap:
+        image = image.apply_colormap(cmap)
+
+    if not format:
+        format = ImageType.jpeg if image.mask.all() else ImageType.png
+
+    content = image.render(
+        img_format=format.driver,
+        **format.profile,
+        **render_params,
+    )
+
+    # now
+    # render_image will:
+    # - apply the colormap
+    # - choose the right output format if `None`
+    # - create the binary data
+    content, media_type = render_image(
+        image,
+        output_format=format,
+        colormap=colormap or dst_colormap,
+        **render_params,
+    )
+    ```
+
+### titiler.extension
+
+* rename `geom-densify-pts` to `geometry_densify` **breaking change**
+* rename `geom-precision` to `geometry_precision` **breaking change**
+
+## 0.13.3 (2023-08-27)
+
+* fix Factories `url_for` method and avoid changing `Request.path_params` object
+
+## 0.13.2 (2023-08-24)
+
+### titiler.extensions
+
+* replace mapbox-gl by maplibre
+* replace Stamen by OpenStreetMap tiles
+* simplify band selection handling (author @tayden, https://github.com/developmentseed/titiler/pull/688)
+
+## 0.13.1 (2023-08-21)
+
+### titiler.core
+
+* fix `LowerCaseQueryStringMiddleware` unexpectedly truncating query parameters (authors @jthetzel and @jackharrhy, @https://github.com/developmentseed/titiler/pull/677)
+
+## titiler.application
+
+* add `cors_allow_methods` in `ApiSettings` to control the CORS allowed methods (author @ubi15, https://github.com/developmentseed/titiler/pull/684)
+
+## 0.13.0 (2023-07-27)
+
+* update core requirements to libraries using pydantic **~=2.0**
+
+### titiler.core
+
+* update requirements:
+  * fastapi `>=0.95.1` --> `>=0.100.0`
+  * pydantic `~=1.0` --> `~=2.0`
+  * rio-tiler `>=5.0,<6.0` --> `>=6.0,<7.0`
+  * morecantile`>=4.3,<5.0` --> `>=5.0,<6.0`
+  * geojson-pydantic `>=0.4,<0.7` --> `>=1.0,<2.0`
+  * typing_extensions `>=4.6.1`
+
+### titiler.extension
+
+* update requirements:
+  * rio-cogeo `>=4.0,<5.0"` --> `>=5.0,<6.0"`
+
+### titiler.mosaic
+
+* update requirements:
+  * cogeo-mosaic `>=6.0,<7.0` --> `>=7.0,<8.0`
+
+### titiler.application
+
+* use `/api` and `/api.html` for documentation (instead of `/openapi.json` and `/docs`)
+* update landing page
+
+## 0.12.0 (2023-07-17)
+
+* use `Annotated` Type for Query/Path parameters
+* replace variable `TileMatrixSetId` by `tileMatrixSetId`
+
+### titiler.core
+
+* update FastAPI dependency to `>=0.95.1`
+* set `pydantic` dependency to `~=1.0`
+* update `rio-tiler` dependency to `>=5.0,<6.0`
+* update TMS endpoints to match OGC Tiles specification
 
 ### titiler.extensions
 
 * use TiTiler's custom JSONResponse for the `/validate` endpoint to avoid issue when COG has `NaN` nodata value
+* update `rio-cogeo` dependency to `>=4.0,<5.0`
+* update `rio-stac` requirement to `>=0.8,<0.9` and add `geom-densify-pts` and `geom-precision` options
+
+## titiler.mosaic
+
+* update `cogeo-mosaic` dependency to `>=6.0,<7.0`
+* remove `titiler.mosaic.resources.enum.PixelSelectionMethod` and use `rio_tiler.mosaic.methods.PixelSelectionMethod`
+* allow more TileMatrixSet (than only `WebMercatorQuad`)
 
 ## 0.11.7 (2023-05-18)
 

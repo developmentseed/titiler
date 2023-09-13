@@ -4,6 +4,7 @@
 from fastapi import FastAPI, Path
 from starlette.responses import Response
 from starlette.testclient import TestClient
+from typing_extensions import Annotated
 
 from titiler.core.middleware import CacheControlMiddleware
 
@@ -29,18 +30,18 @@ def test_cachecontrol_middleware_exclude():
 
     @app.get("/tiles/{z}/{x}/{y}")
     async def tiles(
-        z: int = Path(..., ge=0, le=30, description="Mercator tiles's zoom level"),
-        x: int = Path(..., description="Mercator tiles's column"),
-        y: int = Path(..., description="Mercator tiles's row"),
+        z: Annotated[int, Path(ge=0, le=30, description="Mercator tiles's zoom level")],
+        x: Annotated[int, Path(description="Mercator tiles's column")],
+        y: Annotated[int, Path(description="Mercator tiles's row")],
     ):
         """tiles."""
         return "yeah"
 
     @app.get("/emptytiles/{z}/{x}/{y}")
     async def emptytiles(
-        z: int = Path(..., ge=0, le=30, description="Mercator tiles's zoom level"),
-        x: int = Path(..., description="Mercator tiles's column"),
-        y: int = Path(..., description="Mercator tiles's row"),
+        z: Annotated[int, Path(ge=0, le=30, description="Mercator tiles's zoom level")],
+        x: Annotated[int, Path(description="Mercator tiles's column")],
+        y: Annotated[int, Path(description="Mercator tiles's row")],
     ):
         """tiles."""
         return Response(status_code=404)

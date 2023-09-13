@@ -5,19 +5,17 @@ import tempfile
 from contextlib import contextmanager
 from dataclasses import dataclass
 from io import BytesIO
-from typing import Optional
 
-import attr
 import numpy
 from cogeo_mosaic.backends import FileBackend
 from cogeo_mosaic.mosaic import MosaicJSON
 from fastapi import FastAPI
+from rio_tiler.mosaic.methods import PixelSelectionMethod
 from starlette.testclient import TestClient
 
 from titiler.core.dependencies import DefaultDependency
 from titiler.core.resources.enums import OptionalHeader
 from titiler.mosaic.factory import MosaicTilerFactory
-from titiler.mosaic.resources.enums import PixelSelectionMethod
 
 from .conftest import DATA_DIR
 
@@ -45,11 +43,17 @@ def test_MosaicTilerFactory():
         optional_headers=[OptionalHeader.x_assets],
         router_prefix="mosaic",
     )
-    assert len(mosaic.router.routes) == 23
+    assert len(mosaic.router.routes) == 24
 
     app = FastAPI()
     app.include_router(mosaic.router, prefix="/mosaic")
     client = TestClient(app)
+
+    response = client.get("/openapi.json")
+    assert response.status_code == 200
+
+    response = client.get("/docs")
+    assert response.status_code == 200
 
     with tmpmosaic() as mosaic_file:
         response = client.get(
@@ -94,7 +98,25 @@ def test_MosaicTilerFactory():
         )
         assert response.status_code == 200
 
+        response = client.get(
+            "/mosaic/point/-7903683.846322423,5780349.220256353",
+            params={"url": mosaic_file, "coord_crs": "epsg:3857"},
+        )
+        assert response.status_code == 200
+
         response = client.get("/mosaic/tiles/7/37/45", params={"url": mosaic_file})
+        assert response.status_code == 200
+        assert response.headers["X-Assets"]
+
+        response = client.get(
+            "/mosaic/tiles/WebMercatorQuad/7/37/45", params={"url": mosaic_file}
+        )
+        assert response.status_code == 200
+        assert response.headers["X-Assets"]
+
+        response = client.get(
+            "/mosaic/tiles/WGS1984Quad/8/148/61", params={"url": mosaic_file}
+        )
         assert response.status_code == 200
         assert response.headers["X-Assets"]
 
@@ -132,7 +154,7 @@ def test_MosaicTilerFactory():
                 "tile_format": "png",
                 "minzoom": 6,
                 "maxzoom": 9,
-                "TileMatrixSetId": "WebMercatorQuad",
+                "tileMatrixSetId": "WebMercatorQuad",
             },
         )
         assert response.status_code == 200
@@ -143,7 +165,7 @@ def test_MosaicTilerFactory():
         )
         assert body["minzoom"] == 6
         assert body["maxzoom"] == 9
-        assert "TileMatrixSetId" not in body["tiles"][0]
+        assert "tileMatrixSetId" not in body["tiles"][0]
 
         response = client.get(
             "/mosaic/WMTSCapabilities.xml",
@@ -159,7 +181,7 @@ def test_MosaicTilerFactory():
 
         response = client.post(
             "/mosaic/validate",
-            json=MosaicJSON.from_urls(assets).dict(),
+            json=MosaicJSON.from_urls(assets).model_dump(),
         )
         assert response.status_code == 200
 
@@ -172,7 +194,27 @@ def test_MosaicTilerFactory():
             filepath.split("/")[-1] in ["cog1.tif"] for filepath in response.json()
         )
 
+        response = client.get(
+            "/mosaic/WGS1984Quad/8/148/61/assets",
+            params={"url": mosaic_file},
+        )
+        assert response.status_code == 200
+        assert all(
+            filepath.split("/")[-1] in ["cog1.tif", "cog2.tif"]
+            for filepath in response.json()
+        )
+
         response = client.get("/mosaic/-71,46/assets", params={"url": mosaic_file})
+        assert response.status_code == 200
+        assert all(
+            filepath.split("/")[-1] in ["cog1.tif", "cog2.tif"]
+            for filepath in response.json()
+        )
+
+        response = client.get(
+            "/mosaic/-7903683.846322423,5780349.220256353/assets",
+            params={"url": mosaic_file, "coord_crs": "epsg:3857"},
+        )
         assert response.status_code == 200
         assert all(
             filepath.split("/")[-1] in ["cog1.tif", "cog2.tif"]
@@ -182,6 +224,16 @@ def test_MosaicTilerFactory():
         response = client.get(
             "/mosaic/-75.9375,43.06888777416962,-73.125,45.089035564831015/assets",
             params={"url": mosaic_file},
+        )
+        assert response.status_code == 200
+        assert all(
+            filepath.split("/")[-1] in ["cog1.tif", "cog2.tif"]
+            for filepath in response.json()
+        )
+
+        response = client.get(
+            "/mosaic/-8453323.83211421,5322463.153553393,-8140237.76425813,5635549.221409473/assets",
+            params={"url": mosaic_file, "coord_crs": "epsg:3857"},
         )
         assert response.status_code == 200
         assert all(
@@ -205,25 +257,10 @@ class BackendParams(DefaultDependency):
     maxzoom: int = 8
 
 
-@attr.s
-class CustomFileBackend(FileBackend):
-    """Fake backend to prove we can overwrite min/max zoom."""
-
-    minzoom: Optional[int] = attr.ib(default=None)
-    maxzoom: Optional[int] = attr.ib(default=None)
-
-    def __attrs_post_init__(self):
-        """Post Init: if not passed in init, try to read from self.input."""
-        self.mosaic_def = self.mosaic_def or self._read()
-        self.minzoom = self.minzoom or self.mosaic_def.minzoom
-        self.maxzoom = self.maxzoom or self.mosaic_def.maxzoom
-        self.bounds = self.mosaic_def.bounds
-
-
 def test_MosaicTilerFactory_BackendParams():
     """Test MosaicTilerFactory factory with Backend dependency."""
     mosaic = MosaicTilerFactory(
-        reader=CustomFileBackend,
+        reader=FileBackend,
         backend_dependency=BackendParams,
         router_prefix="/mosaic",
     )
@@ -250,7 +287,7 @@ def test_MosaicTilerFactory_PixelSelectionParams():
     """Test MosaicTilerFactory factory with a customized default PixelSelectionMethod."""
     mosaic = MosaicTilerFactory(router_prefix="/mosaic")
     mosaic_highest = MosaicTilerFactory(
-        pixel_selection_dependency=lambda: PixelSelectionMethod.highest.method(),
+        pixel_selection_dependency=lambda: PixelSelectionMethod.highest.value,
         router_prefix="/mosaic_highest",
     )
 
@@ -279,7 +316,7 @@ def test_MosaicTilerFactory_PixelSelectionParams():
 
 def test_MosaicTilerFactory_strict_zoom(monkeypatch):
     """Test MosaicTilerFactory factory with STRICT Zoom Mode"""
-    monkeypatch.setenv("MOSAIC_STRICT_ZOOM", True)
+    monkeypatch.setenv("MOSAIC_STRICT_ZOOM", "TRUE")
 
     mosaic = MosaicTilerFactory()
     app = FastAPI()

@@ -4,7 +4,7 @@ import os
 from typing import Any, Callable
 from unittest.mock import patch
 
-import mercantile
+import morecantile
 from cogeo_mosaic.backends import FileBackend
 from cogeo_mosaic.mosaic import MosaicJSON
 
@@ -111,8 +111,9 @@ def test_tile(app):
     """Test GET /mosaicjson/tiles endpoint"""
     mosaicjson = read_json_fixture(MOSAICJSON_FILE)
     bounds = mosaicjson["bounds"]
-    tile = mercantile.tile(*mosaicjson["center"])
-    partial_tile = mercantile.tile(bounds[0], bounds[1], mosaicjson["minzoom"])
+    tms = morecantile.tms.get("WebMercatorQuad")
+    tile = tms.tile(*mosaicjson["center"])
+    partial_tile = tms.tile(bounds[0], bounds[1], mosaicjson["minzoom"])
 
     with patch.object(FileBackend, "_read", mosaic_read_factory(MOSAICJSON_FILE)):
         # full tile

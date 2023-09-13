@@ -14,6 +14,17 @@ ingress:
      hosts:
        - titiler.charter.uat.esaportal.eu
 
+terminationGracePeriodSeconds: 30
+
+extraHostPathMounts: []
+  # - name: map-sources
+  #   mountPath: /map-sources/
+  #   hostPath: /home/ubuntu/map-sources
+  #   readOnly: false
+  #   mountPropagation: HostToContainer # OPTIONAL
+
+imagePullSecrets: []
+
 env:
   PORT: 80
   CPL_TMPDIR: /tmp

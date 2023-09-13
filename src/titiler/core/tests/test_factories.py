@@ -3,6 +3,7 @@
 import json
 import os
 import pathlib
+import warnings
 from dataclasses import dataclass
 from enum import Enum
 from io import BytesIO
@@ -14,10 +15,12 @@ import attr
 import httpx
 import morecantile
 import numpy
+import pytest
 from fastapi import Depends, FastAPI, HTTPException, Path, Query, security, status
 from morecantile.defaults import TileMatrixSets
 from rasterio.crs import CRS
 from rasterio.io import MemoryFile
+from rio_tiler.errors import NoOverviewWarning
 from rio_tiler.io import BaseReader, MultiBandReader, Reader, STACReader
 from starlette.requests import Request
 from starlette.testclient import TestClient
@@ -52,6 +55,12 @@ def test_TilerFactory():
     app = FastAPI()
     app.include_router(cog.router, prefix="/something")
     client = TestClient(app)
+
+    response = client.get("/openapi.json")
+    assert response.status_code == 200
+
+    response = client.get("/docs")
+    assert response.status_code == 200
 
     response = client.get(f"/something/tilejson.json?url={DATA_DIR}/cog.tif")
     assert response.status_code == 200
@@ -191,7 +200,7 @@ def test_TilerFactory():
     assert response.json()["band_names"] == ["b1"]
 
     response = client.get(
-        f"/point/-6259272.328324187,12015838.020930404?url={DATA_DIR}/cog.tif&coord-crs=EPSG:3857"
+        f"/point/-6259272.328324187,12015838.020930404?url={DATA_DIR}/cog.tif&coord_crs=EPSG:3857"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
@@ -219,7 +228,7 @@ def test_TilerFactory():
     assert response.json()["tilejson"]
 
     response_qs = client.get(
-        f"/tilejson.json?url={DATA_DIR}/cog.tif&TileMatrixSetId=WorldCRS84Quad"
+        f"/tilejson.json?url={DATA_DIR}/cog.tif&tileMatrixSetId=WorldCRS84Quad"
     )
     assert response.json()["tiles"] == response_qs.json()["tiles"]
 
@@ -657,6 +666,12 @@ def test_MultiBaseTilerFactory(rio):
 
     client = TestClient(app)
 
+    response = client.get("/openapi.json")
+    assert response.status_code == 200
+
+    response = client.get("/docs")
+    assert response.status_code == 200
+
     response = client.get(f"/assets?url={DATA_DIR}/item.json")
     assert response.status_code == 200
     assert len(response.json()) == 2
@@ -981,6 +996,12 @@ def test_MultiBandTilerFactory():
 
     client = TestClient(app)
 
+    response = client.get("/openapi.json")
+    assert response.status_code == 200
+
+    response = client.get("/docs")
+    assert response.status_code == 200
+
     response = client.get(f"/bands?directory={DATA_DIR}")
     assert response.status_code == 200
     assert response.json() == ["B01", "B09"]
@@ -1267,8 +1288,7 @@ def test_TMSFactory():
     response = client.get("/tms/tileMatrixSets/WebMercatorQuad")
     assert response.status_code == 200
     body = response.json()
-    assert body["type"] == "TileMatrixSetType"
-    assert body["identifier"] == "WebMercatorQuad"
+    assert body["id"] == "WebMercatorQuad"
 
     response = client.get("/tms/tileMatrixSets/WebMercatorQua")
     assert response.status_code == 422
@@ -1427,14 +1447,21 @@ def test_TilerFactory_WithGdalEnv():
     app.include_router(router)
     client = TestClient(app)
 
-    response = client.get(f"/info?url={DATA_DIR}/non_cog.tif")
-    assert response.json()["overviews"]
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        response = client.get(f"/info?url={DATA_DIR}/non_cog.tif")
+        assert response.json()["overviews"]
 
-    response = client.get(f"/info?url={DATA_DIR}/non_cog.tif&disable_read=false")
-    assert response.json()["overviews"]
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        response = client.get(f"/info?url={DATA_DIR}/non_cog.tif&disable_read=false")
+        assert response.json()["overviews"]
 
-    response = client.get(f"/info?url={DATA_DIR}/non_cog.tif&disable_read=empty_dir")
-    assert not response.json()["overviews"]
+    with pytest.warns(NoOverviewWarning):
+        response = client.get(
+            f"/info?url={DATA_DIR}/non_cog.tif&disable_read=empty_dir"
+        )
+        assert not response.json()["overviews"]
 
 
 def test_algorithm():
@@ -1512,7 +1539,6 @@ def test_AutoFormat_Colormap():
         response = client.get(f"/preview?url={DATA_DIR}/cog.tif&bidx=1&{cmap}")
         assert response.status_code == 200
         assert response.headers["content-type"] == "image/png"
-
         with MemoryFile(response.content) as mem:
             with mem.open() as dst:
                 img = dst.read()
@@ -1557,7 +1583,7 @@ def test_rescale_dependency():
 
 
 def test_dst_crs_option():
-    """test dst-crs parameter."""
+    """test dst_crs parameter."""
     app = FastAPI()
     app.include_router(TilerFactory().router)
 
@@ -1571,7 +1597,7 @@ def test_dst_crs_option():
             32621
         )  # return the image in the original CRS
 
-        response = client.get(f"/preview.tif?url={DATA_DIR}/cog.tif&dst-crs=epsg:4326")
+        response = client.get(f"/preview.tif?url={DATA_DIR}/cog.tif&dst_crs=epsg:4326")
         meta = parse_img(response.content)
         assert meta["crs"] == CRS.from_epsg(4326)
         assert not meta["crs"] == CRS.from_epsg(32621)
@@ -1588,20 +1614,20 @@ def test_dst_crs_option():
 
         # Force output in epsg:32621
         response = client.get(
-            f"/crop/-56.228,72.715,-54.547,73.188.tif?url={DATA_DIR}/cog.tif&dst-crs=epsg:32621"
+            f"/crop/-56.228,72.715,-54.547,73.188.tif?url={DATA_DIR}/cog.tif&dst_crs=epsg:32621"
         )
         meta = parse_img(response.content)
         assert meta["crs"] == CRS.from_epsg(32621)
 
-        # coord-crs + dst-crs
+        # coord_crs + dst_crs
         response = client.get(
-            f"/crop/-6259272.328324187,12015838.020930404,-6072144.264300693,12195445.265479913.tif?url={DATA_DIR}/cog.tif&coord-crs=epsg:3857"
+            f"/crop/-6259272.328324187,12015838.020930404,-6072144.264300693,12195445.265479913.tif?url={DATA_DIR}/cog.tif&coord_crs=epsg:3857"
         )
         meta = parse_img(response.content)
         assert meta["crs"] == CRS.from_epsg(3857)
 
         response = client.get(
-            f"/crop/-6259272.328324187,12015838.020930404,-6072144.264300693,12195445.265479913.tif?url={DATA_DIR}/cog.tif&coord-crs=epsg:3857&dst-crs=epsg:32621"
+            f"/crop/-6259272.328324187,12015838.020930404,-6072144.264300693,12195445.265479913.tif?url={DATA_DIR}/cog.tif&coord_crs=epsg:3857&dst_crs=epsg:32621"
         )
         meta = parse_img(response.content)
         assert meta["crs"] == CRS.from_epsg(32621)

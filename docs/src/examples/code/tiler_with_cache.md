@@ -186,15 +186,15 @@ class TilerFactory(TiTilerFactory):
         @self.router.get(r"/tiles/{z}/{x}/{y}.{format}", **img_endpoint_params)
         @self.router.get(r"/tiles/{z}/{x}/{y}@{scale}x", **img_endpoint_params)
         @self.router.get(r"/tiles/{z}/{x}/{y}@{scale}x.{format}", **img_endpoint_params)
-        @self.router.get(r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}", **img_endpoint_params)
+        @self.router.get(r"/tiles/{tileMatrixSetId}/{z}/{x}/{y}", **img_endpoint_params)
         @self.router.get(
-            r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}.{format}", **img_endpoint_params
+            r"/tiles/{tileMatrixSetId}/{z}/{x}/{y}.{format}", **img_endpoint_params
         )
         @self.router.get(
-            r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x", **img_endpoint_params
+            r"/tiles/{tileMatrixSetId}/{z}/{x}/{y}@{scale}x", **img_endpoint_params
         )
         @self.router.get(
-            r"/tiles/{TileMatrixSetId}/{z}/{x}/{y}@{scale}x.{format}",
+            r"/tiles/{tileMatrixSetId}/{z}/{x}/{y}@{scale}x.{format}",
             **img_endpoint_params,
         )
         # Add default cache config dictionary into cached alias.
@@ -204,7 +204,7 @@ class TilerFactory(TiTilerFactory):
             z: int = Path(..., ge=0, le=30, description="TMS tiles's zoom level"),
             x: int = Path(..., description="TMS tiles's column"),
             y: int = Path(..., description="TMS tiles's row"),
-            TileMatrixSetId: Literal[tuple(self.supported_tms.list())] = Query(
+            tileMatrixSetId: Literal[tuple(self.supported_tms.list())] = Query(
                 self.default_tms,
                 description=f"TileMatrixSet Name (default: '{self.default_tms}')",
             ),
@@ -235,7 +235,7 @@ class TilerFactory(TiTilerFactory):
             reader_params=Depends(self.reader_dependency),
         ):
             """Create map tile from a dataset."""
-            tms = self.supported_tms.get(TileMatrixSetId)
+            tms = self.supported_tms.get(tileMatrixSetId)
 
             with self.reader(src_path, tms=tms, **reader_params) as src_dst:
                 image = src_dst.tile(
@@ -280,7 +280,7 @@ class TilerFactory(TiTilerFactory):
             response_model_exclude_none=True,
         )
         @self.router.get(
-            "/{TileMatrixSetId}/tilejson.json",
+            "/{tileMatrixSetId}/tilejson.json",
             response_model=TileJSON,
             responses={200: {"description": "Return a tilejson"}},
             response_model_exclude_none=True,
@@ -288,7 +288,7 @@ class TilerFactory(TiTilerFactory):
         @cached(alias="default")
         def tilejson(
             request: Request,
-            TileMatrixSetId: Literal[tuple(self.supported_tms.list())] = Query(
+            tileMatrixSetId: Literal[tuple(self.supported_tms.list())] = Query(
                 self.default_tms,
                 description=f"TileMatrixSet Name (default: '{self.default_tms}')",
             ),
@@ -332,7 +332,7 @@ class TilerFactory(TiTilerFactory):
                 "x": "{x}",
                 "y": "{y}",
                 "scale": tile_scale,
-                "TileMatrixSetId": TileMatrixSetId,
+                "tileMatrixSetId": tileMatrixSetId,
             }
             if tile_format:
                 route_params["format"] = tile_format.value
@@ -354,7 +354,7 @@ class TilerFactory(TiTilerFactory):
             if qs:
                 tiles_url += f"?{urlencode(qs)}"
 
-            tms = self.supported_tms.get(TileMatrixSetId)
+            tms = self.supported_tms.get(tileMatrixSetId)
             with self.reader(src_path, tms=tms, **reader_params) as src_dst:
                 return {
                     "bounds": src_dst.geographic_bounds,

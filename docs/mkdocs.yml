@@ -76,7 +76,6 @@ nav:
       - viewer: api/titiler/extensions/viewer.md
     - titiler.mosaic:
       - factory: api/titiler/mosaic/factory.md
-      - enums: api/titiler/mosaic/resources/enums.md
       - errors: api/titiler/mosaic/errors.md
 
   - titiler.application:
@@ -97,6 +96,7 @@ nav:
   - External links: "external_links.md"
   - Development - Contributing: "contributing.md"
   - Release Notes: "release-notes.md"
+  - Performance Benchmarks: benchmark.html
 
 plugins:
   - search

@@ -5,14 +5,14 @@ Extent TiTiler Tiler Factories
 ## Installation
 
 ```bash
-$ pip install -U pip
+$ python -m pip install -U pip
 
 # From Pypi
-$ pip install titiler.extensions
+$ python -m pip install titiler.extensions
 
 # Or from sources
 $ git clone https://github.com/developmentseed/titiler.git
-$ cd titiler && pip install -e titiler/core -e titiler/extensions
+$ cd titiler && python -m pip install -e src/titiler/core -e src/titiler/extensions
 ```
 
 ## Available extensions
@@ -118,12 +118,12 @@ class thumbnailExtension(FactoryExtension):
             env=Depends(factory.environment_dependency),
         ):
             with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
-                        im = src.preview(
-                            max_size=self.max_size,
-                            **layer_params,
-                            **dataset_params,
-                        )
+                with factory.reader(src_path, **reader_params) as src:
+                    image = src.preview(
+                        max_size=self.max_size,
+                        **layer_params,
+                        **dataset_params,
+                    )
 
             if post_process:
                 image = post_process(image)
@@ -138,7 +138,7 @@ class thumbnailExtension(FactoryExtension):
 
             content = image.render(
                 img_format=format.driver,
-                colormap=colormap or dst_colormap,
+                colormap=colormap,
                 **format.profile,
                 **render_params,
             )

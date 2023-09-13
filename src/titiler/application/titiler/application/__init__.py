@@ -1,3 +1,3 @@
 """titiler.application"""
 
-__version__ = "0.11.7"
+__version__ = "0.14.0"

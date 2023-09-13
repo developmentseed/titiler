@@ -35,6 +35,7 @@ The default application can be customized using environment variables defined in
 
 - `NAME` (str): name of the application. Defaults to `titiler`.
 - `CORS_ORIGINS` (str, `,` delimited origins): allowed CORS origin. Defaults to `*`.
+- `CORS_ALLOW_METHODS` (str, `,` delimited methods): allowed CORS methods. Defaults to `GET`.
 - `CACHECONTROL` (str): Cache control header to add to responses. Defaults to `"public, max-age=3600"`.
 - `ROOT_PATH` (str): path behind proxy.
 - `DEBUG` (str): adds `LoggerMiddleware` and `TotalTimeMiddleware` in the middleware stack.

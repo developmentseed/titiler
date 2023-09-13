@@ -5,8 +5,8 @@
     <title>TiTiler - STAC Viewer</title>
     <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
 
-    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.6.1/mapbox-gl.js'></script>
-    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.6.1/mapbox-gl.css' rel='stylesheet' />
+    <script src='https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js'></script>
+    <link href='https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css' rel='stylesheet' />
 
     <link href='https://api.mapbox.com/mapbox-assembly/v0.23.2/assembly.min.css' rel='stylesheet'>
     <script src='https://api.mapbox.com/mapbox-assembly/v0.23.2/assembly.js'></script>
@@ -177,7 +177,7 @@
           -ms-transition: all .5s ease;
           transition: all ease .5s;
         }
-        .mapboxgl-ctrl-attrib {
+        .maplibregl-ctrl-attrib {
           font-size: 10px;
         }
       }
@@ -332,8 +332,6 @@ var scope = {
   dataset_statistics: undefined,
 }
 
-mapboxgl.accessToken = ''
-
 const tilejson_endpoint = '{{ tilejson_endpoint }}'
 const info_endpoint = '{{ info_endpoint }}'
 const stats_endpoint = '{{ statistics_endpoint }}'
@@ -349,29 +347,25 @@ const dtype_ranges = {
   'float64': [-1.7976931348623157e+308, 1.7976931348623157e+308]
 }
 
-var map = new mapboxgl.Map({
+var map = new maplibregl.Map({
   container: 'map',
   style: {
     version: 8,
     sources: {
-      'toner-lite': {
+      'basemap': {
         type: 'raster',
         tiles: [
-          'https://stamen-tiles-a.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png',
-          'https://stamen-tiles-b.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png',
-          'https://stamen-tiles-c.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png',
-          'https://stamen-tiles-d.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png'
+        'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
         ],
         tileSize: 256,
-        attribution:
-          'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.'
+        attribution: '<a href="http://www.openstreetmap.org/copyright">© OpenStreetMap</a>'
       }
     },
     layers: [
       {
         'id': 'basemap',
         'type': 'raster',
-        'source': 'toner-lite',
+        'source': 'basemap',
         'minzoom': 0,
         'maxzoom': 20
       }
@@ -380,7 +374,6 @@ var map = new mapboxgl.Map({
   center: [0, 0],
   zoom: 1
 })
-
 
 map.on('zoom', function (e) {
     const z = (map.getZoom()).toString().slice(0, 6)
@@ -692,7 +685,7 @@ document.getElementById('zoom-to-point-form').addEventListener('submit', (e) => 
     });
 
     if (!centerMarker) {
-      centerMarker = new mapboxgl.Marker()
+      centerMarker = new maplibregl.Marker()
       .setLngLat([lng, lat])
       .addTo(map);
     } else {
@@ -900,7 +893,7 @@ const updateUI = () => {
       l.setAttribute('bidx', scope.assets[i])
       l.setAttribute('bname', scope.assets[i])
       l.text = scope.assets[i]
-      l.selected = "selected"
+      if (i === 2) l.selected = "selected"
       bList.appendChild(l)
     }
 
@@ -931,39 +924,17 @@ const updateUI = () => {
     }
 
     // Populate R/G/B (3b) selectors
-    const rList = document.getElementById('r-selector')
-    for (var i = 0; i < nbands; i++) {
-      let l = document.createElement('option')
-      l.setAttribute('bidx', i + 1)
-      l.setAttribute('bname', band_descr[i][0])
-      l.text = band_descr[i][1] || band_descr[i][0]
-      if (i === 0) l.selected="selected"
-      rList.appendChild(l)
-    }
-
-    const gList = document.getElementById('g-selector')
-    for (var i = 0; i < nbands; i++) {
-      let l = document.createElement('option')
-      l.setAttribute('bidx', i + 1)
-      l.setAttribute('bname', band_descr[i][0])
-      l.text = band_descr[i][1] || band_descr[i][0]
-      if (i === 1) l.selected="selected"
-      gList.appendChild(l)
-    }
-
-    const bList = document.getElementById('b-selector')
-    for (var i = 0; i < nbands; i++) {
-      let l = document.createElement('option')
-      l.setAttribute('bidx', i + 1)
-      l.setAttribute('bname', band_descr[i][0])
-      l.text = band_descr[i][1] || band_descr[i][0]
-      if (band_descr.length > 2 && i === 2) {
-          l.selected="selected"
-      } else {
-          l.selected="selected"
+    ['r-selector', 'g-selector', 'b-selector'].forEach((elId, idx) => {
+      const list = document.getElementById(elId)
+      for (var i = 0; i < nbands; i++) {
+        let l = document.createElement('option')
+        l.setAttribute('bidx', i + 1)
+        l.setAttribute('bname', band_descr[i][0])
+        l.text = band_descr[i][1] || band_descr[i][0]
+        if (i === idx) l.selected="selected"
+        list.appendChild(l)
       }
-      bList.appendChild(l)
-    }
+    })
 
     if (['uint8','int8'].indexOf(info.dtype) === -1) {
       document.getElementById('minmax-data').classList.remove('none')

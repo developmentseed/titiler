@@ -8,6 +8,7 @@ import numpy
 from fastapi import FastAPI, Query
 from rio_tiler.colormap import ColorMaps
 from starlette.testclient import TestClient
+from typing_extensions import Annotated
 
 from titiler.core.factory import TilerFactory
 
@@ -23,7 +24,10 @@ ColorMapName = Enum(  # type: ignore
 
 
 def ColorMapParams(
-    colormap_name: ColorMapName = Query(None, description="Colormap name"),
+    colormap_name: Annotated[
+        ColorMapName,
+        Query(description="Colormap name"),
+    ] = None,
 ) -> Optional[Dict]:
     """Colormap Dependency."""
     if colormap_name:

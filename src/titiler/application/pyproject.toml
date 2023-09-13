@@ -29,11 +29,11 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-    "titiler.core==0.11.7",
-    "titiler.extensions[cogeo,stac]==0.11.7",
-    "titiler.mosaic==0.11.7",
+    "titiler.core==0.14.0",
+    "titiler.extensions[cogeo,stac]==0.14.0",
+    "titiler.mosaic==0.14.0",
     "starlette-cramjam>=0.3,<0.4",
-    "python-dotenv",
+    "pydantic-settings~=2.0",
 ]
 
 [project.optional-dependencies]
@@ -43,6 +43,7 @@ test = [
     "pytest-asyncio",
     "httpx",
     "brotlipy",
+    "boto3",
 ]
 server = [
     "uvicorn[standard]>=0.12.0,<0.19.0",

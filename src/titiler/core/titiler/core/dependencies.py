@@ -8,22 +8,24 @@ from typing import Dict, List, Optional, Sequence, Tuple, Union
 import numpy
 from fastapi import HTTPException, Query
 from rasterio.crs import CRS
-from rasterio.enums import Resampling
 from rio_tiler.colormap import cmap, parse_color
 from rio_tiler.errors import MissingAssets, MissingBands
-from rio_tiler.types import ColorMapType
+from rio_tiler.types import ColorMapType, RIOResampling
+from typing_extensions import Annotated
 
 ColorMapName = Enum(  # type: ignore
     "ColorMapName", [(a, a) for a in sorted(cmap.list())]
 )
-ResamplingName = Enum(  # type: ignore
-    "ResamplingName", [(r.name, r.name) for r in Resampling]
-)
 
 
 def ColorMapParams(
-    colormap_name: ColorMapName = Query(None, description="Colormap name"),
-    colormap: str = Query(None, description="JSON encoded custom Colormap"),
+    colormap_name: Annotated[
+        Optional[ColorMapName],
+        Query(description="Colormap name"),
+    ] = None,
+    colormap: Annotated[
+        Optional[str], Query(description="JSON encoded custom Colormap")
+    ] = None,
 ) -> Optional[ColorMapType]:
     """Colormap Dependency."""
     if colormap_name:
@@ -49,7 +51,7 @@ def ColorMapParams(
     return None
 
 
-def DatasetPathParams(url: str = Query(..., description="Dataset URL")) -> str:
+def DatasetPathParams(url: Annotated[str, Query(description="Dataset URL")]) -> str:
     """Create dataset path from args"""
     return url
 
@@ -72,31 +74,35 @@ class DefaultDependency:
 class BidxParams(DefaultDependency):
     """Band Indexes parameters."""
 
-    indexes: Optional[List[int]] = Query(
-        None,
-        title="Band indexes",
-        alias="bidx",
-        description="Dataset band indexes",
-        examples={"one-band": {"value": [1]}, "multi-bands": {"value": [1, 2, 3]}},
-    )
+    indexes: Annotated[
+        Optional[List[int]],
+        Query(
+            title="Band indexes",
+            alias="bidx",
+            description="Dataset band indexes",
+            examples={"one-band": {"value": [1]}, "multi-bands": {"value": [1, 2, 3]}},
+        ),
+    ] = None
 
 
 @dataclass
 class ExpressionParams(DefaultDependency):
     """Expression parameters."""
 
-    expression: Optional[str] = Query(
-        None,
-        title="Band Math expression",
-        description="rio-tiler's band math expression",
-        examples={
-            "simple": {"description": "Simple band math.", "value": "b1/b2"},
-            "multi-bands": {
-                "description": "Semicolon (;) delimited expressions (band1: b1/b2, band2: b2+b3).",
-                "value": "b1/b2;b2+b3",
+    expression: Annotated[
+        Optional[str],
+        Query(
+            title="Band Math expression",
+            description="rio-tiler's band math expression",
+            examples={
+                "simple": {"description": "Simple band math.", "value": "b1/b2"},
+                "multi-bands": {
+                    "description": "Semicolon (;) delimited expressions (band1: b1/b2, band2: b2+b3).",
+                    "value": "b1/b2;b2+b3",
+                },
             },
-        },
-    )
+        ),
+    ] = None
 
 
 @dataclass
@@ -111,76 +117,69 @@ class BidxExprParams(ExpressionParams, BidxParams):
 class AssetsParams(DefaultDependency):
     """Assets parameters."""
 
-    assets: List[str] = Query(
-        None,
-        title="Asset names",
-        description="Asset's names.",
-        examples={
-            "one-asset": {
-                "description": "Return results for asset `data`.",
-                "value": ["data"],
+    assets: Annotated[
+        Optional[List[str]],
+        Query(
+            title="Asset names",
+            description="Asset's names.",
+            examples={
+                "one-asset": {
+                    "description": "Return results for asset `data`.",
+                    "value": ["data"],
+                },
+                "multi-assets": {
+                    "description": "Return results for assets `data` and `cog`.",
+                    "value": ["data", "cog"],
+                },
             },
-            "multi-assets": {
-                "description": "Return results for assets `data` and `cog`.",
-                "value": ["data", "cog"],
-            },
-        },
-    )
+        ),
+    ] = None
 
 
 @dataclass
-class AssetsBidxExprParams(DefaultDependency):
+class AssetsBidxExprParams(AssetsParams):
     """Assets, Expression and Asset's band Indexes parameters."""
 
-    assets: Optional[List[str]] = Query(
-        None,
-        title="Asset names",
-        description="Asset's names.",
-        examples={
-            "one-asset": {
-                "description": "Return results for asset `data`.",
-                "value": ["data"],
+    expression: Annotated[
+        Optional[str],
+        Query(
+            title="Band Math expression",
+            description="Band math expression between assets",
+            examples={
+                "simple": {
+                    "description": "Return results of expression between assets.",
+                    "value": "asset1_b1 + asset2_b1 / asset3_b1",
+                },
             },
-            "multi-assets": {
-                "description": "Return results for assets `data` and `cog`.",
-                "value": ["data", "cog"],
-            },
-        },
-    )
-    expression: Optional[str] = Query(
-        None,
-        title="Band Math expression",
-        description="Band math expression between assets",
-        examples={
-            "simple": {
-                "description": "Return results of expression between assets.",
-                "value": "asset1_b1 + asset2_b1 / asset3_b1",
-            },
-        },
-    )
+        ),
+    ] = None
 
-    asset_indexes: Optional[Sequence[str]] = Query(
-        None,
-        title="Per asset band indexes",
-        description="Per asset band indexes (coma separated indexes)",
-        alias="asset_bidx",
-        examples={
-            "one-asset": {
-                "description": "Return indexes 1,2,3 of asset `data`.",
-                "value": ["data|1,2,3"],
+    asset_indexes: Annotated[
+        Optional[Sequence[str]],
+        Query(
+            title="Per asset band indexes",
+            description="Per asset band indexes (coma separated indexes)",
+            alias="asset_bidx",
+            examples={
+                "one-asset": {
+                    "description": "Return indexes 1,2,3 of asset `data`.",
+                    "value": ["data|1,2,3"],
+                },
+                "multi-assets": {
+                    "description": "Return indexes 1,2,3 of asset `data` and indexes 1 of asset `cog`",
+                    "value": ["data|1,2,3", "cog|1"],
+                },
             },
-            "multi-assets": {
-                "description": "Return indexes 1,2,3 of asset `data` and indexes 1 of asset `cog`",
-                "value": ["data|1,2,3", "cog|1"],
-            },
-        },
-    )
+        ),
+    ] = None
 
-    asset_as_band: Optional[bool] = Query(
-        None,
-        title="Consider asset as a 1 band dataset",
-        description="Asset as Band",
-    )
+    asset_as_band: Annotated[
+        Optional[bool],
+        Query(
+            title="Consider asset as a 1 band dataset",
+            description="Asset as Band",
+        ),
+    ] = None
 
     def __post_init__(self):
         """Post Init."""
@@ -213,38 +212,42 @@ class AssetsBidxExprParamsOptional(AssetsBidxExprParams):
 class AssetsBidxParams(AssetsParams):
     """Assets, Asset's band Indexes and Asset's band Expression parameters."""
 
-    asset_indexes: Optional[Sequence[str]] = Query(
-        None,
-        title="Per asset band indexes",
-        description="Per asset band indexes",
-        alias="asset_bidx",
-        examples={
-            "one-asset": {
-                "description": "Return indexes 1,2,3 of asset `data`.",
-                "value": ["data|1;2;3"],
+    asset_indexes: Annotated[
+        Optional[Sequence[str]],
+        Query(
+            title="Per asset band indexes",
+            description="Per asset band indexes",
+            alias="asset_bidx",
+            examples={
+                "one-asset": {
+                    "description": "Return indexes 1,2,3 of asset `data`.",
+                    "value": ["data|1;2;3"],
+                },
+                "multi-assets": {
+                    "description": "Return indexes 1,2,3 of asset `data` and indexes 1 of asset `cog`",
+                    "value": ["data|1;2;3", "cog|1"],
+                },
             },
-            "multi-assets": {
-                "description": "Return indexes 1,2,3 of asset `data` and indexes 1 of asset `cog`",
-                "value": ["data|1;2;3", "cog|1"],
-            },
-        },
-    )
+        ),
+    ] = None
 
-    asset_expression: Optional[Sequence[str]] = Query(
-        None,
-        title="Per asset band expression",
-        description="Per asset band expression",
-        examples={
-            "one-asset": {
-                "description": "Return results for expression `b1*b2+b3` of asset `data`.",
-                "value": ["data|b1*b2+b3"],
+    asset_expression: Annotated[
+        Optional[Sequence[str]],
+        Query(
+            title="Per asset band expression",
+            description="Per asset band expression",
+            examples={
+                "one-asset": {
+                    "description": "Return results for expression `b1*b2+b3` of asset `data`.",
+                    "value": ["data|b1*b2+b3"],
+                },
+                "multi-assets": {
+                    "description": "Return results for expressions `b1*b2+b3` for asset `data` and `b1+b3` for asset `cog`.",
+                    "value": ["data|b1*b2+b3", "cog|b1+b3"],
+                },
             },
-            "multi-assets": {
-                "description": "Return results for expressions `b1*b2+b3` for asset `data` and `b1+b3` for asset `cog`.",
-                "value": ["data|b1*b2+b3", "cog|b1+b3"],
-            },
-        },
-    )
+        ),
+    ] = None
 
     def __post_init__(self):
         """Post Init."""
@@ -265,21 +268,23 @@ class AssetsBidxParams(AssetsParams):
 class BandsParams(DefaultDependency):
     """Band names parameters."""
 
-    bands: List[str] = Query(
-        None,
-        title="Band names",
-        description="Band's names.",
-        examples={
-            "one-band": {
-                "description": "Return results for band `B01`.",
-                "value": ["B01"],
+    bands: Annotated[
+        Optional[List[str]],
+        Query(
+            title="Band names",
+            description="Band's names.",
+            examples={
+                "one-band": {
+                    "description": "Return results for band `B01`.",
+                    "value": ["B01"],
+                },
+                "multi-bands": {
+                    "description": "Return results for bands `B01` and `B02`.",
+                    "value": ["B01", "B02"],
+                },
             },
-            "multi-bands": {
-                "description": "Return results for bands `B01` and `B02`.",
-                "value": ["B01", "B02"],
-            },
-        },
-    )
+        ),
+    ] = None
 
 
 @dataclass
@@ -305,11 +310,9 @@ class BandsExprParams(ExpressionParams, BandsParams):
 class ImageParams(DefaultDependency):
     """Common Preview/Crop parameters."""
 
-    max_size: Optional[int] = Query(
-        1024, description="Maximum image size to read onto."
-    )
-    height: Optional[int] = Query(None, description="Force output image height.")
-    width: Optional[int] = Query(None, description="Force output image width.")
+    max_size: Annotated[int, "Maximum image size to read onto."] = 1024
+    height: Annotated[Optional[int], "Force output image height."] = None
+    width: Annotated[Optional[int], "Force output image width."] = None
 
     def __post_init__(self):
         """Post Init."""
@@ -321,46 +324,60 @@ class ImageParams(DefaultDependency):
 class DatasetParams(DefaultDependency):
     """Low level WarpedVRT Optional parameters."""
 
-    nodata: Optional[Union[str, int, float]] = Query(
-        None, title="Nodata value", description="Overwrite internal Nodata value"
-    )
-    unscale: Optional[bool] = Query(
-        False,
-        title="Apply internal Scale/Offset",
-        description="Apply internal Scale/Offset",
-    )
-    resampling_method: ResamplingName = Query(
-        ResamplingName.nearest,  # type: ignore
-        alias="resampling",
-        description="Resampling method.",
-    )
+    nodata: Annotated[
+        Optional[Union[str, int, float]],
+        Query(
+            title="Nodata value",
+            description="Overwrite internal Nodata value",
+        ),
+    ] = None
+    unscale: Annotated[
+        Optional[bool],
+        Query(
+            title="Apply internal Scale/Offset",
+            description="Apply internal Scale/Offset",
+        ),
+    ] = False
+    resampling_method: Annotated[
+        RIOResampling,
+        Query(
+            alias="resampling",
+            description="Resampling method.",
+        ),
+    ] = "nearest"
 
     def __post_init__(self):
         """Post Init."""
         if self.nodata is not None:
             self.nodata = numpy.nan if self.nodata == "nan" else float(self.nodata)
-        self.resampling_method = self.resampling_method.value  # type: ignore
+        self.resampling_method = self.resampling_method
 
 
 @dataclass
 class ImageRenderingParams(DefaultDependency):
     """Image Rendering options."""
 
-    add_mask: bool = Query(
-        True, alias="return_mask", description="Add mask to the output data."
-    )
+    add_mask: Annotated[
+        bool,
+        Query(
+            alias="return_mask",
+            description="Add mask to the output data.",
+        ),
+    ] = True
 
 
 RescaleType = List[Tuple[float, ...]]
 
 
 def RescalingParams(
-    rescale: Optional[List[str]] = Query(
-        None,
-        title="Min/Max data Rescaling",
-        description="comma (',') delimited Min,Max range. Can set multiple time for multiple bands.",
-        example=["0,2000", "0,1000", "0,10000"],  # band 1  # band 2  # band 3
-    )
+    rescale: Annotated[
+        Optional[List[str]],
+        Query(
+            title="Min/Max data Rescaling",
+            description="comma (',') delimited Min,Max range. Can set multiple time for multiple bands.",
+            examples=["0,2000", "0,1000", "0,10000"],  # band 1  # band 2  # band 3
+        ),
+    ] = None,
 ) -> Optional[RescaleType]:
     """Min/Max data Rescaling"""
     if rescale:
@@ -373,57 +390,70 @@ def RescalingParams(
 class StatisticsParams(DefaultDependency):
     """Statistics options."""
 
-    categorical: bool = Query(
-        False, description="Return statistics for categorical dataset."
-    )
-    categories: List[Union[float, int]] = Query(
-        None,
-        alias="c",
-        title="Pixels values for categories.",
-        description="List of values for which to report counts.",
-        example=[1, 2, 3],
-    )
-    percentiles: List[int] = Query(
-        [2, 98],
-        alias="p",
-        title="Percentile values",
-        description="List of percentile values.",
-        example=[2, 5, 95, 98],
-    )
+    categorical: Annotated[
+        bool,
+        Query(description="Return statistics for categorical dataset."),
+    ] = False
+    categories: Annotated[
+        Optional[List[Union[float, int]]],
+        Query(
+            alias="c",
+            title="Pixels values for categories.",
+            description="List of values for which to report counts.",
+            examples=[1, 2, 3],
+        ),
+    ] = None
+    percentiles: Annotated[
+        Optional[List[int]],
+        Query(
+            alias="p",
+            title="Percentile values",
+            description="List of percentile values (default to [2, 98]).",
+            examples=[2, 5, 95, 98],
+        ),
+    ] = None
+
+    def __post_init__(self):
+        """Set percentiles default."""
+        if not self.percentiles:
+            self.percentiles = [2, 98]
 
 
 @dataclass
 class HistogramParams(DefaultDependency):
     """Numpy Histogram options."""
 
-    bins: Optional[str] = Query(
-        None,
-        alias="histogram_bins",
-        title="Histogram bins.",
-        description="""
+    bins: Annotated[
+        Optional[str],
+        Query(
+            alias="histogram_bins",
+            title="Histogram bins.",
+            description="""
 Defines the number of equal-width bins in the given range (10, by default).
 
 If bins is a sequence (comma `,` delimited values), it defines a monotonically increasing array of bin edges, including the rightmost edge, allowing for non-uniform bin widths.
 
 link: https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
-        """,
-        examples={
-            "simple": {
-                "description": "Defines the number of equal-width bins",
-                "value": 8,
+            """,
+            examples={
+                "simple": {
+                    "description": "Defines the number of equal-width bins",
+                    "value": 8,
+                },
+                "array": {
+                    "description": "Defines custom bin edges (comma `,` delimited values)",
+                    "value": "0,100,200,300",
+                },
             },
-            "array": {
-                "description": "Defines custom bin edges (comma `,` delimited values)",
-                "value": "0,100,200,300",
-            },
-        },
-    )
+        ),
+    ] = None
 
-    range: Optional[str] = Query(
-        None,
-        alias="histogram_range",
-        title="Histogram range",
-        description="""
+    range: Annotated[
+        Optional[str],
+        Query(
+            alias="histogram_range",
+            title="Histogram range",
+            description="""
 Comma `,` delimited range of the bins.
 
 The lower and upper range of the bins. If not provided, range is simply (a.min(), a.max()).
@@ -432,9 +462,10 @@ Values outside the range are ignored. The first element of the range must be les
 range affects the automatic bin computation as well.
 
 link: https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
-        """,
-        example="0,1000",
-    )
+            """,
+            examples="0,1000",
+        ),
+    ] = None
 
     def __post_init__(self):
         """Post Init."""
@@ -452,11 +483,13 @@ link: https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
 
 
 def CoordCRSParams(
-    crs: str = Query(
-        None,
-        alias="coord-crs",
-        description="Coordinate Reference System of the input coords. Default to `epsg:4326`.",
-    )
+    crs: Annotated[
+        Optional[str],
+        Query(
+            alias="coord_crs",
+            description="Coordinate Reference System of the input coords. Default to `epsg:4326`.",
+        ),
+    ] = None,
 ) -> Optional[CRS]:
     """Coordinate Reference System Coordinates Param."""
     if crs:
@@ -466,14 +499,43 @@ def CoordCRSParams(
 
 
 def DstCRSParams(
-    crs: str = Query(
-        None,
-        alias="dst-crs",
-        description="Output Coordinate Reference System.",
-    )
+    crs: Annotated[
+        Optional[str],
+        Query(
+            alias="dst_crs",
+            description="Output Coordinate Reference System.",
+        ),
+    ] = None,
 ) -> Optional[CRS]:
     """Coordinate Reference System Coordinates Param."""
     if crs:
         return CRS.from_user_input(crs)
 
     return None
+
+
+def BufferParams(
+    buffer: Annotated[
+        Optional[float],
+        Query(
+            gt=0,
+            title="Tile buffer.",
+            description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
+        ),
+    ] = None,
+) -> Optional[float]:
+    """Tile buffer Parameter."""
+    return buffer
+
+
+def ColorFormulaParams(
+    color_formula: Annotated[
+        Optional[str],
+        Query(
+            title="Color Formula",
+            description="rio-color formula (info: https://github.com/mapbox/rio-color)",
+        ),
+    ] = None,
+) -> Optional[str]:
+    """ColorFormula Parameter."""
+    return color_formula

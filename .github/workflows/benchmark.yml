@@ -19,7 +19,9 @@ jobs:
       - name: install siege
         run: |
           sudo apt update
-          sudo apt install --yes siege
+          sudo apt install --yes siege jq
+          siege -C
+
       - name: Start containers
         run: docker-compose -f "docker-compose.yml" up -d --build benchmark
 
@@ -30,12 +32,39 @@ jobs:
 
       - name: Run siege (WebMercator TMS)
         run: |
-          siege --file .github/data/urls.txt -b -c 1 -r 100 > /dev/null
+          siege --file .github/data/urls.txt -b -c 1 -r 100 --json-output 2>&1 | jq -c > results.json
+          echo "Benchmark Results"
+          cat results.json | jq
+          echo "Parse Results"
+          cat results.json | jq '{"name": "WebMercator elapsed_time", "unit": "s", "value": .elapsed_time}, {"name": "WebMercator data_transferred", "unit": "Megabytes", "value": .data_transferred}, {"name": "WebMercator response_time", "unit": "s", "value": .response_time}, {"name": "WebMercator longest_transaction", "unit": "s", "value": .longest_transaction}' > output.json
 
       - name: Run siege (WGS1984Quad TMS)
         run: |
-          siege --file .github/data/urls_wgs84.txt -b -c 1 -r 100 > /dev/null
+          siege --file .github/data/urls_wgs84.txt -b -c 1 -r 100 --json-output 2>&1 | jq -c > results.json
+          echo "Benchmark Results"
+          cat results.json | jq
+          echo "Parse Results"
+          cat results.json | jq '{"name": "WGS1984Quad elapsed_time", "unit": "s", "value": .elapsed_time}, {"name": "WGS1984Quad data_transferred", "unit": "Megabytes", "value": .data_transferred}, {"name": "WGS1984Quad response_time", "unit": "s", "value": .response_time}, {"name": "WGS1984Quad longest_transaction", "unit": "s", "value": .longest_transaction}' >> output.json
 
       - name: Stop containers
         if: always()
         run: docker-compose -f "docker-compose.yml" down
+
+      - name: Merge Outputs
+        run: |
+          cat output.json | jq '[inputs]' > benchmark.json
+
+      - name: Check and Store benchmark result
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: TiTiler performance Benchmarks
+          tool: 'customSmallerIsBetter'
+          output-file-path: benchmark.json
+          alert-threshold: '130%'
+          comment-on-alert: true
+          fail-on-alert: false
+          # GitHub API token to make a commit comment
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          gh-pages-branch: 'gh-benchmarks'
+          # Make a commit only if main
+          auto-push: ${{ github.ref == 'refs/heads/main' }}

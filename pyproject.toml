@@ -27,12 +27,12 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Topic :: Scientific/Engineering :: GIS",
 ]
-version="0.11.7"
+version="0.14.0"
 dependencies = [
-    "titiler.core==0.11.7",
-    "titiler.extensions==0.11.7",
-    "titiler.mosaic==0.11.7",
-    "titiler.application==0.11.7",
+    "titiler.core==0.14.0",
+    "titiler.extensions==0.14.0",
+    "titiler.mosaic==0.14.0",
+    "titiler.application==0.14.0",
 ]
 
 [project.optional-dependencies]
@@ -127,3 +127,8 @@ no_implicit_optional = true
 strict_optional = true
 namespace_packages = true
 explicit_package_bases = true
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore::rasterio.errors.NotGeoreferencedWarning",
+]

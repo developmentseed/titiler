@@ -3,6 +3,7 @@
 import logging
 import re
 import time
+import urllib.parse
 from typing import Optional, Set
 
 from fastapi.logger import logger
@@ -160,7 +161,7 @@ class LowerCaseQueryStringMiddleware:
 
             query_string = ""
             for k, v in request.query_params.multi_items():
-                query_string += k.lower() + "=" + v + "&"
+                query_string += k.lower() + "=" + urllib.parse.quote(v) + "&"
 
             query_string = query_string[:-1]
             request.scope["query_string"] = query_string.encode(DECODE_FORMAT)

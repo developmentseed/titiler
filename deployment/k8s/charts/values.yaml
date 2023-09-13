@@ -9,6 +9,8 @@ image:
 nameOverride: ""
 fullnameOverride: ""
 
+terminationGracePeriodSeconds: 30
+
 service:
   type: ClusterIP
   port: 80
@@ -25,6 +27,15 @@ ingress:
   #  - secretName: titiler-tls
   #    hosts:
   #      - titiler.local
+
+extraHostPathMounts: []
+  # - name: map-sources
+  #   mountPath: /map-sources/
+  #   hostPath: /home/ubuntu/map-sources
+  #   readOnly: false
+  #   mountPropagation: HostToContainer # OPTIONAL
+
+imagePullSecrets: []
 
 env:
   PORT: 80
@@ -54,3 +65,17 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #     - ALL
+  # readOnlyRootFilesystem: true
+  # allowPrivilegeEscalation: false
+  # runAsNonRoot: true
+  # runAsUser: 1001
+
+podSecurityContext: {}
+  # fsGroup: 1001
+  # runAsNonRoot: true
+  # runAsUser: 1001

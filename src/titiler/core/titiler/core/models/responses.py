@@ -30,14 +30,11 @@ class StatisticsInGeoJSON(BaseModel):
 
     statistics: Statistics
 
-    class Config:
-        """Config for model."""
-
-        extra = "allow"
+    model_config = {"extra": "allow"}
 
 
 StatisticsGeoJSON = Union[
-    FeatureCollection[Geometry, StatisticsInGeoJSON],
+    FeatureCollection[Feature[Geometry, StatisticsInGeoJSON]],
     Feature[Geometry, StatisticsInGeoJSON],
 ]
 
@@ -46,7 +43,4 @@ MultiBaseInfo = Dict[str, Info]
 MultiBaseInfoGeoJSON = Feature[Polygon, MultiBaseInfo]
 
 MultiBaseStatistics = Dict[str, Statistics]
-MultiBaseStatisticsGeoJSON = Union[
-    FeatureCollection[Geometry, StatisticsInGeoJSON],
-    Feature[Geometry, StatisticsInGeoJSON],
-]
+MultiBaseStatisticsGeoJSON = StatisticsGeoJSON

@@ -58,7 +58,6 @@ jobs:
             --exclude_source \
             --overwrite \
             titiler.mosaic.factory \
-            titiler.mosaic.resources.enums \
             titiler.mosaic.errors
 
       - name: Deploy docs

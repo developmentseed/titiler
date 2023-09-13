@@ -6,19 +6,19 @@
 ## Installation
 
 ```bash
-$ pip install -U pip
+$ python -m pip install -U pip
 
 # From Pypi
-$ pip install titiler.application
+$ python -m pip install titiler.application
 
 # Or from sources
 $ git clone https://github.com/developmentseed/titiler.git
-$ cd titiler && pip install -e titiler/application
+$ cd titiler && python -m pip install -e src/titiler/core -e src/titiler/extensions -e src/titiler/mosaic -e src/titiler/application
 ```
 
 Launch Application
 ```bash
-$ pip install uvicorn
+$ python -m pip install uvicorn
 $ uvicorn titiler.application.main:app --reload
 ```
 
@@ -30,9 +30,7 @@ titiler/
     ├── tests/                   - Tests suite
     └── titiler/application/     - `application` namespace package
         ├── templates/
-        |   ├── index.html       - demo landing page
-        |   ├── cog_index.html   - demo viewer for `/cog`
-        |   └── stac_index.html  - demo viewer for `/stac`
+        |   └── index.html       - Landing page
         ├── main.py              - Main FastAPI application
         └── settings.py          - demo settings (cache, cors...)
 ```

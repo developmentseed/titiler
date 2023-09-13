@@ -29,7 +29,7 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-    "titiler.core==0.11.7"
+    "titiler.core==0.14.0"
 ]
 
 [project.optional-dependencies]
@@ -38,13 +38,13 @@ test = [
     "pytest-cov",
     "pytest-asyncio",
     "httpx",
-    "jsonschema>=3.0",
+    "jsonschema>=3.0,<4.18.0",
 ]
 cogeo = [
-    "rio-cogeo>=3.1,<4.0",
+    "rio-cogeo>=5.0,<6.0",
 ]
 stac = [
-    "rio-stac>=0.6,<0.7",
+    "rio-stac>=0.8,<0.9",
 ]
 
 [project.urls]

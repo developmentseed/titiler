@@ -14,14 +14,14 @@ The `/cog` routes are based on `titiler.core.factory.TilerFactory` but with `cog
 | `GET`  | `/cog/info.geojson`                                                 | GeoJSON   | return dataset's basic info as a GeoJSON feature
 | `GET`  | `/cog/statistics`                                                   | JSON      | return dataset's statistics
 | `POST` | `/cog/statistics`                                                   | GeoJSON   | return dataset's statistics for a GeoJSON
-| `GET`  | `/cog/tiles[/{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`  | image/bin | create a web map tile image from a dataset
-| `GET`  | `/cog[/{TileMatrixSetId}]/tilejson.json`                            | JSON      | return a Mapbox TileJSON document
-| `GET`  | `/cog[/{TileMatrixSetId}]/WMTSCapabilities.xml`                     | XML       | return OGC WMTS Get Capabilities
+| `GET`  | `/cog/tiles[/{tileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`  | image/bin | create a web map tile image from a dataset
+| `GET`  | `/cog[/{tileMatrixSetId}]/tilejson.json`                            | JSON      | return a Mapbox TileJSON document
+| `GET`  | `/cog[/{tileMatrixSetId}]/WMTSCapabilities.xml`                     | XML       | return OGC WMTS Get Capabilities
 | `GET`  | `/cog/point/{lon},{lat}`                                            | JSON      | return pixel values from a dataset
 | `GET`  | `/cog/preview[.{format}]`                                           | image/bin | create a preview image from a dataset
 | `GET`  | `/cog/crop/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin | create an image from part of a dataset
 | `POST` | `/cog/crop[/{width}x{height}][].{format}]`                          | image/bin | create an image from a GeoJSON feature
-| `GET`  | `/cog[/{TileMatrixSetId}]/map`                                      | HTML      | simple map viewer
+| `GET`  | `/cog[/{tileMatrixSetId}]/map`                                      | HTML      | simple map viewer
 | `GET`  | `/cog/validate`                                                     | JSON      | validate a COG and return dataset info (from `titiler.extensions.cogValidateExtension`)
 | `GET`  | `/cog/viewer`                                                       | HTML      | demo webpage (from `titiler.extensions.cogViewerExtension`)
 | `GET`  | `/cog/stac`                                                         | GeoJSON   | create STAC Items from a dataset (from `titiler.extensions.stacExtension`)
@@ -30,10 +30,10 @@ The `/cog` routes are based on `titiler.core.factory.TilerFactory` but with `cog
 
 ### Tiles
 
-`:endpoint:/cog/tiles[/{TileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`
+`:endpoint:/cog/tiles[/{tileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`
 
 - PathParams:
-    - **TileMatrixSetId** (str): TileMatrixSet name, default is `WebMercatorQuad`. **Optional**
+    - **tileMatrixSetId** (str): TileMatrixSet name, default is `WebMercatorQuad`. **Optional**
     - **z** (int): TMS tile's zoom level.
     - **x** (int): TMS tile's column.
     - **y** (int): TMS tile's row.
@@ -43,7 +43,7 @@ The `/cog` routes are based on `titiler.core.factory.TilerFactory` but with `cog
 - QueryParams:
     - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
     - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
-    - **expression** (str): rio-tiler's band math expression (e.g B1/B2).
+    - **expression** (str): rio-tiler's band math expression (e.g `expression=b1/b2`).
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
     - **resampling** (str): rasterio resampling method. Default is `nearest`.
@@ -73,7 +73,7 @@ Example:
 - QueryParams:
     - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
     - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
-    - **expression** (str): rio-tiler's band math expression (e.g B1/B2).
+    - **expression** (str): rio-tiler's band math expression (e.g `expression=b1/b2`).
     - **max_size** (int): Max image size, default is 1024.
     - **height** (int): Force output image height.
     - **width** (int): Force output image width.
@@ -112,8 +112,8 @@ Example:
 - QueryParams:
     - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
     - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
-    - **expression** (str): rio-tiler's band math expression (e.g B1/B2).
-    - **coord-crs** (str): Coordinate Reference System of the input coordinates. Default to `epsg:4326`.
+    - **expression** (str): rio-tiler's band math expression (e.g `expression=b1/b2`).
+    - **coord_crs** (str): Coordinate Reference System of the input coordinates. Default to `epsg:4326`.
     - **max_size** (int): Max image size, default is 1024.
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
@@ -148,8 +148,8 @@ Example:
 - QueryParams:
     - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
     - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
-    - **expression** (str): rio-tiler's band math expression (e.g B1/B2).
-    - **coord-crs** (str): Coordinate Reference System of the input geometry coordinates. Default to `epsg:4326`.
+    - **expression** (str): rio-tiler's band math expression (e.g `expression=b1/b2`).
+    - **coord_crs** (str): Coordinate Reference System of the input geometry coordinates. Default to `epsg:4326`.
     - **max_size** (int): Max image size, default is 1024.
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
@@ -183,8 +183,8 @@ Note: if `height` and `width` are provided `max_size` will be ignored.
 - QueryParams:
     - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
     - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
-    - **expression** (str): rio-tiler's band math expression (e.g B1/B2).
-    - **coord-crs** (str): Coordinate Reference System of the input coordinates. Default to `epsg:4326`.
+    - **expression** (str): rio-tiler's band math expression (e.g `expression=b1/b2`).
+    - **coord_crs** (str): Coordinate Reference System of the input coordinates. Default to `epsg:4326`.
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
     - **resampling** (str): rasterio resampling method. Default is `nearest`.
@@ -196,10 +196,10 @@ Example:
 
 ### TilesJSON
 
-`:endpoint:/cog[/{TileMatrixSetId}]/tilejson.json` tileJSON document
+`:endpoint:/cog[/{tileMatrixSetId}]/tilejson.json` tileJSON document
 
 - PathParams:
-    - **TileMatrixSetId**: TileMatrixSet name, default is `WebMercatorQuad`. **Optional**
+    - **tileMatrixSetId**: TileMatrixSet name, default is `WebMercatorQuad`. **Optional**
 
 - QueryParams:
     - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
@@ -208,7 +208,7 @@ Example:
     - **minzoom** (int): Overwrite default minzoom.
     - **maxzoom** (int): Overwrite default maxzoom.
     - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
-    - **expression** (str): rio-tiler's band math expression (e.g B1/B2).
+    - **expression** (str): rio-tiler's band math expression (e.g `expression=b1/b2`).
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
     - **resampling** (str): rasterio resampling method. Default is `nearest`.
@@ -230,10 +230,10 @@ Example:
 
 ### Map
 
-`:endpoint:/cog[/{TileMatrixSetId}]/map` Simple viewer
+`:endpoint:/cog[/{tileMatrixSetId}]/map` Simple viewer
 
 - PathParams:
-    - **TileMatrixSetId**: TileMatrixSet name, default is `WebMercatorQuad`. **Optional**
+    - **tileMatrixSetId**: TileMatrixSet name, default is `WebMercatorQuad`. **Optional**
 
 - QueryParams:
     - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
@@ -242,7 +242,7 @@ Example:
     - **minzoom** (int): Overwrite default minzoom.
     - **maxzoom** (int): Overwrite default maxzoom.
     - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
-    - **expression** (str): rio-tiler's band math expression (e.g B1/B2).
+    - **expression** (str): rio-tiler's band math expression (e.g `expression=b1/b2`).
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
     - **resampling** (str): rasterio resampling method. Default is `nearest`.
@@ -297,7 +297,7 @@ Advanced raster statistics
 - QueryParams:
     - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
     - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
-    - **expression** (str): rio-tiler's band math expression (e.g B1/B2).
+    - **expression** (str): rio-tiler's band math expression (e.g `expression=b1/b2`).
     - **max_size** (int): Max image size from which to calculate statistics, default is 1024.
     - **height** (int): Force image height from which to calculate statistics.
     - **width** (int): Force image width from which to calculate statistics.
@@ -322,8 +322,8 @@ Example:
 - QueryParams:
     - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
     - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
-    - **expression** (str): rio-tiler's band math expression (e.g B1/B2).
-    - **coord-crs** (str): Coordinate Reference System of the input geometry coordinates. Default to `epsg:4326`.
+    - **expression** (str): rio-tiler's band math expression (e.g `expression=b1/b2`).
+    - **coord_crs** (str): Coordinate Reference System of the input geometry coordinates. Default to `epsg:4326`.
     - **max_size** (int): Max image size from which to calculate statistics, default is 1024.
     - **height** (int): Force image height from which to calculate statistics.
     - **width** (int): Force image width from which to calculate statistics.

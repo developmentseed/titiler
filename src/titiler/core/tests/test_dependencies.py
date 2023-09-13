@@ -5,10 +5,11 @@ from dataclasses import dataclass
 from typing import Literal
 
 import pytest
-from fastapi import Depends, FastAPI, Query
+from fastapi import Depends, FastAPI, Path
 from morecantile import tms
 from rio_tiler.types import ColorMapType
 from starlette.testclient import TestClient
+from typing_extensions import Annotated
 
 from titiler.core import dependencies, errors
 from titiler.core.resources.responses import JSONResponse
@@ -18,15 +19,20 @@ def test_tms():
     """Create App."""
     app = FastAPI()
 
-    @app.get("/web/{TileMatrixSetId}")
-    def web(TileMatrixSetId: Literal["WebMercatorQuad"] = Query(...)):
+    @app.get("/web/{tileMatrixSetId}")
+    def web(
+        tileMatrixSetId: Annotated[
+            Literal["WebMercatorQuad"],
+            Path(),
+        ],
+    ):
         """return tms id."""
-        return TileMatrixSetId
+        return tileMatrixSetId
 
-    @app.get("/all/{TileMatrixSetId}")
-    def all(TileMatrixSetId: Literal[tuple(tms.list())] = Query(...)):
+    @app.get("/all/{tileMatrixSetId}")
+    def all(tileMatrixSetId: Annotated[Literal[tuple(tms.list())], Path()]):
         """return tms id."""
-        return TileMatrixSetId
+        return tileMatrixSetId
 
     client = TestClient(app)
     response = client.get("/web/WebMercatorQuad")
@@ -34,7 +40,7 @@ def test_tms():
 
     response = client.get("/web/WorldCRS84Quad")
     assert response.status_code == 422
-    assert "permitted: 'WebMercatorQuad'" in response.json()["detail"][0]["msg"]
+    assert "Input should be 'WebMercatorQuad'" in response.json()["detail"][0]["msg"]
 
     response = client.get("/all/WebMercatorQuad")
     assert response.json() == "WebMercatorQuad"
@@ -401,7 +407,7 @@ def test_algo():
     def _endpoint(algorithm=Depends(PostProcessParams)):
         """return params."""
         if algorithm:
-            return algorithm.dict()
+            return algorithm.model_dump()
         return {}
 
     client = TestClient(app)

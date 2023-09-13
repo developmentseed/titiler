@@ -32,7 +32,6 @@ class Multiply(BaseAlgorithm):
         # Create output ImageData
         return ImageData(
             data,
-            img.mask,
             assets=img.assets,
             crs=img.crs,
             bounds=img.bounds,

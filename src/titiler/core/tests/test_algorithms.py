@@ -22,12 +22,11 @@ class Multiply(BaseAlgorithm):
     def __call__(self, img: ImageData) -> ImageData:
         """Apply Multiplication factor."""
         # Multiply image data bcy factor
-        data = img.data * self.factor
+        data = img.array * self.factor
 
         # Create output ImageData
         return ImageData(
             data,
-            img.mask,
             assets=img.assets,
             crs=img.crs,
             bounds=img.bounds,
@@ -88,7 +87,6 @@ def test_terrain_algo():
     # MAPBOX Terrain RGB
     response = client.get("/", params={"algorithm": "terrainrgb"})
     assert response.status_code == 200
-
     with MemoryFile(response.content) as mem:
         with mem.open() as dst:
             data = dst.read().astype(numpy.float64)
@@ -100,7 +98,6 @@ def test_terrain_algo():
     # TILEZEN Terrarium
     response = client.get("/", params={"algorithm": "terrarium"})
     assert response.status_code == 200
-
     with MemoryFile(response.content) as mem:
         with mem.open() as dst:
             data = dst.read().astype(numpy.float64)
@@ -108,3 +105,133 @@ def test_terrain_algo():
     # https://github.com/tilezen/joerd/blob/master/docs/formats.md#terrarium
     elevation = (data[0] * 256 + data[1] + data[2] / 256) - 32768
     numpy.testing.assert_array_equal(elevation, arr[0])
+
+
+def test_normalized_index():
+    """test ndi."""
+    algo = default_algorithms.get("normalizedIndex")()
+
+    arr = numpy.zeros((2, 256, 256), dtype="uint16")
+    arr[0, :, :] = 1
+    arr[1, :, :] = 2
+
+    img = ImageData(arr)
+    out = algo(img)
+    assert out.array.shape == (1, 256, 256)
+    assert out.array.dtype == "float32"
+    assert len(numpy.unique(out.array).tolist()) == 1
+    numpy.testing.assert_almost_equal(out.array[0, 0, 0], 0.3333, decimal=3)
+
+    # with mixed 0 and masked
+    arr = numpy.ma.MaskedArray(
+        numpy.zeros((2, 256, 256), dtype="uint16"),
+        mask=numpy.zeros((2, 256, 256), dtype="bool"),
+    )
+    arr.data[0, :, :] = 1
+    arr.data[0, 0:10, 0:10] = 0
+    arr.mask[0, 0:5, 0:5] = True
+
+    arr.data[1, :, :] = 2
+    arr.data[1, 0:10, 0:10] = 0
+    arr.mask[1, 0:5, 0:5] = True
+
+    img = ImageData(arr)
+    out = algo(img)
+    assert out.array.shape == (1, 256, 256)
+    assert out.array.dtype == "float32"
+    assert len(numpy.unique(out.array).tolist()) == 2  # 0.33 and None
+    assert out.array[0, 0, 0] is numpy.ma.masked
+    assert out.array[0, 6, 6] is numpy.ma.masked
+    numpy.testing.assert_almost_equal(out.array[0, 10, 10], 0.3333, decimal=3)
+
+
+def test_hillshade():
+    """test hillshade."""
+    algo = default_algorithms.get("hillshade")()
+
+    arr = numpy.random.randint(0, 5000, (1, 262, 262), dtype="uint16")
+    img = ImageData(arr)
+    out = algo(img)
+    assert out.array.shape == (1, 256, 256)
+    assert out.array.dtype == "uint8"
+
+    arr = numpy.ma.MaskedArray(
+        numpy.random.randint(0, 5000, (1, 262, 262), dtype="uint16"),
+        mask=numpy.zeros((1, 262, 262), dtype="bool"),
+    )
+    arr.mask[0, 0:100, 0:100] = True
+
+    img = ImageData(arr)
+    out = algo(img)
+    assert out.array.shape == (1, 256, 256)
+    assert out.array.dtype == "uint8"
+    assert out.array[0, 0, 0] is numpy.ma.masked
+
+
+def test_contours():
+    """test contours."""
+    algo = default_algorithms.get("contours")()
+
+    arr = numpy.random.randint(0, 5000, (1, 256, 256), dtype="uint16")
+    img = ImageData(arr)
+    out = algo(img)
+    assert out.array.shape == (3, 256, 256)
+    assert out.array.dtype == "uint8"
+
+    arr = numpy.ma.MaskedArray(
+        numpy.random.randint(0, 5000, (1, 256, 256), dtype="uint16"),
+        mask=numpy.zeros((1, 256, 256), dtype="bool"),
+    )
+    arr.mask[0, 0:100, 0:100] = True
+
+    img = ImageData(arr)
+    out = algo(img)
+    assert out.array.shape == (3, 256, 256)
+    assert out.array.dtype == "uint8"
+    assert out.array[0, 0, 0] is numpy.ma.masked
+
+
+def test_terrarium():
+    """test terrarium."""
+    algo = default_algorithms.get("terrarium")()
+
+    arr = numpy.random.randint(0, 5000, (1, 256, 256), dtype="uint16")
+    img = ImageData(arr)
+    out = algo(img)
+    assert out.array.shape == (3, 256, 256)
+    assert out.array.dtype == "uint8"
+
+    arr = numpy.ma.MaskedArray(
+        numpy.random.randint(0, 5000, (1, 256, 256), dtype="uint16"),
+        mask=numpy.zeros((1, 256, 256), dtype="bool"),
+    )
+    arr.mask[0, 0:100, 0:100] = True
+
+    img = ImageData(arr)
+    out = algo(img)
+    assert out.array.shape == (3, 256, 256)
+    assert out.array.dtype == "uint8"
+    assert out.array[0, 0, 0] is numpy.ma.masked
+
+
+def test_terrainrgb():
+    """test terrainrgb."""
+    algo = default_algorithms.get("terrainrgb")()
+
+    arr = numpy.random.randint(0, 5000, (1, 256, 256), dtype="uint16")
+    img = ImageData(arr)
+    out = algo(img)
+    assert out.array.shape == (3, 256, 256)
+    assert out.array.dtype == "uint8"
+
+    arr = numpy.ma.MaskedArray(
+        numpy.random.randint(0, 5000, (1, 256, 256), dtype="uint16"),
+        mask=numpy.zeros((1, 256, 256), dtype="bool"),
+    )
+    arr.mask[0, 0:100, 0:100] = True
+
+    img = ImageData(arr)
+    out = algo(img)
+    assert out.array.shape == (3, 256, 256)
+    assert out.array.dtype == "uint8"
+    assert out.array[0, 0, 0] is numpy.ma.masked

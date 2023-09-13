@@ -1,21 +1,12 @@
 """rio-stac Extension."""
 
-import sys
 from dataclasses import dataclass
 from typing import Any, Dict, List, Literal, Optional
 
 from fastapi import Depends, Query
+from typing_extensions import Annotated, TypedDict
 
 from titiler.core.factory import BaseTilerFactory, FactoryExtension
-
-# Avoids a Pydantic error:
-# TypeError: You should use `typing_extensions.TypedDict` instead of `typing.TypedDict` with Python < 3.9.2.
-# Without it, there is no way to differentiate required and optional fields when subclassed.
-# Ref: https://github.com/pydantic/pydantic/pull/3374
-if sys.version_info < (3, 9, 2):
-    from typing_extensions import TypedDict
-else:
-    from typing import TypedDict
 
 try:
     import pystac
@@ -58,51 +49,83 @@ class stacExtension(FactoryExtension):
 
         @factory.router.get("/stac", response_model=Item, name="Create STAC Item")
         def create_stac(
-            src_path: str = Depends(factory.path_dependency),
-            datetime: Optional[str] = Query(
-                None,
-                description="The date and time of the assets, in UTC (e.g 2020-01-01, 2020-01-01T01:01:01).",
-            ),
-            extensions: Optional[List[str]] = Query(
-                None, description="STAC extension URL the Item implements."
-            ),
-            collection: Optional[str] = Query(
-                None, description="The Collection ID that this item belongs to."
-            ),
-            collection_url: Optional[str] = Query(
-                None, description="Link to the STAC Collection."
-            ),
+            src_path=Depends(factory.path_dependency),
+            datetime: Annotated[
+                Optional[str],
+                Query(
+                    description="The date and time of the assets, in UTC (e.g 2020-01-01, 2020-01-01T01:01:01).",
+                ),
+            ] = None,
+            extensions: Annotated[
+                Optional[List[str]],
+                Query(description="STAC extension URL the Item implements."),
+            ] = None,
+            collection: Annotated[
+                Optional[str],
+                Query(description="The Collection ID that this item belongs to."),
+            ] = None,
+            collection_url: Annotated[
+                Optional[str],
+                Query(description="Link to the STAC Collection."),
+            ] = None,
             # properties: Optional[Dict] = Query(None, description="Additional properties to add in the item."),
-            id: Optional[str] = Query(
-                None,
-                description="Id to assign to the item (default to the source basename).",
-            ),
-            asset_name: Optional[str] = Query(
-                "data", description="asset name for the source (default to 'data')."
-            ),
-            asset_roles: Optional[List[str]] = Query(
-                None, description="list of asset's roles."
-            ),
-            asset_media_type: Literal[tuple(media)] = Query(  # type: ignore
-                "auto", description="Asset's media type"
-            ),
-            asset_href: Optional[str] = Query(
-                None, description="Asset's URI (default to source's path)"
-            ),
-            with_proj: bool = Query(
-                True, description="Add the `projection` extension and properties."
-            ),
-            with_raster: bool = Query(
-                True, description="Add the `raster` extension and properties."
-            ),
-            with_eo: bool = Query(
-                True, description="Add the `eo` extension and properties."
-            ),
-            max_size: Optional[int] = Query(
-                1024,
-                gt=0,
-                description="Limit array size from which to get the raster statistics.",
-            ),
+            id: Annotated[
+                Optional[str],
+                Query(
+                    description="Id to assign to the item (default to the source basename)."
+                ),
+            ] = None,
+            asset_name: Annotated[
+                Optional[str],
+                Query(description="asset name for the source (default to 'data')."),
+            ] = "data",
+            asset_roles: Annotated[
+                Optional[List[str]],
+                Query(description="list of asset's roles."),
+            ] = None,
+            asset_media_type: Annotated[  # type: ignore
+                Optional[Literal[tuple(media)]],
+                Query(description="Asset's media type"),
+            ] = "auto",
+            asset_href: Annotated[
+                Optional[str],
+                Query(description="Asset's URI (default to source's path)"),
+            ] = None,
+            with_proj: Annotated[
+                Optional[bool],
+                Query(description="Add the `projection` extension and properties."),
+            ] = True,
+            with_raster: Annotated[
+                Optional[bool],
+                Query(description="Add the `raster` extension and properties."),
+            ] = True,
+            with_eo: Annotated[
+                Optional[bool],
+                Query(description="Add the `eo` extension and properties."),
+            ] = True,
+            max_size: Annotated[
+                Optional[int],
+                Query(
+                    gt=0,
+                    description="Limit array size from which to get the raster statistics.",
+                ),
+            ] = 1024,
+            geom_densify_pts: Annotated[
+                Optional[int],
+                Query(
+                    alias="geometry_densify",
+                    ge=0,
+                    description="Number of points to add to each edge to account for nonlinear edges transformation.",
+                ),
+            ] = 0,
+            geom_precision: Annotated[
+                Optional[int],
+                Query(
+                    alias="geometry_precision",
+                    ge=-1,
+                    description="Round geometry coordinates to this number of decimal.",
+                ),
+            ] = -1,
         ):
             """Create STAC item."""
             properties = (
@@ -138,4 +161,6 @@ class stacExtension(FactoryExtension):
                 with_raster=with_raster,
                 with_eo=with_eo,
                 raster_max_size=max_size,
+                geom_densify_pts=geom_densify_pts,
+                geom_precision=geom_precision,
             ).to_dict()
