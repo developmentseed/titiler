@@ -1,5 +1,11 @@
 # Release Notes
 
+## 0.14.1 (2023-09-14)
+
+### titiler.extension
+
+* add `GetFeatureInfo` capability in `wmsExtension` (author @benjaminleighton, https://github.com/developmentseed/titiler/pull/698)
+
 ## 0.14.0 (2023-08-30)
 
 ### titiler.core
