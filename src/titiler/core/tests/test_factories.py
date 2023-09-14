@@ -124,8 +124,11 @@ def test_TilerFactory():
     assert response.headers["content-type"] == "image/png"
 
     # Dict
-    cmap = urlencode(
-        {
+    response = client.get(
+        "/tiles/8/84/47.png",
+        params={
+            "url": f"{DATA_DIR}/cog.tif",
+            "bidx": 1,
             "colormap": json.dumps(
                 {
                     "1": [58, 102, 24, 255],
@@ -133,16 +136,18 @@ def test_TilerFactory():
                     "3": "#b1b129",
                     "4": "#ddcb9aFF",
                 }
-            )
-        }
+            ),
+        },
     )
-    response = client.get(f"/tiles/8/84/47.png?url={DATA_DIR}/cog.tif&bidx=1&{cmap}")
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
 
     # Intervals
-    cmap = urlencode(
-        {
+    response = client.get(
+        "/tiles/8/84/47.png",
+        params={
+            "url": f"{DATA_DIR}/cog.tif",
+            "bidx": 1,
             "colormap": json.dumps(
                 [
                     # ([min, max], [r, g, b, a])
@@ -150,10 +155,9 @@ def test_TilerFactory():
                     ([2, 3], [255, 255, 255, 255]),
                     ([3, 1000], [255, 0, 0, 255]),
                 ]
-            )
-        }
+            ),
+        },
     )
-    response = client.get(f"/tiles/8/84/47.png?url={DATA_DIR}/cog.tif&bidx=1&{cmap}")
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
 
@@ -1522,9 +1526,11 @@ def test_AutoFormat_Colormap():
     app.include_router(cog.router)
 
     with TestClient(app) as client:
-
-        cmap = urlencode(
-            {
+        response = client.get(
+            "/preview",
+            params={
+                "url": f"{DATA_DIR}/cog.tif",
+                "bidx": 1,
                 "colormap": json.dumps(
                     [
                         # ([min, max], [r, g, b, a])
@@ -1532,11 +1538,9 @@ def test_AutoFormat_Colormap():
                         ([2, 6000], [255, 0, 0, 255]),
                         ([6001, 300000], [0, 255, 0, 255]),
                     ]
-                )
-            }
+                ),
+            },
         )
-
-        response = client.get(f"/preview?url={DATA_DIR}/cog.tif&bidx=1&{cmap}")
         assert response.status_code == 200
         assert response.headers["content-type"] == "image/png"
         with MemoryFile(response.content) as mem:

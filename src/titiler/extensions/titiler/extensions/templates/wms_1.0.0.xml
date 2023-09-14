@@ -27,6 +27,15 @@
         </HTTP>
       </DCPType>
     </Capabilities>
+    <FeatureInfo>
+      <Format><MIME /></Format>
+      <DCPType>
+        <HTTP>
+          <Get onlineResource="{{ request_url }}" />
+          <Post onlineResource="{{ request_url }}" />
+        </HTTP>
+      </DCPType>
+    </FeatureInfo>
   </Request>
   <Exception>
     <Format><BLANK /><INIMAGE /><WMS_XML /></Format>

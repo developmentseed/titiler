@@ -4,7 +4,7 @@ import json
 import os
 from io import BytesIO
 from unittest.mock import patch
-from urllib.parse import parse_qsl, urlencode, urlparse
+from urllib.parse import parse_qsl, urlparse
 
 import numpy
 import pytest
@@ -187,8 +187,12 @@ def test_tile(rio, app):
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
 
-    cmap = urlencode(
-        {
+    # valid colormap
+    response = app.get(
+        "/cog/tiles/8/53/50.png",
+        params={
+            "url": "https://myurl.com/above_cog.tif",
+            "bidx": 1,
             "colormap": json.dumps(
                 {
                     "1": [58, 102, 24, 255],
@@ -196,27 +200,24 @@ def test_tile(rio, app):
                     "3": "#b1b129",
                     "4": "#ddcb9aFF",
                 }
-            )
-        }
-    )
-    response = app.get(
-        f"/cog/tiles/8/53/50.png?url=https://myurl.com/above_cog.tif&bidx=1&{cmap}"
+            ),
+        },
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
 
-    cmap = urlencode({"colormap": json.dumps({"1": [58, 102]})})
+    # invalid colormap shape
     response = app.get(
-        f"/cog/tiles/8/53/50.png?url=https://myurl.com/above_cog.tif&bidx=1&{cmap}"
+        "/cog/tiles/8/53/50.png",
+        params={
+            "url": "https://myurl.com/above_cog.tif",
+            "bidx": 1,
+            "colormap": json.dumps({"1": [58, 102]}),
+        },
     )
     assert response.status_code == 400
 
-    cmap = urlencode({"colormap": {"1": "#ddcb9aFF"}})
-    response = app.get(
-        f"/cog/tiles/8/53/50.png?url=https://myurl.com/above_cog.tif&bidx=1&{cmap}"
-    )
-    assert response.status_code == 400
-
+    # bad resampling
     response = app.get(
         "/cog/tiles/8/53/50.png?url=https://myurl.com/above_cog.tif&bidx=1&resampling=somethingwrong"
     )
@@ -269,9 +270,13 @@ def test_tilejson(rio, app):
         "3": "#b1b129",
         "4": "#ddcb9aFF",
     }
-    cmap = urlencode({"colormap": json.dumps(cmap_dict)})
     response = app.get(
-        f"/cog/tilejson.json?url=https://myurl.com/above_cog.tif&bidx=1&{cmap}"
+        "/cog/tilejson.json",
+        params={
+            "url": "https://myurl.com/above_cog.tif",
+            "bidx": 1,
+            "colormap": json.dumps(cmap_dict),
+        },
     )
     assert response.status_code == 200
     body = response.json()

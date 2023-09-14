@@ -29,25 +29,34 @@
         </HTTP>
       </DCPType>
     </GetMap>
+    <GetFeatureInfo>
+      <Format>text/html</Format>
+      <DCPType>
+        <HTTP>
+          <Get><OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{{ request_url }}"/></Get>
+          <Post><OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{{ request_url }}"/></Post>
+        </HTTP>
+      </DCPType>
+    </GetFeatureInfo>
   </Request>
   <Exception>
     <Format>application/vnd.ogc.se_xml</Format>
     <Format>application/vnd.ogc.se_inimage</Format>
     <Format>application/vnd.ogc.se_blank</Format>
   </Exception>
-  
+
   <Layer>
     <Name>TiTiler WMS</Name>
     <Title>TiTiler WMS</Title>
     <Abstract>COG URLs specified in the "LAYERS" parameter will show up as available layers</Abstract>
-    
+
     {% for srs in available_epsgs %}
     <SRS>{{srs}}</SRS>
     {% endfor %}
-    
+
     <LatLonBoundingBox minx="{{service_dict['xmin']}}" miny="{{service_dict['ymin']}}" maxx="{{service_dict['xmax']}}" maxy="{{service_dict['ymax']}}" />
     <BoundingBox SRS="EPSG:4326" minx="{{service_dict['xmin']}}" miny="{{service_dict['ymin']}}" maxx="{{service_dict['xmax']}}" maxy="{{service_dict['ymax']}}" />
-    
+
     {% for layer in layers_dict.keys() %}
     <Layer queryable="0" opaque="0" cascaded="0">
         <Name>{{layer}}</Name>

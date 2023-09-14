@@ -29,6 +29,15 @@
         </HTTP>
       </DCPType>
     </GetMap>
+    <GetFeatureInfo>
+      <Format>text/html</Format>
+      <DCPType>
+        <HTTP>
+          <Get><OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{{ request_url }}"/></Get>
+          <Post><OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{{ request_url }}"/></Post>
+        </HTTP>
+      </DCPType>
+    </GetFeatureInfo>
   </Request>
   <Exception>
     <Format>XML</Format>
@@ -56,7 +65,7 @@
     <BoundingBox CRS="EPSG:4326" minx="{{service_dict['xmin']}}" miny="{{service_dict['ymin']}}" maxx="{{service_dict['xmax']}}" maxy="{{service_dict['ymax']}}" />
     
     {% for layer in layers_dict.keys() %}
-    <Layer queryable="0" opaque="0" cascaded="0">
+    <Layer queryable="1" opaque="0" cascaded="0">
         <Name>{{layer}}</Name>
         <Title>{{layer}}</Title>
         <Abstract>{{layers_dict[layer]['abstract']}}</Abstract>
