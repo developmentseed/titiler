@@ -66,7 +66,7 @@ def test_cmap():
     assert response.json()["1"] == [68, 2, 85, 255]
 
     cmap = json.dumps({1: [68, 1, 84, 255]})
-    response = client.get(f"/?colormap={cmap}")
+    response = client.get("/", params={"colormap": cmap})
     assert response.json()["1"] == [68, 1, 84, 255]
 
     cmap = json.dumps({0: "#000000", 255: "#ffffff"})
@@ -81,7 +81,7 @@ def test_cmap():
         ([3, 1000], [255, 0, 0, 255]),
     ]
     cmap = json.dumps(intervals)
-    response = client.get(f"/?colormap={cmap}")
+    response = client.get("/", params={"colormap": cmap})
     assert response.json()[0] == [[1, 2], [0, 0, 0, 255]]
     assert response.json()[1] == [[2, 3], [255, 255, 255, 255]]
     assert response.json()[2] == [[3, 1000], [255, 0, 0, 255]]
