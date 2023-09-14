@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1694092937885,
+  "lastUpdate": 1694706853622,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -1061,6 +1061,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad longest_transaction",
             "value": 0.16,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "vincent.sarago@gmail.com",
+            "name": "Vincent Sarago",
+            "username": "vincentsarago"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "448fc7aab7858d49f313d05179cccd36c790120b",
+          "message": "WMS get feature (edits from 697) (#698)\n\n* Added a basic WMS GetFeatureInfo capability\r\n\r\n* Fixed typo in enum of output formats\r\n\r\n* edits\r\n\r\n* fix tests\r\n\r\n---------\r\n\r\nCo-authored-by: Ben Leighton <Ben.Leighton@csiro.au>\r\nCo-authored-by: Ben Leighton <benplei@gmail.com>",
+          "timestamp": "2023-09-14T09:52:21-06:00",
+          "tree_id": "09d3161fa1c3beebcaea229a6ebace0689d1d31f",
+          "url": "https://github.com/developmentseed/titiler/commit/448fc7aab7858d49f313d05179cccd36c790120b"
+        },
+        "date": 1694706852351,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.12,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 6.54,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.07,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.08,
             "unit": "s"
           }
         ]
