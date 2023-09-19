@@ -436,6 +436,7 @@ class TilerFactory(BaseTilerFactory):
                 Body(description="GeoJSON Feature or FeatureCollection."),
             ],
             src_path=Depends(self.path_dependency),
+            dst_crs=Depends(DstCRSParams),
             coord_crs=Depends(CoordCRSParams),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
@@ -455,6 +456,7 @@ class TilerFactory(BaseTilerFactory):
                     for feature in fc:
                         data = src_dst.feature(
                             feature.model_dump(exclude_none=True),
+                            dst_crs=dst_crs,
                             shape_crs=coord_crs or WGS84_CRS,
                             **layer_params,
                             **image_params,
@@ -1010,6 +1012,7 @@ class TilerFactory(BaseTilerFactory):
                 "Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
             ] = None,
             src_path=Depends(self.path_dependency),
+            dst_crs=Depends(DstCRSParams),
             coord_crs=Depends(CoordCRSParams),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
@@ -1027,6 +1030,7 @@ class TilerFactory(BaseTilerFactory):
                 with self.reader(src_path, **reader_params) as src_dst:
                     image = src_dst.feature(
                         geojson.model_dump(exclude_none=True),
+                        dst_crs=dst_crs,
                         shape_crs=coord_crs or WGS84_CRS,
                         **layer_params,
                         **image_params,
@@ -1245,6 +1249,7 @@ class MultiBaseTilerFactory(TilerFactory):
                 Body(description="GeoJSON Feature or FeatureCollection."),
             ],
             src_path=Depends(self.path_dependency),
+            dst_crs=Depends(DstCRSParams),
             coord_crs=Depends(CoordCRSParams),
             layer_params=Depends(AssetsBidxExprParamsOptional),
             dataset_params=Depends(self.dataset_dependency),
@@ -1268,6 +1273,7 @@ class MultiBaseTilerFactory(TilerFactory):
                     for feature in fc:
                         data = src_dst.feature(
                             feature.model_dump(exclude_none=True),
+                            dst_crs=dst_crs,
                             shape_crs=coord_crs or WGS84_CRS,
                             **layer_params,
                             **image_params,
