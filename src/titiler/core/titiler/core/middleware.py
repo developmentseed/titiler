@@ -167,3 +167,23 @@ class LowerCaseQueryStringMiddleware:
             request.scope["query_string"] = query_string.encode(DECODE_FORMAT)
 
         await self.app(scope, receive, send)
+
+
+class FakeHttpsMiddleware:
+    """Middleware to make http request to fake https request"""
+
+    def __init__(self, app: ASGIApp) -> None:
+        """Init Middleware.
+
+        Args:
+            app (ASGIApp): starlette/FastAPI application.
+
+        """
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send):
+        """Handle call."""
+        if scope["type"] == "http" and scope["scheme"] == "http":
+            scope["scheme"] = "https"
+
+        await self.app(scope, receive, send)

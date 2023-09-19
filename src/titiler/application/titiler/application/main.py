@@ -25,6 +25,7 @@ from titiler.core.middleware import (
     LoggerMiddleware,
     LowerCaseQueryStringMiddleware,
     TotalTimeMiddleware,
+    FakeHttpsMiddleware,
 )
 from titiler.extensions import (
     cogValidateExtension,
@@ -152,6 +153,8 @@ if api_settings.debug:
 if api_settings.lower_case_query_parameters:
     app.add_middleware(LowerCaseQueryStringMiddleware)
 
+if api_settings.fake_https:
+    app.add_middleware(FakeHttpsMiddleware)
 
 @app.get(
     "/healthz",
