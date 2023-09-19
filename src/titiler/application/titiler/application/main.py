@@ -33,6 +33,7 @@ from titiler.extensions import (
     stacExtension,
     stacViewerExtension,
     cloudCredentialsExtension,
+    wmtsTitleExtension,
 )
 from titiler.mosaic.errors import MOSAIC_STATUS_CODES
 from titiler.mosaic.factory import MosaicTilerFactory
@@ -77,6 +78,7 @@ if not api_settings.disable_cog:
             cogViewerExtension(),
             stacExtension(),
             cloudCredentialsExtension(),
+            wmtsTitleExtension(),
         ],
     )
 
