@@ -31,6 +31,7 @@ from titiler.extensions import (
     cogViewerExtension,
     stacExtension,
     stacViewerExtension,
+    cloudCredentialsExtension,
 )
 from titiler.mosaic.errors import MOSAIC_STATUS_CODES
 from titiler.mosaic.factory import MosaicTilerFactory
@@ -74,6 +75,7 @@ if not api_settings.disable_cog:
             cogValidateExtension(),
             cogViewerExtension(),
             stacExtension(),
+            cloudCredentialsExtension(),
         ],
     )
 
@@ -88,6 +90,7 @@ if not api_settings.disable_stac:
         router_prefix="/stac",
         extensions=[
             stacViewerExtension(),
+            cloudCredentialsExtension(),
         ],
     )
 
@@ -98,7 +101,7 @@ if not api_settings.disable_stac:
 ###############################################################################
 # Mosaic endpoints
 if not api_settings.disable_mosaic:
-    mosaic = MosaicTilerFactory(router_prefix="/mosaicjson")
+    mosaic = MosaicTilerFactory(router_prefix="/mosaicjson", extensions=[cloudCredentialsExtension()])
     app.include_router(mosaic.router, prefix="/mosaicjson", tags=["MosaicJSON"])
 
 ###############################################################################
