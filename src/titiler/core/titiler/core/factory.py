@@ -736,8 +736,8 @@ class TilerFactory(BaseTilerFactory):
             src_path=Depends(self.path_dependency),
             tile_format: Annotated[
                 ImageType,
-                Query(description="Output image type. Default is png."),
-            ] = ImageType.png,
+                Query(description="Output image type. Default will be automatically defined if the output image needs a mask (png) or not (jpeg)."),
+            ] = None,
             tile_scale: Annotated[
                 int,
                 Query(
@@ -769,9 +769,11 @@ class TilerFactory(BaseTilerFactory):
                 "x": "{TileCol}",
                 "y": "{TileRow}",
                 "scale": tile_scale,
-                "format": tile_format.value,
                 "tileMatrixSetId": tileMatrixSetId,
             }
+            if tile_format:
+                route_params["format"] = tile_format.value
+
             tiles_url = self.url_for(request, "tile", **route_params)
 
             qs_key_to_remove = [
@@ -813,6 +815,10 @@ class TilerFactory(BaseTilerFactory):
                         </TileMatrix>"""
                 tileMatrix.append(tm)
 
+            if tile_format:
+                media_type = tile_format.mediatype
+            else:
+                media_type = "image/unknown"
             return self.templates.TemplateResponse(
                 "wmts.xml",
                 {
@@ -823,7 +829,7 @@ class TilerFactory(BaseTilerFactory):
                     "tms": tms,
                     "title": "Cloud Optimized GeoTIFF",
                     "layer_name": "cogeo",
-                    "media_type": tile_format.mediatype,
+                    "media_type": media_type,
                 },
                 media_type=MediaType.xml.value,
             )
