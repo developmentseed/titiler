@@ -19,6 +19,7 @@ class ApiSettings(BaseSettings):
     disable_mosaic: bool = False
 
     lower_case_query_parameters: bool = False
+    fake_https: bool = False
 
     model_config = SettingsConfigDict(env_prefix="TITILER_API_", env_file=".env")
 

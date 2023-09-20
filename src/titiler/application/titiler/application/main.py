@@ -25,12 +25,15 @@ from titiler.core.middleware import (
     LoggerMiddleware,
     LowerCaseQueryStringMiddleware,
     TotalTimeMiddleware,
+    FakeHttpsMiddleware,
 )
 from titiler.extensions import (
     cogValidateExtension,
     cogViewerExtension,
     stacExtension,
     stacViewerExtension,
+    cloudCredentialsExtension,
+    wmtsTitleExtension,
 )
 from titiler.mosaic.errors import MOSAIC_STATUS_CODES
 from titiler.mosaic.factory import MosaicTilerFactory
@@ -74,6 +77,8 @@ if not api_settings.disable_cog:
             cogValidateExtension(),
             cogViewerExtension(),
             stacExtension(),
+            cloudCredentialsExtension(),
+            wmtsTitleExtension(),
         ],
     )
 
@@ -88,6 +93,7 @@ if not api_settings.disable_stac:
         router_prefix="/stac",
         extensions=[
             stacViewerExtension(),
+            cloudCredentialsExtension(),
         ],
     )
 
@@ -98,7 +104,7 @@ if not api_settings.disable_stac:
 ###############################################################################
 # Mosaic endpoints
 if not api_settings.disable_mosaic:
-    mosaic = MosaicTilerFactory(router_prefix="/mosaicjson")
+    mosaic = MosaicTilerFactory(router_prefix="/mosaicjson", extensions=[cloudCredentialsExtension()])
     app.include_router(mosaic.router, prefix="/mosaicjson", tags=["MosaicJSON"])
 
 ###############################################################################
@@ -149,6 +155,8 @@ if api_settings.debug:
 if api_settings.lower_case_query_parameters:
     app.add_middleware(LowerCaseQueryStringMiddleware)
 
+if api_settings.fake_https:
+    app.add_middleware(FakeHttpsMiddleware)
 
 @app.get(
     "/healthz",

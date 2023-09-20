@@ -436,6 +436,7 @@ class TilerFactory(BaseTilerFactory):
                 Body(description="GeoJSON Feature or FeatureCollection."),
             ],
             src_path=Depends(self.path_dependency),
+            dst_crs=Depends(DstCRSParams),
             coord_crs=Depends(CoordCRSParams),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
@@ -455,6 +456,7 @@ class TilerFactory(BaseTilerFactory):
                     for feature in fc:
                         data = src_dst.feature(
                             feature.model_dump(exclude_none=True),
+                            dst_crs=dst_crs,
                             shape_crs=coord_crs or WGS84_CRS,
                             **layer_params,
                             **image_params,
@@ -734,8 +736,8 @@ class TilerFactory(BaseTilerFactory):
             src_path=Depends(self.path_dependency),
             tile_format: Annotated[
                 ImageType,
-                Query(description="Output image type. Default is png."),
-            ] = ImageType.png,
+                Query(description="Output image type. Default will be automatically defined if the output image needs a mask (png) or not (jpeg)."),
+            ] = None,
             tile_scale: Annotated[
                 int,
                 Query(
@@ -767,9 +769,11 @@ class TilerFactory(BaseTilerFactory):
                 "x": "{TileCol}",
                 "y": "{TileRow}",
                 "scale": tile_scale,
-                "format": tile_format.value,
                 "tileMatrixSetId": tileMatrixSetId,
             }
+            if tile_format:
+                route_params["format"] = tile_format.value
+
             tiles_url = self.url_for(request, "tile", **route_params)
 
             qs_key_to_remove = [
@@ -811,6 +815,10 @@ class TilerFactory(BaseTilerFactory):
                         </TileMatrix>"""
                 tileMatrix.append(tm)
 
+            if tile_format:
+                media_type = tile_format.mediatype
+            else:
+                media_type = "image/unknown"
             return self.templates.TemplateResponse(
                 "wmts.xml",
                 {
@@ -821,7 +829,7 @@ class TilerFactory(BaseTilerFactory):
                     "tms": tms,
                     "title": "Cloud Optimized GeoTIFF",
                     "layer_name": "cogeo",
-                    "media_type": tile_format.mediatype,
+                    "media_type": media_type,
                 },
                 media_type=MediaType.xml.value,
             )
@@ -1010,6 +1018,7 @@ class TilerFactory(BaseTilerFactory):
                 "Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
             ] = None,
             src_path=Depends(self.path_dependency),
+            dst_crs=Depends(DstCRSParams),
             coord_crs=Depends(CoordCRSParams),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
@@ -1027,6 +1036,7 @@ class TilerFactory(BaseTilerFactory):
                 with self.reader(src_path, **reader_params) as src_dst:
                     image = src_dst.feature(
                         geojson.model_dump(exclude_none=True),
+                        dst_crs=dst_crs,
                         shape_crs=coord_crs or WGS84_CRS,
                         **layer_params,
                         **image_params,
@@ -1245,6 +1255,7 @@ class MultiBaseTilerFactory(TilerFactory):
                 Body(description="GeoJSON Feature or FeatureCollection."),
             ],
             src_path=Depends(self.path_dependency),
+            dst_crs=Depends(DstCRSParams),
             coord_crs=Depends(CoordCRSParams),
             layer_params=Depends(AssetsBidxExprParamsOptional),
             dataset_params=Depends(self.dataset_dependency),
@@ -1268,6 +1279,7 @@ class MultiBaseTilerFactory(TilerFactory):
                     for feature in fc:
                         data = src_dst.feature(
                             feature.model_dump(exclude_none=True),
+                            dst_crs=dst_crs,
                             shape_crs=coord_crs or WGS84_CRS,
                             **layer_params,
                             **image_params,
