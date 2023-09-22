@@ -801,7 +801,7 @@ class TilerFactory(BaseTilerFactory):
                     maxzoom = maxzoom if maxzoom is not None else src_dst.maxzoom
 
             tileMatrix = []
-            for zoom in range(minzoom, maxzoom + 1):
+            for zoom in range(minzoom, maxzoom + 2):
                 matrix = tms.matrix(zoom)
                 tm = f"""
                         <TileMatrix>
