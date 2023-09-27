@@ -26,6 +26,7 @@ from titiler.core.middleware import (
     LowerCaseQueryStringMiddleware,
     TotalTimeMiddleware,
     FakeHttpsMiddleware,
+    JWTAuthenticationMiddleware
 )
 from titiler.extensions import (
     cogValidateExtension,
@@ -147,6 +148,9 @@ app.add_middleware(
     cachecontrol=api_settings.cachecontrol,
     exclude_path={r"/healthz"},
 )
+
+if api_settings.jwt_secret:
+    app.add_middleware(JWTAuthenticationMiddleware, secret=api_settings.jwt_secret)
 
 if api_settings.debug:
     app.add_middleware(LoggerMiddleware, headers=True, querystrings=True)

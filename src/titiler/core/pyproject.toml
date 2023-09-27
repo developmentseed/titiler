@@ -39,6 +39,7 @@ dependencies = [
     "morecantile>=5.0,<6.0",
     "simplejson",
     "typing_extensions>=4.6.1",
+    "pyjwt"
 ]
 
 [project.optional-dependencies]

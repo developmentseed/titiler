@@ -20,6 +20,7 @@ class ApiSettings(BaseSettings):
 
     lower_case_query_parameters: bool = False
     fake_https: bool = False
+    jwt_secret: str = None
 
     model_config = SettingsConfigDict(env_prefix="TITILER_API_", env_file=".env")
 

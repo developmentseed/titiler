@@ -4,12 +4,15 @@ import logging
 import re
 import time
 import urllib.parse
-from typing import Optional, Set
+from typing import Optional, Set, List, Callable
 
+import jwt
+import starlette.status
 from fastapi.logger import logger
 from starlette.datastructures import MutableHeaders
 from starlette.requests import Request
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
+from starlette.responses import JSONResponse
 
 
 class CacheControlMiddleware:
@@ -185,5 +188,52 @@ class FakeHttpsMiddleware:
         """Handle call."""
         if scope["type"] == "http" and scope["scheme"] == "http":
             scope["scheme"] = "https"
+
+        await self.app(scope, receive, send)
+
+
+class JWTAuthenticationMiddleware:
+    """Middleware to authentication with jwt"""
+
+    def __init__(self, app: ASGIApp, secret: str, user_key="user", algorithms: List[str]=None) -> None:
+        """Init Middleware.
+
+        Args:
+            app (ASGIApp): starlette/FastAPI application.
+            secret (str): jwt secret for authentication
+            user_key (str): key of jwt payload to get user
+            algorithms (List[str]): algorithms for decode jwt. default ["HS512"]
+        """
+        if algorithms is None:
+            algorithms = ["HS512"]
+        from fastapi.security import HTTPBearer
+        self.app = app
+        self.secret = secret
+        self.http_bearer = HTTPBearer(bearerFormat="jwt", auto_error=False)
+        self.algorithms = algorithms
+        self.user_key = user_key
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send):
+        async def response401(message: str="Not authenticated"):
+            response = JSONResponse(content={"detail": message},
+                                    status_code=starlette.status.HTTP_401_UNAUTHORIZED)
+            await response(scope, receive, send)
+        """Handle call."""
+        if scope["type"] == "http":
+            request = Request(scope)
+            credentials = await self.http_bearer(request)
+            if not credentials:
+                await response401("access token is required")
+                return
+            try:
+                payload = jwt.decode(credentials.credentials, self.secret, algorithms=self.algorithms)
+            except jwt.DecodeError as e:
+                await response401("unsupported token")
+            except jwt.InvalidTokenError as e:
+                await response401("invalid token")
+                return
+            user = payload[self.user_key]
+            scope['auth'] = credentials.credentials
+            scope['user'] = user
 
         await self.app(scope, receive, send)
