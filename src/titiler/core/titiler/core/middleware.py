@@ -122,23 +122,42 @@ class LoggerMiddleware:
         self.querystrings = querystrings
         self.headers = headers
         self.logger = logger
-        logger.setLevel(logging.DEBUG)
+        self.logger.setLevel(logging.DEBUG)
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send):
         """Handle call."""
         if scope["type"] == "http":
             request = Request(scope)
-
-            self.logger.debug(str(request.url))
+            log = {
+                "url": str(request.url),
+            }
 
             qs = dict(request.query_params)
             if qs and self.querystrings:
-                self.logger.debug(qs)
+                log["query"] = qs
 
             if self.headers:
-                self.logger.debug(dict(request.headers))
+                log["req.headers"] = dict(request.headers)
 
-        await self.app(scope, receive, send)
+        async def send_wrapper(message: Message):
+            """Send Message."""
+            if message["type"] == "http.response.start":
+                try:
+                    user = request.user
+                except:
+                    user = None
+                if user:
+                    log['user'] = user
+                log['status'] = message["status"]
+
+                if self.headers:
+                    log['res.headers'] = message["headers"]
+
+                self.logger.debug(log)
+            await send(message)
+
+        await self.app(scope, receive, send_wrapper)
+
 
 
 class LowerCaseQueryStringMiddleware:
