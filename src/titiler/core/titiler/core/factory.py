@@ -46,8 +46,9 @@ from titiler.core.dependencies import (
     DefaultDependency,
     DstCRSParams,
     HistogramParams,
-    ImageParams,
     ImageRenderingParams,
+    PartFeatureParams,
+    PreviewParams,
     RescaleType,
     RescalingParams,
     StatisticsParams,
@@ -257,9 +258,10 @@ class TilerFactory(BaseTilerFactory):
         reader (rio_tiler.io.base.BaseReader): A rio-tiler reader. Defaults to `rio_tiler.io.Reader`.
         stats_dependency (titiler.core.dependencies.DefaultDependency): Endpoint dependency defining options for rio-tiler's statistics method.
         histogram_dependency (titiler.core.dependencies.DefaultDependency): Endpoint dependency defining options for numpy's histogram method.
-        img_dependency (titiler.core.dependencies.DefaultDependency): Endpoint dependency defining options for rio-tiler's preview/crop method.
+        img_preview_dependency (titiler.core.dependencies.DefaultDependency): Endpoint dependency defining options for rio-tiler's preview method.
+        img_part_dependency (titiler.core.dependencies.DefaultDependency): Endpoint dependency defining options for rio-tiler's part/feature methods.
         add_preview (bool): add `/preview` endpoints. Defaults to True.
-        add_part (bool): add `/crop` endpoints. Defaults to True.
+        add_part (bool): add `/bbox` and `/feature` endpoints. Defaults to True.
         add_viewer (bool): add `/map` endpoints. Defaults to True.
 
     """
@@ -272,7 +274,8 @@ class TilerFactory(BaseTilerFactory):
     histogram_dependency: Type[DefaultDependency] = HistogramParams
 
     # Crop/Preview endpoints Dependencies
-    img_dependency: Type[DefaultDependency] = ImageParams
+    img_preview_dependency: Type[DefaultDependency] = PreviewParams
+    img_part_dependency: Type[DefaultDependency] = PartFeatureParams
 
     # Add/Remove some endpoints
     add_preview: bool = True
@@ -400,7 +403,7 @@ class TilerFactory(BaseTilerFactory):
             src_path=Depends(self.path_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
-            image_params=Depends(self.img_dependency),
+            image_params=Depends(self.img_preview_dependency),
             stats_params=Depends(self.stats_dependency),
             histogram_params=Depends(self.histogram_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -426,7 +429,7 @@ class TilerFactory(BaseTilerFactory):
             responses={
                 200: {
                     "content": {"application/json": {}},
-                    "description": "Return dataset's statistics.",
+                    "description": "Return dataset's statistics from feature or featureCollection.",
                 }
             },
         )
@@ -439,7 +442,7 @@ class TilerFactory(BaseTilerFactory):
             coord_crs=Depends(CoordCRSParams),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
-            image_params=Depends(self.img_dependency),
+            image_params=Depends(self.img_part_dependency),
             stats_params=Depends(self.stats_dependency),
             histogram_params=Depends(self.histogram_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -883,7 +886,7 @@ class TilerFactory(BaseTilerFactory):
             layer_params=Depends(self.layer_dependency),
             dst_crs=Depends(DstCRSParams),
             dataset_params=Depends(self.dataset_dependency),
-            image_params=Depends(self.img_dependency),
+            image_params=Depends(self.img_preview_dependency),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
             color_formula=Depends(ColorFormulaParams),
@@ -922,21 +925,21 @@ class TilerFactory(BaseTilerFactory):
             return Response(content, media_type=media_type)
 
     ############################################################################
-    # /crop (Optional)
+    # /bbox and /feature (Optional)
     ############################################################################
     def part(self):  # noqa: C901
-        """Register /crop endpoint."""
+        """Register /bbox and `/feature` endpoints."""
 
         # GET endpoints
         @self.router.get(
-            r"/crop/{minx},{miny},{maxx},{maxy}.{format}",
+            "/bbox/{minx},{miny},{maxx},{maxy}.{format}",
             **img_endpoint_params,
         )
         @self.router.get(
-            r"/crop/{minx},{miny},{maxx},{maxy}/{width}x{height}.{format}",
+            "/bbox/{minx},{miny},{maxx},{maxy}/{width}x{height}.{format}",
             **img_endpoint_params,
         )
-        def part(
+        def bbox_image(
             minx: Annotated[float, Path(description="Bounding box min X")],
             miny: Annotated[float, Path(description="Bounding box min Y")],
             maxx: Annotated[float, Path(description="Bounding box max X")],
@@ -950,7 +953,7 @@ class TilerFactory(BaseTilerFactory):
             coord_crs=Depends(CoordCRSParams),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
-            image_params=Depends(self.img_dependency),
+            image_params=Depends(self.img_part_dependency),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
             color_formula=Depends(ColorFormulaParams),
@@ -959,7 +962,7 @@ class TilerFactory(BaseTilerFactory):
             reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
         ):
-            """Create image from part of a dataset."""
+            """Create image from a bbox."""
             with rasterio.Env(**env):
                 with self.reader(src_path, **reader_params) as src_dst:
                     image = src_dst.part(
@@ -992,18 +995,18 @@ class TilerFactory(BaseTilerFactory):
 
         # POST endpoints
         @self.router.post(
-            r"/crop",
+            "/feature",
             **img_endpoint_params,
         )
         @self.router.post(
-            r"/crop.{format}",
+            "/feature.{format}",
             **img_endpoint_params,
         )
         @self.router.post(
-            r"/crop/{width}x{height}.{format}",
+            "/feature/{width}x{height}.{format}",
             **img_endpoint_params,
         )
-        def geojson_crop(
+        def feature_image(
             geojson: Annotated[Feature, Body(description="GeoJSON Feature.")],
             format: Annotated[
                 ImageType,
@@ -1013,7 +1016,7 @@ class TilerFactory(BaseTilerFactory):
             coord_crs=Depends(CoordCRSParams),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
-            image_params=Depends(self.img_dependency),
+            image_params=Depends(self.img_part_dependency),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
             color_formula=Depends(ColorFormulaParams),
@@ -1170,7 +1173,7 @@ class MultiBaseTilerFactory(TilerFactory):
             src_path=Depends(self.path_dependency),
             asset_params=Depends(AssetsBidxParams),
             dataset_params=Depends(self.dataset_dependency),
-            image_params=Depends(self.img_dependency),
+            image_params=Depends(self.img_preview_dependency),
             stats_params=Depends(self.stats_dependency),
             histogram_params=Depends(self.histogram_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -1205,7 +1208,7 @@ class MultiBaseTilerFactory(TilerFactory):
             src_path=Depends(self.path_dependency),
             layer_params=Depends(AssetsBidxExprParamsOptional),
             dataset_params=Depends(self.dataset_dependency),
-            image_params=Depends(self.img_dependency),
+            image_params=Depends(self.img_preview_dependency),
             stats_params=Depends(self.stats_dependency),
             histogram_params=Depends(self.histogram_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -1235,7 +1238,7 @@ class MultiBaseTilerFactory(TilerFactory):
             responses={
                 200: {
                     "content": {"application/json": {}},
-                    "description": "Return dataset's statistics.",
+                    "description": "Return dataset's statistics from feature or featureCollection.",
                 }
             },
         )
@@ -1248,7 +1251,7 @@ class MultiBaseTilerFactory(TilerFactory):
             coord_crs=Depends(CoordCRSParams),
             layer_params=Depends(AssetsBidxExprParamsOptional),
             dataset_params=Depends(self.dataset_dependency),
-            image_params=Depends(self.img_dependency),
+            image_params=Depends(self.img_part_dependency),
             stats_params=Depends(self.stats_dependency),
             histogram_params=Depends(self.histogram_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -1394,7 +1397,7 @@ class MultiBandTilerFactory(TilerFactory):
             src_path=Depends(self.path_dependency),
             bands_params=Depends(BandsExprParamsOptional),
             dataset_params=Depends(self.dataset_dependency),
-            image_params=Depends(self.img_dependency),
+            image_params=Depends(self.img_preview_dependency),
             stats_params=Depends(self.stats_dependency),
             histogram_params=Depends(self.histogram_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -1420,7 +1423,7 @@ class MultiBandTilerFactory(TilerFactory):
             responses={
                 200: {
                     "content": {"application/json": {}},
-                    "description": "Return dataset's statistics.",
+                    "description": "Return dataset's statistics from feature or featureCollection.",
                 }
             },
         )
@@ -1433,7 +1436,7 @@ class MultiBandTilerFactory(TilerFactory):
             coord_crs=Depends(CoordCRSParams),
             bands_params=Depends(BandsExprParamsOptional),
             dataset_params=Depends(self.dataset_dependency),
-            image_params=Depends(self.img_dependency),
+            image_params=Depends(self.img_part_dependency),
             stats_params=Depends(self.stats_dependency),
             histogram_params=Depends(self.histogram_dependency),
             reader_params=Depends(self.reader_dependency),

@@ -307,10 +307,24 @@ class BandsExprParams(ExpressionParams, BandsParams):
 
 
 @dataclass
-class ImageParams(DefaultDependency):
-    """Common Preview/Crop parameters."""
+class PreviewParams(DefaultDependency):
+    """Common Preview parameters."""
 
     max_size: Annotated[int, "Maximum image size to read onto."] = 1024
+    height: Annotated[Optional[int], "Force output image height."] = None
+    width: Annotated[Optional[int], "Force output image width."] = None
+
+    def __post_init__(self):
+        """Post Init."""
+        if self.width and self.height:
+            self.max_size = None
+
+
+@dataclass
+class PartFeatureParams(DefaultDependency):
+    """Common parameters for bbox and feature."""
+
+    max_size: Annotated[Optional[int], "Maximum image size to read onto."] = None
     height: Annotated[Optional[int], "Force output image height."] = None
     width: Annotated[Optional[int], "Force output image width."] = None
 

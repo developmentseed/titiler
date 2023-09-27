@@ -25,8 +25,8 @@ app.include_router(cog.router, tags=["Cloud Optimized GeoTIFF"])
 | `GET`  | `[/{tileMatrixSetId}]/WMTSCapabilities.xml`                     | XML                                         | return OGC WMTS Get Capabilities
 | `GET`  | `/point/{lon},{lat}`                                            | JSON ([Point][point_model])                 | return pixel values from a dataset
 | `GET`  | `/preview[.{format}]`                                           | image/bin                                   | create a preview image from a dataset (**Optional**)
-| `GET`  | `/crop/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                   | create an image from part of a dataset (**Optional**)
-| `POST` | `/crop[/{width}x{height}][.{format}]`                           | image/bin                                   | create an image from a GeoJSON feature (**Optional**)
+| `GET`  | `/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                   | create an image from part of a dataset (**Optional**)
+| `POST` | `/feature[/{width}x{height}][.{format}]`                           | image/bin                                   | create an image from a GeoJSON feature (**Optional**)
 | `GET`  | `/map`                                                          | HTML                                        | return a simple map viewer
 | `GET`  | `[/{tileMatrixSetId}]/map`                                      | HTML                                        | return a simple map viewer
 
@@ -59,8 +59,8 @@ app.include_router(cog.router, tags=["STAC"])
 | `GET`  | `/{tileMatrixSetId}/WMTSCapabilities.xml`                       | XML                                              | return OGC WMTS Get Capabilities
 | `GET`  | `/point/{lon},{lat}`                                            | JSON ([Point][multipoint_model])                 | return pixel values from assets
 | `GET`  | `/preview[.{format}]`                                           | image/bin                                        | create a preview image from assets (**Optional**)
-| `GET`  | `/crop/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                        | create an image from part of assets (**Optional**)
-| `POST` | `/crop[/{width}x{height}][.{format}]`                           | image/bin                                        | create an image from a geojson feature intersecting assets (**Optional**)
+| `GET`  | `/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                        | create an image from part of assets (**Optional**)
+| `POST` | `/feature[/{width}x{height}][.{format}]`                           | image/bin                                        | create an image from a geojson feature intersecting assets (**Optional**)
 | `GET`  | `[/{tileMatrixSetId}]/map`                                      | HTML                                             | return a simple map viewer
 
 ### `titiler.core.factory.MultiBandTilerFactory`
@@ -97,8 +97,8 @@ app.include_router(cog.router, tags=["Landsat"])
 | `GET`  | `/{tileMatrixSetId}/WMTSCapabilities.xml`                       | XML                                          | return OGC WMTS Get Capabilities
 | `GET`  | `/point/{lon},{lat}`                                            | JSON ([Point][point_model])                  | return pixel value from a dataset
 | `GET`  | `/preview[.{format}]`                                           | image/bin                                    | create a preview image from a dataset
-| `GET`  | `/crop/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                    | create an image from part of a dataset
-| `POST` | `/crop[/{width}x{height}][.{format}]`                           | image/bin                                    | create an image from a geojson feature
+| `GET`  | `/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                    | create an image from part of a dataset
+| `POST` | `/feature[/{width}x{height}][.{format}]`                           | image/bin                                    | create an image from a geojson feature
 | `GET`  | `[/{tileMatrixSetId}]/map`                                      | HTML                                         | return a simple map viewer
 
 ### `titiler.mosaic.factory.MosaicTilerFactory`

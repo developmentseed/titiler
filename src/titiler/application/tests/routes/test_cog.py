@@ -345,11 +345,11 @@ def test_preview(rio, app):
 
 @patch("rio_tiler.io.rasterio.rasterio")
 def test_part(rio, app):
-    """test /crop endpoint."""
+    """test /bbox endpoint."""
     rio.open = mock_rasterio_open
 
     response = app.get(
-        "/cog/crop/-56.228,72.715,-54.547,73.188.png?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=256"
+        "/cog/bbox/-56.228,72.715,-54.547,73.188.png?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=256"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
@@ -360,7 +360,7 @@ def test_part(rio, app):
     assert meta["driver"] == "PNG"
 
     response = app.get(
-        "/cog/crop/-56.228,72.715,-54.547,73.188.jpg?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=256&return_mask=false"
+        "/cog/bbox/-56.228,72.715,-54.547,73.188.jpg?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=256&return_mask=false"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/jpg"
@@ -371,7 +371,7 @@ def test_part(rio, app):
     assert meta["driver"] == "JPEG"
 
     response = app.get(
-        "/cog/crop/-56.228,72.715,-54.547,73.188/128x128.png?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=256"
+        "/cog/bbox/-56.228,72.715,-54.547,73.188/128x128.png?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=256"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
@@ -381,7 +381,7 @@ def test_part(rio, app):
     assert meta["driver"] == "PNG"
 
     response = app.get(
-        "/cog/crop/-56.228,72.715,-54.547,73.188.png?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=256&width=512&height=512"
+        "/cog/bbox/-56.228,72.715,-54.547,73.188.png?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=256&width=512&height=512"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
@@ -391,7 +391,7 @@ def test_part(rio, app):
     assert meta["driver"] == "PNG"
 
     response = app.get(
-        "/cog/crop/-56.228,72.715,-54.547,73.188.npy?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=256"
+        "/cog/bbox/-56.228,72.715,-54.547,73.188.npy?url=https://myurl.com/cog.tif&rescale=0,1000&max_size=256"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/x-binary"
