@@ -28,6 +28,9 @@
 
   - `/crop/{width}x{height}.{format}  [POST]` -> `/feature/{width}x{height}.{format} [POST]`
 
+- update `rio-tiler` requirement to `>=6.2.1`
+
+- Take coverage weights in account when generating statistics from GeoJSON features
 
 ## 0.14.1 (2023-09-14)
 

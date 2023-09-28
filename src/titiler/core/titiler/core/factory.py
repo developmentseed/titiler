@@ -456,16 +456,25 @@ class TilerFactory(BaseTilerFactory):
             with rasterio.Env(**env):
                 with self.reader(src_path, **reader_params) as src_dst:
                     for feature in fc:
+                        shape = feature.model_dump(exclude_none=True)
                         data = src_dst.feature(
-                            feature.model_dump(exclude_none=True),
+                            shape,
                             shape_crs=coord_crs or WGS84_CRS,
                             **layer_params,
                             **image_params,
                             **dataset_params,
                         )
 
+                        # Get the coverage % array
+                        coverage_array = data.get_coverage_array(
+                            shape,
+                            shape_crs=coord_crs or WGS84_CRS,
+                        )
+
                         stats = data.statistics(
-                            **stats_params, hist_options={**histogram_params}
+                            **stats_params,
+                            hist_options={**histogram_params},
+                            coverage=coverage_array,
                         )
 
                         feature.properties = feature.properties or {}
