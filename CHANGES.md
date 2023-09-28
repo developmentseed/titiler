@@ -1,6 +1,6 @@
 # Release Notes
 
-## 0.15.0 (TBD)
+## 0.15.0 (2023-09-28)
 
 ### titiler.core
 
