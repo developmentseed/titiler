@@ -35,7 +35,7 @@ dependencies = [
     "numpy",
     "pydantic~=2.0",
     "rasterio",
-    "rio-tiler>=6.0,<7.0",
+    "rio-tiler>=6.2.1,<7.0",
     "morecantile>=5.0,<6.0",
     "simplejson",
     "typing_extensions>=4.6.1",
