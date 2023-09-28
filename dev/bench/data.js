@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1694707011614,
+  "lastUpdate": 1695890596351,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -1164,6 +1164,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 5.66,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.07,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "vincent.sarago@gmail.com",
+            "name": "Vincent Sarago",
+            "username": "vincentsarago"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c6b5468b1ffb4b650822cc1f2738bb96cac7ba85",
+          "message": "rename /crop endpoints to /bbox or /feature (#704)\n\n* rename /crop endpoints to /bbox or /feature\r\n\r\n* update test requirements\r\n\r\n* pydantic update",
+          "timestamp": "2023-09-28T10:41:39+02:00",
+          "tree_id": "f62a8600ec43741286d7f7663ee59393860e7b6e",
+          "url": "https://github.com/developmentseed/titiler/commit/c6b5468b1ffb4b650822cc1f2738bb96cac7ba85"
+        },
+        "date": 1695890595589,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.07,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 5.59,
             "unit": "s"
           },
           {
