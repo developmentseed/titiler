@@ -29,7 +29,8 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-    "titiler.core==0.14.0"
+    "titiler.core==0.14.0",
+    "google-cloud-core",
 ]
 
 [project.optional-dependencies]
