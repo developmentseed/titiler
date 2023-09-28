@@ -38,7 +38,7 @@ test = [
     "pytest-cov",
     "pytest-asyncio",
     "httpx",
-    "jsonschema>=3.0,<4.18.0",
+    "pystac[validation]>=1.0.0,<2.0.0",
 ]
 cogeo = [
     "rio-cogeo>=5.0,<6.0",

@@ -273,14 +273,14 @@ class MetadataParams(DefaultDependency):
             self.kwargs["hist_options"] = hist_options
 ```
 
-#### img_dependency
+#### img_preview_dependency
 
-Used in Crop/Preview to define size of the output image.
+Used in Statistics/Preview to define size of the output image.
 
 ```python
 @dataclass
-class ImageParams(DefaultDependency):
-    """Common Preview/Crop parameters."""
+class PreviewParams(DefaultDependency):
+    """Common Preview parameters."""
 
     max_size: Optional[int] = Query(
         1024, description="Maximum image size to read onto."
@@ -292,6 +292,20 @@ class ImageParams(DefaultDependency):
         """Post Init."""
         if self.width and self.height:
             self.max_size = None
+```
+
+#### img_part_dependency
+
+Same as `PreviewParams` but without default `max_size`. Used in `/bbox`, `/feature` and `/statistics [POST]` endpoints.
+
+```python
+@dataclass
+class PartFeatureParams(PreviewParams):
+    """Common parameters for bbox and feature."""
+
+    max_size: Annotated[Optional[int], "Maximum image size to read onto."] = None
+    height: Annotated[Optional[int], "Force output image height."] = None
+    width: Annotated[Optional[int], "Force output image width."] = None
 ```
 
 ### MultiBaseTilerFactory

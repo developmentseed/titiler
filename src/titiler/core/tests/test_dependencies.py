@@ -308,33 +308,58 @@ def test_bands():
     assert not response.json()["bands"]
 
 
-def test_image():
-    """test image deps."""
+def test_preview_part_params():
+    """test preview/part deps."""
 
     app = FastAPI()
 
-    @app.get("/")
-    def _endpoint(params=Depends(dependencies.ImageParams)):
+    @app.get("/preview")
+    def _endpoint(params=Depends(dependencies.PreviewParams)):
+        """return params."""
+        return params
+
+    @app.get("/part")
+    def _endpoint(params=Depends(dependencies.PartFeatureParams)):
         """return params."""
         return params
 
     client = TestClient(app)
-    response = client.get("/")
+    response = client.get("/preview")
     assert response.json()["max_size"] == 1024
     assert not response.json()["height"]
     assert not response.json()["width"]
 
-    response = client.get("/?max_size=2048")
+    response = client.get("/preview?max_size=2048")
     assert response.json()["max_size"] == 2048
     assert not response.json()["height"]
     assert not response.json()["width"]
 
-    response = client.get("/?width=128")
+    response = client.get("/preview?width=128")
     assert response.json()["max_size"] == 1024
     assert not response.json()["height"]
     assert response.json()["width"] == 128
 
-    response = client.get("/?width=128&height=128")
+    response = client.get("/preview?width=128&height=128")
+    assert not response.json()["max_size"]
+    assert response.json()["height"] == 128
+    assert response.json()["width"] == 128
+
+    response = client.get("/part")
+    assert not response.json()["max_size"]
+    assert not response.json()["height"]
+    assert not response.json()["width"]
+
+    response = client.get("/part?max_size=2048")
+    assert response.json()["max_size"] == 2048
+    assert not response.json()["height"]
+    assert not response.json()["width"]
+
+    response = client.get("/part?width=128")
+    assert not response.json()["max_size"]
+    assert not response.json()["height"]
+    assert response.json()["width"] == 128
+
+    response = client.get("/part?width=128&height=128")
     assert not response.json()["max_size"]
     assert response.json()["height"] == 128
     assert response.json()["width"] == 128

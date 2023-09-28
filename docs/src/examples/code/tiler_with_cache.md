@@ -167,7 +167,7 @@ from rio_tiler.io import BaseReader, Reader
 
 from titiler.core.factory import img_endpoint_params
 from titiler.core.factory import TilerFactory as TiTilerFactory
-from titiler.core.dependencies import ImageParams, RescalingParams
+from titiler.core.dependencies import RescalingParams
 from titiler.core.models.mapbox import TileJSON
 from titiler.core.resources.enums import ImageType
 

@@ -21,8 +21,8 @@ The `/stac` routes are based on `titiler.core.factory.MultiBaseTilerFactory` but
 | `GET`  | `/stac[/{tileMatrixSetId}]/WMTSCapabilities.xml`                       | XML       | return OGC WMTS Get Capabilities
 | `GET`  | `/stac/point/{lon},{lat}`                                            | JSON      | return pixel value from assets
 | `GET`  | `/stac/preview[.{format}]`                                           | image/bin | create a preview image from assets
-| `GET`  | `/stac/crop/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin | create an image from part of assets
-| `POST` | `/stac/crop[/{width}x{height}][].{format}]`                          | image/bin | create an image from a geojson covering the assets
+| `GET`  | `/stac/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin | create an image from part of assets
+| `POST` | `/stac/feature[/{width}x{height}][].{format}]`                          | image/bin | create an image from a geojson covering the assets
 | `GET`  | `/stac[/{tileMatrixSetId}]/map`                                      | HTML      | simple map viewer
 | `GET`  | `/stac/viewer`                                                       | HTML      | demo webpage (from `titiler.extensions.stacViewerExtension`)
 
@@ -106,11 +106,11 @@ Example:
 - `https://myendpoint/stac/preview.jpg?url=https://somewhere.com/item.json&assets=B01`
 - `https://myendpoint/stac/preview?url=https://somewhere.com/item.json&assets=B01&rescale=0,1000&colormap_name=cfastie`
 
-### Crop / Part
+### BBOX/Feature
 
-`:endpoint:/stac/crop/{minx},{miny},{maxx},{maxy}.{format}`
+`:endpoint:/stac/bbox/{minx},{miny},{maxx},{maxy}.{format}`
 
-`:endpoint:/stac/crop/{minx},{miny},{maxx},{maxy}/{width}x{height}.{format}`
+`:endpoint:/stac/bbox/{minx},{miny},{maxx},{maxy}/{width}x{height}.{format}`
 
 - PathParams:
     - **minx,miny,maxx,maxy** (str): Comma (',') delimited bounding box in WGS84.
@@ -125,7 +125,7 @@ Example:
     - **asset_as_band** (bool): tell rio-tiler that each asset is a 1 band dataset, so expression `Asset1/Asset2` can be passed.
     - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1,2,3`).
     - **coord_crs** (str): Coordinate Reference System of the input coordinates. Default to `epsg:4326`.
-    - **max_size** (int): Max image size, default is 1024.
+    - **max_size** (int): Max image size.
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
     - **resampling** (str): rasterio resampling method. Default is `nearest`.
@@ -144,10 +144,10 @@ Example:
 
 Example:
 
-- `https://myendpoint/stac/crop/0,0,10,10.png?url=https://somewhere.com/item.json&assets=B01`
-- `https://myendpoint/stac/crop/0,0,10,10.png?url=https://somewhere.com/item.json&assets=B01&rescale=0,1000&colormap_name=cfastie`
+- `https://myendpoint/stac/bbox/0,0,10,10.png?url=https://somewhere.com/item.json&assets=B01`
+- `https://myendpoint/stac/bbox/0,0,10,10.png?url=https://somewhere.com/item.json&assets=B01&rescale=0,1000&colormap_name=cfastie`
 
-`:endpoint:/stac/crop[/{width}x{height}][].{format}] - [POST]`
+`:endpoint:/stac/feature[/{width}x{height}][].{format}] - [POST]`
 
 - Body:
     - **feature** (JSON): A valid GeoJSON feature (Polygon or MultiPolygon)
@@ -164,7 +164,7 @@ Example:
     - **asset_as_band** (bool): tell rio-tiler that each asset is a 1 band dataset, so expression `Asset1/Asset2` can be passed.
     - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1,2,3`).
     - **coord_crs** (str): Coordinate Reference System of the input geometry coordinates. Default to `epsg:4326`.
-    - **max_size** (int): Max image size, default is 1024.
+    - **max_size** (int): Max image size.
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
     - **resampling** (str): rasterio resampling method. Default is `nearest`.
@@ -183,9 +183,9 @@ Example:
 
 Example:
 
-- `https://myendpoint/stac/crop?url=https://somewhere.com/item.json&assets=B01`
-- `https://myendpoint/stac/crop.png?url=https://somewhere.com/item.json&assets=B01`
-- `https://myendpoint/stac/crop/100x100.png?url=https://somewhere.com/item.json&assets=B01&rescale=0,1000&colormap_name=cfastie`
+- `https://myendpoint/stac/feature?url=https://somewhere.com/item.json&assets=B01`
+- `https://myendpoint/stac/feature.png?url=https://somewhere.com/item.json&assets=B01`
+- `https://myendpoint/stac/feature/100x100.png?url=https://somewhere.com/item.json&assets=B01&rescale=0,1000&colormap_name=cfastie`
 
 ### Point
 
@@ -393,7 +393,7 @@ Example:
     - **asset_as_band** (bool): tell rio-tiler that each asset is a 1 band dataset, so expression `Asset1/Asset2` can be passed.
     - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1,2,3`).
     - **coord_crs** (str): Coordinate Reference System of the input geometry coordinates. Default to `epsg:4326`.
-    - **max_size** (int): Max image size from which to calculate statistics, default is 1024.
+    - **max_size** (int): Max image size from which to calculate statistics.
     - **height** (int): Force image height from which to calculate statistics.
     - **width** (int): Force image width from which to calculate statistics.
     - **nodata** (str, int, float): Overwrite internal Nodata value.

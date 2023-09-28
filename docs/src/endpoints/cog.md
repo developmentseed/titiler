@@ -19,8 +19,8 @@ The `/cog` routes are based on `titiler.core.factory.TilerFactory` but with `cog
 | `GET`  | `/cog[/{tileMatrixSetId}]/WMTSCapabilities.xml`                     | XML       | return OGC WMTS Get Capabilities
 | `GET`  | `/cog/point/{lon},{lat}`                                            | JSON      | return pixel values from a dataset
 | `GET`  | `/cog/preview[.{format}]`                                           | image/bin | create a preview image from a dataset
-| `GET`  | `/cog/crop/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin | create an image from part of a dataset
-| `POST` | `/cog/crop[/{width}x{height}][].{format}]`                          | image/bin | create an image from a GeoJSON feature
+| `GET`  | `/cog/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin | create an image from part of a dataset
+| `POST` | `/cog/feature[/{width}x{height}][].{format}]`                          | image/bin | create an image from a GeoJSON feature
 | `GET`  | `/cog[/{tileMatrixSetId}]/map`                                      | HTML      | simple map viewer
 | `GET`  | `/cog/validate`                                                     | JSON      | validate a COG and return dataset info (from `titiler.extensions.cogValidateExtension`)
 | `GET`  | `/cog/viewer`                                                       | HTML      | demo webpage (from `titiler.extensions.cogViewerExtension`)
@@ -97,11 +97,11 @@ Example:
 - `https://myendpoint/cog/preview.jpg?url=https://somewhere.com/mycog.tif&bidx=3&bidx=1&bidx2`
 - `https://myendpoint/cog/preview?url=https://somewhere.com/mycog.tif&bidx=1&rescale=0,1000&colormap_name=cfastie`
 
-### Crop / Part
+### BBOX/Feature
 
-`:endpoint:/cog/crop/{minx},{miny},{maxx},{maxy}.{format}`
+`:endpoint:/cog/bbox/{minx},{miny},{maxx},{maxy}.{format}`
 
-`:endpoint:/cog/crop/{minx},{miny},{maxx},{maxy}/{width}x{height}.{format}`
+`:endpoint:/cog/bbox/{minx},{miny},{maxx},{maxy}/{width}x{height}.{format}`
 
 - PathParams:
     - **minx,miny,maxx,maxy** (str): Comma (',') delimited bounding box in WGS84.
@@ -114,7 +114,7 @@ Example:
     - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
     - **expression** (str): rio-tiler's band math expression (e.g `expression=b1/b2`).
     - **coord_crs** (str): Coordinate Reference System of the input coordinates. Default to `epsg:4326`.
-    - **max_size** (int): Max image size, default is 1024.
+    - **max_size** (int): Max image size.
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
     - **resampling** (str): rasterio resampling method. Default is `nearest`.
@@ -131,11 +131,11 @@ Example:
 
 Example:
 
-- `https://myendpoint/cog/crop/0,0,10,10.png?url=https://somewhere.com/mycog.tif`
-- `https://myendpoint/cog/crop/0,0,10,10.png?url=https://somewhere.com/mycog.tif&bidx=1&rescale=0,1000&colormap_name=cfastie`
+- `https://myendpoint/cog/bbox/0,0,10,10.png?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/cog/bbox/0,0,10,10.png?url=https://somewhere.com/mycog.tif&bidx=1&rescale=0,1000&colormap_name=cfastie`
 
 
-`:endpoint:/cog/crop[/{width}x{height}][].{format}] - [POST]`
+`:endpoint:/cog/feature[/{width}x{height}][].{format}] - [POST]`
 
 - Body:
     - **feature** (JSON): A valid GeoJSON feature (Polygon or MultiPolygon)
@@ -150,7 +150,7 @@ Example:
     - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
     - **expression** (str): rio-tiler's band math expression (e.g `expression=b1/b2`).
     - **coord_crs** (str): Coordinate Reference System of the input geometry coordinates. Default to `epsg:4326`.
-    - **max_size** (int): Max image size, default is 1024.
+    - **max_size** (int): Max image size.
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
     - **resampling** (str): rasterio resampling method. Default is `nearest`.
@@ -167,9 +167,9 @@ Example:
 
 Example:
 
-- `https://myendpoint/cog/crop?url=https://somewhere.com/mycog.tif`
-- `https://myendpoint/cog/crop.png?url=https://somewhere.com/mycog.tif`
-- `https://myendpoint/cog/crop/100x100.png?url=https://somewhere.com/mycog.tif&bidx=1&rescale=0,1000&colormap_name=cfastie`
+- `https://myendpoint/cog/feature?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/cog/feature.png?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/cog/feature/100x100.png?url=https://somewhere.com/mycog.tif&bidx=1&rescale=0,1000&colormap_name=cfastie`
 
 Note: if `height` and `width` are provided `max_size` will be ignored.
 
@@ -324,7 +324,7 @@ Example:
     - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
     - **expression** (str): rio-tiler's band math expression (e.g `expression=b1/b2`).
     - **coord_crs** (str): Coordinate Reference System of the input geometry coordinates. Default to `epsg:4326`.
-    - **max_size** (int): Max image size from which to calculate statistics, default is 1024.
+    - **max_size** (int): Max image size from which to calculate statistics.
     - **height** (int): Force image height from which to calculate statistics.
     - **width** (int): Force image width from which to calculate statistics.
     - **nodata** (str, int, float): Overwrite internal Nodata value.

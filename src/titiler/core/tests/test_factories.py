@@ -192,7 +192,7 @@ def test_TilerFactory():
     assert response.headers["content-type"] == "image/jpeg"
 
     response = client.get(
-        f"/crop/-56.228,72.715,-54.547,73.188.png?url={DATA_DIR}/cog.tif&rescale=0,1000&max_size=256"
+        f"/bbox/-56.228,72.715,-54.547,73.188.png?url={DATA_DIR}/cog.tif&rescale=0,1000&max_size=256"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
@@ -358,18 +358,20 @@ def test_TilerFactory():
 
     feature_collection = {"type": "FeatureCollection", "features": [feature]}
 
-    response = client.post(f"/crop?url={DATA_DIR}/cog.tif", json=feature)
+    response = client.post(f"/feature?url={DATA_DIR}/cog.tif", json=feature)
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
 
-    response = client.post(f"/crop.tif?url={DATA_DIR}/cog.tif", json=feature)
+    response = client.post(f"/feature.tif?url={DATA_DIR}/cog.tif", json=feature)
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/tiff; application=geotiff"
     meta = parse_img(response.content)
     assert meta["dtype"] == "uint16"
     assert meta["count"] == 2
 
-    response = client.post(f"/crop/100x100.jpeg?url={DATA_DIR}/cog.tif", json=feature)
+    response = client.post(
+        f"/feature/100x100.jpeg?url={DATA_DIR}/cog.tif", json=feature
+    )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/jpeg"
     meta = parse_img(response.content)
@@ -580,7 +582,9 @@ def test_TilerFactory():
     }
 
     response = client.post(
-        f"/statistics?url={DATA_DIR}/cog.tif&categorical=true", json=feature
+        "/statistics",
+        json=feature,
+        params={"categorical": True, "max_size": 1024, "url": f"{DATA_DIR}/cog.tif"},
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/geo+json"
@@ -608,8 +612,17 @@ def test_TilerFactory():
     assert len(resp["properties"]["statistics"]["b1"]["histogram"][1]) == 12
 
     response = client.post(
-        f"/statistics?url={DATA_DIR}/cog.tif&categorical=true&c=1&c=2&c=3&c=4",
+        "/statistics",
         json=feature,
+        params=(
+            ("categorical", True),
+            ("c", 1),
+            ("c", 2),
+            ("c", 3),
+            ("c", 4),
+            ("max_size", 1024),
+            ("url", f"{DATA_DIR}/cog.tif"),
+        ),
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/geo+json"
@@ -1606,9 +1619,9 @@ def test_dst_crs_option():
         assert meta["crs"] == CRS.from_epsg(4326)
         assert not meta["crs"] == CRS.from_epsg(32621)
 
-        # /crop endpoints
+        # /bbox endpoints
         response = client.get(
-            f"/crop/-56.228,72.715,-54.547,73.188.tif?url={DATA_DIR}/cog.tif"
+            f"/bbox/-56.228,72.715,-54.547,73.188.tif?url={DATA_DIR}/cog.tif"
         )
         meta = parse_img(response.content)
         assert meta["crs"] == CRS.from_epsg(
@@ -1618,20 +1631,20 @@ def test_dst_crs_option():
 
         # Force output in epsg:32621
         response = client.get(
-            f"/crop/-56.228,72.715,-54.547,73.188.tif?url={DATA_DIR}/cog.tif&dst_crs=epsg:32621"
+            f"/bbox/-56.228,72.715,-54.547,73.188.tif?url={DATA_DIR}/cog.tif&dst_crs=epsg:32621"
         )
         meta = parse_img(response.content)
         assert meta["crs"] == CRS.from_epsg(32621)
 
         # coord_crs + dst_crs
         response = client.get(
-            f"/crop/-6259272.328324187,12015838.020930404,-6072144.264300693,12195445.265479913.tif?url={DATA_DIR}/cog.tif&coord_crs=epsg:3857"
+            f"/bbox/-6259272.328324187,12015838.020930404,-6072144.264300693,12195445.265479913.tif?url={DATA_DIR}/cog.tif&coord_crs=epsg:3857"
         )
         meta = parse_img(response.content)
         assert meta["crs"] == CRS.from_epsg(3857)
 
         response = client.get(
-            f"/crop/-6259272.328324187,12015838.020930404,-6072144.264300693,12195445.265479913.tif?url={DATA_DIR}/cog.tif&coord_crs=epsg:3857&dst_crs=epsg:32621"
+            f"/bbox/-6259272.328324187,12015838.020930404,-6072144.264300693,12195445.265479913.tif?url={DATA_DIR}/cog.tif&coord_crs=epsg:3857&dst_crs=epsg:32621"
         )
         meta = parse_img(response.content)
         assert meta["crs"] == CRS.from_epsg(32621)

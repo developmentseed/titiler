@@ -1,5 +1,34 @@
 # Release Notes
 
+## 0.15.0 (TBD)
+
+### titiler.core
+
+- added `PartFeatureParams` dependency
+
+**breaking changes**
+
+- `max_size` is now set to `None` for `/statistics [POST]`, `/bbox` and `/feature` endpoints, meaning the tiler will create image from the highest resolution.
+
+- renamed `titiler.core.dependencies.ImageParams` to `PreviewParams`
+
+- split TileFactory `img_dependency` attribute in two:
+  - `img_preview_dependency`: used in `/preview` and `/statistics [GET]`, default to `PreviewParams` (with `max_size=1024`)
+
+  - `img_part_dependency`: used in `/bbox`, `/feature` and `/statistics [POST]`, default to `PartFeatureParams` (with `max_size=None`)
+
+- renamed `/crop` endpoints to `/bbox/...` or `/feature/...`
+  - `/crop/{minx},{miny},{maxx},{maxy}.{format}` -> `/bbox/{minx},{miny},{maxx},{maxy}.{format}`
+
+  - `/crop/{minx},{miny},{maxx},{maxy}/{width}x{height}.{format}` -> `/bbox/{minx},{miny},{maxx},{maxy}/{width}x{height}.{format}`
+
+  - `/crop [POST]` -> `/feature [POST]`
+
+  - `/crop.{format} [POST]` -> `/feature.{format} [POST]`
+
+  - `/crop/{width}x{height}.{format}  [POST]` -> `/feature/{width}x{height}.{format} [POST]`
+
+
 ## 0.14.1 (2023-09-14)
 
 ### titiler.extension
