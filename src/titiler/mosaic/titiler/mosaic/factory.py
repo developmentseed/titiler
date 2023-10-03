@@ -24,12 +24,7 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse, Response
 from typing_extensions import Annotated
 
-from titiler.core.dependencies import (
-    BufferParams,
-    ColorFormulaParams,
-    CoordCRSParams,
-    DefaultDependency,
-)
+from titiler.core.dependencies import BufferParams, CoordCRSParams, DefaultDependency
 from titiler.core.factory import BaseTilerFactory, img_endpoint_params
 from titiler.core.models.mapbox import TileJSON
 from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
@@ -274,7 +269,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             buffer=Depends(BufferParams),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
-            color_formula=Depends(ColorFormulaParams),
+            color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             backend_params=Depends(self.backend_dependency),
@@ -393,7 +388,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             buffer=Depends(BufferParams),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
-            color_formula=Depends(ColorFormulaParams),
+            color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             backend_params=Depends(self.backend_dependency),
@@ -485,7 +480,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             pixel_selection=Depends(self.pixel_selection_dependency),
             buffer=Depends(BufferParams),
             rescale=Depends(self.rescale_dependency),
-            color_formula=Depends(ColorFormulaParams),
+            color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             backend_params=Depends(self.backend_dependency),
@@ -549,7 +544,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             buffer=Depends(BufferParams),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
-            color_formula=Depends(ColorFormulaParams),
+            color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             backend_params=Depends(self.backend_dependency),

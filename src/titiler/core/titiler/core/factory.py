@@ -146,6 +146,7 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
     # Image rendering Dependencies
     render_dependency: Type[DefaultDependency] = ImageRenderingParams
     colormap_dependency: Callable[..., Optional[ColorMapType]] = ColorMapParams
+    color_formula_dependency: Callable[..., Optional[str]] = ColorFormulaParams
 
     rescale_dependency: Callable[..., Optional[RescaleType]] = RescalingParams
 
@@ -539,7 +540,7 @@ class TilerFactory(BaseTilerFactory):
             buffer=Depends(BufferParams),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
-            color_formula=Depends(ColorFormulaParams),
+            color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -625,7 +626,7 @@ class TilerFactory(BaseTilerFactory):
             buffer=Depends(BufferParams),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
-            color_formula=Depends(ColorFormulaParams),
+            color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -705,7 +706,7 @@ class TilerFactory(BaseTilerFactory):
             buffer=Depends(BufferParams),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
-            color_formula=Depends(ColorFormulaParams),
+            color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -767,7 +768,7 @@ class TilerFactory(BaseTilerFactory):
             buffer=Depends(BufferParams),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
-            color_formula=Depends(ColorFormulaParams),
+            color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -898,7 +899,7 @@ class TilerFactory(BaseTilerFactory):
             image_params=Depends(self.img_preview_dependency),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
-            color_formula=Depends(ColorFormulaParams),
+            color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -965,7 +966,7 @@ class TilerFactory(BaseTilerFactory):
             image_params=Depends(self.img_part_dependency),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
-            color_formula=Depends(ColorFormulaParams),
+            color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -1028,7 +1029,7 @@ class TilerFactory(BaseTilerFactory):
             image_params=Depends(self.img_part_dependency),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
-            color_formula=Depends(ColorFormulaParams),
+            color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             reader_params=Depends(self.reader_dependency),
