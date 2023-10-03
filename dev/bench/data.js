@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1695916682551,
+  "lastUpdate": 1696365126401,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -1356,6 +1356,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad longest_transaction",
             "value": 0.08,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "sam@upstream.tech",
+            "name": "Sam Neubardt",
+            "username": "samn"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "50934c929cca2fa8d3c408d239015f8da429c6a8",
+          "message": "Allow a default color_formula to be defined on the factory (#707)\n\ninstead of needing it to be passed through query params.",
+          "timestamp": "2023-10-03T22:30:02+02:00",
+          "tree_id": "e6cf9597b076f84c6f4b82054bffdd36f36d530c",
+          "url": "https://github.com/developmentseed/titiler/commit/50934c929cca2fa8d3c408d239015f8da429c6a8"
+        },
+        "date": 1696365125542,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.09,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 7.09,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.07,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.09,
             "unit": "s"
           }
         ]
