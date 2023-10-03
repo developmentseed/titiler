@@ -1,5 +1,10 @@
 # Release Notes
 
+## Next Release
+
+* Allow a default `color_formula` parameter to be set via a dependency (author @samn, https://github.com/developmentseed/titiler/pull/707)
+
+
 ## 0.15.0 (2023-09-28)
 
 ### titiler.core

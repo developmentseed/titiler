@@ -1648,3 +1648,34 @@ def test_dst_crs_option():
         )
         meta = parse_img(response.content)
         assert meta["crs"] == CRS.from_epsg(32621)
+
+
+def test_color_formula_dependency():
+    """Ensure that we can set default color formulae via the color_formula_dependency"""
+
+    def custom_color_formula_params() -> Optional[str]:
+        return "sigmoidal R 7 0.4"
+
+    cog = TilerFactory()
+    cog_custom_color_formula = TilerFactory(
+        color_formula_dependency=custom_color_formula_params
+    )
+
+    app = FastAPI()
+    app.include_router(cog.router, prefix="/cog")
+    app.include_router(cog_custom_color_formula.router, prefix="/cog_custom")
+
+    with TestClient(app) as client:
+        response = client.get(
+            f"/cog/tiles/8/87/48.npy?url={DATA_DIR}/cog.tif&color_formula=sigmoidal R 10 0.1"
+        )
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "application/x-binary"
+        npy_tile = numpy.load(BytesIO(response.content))
+        assert npy_tile.shape == (2, 256, 256)  # mask + data
+
+        response = client.get(f"/cog_custom/tiles/8/87/48.npy?url={DATA_DIR}/cog.tif")
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "application/x-binary"
+        numpy.load(BytesIO(response.content))
+        assert npy_tile.shape == (2, 256, 256)  # mask + data
