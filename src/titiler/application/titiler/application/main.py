@@ -42,6 +42,7 @@ from titiler.mosaic.factory import MosaicTilerFactory
 logging.getLogger("botocore.credentials").disabled = True
 logging.getLogger("botocore.utils").disabled = True
 logging.getLogger("rio-tiler").setLevel(logging.ERROR)
+logging.getLogger("rasterio").setLevel(logging.ERROR)
 
 templates = Jinja2Templates(
     directory="",
