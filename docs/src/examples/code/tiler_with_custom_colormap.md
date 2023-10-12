@@ -33,34 +33,34 @@ app/dependencies.py
 """
 
 import json
-from enum import Enum
-from typing import Dict, Optional
+
+from typing import Dict, Optional, Literal
+from typing_extensions import Annotated
 
 import numpy
 import matplotlib
-from rio_tiler.colormap import cmap, parse_color
+from rio_tiler.colormap import parse_color
+from rio_tiler.colormap import cmap as default_cmap
 from fastapi import HTTPException, Query
 
 
-ColorMapName = Enum(  # type: ignore
-    "ColorMapName", [(a, a) for a in sorted(cmap.list())]
-)
-
-class ColorMapType(str, Enum):
-    """Colormap types."""
-
-    explicit = "explicit"
-    linear = "linear"
-
-
 def ColorMapParams(
-    colormap_name: ColorMapName = Query(None, description="Colormap name"),
-    colormap: str = Query(None, description="JSON encoded custom Colormap"),
-    colormap_type: ColorMapType = Query(ColorMapType.explicit, description="User input colormap type."),
+    colormap_name: Annotated[  # type: ignore
+        Literal[tuple(default_cmap.list())],
+        Query(description="Colormap name"),
+    ] = None,
+    colormap: Annotated[
+        str,
+        Query(description="JSON encoded custom Colormap"),
+    ] = None,
+    colormap_type: Annotated[
+        Literal["explicit", "linear"],
+        Query(description="User input colormap type."),
+    ] = "explicit",
 ) -> Optional[Dict]:
     """Colormap Dependency."""
     if colormap_name:
-        return cmap.get(colormap_name.value)
+        return default_cmap.get(colormap_name)
 
     if colormap:
         try:
@@ -73,7 +73,7 @@ def ColorMapParams(
                 status_code=400, detail="Could not parse the colormap value."
             )
 
-        if colormap_type == ColorMapType.linear:
+        if colormap_type == "linear":
             # input colormap has to start from 0 to 255 ?
             cm = matplotlib.colors.LinearSegmentedColormap.from_list(
                 'custom',

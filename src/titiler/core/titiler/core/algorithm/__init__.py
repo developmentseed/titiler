@@ -7,6 +7,7 @@ from typing import Dict, List, Literal, Optional, Type
 import attr
 from fastapi import HTTPException, Query
 from pydantic import ValidationError
+from typing_extensions import Annotated
 
 from titiler.core.algorithm.base import AlgorithmMetadata, BaseAlgorithm  # noqa
 from titiler.core.algorithm.dem import Contours, HillShade, TerrainRGB, Terrarium
@@ -55,10 +56,14 @@ class Algorithms:
         """FastAPI PostProcess dependency."""
 
         def post_process(
-            algorithm: Literal[tuple(self.data.keys())] = Query(
-                None, description="Algorithm name"
-            ),
-            algorithm_params: str = Query(None, description="Algorithm parameter"),
+            algorithm: Annotated[
+                Literal[tuple(self.data.keys())],
+                Query(description="Algorithm name"),
+            ] = None,
+            algorithm_params: Annotated[
+                Optional[str],
+                Query(description="Algorithm parameter"),
+            ] = None,
         ) -> Optional[BaseAlgorithm]:
             """Data Post-Processing options."""
             kwargs = json.loads(algorithm_params) if algorithm_params else {}
