@@ -1,6 +1,33 @@
 
 `TiTiler` is designed to help user customize input/output for each endpoint. This section goes over some simple customization examples.
 
+### Custom Colormap
+
+Add user defined colormap to the default colormaps provided by rio-tiler
+
+```python
+from fastapi import FastAPI
+
+from rio_tiler.colormap import cmap as default_cmap
+
+from titiler.core.dependencies import create_colormap_dependency
+from titiler.core.factory import TilerFactory
+
+
+app = FastAPI(title="My simple app with custom TMS")
+
+cmap_values = {
+    "cmap1": {6: (4, 5, 6, 255)},
+}
+# add custom colormap `cmap1` to the default colormaps
+cmap = default_cmap.register(cmap_values)
+ColorMapParams = create_colormap_dependency(cmap)
+
+
+cog = TilerFactory(colormap_dependency=ColorMapParams)
+app.include_router(cog.router)
+```
+
 ### Custom DatasetPathParams for `reader_dependency`
 
 One common customization could be to create your own `path_dependency`. This dependency is used on all endpoint and pass inputs to the *Readers* (MosaicBackend, COGReader, STACReader...).

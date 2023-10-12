@@ -2,53 +2,59 @@
 
 import json
 from dataclasses import dataclass
-from enum import Enum
-from typing import Dict, List, Optional, Sequence, Tuple, Union
+from typing import Callable, Dict, List, Literal, Optional, Sequence, Tuple, Union
 
 import numpy
 from fastapi import HTTPException, Query
 from rasterio.crs import CRS
-from rio_tiler.colormap import cmap, parse_color
+from rio_tiler.colormap import ColorMaps
+from rio_tiler.colormap import cmap as default_cmap
+from rio_tiler.colormap import parse_color
 from rio_tiler.errors import MissingAssets, MissingBands
-from rio_tiler.types import ColorMapType, RIOResampling
+from rio_tiler.types import RIOResampling
 from typing_extensions import Annotated
 
-ColorMapName = Enum(  # type: ignore
-    "ColorMapName", [(a, a) for a in sorted(cmap.list())]
-)
+
+def create_colormap_dependency(cmap: ColorMaps) -> Callable:
+    """Create Colormap Dependency."""
+
+    def deps(
+        colormap_name: Annotated[  # type: ignore
+            Literal[tuple(cmap.list())],
+            Query(description="Colormap name"),
+        ] = None,
+        colormap: Annotated[
+            Optional[str], Query(description="JSON encoded custom Colormap")
+        ] = None,
+    ):
+        if colormap_name:
+            return cmap.get(colormap_name)
+
+        if colormap:
+            try:
+                c = json.loads(
+                    colormap,
+                    object_hook=lambda x: {
+                        int(k): parse_color(v) for k, v in x.items()
+                    },
+                )
+
+                # Make sure to match colormap type
+                if isinstance(c, Sequence):
+                    c = [(tuple(inter), parse_color(v)) for (inter, v) in c]
+
+                return c
+            except json.JSONDecodeError as e:
+                raise HTTPException(
+                    status_code=400, detail="Could not parse the colormap value."
+                ) from e
+
+        return None
+
+    return deps
 
 
-def ColorMapParams(
-    colormap_name: Annotated[
-        Optional[ColorMapName],
-        Query(description="Colormap name"),
-    ] = None,
-    colormap: Annotated[
-        Optional[str], Query(description="JSON encoded custom Colormap")
-    ] = None,
-) -> Optional[ColorMapType]:
-    """Colormap Dependency."""
-    if colormap_name:
-        return cmap.get(colormap_name.value)
-
-    if colormap:
-        try:
-            c = json.loads(
-                colormap,
-                object_hook=lambda x: {int(k): parse_color(v) for k, v in x.items()},
-            )
-
-            # Make sure to match colormap type
-            if isinstance(c, Sequence):
-                c = [(tuple(inter), parse_color(v)) for (inter, v) in c]
-
-            return c
-        except json.JSONDecodeError as e:
-            raise HTTPException(
-                status_code=400, detail="Could not parse the colormap value."
-            ) from e
-
-    return None
+ColorMapParams = create_colormap_dependency(default_cmap)
 
 
 def DatasetPathParams(url: Annotated[str, Query(description="Dataset URL")]) -> str:

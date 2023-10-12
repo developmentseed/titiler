@@ -3,7 +3,7 @@
 ## Next Release
 
 * Allow a default `color_formula` parameter to be set via a dependency (author @samn, https://github.com/developmentseed/titiler/pull/707)
-
+* add `titiler.core.dependencies.create_colormap_dependency` to create ColorMapParams dependency from `rio_tiler.colormap.ColorMaps` object
 
 ## 0.15.0 (2023-09-28)
 
