@@ -47,6 +47,7 @@ The `/cog` routes are based on `titiler.core.factory.TilerFactory` but with `cog
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
     - **resampling** (str): rasterio resampling method. Default is `nearest`.
+    - **reproject** (str): rasterio resampling method to use for reprojection. Default is `nearest`.
     - **rescale** (array[str]): Comma (',') delimited Min,Max range (e.g `rescale=0,1000`, `rescale=0,1000&rescale=0,3000&rescale=0,2000`).
     - **color_formula** (str): rio-color formula.
     - **colormap** (str): JSON encoded custom Colormap.
@@ -80,6 +81,7 @@ Example:
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
     - **resampling** (str): rasterio resampling method. Default is `nearest`.
+    - **reproject** (str): rasterio resampling method to use for reprojection. Default is `nearest`.
     - **rescale** (array[str]): Comma (',') delimited Min,Max range (e.g `rescale=0,1000`, `rescale=0,1000&rescale=0,3000&rescale=0,2000`).
     - **color_formula** (str): rio-color formula.
     - **colormap** (str): JSON encoded custom Colormap.
@@ -118,6 +120,7 @@ Example:
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
     - **resampling** (str): rasterio resampling method. Default is `nearest`.
+    - **reproject** (str): rasterio resampling method to use for reprojection. Default is `nearest`.
     - **rescale** (array[str]): Comma (',') delimited Min,Max range (e.g `rescale=0,1000`, `rescale=0,1000&rescale=0,3000&rescale=0,2000`).
     - **color_formula** (str): rio-color formula.
     - **colormap** (str): JSON encoded custom Colormap.
@@ -154,6 +157,7 @@ Example:
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
     - **resampling** (str): rasterio resampling method. Default is `nearest`.
+    - **reproject** (str): rasterio resampling method to use for reprojection. Default is `nearest`.
     - **rescale** (array[str]): Comma (',') delimited Min,Max range (e.g `rescale=0,1000`, `rescale=0,1000&rescale=0,3000&rescale=0,2000`).
     - **color_formula** (str): rio-color formula.
     - **colormap** (str): JSON encoded custom Colormap.
@@ -188,6 +192,7 @@ Note: if `height` and `width` are provided `max_size` will be ignored.
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
     - **resampling** (str): rasterio resampling method. Default is `nearest`.
+    - **reproject** (str): rasterio resampling method to use for reprojection. Default is `nearest`.
 
 Example:
 
@@ -212,6 +217,7 @@ Example:
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
     - **resampling** (str): rasterio resampling method. Default is `nearest`.
+    - **reproject** (str): rasterio resampling method to use for reprojection. Default is `nearest`.
     - **rescale** (array[str]): Comma (',') delimited Min,Max range (e.g `rescale=0,1000`, `rescale=0,1000&rescale=0,3000&rescale=0,2000`).
     - **color_formula** (str): rio-color formula.
     - **colormap** (str): JSON encoded custom Colormap.
@@ -246,6 +252,7 @@ Example:
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
     - **resampling** (str): rasterio resampling method. Default is `nearest`.
+    - **reproject** (str): rasterio resampling method to use for reprojection. Default is `nearest`.
     - **rescale** (array[str]): Comma (',') delimited Min,Max range (e.g `rescale=0,1000`, `rescale=0,1000&rescale=0,3000&rescale=0,2000`).
     - **color_formula** (str): rio-color formula.
     - **colormap** (str): JSON encoded custom Colormap.
@@ -304,6 +311,7 @@ Advanced raster statistics
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
     - **resampling** (str): rasterio resampling method. Default is `nearest`.
+    - **reproject** (str): rasterio resampling method to use for reprojection. Default is `nearest`.
     - **categorical** (bool): Return statistics for categorical dataset, default is false.
     - **c** (array[float]): Pixels values for categories.
     - **p** (array[int]): Percentile values.
@@ -330,6 +338,7 @@ Example:
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
     - **resampling** (str): rasterio resampling method. Default is `nearest`.
+    - **reproject** (str): rasterio resampling method to use for reprojection. Default is `nearest`.
     - **categorical** (bool): Return statistics for categorical dataset, default is false.
     - **c** (array[float]): Pixels values for categories.
     - **p** (array[int]): Percentile values.

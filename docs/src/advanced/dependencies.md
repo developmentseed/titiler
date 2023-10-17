@@ -119,7 +119,7 @@ class BidxExprParams(ExpressionParams, BidxParams):
 
 #### dataset_dependency
 
-Overwrite nodata value, apply rescaling or change default resampling.
+Overwrite nodata value, apply rescaling, or change the default method used for resampling or reprojection.
 
 ```python
 @dataclass
@@ -139,12 +139,18 @@ class DatasetParams(DefaultDependency):
         alias="resampling",
         description="Resampling method.",
     )
+    reproject_method: ResamplingName = Query(
+        ResamplingName.nearest,  # type: ignore
+        alias="reproject",
+        description="Reproject method.",
+    )
 
     def __post_init__(self):
         """Post Init."""
         if self.nodata is not None:
             self.nodata = numpy.nan if self.nodata == "nan" else float(self.nodata)
         self.resampling_method = self.resampling_method.value  # type: ignore
+        self.reproject_method = self.reproject_method.value  # type: ignore
 ```
 
 #### render_dependency
