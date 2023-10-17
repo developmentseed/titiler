@@ -10,10 +10,10 @@ cd titiler
 
 python -m pip install \
    pre-commit \
-   -e src/titiler/core["test"] \
-   -e src/titiler/extensions["test,cogeo,stac"] \
-   -e src/titiler/mosaic["test"] \
-   -e src/titiler/application["test"]
+   -e "src/titiler/core[test]" \
+   -e "src/titiler/extensions[test,cogeo,stac]" \
+   -e "src/titiler/mosaic[test]" \
+   -e "src/titiler/application[test]"
 ```
 
 **pre-commit**

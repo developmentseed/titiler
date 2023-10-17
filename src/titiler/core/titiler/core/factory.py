@@ -137,7 +137,7 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
     # Path Dependency
     path_dependency: Callable[..., Any] = DatasetPathParams
 
-    # Rasterio Dataset Options (nodata, unscale, resampling)
+    # Rasterio Dataset Options (nodata, unscale, resampling, reproject)
     dataset_dependency: Type[DefaultDependency] = DatasetParams
 
     # Indexes/Expression Dependencies

@@ -11,7 +11,7 @@ from rio_tiler.colormap import ColorMaps
 from rio_tiler.colormap import cmap as default_cmap
 from rio_tiler.colormap import parse_color
 from rio_tiler.errors import MissingAssets, MissingBands
-from rio_tiler.types import RIOResampling
+from rio_tiler.types import RIOResampling, WarpResampling
 from typing_extensions import Annotated
 
 
@@ -365,12 +365,20 @@ class DatasetParams(DefaultDependency):
             description="Resampling method.",
         ),
     ] = "nearest"
+    reproject_method: Annotated[
+        WarpResampling,
+        Query(
+            alias="reproject",
+            description="Reprojection method.",
+        ),
+    ] = "nearest"
 
     def __post_init__(self):
         """Post Init."""
         if self.nodata is not None:
             self.nodata = numpy.nan if self.nodata == "nan" else float(self.nodata)
         self.resampling_method = self.resampling_method
+        self.reproject_method = self.reproject_method
 
 
 @dataclass

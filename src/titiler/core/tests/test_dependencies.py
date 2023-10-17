@@ -385,11 +385,16 @@ def test_dataset():
     assert not response.json()["nodata"]
     assert not response.json()["unscale"]
     assert response.json()["resampling_method"] == "nearest"
+    assert response.json()["reproject_method"] == "nearest"
 
     response = client.get("/?resampling=cubic")
     assert not response.json()["nodata"]
     assert not response.json()["unscale"]
     assert response.json()["resampling_method"] == "cubic"
+    assert response.json()["reproject_method"] == "nearest"
+
+    response = client.get("/?reproject=bilinear")
+    assert response.json()["reproject_method"] == "bilinear"
 
     response = client.get("/?nodata=10")
     assert response.json()["nodata"] == 10.0
