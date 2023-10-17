@@ -1,9 +1,10 @@
 # Release Notes
 
-## Next Release
+## 0.15.1 (2023-10-17)
 
 * Allow a default `color_formula` parameter to be set via a dependency (author @samn, https://github.com/developmentseed/titiler/pull/707)
 * add `titiler.core.dependencies.create_colormap_dependency` to create ColorMapParams dependency from `rio_tiler.colormap.ColorMaps` object
+* add `py.typed` files in titiler submodules (https://peps.python.org/pep-0561)
 
 ## 0.15.0 (2023-09-28)
 
