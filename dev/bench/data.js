@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1697752259693,
+  "lastUpdate": 1697752646572,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -1710,6 +1710,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad longest_transaction",
             "value": 0.1,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "simon.ouellet@toumoro.com",
+            "name": "Simon Ouellet",
+            "username": "simouel"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8c079f942710a75e0f0ce4e6a3b900bf9a12d166",
+          "message": "Update errors.py (#713)\n\nCurrently, when we mosaic some distant rasters in a large area, leaflet raises a 404 error in the console for every missing tile.\r\nChanging from 404 to 204 seems to fix the problem",
+          "timestamp": "2023-10-19T23:55:53+02:00",
+          "tree_id": "d59ba7559c4671e2c798ca5d4c25a4392c60ba1e",
+          "url": "https://github.com/developmentseed/titiler/commit/8c079f942710a75e0f0ce4e6a3b900bf9a12d166"
+        },
+        "date": 1697752645877,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.08,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 5.45,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.05,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.07,
             "unit": "s"
           }
         ]
