@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1697535118828,
+  "lastUpdate": 1697752259693,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -1651,6 +1651,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad longest_transaction",
             "value": 0.09,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "DanSchoppe@users.noreply.github.com",
+            "name": "Dan Schoppe",
+            "username": "DanSchoppe"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5344686beb796281d6f2ec439cd5fd638663212c",
+          "message": "Configure Mangum with root_path for API Gateway non-root routes (#716)",
+          "timestamp": "2023-10-19T23:49:07+02:00",
+          "tree_id": "4dfd8b778047df92d7311a021eace6fe94a523f5",
+          "url": "https://github.com/developmentseed/titiler/commit/5344686beb796281d6f2ec439cd5fd638663212c"
+        },
+        "date": 1697752258987,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.08,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 7.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.07,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.1,
             "unit": "s"
           }
         ]
