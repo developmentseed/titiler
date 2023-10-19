@@ -1,5 +1,15 @@
 # Release Notes
 
+## Unreleased
+
+### titiler.mosaic
+
+*  Change `HTTP_404_NOT_FOUND` to `HTTP_204_NO_CONTENT` when no asset is found or tile is empty (author @simouel, https://github.com/developmentseed/titiler/pull/713)
+
+### cdk application
+
+* Support non-root paths in AWS API Gateway Lambda handler (author @DanSchoppe, https://github.com/developmentseed/titiler/pull/716)
+
 ## 0.15.1 (2023-10-17)
 
 * Allow a default `color_formula` parameter to be set via a dependency (author @samn, https://github.com/developmentseed/titiler/pull/707)
