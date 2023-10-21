@@ -11,7 +11,7 @@ from rio_tiler.colormap import ColorMaps
 from rio_tiler.colormap import cmap as default_cmap
 from rio_tiler.colormap import parse_color
 from rio_tiler.errors import MissingAssets, MissingBands
-from rio_tiler.types import RIOResampling
+from rio_tiler.types import RIOResampling, WarpResampling
 from typing_extensions import Annotated
 
 
@@ -352,17 +352,24 @@ class DatasetParams(DefaultDependency):
         ),
     ] = None
     unscale: Annotated[
-        Optional[bool],
+        bool,
         Query(
             title="Apply internal Scale/Offset",
-            description="Apply internal Scale/Offset",
+            description="Apply internal Scale/Offset. Defaults to `False`.",
         ),
     ] = False
     resampling_method: Annotated[
         RIOResampling,
         Query(
             alias="resampling",
-            description="Resampling method.",
+            description="RasterIO resampling algorithm. Defaults to `nearest`.",
+        ),
+    ] = "nearest"
+    reproject_method: Annotated[
+        WarpResampling,
+        Query(
+            alias="reproject",
+            description="WarpKernel resampling algorithm (only used when doing re-projection). Defaults to `nearest`.",
         ),
     ] = "nearest"
 
@@ -370,7 +377,7 @@ class DatasetParams(DefaultDependency):
         """Post Init."""
         if self.nodata is not None:
             self.nodata = numpy.nan if self.nodata == "nan" else float(self.nodata)
-        self.resampling_method = self.resampling_method
+        self.unscale = bool(self.unscale)
 
 
 @dataclass
@@ -381,7 +388,7 @@ class ImageRenderingParams(DefaultDependency):
         bool,
         Query(
             alias="return_mask",
-            description="Add mask to the output data.",
+            description="Add mask to the output data. Defaults to `True`",
         ),
     ] = True
 
@@ -559,3 +566,26 @@ def ColorFormulaParams(
 ) -> Optional[str]:
     """ColorFormula Parameter."""
     return color_formula
+
+
+@dataclass
+class TileParams(DefaultDependency):
+    """Tile options."""
+
+    buffer: Annotated[
+        Optional[float],
+        Query(
+            gt=0,
+            title="Tile buffer.",
+            description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
+        ),
+    ] = None
+
+    padding: Annotated[
+        Optional[int],
+        Query(
+            gt=0,
+            title="Tile padding.",
+            description="Padding to apply to each tile edge. Helps reduce resampling artefacts along edges. Defaults to `0`.",
+        ),
+    ] = None

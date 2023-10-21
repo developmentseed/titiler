@@ -24,7 +24,7 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse, Response
 from typing_extensions import Annotated
 
-from titiler.core.dependencies import BufferParams, CoordCRSParams, DefaultDependency
+from titiler.core.dependencies import CoordCRSParams, DefaultDependency, TileParams
 from titiler.core.factory import BaseTilerFactory, img_endpoint_params
 from titiler.core.models.mapbox import TileJSON
 from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
@@ -64,6 +64,9 @@ class MosaicTilerFactory(BaseTilerFactory):
     backend_dependency: Type[DefaultDependency] = DefaultDependency
 
     pixel_selection_dependency: Callable[..., MosaicMethodBase] = PixelSelectionParams
+
+    # Tile/Tilejson/WMTS Dependencies
+    tile_dependency: Type[DefaultDependency] = TileParams
 
     supported_tms: TileMatrixSets = morecantile_tms
     default_tms: str = "WebMercatorQuad"
@@ -266,7 +269,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             pixel_selection=Depends(self.pixel_selection_dependency),
-            buffer=Depends(BufferParams),
+            tile_params=Depends(self.tile_dependency),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
             color_formula=Depends(self.color_formula_dependency),
@@ -313,7 +316,7 @@ class MosaicTilerFactory(BaseTilerFactory):
                         pixel_selection=pixel_selection,
                         tilesize=scale * 256,
                         threads=threads,
-                        buffer=buffer,
+                        **tile_params,
                         **layer_params,
                         **dataset_params,
                     )
@@ -385,7 +388,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             pixel_selection=Depends(self.pixel_selection_dependency),
-            buffer=Depends(BufferParams),
+            tile_params=Depends(self.tile_dependency),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
             color_formula=Depends(self.color_formula_dependency),
@@ -478,7 +481,8 @@ class MosaicTilerFactory(BaseTilerFactory):
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             pixel_selection=Depends(self.pixel_selection_dependency),
-            buffer=Depends(BufferParams),
+            tile_params=Depends(self.tile_dependency),
+            post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
             color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
@@ -541,7 +545,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             pixel_selection=Depends(self.pixel_selection_dependency),
-            buffer=Depends(BufferParams),
+            tile_params=Depends(self.tile_dependency),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
             color_formula=Depends(self.color_formula_dependency),

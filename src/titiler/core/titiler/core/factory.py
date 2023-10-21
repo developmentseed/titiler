@@ -37,7 +37,6 @@ from titiler.core.dependencies import (
     BandsExprParamsOptional,
     BandsParams,
     BidxExprParams,
-    BufferParams,
     ColorFormulaParams,
     ColorMapParams,
     CoordCRSParams,
@@ -52,6 +51,7 @@ from titiler.core.dependencies import (
     RescaleType,
     RescalingParams,
     StatisticsParams,
+    TileParams,
 )
 from titiler.core.models.mapbox import TileJSON
 from titiler.core.models.OGC import TileMatrixSetList
@@ -137,7 +137,7 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
     # Path Dependency
     path_dependency: Callable[..., Any] = DatasetPathParams
 
-    # Rasterio Dataset Options (nodata, unscale, resampling)
+    # Rasterio Dataset Options (nodata, unscale, resampling, reproject)
     dataset_dependency: Type[DefaultDependency] = DatasetParams
 
     # Indexes/Expression Dependencies
@@ -277,6 +277,9 @@ class TilerFactory(BaseTilerFactory):
     # Crop/Preview endpoints Dependencies
     img_preview_dependency: Type[DefaultDependency] = PreviewParams
     img_part_dependency: Type[DefaultDependency] = PartFeatureParams
+
+    # Tile/Tilejson/WMTS Dependencies
+    tile_dependency: Type[DefaultDependency] = TileParams
 
     # Add/Remove some endpoints
     add_preview: bool = True
@@ -537,7 +540,7 @@ class TilerFactory(BaseTilerFactory):
             src_path=Depends(self.path_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
-            buffer=Depends(BufferParams),
+            tile_params=Depends(self.tile_dependency),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
             color_formula=Depends(self.color_formula_dependency),
@@ -555,7 +558,7 @@ class TilerFactory(BaseTilerFactory):
                         y,
                         z,
                         tilesize=scale * 256,
-                        buffer=buffer,
+                        **tile_params,
                         **layer_params,
                         **dataset_params,
                     )
@@ -623,7 +626,7 @@ class TilerFactory(BaseTilerFactory):
             ] = None,
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
-            buffer=Depends(BufferParams),
+            tile_params=Depends(self.tile_dependency),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
             color_formula=Depends(self.color_formula_dependency),
@@ -703,7 +706,7 @@ class TilerFactory(BaseTilerFactory):
             ] = None,
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
-            buffer=Depends(BufferParams),
+            tile_params=Depends(self.tile_dependency),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
             color_formula=Depends(self.color_formula_dependency),
@@ -765,7 +768,7 @@ class TilerFactory(BaseTilerFactory):
             ] = None,
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
-            buffer=Depends(BufferParams),
+            tile_params=Depends(self.tile_dependency),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
             color_formula=Depends(self.color_formula_dependency),
