@@ -137,23 +137,22 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
     # Path Dependency
     path_dependency: Callable[..., Any] = DatasetPathParams
 
-    # Rasterio Dataset Options (nodata, unscale, resampling, reproject)
-    dataset_dependency: Type[DefaultDependency] = DatasetParams
-
     # Indexes/Expression Dependencies
     layer_dependency: Type[DefaultDependency] = BidxExprParams
 
-    # Image rendering Dependencies
-    render_dependency: Type[DefaultDependency] = ImageRenderingParams
-    colormap_dependency: Callable[..., Optional[ColorMapType]] = ColorMapParams
-    color_formula_dependency: Callable[..., Optional[str]] = ColorFormulaParams
-
-    rescale_dependency: Callable[..., Optional[RescaleType]] = RescalingParams
+    # Rasterio Dataset Options (nodata, unscale, resampling, reproject)
+    dataset_dependency: Type[DefaultDependency] = DatasetParams
 
     # Post Processing Dependencies (algorithm)
     process_dependency: Callable[
         ..., Optional[BaseAlgorithm]
     ] = available_algorithms.dependency
+
+    # Image rendering Dependencies
+    rescale_dependency: Callable[..., Optional[RescaleType]] = RescalingParams
+    color_formula_dependency: Callable[..., Optional[str]] = ColorFormulaParams
+    colormap_dependency: Callable[..., Optional[ColorMapType]] = ColorMapParams
+    render_dependency: Type[DefaultDependency] = ImageRenderingParams
 
     # Reader dependency
     reader_dependency: Type[DefaultDependency] = DefaultDependency
