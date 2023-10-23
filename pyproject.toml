@@ -27,12 +27,12 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Topic :: Scientific/Engineering :: GIS",
 ]
-version="0.15.1"
+version="0.15.2"
 dependencies = [
-    "titiler.core==0.15.1",
-    "titiler.extensions==0.15.1",
-    "titiler.mosaic==0.15.1",
-    "titiler.application==0.15.1",
+    "titiler.core==0.15.2",
+    "titiler.extensions==0.15.2",
+    "titiler.mosaic==0.15.2",
+    "titiler.application==0.15.2",
 ]
 
 [project.optional-dependencies]
