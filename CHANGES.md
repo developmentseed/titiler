@@ -1,6 +1,6 @@
 # Release Notes
 
-## Unreleased
+## 0.15.2 (2023-10-23)
 
 ### titiler.core
 
@@ -12,7 +12,6 @@
 
 *  Change `HTTP_404_NOT_FOUND` to `HTTP_204_NO_CONTENT` when no asset is found or tile is empty (author @simouel, https://github.com/developmentseed/titiler/pull/713)
 * add `tile_dependency` attribute in `MosaicTilerFactory` class (defaults to `TileParams`)
-
 
 ### cdk application
 
