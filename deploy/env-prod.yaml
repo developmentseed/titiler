@@ -6,6 +6,10 @@ app:
   enabled: true
   containerPort: 3000
   replicaCount: 8
+  podAnnotations:
+    kuma.io/mesh: platform-prod
+  podLabels:
+    kuma.io/sidecar-injection: enabled
   extraEnvs:
     - name: SD_ENV
       value: "prod"
