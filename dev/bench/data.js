@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1698097483173,
+  "lastUpdate": 1698098115946,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -1882,6 +1882,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad response_time",
             "value": 0.05,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.07,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "vincent.sarago@gmail.com",
+            "name": "vincentsarago",
+            "username": "vincentsarago"
+          },
+          "committer": {
+            "email": "vincent.sarago@gmail.com",
+            "name": "vincentsarago",
+            "username": "vincentsarago"
+          },
+          "distinct": true,
+          "id": "b46f7fef592991c95ceed0d79cf481c0c6e2d475",
+          "message": "Bump version: 0.15.1 → 0.15.2",
+          "timestamp": "2023-10-23T23:53:36+02:00",
+          "tree_id": "81e74a1456496165640b7ace61af7331cae5e62d",
+          "url": "https://github.com/developmentseed/titiler/commit/b46f7fef592991c95ceed0d79cf481c0c6e2d475"
+        },
+        "date": 1698098115236,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.08,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 5.61,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.06,
             "unit": "s"
           },
           {
