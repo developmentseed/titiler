@@ -66,7 +66,7 @@ app.include_router(sd_mosaic.router, prefix="/mosaic", tags=["Custom backend mos
 app.include_router(sd_s3_proxy.router, prefix="/nrt", tags=["s3 proxy for NRT"])
 
 
-@app.get("/healthz", description="Health Check", tags=["Health Check"])
+@app.get("/healthz/", description="Health Check", tags=["Health Check"])
 def ping():
     """Health check."""
     return {"ping": "pong!"}

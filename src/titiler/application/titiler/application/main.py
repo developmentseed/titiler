@@ -76,7 +76,7 @@ app.add_middleware(
 app.add_middleware(
     CacheControlMiddleware,
     cachecontrol=api_settings.cachecontrol,
-    exclude_path={r"/healthz"},
+    exclude_path={r"/healthz/"},
 )
 
 if api_settings.debug:
@@ -87,7 +87,7 @@ if api_settings.lower_case_query_parameters:
     app.add_middleware(LowerCaseQueryStringMiddleware)
 
 
-@app.get("/healthz", description="Health Check", tags=["Health Check"])
+@app.get("/healthz/", description="Health Check", tags=["Health Check"])
 def ping():
     """Health check."""
     return {"ping": "pong!"}

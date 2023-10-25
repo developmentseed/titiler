@@ -21,7 +21,7 @@ app.include_router(cog.router, tags=["Cloud Optimized GeoTIFF"])
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
 
 
-@app.get("/healthz", description="Health Check", tags=["Health Check"])
+@app.get("/healthz/", description="Health Check", tags=["Health Check"])
 def ping():
     """Health check."""
     return {"ping": "pong!"}

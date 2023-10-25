@@ -17,7 +17,7 @@ app:
       value: "s3://openvdm.saildrone.com/"
   livenessProbe:
     httpGet:
-      path: /healthz
+      path: /healthz/
       port: http
       scheme: HTTP
     initialDelaySeconds: 30
@@ -27,7 +27,7 @@ app:
     failureThreshold: 5
   readinessProbe:
     httpGet:
-      path: /healthz
+      path: /healthz/
       port: http
       scheme: HTTP
     initialDelaySeconds: 45
