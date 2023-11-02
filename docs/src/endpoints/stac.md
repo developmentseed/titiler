@@ -85,6 +85,7 @@ Example:
     - **max_size** (int): Max image size, default is 1024.
     - **height** (int): Force output image height.
     - **width** (int): Force output image width.
+    - **dst_crs** (str): Output Coordinate Reference System. Default to dataset's CRS.
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
     - **resampling** (str): rasterio resampling method. Default is `nearest`.
@@ -126,6 +127,7 @@ Example:
     - **asset_as_band** (bool): tell rio-tiler that each asset is a 1 band dataset, so expression `Asset1/Asset2` can be passed.
     - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1,2,3`).
     - **coord_crs** (str): Coordinate Reference System of the input coordinates. Default to `epsg:4326`.
+    - **dst_crs** (str): Output Coordinate Reference System. Default to `coord_crs`.
     - **max_size** (int): Max image size.
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
@@ -165,6 +167,7 @@ Example:
     - **asset_as_band** (bool): tell rio-tiler that each asset is a 1 band dataset, so expression `Asset1/Asset2` can be passed.
     - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1,2,3`).
     - **coord_crs** (str): Coordinate Reference System of the input geometry coordinates. Default to `epsg:4326`.
+    - **dst_crs** (str): Output Coordinate Reference System. Default to `coord_crs`.
     - **max_size** (int): Max image size.
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
@@ -396,6 +399,7 @@ Example:
     - **asset_as_band** (bool): tell rio-tiler that each asset is a 1 band dataset, so expression `Asset1/Asset2` can be passed.
     - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1,2,3`).
     - **coord_crs** (str): Coordinate Reference System of the input geometry coordinates. Default to `epsg:4326`.
+    - **dst_crs** (str): Output Coordinate Reference System. Default to `coord_crs`.
     - **max_size** (int): Max image size from which to calculate statistics.
     - **height** (int): Force image height from which to calculate statistics.
     - **width** (int): Force image width from which to calculate statistics.

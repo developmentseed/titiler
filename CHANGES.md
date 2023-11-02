@@ -1,5 +1,9 @@
 # Release Notes
 
+## 0.15.3 (2023-11-02)
+
+* add `dst_crs` options in `/statistics [POST]` and `/feature [POST]` endpoints
+
 ## 0.15.2 (2023-10-23)
 
 ### titiler.core

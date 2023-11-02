@@ -443,6 +443,7 @@ class TilerFactory(BaseTilerFactory):
             ],
             src_path=Depends(self.path_dependency),
             coord_crs=Depends(CoordCRSParams),
+            dst_crs=Depends(DstCRSParams),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_part_dependency),
@@ -463,6 +464,7 @@ class TilerFactory(BaseTilerFactory):
                         data = src_dst.feature(
                             shape,
                             shape_crs=coord_crs or WGS84_CRS,
+                            dst_crs=dst_crs,
                             **layer_params,
                             **image_params,
                             **dataset_params,
@@ -1026,6 +1028,7 @@ class TilerFactory(BaseTilerFactory):
             ] = None,
             src_path=Depends(self.path_dependency),
             coord_crs=Depends(CoordCRSParams),
+            dst_crs=Depends(DstCRSParams),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_part_dependency),
@@ -1043,6 +1046,7 @@ class TilerFactory(BaseTilerFactory):
                     image = src_dst.feature(
                         geojson.model_dump(exclude_none=True),
                         shape_crs=coord_crs or WGS84_CRS,
+                        dst_crs=dst_crs,
                         **layer_params,
                         **image_params,
                         **dataset_params,
@@ -1261,6 +1265,7 @@ class MultiBaseTilerFactory(TilerFactory):
             ],
             src_path=Depends(self.path_dependency),
             coord_crs=Depends(CoordCRSParams),
+            dst_crs=Depends(DstCRSParams),
             layer_params=Depends(AssetsBidxExprParamsOptional),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_part_dependency),
@@ -1284,6 +1289,7 @@ class MultiBaseTilerFactory(TilerFactory):
                         data = src_dst.feature(
                             feature.model_dump(exclude_none=True),
                             shape_crs=coord_crs or WGS84_CRS,
+                            dst_crs=dst_crs,
                             **layer_params,
                             **image_params,
                             **dataset_params,
@@ -1446,6 +1452,7 @@ class MultiBandTilerFactory(TilerFactory):
             ],
             src_path=Depends(self.path_dependency),
             coord_crs=Depends(CoordCRSParams),
+            dst_crs=Depends(DstCRSParams),
             bands_params=Depends(BandsExprParamsOptional),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_part_dependency),
@@ -1469,6 +1476,7 @@ class MultiBandTilerFactory(TilerFactory):
                         data = src_dst.feature(
                             feature.model_dump(exclude_none=True),
                             shape_crs=coord_crs or WGS84_CRS,
+                            dst_crs=dst_crs,
                             **bands_params,
                             **image_params,
                             **dataset_params,
