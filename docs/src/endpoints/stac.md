@@ -48,7 +48,8 @@ The `/stac` routes are based on `titiler.core.factory.MultiBaseTilerFactory` but
     - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1,2,3`).
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
-    - **resampling** (str): rasterio resampling method. Default is `nearest`.
+    - **resampling** (str): RasterIO resampling algorithm. Defaults to `nearest`.
+    - **reproject** (str): WarpKernel resampling algorithm (only used when doing re-projection). Defaults to `nearest`.
     - **rescale** (array[str]): Comma (',') delimited Min,Max range (e.g `rescale=0,1000`, `rescale=0,1000&rescale=0,3000&rescale=0,2000`).
     - **color_formula** (str): rio-color formula.
     - **colormap** (str): JSON encoded custom Colormap.
@@ -88,7 +89,8 @@ Example:
     - **dst_crs** (str): Output Coordinate Reference System. Default to dataset's CRS.
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
-    - **resampling** (str): rasterio resampling method. Default is `nearest`.
+    - **resampling** (str): RasterIO resampling algorithm. Defaults to `nearest`.
+    - **reproject** (str): WarpKernel resampling algorithm (only used when doing re-projection). Defaults to `nearest`.
     - **rescale** (array[str]): Comma (',') delimited Min,Max range (e.g `rescale=0,1000`, `rescale=0,1000&rescale=0,3000&rescale=0,2000`).
     - **color_formula** (str): rio-color formula.
     - **colormap** (str): JSON encoded custom Colormap.
@@ -131,7 +133,8 @@ Example:
     - **max_size** (int): Max image size.
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
-    - **resampling** (str): rasterio resampling method. Default is `nearest`.
+    - **resampling** (str): RasterIO resampling algorithm. Defaults to `nearest`.
+    - **reproject** (str): WarpKernel resampling algorithm (only used when doing re-projection). Defaults to `nearest`.
     - **rescale** (array[str]): Comma (',') delimited Min,Max range (e.g `rescale=0,1000`, `rescale=0,1000&rescale=0,3000&rescale=0,2000`).
     - **color_formula** (str): rio-color formula.
     - **colormap** (str): JSON encoded custom Colormap.
@@ -171,7 +174,8 @@ Example:
     - **max_size** (int): Max image size.
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
-    - **resampling** (str): rasterio resampling method. Default is `nearest`.
+    - **resampling** (str): RasterIO resampling algorithm. Defaults to `nearest`.
+    - **reproject** (str): WarpKernel resampling algorithm (only used when doing re-projection). Defaults to `nearest`.
     - **rescale** (array[str]): Comma (',') delimited Min,Max range (e.g `rescale=0,1000`, `rescale=0,1000&rescale=0,3000&rescale=0,2000`).
     - **color_formula** (str): rio-color formula.
     - **colormap** (str): JSON encoded custom Colormap.
@@ -207,7 +211,7 @@ Example:
     - **coord_crs** (str): Coordinate Reference System of the input coordinates. Default to `epsg:4326`.
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
-    - **resampling** (str): rasterio resampling method. Default is `nearest`.
+    - **resampling** (str): RasterIO resampling algorithm. Defaults to `nearest`.
 
 !!! important
     **assets** OR **expression** is required
@@ -235,7 +239,8 @@ Example:
     - **maxzoom** (int): Overwrite default maxzoom.
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
-    - **resampling** (str): rasterio resampling method. Default is `nearest`.
+    - **resampling** (str): RasterIO resampling algorithm. Defaults to `nearest`.
+    - **reproject** (str): WarpKernel resampling algorithm (only used when doing re-projection). Defaults to `nearest`.
     - **rescale** (array[str]): Comma (',') delimited Min,Max range (e.g `rescale=0,1000`, `rescale=0,1000&rescale=0,3000&rescale=0,2000`).
     - **color_formula** (str): rio-color formula.
     - **colormap** (str): JSON encoded custom Colormap.
@@ -274,7 +279,8 @@ Example:
     - **maxzoom** (int): Overwrite default maxzoom.
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
-    - **resampling** (str): rasterio resampling method. Default is `nearest`.
+    - **resampling** (str): RasterIO resampling algorithm. Defaults to `nearest`.
+    - **reproject** (str): WarpKernel resampling algorithm (only used when doing re-projection). Defaults to `nearest`.
     - **rescale** (array[str]): Comma (',') delimited Min,Max range (e.g `rescale=0,1000`, `rescale=0,1000&rescale=0,3000&rescale=0,2000`).
     - **color_formula** (str): rio-color formula.
     - **colormap** (str): JSON encoded custom Colormap.
@@ -350,7 +356,7 @@ Example:
     - **width** (int): Force image width from which to calculate statistics.
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
-    - **resampling** (str): rasterio resampling method. Default is `nearest`.
+    - **resampling** (str): RasterIO resampling algorithm. Defaults to `nearest`.
     - **categorical** (bool): Return statistics for categorical dataset, default is false.
     - **c** (array[float]): Pixels values for categories.
     - **p** (array[int]): Percentile values.
@@ -375,7 +381,7 @@ Example:
     - **width** (int): Force image width from which to calculate statistics.
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
-    - **resampling** (str): rasterio resampling method. Default is `nearest`.
+    - **resampling** (str): RasterIO resampling algorithm. Defaults to `nearest`.
     - **categorical** (bool): Return statistics for categorical dataset, default is false.
     - **c** (array[float]): Pixels values for categories.
     - **p** (array[int]): Percentile values.
@@ -405,7 +411,8 @@ Example:
     - **width** (int): Force image width from which to calculate statistics.
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
-    - **resampling** (str): rasterio resampling method. Default is `nearest`.
+    - **resampling** (str): RasterIO resampling algorithm. Defaults to `nearest`.
+    - **reproject** (str): WarpKernel resampling algorithm (only used when doing re-projection). Defaults to `nearest`.
     - **categorical** (bool): Return statistics for categorical dataset, default is false.
     - **c** (array[float]): Pixels values for categories.
     - **p** (array[int]): Percentile values.
