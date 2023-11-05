@@ -84,20 +84,30 @@ class TitilerPrivateApiStack(Stack):
                     PolicyStatement(
                         effect=Effect.DENY,
                         actions=["execute-api:Invoke"],
-                        resources=["execute-api:/*/*/*"],
+                        resources=[
+                            Stack.of(self).format_arn(
+                                service="execute-api", resource="*"
+                            )
+                        ],
                         conditions={
-                            "StringNotEquals": {"aws:sourceVpcId": vpc_endpoint_id}
+                            "StringNotEquals": {"aws:SourceVpce": vpc_endpoint_id}
                         },
                     ),
                     PolicyStatement(
                         effect=Effect.ALLOW,
                         actions=["execute-api:Invoke"],
-                        resources=["execute-api:/*/*/*"],
+                        resources=[
+                            Stack.of(self).format_arn(
+                                service="execute-api", resource="*"
+                            )
+                        ],
                     ),
                 ]
             ),
             endpoint_configuration=EndpointConfiguration(types=[EndpointType.PRIVATE]),
         )
+        api.root.add_proxy()
+
         CfnOutput(self, "Endpoint", value=api.url)
 
 
@@ -301,6 +311,7 @@ for key, value in {
     if value:
         Tags.of(ecs_stack).add(key, value)
         Tags.of(lambda_stack).add(key, value)
+        Tags.of(private_api).add(key, value)
 
 
 app.synth()
