@@ -18,7 +18,7 @@ from aws_cdk.aws_apigateway import (
     RestApi,
 )
 from aws_cdk.aws_apigatewayv2_integrations_alpha import HttpLambdaIntegration
-from aws_cdk.aws_iam import PolicyDocument
+from aws_cdk.aws_iam import Effect, PolicyDocument, PolicyStatement
 from config import StackSettings
 from constructs import Construct
 
@@ -76,7 +76,19 @@ class TitilerPrivateApiStack(Stack):
             self,
             f"{id}-endpoint",
             default_integration=LambdaIntegration(handler=lambda_function),
-            policy=PolicyDocument(statements=[]),
+            policy=PolicyDocument(
+                statements=[
+                    PolicyStatement(
+                        effect=Effect.ALLOW,
+                        actions=["execute-api:*"],
+                        resources=[
+                            Stack.of(self).format_arn(
+                                service="execute-api", resource="*"
+                            )
+                        ],
+                    )
+                ]
+            ),
             endpoint_configuration=EndpointConfiguration(types=[EndpointType.PRIVATE]),
         )
         CfnOutput(self, "Endpoint", value=api.url)
