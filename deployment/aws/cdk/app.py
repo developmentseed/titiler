@@ -1,7 +1,7 @@
 """Construct App."""
 
 import os
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, cast
 
 from aws_cdk import App, CfnOutput, Duration, Stack, Tags
 from aws_cdk import aws_apigatewayv2_alpha as apigw
@@ -27,9 +27,9 @@ settings = StackSettings()
 
 class TitilerPrivateApiStack(Stack):
     """
-     Titiler Private API Stack
+    Titiler Private API Stack
 
-     Private api configuration for titiler.
+    Private api configuration for titiler.
 
     author: @jeandsmith
     """
@@ -38,13 +38,14 @@ class TitilerPrivateApiStack(Stack):
         self,
         scope: Construct,
         id: str,
+        vpc_endpoint_id: str,
         memory: int = 1024,
         timeout: int = 30,
         runtime: aws_lambda.Runtime = aws_lambda.Runtime.PYTHON_3_11,
+        code_dir: str = "./",
         concurrent: Optional[int] = None,
         permissions: Optional[List[iam.PolicyStatement]] = None,
         environment: Optional[Dict] = None,
-        code_dir: str = "./",
         **kwargs: Any,
     ) -> None:
         """Define the stack"""
@@ -75,18 +76,24 @@ class TitilerPrivateApiStack(Stack):
         api = RestApi(
             self,
             f"{id}-endpoint",
-            default_integration=LambdaIntegration(handler=lambda_function),
+            default_integration=LambdaIntegration(
+                handler=cast(aws_lambda.IFunction, lambda_function)
+            ),
             policy=PolicyDocument(
                 statements=[
                     PolicyStatement(
+                        effect=Effect.DENY,
+                        actions=["execute-api:Invoke"],
+                        resources=["execute-api:/*/*/*"],
+                        conditions={
+                            "StringNotEquals": {"aws:sourceVpcId": vpc_endpoint_id}
+                        },
+                    ),
+                    PolicyStatement(
                         effect=Effect.ALLOW,
-                        actions=["execute-api:*"],
-                        resources=[
-                            Stack.of(self).format_arn(
-                                service="execute-api", resource="*"
-                            )
-                        ],
-                    )
+                        actions=["execute-api:Invoke"],
+                        resources=["execute-api:/*/*/*"],
+                    ),
                 ]
             ),
             endpoint_configuration=EndpointConfiguration(types=[EndpointType.PRIVATE]),
@@ -251,6 +258,16 @@ if settings.buckets:
         )
     )
 
+private_api = TitilerPrivateApiStack(
+    app,
+    f"{settings.name}-private-api-{settings.stage}",
+    vpc_endpoint_id=settings.vpc_endpoint_id,
+    memory=settings.memory,
+    timeout=settings.timeout,
+    concurrent=settings.max_concurrent,
+    permissions=perms,
+    environment=settings.env,
+)
 
 ecs_stack = titilerECSStack(
     app,
@@ -272,6 +289,7 @@ lambda_stack = titilerLambdaStack(
     permissions=perms,
     environment=settings.env,
 )
+
 
 # Tag infrastructure
 for key, value in {

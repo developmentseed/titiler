@@ -85,4 +85,7 @@ class StackSettings(BaseSettings):
     # Default: - No specific limit - account limit.
     max_concurrent: Optional[int] = None
 
+    # The VPC Endpoint ID
+    vpc_endpoint_id = "vpce-0af2022ccaaea117f"
+
     model_config = SettingsConfigDict(env_prefix="TITILER_STACK_", env_file=".env")
