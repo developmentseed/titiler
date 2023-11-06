@@ -1,5 +1,41 @@
 # Release Notes
 
+## 0.15.4 (2023-11-06)
+
+### titiler.core
+
+* update `rio-tiler` requirement to `>=6.2.5,<7.0`
+
+* allow `bidx` option in `titiler.core.dependencies.AssetsBidxExprParams` and `titiler.core.dependencies.AssetsBidxParams`
+
+    ```python
+    # merge band 1 form asset1 and asset2
+    # before
+    httpx.get(
+        "/stac/preview",
+        params=(
+            ("url", "stac.json"),
+            ("assets", "asset1"),
+            ("assets", "asset2"),
+            ("asset_bidx", "asset1|1"),
+            ("asset_bidx", "asset2|1"),
+        )
+    )
+
+    # now
+    httpx.get(
+        "/stac/preview",
+        params=(
+            ("url", "stac.json"),
+            ("assets", "asset1"),
+            ("assets", "asset2"),
+            ("bidx", 1),
+        )
+    )
+    ```
+
+* fix openapi examples
+
 ## 0.15.3 (2023-11-02)
 
 * add `dst_crs` options in `/statistics [POST]` and `/feature [POST]` endpoints
