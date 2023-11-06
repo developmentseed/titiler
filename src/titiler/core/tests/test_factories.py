@@ -747,6 +747,25 @@ def test_MultiBaseTilerFactory(rio):
     assert meta["count"] == 3
 
     response = client.get(
+        f"/preview.tif?url={DATA_DIR}/item.json&assets=B01&bidx=1&bidx=1&return_mask=false"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/tiff; application=geotiff"
+    meta = parse_img(response.content)
+    assert meta["dtype"] == "uint16"
+    assert meta["count"] == 2
+
+    with pytest.warns(UserWarning):
+        response = client.get(
+            f"/preview.tif?url={DATA_DIR}/item.json&assets=B01&asset_bidx=B01|1,1,1&bidx=1&return_mask=false"
+        )
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "image/tiff; application=geotiff"
+        meta = parse_img(response.content)
+        assert meta["dtype"] == "uint16"
+        assert meta["count"] == 3
+
+    response = client.get(
         "/preview.tif",
         params={
             "url": f"{DATA_DIR}/item.json",
