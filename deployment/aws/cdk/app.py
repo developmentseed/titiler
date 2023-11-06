@@ -18,7 +18,7 @@ from aws_cdk.aws_apigateway import (
     RestApi,
 )
 from aws_cdk.aws_apigatewayv2_integrations_alpha import HttpLambdaIntegration
-from aws_cdk.aws_iam import Effect, PolicyDocument, PolicyStatement, AnyPrincipal
+from aws_cdk.aws_iam import AnyPrincipal, Effect, PolicyDocument, PolicyStatement
 from config import StackSettings
 from constructs import Construct
 
@@ -86,7 +86,7 @@ class TitilerPrivateApiStack(Stack):
                         effect=Effect.DENY,
                         actions=["execute-api:Invoke"],
                         resources=[
-                           Stack.of(self).format_arn(
+                            Stack.of(self).format_arn(
                                 service="execute-api", resource="*"
                             )
                         ],
