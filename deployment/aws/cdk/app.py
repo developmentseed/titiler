@@ -86,9 +86,7 @@ class TitilerPrivateApiStack(Stack):
                         effect=Effect.DENY,
                         actions=["execute-api:Invoke"],
                         resources=[
-                            Stack.of(self).format_arn(
-                                service="execute-api", resource="*"
-                            )
+                            "execute-api:*"
                         ],
                         conditions={
                             "StringNotEquals": {"aws:SourceVpce": vpc_endpoint_id}
