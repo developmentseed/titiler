@@ -1,6 +1,7 @@
 """Common dependency."""
 
 import json
+import warnings
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Literal, Optional, Sequence, Tuple, Union
 
@@ -86,7 +87,10 @@ class BidxParams(DefaultDependency):
             title="Band indexes",
             alias="bidx",
             description="Dataset band indexes",
-            examples={"one-band": {"value": [1]}, "multi-bands": {"value": [1, 2, 3]}},
+            openapi_examples={
+                "one-band": {"value": [1]},
+                "multi-bands": {"value": [1, 2, 3]},
+            },
         ),
     ] = None
 
@@ -100,7 +104,7 @@ class ExpressionParams(DefaultDependency):
         Query(
             title="Band Math expression",
             description="rio-tiler's band math expression",
-            examples={
+            openapi_examples={
                 "simple": {"description": "Simple band math.", "value": "b1/b2"},
                 "multi-bands": {
                     "description": "Semicolon (;) delimited expressions (band1: b1/b2, band2: b2+b3).",
@@ -128,7 +132,7 @@ class AssetsParams(DefaultDependency):
         Query(
             title="Asset names",
             description="Asset's names.",
-            examples={
+            openapi_examples={
                 "one-asset": {
                     "description": "Return results for asset `data`.",
                     "value": ["data"],
@@ -143,7 +147,7 @@ class AssetsParams(DefaultDependency):
 
 
 @dataclass
-class AssetsBidxExprParams(AssetsParams):
+class AssetsBidxExprParams(AssetsParams, BidxParams):
     """Assets, Expression and Asset's band Indexes parameters."""
 
     expression: Annotated[
@@ -151,7 +155,7 @@ class AssetsBidxExprParams(AssetsParams):
         Query(
             title="Band Math expression",
             description="Band math expression between assets",
-            examples={
+            openapi_examples={
                 "simple": {
                     "description": "Return results of expression between assets.",
                     "value": "asset1_b1 + asset2_b1 / asset3_b1",
@@ -166,7 +170,7 @@ class AssetsBidxExprParams(AssetsParams):
             title="Per asset band indexes",
             description="Per asset band indexes (coma separated indexes)",
             alias="asset_bidx",
-            examples={
+            openapi_examples={
                 "one-asset": {
                     "description": "Return indexes 1,2,3 of asset `data`.",
                     "value": ["data|1,2,3"],
@@ -200,6 +204,12 @@ class AssetsBidxExprParams(AssetsParams):
                 for idx in self.asset_indexes
             }
 
+        if self.asset_indexes and self.indexes:
+            warnings.warn(
+                "Both `asset_bidx` and `bidx` passed; only `asset_bidx` will be considered.",
+                UserWarning,
+            )
+
 
 @dataclass
 class AssetsBidxExprParamsOptional(AssetsBidxExprParams):
@@ -213,9 +223,15 @@ class AssetsBidxExprParamsOptional(AssetsBidxExprParams):
                 for idx in self.asset_indexes
             }
 
+        if self.asset_indexes and self.indexes:
+            warnings.warn(
+                "Both `asset_bidx` and `bidx` passed; only `asset_bidx` will be considered.",
+                UserWarning,
+            )
+
 
 @dataclass
-class AssetsBidxParams(AssetsParams):
+class AssetsBidxParams(AssetsParams, BidxParams):
     """Assets, Asset's band Indexes and Asset's band Expression parameters."""
 
     asset_indexes: Annotated[
@@ -224,7 +240,7 @@ class AssetsBidxParams(AssetsParams):
             title="Per asset band indexes",
             description="Per asset band indexes",
             alias="asset_bidx",
-            examples={
+            openapi_examples={
                 "one-asset": {
                     "description": "Return indexes 1,2,3 of asset `data`.",
                     "value": ["data|1;2;3"],
@@ -242,7 +258,7 @@ class AssetsBidxParams(AssetsParams):
         Query(
             title="Per asset band expression",
             description="Per asset band expression",
-            examples={
+            openapi_examples={
                 "one-asset": {
                     "description": "Return results for expression `b1*b2+b3` of asset `data`.",
                     "value": ["data|b1*b2+b3"],
@@ -268,6 +284,12 @@ class AssetsBidxParams(AssetsParams):
                 idx.split("|")[0]: idx.split("|")[1] for idx in self.asset_expression
             }
 
+        if self.asset_indexes and self.indexes:
+            warnings.warn(
+                "Both `asset_bidx` and `bidx` passed; only `asset_bidx` will be considered.",
+                UserWarning,
+            )
+
 
 # Dependencies for  MultiBandReader
 @dataclass
@@ -279,7 +301,7 @@ class BandsParams(DefaultDependency):
         Query(
             title="Band names",
             description="Band's names.",
-            examples={
+            openapi_examples={
                 "one-band": {
                     "description": "Return results for band `B01`.",
                     "value": ["B01"],
@@ -462,7 +484,7 @@ If bins is a sequence (comma `,` delimited values), it defines a monotonically i
 
 link: https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
             """,
-            examples={
+            openapi_examples={
                 "simple": {
                     "description": "Defines the number of equal-width bins",
                     "value": 8,
