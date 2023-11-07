@@ -1,7 +1,7 @@
 """Construct App."""
 
 import os
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import Any, Dict, List, Optional, Union
 
 from aws_cdk import App, CfnOutput, Duration, Stack, Tags
 from aws_cdk import aws_apigatewayv2_alpha as apigw
@@ -11,106 +11,13 @@ from aws_cdk import aws_ecs_patterns as ecs_patterns
 from aws_cdk import aws_iam as iam
 from aws_cdk import aws_lambda
 from aws_cdk import aws_logs as logs
-from aws_cdk.aws_apigateway import (
-    EndpointConfiguration,
-    EndpointType,
-    LambdaIntegration,
-    RestApi,
-)
 from aws_cdk.aws_apigatewayv2_integrations_alpha import HttpLambdaIntegration
-from aws_cdk.aws_iam import AnyPrincipal, Effect, PolicyDocument, PolicyStatement
 from config import StackSettings
 from constructs import Construct
 
+from deployment.aws.cdk.constructs.private_api import TitilerPrivateApiStack
+
 settings = StackSettings()
-
-
-class TitilerPrivateApiStack(Stack):
-    """
-    Titiler Private API Stack
-
-    Private api configuration for titiler.
-
-    author: @jeandsmith
-    """
-
-    def __init__(
-        self,
-        scope: Construct,
-        id: str,
-        vpc_endpoint_id: str,
-        memory: int = 1024,
-        timeout: int = 30,
-        runtime: aws_lambda.Runtime = aws_lambda.Runtime.PYTHON_3_11,
-        code_dir: str = "./",
-        concurrent: Optional[int] = None,
-        permissions: Optional[List[iam.PolicyStatement]] = None,
-        environment: Optional[Dict] = None,
-        **kwargs: Any,
-    ) -> None:
-        """Define the stack"""
-        super().__init__(scope, id, **kwargs)
-
-        permissions = permissions or []
-        environment = environment or {}
-
-        lambda_function = aws_lambda.Function(
-            self,
-            f"{id}-lambda",
-            runtime=runtime,
-            code=aws_lambda.Code.from_docker_build(
-                path=os.path.abspath(code_dir),
-                file="lambda/Dockerfile",
-            ),
-            handler="handler.handler",
-            memory_size=memory,
-            reserved_concurrent_executions=concurrent,
-            timeout=Duration.seconds(timeout),
-            environment=environment,
-            log_retention=logs.RetentionDays.ONE_WEEK,
-        )
-
-        for perm in permissions:
-            lambda_function.add_to_role_policy(perm)
-
-        api = RestApi(
-            self,
-            f"{id}-endpoint",
-            default_integration=LambdaIntegration(
-                handler=cast(aws_lambda.IFunction, lambda_function)
-            ),
-            policy=PolicyDocument(
-                statements=[
-                    PolicyStatement(
-                        principals=[AnyPrincipal()],
-                        effect=Effect.DENY,
-                        actions=["execute-api:Invoke"],
-                        resources=[
-                            Stack.of(self).format_arn(
-                                service="execute-api", resource="*"
-                            )
-                        ],
-                        conditions={
-                            "StringNotEquals": {"aws:SourceVpce": vpc_endpoint_id}
-                        },
-                    ),
-                    PolicyStatement(
-                        principals=[AnyPrincipal()],
-                        effect=Effect.ALLOW,
-                        actions=["execute-api:Invoke"],
-                        resources=[
-                            Stack.of(self).format_arn(
-                                service="execute-api", resource="*"
-                            )
-                        ],
-                    ),
-                ]
-            ),
-            endpoint_configuration=EndpointConfiguration(types=[EndpointType.PRIVATE]),
-        )
-        api.root.add_proxy()
-
-        CfnOutput(self, "Endpoint", value=api.url)
 
 
 class titilerLambdaStack(Stack):
