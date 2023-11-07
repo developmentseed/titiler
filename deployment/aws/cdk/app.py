@@ -13,9 +13,8 @@ from aws_cdk import aws_lambda
 from aws_cdk import aws_logs as logs
 from aws_cdk.aws_apigatewayv2_integrations_alpha import HttpLambdaIntegration
 from config import StackSettings
+from construct.private_api import TitilerPrivateApiStack
 from constructs import Construct
-
-from deployment.aws.cdk.constructs.private_api import TitilerPrivateApiStack
 
 settings = StackSettings()
 
