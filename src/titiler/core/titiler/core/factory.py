@@ -407,6 +407,7 @@ class TilerFactory(BaseTilerFactory):
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_preview_dependency),
+            post_process=Depends(self.process_dependency),
             stats_params=Depends(self.stats_dependency),
             histogram_params=Depends(self.histogram_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -415,10 +416,16 @@ class TilerFactory(BaseTilerFactory):
             """Get Dataset statistics."""
             with rasterio.Env(**env):
                 with self.reader(src_path, **reader_params) as src_dst:
-                    return src_dst.statistics(
+                    image = src_dst.preview(
                         **layer_params,
                         **image_params,
                         **dataset_params,
+                    )
+
+                    if post_process:
+                        image = post_process(image)
+
+                    return image.statistics(
                         **stats_params,
                         hist_options={**histogram_params},
                     )
@@ -447,6 +454,7 @@ class TilerFactory(BaseTilerFactory):
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_part_dependency),
+            post_process=Depends(self.process_dependency),
             stats_params=Depends(self.stats_dependency),
             histogram_params=Depends(self.histogram_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -461,7 +469,7 @@ class TilerFactory(BaseTilerFactory):
                 with self.reader(src_path, **reader_params) as src_dst:
                     for feature in fc:
                         shape = feature.model_dump(exclude_none=True)
-                        data = src_dst.feature(
+                        image = src_dst.feature(
                             shape,
                             shape_crs=coord_crs or WGS84_CRS,
                             dst_crs=dst_crs,
@@ -471,12 +479,15 @@ class TilerFactory(BaseTilerFactory):
                         )
 
                         # Get the coverage % array
-                        coverage_array = data.get_coverage_array(
+                        coverage_array = image.get_coverage_array(
                             shape,
                             shape_crs=coord_crs or WGS84_CRS,
                         )
 
-                        stats = data.statistics(
+                        if post_process:
+                            image = post_process(image)
+
+                        stats = image.statistics(
                             **stats_params,
                             hist_options={**histogram_params},
                             coverage=coverage_array,
@@ -1225,6 +1236,7 @@ class MultiBaseTilerFactory(TilerFactory):
             layer_params=Depends(AssetsBidxExprParamsOptional),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_preview_dependency),
+            post_process=Depends(self.process_dependency),
             stats_params=Depends(self.stats_dependency),
             histogram_params=Depends(self.histogram_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -1237,10 +1249,16 @@ class MultiBaseTilerFactory(TilerFactory):
                     if not layer_params.assets and not layer_params.expression:
                         layer_params.assets = src_dst.assets
 
-                    return src_dst.merged_statistics(
+                    image = src_dst.preview(
                         **layer_params,
                         **image_params,
                         **dataset_params,
+                    )
+
+                    if post_process:
+                        image = post_process(image)
+
+                    return image.statistics(
                         **stats_params,
                         hist_options={**histogram_params},
                     )
@@ -1268,6 +1286,7 @@ class MultiBaseTilerFactory(TilerFactory):
             dst_crs=Depends(DstCRSParams),
             layer_params=Depends(AssetsBidxExprParamsOptional),
             dataset_params=Depends(self.dataset_dependency),
+            post_process=Depends(self.process_dependency),
             image_params=Depends(self.img_part_dependency),
             stats_params=Depends(self.stats_dependency),
             histogram_params=Depends(self.histogram_dependency),
@@ -1286,7 +1305,7 @@ class MultiBaseTilerFactory(TilerFactory):
                         layer_params.assets = src_dst.assets
 
                     for feature in fc:
-                        data = src_dst.feature(
+                        image = src_dst.feature(
                             feature.model_dump(exclude_none=True),
                             shape_crs=coord_crs or WGS84_CRS,
                             dst_crs=dst_crs,
@@ -1295,7 +1314,10 @@ class MultiBaseTilerFactory(TilerFactory):
                             **dataset_params,
                         )
 
-                        stats = data.statistics(
+                        if post_process:
+                            image = post_process(image)
+
+                        stats = image.statistics(
                             **stats_params, hist_options={**histogram_params}
                         )
 
@@ -1416,6 +1438,7 @@ class MultiBandTilerFactory(TilerFactory):
             bands_params=Depends(BandsExprParamsOptional),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_preview_dependency),
+            post_process=Depends(self.process_dependency),
             stats_params=Depends(self.stats_dependency),
             histogram_params=Depends(self.histogram_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -1424,12 +1447,21 @@ class MultiBandTilerFactory(TilerFactory):
             """Get Dataset statistics."""
             with rasterio.Env(**env):
                 with self.reader(src_path, **reader_params) as src_dst:
-                    return src_dst.statistics(
+                    # Default to all available bands
+                    if not bands_params.bands and not bands_params.expression:
+                        bands_params.bands = src_dst.bands
+
+                    image = src_dst.preview(
                         **bands_params,
                         **image_params,
                         **dataset_params,
-                        **stats_params,
-                        hist_options={**histogram_params},
+                    )
+
+                    if post_process:
+                        image = post_process(image)
+
+                    return image.statistics(
+                        **stats_params, hist_options={**histogram_params}
                     )
 
         # POST endpoint
@@ -1456,6 +1488,7 @@ class MultiBandTilerFactory(TilerFactory):
             bands_params=Depends(BandsExprParamsOptional),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_part_dependency),
+            post_process=Depends(self.process_dependency),
             stats_params=Depends(self.stats_dependency),
             histogram_params=Depends(self.histogram_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -1473,7 +1506,7 @@ class MultiBandTilerFactory(TilerFactory):
                         bands_params.bands = src_dst.bands
 
                     for feature in fc:
-                        data = src_dst.feature(
+                        image = src_dst.feature(
                             feature.model_dump(exclude_none=True),
                             shape_crs=coord_crs or WGS84_CRS,
                             dst_crs=dst_crs,
@@ -1481,7 +1514,11 @@ class MultiBandTilerFactory(TilerFactory):
                             **image_params,
                             **dataset_params,
                         )
-                        stats = data.statistics(
+
+                        if post_process:
+                            image = post_process(image)
+
+                        stats = image.statistics(
                             **stats_params, hist_options={**histogram_params}
                         )
 
