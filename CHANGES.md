@@ -1,5 +1,13 @@
 # Release Notes
 
+## 0.15.5 (2023-11-09)
+
+### titiler.core
+
+* add `algorithm` options for `/statistics` endpoints
+
+* switch from `BaseReader.statistics()` method to a combination of `BaseReader.preview()` and `ImageData.statistics()` methods to get the statistics
+
 ## 0.15.4 (2023-11-06)
 
 ### titiler.core

@@ -525,6 +525,16 @@ def test_TilerFactory():
     assert min(resp["b1"]["histogram"][1]) == 5.0
     assert max(resp["b1"]["histogram"][1]) == 10.0
 
+    # Stats with Algorithm
+    response = client.get(
+        f"/statistics?url={DATA_DIR}/cog.tif&bidx=1&bidx=1&algorithm=normalizedIndex"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    resp = response.json()
+    assert len(resp) == 1
+    assert "(b1 - b1) / (b1 + b1)" in resp
+
     # POST - statistics
     response = client.post(
         f"/statistics?url={DATA_DIR}/cog.tif&bidx=1&bidx=1&bidx=1", json=feature
@@ -649,6 +659,18 @@ def test_TilerFactory():
     }
     assert len(resp["properties"]["statistics"]["b1"]["histogram"][0]) == 4
     assert resp["properties"]["statistics"]["b1"]["histogram"][0][3] == 0
+
+    # Stats with Algorithm
+    response = client.post(
+        f"/statistics?url={DATA_DIR}/cog.tif&bidx=1&bidx=1&algorithm=normalizedIndex",
+        json=feature,
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/geo+json"
+    resp = response.json()
+    assert resp["type"] == "Feature"
+    assert len(resp["properties"]["statistics"]) == 1
+    assert "(b1 - b1) / (b1 + b1)" in resp["properties"]["statistics"]
 
     # Test with Algorithm
     response = client.get(f"/preview.tif?url={DATA_DIR}/dem.tif&return_mask=False")
@@ -865,6 +887,15 @@ def test_MultiBaseTilerFactory(rio):
     assert resp["B01_b1"]
     assert resp["B09_b1"]
 
+    # with Algorithm
+    response = client.get(
+        f"/statistics?url={DATA_DIR}/item.json&assets=B01&assets=B09&algorithm=normalizedIndex&asset_as_band=True"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    resp = response.json()
+    assert "(B09 - B01) / (B09 + B01)" in resp
+
     stac_feature = {
         "type": "FeatureCollection",
         "features": [
@@ -973,6 +1004,18 @@ def test_MultiBaseTilerFactory(rio):
         "percentile_98",
     }
     assert props["B09_b1"]
+
+    # with Algorithm
+    response = client.post(
+        f"/statistics?url={DATA_DIR}/item.json&assets=B01&assets=B09&algorithm=normalizedIndex&asset_as_band=True",
+        json=stac_feature["features"][0],
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/geo+json"
+    resp = response.json()
+    props = resp["properties"]["statistics"]
+    assert len(props) == 1
+    assert "(B09 - B01) / (B09 + B01)" in props
 
 
 @attr.s
@@ -1142,6 +1185,15 @@ def test_MultiBandTilerFactory():
         "percentile_98",
     }
 
+    response = client.get(
+        f"/statistics?directory={DATA_DIR}&bands=B01&bands=B09&algorithm=normalizedIndex"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    resp = response.json()
+    assert len(resp) == 1
+    assert "(B09 - B01) / (B09 + B01)" in resp
+
     # POST - statistics
     band_feature = {
         "type": "FeatureCollection",
@@ -1276,6 +1328,17 @@ def test_MultiBandTilerFactory():
         "percentile_2",
         "percentile_98",
     }
+
+    response = client.post(
+        f"/statistics?directory={DATA_DIR}&bands=B01&bands=B09&algorithm=normalizedIndex",
+        json=band_feature,
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/geo+json"
+    resp = response.json()
+    props = resp["features"][0]["properties"]["statistics"]
+    assert len(props) == 1
+    assert "(B09 - B01) / (B09 + B01)" in props
 
     # default bands
     response = client.post(f"/statistics?directory={DATA_DIR}", json=band_feature)
