@@ -20,16 +20,17 @@
     <script type="text/javascript">
 
 const bboxPolygon = (bounds) => {
+    var LL_EPSILON = 1e-6
     return {
         'type': 'Feature',
         'geometry': {
             'type': 'Polygon',
             'coordinates': [[
-                [bounds[0], bounds[1]],
-                [bounds[2], bounds[1]],
-                [bounds[2], bounds[3]],
-                [bounds[0], bounds[3]],
-                [bounds[0], bounds[1]]
+                [bounds[0] + LL_EPSILON, bounds[1] + LL_EPSILON],
+                [bounds[2] -  LL_EPSILON, bounds[1] + LL_EPSILON],
+                [bounds[2] - LL_EPSILON, bounds[3] - LL_EPSILON],
+                [bounds[0] + LL_EPSILON, bounds[3] - LL_EPSILON],
+                [bounds[0] + LL_EPSILON, bounds[1] + LL_EPSILON]
             ]]
         },
         'properties': {}
@@ -93,6 +94,7 @@ fetch('{{ tilejson_endpoint|safe }}')
         "features": [bboxPolygon(bounds)]
       }
     }
+    console.log(geo)
 
     var aoi = L.geoJSON(geo, {
         color: '#3bb2d0', fill: false

@@ -1,5 +1,11 @@
 # Release Notes
 
+## 0.15.6 (2023-11-16)
+
+### titiler.core
+
+* in `/map` HTML response, add Lat/Lon buffer to AOI to avoid creating wrong AOI (when data covers the whole world).
+
 ## 0.15.5 (2023-11-09)
 
 ### titiler.core
