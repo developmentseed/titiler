@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1700133005867,
+  "lastUpdate": 1701114852492,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -2462,6 +2462,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.25,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "11021263+DeflateAwning@users.noreply.github.com",
+            "name": "DeflateAwning",
+            "username": "DeflateAwning"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0b71b2fb78557f32dd1b0fb62c399ecf1c1de008",
+          "message": "Fix import in example code that doesn't run (#730)",
+          "timestamp": "2023-11-27T20:52:49+01:00",
+          "tree_id": "76c05c3a081d00687e0b6703bb1d14b960584636",
+          "url": "https://github.com/developmentseed/titiler/commit/0b71b2fb78557f32dd1b0fb62c399ecf1c1de008"
+        },
+        "date": 1701114851714,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.41,
             "unit": "s"
           },
           {
