@@ -100,6 +100,7 @@ from fastapi.security.api_key import APIKeyQuery
 from titiler.application.main import app
 from titiler.core.factory import TilerFactory
 
+import uvicorn
 
 api_key_query = APIKeyQuery(name="access_token", auto_error=False)
 
