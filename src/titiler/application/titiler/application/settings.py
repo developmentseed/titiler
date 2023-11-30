@@ -1,5 +1,5 @@
 """Titiler API settings."""
-
+import os
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -20,7 +20,7 @@ class ApiSettings(BaseSettings):
 
     lower_case_query_parameters: bool = False
     fake_https: bool = False
-    jwt_secret: str = ""
+    jwt_secret: str = os.getenv("AUTH_SECRET", "")
 
     model_config = SettingsConfigDict(env_prefix="TITILER_API_", env_file=".env")
 

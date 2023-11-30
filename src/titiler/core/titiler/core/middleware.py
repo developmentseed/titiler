@@ -147,17 +147,16 @@ class LoggerMiddleware:
                 except:
                     user = None
                 if user:
-                    log['user'] = user
-                log['status'] = message["status"]
+                    log["user"] = user
+                log["status"] = message["status"]
 
                 if self.headers:
-                    log['res.headers'] = message["headers"]
+                    log["res.headers"] = message["headers"]
 
                 self.logger.debug(log)
             await send(message)
 
         await self.app(scope, receive, send_wrapper)
-
 
 
 class LowerCaseQueryStringMiddleware:
@@ -212,9 +211,11 @@ class FakeHttpsMiddleware:
 
 
 class JWTAuthenticationMiddleware:
-    """Middleware to authentication with jwt"""
+    """Middleware for authentication with jwt"""
 
-    def __init__(self, app: ASGIApp, secret: str, user_key="user", algorithms: List[str]=None) -> None:
+    def __init__(
+        self, app: ASGIApp, secret: str, user_key="user", algorithms: List[str] = None
+    ) -> None:
         """Init Middleware.
 
         Args:
@@ -226,6 +227,7 @@ class JWTAuthenticationMiddleware:
         if algorithms is None:
             algorithms = ["HS512"]
         from fastapi.security import HTTPBearer
+
         self.app = app
         self.secret = secret
         self.http_bearer = HTTPBearer(bearerFormat="jwt", auto_error=False)
@@ -233,26 +235,32 @@ class JWTAuthenticationMiddleware:
         self.user_key = user_key
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send):
-        async def response401(message: str="Not authenticated"):
-            response = JSONResponse(content={"detail": message},
-                                    status_code=starlette.status.HTTP_401_UNAUTHORIZED)
+        async def response401(message: str = "Not authenticated"):
+            response = JSONResponse(
+                content={"detail": message},
+                status_code=starlette.status.HTTP_401_UNAUTHORIZED,
+            )
             await response(scope, receive, send)
+
         """Handle call."""
         if scope["type"] == "http":
             request = Request(scope)
-            credentials = await self.http_bearer(request)
-            if not credentials:
+
+            access_token = request.query_params.get("access_token")
+            if not access_token:
                 await response401("access token is required")
                 return
             try:
-                payload = jwt.decode(credentials.credentials, self.secret, algorithms=self.algorithms)
+                payload = jwt.decode(
+                    access_token, self.secret, algorithms=self.algorithms
+                )
             except jwt.DecodeError as e:
                 await response401("unsupported token")
             except jwt.InvalidTokenError as e:
                 await response401("invalid token")
                 return
             user = payload[self.user_key]
-            scope['auth'] = credentials.credentials
-            scope['user'] = user
+            scope["auth"] = access_token
+            scope["user"] = user
 
         await self.app(scope, receive, send)
