@@ -3,7 +3,8 @@
 import logging
 
 import jinja2
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, HTTPException, Security
+from fastapi.security.api_key import APIKeyQuery
 from rio_tiler.io import STACReader
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
@@ -47,6 +48,23 @@ templates = Jinja2Templates(
 
 api_settings = ApiSettings()
 
+###############################################################################
+# Setup a global API access key, if configured
+api_key_query = APIKeyQuery(name="access_token", auto_error=False)
+def validate_access_token(access_token: str = Security(api_key_query)):
+    if api_settings.global_access_token is None:
+        return True
+    
+    if not access_token:
+        raise HTTPException(status_code=403, detail="Missing `access_token`")
+
+    # if access_token == `token` then OK
+    if access_token != api_settings.global_access_token:
+        raise HTTPException(status_code=403, detail="Invalid `access_token`")
+
+    return True
+###############################################################################
+
 app = FastAPI(
     title=api_settings.name,
     openapi_url="/api",
@@ -63,6 +81,7 @@ app = FastAPI(
     """,
     version=titiler_version,
     root_path=api_settings.root_path,
+    dependencies=[Depends(validate_access_token)],
 )
 
 ###############################################################################
@@ -77,7 +96,11 @@ if not api_settings.disable_cog:
         ],
     )
 
-    app.include_router(cog.router, prefix="/cog", tags=["Cloud Optimized GeoTIFF"])
+    app.include_router(
+        cog.router,
+        prefix="/cog",
+        tags=["Cloud Optimized GeoTIFF"],
+    )
 
 
 ###############################################################################
@@ -92,24 +115,30 @@ if not api_settings.disable_stac:
     )
 
     app.include_router(
-        stac.router, prefix="/stac", tags=["SpatioTemporal Asset Catalog"]
+        stac.router, prefix="/stac", tags=["SpatioTemporal Asset Catalog"],
     )
 
 ###############################################################################
 # Mosaic endpoints
 if not api_settings.disable_mosaic:
     mosaic = MosaicTilerFactory(router_prefix="/mosaicjson")
-    app.include_router(mosaic.router, prefix="/mosaicjson", tags=["MosaicJSON"])
+    app.include_router(
+        mosaic.router, prefix="/mosaicjson", tags=["MosaicJSON"],
+    )
 
 ###############################################################################
 # TileMatrixSets endpoints
 tms = TMSFactory()
-app.include_router(tms.router, tags=["Tiling Schemes"])
+app.include_router(
+    tms.router, tags=["Tiling Schemes"],
+)
 
 ###############################################################################
 # Algorithms endpoints
 algorithms = AlgorithmFactory()
-app.include_router(algorithms.router, tags=["Algorithms"])
+app.include_router(
+    algorithms.router, tags=["Algorithms"],
+)
 
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
 add_exception_handlers(app, MOSAIC_STATUS_CODES)

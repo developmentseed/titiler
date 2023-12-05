@@ -43,6 +43,7 @@ The default application can be customized using environment variables defined in
 - `DISABLE_STAC` (bool): disable `/stac` endpoints.
 - `DISABLE_MOSAIC` (bool): disable `/mosaic` endpoints.
 - `LOWER_CASE_QUERY_PARAMETERS` (bool): transform all query-parameters to lower case (see https://github.com/developmentseed/titiler/pull/321).
+- `GLOBAL_ACCESS_TOKEN` (str | None): a string which is required in the `?access_token=` query param with every request.
 
 ## Customized, minimal app
 
