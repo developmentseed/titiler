@@ -52,6 +52,9 @@ api_settings = ApiSettings()
 # Setup a global API access key, if configured
 api_key_query = APIKeyQuery(name="access_token", auto_error=False)
 def validate_access_token(access_token: str = Security(api_key_query)):
+    """Validates API key access token, set as the `api_settings.global_access_token` value.
+    Returns True if no access token is required, or if the access token is valid.
+    Raises an HTTPException (403) if the access token is required but invalid/missing."""
     if api_settings.global_access_token is None:
         return True
     
