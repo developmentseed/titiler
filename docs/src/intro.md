@@ -109,11 +109,11 @@ api_key_query = APIKeyQuery(name="access_token", auto_error=False)
 def token_validation(access_token: str = Security(api_key_query)):
     """stupid token validation."""
     if not access_token:
-        raise HTTPException(status_code=403, detail="Missing `access_token`")
+        raise HTTPException(status_code=401, detail="Missing `access_token`")
 
     # if access_token == `token` then OK
     if not access_token == "token":
-        raise HTTPException(status_code=403, detail="Invalid `access_token`")
+        raise HTTPException(status_code=401, detail="Invalid `access_token`")
 
     return True
 

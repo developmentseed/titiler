@@ -56,16 +56,16 @@ api_key_query = APIKeyQuery(name="access_token", auto_error=False)
 def validate_access_token(access_token: str = Security(api_key_query)):
     """Validates API key access token, set as the `api_settings.global_access_token` value.
     Returns True if no access token is required, or if the access token is valid.
-    Raises an HTTPException (403) if the access token is required but invalid/missing."""
+    Raises an HTTPException (401) if the access token is required but invalid/missing."""
     if api_settings.global_access_token is None:
         return True
 
     if not access_token:
-        raise HTTPException(status_code=403, detail="Missing `access_token`")
+        raise HTTPException(status_code=401, detail="Missing `access_token`")
 
     # if access_token == `token` then OK
     if access_token != api_settings.global_access_token:
-        raise HTTPException(status_code=403, detail="Invalid `access_token`")
+        raise HTTPException(status_code=401, detail="Invalid `access_token`")
 
     return True
 
