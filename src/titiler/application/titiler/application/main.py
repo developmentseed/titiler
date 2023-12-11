@@ -3,7 +3,7 @@
 import logging
 
 import jinja2
-from fastapi import FastAPI, Depends, HTTPException, Security
+from fastapi import Depends, FastAPI, HTTPException, Security
 from fastapi.security.api_key import APIKeyQuery
 from rio_tiler.io import STACReader
 from starlette.middleware.cors import CORSMiddleware
@@ -51,13 +51,15 @@ api_settings = ApiSettings()
 ###############################################################################
 # Setup a global API access key, if configured
 api_key_query = APIKeyQuery(name="access_token", auto_error=False)
+
+
 def validate_access_token(access_token: str = Security(api_key_query)):
     """Validates API key access token, set as the `api_settings.global_access_token` value.
     Returns True if no access token is required, or if the access token is valid.
     Raises an HTTPException (403) if the access token is required but invalid/missing."""
     if api_settings.global_access_token is None:
         return True
-    
+
     if not access_token:
         raise HTTPException(status_code=403, detail="Missing `access_token`")
 
@@ -66,6 +68,8 @@ def validate_access_token(access_token: str = Security(api_key_query)):
         raise HTTPException(status_code=403, detail="Invalid `access_token`")
 
     return True
+
+
 ###############################################################################
 
 app = FastAPI(
@@ -118,7 +122,9 @@ if not api_settings.disable_stac:
     )
 
     app.include_router(
-        stac.router, prefix="/stac", tags=["SpatioTemporal Asset Catalog"],
+        stac.router,
+        prefix="/stac",
+        tags=["SpatioTemporal Asset Catalog"],
     )
 
 ###############################################################################
@@ -126,21 +132,25 @@ if not api_settings.disable_stac:
 if not api_settings.disable_mosaic:
     mosaic = MosaicTilerFactory(router_prefix="/mosaicjson")
     app.include_router(
-        mosaic.router, prefix="/mosaicjson", tags=["MosaicJSON"],
+        mosaic.router,
+        prefix="/mosaicjson",
+        tags=["MosaicJSON"],
     )
 
 ###############################################################################
 # TileMatrixSets endpoints
 tms = TMSFactory()
 app.include_router(
-    tms.router, tags=["Tiling Schemes"],
+    tms.router,
+    tags=["Tiling Schemes"],
 )
 
 ###############################################################################
 # Algorithms endpoints
 algorithms = AlgorithmFactory()
 app.include_router(
-    algorithms.router, tags=["Algorithms"],
+    algorithms.router,
+    tags=["Algorithms"],
 )
 
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
