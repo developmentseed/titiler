@@ -11,6 +11,7 @@ on:
 
 jobs:
   benchmark:
+    if: github.repository == 'developmentseed/titiler'
     runs-on: ubuntu-latest
 
     steps:
