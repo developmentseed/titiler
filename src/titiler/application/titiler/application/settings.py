@@ -1,6 +1,6 @@
 """Titiler API settings."""
 
-from typing import Union
+from typing import Optional
 
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -23,7 +23,7 @@ class ApiSettings(BaseSettings):
     lower_case_query_parameters: bool = False
 
     # an API key required to access any endpoint, passed via the ?access_token= query parameter
-    global_access_token: Union[str, None] = None
+    global_access_token: Optional[str] = None
 
     model_config = SettingsConfigDict(env_prefix="TITILER_API_", env_file=".env")
 
