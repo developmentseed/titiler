@@ -142,6 +142,8 @@ jobs:
         with:
           images: |
             ghcr.io/${{ github.repository }}-uvicorn
+          flavor: |
+            latest=false
           tags: |
             type=semver,pattern={{version}}
             type=raw,value=latest,enable={{is_default_branch}}
@@ -152,6 +154,8 @@ jobs:
         with:
           images: |
             ghcr.io/${{ github.repository }}
+          flavor: |
+            latest=false
           tags: |
             type=semver,pattern={{version}}
             type=raw,value=latest,enable={{is_default_branch}}
@@ -163,8 +167,9 @@ jobs:
       #     platforms: linux/amd64,linux/arm64
       #     context: .
       #     file: dockerfiles/Dockerfile.uvicorn
-      #     push: true
+      #     push: ${{ github.event_name != 'pull_request' }}
       #     tags: ${{ steps.meta-uvicorn.outputs.tags }}
+      #     labels: ${{ steps.meta-uvicorn.outputs.labels }}
       #     cache-from: type=gha
       #     cache-to: type=gha,mode=max
 
@@ -175,8 +180,9 @@ jobs:
           platforms: linux/amd64,linux/arm64
           context: .
           file: dockerfiles/Dockerfile.gunicorn
-          push: true
+          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta-gunicorn.outputs.tags }}
+          labels: ${{ steps.meta-gunicorn.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
