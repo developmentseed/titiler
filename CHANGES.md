@@ -1,5 +1,11 @@
 # Release Notes
 
+## Unreleased
+
+### titiler.application
+
+* add simple *auth* (optional) based on `global_access_token` string, set with `TITILER_API_GLOBAL_ACCESS_TOKEN` environment variable (author @DeflateAwning, https://github.com/developmentseed/titiler/pull/735)
+
 ## 0.15.6 (2023-11-16)
 
 ### titiler.core
