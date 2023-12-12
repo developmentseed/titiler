@@ -16,6 +16,8 @@ on:
       - '.github/codecov.yml'
       - 'dockerfiles/**'
   pull_request:
+  workflow_dispatch:
+
 env:
   LATEST_PY_VERSION: '3.10'
 
