@@ -43,6 +43,7 @@ The default application can be customized using environment variables defined in
 - `DISABLE_STAC` (bool): disable `/stac` endpoints.
 - `DISABLE_MOSAIC` (bool): disable `/mosaic` endpoints.
 - `LOWER_CASE_QUERY_PARAMETERS` (bool): transform all query-parameters to lower case (see https://github.com/developmentseed/titiler/pull/321).
+- `GLOBAL_ACCESS_TOKEN` (str | None): a string which is required in the `?access_token=` query param with every request.
 
 ## Customized, minimal app
 
@@ -108,11 +109,11 @@ api_key_query = APIKeyQuery(name="access_token", auto_error=False)
 def token_validation(access_token: str = Security(api_key_query)):
     """stupid token validation."""
     if not access_token:
-        raise HTTPException(status_code=403, detail="Missing `access_token`")
+        raise HTTPException(status_code=401, detail="Missing `access_token`")
 
     # if access_token == `token` then OK
     if not access_token == "token":
-        raise HTTPException(status_code=403, detail="Invalid `access_token`")
+        raise HTTPException(status_code=401, detail="Invalid `access_token`")
 
     return True
 

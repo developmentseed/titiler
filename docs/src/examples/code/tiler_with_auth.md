@@ -140,12 +140,12 @@ def DatasetPathParams(
     """Create dataset path from args"""
 
     if not api_key_query:
-        raise HTTPException(status_code=403, detail="Missing `access_token`")
+        raise HTTPException(status_code=401, detail="Missing `access_token`")
 
     try:
         AccessToken.from_string(api_key_query)
     except JWTError:
-        raise HTTPException(status_code=403, detail="Invalid `access_token`")
+        raise HTTPException(status_code=401, detail="Invalid `access_token`")
 
     return url
 ```
