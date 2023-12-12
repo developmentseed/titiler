@@ -143,26 +143,28 @@ jobs:
         if: github.ref == 'refs/heads/main'
         uses: docker/build-push-action@v2
         with:
-          # See https://github.com/developmentseed/titiler/discussions/387
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
           context: .
           file: dockerfiles/Dockerfile.uvicorn
           push: true
           tags: |
             ghcr.io/${{ github.repository }}-uvicorn:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       # Push `{VERSION}` when pushing a new tag
       - name: Build and push uvicorn
         if: startsWith(github.event.ref, 'refs/tags') || github.event_name == 'release'
         uses: docker/build-push-action@v2
         with:
-          # See https://github.com/developmentseed/titiler/discussions/387
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
           context: .
           file: dockerfiles/Dockerfile.uvicorn
           push: true
           tags: |
             ghcr.io/${{ github.repository }}-uvicorn:${{ steps.tag.outputs.tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       # Gunicorn
       # Push `latest` when commiting to main
@@ -170,26 +172,28 @@ jobs:
         if: github.ref == 'refs/heads/main'
         uses: docker/build-push-action@v2
         with:
-          # See https://github.com/developmentseed/titiler/discussions/387
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
           context: .
           file: dockerfiles/Dockerfile.gunicorn
           push: true
           tags: |
             ghcr.io/${{ github.repository }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       # Push `{VERSION}` when pushing a new tag
       - name: Build and push
         if: startsWith(github.event.ref, 'refs/tags') || github.event_name == 'release'
         uses: docker/build-push-action@v2
         with:
-          # See https://github.com/developmentseed/titiler/discussions/387
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
           context: .
           file: dockerfiles/Dockerfile.gunicorn
           push: true
           tags: |
             ghcr.io/${{ github.repository }}:${{ steps.tag.outputs.tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   deploy:
     needs: [tests, publish]
