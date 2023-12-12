@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1701114852492,
+  "lastUpdate": 1702368017317,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -2521,6 +2521,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.41,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "11021263+DeflateAwning@users.noreply.github.com",
+            "name": "DeflateAwning",
+            "username": "DeflateAwning"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "350da5f079616fb0346bc754f5222daf44e26e24",
+          "message": "Add global access token setting and validation (#735)\n\n* Add global access token setting and validation\r\n\r\n* Fix type hinting syntax on Python<3.10\r\n\r\n* Add missing docstring\r\n\r\n* fix lint\r\n\r\n* Change 403 HTTPException to 401\r\n\r\n* Apply suggestions from code review\r\n\r\n---------\r\n\r\nCo-authored-by: vincentsarago <vincent.sarago@gmail.com>",
+          "timestamp": "2023-12-12T08:58:58+01:00",
+          "tree_id": "02893d4f18fbcf147953b912f0cb0c8d1c694815",
+          "url": "https://github.com/developmentseed/titiler/commit/350da5f079616fb0346bc754f5222daf44e26e24"
+        },
+        "date": 1702368016738,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.28,
             "unit": "s"
           },
           {
