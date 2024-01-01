@@ -22,10 +22,10 @@ from titiler.core.factory import BaseTilerFactory, FactoryExtension
 from titiler.core.resources.enums import ImageType, MediaType
 from titiler.core.utils import render_image
 
-DEFAULT_TEMPLATES = Jinja2Templates(
-    directory="",
-    loader=jinja2.ChoiceLoader([jinja2.PackageLoader(__package__, "templates")]),
-)  # type:ignore
+jinja2_env = jinja2.Environment(
+    loader=jinja2.ChoiceLoader([jinja2.PackageLoader(__package__, "templates")])
+)
+DEFAULT_TEMPLATES = Jinja2Templates(env=jinja2_env)
 
 
 class WMSMediaType(str, Enum):
@@ -522,7 +522,6 @@ class wmsExtension(FactoryExtension):
                 return image, format, transparent
 
             if request_type.lower() == "getmap":
-
                 # List of required parameters (styles and crs are excluded)
                 req_keys = {
                     "version",
