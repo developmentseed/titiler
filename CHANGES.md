@@ -1,5 +1,15 @@
 # Release Notes
 
+## 0.16.1 (2024-01-08)
+
+### titiler.core
+
+* use morecantile `TileMatrixSet.cellSize` property instead of deprecated/private `TileMatrixSet._resolution` method
+
+### titiler.mosaic
+
+* use morecantile `TileMatrixSet.cellSize` property instead of deprecated/private `TileMatrixSet._resolution` method
+
 ## 0.16.0 (2024-01-08)
 
 ### titiler.core
