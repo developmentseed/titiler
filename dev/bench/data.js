@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1704710712680,
+  "lastUpdate": 1704725113273,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -2772,6 +2772,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad longest_transaction",
             "value": 0.06,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "jasongiancono@gmail.com",
+            "name": "Jason Giancono",
+            "username": "jasongi"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "27f8f6eefbeb1ef24703f0672c2e1c5b64d94a52",
+          "message": "fix template loading for starlette >= 0.28 (#744)\n\n* fix template loading for starlette >= 0.28\r\n\r\n* update from main and set fastapi version to >=0.107.0\r\n\r\n---------\r\n\r\nCo-authored-by: vincentsarago <vincent.sarago@gmail.com>",
+          "timestamp": "2024-01-08T15:43:53+01:00",
+          "tree_id": "bbcd84d0907c927a4992fbee00edf00cbcc4c916",
+          "url": "https://github.com/developmentseed/titiler/commit/27f8f6eefbeb1ef24703f0672c2e1c5b64d94a52"
+        },
+        "date": 1704725112629,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.23,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
             "unit": "s"
           }
         ]
