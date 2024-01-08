@@ -4,7 +4,7 @@ name: CI
 on:
   push:
     branches:
-    - main
+    - maint-0.15
     tags:
     - '*'
     paths:
@@ -108,7 +108,7 @@ jobs:
 
   publish-docker:
     needs: [tests]
-    if: github.ref == 'refs/heads/main' || startsWith(github.event.ref, 'refs/tags') || github.event_name == 'release'
+    if: startsWith(github.event.ref, 'refs/tags') || github.event_name == 'release'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -137,20 +137,8 @@ jobs:
         id: tag
         # https://stackoverflow.com/questions/58177786/get-the-current-pushed-tag-in-github-actions
         run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
-      # Uvicorn
-      # Push `latest` when commiting to main
-      - name: Build and push uvicorn
-        if: github.ref == 'refs/heads/main'
-        uses: docker/build-push-action@v2
-        with:
-          # See https://github.com/developmentseed/titiler/discussions/387
-          platforms: linux/amd64
-          context: .
-          file: dockerfiles/Dockerfile.uvicorn
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository }}-uvicorn:latest
 
+      # Uvicorn
       # Push `{VERSION}` when pushing a new tag
       - name: Build and push uvicorn
         if: startsWith(github.event.ref, 'refs/tags') || github.event_name == 'release'
@@ -165,19 +153,6 @@ jobs:
             ghcr.io/${{ github.repository }}-uvicorn:${{ steps.tag.outputs.tag }}
 
       # Gunicorn
-      # Push `latest` when commiting to main
-      - name: Build and push
-        if: github.ref == 'refs/heads/main'
-        uses: docker/build-push-action@v2
-        with:
-          # See https://github.com/developmentseed/titiler/discussions/387
-          platforms: linux/amd64
-          context: .
-          file: dockerfiles/Dockerfile.gunicorn
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository }}:latest
-
       # Push `{VERSION}` when pushing a new tag
       - name: Build and push
         if: startsWith(github.event.ref, 'refs/tags') || github.event_name == 'release'
@@ -191,60 +166,3 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}:${{ steps.tag.outputs.tag }}
 
-  deploy:
-    needs: [tests, publish]
-    runs-on: ubuntu-latest
-    if: startsWith(github.event.ref, 'refs/tags') || github.event_name == 'release'
-
-    defaults:
-      run:
-        working-directory: deployment/aws
-
-    steps:
-      - uses: actions/checkout@v3
-
-      # Let's wait a bit to make sure Pypi is up to date
-      - name: Sleep for 120 seconds
-        run: sleep 120s
-        shell: bash
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v1
-        with:
-          node-version: '14.x'
-
-      - name: Install cdk
-        run: npm install -g
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -r requirements-cdk.txt
-
-      # Let's wait a bit to make sure package is available on pypi
-      - name: Sleep for 120 seconds
-        run: sleep 120s
-        shell: bash
-
-      # Build and Deploy CDK application
-      - name: Build & Deploy
-        run: npm run cdk -- deploy ${{ secrets.STACK_NAME }}-lambda-${{ secrets.STACK_STAGE }} --require-approval never
-        env:
-          TITILER_STACK_NAME: ${{ secrets.STACK_NAME }}
-          TITILER_STACK_STAGE: ${{ secrets.STACK_STAGE }}
-          TITILER_STACK_MEMORY: ${{ secrets.STACK_MEMORY }}
-          TITILER_STACK_OWNER: ${{ secrets.STACK_OWNER }}
-          TITILER_STACK_CLIENT: ${{ secrets.STACK_CLIENT }}
-          TITILER_STACK_BUCKETS: ${{ secrets.STACK_BUCKETS }}
