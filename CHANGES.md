@@ -1,21 +1,28 @@
 # Release Notes
 
+## Unreleased
+
+### titiler.core
+
+* fix template loading for starlette >= 0.28 by using `jinja2.Environment` argument
+
+### titiler.extensions
+
+* fix template loading for starlette >= 0.28 by using `jinja2.Environment` argument
+
+### titiler.application
+
+* fix template loading for starlette >= 0.28 by using `jinja2.Environment` argument
+
 ## 0.15.7 (2024-01-08)
 
 ### titiler.core
 
 * update FastAPI version upper limit to `0.107.0` to avoid starlette breaking change (`0.28`)
 
-### titiler.core
-* fix template loading for starlette >= 0.28 by using `jinja2.Environment` argument
-
-### titiler.extensions
-* fix template loading for starlette >= 0.28 by using `jinja2.Environment` argument
-
 ### titiler.application
 
 * add simple *auth* (optional) based on `global_access_token` string, set with `TITILER_API_GLOBAL_ACCESS_TOKEN` environment variable (author @DeflateAwning, https://github.com/developmentseed/titiler/pull/735)
-* fix template loading for starlette >= 0.28 by using `jinja2.Environment` argument
 
 ## 0.15.6 (2023-11-16)
 
