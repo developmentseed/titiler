@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### titiler.core
+
+* update FastAPI version upper limit to `0.107.0` to avoid starlette breaking change (`0.28`)
+
 ### titiler.application
 
 * add simple *auth* (optional) based on `global_access_token` string, set with `TITILER_API_GLOBAL_ACCESS_TOKEN` environment variable (author @DeflateAwning, https://github.com/developmentseed/titiler/pull/735)
