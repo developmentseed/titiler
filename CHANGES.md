@@ -25,6 +25,16 @@
 
 * fix template loading for starlette >= 0.28 by using `jinja2.Environment` argument (author @jasongi, https://github.com/developmentseed/titiler/pull/744)
 
+## 0.15.8 (2024-01-08)
+
+### titiler.core
+
+* use morecantile `TileMatrixSet.cellSize` property instead of deprecated/private `TileMatrixSet._resolution` method [backported from 0.16.1]
+
+### titiler.mosaic
+
+* use morecantile `TileMatrixSet.cellSize` property instead of deprecated/private `TileMatrixSet._resolution` method [backported from 0.16.1]
+
 ## 0.15.7 (2024-01-08)
 
 ### titiler.core
