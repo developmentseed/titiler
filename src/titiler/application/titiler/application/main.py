@@ -40,10 +40,10 @@ logging.getLogger("botocore.credentials").disabled = True
 logging.getLogger("botocore.utils").disabled = True
 logging.getLogger("rio-tiler").setLevel(logging.ERROR)
 
-templates = Jinja2Templates(
-    directory="",
-    loader=jinja2.ChoiceLoader([jinja2.PackageLoader(__package__, "templates")]),
-)  # type:ignore
+jinja2_env = jinja2.Environment(
+    loader=jinja2.ChoiceLoader([jinja2.PackageLoader(__package__, "templates")])
+)
+templates = Jinja2Templates(env=jinja2_env)
 
 
 api_settings = ApiSettings()
@@ -56,7 +56,8 @@ api_key_query = APIKeyQuery(name="access_token", auto_error=False)
 def validate_access_token(access_token: str = Security(api_key_query)):
     """Validates API key access token, set as the `api_settings.global_access_token` value.
     Returns True if no access token is required, or if the access token is valid.
-    Raises an HTTPException (401) if the access token is required but invalid/missing."""
+    Raises an HTTPException (401) if the access token is required but invalid/missing.
+    """
     if api_settings.global_access_token is None:
         return True
 

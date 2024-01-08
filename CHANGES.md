@@ -1,5 +1,19 @@
 # Release Notes
 
+## Unreleased
+
+### titiler.core
+
+* fix template loading for starlette >= 0.28 by using `jinja2.Environment` argument
+
+### titiler.extensions
+
+* fix template loading for starlette >= 0.28 by using `jinja2.Environment` argument
+
+### titiler.application
+
+* fix template loading for starlette >= 0.28 by using `jinja2.Environment` argument
+
 ## 0.15.7 (2024-01-08)
 
 ### titiler.core
