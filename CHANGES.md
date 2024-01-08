@@ -4,21 +4,22 @@
 
 ### titiler.core
 
-* fix template loading for starlette >= 0.28 by using `jinja2.Environment` argument
+* update FastAPI version lower limit to `>=0.107.0`
+* fix template loading for starlette >= 0.28 by using `jinja2.Environment` argument (author @jasongi, https://github.com/developmentseed/titiler/pull/744)
 
 ### titiler.extensions
 
-* fix template loading for starlette >= 0.28 by using `jinja2.Environment` argument
+* fix template loading for starlette >= 0.28 by using `jinja2.Environment` argument (author @jasongi, https://github.com/developmentseed/titiler/pull/744)
 
 ### titiler.application
 
-* fix template loading for starlette >= 0.28 by using `jinja2.Environment` argument
+* fix template loading for starlette >= 0.28 by using `jinja2.Environment` argument (author @jasongi, https://github.com/developmentseed/titiler/pull/744)
 
 ## 0.15.7 (2024-01-08)
 
 ### titiler.core
 
-* update FastAPI version upper limit to `0.107.0` to avoid starlette breaking change (`0.28`)
+* update FastAPI version upper limit to `<0.107.0` to avoid starlette breaking change (`0.28`)
 
 ### titiler.application
 
