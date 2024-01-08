@@ -1,6 +1,10 @@
 # Release Notes
 
-## Unreleased
+## 0.15.7 (2024-01-08)
+
+### titiler.core
+
+* update FastAPI version upper limit to `0.107.0` to avoid starlette breaking change (`0.28`)
 
 ### titiler.core
 * fix template loading for starlette >= 0.28 by using `jinja2.Environment` argument
