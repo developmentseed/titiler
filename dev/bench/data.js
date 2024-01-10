@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1704746584952,
+  "lastUpdate": 1704899156001,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -3111,6 +3111,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.32,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "github@firefishy.com",
+            "name": "Grant",
+            "username": "Firefishy"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ef5caf9e4736427b8b6c303d4bcc8439a28a921b",
+          "message": "Fix leafletjs template maxZoom to great than 18 zoom (#749)",
+          "timestamp": "2024-01-10T16:04:32+01:00",
+          "tree_id": "f304b6a0828e97d07cd3688d699064e018b2ee6f",
+          "url": "https://github.com/developmentseed/titiler/commit/ef5caf9e4736427b8b6c303d4bcc8439a28a921b"
+        },
+        "date": 1704899155384,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.3,
             "unit": "s"
           },
           {
