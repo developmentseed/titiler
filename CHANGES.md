@@ -1,5 +1,11 @@
 # Release Notes
 
+## Unreleased
+
+### titiler.core
+
+* fix leafletjs template maxZoom to great than 18 for `/map` endpoint (author @Firefishy, https://github.com/developmentseed/titiler/pull/749)
+
 ## 0.16.1 (2024-01-08)
 
 ### titiler.core
