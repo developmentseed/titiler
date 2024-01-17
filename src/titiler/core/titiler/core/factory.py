@@ -437,7 +437,7 @@ class TilerFactory(BaseTilerFactory):
             response_class=GeoJSONResponse,
             responses={
                 200: {
-                    "content": {"application/json": {}},
+                    "content": {"application/geo+json": {}},
                     "description": "Return dataset's statistics from feature or featureCollection.",
                 }
             },
@@ -472,6 +472,7 @@ class TilerFactory(BaseTilerFactory):
                             shape,
                             shape_crs=coord_crs or WGS84_CRS,
                             dst_crs=dst_crs,
+                            align_bounds_with_dataset=True,
                             **layer_params,
                             **image_params,
                             **dataset_params,
@@ -1270,7 +1271,7 @@ class MultiBaseTilerFactory(TilerFactory):
             response_class=GeoJSONResponse,
             responses={
                 200: {
-                    "content": {"application/json": {}},
+                    "content": {"application/geo+json": {}},
                     "description": "Return dataset's statistics from feature or featureCollection.",
                 }
             },
@@ -1308,6 +1309,7 @@ class MultiBaseTilerFactory(TilerFactory):
                             feature.model_dump(exclude_none=True),
                             shape_crs=coord_crs or WGS84_CRS,
                             dst_crs=dst_crs,
+                            align_bounds_with_dataset=True,
                             **layer_params,
                             **image_params,
                             **dataset_params,
@@ -1471,7 +1473,7 @@ class MultiBandTilerFactory(TilerFactory):
             response_class=GeoJSONResponse,
             responses={
                 200: {
-                    "content": {"application/json": {}},
+                    "content": {"application/geo+json": {}},
                     "description": "Return dataset's statistics from feature or featureCollection.",
                 }
             },
@@ -1509,6 +1511,7 @@ class MultiBandTilerFactory(TilerFactory):
                             feature.model_dump(exclude_none=True),
                             shape_crs=coord_crs or WGS84_CRS,
                             dst_crs=dst_crs,
+                            align_bounds_with_dataset=True,
                             **bands_params,
                             **image_params,
                             **dataset_params,
