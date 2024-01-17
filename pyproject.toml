@@ -80,7 +80,7 @@ exclude = [
 ]
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling>=1.12.0"]
 build-backend = "hatchling.build"
 
 [tool.coverage.run]
@@ -132,3 +132,6 @@ explicit_package_bases = true
 filterwarnings = [
     "ignore::rasterio.errors.NotGeoreferencedWarning",
 ]
+
+[tool.hatch.build.targets.wheel]
+bypass-selection = true
