@@ -1,5 +1,12 @@
 # Release Notes
 
+## 0.17.0 (2024-01-17)
+
+### titiler.core
+
+* update `rio-tiler` version to `>6.3.0`
+* use new `align_bounds_with_dataset=True` rio-tiler option in GeoJSON statistics methods for more precise calculation
+
 ## 0.16.2 (2024-01-17)
 
 ### titiler.core
