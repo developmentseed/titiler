@@ -1,5 +1,11 @@
 # Release Notes
 
+## Unreleased
+
+### titiler.application
+
+* fix invalid url parsing in HTML responses
+
 ## 0.17.0 (2024-01-17)
 
 ### titiler.core

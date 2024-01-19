@@ -1,6 +1,7 @@
 """titiler app."""
 
 import logging
+import re
 
 import jinja2
 from fastapi import Depends, FastAPI, HTTPException, Security
@@ -245,6 +246,8 @@ def landing(request: Request):
     }
 
     urlpath = request.url.path
+    if root_path := request.app.root_path:
+        urlpath = re.sub(r"^" + root_path, "", urlpath)
     crumbs = []
     baseurl = str(request.base_url).rstrip("/")
 
