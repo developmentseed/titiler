@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1706701942604,
+  "lastUpdate": 1706702249995,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -3701,6 +3701,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.24,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "db8af9d268473d26984dc39b690e8320e9c653aa",
+          "message": "Bump the all group with 11 updates (#770)\n\nBumps the all group with 11 updates:\r\n\r\n| Package | From | To |\r\n| --- | --- | --- |\r\n| [azure/setup-helm](https://github.com/azure/setup-helm) | `1` | `3` |\r\n| [actions/setup-python](https://github.com/actions/setup-python) | `1` | `5` |\r\n| [helm/chart-testing-action](https://github.com/helm/chart-testing-action) | `2.2.1` | `2.6.1` |\r\n| [docker/build-push-action](https://github.com/docker/build-push-action) | `2` | `5` |\r\n| [helm/kind-action](https://github.com/helm/kind-action) | `1.2.0` | `1.8.0` |\r\n| [codecov/codecov-action](https://github.com/codecov/codecov-action) | `1` | `3` |\r\n| [docker/setup-qemu-action](https://github.com/docker/setup-qemu-action) | `1` | `3` |\r\n| [docker/setup-buildx-action](https://github.com/docker/setup-buildx-action) | `1` | `3` |\r\n| [docker/login-action](https://github.com/docker/login-action) | `1` | `3` |\r\n| [aws-actions/configure-aws-credentials](https://github.com/aws-actions/configure-aws-credentials) | `1` | `4` |\r\n| [actions/setup-node](https://github.com/actions/setup-node) | `1` | `4` |\r\n\r\n\r\nUpdates `azure/setup-helm` from 1 to 3\r\n- [Release notes](https://github.com/azure/setup-helm/releases)\r\n- [Commits](https://github.com/azure/setup-helm/compare/v1...v3)\r\n\r\nUpdates `actions/setup-python` from 1 to 5\r\n- [Release notes](https://github.com/actions/setup-python/releases)\r\n- [Commits](https://github.com/actions/setup-python/compare/v1...v5)\r\n\r\nUpdates `helm/chart-testing-action` from 2.2.1 to 2.6.1\r\n- [Release notes](https://github.com/helm/chart-testing-action/releases)\r\n- [Commits](https://github.com/helm/chart-testing-action/compare/v2.2.1...v2.6.1)\r\n\r\nUpdates `docker/build-push-action` from 2 to 5\r\n- [Release notes](https://github.com/docker/build-push-action/releases)\r\n- [Commits](https://github.com/docker/build-push-action/compare/v2...v5)\r\n\r\nUpdates `helm/kind-action` from 1.2.0 to 1.8.0\r\n- [Release notes](https://github.com/helm/kind-action/releases)\r\n- [Commits](https://github.com/helm/kind-action/compare/v1.2.0...v1.8.0)\r\n\r\nUpdates `codecov/codecov-action` from 1 to 3\r\n- [Release notes](https://github.com/codecov/codecov-action/releases)\r\n- [Changelog](https://github.com/codecov/codecov-action/blob/main/CHANGELOG.md)\r\n- [Commits](https://github.com/codecov/codecov-action/compare/v1...v3)\r\n\r\nUpdates `docker/setup-qemu-action` from 1 to 3\r\n- [Release notes](https://github.com/docker/setup-qemu-action/releases)\r\n- [Commits](https://github.com/docker/setup-qemu-action/compare/v1...v3)\r\n\r\nUpdates `docker/setup-buildx-action` from 1 to 3\r\n- [Release notes](https://github.com/docker/setup-buildx-action/releases)\r\n- [Commits](https://github.com/docker/setup-buildx-action/compare/v1...v3)\r\n\r\nUpdates `docker/login-action` from 1 to 3\r\n- [Release notes](https://github.com/docker/login-action/releases)\r\n- [Commits](https://github.com/docker/login-action/compare/v1...v3)\r\n\r\nUpdates `aws-actions/configure-aws-credentials` from 1 to 4\r\n- [Release notes](https://github.com/aws-actions/configure-aws-credentials/releases)\r\n- [Changelog](https://github.com/aws-actions/configure-aws-credentials/blob/main/CHANGELOG.md)\r\n- [Commits](https://github.com/aws-actions/configure-aws-credentials/compare/v1...v4)\r\n\r\nUpdates `actions/setup-node` from 1 to 4\r\n- [Release notes](https://github.com/actions/setup-node/releases)\r\n- [Commits](https://github.com/actions/setup-node/compare/v1...v4)\r\n\r\n---\r\nupdated-dependencies:\r\n- dependency-name: azure/setup-helm\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-major\r\n  dependency-group: all\r\n- dependency-name: actions/setup-python\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-major\r\n  dependency-group: all\r\n- dependency-name: helm/chart-testing-action\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-minor\r\n  dependency-group: all\r\n- dependency-name: docker/build-push-action\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-major\r\n  dependency-group: all\r\n- dependency-name: helm/kind-action\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-minor\r\n  dependency-group: all\r\n- dependency-name: codecov/codecov-action\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-major\r\n  dependency-group: all\r\n- dependency-name: docker/setup-qemu-action\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-major\r\n  dependency-group: all\r\n- dependency-name: docker/setup-buildx-action\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-major\r\n  dependency-group: all\r\n- dependency-name: docker/login-action\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-major\r\n  dependency-group: all\r\n- dependency-name: aws-actions/configure-aws-credentials\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-major\r\n  dependency-group: all\r\n- dependency-name: actions/setup-node\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-major\r\n  dependency-group: all\r\n...\r\n\r\nSigned-off-by: dependabot[bot] <support@github.com>\r\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2024-01-31T12:56:08+01:00",
+          "tree_id": "2a028c1d049d0736887d0a4801c0d8bcba9c4f0a",
+          "url": "https://github.com/developmentseed/titiler/commit/db8af9d268473d26984dc39b690e8320e9c653aa"
+        },
+        "date": 1706702248958,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.26,
             "unit": "s"
           },
           {
