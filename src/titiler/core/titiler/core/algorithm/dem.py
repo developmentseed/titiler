@@ -1,6 +1,7 @@
 """titiler.core.algorithm DEM."""
 
 import numpy
+from pydantic import Field
 from rasterio import windows
 from rio_tiler.colormap import apply_cmap, cmap
 from rio_tiler.models import ImageData
@@ -13,9 +14,9 @@ class HillShade(BaseAlgorithm):
     """Hillshade."""
 
     # parameters
-    azimuth: int = 90
-    angle_altitude: float = 90.0
-    buffer: int = 3
+    azimuth: int = Field(90, ge=0, lt=360)
+    angle_altitude: float = Field(90.0, ge=-90.0, lt=90.0)
+    buffer: int = Field(3, ge=0, lt=99)
 
     # metadata
     input_nbands: int = 1
@@ -62,10 +63,10 @@ class Contours(BaseAlgorithm):
     """
 
     # parameters
-    increment: int = 35
-    thickness: int = 1
-    minz: int = -12000
-    maxz: int = 8000
+    increment: int = Field(35, ge=0, lt=999)
+    thickness: int = Field(1, ge=0, lt=10)
+    minz: int = Field(-12000, ge=-99999, lt=99999)
+    maxz: int = Field(8000, ge=-99999, lt=99999)
 
     # metadata
     input_nbands: int = 1
@@ -123,8 +124,8 @@ class TerrainRGB(BaseAlgorithm):
     """Encode DEM into RGB (Mapbox Terrain RGB)."""
 
     # parameters
-    interval: float = 0.1
-    baseval: float = -10000.0
+    interval: float = Field(0.1, ge=0.0, lt=1.0)
+    baseval: float = Field(-10000.0, ge=-99999.0, lt=99999.0)
 
     # metadata
     input_nbands: int = 1
