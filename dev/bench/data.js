@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1708005852048,
+  "lastUpdate": 1709629201009,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -4011,6 +4011,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad longest_transaction",
             "value": 0.06,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3e1832a271d24c9c3197105bb9968c662864aef0",
+          "message": "Bump the all group with 1 update (#789)\n\nBumps the all group with 1 update: [azure/setup-helm](https://github.com/azure/setup-helm).\r\n\r\n\r\nUpdates `azure/setup-helm` from 3 to 4\r\n- [Release notes](https://github.com/azure/setup-helm/releases)\r\n- [Changelog](https://github.com/Azure/setup-helm/blob/main/CHANGELOG.md)\r\n- [Commits](https://github.com/azure/setup-helm/compare/v3...v4)\r\n\r\n---\r\nupdated-dependencies:\r\n- dependency-name: azure/setup-helm\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-major\r\n  dependency-group: all\r\n...\r\n\r\nSigned-off-by: dependabot[bot] <support@github.com>\r\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2024-03-05T09:58:34+01:00",
+          "tree_id": "0dd3a0f00fe56989573f0bfc9aac4f40598e837a",
+          "url": "https://github.com/developmentseed/titiler/commit/3e1832a271d24c9c3197105bb9968c662864aef0"
+        },
+        "date": 1709629199272,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.18,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
             "unit": "s"
           }
         ]
