@@ -8,11 +8,9 @@ from starlette.responses import HTMLResponse
 from starlette_cramjam.middleware import CompressionMiddleware
 
 from titiler.application import __version__ as titiler_version
-from titiler.application.main import templates
-from titiler.application.main import cog, mosaic, stac, tms
+from titiler.application.main import cog, mosaic, stac, templates, tms
 from titiler.application.settings import ApiSettings
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
-
 from titiler.core.middleware import (
     CacheControlMiddleware,
     LoggerMiddleware,
@@ -99,7 +97,7 @@ def landing(request: Request):
 
 
 async def main(
-    req: func.HttpRequest, 
+    req: func.HttpRequest,
     context: func.Context,
 ) -> func.HttpResponse:
     """Run App in AsgiMiddleware."""
