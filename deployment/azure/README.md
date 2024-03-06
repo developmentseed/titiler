@@ -1,13 +1,13 @@
 ### Function
 
-TiTiler is built on top of [FastAPI](https://github.com/tiangolo/fastapi), a modern, fast, Python web framework for building APIs. As for AWS Lambda we can make our FastAPI application work on Azure Function by wrapping it within the [Azure Function Python worker](https://github.com/Azure/azure-functions-python-worker).
+TiTiler is built on top of [FastAPI](https://github.com/tiangolo/fastapi), a modern, fast, Python web framework for building APIs. We can make our FastAPI application work as an Azure Function by wrapping it within the [Azure Function Python worker](https://github.com/Azure/azure-functions-python-worker).
 
 If you are not familiar with **Azure functions** we recommend checking https://docs.microsoft.com/en-us/azure/azure-functions/ first.
 
 Minimal TiTiler Azure function code:
 ```python
 import azure.functions as func
-from titiler.application.routers import cog, mosaic, stac, tms
+from titiler.application.main import cog, mosaic, stac, tms
 from fastapi import FastAPI
 
 
@@ -20,13 +20,11 @@ app.include_router(mosaic.router, prefix="/mosaicjson", tags=["MosaicJSON"])
 app.include_router(tms.router, tags=["TileMatrixSets"])
 
 
-def main(
+async def main(
     req: func.HttpRequest, context: func.Context,
 ) -> func.HttpResponse:
-    return func.AsgiMiddleware(app).handle(req, context)
+    return await func.AsgiMiddleware(app).handle_async(req, context)
 ```
-
-Note: there is a `bug` in `azure.functions.AsgiMiddleware` which prevent using `starlette.BaseHTTPMiddleware` middlewares (see: https://github.com/Azure/azure-functions-python-worker/issues/903).
 
 #### Requirements
 - Azure CLI: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli
@@ -42,8 +40,8 @@ $ cd titiler/deployment/azure
 
 $ az login
 $ az group create --name AzureFunctionsTiTiler-rg --location eastus
-$ az storage account create --name TiTilerStorage --sku Standard_LRS
-$ az functionapp create --consumption-plan-location eastus --runtime python --runtime-version 3.8 --functions-version 3 --name titiler --os-type linux
+$ az storage account create --name titilerstorage --sku Standard_LRS -g AzureFunctionsTiTiler-rg
+$ az functionapp create --consumption-plan-location eastus --runtime python --runtime-version 3.8 --functions-version 3 --name titiler --os-type linux -g AzureFunctionsTiTiler-rg -s titilerstorage
 $ func azure functionapp publish titiler
 ```
 

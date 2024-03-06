@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### titiler.core
+
+* Add `use_epsg` parameter to WMTS endpoint to resolve ArcMAP issues and fix XML formating (author @gadomski, https://github.com/developmentseed/titiler/pull/782)
+
 ### titiler.application
 
 * fix invalid url parsing in HTML responses

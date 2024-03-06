@@ -67,6 +67,10 @@ def test_wmts(rio, app):
         "http://testserver/cog/tiles/WebMercatorQuad/{TileMatrix}/{TileCol}/{TileRow}@1x.png?url=https"
         in response.content.decode()
     )
+    assert (
+        "<ows:SupportedCRS>http://www.opengis.net/def/crs/EPSG/0/3857</ows:SupportedCRS>"
+        in response.content.decode()
+    )
 
     response = app.get(
         "/cog/WMTSCapabilities.xml?url=https://myurl.com/cog.tif&tile_scale=2&tile_format=jpg"
@@ -77,6 +81,13 @@ def test_wmts(rio, app):
         "http://testserver/cog/tiles/WebMercatorQuad/{TileMatrix}/{TileCol}/{TileRow}@2x.jpg?url=https"
         in response.content.decode()
     )
+
+    response = app.get(
+        "/cog/WMTSCapabilities.xml?url=https://myurl.com/cog.tif&use_epsg=true"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/xml"
+    assert "<ows:SupportedCRS>EPSG:3857</ows:SupportedCRS>" in response.content.decode()
 
 
 @patch("rio_tiler.io.rasterio.rasterio")
