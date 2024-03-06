@@ -5,6 +5,7 @@
 ### titiler.core
 
 * Add `use_epsg` parameter to WMTS endpoint to resolve ArcMAP issues and fix XML formating (author @gadomski, https://github.com/developmentseed/titiler/pull/782)
+* Add more OpenAPI metadata for algorithm (author @JinIgarashi, https://github.com/developmentseed/titiler/pull/783)
 
 ### titiler.application
 
