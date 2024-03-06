@@ -1655,12 +1655,12 @@ class AlgorithmFactory:
 
             # title and description
             info = {
-                k: v['default']
+                k: v["default"]
                 for k, v in props.items()
                 if k == "title" or k == "description"
             }
-            title = info.get('title', None)
-            description = info.get('description', None)
+            title = info.get("title", None)
+            description = info.get("description", None)
 
             # Inputs Metadata
             ins = {
@@ -1680,9 +1680,18 @@ class AlgorithmFactory:
             params = {
                 k: v
                 for k, v in props.items()
-                if not k.startswith("input_") and not k.startswith("output_") and k != "title" and k != "description"
+                if not k.startswith("input_")
+                and not k.startswith("output_")
+                and k != "title"
+                and k != "description"
             }
-            return AlgorithmMetadata(title=title, description=description, inputs=ins, outputs=outs, parameters=params)
+            return AlgorithmMetadata(
+                title=title,
+                description=description,
+                inputs=ins,
+                outputs=outs,
+                parameters=params,
+            )
 
         @self.router.get(
             "/algorithms",
