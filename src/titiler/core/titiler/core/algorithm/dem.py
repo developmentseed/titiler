@@ -13,6 +13,9 @@ from titiler.core.algorithm.base import BaseAlgorithm
 class HillShade(BaseAlgorithm):
     """Hillshade."""
 
+    title: str = "Hillshade"
+    description: str = "Create hillshade from DEM dataset."
+
     # parameters
     azimuth: int = Field(90, ge=0, lt=360)
     angle_altitude: float = Field(90.0, ge=-90.0, lt=90.0)
@@ -62,6 +65,9 @@ class Contours(BaseAlgorithm):
     Original idea from https://custom-scripts.sentinel-hub.com/dem/contour-lines/
     """
 
+    title: str = "Contours"
+    description: str = "Create contours from DEM dataset."
+
     # parameters
     increment: int = Field(35, ge=0, lt=999)
     thickness: int = Field(1, ge=0, lt=10)
@@ -100,6 +106,9 @@ class Contours(BaseAlgorithm):
 class Terrarium(BaseAlgorithm):
     """Encode DEM into RGB (Mapzen Terrarium)."""
 
+    title: str = "Terrarium"
+    description: str = "Encode DEM into RGB (Mapzen Terrarium)."
+
     # metadata
     input_nbands: int = 1
     output_nbands: int = 3
@@ -122,6 +131,9 @@ class Terrarium(BaseAlgorithm):
 
 class TerrainRGB(BaseAlgorithm):
     """Encode DEM into RGB (Mapbox Terrain RGB)."""
+
+    title: str = "Terrarium"
+    description: str = "Encode DEM into RGB (Mapbox Terrain RGB)."
 
     # parameters
     interval: float = Field(0.1, ge=0.0, lt=1.0)

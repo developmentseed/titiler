@@ -31,6 +31,8 @@ class BaseAlgorithm(BaseModel, metaclass=abc.ABCMeta):
 
 class AlgorithmMetadata(BaseModel):
     """Algorithm metadata."""
+    title: Optional[str] = None
+    description: Optional[str] = None
 
     inputs: Dict
     outputs: Dict
