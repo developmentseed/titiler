@@ -238,7 +238,8 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
                     route.dependant.dependencies.insert(  # type: ignore
                         0,
                         get_parameterless_sub_dependant(
-                            depends=depends, path=route.path_format  # type: ignore
+                            depends=depends,
+                            path=route.path_format,  # type: ignore
                         ),
                     )
 
@@ -778,6 +779,12 @@ class TilerFactory(BaseTilerFactory):
                 Optional[int],
                 Query(description="Overwrite default maxzoom."),
             ] = None,
+            use_epsg: Annotated[
+                bool,
+                Query(
+                    description="Use EPSG code, not opengis.net, for the ows:SupportedCRS in the TileMatrixSet (set to True to enable ArcMap compatability)"
+                ),
+            ] = False,
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             tile_params=Depends(self.tile_dependency),
@@ -807,6 +814,7 @@ class TilerFactory(BaseTilerFactory):
                 "minzoom",
                 "maxzoom",
                 "service",
+                "use_epsg",
                 "request",
             ]
             qs = [
@@ -839,6 +847,11 @@ class TilerFactory(BaseTilerFactory):
                         </TileMatrix>"""
                 tileMatrix.append(tm)
 
+            if use_epsg:
+                supported_crs = f"EPSG:{tms.crs.to_epsg()}"
+            else:
+                supported_crs = tms.crs.srs
+
             return self.templates.TemplateResponse(
                 "wmts.xml",
                 {
@@ -847,6 +860,7 @@ class TilerFactory(BaseTilerFactory):
                     "bounds": bounds,
                     "tileMatrix": tileMatrix,
                     "tms": tms,
+                    "supported_crs": supported_crs,
                     "title": "Cloud Optimized GeoTIFF",
                     "layer_name": "cogeo",
                     "media_type": tile_format.mediatype,
