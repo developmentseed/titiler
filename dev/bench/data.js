@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1709629201009,
+  "lastUpdate": 1709715132204,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -4055,6 +4055,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.18,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "pete.gadomski@gmail.com",
+            "name": "Pete Gadomski",
+            "username": "gadomski"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6aeedbd8ed4e355a37680be103c3b63f7f3e37c8",
+          "message": "Add `use_epsg` parameter to WMTS endpoint (#782)\n\n* feat: add use_epsg param to wmts\r\n\r\nThis enables ArcMap compatability.\r\n\r\n* fix: escape urls in wmts template\r\n\r\nWithout the escapes, you can only have one query parameter",
+          "timestamp": "2024-03-06T09:50:32+01:00",
+          "tree_id": "53a33d99ed2bdddfa2d608e3658ccf2ea12e6f6a",
+          "url": "https://github.com/developmentseed/titiler/commit/6aeedbd8ed4e355a37680be103c3b63f7f3e37c8"
+        },
+        "date": 1709715131513,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.07,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.08,
             "unit": "s"
           },
           {
