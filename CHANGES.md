@@ -1,6 +1,8 @@
 # Release Notes
 
-## Unreleased
+## 0.17.1 (2024-03-13)
+
+* add python 3.12 support
 
 ### titiler.core
 
