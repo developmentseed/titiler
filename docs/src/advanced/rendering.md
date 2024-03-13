@@ -16,19 +16,22 @@ Titiler supports both default colormaps (each with a name) and custom color maps
 
 ### Default Colormaps
 
-Default colormaps pre-made, each with a given name. These maps come from the `rio-tiler` library, which has taken colormaps packaged with Matplotlib and has added others that are commonly used with raster data. 
+Default colormaps pre-made, each with a given name. These maps come from the `rio-tiler` library, which has taken colormaps packaged with Matplotlib and has added others that are commonly used with raster data.
 
 A list of available color maps can be found in Titiler's Swagger docs, or in the [rio-tiler documentation](https://cogeotiff.github.io/rio-tiler/colormap/#default-rio-tilers-colormaps).
 
 To use a default colormap, simply use the parameter `colormap_name`:
 
-```python3
-import requests
+```python
+import httpx
 
-resp = requests.get("titiler.xyz/cog/preview", params={
-    "url": "<YOUR COG HERE>",
-    "colormap_name": "<YOUR COLORMAP NAME HERE>" # e.g. autumn_r
-})
+resp = httpx.get(
+    "https://titiler.xyz/cog/preview",
+    params={
+        "url": "<YOUR DATASET URL HERE>",
+        "colormap_name": "<YOUR COLORMAP NAME HERE>" # e.g. autumn_r
+    }
+)
 ```
 
 You can take any of the colormaps listed on `rio-tiler`, and add `_r` to reverse it.
@@ -37,19 +40,19 @@ You can take any of the colormaps listed on `rio-tiler`, and add `_r` to reverse
 
 If you'd like to specify your own colormap, you can specify your own using an encoded JSON:
 
-```python3 
-import requests
+```python
+import httpx
 
-response = requests.get(
-    f"titiler.xyz/cog/preview",
+response = httpx.get(
+    "https://titiler.xyz/cog/preview",
     params={
-        "url": "<YOUR COG HERE>",
+        "url": "<YOUR DATASET URL HERE>",
         "bidx": "1",
-        "colormap": {
-                "0": "#e5f5f9",
-                "10": "#99d8c9",
-                "255": "#2ca25f",
-            }
+        "colormap": json.dumps({
+            "0": "#e5f5f9",
+            "10": "#99d8c9",
+            "255": "#2ca25f",
+        })
     }
 )
 ```
@@ -75,13 +78,13 @@ Titiler supports color formulae as defined in [Mapbox's `rio-color` plugin](http
 
 In Titiler, color_formulae are applied through the `color_formula` parameter as a string. An example of this option in action:
 
-```python3
-import requests
+```python
+import httpx
 
-response = requests.get(
-    f"titiler.xyz/cog/preview",
+response = httpx.get(
+    "https://titiler.xyz/cog/preview",
     params={
-        "url": "<YOUR COG HERE>",
+        "url": "<YOUR DATASET URL HERE>",
         "color_formula": "gamma rg 1.3, sigmoidal rgb 22 0.1, saturation 1.5"
     }
 )
@@ -91,24 +94,40 @@ response = requests.get(
 
 Rescaling is the act of adjusting the minimum and maximum values when rendering an image. In an image with a single band, the rescaled minimum value will be set to black, and the rescaled maximum value will be set to white. This is useful if you want to accentuate features that only appear at a certain pixel value (e.g. you have a DEM, but you want to highlight how the terrain changes between sea level and 100m).
 
-Titiler supports rescaling on a per-band basis, using the `rescaling` parameter. The input is a list of comma-delimited min-max ranges (e.g. ["0,100", "100,200", "0,1000]).
+All titiler endpoinds returning *image* support `rescale` parameter. The parameter should be in form of `"rescale={min},{max}"`.
 
-```python3
-import requests
+```python
+import httpx
 
-response = requests.get(
-    f"titiler.xyz/cog/preview",
+response = httpx.get(
+    "https;//titiler.xyz/cog/preview",
     params={
-        "url": "<YOUR COG HERE>",
-        "rescaling": ["0,100", "0,1000", "0,10000"]
-    }
+        "url": "<YOUR DATASET URL HERE>",
+        "rescale": "0,100",
+    },
+)
+```
+
+Titiler supports rescaling on a per-band basis, using multiple `rescale` parameters.
+
+```python
+import httpx
+
+response = httpx.get(
+    "https;//titiler.xyz/cog/preview",
+    params=(
+        ("url", "<YOUR DATASET URL HERE>"),
+        ("rescale", "0,100"),
+        ("rescale", "0,1000"),
+        ("rescale", "0,10000"),
+    ),
 )
 ```
 
 By default, Titiler will rescale the bands using the min/max values of the input datatype. For example, PNG images 8- or 16-bit unsigned pixels,
-giving a possible range of 0 to 255 or 0 to 65,536, so Titiler will use these ranges to rescale to the output format. 
+giving a possible range of 0 to 255 or 0 to 65,536, so Titiler will use these ranges to rescale to the output format.
 
-For certain datasets (e.g. DEMs) this default behaviour can make the image seem washed out (or even entirely one color), 
+For certain datasets (e.g. DEMs) this default behaviour can make the image seem washed out (or even entirely one color),
 so if you see this happen look into rescaling your images to something that makes sense for your data.
 
 It is also possible to add a [rescaling dependency](../../api/titiler/core/dependencies/#rescalingparams) to automatically apply

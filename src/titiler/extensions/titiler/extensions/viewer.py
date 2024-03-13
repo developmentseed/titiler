@@ -9,10 +9,10 @@ from starlette.templating import Jinja2Templates
 
 from titiler.core.factory import BaseTilerFactory, FactoryExtension
 
-DEFAULT_TEMPLATES = Jinja2Templates(
-    directory="",
-    loader=jinja2.ChoiceLoader([jinja2.PackageLoader(__package__, "templates")]),
-)  # type:ignore
+jinja2_env = jinja2.Environment(
+    loader=jinja2.ChoiceLoader([jinja2.PackageLoader(__package__, "templates")])
+)
+DEFAULT_TEMPLATES = Jinja2Templates(env=jinja2_env)
 
 
 @dataclass

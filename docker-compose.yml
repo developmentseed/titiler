@@ -3,7 +3,7 @@ version: '3'
 services:
   titiler:
     # See https://github.com/developmentseed/titiler/discussions/387
-    platform: linux/amd64
+    # platform: linux/amd64
     build:
       context: .
       dockerfile: dockerfiles/Dockerfile.gunicorn
@@ -48,7 +48,7 @@ services:
 
   titiler-uvicorn:
     # See https://github.com/developmentseed/titiler/discussions/387
-    platform: linux/amd64
+    # platform: linux/amd64
     build:
       context: .
       dockerfile: dockerfiles/Dockerfile.uvicorn

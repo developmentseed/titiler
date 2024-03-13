@@ -27,12 +27,12 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Topic :: Scientific/Engineering :: GIS",
 ]
-version="0.15.6"
+version="0.17.0"
 dependencies = [
-    "titiler.core==0.15.6",
-    "titiler.extensions==0.15.6",
-    "titiler.mosaic==0.15.6",
-    "titiler.application==0.15.6",
+    "titiler.core==0.17.0",
+    "titiler.extensions==0.17.0",
+    "titiler.mosaic==0.17.0",
+    "titiler.application==0.17.0",
 ]
 
 [project.optional-dependencies]
@@ -80,7 +80,7 @@ exclude = [
 ]
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling>=1.12.0"]
 build-backend = "hatchling.build"
 
 [tool.coverage.run]
@@ -132,3 +132,6 @@ explicit_package_bases = true
 filterwarnings = [
     "ignore::rasterio.errors.NotGeoreferencedWarning",
 ]
+
+[tool.hatch.build.targets.wheel]
+bypass-selection = true

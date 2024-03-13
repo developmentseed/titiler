@@ -29,7 +29,7 @@ jobs:
         python-version: ['3.8', '3.9', '3.10', '3.11']
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
@@ -67,7 +67,7 @@ jobs:
 
       - name: Upload Results
         if: ${{ matrix.python-version == env.LATEST_PY_VERSION }}
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v4
         with:
           file: ./coverage.xml
           flags: unittests
@@ -79,7 +79,7 @@ jobs:
     runs-on: ubuntu-latest
     if: startsWith(github.event.ref, 'refs/tags') || github.event_name == 'release'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -161,17 +161,17 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
 
       # Uvicorn
-      # - name: Build and push uvicorn
-      #   uses: docker/build-push-action@v5
-      #   with:
-      #     platforms: linux/amd64,linux/arm64
-      #     context: .
-      #     file: dockerfiles/Dockerfile.uvicorn
-      #     push: ${{ github.event_name != 'pull_request' }}
-      #     tags: ${{ steps.meta-uvicorn.outputs.tags }}
-      #     labels: ${{ steps.meta-uvicorn.outputs.labels }}
-      #     cache-from: type=gha
-      #     cache-to: type=gha,mode=max
+      - name: Build and push uvicorn
+        uses: docker/build-push-action@v5
+        with:
+          platforms: linux/amd64,linux/arm64
+          context: .
+          file: dockerfiles/Dockerfile.uvicorn
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta-uvicorn.outputs.tags }}
+          labels: ${{ steps.meta-uvicorn.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       # Gunicorn
       - name: Build and push
@@ -204,7 +204,7 @@ jobs:
         shell: bash
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

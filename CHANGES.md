@@ -2,6 +2,69 @@
 
 ## Unreleased
 
+### titiler.core
+
+* Add `use_epsg` parameter to WMTS endpoint to resolve ArcMAP issues and fix XML formating (author @gadomski, https://github.com/developmentseed/titiler/pull/782)
+* Add more OpenAPI metadata for algorithm (author @JinIgarashi, https://github.com/developmentseed/titiler/pull/783)
+
+### titiler.application
+
+* fix invalid url parsing in HTML responses
+
+## 0.17.0 (2024-01-17)
+
+### titiler.core
+
+* update `rio-tiler` version to `>6.3.0`
+* use new `align_bounds_with_dataset=True` rio-tiler option in GeoJSON statistics methods for more precise calculation
+
+## 0.16.2 (2024-01-17)
+
+### titiler.core
+
+* fix leafletjs template maxZoom to great than 18 for `/map` endpoint (author @Firefishy, https://github.com/developmentseed/titiler/pull/749)
+
+## 0.16.1 (2024-01-08)
+
+### titiler.core
+
+* use morecantile `TileMatrixSet.cellSize` property instead of deprecated/private `TileMatrixSet._resolution` method
+
+### titiler.mosaic
+
+* use morecantile `TileMatrixSet.cellSize` property instead of deprecated/private `TileMatrixSet._resolution` method
+
+## 0.16.0 (2024-01-08)
+
+### titiler.core
+
+* update FastAPI version lower limit to `>=0.107.0`
+* fix template loading for starlette >= 0.28 by using `jinja2.Environment` argument (author @jasongi, https://github.com/developmentseed/titiler/pull/744)
+
+### titiler.extensions
+
+* fix template loading for starlette >= 0.28 by using `jinja2.Environment` argument (author @jasongi, https://github.com/developmentseed/titiler/pull/744)
+
+### titiler.application
+
+* fix template loading for starlette >= 0.28 by using `jinja2.Environment` argument (author @jasongi, https://github.com/developmentseed/titiler/pull/744)
+
+## 0.15.8 (2024-01-08)
+
+### titiler.core
+
+* use morecantile `TileMatrixSet.cellSize` property instead of deprecated/private `TileMatrixSet._resolution` method [backported from 0.16.1]
+
+### titiler.mosaic
+
+* use morecantile `TileMatrixSet.cellSize` property instead of deprecated/private `TileMatrixSet._resolution` method [backported from 0.16.1]
+
+## 0.15.7 (2024-01-08)
+
+### titiler.core
+
+* update FastAPI version upper limit to `<0.107.0` to avoid starlette breaking change (`0.28`)
+
 ### titiler.application
 
 * add simple *auth* (optional) based on `global_access_token` string, set with `TITILER_API_GLOBAL_ACCESS_TOKEN` environment variable (author @DeflateAwning, https://github.com/developmentseed/titiler/pull/735)

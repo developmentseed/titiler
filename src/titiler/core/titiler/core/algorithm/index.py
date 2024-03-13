@@ -11,6 +11,9 @@ from titiler.core.algorithm.base import BaseAlgorithm
 class NormalizedIndex(BaseAlgorithm):
     """Normalized Difference Index."""
 
+    title: str = "Normalized Difference Index"
+    description: str = "Compute normalized difference index from two bands."
+
     # metadata
     input_nbands: int = 2
     output_nbands: int = 1

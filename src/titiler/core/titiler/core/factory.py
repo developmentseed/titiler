@@ -70,11 +70,10 @@ from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLR
 from titiler.core.routing import EndpointScope
 from titiler.core.utils import render_image
 
-DEFAULT_TEMPLATES = Jinja2Templates(
-    directory="",
-    loader=jinja2.ChoiceLoader([jinja2.PackageLoader(__package__, "templates")]),
-)  # type:ignore
-
+jinja2_env = jinja2.Environment(
+    loader=jinja2.ChoiceLoader([jinja2.PackageLoader(__package__, "templates")])
+)
+DEFAULT_TEMPLATES = Jinja2Templates(env=jinja2_env)
 
 img_endpoint_params: Dict[str, Any] = {
     "responses": {
@@ -239,7 +238,8 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
                     route.dependant.dependencies.insert(  # type: ignore
                         0,
                         get_parameterless_sub_dependant(
-                            depends=depends, path=route.path_format  # type: ignore
+                            depends=depends,
+                            path=route.path_format,  # type: ignore
                         ),
                     )
 
@@ -438,7 +438,7 @@ class TilerFactory(BaseTilerFactory):
             response_class=GeoJSONResponse,
             responses={
                 200: {
-                    "content": {"application/json": {}},
+                    "content": {"application/geo+json": {}},
                     "description": "Return dataset's statistics from feature or featureCollection.",
                 }
             },
@@ -473,6 +473,7 @@ class TilerFactory(BaseTilerFactory):
                             shape,
                             shape_crs=coord_crs or WGS84_CRS,
                             dst_crs=dst_crs,
+                            align_bounds_with_dataset=True,
                             **layer_params,
                             **image_params,
                             **dataset_params,
@@ -741,7 +742,7 @@ class TilerFactory(BaseTilerFactory):
                     "request": request,
                     "tilejson_endpoint": tilejson_url,
                     "tms": tms,
-                    "resolutions": [tms._resolution(matrix) for matrix in tms],
+                    "resolutions": [matrix.cellSize for matrix in tms],
                 },
                 media_type="text/html",
             )
@@ -778,6 +779,12 @@ class TilerFactory(BaseTilerFactory):
                 Optional[int],
                 Query(description="Overwrite default maxzoom."),
             ] = None,
+            use_epsg: Annotated[
+                bool,
+                Query(
+                    description="Use EPSG code, not opengis.net, for the ows:SupportedCRS in the TileMatrixSet (set to True to enable ArcMap compatability)"
+                ),
+            ] = False,
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             tile_params=Depends(self.tile_dependency),
@@ -807,6 +814,7 @@ class TilerFactory(BaseTilerFactory):
                 "minzoom",
                 "maxzoom",
                 "service",
+                "use_epsg",
                 "request",
             ]
             qs = [
@@ -839,6 +847,11 @@ class TilerFactory(BaseTilerFactory):
                         </TileMatrix>"""
                 tileMatrix.append(tm)
 
+            if use_epsg:
+                supported_crs = f"EPSG:{tms.crs.to_epsg()}"
+            else:
+                supported_crs = tms.crs.srs
+
             return self.templates.TemplateResponse(
                 "wmts.xml",
                 {
@@ -847,6 +860,7 @@ class TilerFactory(BaseTilerFactory):
                     "bounds": bounds,
                     "tileMatrix": tileMatrix,
                     "tms": tms,
+                    "supported_crs": supported_crs,
                     "title": "Cloud Optimized GeoTIFF",
                     "layer_name": "cogeo",
                     "media_type": tile_format.mediatype,
@@ -1271,7 +1285,7 @@ class MultiBaseTilerFactory(TilerFactory):
             response_class=GeoJSONResponse,
             responses={
                 200: {
-                    "content": {"application/json": {}},
+                    "content": {"application/geo+json": {}},
                     "description": "Return dataset's statistics from feature or featureCollection.",
                 }
             },
@@ -1309,6 +1323,7 @@ class MultiBaseTilerFactory(TilerFactory):
                             feature.model_dump(exclude_none=True),
                             shape_crs=coord_crs or WGS84_CRS,
                             dst_crs=dst_crs,
+                            align_bounds_with_dataset=True,
                             **layer_params,
                             **image_params,
                             **dataset_params,
@@ -1472,7 +1487,7 @@ class MultiBandTilerFactory(TilerFactory):
             response_class=GeoJSONResponse,
             responses={
                 200: {
-                    "content": {"application/json": {}},
+                    "content": {"application/geo+json": {}},
                     "description": "Return dataset's statistics from feature or featureCollection.",
                 }
             },
@@ -1510,6 +1525,7 @@ class MultiBandTilerFactory(TilerFactory):
                             feature.model_dump(exclude_none=True),
                             shape_crs=coord_crs or WGS84_CRS,
                             dst_crs=dst_crs,
+                            align_bounds_with_dataset=True,
                             **bands_params,
                             **image_params,
                             **dataset_params,
@@ -1651,6 +1667,15 @@ class AlgorithmFactory:
             """Algorithm Metadata"""
             props = algorithm.model_json_schema()["properties"]
 
+            # title and description
+            info = {
+                k: v["default"]
+                for k, v in props.items()
+                if k == "title" or k == "description"
+            }
+            title = info.get("title", None)
+            description = info.get("description", None)
+
             # Inputs Metadata
             ins = {
                 k.replace("input_", ""): v["default"]
@@ -1669,9 +1694,18 @@ class AlgorithmFactory:
             params = {
                 k: v
                 for k, v in props.items()
-                if not k.startswith("input_") and not k.startswith("output_")
+                if not k.startswith("input_")
+                and not k.startswith("output_")
+                and k != "title"
+                and k != "description"
             }
-            return AlgorithmMetadata(inputs=ins, outputs=outs, parameters=params)
+            return AlgorithmMetadata(
+                title=title,
+                description=description,
+                inputs=ins,
+                outputs=outs,
+                parameters=params,
+            )
 
         @self.router.get(
             "/algorithms",
