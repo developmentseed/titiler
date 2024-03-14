@@ -18,6 +18,7 @@ from titiler.application.settings import ApiSettings
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 from titiler.core.factory import (
     AlgorithmFactory,
+    ColorMapFactory,
     MultiBaseTilerFactory,
     TilerFactory,
     TMSFactory,
@@ -154,6 +155,15 @@ app.include_router(
     algorithms.router,
     tags=["Algorithms"],
 )
+
+###############################################################################
+# Colormaps endpoints
+cmaps = ColorMapFactory()
+app.include_router(
+    cmaps.router,
+    tags=["ColorMaps"],
+)
+
 
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
 add_exception_handlers(app, MOSAIC_STATUS_CODES)

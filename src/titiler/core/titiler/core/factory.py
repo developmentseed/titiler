@@ -6,6 +6,7 @@ from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Type, Un
 from urllib.parse import urlencode
 
 import jinja2
+import numpy
 import rasterio
 from fastapi import APIRouter, Body, Depends, Path, Query
 from fastapi.dependencies.utils import get_parameterless_sub_dependant
@@ -16,10 +17,12 @@ from morecantile import TileMatrixSet
 from morecantile import tms as morecantile_tms
 from morecantile.defaults import TileMatrixSets
 from pydantic import conint
+from rio_tiler.colormap import ColorMaps
+from rio_tiler.colormap import cmap as default_cmap
 from rio_tiler.constants import WGS84_CRS
 from rio_tiler.io import BaseReader, MultiBandReader, MultiBaseReader, Reader
-from rio_tiler.models import Bounds, Info
-from rio_tiler.types import ColorMapType
+from rio_tiler.models import Bounds, ImageData, Info
+from rio_tiler.types import ColorMapType, GDALColorMapType
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, Response
 from starlette.routing import Match, compile_path, replace_params
@@ -56,6 +59,7 @@ from titiler.core.dependencies import (
 from titiler.core.models.mapbox import TileJSON
 from titiler.core.models.OGC import TileMatrixSetList
 from titiler.core.models.responses import (
+    ColorMapsList,
     InfoGeoJSON,
     MultiBaseInfo,
     MultiBaseInfoGeoJSON,
@@ -1731,3 +1735,133 @@ class AlgorithmFactory:
         ):
             """Retrieve the metadata of the specified algorithm."""
             return metadata(self.supported_algorithm.get(algorithm))
+
+
+@dataclass
+class ColorMapFactory:
+    """Colormap endpoints Factory."""
+
+    # Supported colormaps
+    supported_colormaps: ColorMaps = default_cmap
+
+    # FastAPI router
+    router: APIRouter = field(default_factory=APIRouter)
+
+    def url_for(self, request: Request, name: str, **path_params: Any) -> str:
+        """Return full url (with prefix) for a specific endpoint."""
+        url_path = self.router.url_path_for(name, **path_params)
+        base_url = str(request.base_url)
+        return str(url_path.make_absolute_url(base_url=base_url))
+
+    def __post_init__(self):  # noqa: C901
+        """Post Init: register routes"""
+
+        @self.router.get(
+            "/colormaps",
+            response_model=ColorMapsList,
+            summary="Retrieve the list of available colormaps.",
+            operation_id="getColormaps",
+        )
+        def available_colormaps(request: Request):
+            """Retrieve the list of available colormaps."""
+            return {
+                "colormaps": self.supported_colormaps.list(),
+                "links": [
+                    {
+                        "title": "List of available colormaps",
+                        "href": self.url_for(
+                            request,
+                            "available_colormaps",
+                        ),
+                        "type": "application/json",
+                        "rel": "self",
+                    }
+                ],
+            }
+
+        @self.router.get(
+            "/colormaps/{colormapId}",
+            response_model=Union[GDALColorMapType, Dict[int, str]],
+            summary="Retrieve the colormap.",
+            operation_id="getColormap",
+            responses={
+                200: {
+                    "content": {
+                        "application/json": {},
+                        "image/png": {},
+                        "image/jpeg": {},
+                        "image/jpg": {},
+                        "image/webp": {},
+                        "image/jp2": {},
+                        "image/tiff; application=geotiff": {},
+                        "application/x-binary": {},
+                    }
+                },
+            },
+        )
+        def colormap_metadata(
+            colormap: Annotated[
+                Literal[tuple(self.supported_colormaps.list())],
+                Path(description="Colormap name", alias="colormapId"),
+            ],
+            # JSON output Options
+            rgba_as_hex: Annotated[
+                Optional[bool],
+                Query(
+                    description="Return RGBA tuple as hexadecimal string.",
+                    alias="as_hex",
+                ),
+            ] = None,
+            # Image Output Options
+            format: Annotated[
+                Optional[ImageType],
+                Query(
+                    description="Return colormap as Image.",
+                ),
+            ] = None,
+            orientation: Annotated[
+                Optional[Literal["vertical", "horizontal"]],
+                Query(
+                    description="Image Orientation.",
+                ),
+            ] = None,
+            height: Annotated[
+                Optional[int],
+                Query(
+                    description="Image Height (default to 20pix).",
+                ),
+            ] = None,
+            width: Annotated[
+                Optional[int],
+                Query(
+                    description="Image Width (default to 255px).",
+                ),
+            ] = None,
+        ):
+            """Retrieve the metadata of the specified colormap."""
+            cmap = self.supported_colormaps.get(colormap)
+
+            if format:
+                height = height or 20
+                width = width or 255
+                if orientation == "vertical":
+                    arr = numpy.array(
+                        [numpy.linspace(0, 255, height).astype(numpy.uint8)] * width
+                    ).transpose([1, 0])
+                else:
+                    arr = numpy.array(
+                        [numpy.linspace(0, 255, width).astype(numpy.uint8)] * height
+                    )
+
+                return Response(
+                    ImageData(arr).render(img_format=format.driver, colormap=cmap),
+                    media_type=format.mediatype,
+                )
+
+            data = {k: numpy.array(v).tolist() for k, v in cmap.items()}
+            if rgba_as_hex:
+                data = {
+                    k: "#{:02x}{:02x}{:02x}{:02x}".format(*v) for k, v in data.items()
+                }
+
+            return data

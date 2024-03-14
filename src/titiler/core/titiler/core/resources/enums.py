@@ -23,7 +23,13 @@ class MediaType(str, Enum):
     html = "text/html"
     text = "text/plain"
     pbf = "application/x-protobuf"
-    mvt = "application/x-protobuf"
+    mvt = "application/vnd.mapbox-vector-tile"
+    ndjson = "application/ndjson"
+    geojsonseq = "application/geo+json-seq"
+    schemajson = "application/schema+json"
+    csv = "text/csv"
+    openapi30_json = "application/vnd.oai.openapi+json;version=3.0"
+    openapi30_yaml = "application/vnd.oai.openapi;version=3.0"
 
 
 class ImageDriver(str, Enum):
