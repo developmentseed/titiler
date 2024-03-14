@@ -1829,13 +1829,13 @@ class ColorMapFactory:
             height: Annotated[
                 Optional[int],
                 Query(
-                    description="Image Height (default to 20pix).",
+                    description="Image Height (default to 20px for horizontal or 255px for vertical).",
                 ),
             ] = None,
             width: Annotated[
                 Optional[int],
                 Query(
-                    description="Image Width (default to 255px).",
+                    description="Image Width (default to 255px for horizontal or 20px for vertical).",
                 ),
             ] = None,
         ):
