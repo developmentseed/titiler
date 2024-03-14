@@ -1759,6 +1759,7 @@ class ColorMapFactory:
         @self.router.get(
             "/colormaps",
             response_model=ColorMapsList,
+            response_model_exclude_none=True,
             summary="Retrieve the list of available colormaps.",
             operation_id="getColormaps",
         )
@@ -1842,13 +1843,15 @@ class ColorMapFactory:
             cmap = self.supported_colormaps.get(colormap)
 
             if format:
-                height = height or 20
-                width = width or 255
                 if orientation == "vertical":
+                    height = height or 255
+                    width = width or 20
                     arr = numpy.array(
                         [numpy.linspace(0, 255, height).astype(numpy.uint8)] * width
                     ).transpose([1, 0])
                 else:
+                    height = height or 20
+                    width = width or 255
                     arr = numpy.array(
                         [numpy.linspace(0, 255, width).astype(numpy.uint8)] * height
                     )
