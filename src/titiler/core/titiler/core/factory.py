@@ -1832,13 +1832,13 @@ class ColorMapFactory:
             height: Annotated[
                 Optional[int],
                 Query(
-                    description="Image Height (default to 20px for horizontal or 255px for vertical).",
+                    description="Image Height (default to 20px for horizontal or 256px for vertical).",
                 ),
             ] = None,
             width: Annotated[
                 Optional[int],
                 Query(
-                    description="Image Width (default to 255px for horizontal or 20px for vertical).",
+                    description="Image Width (default to 256px for horizontal or 20px for vertical).",
                 ),
             ] = None,
         ):
@@ -1855,20 +1855,19 @@ class ColorMapFactory:
                     pass
 
                 else:
-                    cmin, cmap = min(cmap), max(cmap)
-
+                    cmin, cmax = min(cmap), max(cmap)
                     if orientation == "vertical":
-                        height = height or 255
+                        height = height or 256
                         width = width or 20
                         arr = numpy.array(
-                            [numpy.linspace(cmin, cmap, height).astype(numpy.uint8)]
+                            [numpy.linspace(cmin, cmax, num=height).astype(numpy.uint8)]
                             * width
                         ).transpose([1, 0])
                     else:
                         height = height or 20
-                        width = width or 255
+                        width = width or 256
                         arr = numpy.array(
-                            [numpy.linspace(cmin, cmap, width).astype(numpy.uint8)]
+                            [numpy.linspace(cmin, cmax, num=width).astype(numpy.uint8)]
                             * height
                         )
 
