@@ -2,7 +2,18 @@
 
 import abc
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Type, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Literal,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    Union,
+)
 from urllib.parse import urlencode
 
 import jinja2
@@ -22,7 +33,7 @@ from rio_tiler.colormap import cmap as default_cmap
 from rio_tiler.constants import WGS84_CRS
 from rio_tiler.io import BaseReader, MultiBandReader, MultiBaseReader, Reader
 from rio_tiler.models import Bounds, ImageData, Info
-from rio_tiler.types import ColorMapType, GDALColorMapType
+from rio_tiler.types import ColorMapType
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, Response
 from starlette.routing import Match, compile_path, replace_params
@@ -1782,7 +1793,7 @@ class ColorMapFactory:
 
         @self.router.get(
             "/colormaps/{colormapId}",
-            response_model=Union[GDALColorMapType, Dict[int, str]],
+            response_model=ColorMapType,
             summary="Retrieve the colormap.",
             operation_id="getColormap",
             responses={
@@ -1805,14 +1816,6 @@ class ColorMapFactory:
                 Literal[tuple(self.supported_colormaps.list())],
                 Path(description="Colormap name", alias="colormapId"),
             ],
-            # JSON output Options
-            rgba_as_hex: Annotated[
-                Optional[bool],
-                Query(
-                    description="Return RGBA tuple as hexadecimal string.",
-                    alias="as_hex",
-                ),
-            ] = None,
             # Image Output Options
             format: Annotated[
                 Optional[ImageType],
@@ -1843,28 +1846,38 @@ class ColorMapFactory:
             cmap = self.supported_colormaps.get(colormap)
 
             if format:
-                if orientation == "vertical":
-                    height = height or 255
-                    width = width or 20
-                    arr = numpy.array(
-                        [numpy.linspace(0, 255, height).astype(numpy.uint8)] * width
-                    ).transpose([1, 0])
+                if isinstance(cmap, Sequence):
+                    # TODO: handle sequence colormap
+                    pass
+
+                elif len(cmap) != 256 or max(cmap) >= 256 or min(cmap) < 0:
+                    # TODO: handle discrete colormap
+                    pass
+
                 else:
-                    height = height or 20
-                    width = width or 255
-                    arr = numpy.array(
-                        [numpy.linspace(0, 255, width).astype(numpy.uint8)] * height
-                    )
+                    cmin, cmap = min(cmap), max(cmap)
+
+                    if orientation == "vertical":
+                        height = height or 255
+                        width = width or 20
+                        arr = numpy.array(
+                            [numpy.linspace(cmin, cmap, height).astype(numpy.uint8)]
+                            * width
+                        ).transpose([1, 0])
+                    else:
+                        height = height or 20
+                        width = width or 255
+                        arr = numpy.array(
+                            [numpy.linspace(cmin, cmap, width).astype(numpy.uint8)]
+                            * height
+                        )
 
                 return Response(
                     ImageData(arr).render(img_format=format.driver, colormap=cmap),
                     media_type=format.mediatype,
                 )
 
-            data = {k: numpy.array(v).tolist() for k, v in cmap.items()}
-            if rgba_as_hex:
-                data = {
-                    k: "#{:02x}{:02x}{:02x}{:02x}".format(*v) for k, v in data.items()
-                }
-
-            return data
+            if isinstance(cmap, Sequence):
+                return [(k, numpy.array(v).tolist()) for (k, v) in cmap]
+            else:
+                return {k: numpy.array(v).tolist() for k, v in cmap.items()}
