@@ -1,5 +1,11 @@
 # Release Notes
 
+## 0.17.2 (2024-03-15)
+
+### titiler.core
+
+* fix OpenAPI metadata for algorithm (author @JinIgarashi, https://github.com/developmentseed/titiler/pull/797)
+
 ## 0.17.1 (2024-03-13)
 
 * add python 3.12 support
