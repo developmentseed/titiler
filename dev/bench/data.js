@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1710430456837,
+  "lastUpdate": 1710509574670,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -4527,6 +4527,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.13,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "igarashi.jin@water-gis.com",
+            "name": "Jin Igarashi",
+            "username": "JinIgarashi"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "28e5d0f9f76029db5695f38251d6757b36142e74",
+          "message": "fix: changed lt(exclusiveMaximum) to le(maximum) for DEM algorithms (#797)",
+          "timestamp": "2024-03-15T14:31:22+01:00",
+          "tree_id": "d16703df1301a27dc1f9957f0c684ff63611a6bd",
+          "url": "https://github.com/developmentseed/titiler/commit/28e5d0f9f76029db5695f38251d6757b36142e74"
+        },
+        "date": 1710509574041,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.23,
             "unit": "s"
           },
           {
