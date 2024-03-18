@@ -1787,7 +1787,26 @@ class ColorMapFactory:
                         ),
                         "type": "application/json",
                         "rel": "self",
-                    }
+                    },
+                    {
+                        "title": "Retrieve colormap metadata",
+                        "href": self.url_for(
+                            request, "colormap_metadata", colormapId="{colormapId}"
+                        ),
+                        "type": "application/json",
+                        "rel": "data",
+                        "templated": True,
+                    },
+                    {
+                        "title": "Retrieve colormap as image",
+                        "href": self.url_for(
+                            request, "colormap_metadata", colormapId="{colormapId}"
+                        )
+                        + "?format=png",
+                        "type": "image/png",
+                        "rel": "data",
+                        "templated": True,
+                    },
                 ],
             }
 
@@ -1846,33 +1865,47 @@ class ColorMapFactory:
             cmap = self.supported_colormaps.get(colormap)
 
             if format:
+                ###############################################################
+                # SEQUENCE CMAP
                 if isinstance(cmap, Sequence):
-                    # TODO: handle sequence colormap
-                    pass
+                    raise NotImplementedError("Sequence colormap not supported")
 
+                ###############################################################
+                # DISCRETE CMAP
                 elif len(cmap) != 256 or max(cmap) >= 256 or min(cmap) < 0:
-                    # TODO: handle discrete colormap
-                    pass
+                    values = list(cmap)
+                    arr = numpy.array([values] * 20)
 
+                    if orientation == "vertical":
+                        height = height or 256 if len(values) < 256 else len(values)
+                    else:
+                        width = width or 256 if len(values) < 256 else len(values)
+
+                ###############################################################
+                # LINEAR CMAP
                 else:
                     cmin, cmax = min(cmap), max(cmap)
-                    if orientation == "vertical":
-                        height = height or 256
-                        width = width or 20
-                        arr = numpy.array(
-                            [numpy.linspace(cmin, cmax, num=height).astype(numpy.uint8)]
-                            * width
-                        ).transpose([1, 0])
-                    else:
-                        height = height or 20
-                        width = width or 256
-                        arr = numpy.array(
-                            [numpy.linspace(cmin, cmax, num=width).astype(numpy.uint8)]
-                            * height
-                        )
+                    arr = numpy.array(
+                        [
+                            numpy.round(numpy.linspace(cmin, cmax, num=256)).astype(
+                                numpy.uint8
+                            )
+                        ]
+                        * 20
+                    )
+
+                if orientation == "vertical":
+                    arr = arr.transpose([1, 0])
+
+                img = ImageData(arr)
+
+                width = width or img.width
+                height = height or img.height
+                if width != img.width or height != img.height:
+                    img = img.resize(height, width)
 
                 return Response(
-                    ImageData(arr).render(img_format=format.driver, colormap=cmap),
+                    img.render(img_format=format.driver, colormap=cmap),
                     media_type=format.mediatype,
                 )
 
