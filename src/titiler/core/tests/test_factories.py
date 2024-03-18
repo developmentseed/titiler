@@ -20,6 +20,7 @@ from fastapi import Depends, FastAPI, HTTPException, Path, Query, security, stat
 from morecantile.defaults import TileMatrixSets
 from rasterio.crs import CRS
 from rasterio.io import MemoryFile
+from rio_tiler.colormap import cmap as default_cmap
 from rio_tiler.errors import NoOverviewWarning
 from rio_tiler.io import BaseReader, MultiBandReader, Reader, STACReader
 from starlette.requests import Request
@@ -30,6 +31,7 @@ from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 from titiler.core.factory import (
     AlgorithmFactory,
     BaseTilerFactory,
+    ColorMapFactory,
     MultiBandTilerFactory,
     MultiBaseTilerFactory,
     TilerFactory,
@@ -1761,3 +1763,132 @@ def test_color_formula_dependency():
         assert response.headers["content-type"] == "application/x-binary"
         numpy.load(BytesIO(response.content))
         assert npy_tile.shape == (2, 256, 256)  # mask + data
+
+
+def test_colormap_factory():
+    """Test ColorMapFactory endpoint."""
+    # Register custom colormaps
+    cmaps = default_cmap.register(
+        {
+            "cust": {0: (0, 0, 0, 255), 1: (255, 0, 0, 255), 255: (255, 255, 0, 255)},
+            "negative": {
+                -100: (0, 0, 0, 255),
+                1: (255, 0, 0, 255),
+                255: (255, 255, 0, 255),
+            },
+            "seq": [
+                ((1, 2), (255, 0, 0, 255)),
+                ((2, 3), (255, 240, 255, 255)),
+            ],
+        }
+    )
+
+    cmaps = ColorMapFactory(supported_colormaps=cmaps)
+
+    app = FastAPI()
+    app.include_router(cmaps.router)
+    client = TestClient(app)
+
+    response = client.get("/colormaps")
+    assert response.status_code == 200
+    assert "cust" in response.json()["colormaps"]
+    assert "negative" in response.json()["colormaps"]
+    assert "seq" in response.json()["colormaps"]
+    assert "viridis" in response.json()["colormaps"]
+
+    response = client.get("/colormaps/viridis")
+    assert response.status_code == 200
+
+    response = client.get("/colormaps/cust")
+    assert response.status_code == 200
+
+    response = client.get("/colormaps/negative")
+    assert response.status_code == 200
+
+    response = client.get("/colormaps/seq")
+    assert response.status_code == 200
+
+    response = client.get("/colormaps/yo")
+    assert response.status_code == 422
+
+    response = client.get("/colormaps/viridis", params={"format": "png"})
+    assert response.status_code == 200
+    meta = parse_img(response.content)
+    assert meta["dtype"] == "uint8"
+    assert meta["count"] == 4
+    assert meta["width"] == 256
+    assert meta["height"] == 20
+
+    response = client.get(
+        "/colormaps/viridis", params={"format": "png", "orientation": "vertical"}
+    )
+    assert response.status_code == 200
+    meta = parse_img(response.content)
+    assert meta["dtype"] == "uint8"
+    assert meta["count"] == 4
+    assert meta["width"] == 20
+    assert meta["height"] == 256
+
+    response = client.get(
+        "/colormaps/viridis", params={"format": "png", "width": 1000, "height": 100}
+    )
+    assert response.status_code == 200
+    meta = parse_img(response.content)
+    assert meta["dtype"] == "uint8"
+    assert meta["count"] == 4
+    assert meta["width"] == 1000
+    assert meta["height"] == 100
+
+    response = client.get("/colormaps/cust", params={"format": "png"})
+    assert response.status_code == 200
+    meta = parse_img(response.content)
+    assert meta["dtype"] == "uint8"
+    assert meta["count"] == 4
+    assert meta["width"] == 256
+    assert meta["height"] == 20
+
+    response = client.get(
+        "/colormaps/cust", params={"format": "png", "orientation": "vertical"}
+    )
+    assert response.status_code == 200
+    meta = parse_img(response.content)
+    assert meta["dtype"] == "uint8"
+    assert meta["count"] == 4
+    assert meta["width"] == 20
+    assert meta["height"] == 256
+
+    response = client.get("/colormaps/negative", params={"format": "png"})
+    assert response.status_code == 200
+    meta = parse_img(response.content)
+    assert meta["dtype"] == "uint8"
+    assert meta["count"] == 4
+    assert meta["width"] == 256
+    assert meta["height"] == 20
+
+    response = client.get(
+        "/colormaps/negative", params={"format": "png", "orientation": "vertical"}
+    )
+    assert response.status_code == 200
+    meta = parse_img(response.content)
+    assert meta["dtype"] == "uint8"
+    assert meta["count"] == 4
+    assert meta["width"] == 20
+    assert meta["height"] == 256
+
+    response = client.get("/colormaps/seq", params={"format": "png"})
+    assert response.status_code == 200
+    meta = parse_img(response.content)
+    assert meta["dtype"] == "uint8"
+    assert meta["count"] == 4
+    assert meta["width"] == 256
+    assert meta["height"] == 20
+
+    response = client.get(
+        "/colormaps/seq", params={"format": "png", "orientation": "vertical"}
+    )
+    assert response.status_code == 200
+    meta = parse_img(response.content)
+    assert meta["dtype"] == "uint8"
+    assert meta["count"] == 4
+    assert meta["width"] == 20
+    assert meta["height"] == 256
