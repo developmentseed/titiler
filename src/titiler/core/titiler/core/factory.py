@@ -1868,7 +1868,13 @@ class ColorMapFactory:
                 ###############################################################
                 # SEQUENCE CMAP
                 if isinstance(cmap, Sequence):
-                    raise NotImplementedError("Sequence colormap not supported")
+                    values = [minv for ((minv, _), _) in cmap]
+                    arr = numpy.array([values] * 20)
+
+                    if orientation == "vertical":
+                        height = height or 256 if len(values) < 256 else len(values)
+                    else:
+                        width = width or 256 if len(values) < 256 else len(values)
 
                 ###############################################################
                 # DISCRETE CMAP
