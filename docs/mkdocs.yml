@@ -28,7 +28,7 @@ nav:
     - Output data format: "output_format.md"
 
   - Advanced User Guide:
-      - Tiler Factories: "advanced/tiler_factories.md"
+      - Endpoints Factories: "advanced/endpoints_factories.md"
       - Dependencies: "advanced/dependencies.md"
       - Customization: "advanced/customization.md"
       - Performance Tuning: "advanced/performance_tuning.md"
@@ -42,6 +42,8 @@ nav:
     - /stac: "endpoints/stac.md"
     - /mosaicjson: "endpoints/mosaic.md"
     - /tileMatrixSets: "endpoints/tms.md"
+    - /algorithms: "endpoints/algorithms.md"
+    - /colormaps: "endpoints/colormaps.md"
 
   - Examples:
     - Create dynamic tilers with TiTiler:

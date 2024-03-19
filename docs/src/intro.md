@@ -28,6 +28,8 @@ See default endpoints documentation pages:
 * [`/mosaicjson` - MosaicJSON](endpoints/mosaic.md)
 * [`/stac` - Spatio Temporal Asset Catalog](endpoints/stac.md)
 * [`/tms` - TileMatrixSets](endpoints/tms.md)
+* [`/algorithms` - Algorithms](endpoints/algorithms.md)
+* [`/colormaps` - ColorMaps](endpoints/colormaps.md)
 
 #### Settings
 
@@ -47,7 +49,7 @@ The default application can be customized using environment variables defined in
 
 ## Customized, minimal app
 
-`TiTiler` has been developed so users can build their own app using only the portions they need. Using [TilerFactories](advanced/tiler_factories.md), users can create a fully customized application with only the endpoints needed.
+`TiTiler` has been developed so users can build their own application with only the endpoints they need. Using [Factories](advanced/endpoints_factories.md), users can create a fully customized application with only a defined set of endpoints.
 
 When building a custom application, you may wish to only install the `core` and/or `mosaic` modules. To install these from PyPI:
 

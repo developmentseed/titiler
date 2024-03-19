@@ -1813,7 +1813,7 @@ class ColorMapFactory:
         @self.router.get(
             "/colormaps/{colormapId}",
             response_model=ColorMapType,
-            summary="Retrieve the colormap.",
+            summary="Retrieve the colormap metadata or image.",
             operation_id="getColormap",
             responses={
                 200: {
