@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1711008898421,
+  "lastUpdate": 1711012597278,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -4763,6 +4763,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "vincent.sarago@gmail.com",
+            "name": "Vincent Sarago",
+            "username": "vincentsarago"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9df17317c45c439088beb6f88cea043d345fd8e9",
+          "message": "add colormap endpoints (#796)\n\n* Bump version: 0.17.0 → 0.17.1\r\n\r\n* add colormap endpoints\r\n\r\n* fix orientation\r\n\r\n* update height/width descriptions\r\n\r\n* remove hex options and handle different cmap types\r\n\r\n* update from main\r\n\r\n* fix typo\r\n\r\n* support discrete cmap\r\n\r\n* handle sequence cmap\r\n\r\n* add tests\r\n\r\n* update docs\r\n\r\n* colormaps -> colorMaps\r\n\r\n* update changelog",
+          "timestamp": "2024-03-21T10:15:14+01:00",
+          "tree_id": "c511346f9c217e2fedec1b5e8af8ea604574b9ca",
+          "url": "https://github.com/developmentseed/titiler/commit/9df17317c45c439088beb6f88cea043d345fd8e9"
+        },
+        "date": 1711012596615,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.15,
             "unit": "s"
           },
           {
