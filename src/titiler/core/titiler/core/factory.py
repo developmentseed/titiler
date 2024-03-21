@@ -1768,16 +1768,16 @@ class ColorMapFactory:
         """Post Init: register routes"""
 
         @self.router.get(
-            "/colormaps",
+            "/colorMaps",
             response_model=ColorMapsList,
             response_model_exclude_none=True,
             summary="Retrieve the list of available colormaps.",
-            operation_id="getColormaps",
+            operation_id="getColorMaps",
         )
         def available_colormaps(request: Request):
             """Retrieve the list of available colormaps."""
             return {
-                "colormaps": self.supported_colormaps.list(),
+                "colorMaps": self.supported_colormaps.list(),
                 "links": [
                     {
                         "title": "List of available colormaps",
@@ -1789,18 +1789,18 @@ class ColorMapFactory:
                         "rel": "self",
                     },
                     {
-                        "title": "Retrieve colormap metadata",
+                        "title": "Retrieve colorMap metadata",
                         "href": self.url_for(
-                            request, "colormap_metadata", colormapId="{colormapId}"
+                            request, "colormap_metadata", colorMapId="{colorMapId}"
                         ),
                         "type": "application/json",
                         "rel": "data",
                         "templated": True,
                     },
                     {
-                        "title": "Retrieve colormap as image",
+                        "title": "Retrieve colorMap as image",
                         "href": self.url_for(
-                            request, "colormap_metadata", colormapId="{colormapId}"
+                            request, "colormap_metadata", colorMapId="{colorMapId}"
                         )
                         + "?format=png",
                         "type": "image/png",
@@ -1811,10 +1811,10 @@ class ColorMapFactory:
             }
 
         @self.router.get(
-            "/colormaps/{colormapId}",
+            "/colorMaps/{colorMapId}",
             response_model=ColorMapType,
-            summary="Retrieve the colormap metadata or image.",
-            operation_id="getColormap",
+            summary="Retrieve the colorMap metadata or image.",
+            operation_id="getColorMap",
             responses={
                 200: {
                     "content": {
@@ -1833,13 +1833,13 @@ class ColorMapFactory:
         def colormap_metadata(
             colormap: Annotated[
                 Literal[tuple(self.supported_colormaps.list())],
-                Path(description="Colormap name", alias="colormapId"),
+                Path(description="ColorMap name", alias="colorMapId"),
             ],
             # Image Output Options
             format: Annotated[
                 Optional[ImageType],
                 Query(
-                    description="Return colormap as Image.",
+                    description="Return colorMap as Image.",
                 ),
             ] = None,
             orientation: Annotated[

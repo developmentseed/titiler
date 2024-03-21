@@ -27,9 +27,9 @@ See default endpoints documentation pages:
 * [`/cog` - Cloud Optimized GeoTIFF](endpoints/cog.md)
 * [`/mosaicjson` - MosaicJSON](endpoints/mosaic.md)
 * [`/stac` - Spatio Temporal Asset Catalog](endpoints/stac.md)
-* [`/tms` - TileMatrixSets](endpoints/tms.md)
+* [`/tileMatrixSets` - Tiling Schemes](endpoints/tms.md)
 * [`/algorithms` - Algorithms](endpoints/algorithms.md)
-* [`/colormaps` - ColorMaps](endpoints/colormaps.md)
+* [`/colorMaps` - ColorMaps](endpoints/colormaps.md)
 
 #### Settings
 

@@ -51,12 +51,5 @@ MultiBaseStatisticsGeoJSON = StatisticsGeoJSON
 class ColorMapsList(BaseModel):
     """Model for colormap list."""
 
-    colormaps: List[str]
-    links: List[Link]
-
-
-class ColorMapValues(BaseModel):
-    """Model for colormap values."""
-
-    colormaps: List[str]
+    colorMaps: List[str]
     links: List[Link]

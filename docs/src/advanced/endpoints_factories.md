@@ -294,7 +294,7 @@ app.include_router(algo.router)
 
 class: `titiler.core.factory.ColorMapFactory`
 
-Endpoints factory for colormaps metadata.
+Endpoints factory for colorMaps metadata.
 
 #### Attributes
 
@@ -314,8 +314,8 @@ app.include_router(colormap.router)
 
 | Method | URL                          | Output                                | Description
 | ------ | ---------------------------- |-------------------------------------- |--------------
-| `GET`  | `/colormaps`                 | JSON ([colorMapList][colormap_list])  | retrieve the list of available colormaps
-| `GET`  | `/colormaps/{colormapId}`    | JSON ([colorMap][colormap])           | retrieve the metadata or image of the specified colormap.
+| `GET`  | `/colorMaps`                 | JSON ([colorMapList][colormap_list])  | retrieve the list of available colorMaps
+| `GET`  | `/colorMaps/{colorMapId}`    | JSON ([colorMap][colormap])           | retrieve the metadata or image of the specified colorMap.
 
 
 

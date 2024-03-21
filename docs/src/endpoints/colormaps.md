@@ -6,41 +6,41 @@ In addition to the `/cog`, `/stac` and `/mosaicjson` endpoints, the `titiler.app
 
 | Method | URL                          | Output | Description
 | ------ | ---------------------------- |--------|--------------
-| `GET`  | `/colormaps`                 | JSON   | retrieve the list of available colormaps
-| `GET`  | `/colormaps/{colormapId}`    | JSON   | retrieve the metadata or image of the specified colormap.
+| `GET`  | `/colorMaps`                 | JSON   | retrieve the list of available colorMaps
+| `GET`  | `/colorMaps/{colorMapId}`    | JSON   | retrieve the metadata or image of the specified colorMap.
 
 ## Description
 
 
 ### List colormaps
 
-`:endpoint:/colormaps` - Get the list of supported ColorMaps
+`:endpoint:/colorMaps` - Get the list of supported ColorMaps
 
 ```bash
-$ curl https://myendpoint/colormaps | jq
+$ curl https://myendpoint/colorMaps | jq
 
 {
-  "colormaps": [
+  "colorMaps": [
     "dense_r",
     "delta",
     ...
   ],
   "links": [
     {
-      "href": "http://myendpoint/colormaps",
+      "href": "http://myendpoint/colorMaps",
       "rel": "self",
       "type": "application/json",
       "title": "List of available colormaps"
     },
     {
-      "href": "http://myendpoint/colormaps/{colormapId}",
+      "href": "http://myendpoint/colorMaps/{colorMapId}",
       "rel": "data",
       "type": "application/json",
       "templated": true,
       "title": "Retrieve colormap metadata"
     },
     {
-      "href": "http://myendpoint/colormaps/{colormapId}?format=png",
+      "href": "http://myendpoint/colorMaps/{colorMapId}?format=png",
       "rel": "data",
       "type": "image/png",
       "templated": true,
@@ -52,10 +52,10 @@ $ curl https://myendpoint/colormaps | jq
 
 ### Get ColorMap metadata or as image
 
-`:endpoint:/colormaps/{colormapId}` - Get the ColorMap metadata or image
+`:endpoint:/colorMaps/{colorMapId}` - Get the ColorMap metadata or image
 
 - PathParams:
-    - **colormapId**: colormap name
+    - **colorMapId**: colormap name
 
 - QueryParams:
     - **format** (str): output image format (PNG/JPEG...). Defaults to JSON output.
@@ -64,7 +64,7 @@ $ curl https://myendpoint/colormaps | jq
     - **width** (int): output image width. Defaults to 256px for horizontal or 20px for vertical.
 
 ```bash
-$ curl http://myendpoint/colormaps/viridis | jq
+$ curl http://myendpoint/colorMaps/viridis | jq
 
 {
   "0": [
@@ -84,13 +84,13 @@ $ curl http://myendpoint/colormaps/viridis | jq
 ```
 
 ```
-curl http://myendpoint/colormaps/viridis?format=png
+curl http://myendpoint/colorMaps/viridis?format=png
 ```
 
 ```
-curl http://myendpoint/colormaps/viridis?format=png&orientation=vertical
+curl http://myendpoint/colorMaps/viridis?format=png&orientation=vertical
 ```
 
 ```
-curl http://myendpoint/colormaps/viridis?format=png&orientation=vertical&width=100&height=1000
+curl http://myendpoint/colorMaps/viridis?format=png&orientation=vertical&width=100&height=1000
 ```
