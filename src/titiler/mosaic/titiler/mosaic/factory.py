@@ -1,6 +1,7 @@
 """TiTiler.mosaic Router factories."""
 
 import os
+import warnings
 from dataclasses import dataclass
 from typing import Callable, Dict, Literal, Optional, Type, Union
 from urllib.parse import urlencode
@@ -69,10 +70,22 @@ class MosaicTilerFactory(BaseTilerFactory):
     tile_dependency: Type[DefaultDependency] = TileParams
 
     supported_tms: TileMatrixSets = morecantile_tms
-    default_tms: str = "WebMercatorQuad"
+    default_tms: Optional[str] = None
 
     # Add/Remove some endpoints
     add_viewer: bool = True
+
+    # TODO: remove `default_tms` and `__post_init__` in 0.19
+    def __post_init__(self):
+        """Post Init."""
+        if self.default_tms:
+            warnings.warn(
+                "`default_tms` attribute is deprecated and will be removed in 0.19.",
+                DeprecationWarning,
+            )
+
+        self.default_tms = self.default_tms or "WebMercatorQuad"
+        super().__post_init__()
 
     def register_routes(self):
         """
@@ -219,10 +232,18 @@ class MosaicTilerFactory(BaseTilerFactory):
     def tile(self):  # noqa: C901
         """Register /tiles endpoints."""
 
-        @self.router.get("/tiles/{z}/{x}/{y}", **img_endpoint_params)
-        @self.router.get("/tiles/{z}/{x}/{y}.{format}", **img_endpoint_params)
-        @self.router.get("/tiles/{z}/{x}/{y}@{scale}x", **img_endpoint_params)
-        @self.router.get("/tiles/{z}/{x}/{y}@{scale}x.{format}", **img_endpoint_params)
+        @self.router.get("/tiles/{z}/{x}/{y}", **img_endpoint_params, deprecated=True)
+        @self.router.get(
+            "/tiles/{z}/{x}/{y}.{format}", **img_endpoint_params, deprecated=True
+        )
+        @self.router.get(
+            "/tiles/{z}/{x}/{y}@{scale}x", **img_endpoint_params, deprecated=True
+        )
+        @self.router.get(
+            "/tiles/{z}/{x}/{y}@{scale}x.{format}",
+            **img_endpoint_params,
+            deprecated=True,
+        )
         @self.router.get("/tiles/{tileMatrixSetId}/{z}/{x}/{y}", **img_endpoint_params)
         @self.router.get(
             "/tiles/{tileMatrixSetId}/{z}/{x}/{y}.{format}", **img_endpoint_params
@@ -351,6 +372,7 @@ class MosaicTilerFactory(BaseTilerFactory):
             response_model=TileJSON,
             responses={200: {"description": "Return a tilejson"}},
             response_model_exclude_none=True,
+            deprecated=True,
         )
         @self.router.get(
             "/{tileMatrixSetId}/tilejson.json",
@@ -449,7 +471,7 @@ class MosaicTilerFactory(BaseTilerFactory):
     def map_viewer(self):  # noqa: C901
         """Register /map endpoint."""
 
-        @self.router.get("/map", response_class=HTMLResponse)
+        @self.router.get("/map", response_class=HTMLResponse, deprecated=True)
         @self.router.get("/{tileMatrixSetId}/map", response_class=HTMLResponse)
         def map_viewer(
             request: Request,
@@ -500,9 +522,9 @@ class MosaicTilerFactory(BaseTilerFactory):
 
             tms = self.supported_tms.get(tileMatrixSetId)
             return self.templates.TemplateResponse(
+                request,
                 name="map.html",
                 context={
-                    "request": request,
                     "tilejson_endpoint": tilejson_url,
                     "tms": tms,
                     "resolutions": [matrix.cellSize for matrix in tms],
@@ -513,7 +535,9 @@ class MosaicTilerFactory(BaseTilerFactory):
     def wmts(self):  # noqa: C901
         """Add wmts endpoint."""
 
-        @self.router.get("/WMTSCapabilities.xml", response_class=XMLResponse)
+        @self.router.get(
+            "/WMTSCapabilities.xml", response_class=XMLResponse, deprecated=True
+        )
         @self.router.get(
             "/{tileMatrixSetId}/WMTSCapabilities.xml", response_class=XMLResponse
         )
@@ -612,9 +636,9 @@ class MosaicTilerFactory(BaseTilerFactory):
                 tileMatrix.append(tm)
 
             return self.templates.TemplateResponse(
-                "wmts.xml",
-                {
-                    "request": request,
+                request,
+                name="wmts.xml",
+                context={
                     "tiles_endpoint": tiles_url,
                     "bounds": bounds,
                     "tileMatrix": tileMatrix,

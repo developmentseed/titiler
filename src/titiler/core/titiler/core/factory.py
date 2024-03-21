@@ -520,10 +520,18 @@ class TilerFactory(BaseTilerFactory):
     def tile(self):  # noqa: C901
         """Register /tiles endpoint."""
 
-        @self.router.get(r"/tiles/{z}/{x}/{y}", **img_endpoint_params)
-        @self.router.get(r"/tiles/{z}/{x}/{y}.{format}", **img_endpoint_params)
-        @self.router.get(r"/tiles/{z}/{x}/{y}@{scale}x", **img_endpoint_params)
-        @self.router.get(r"/tiles/{z}/{x}/{y}@{scale}x.{format}", **img_endpoint_params)
+        @self.router.get(r"/tiles/{z}/{x}/{y}", **img_endpoint_params, deprecated=True)
+        @self.router.get(
+            r"/tiles/{z}/{x}/{y}.{format}", **img_endpoint_params, deprecated=True
+        )
+        @self.router.get(
+            r"/tiles/{z}/{x}/{y}@{scale}x", **img_endpoint_params, deprecated=True
+        )
+        @self.router.get(
+            r"/tiles/{z}/{x}/{y}@{scale}x.{format}",
+            **img_endpoint_params,
+            deprecated=True,
+        )
         @self.router.get(r"/tiles/{tileMatrixSetId}/{z}/{x}/{y}", **img_endpoint_params)
         @self.router.get(
             r"/tiles/{tileMatrixSetId}/{z}/{x}/{y}.{format}", **img_endpoint_params
@@ -618,6 +626,7 @@ class TilerFactory(BaseTilerFactory):
             response_model=TileJSON,
             responses={200: {"description": "Return a tilejson"}},
             response_model_exclude_none=True,
+            deprecated=True,
         )
         @self.router.get(
             "/{tileMatrixSetId}/tilejson.json",
@@ -703,7 +712,7 @@ class TilerFactory(BaseTilerFactory):
     def map_viewer(self):  # noqa: C901
         """Register /map endpoint."""
 
-        @self.router.get("/map", response_class=HTMLResponse)
+        @self.router.get("/map", response_class=HTMLResponse, deprecated=True)
         @self.router.get("/{tileMatrixSetId}/map", response_class=HTMLResponse)
         def map_viewer(
             request: Request,
@@ -752,9 +761,9 @@ class TilerFactory(BaseTilerFactory):
 
             tms = self.supported_tms.get(tileMatrixSetId)
             return self.templates.TemplateResponse(
+                request,
                 name="map.html",
                 context={
-                    "request": request,
                     "tilejson_endpoint": tilejson_url,
                     "tms": tms,
                     "resolutions": [matrix.cellSize for matrix in tms],
@@ -765,7 +774,9 @@ class TilerFactory(BaseTilerFactory):
     def wmts(self):  # noqa: C901
         """Register /wmts endpoint."""
 
-        @self.router.get("/WMTSCapabilities.xml", response_class=XMLResponse)
+        @self.router.get(
+            "/WMTSCapabilities.xml", response_class=XMLResponse, deprecated=True
+        )
         @self.router.get(
             "/{tileMatrixSetId}/WMTSCapabilities.xml", response_class=XMLResponse
         )
@@ -868,9 +879,9 @@ class TilerFactory(BaseTilerFactory):
                 supported_crs = tms.crs.srs
 
             return self.templates.TemplateResponse(
-                "wmts.xml",
-                {
-                    "request": request,
+                request,
+                name="wmts.xml",
+                context={
                     "tiles_endpoint": tiles_url,
                     "bounds": bounds,
                     "tileMatrix": tileMatrix,

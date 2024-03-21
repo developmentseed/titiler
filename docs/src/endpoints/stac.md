@@ -16,24 +16,24 @@ The `/stac` routes are based on `titiler.core.factory.MultiBaseTilerFactory` but
 | `GET`  | `/stac/asset_statistics`                                             | JSON      | return per asset statistics
 | `GET`  | `/stac/statistics`                                                   | JSON      | return asset's statistics
 | `POST` | `/stac/statistics`                                                   | GeoJSON   | return asset's statistics for a GeoJSON
-| `GET`  | `/stac/tiles[/{tileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`  | image/bin | create a web map tile image from assets
-| `GET`  | `/stac[/{tileMatrixSetId}]/tilejson.json`                            | JSON      | return a Mapbox TileJSON document
-| `GET`  | `/stac[/{tileMatrixSetId}]/WMTSCapabilities.xml`                       | XML       | return OGC WMTS Get Capabilities
+| `GET`  | `/stac/tiles/{tileMatrixSetId}/{z}/{x}/{y}[@{scale}x][.{format}]`  | image/bin | create a web map tile image from assets
+| `GET`  | `/stac/{tileMatrixSetId}/tilejson.json`                            | JSON      | return a Mapbox TileJSON document
+| `GET`  | `/stac/{tileMatrixSetId}/WMTSCapabilities.xml`                       | XML       | return OGC WMTS Get Capabilities
 | `GET`  | `/stac/point/{lon},{lat}`                                            | JSON      | return pixel value from assets
 | `GET`  | `/stac/preview[.{format}]`                                           | image/bin | create a preview image from assets
 | `GET`  | `/stac/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin | create an image from part of assets
 | `POST` | `/stac/feature[/{width}x{height}][].{format}]`                          | image/bin | create an image from a geojson covering the assets
-| `GET`  | `/stac[/{tileMatrixSetId}]/map`                                      | HTML      | simple map viewer
+| `GET`  | `/stac/{tileMatrixSetId}/map`                                      | HTML      | simple map viewer
 | `GET`  | `/stac/viewer`                                                       | HTML      | demo webpage (from `titiler.extensions.stacViewerExtension`)
 
 ## Description
 
 ### Tiles
 
-`:endpoint:/stac/tiles[/{tileMatrixSetId}]/{z}/{x}/{y}[@{scale}x][.{format}]`
+`:endpoint:/stac/tiles/{tileMatrixSetId}/{z}/{x}/{y}[@{scale}x][.{format}]`
 
 - PathParams:
-    - **tileMatrixSetId** (str): TileMatrixSet name, default is `WebMercatorQuad`. **Optional**
+    - **tileMatrixSetId** (str): TileMatrixSet name (e.g `WebMercatorQuad`)
     - **z** (int): TMS tile's zoom level.
     - **x** (int): TMS tile's column.
     - **y** (int): TMS tile's row.
@@ -65,8 +65,8 @@ The `/stac` routes are based on `titiler.core.factory.MultiBaseTilerFactory` but
 
 Example:
 
-- `https://myendpoint/stac/tiles/1/2/3?url=https://somewhere.com/item.json&assets=B01&assets=B00`
-- `https://myendpoint/stac/tiles/1/2/3.jpg?url=https://somewhere.com/item.json&assets=B01`
+- `https://myendpoint/stac/tiles/WebMercatorQuad/1/2/3?url=https://somewhere.com/item.json&assets=B01&assets=B00`
+- `https://myendpoint/stac/tiles/WebMercatorQuad/1/2/3.jpg?url=https://somewhere.com/item.json&assets=B01`
 - `https://myendpoint/stac/tiles/WorldCRS84Quad/1/2/3@2x.png?url=https://somewhere.com/item.json&assets=B01`
 - `https://myendpoint/stac/tiles/WorldCRS84Quad/1/2/3?url=https://somewhere.com/item.json&expression=B01/B02&rescale=0,1000&colormap_name=cfastie`
 
@@ -222,10 +222,10 @@ Example:
 
 ### TilesJSON
 
-`:endpoint:/stac[/{tileMatrixSetId}]/tilejson.json` tileJSON document
+`:endpoint:/stac/{tileMatrixSetId}/tilejson.json` tileJSON document
 
 - PathParams:
-    - **tileMatrixSetId**: TileMatrixSet name, default is `WebMercatorQuad`.
+    - **tileMatrixSetId** (str): TileMatrixSet name (e.g `WebMercatorQuad`)
 
 - QueryParams:
     - **url** (str): STAC Item URL. **Required**
@@ -256,16 +256,16 @@ Example:
 
 Example:
 
-- `https://myendpoint/stac/tilejson.json?url=https://somewhere.com/item.json&assets=B01`
-- `https://myendpoint/stac/tilejson.json?url=https://somewhere.com/item.json&assets=B01&tile_format=png`
+- `https://myendpoint/stac/WebMercatorQuad/tilejson.json?url=https://somewhere.com/item.json&assets=B01`
+- `https://myendpoint/stac/WebMercatorQuad/tilejson.json?url=https://somewhere.com/item.json&assets=B01&tile_format=png`
 - `https://myendpoint/stac/WorldCRS84Quad/tilejson.json?url=https://somewhere.com/item.json&tile_scale=2&expression=B01/B02`
 
 ### Map
 
-`:endpoint:/stac[/{tileMatrixSetId}]/map`  Simple viewer
+`:endpoint:/stac/{tileMatrixSetId}/map`  Simple viewer
 
 - PathParams:
-    - **tileMatrixSetId**: TileMatrixSet name, default is `WebMercatorQuad`. **Optional**
+    - **tileMatrixSetId** (str): TileMatrixSet name (e.g `WebMercatorQuad`)
 
 - QueryParams:
     - **url** (str): STAC Item URL. **Required**
@@ -296,8 +296,8 @@ Example:
 
 Example:
 
-- `https://myendpoint/stac/tilejson.json?url=https://somewhere.com/item.json&assets=B01`
-- `https://myendpoint/stac/tilejson.json?url=https://somewhere.com/item.json&assets=B01&tile_format=png`
+- `https://myendpoint/stac/WebMercatorQuad/tilejson.json?url=https://somewhere.com/item.json&assets=B01`
+- `https://myendpoint/stac/WebMercatorQuad/tilejson.json?url=https://somewhere.com/item.json&assets=B01&tile_format=png`
 - `https://myendpoint/stac/WorldCRS84Quad/tilejson.json?url=https://somewhere.com/item.json&tile_scale=2&expression=B01/B02`
 
 
