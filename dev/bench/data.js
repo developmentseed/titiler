@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1710512983722,
+  "lastUpdate": 1711008865626,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -4660,6 +4660,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad longest_transaction",
             "value": 0.06,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "imanshafiei540@gmail.com",
+            "name": "Iman Shafiei",
+            "username": "imanshafiei540"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8f24f892e44cecb8dff48d3a0e7eeaeeaf62fc16",
+          "message": "Adding extra=\"ignore\" option to fix pydantic_settings.SettingsConfigDict issue with environement variables (#800)\n\n* Adding extra ignore option in model_config pydantic-settings\r\n\r\n* lint\r\n\r\n* update changelog\r\n\r\n---------\r\n\r\nCo-authored-by: vincentsarago <vincent.sarago@gmail.com>",
+          "timestamp": "2024-03-21T09:12:43+01:00",
+          "tree_id": "cc5380d629d1857e0929007369caa8712799e623",
+          "url": "https://github.com/developmentseed/titiler/commit/8f24f892e44cecb8dff48d3a0e7eeaeeaf62fc16"
+        },
+        "date": 1711008865079,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
             "unit": "s"
           }
         ]
