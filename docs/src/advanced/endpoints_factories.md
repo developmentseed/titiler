@@ -1,9 +1,18 @@
 
-Tiler factories are helper functions that let users create a FastAPI router (`fastapi.APIRouter`) with a minimal set of endpoints.
+TiTiler's endpoints factories are helper functions that let users create a FastAPI *router* (`fastapi.APIRouter`) with a minimal set of endpoints.
 
-### BaseTilerFactory
+!!! Important
 
-All **Factories** are built from an [abstract based class](https://docs.python.org/3/library/abc.html) which is used to define commons attributes and utility functions shared between all factories.
+    Most of `tiler` **Factories** are built around [`rio_tiler.io.BaseReader`](https://cogeotiff.github.io/rio-tiler/advanced/custom_readers/), which defines basic methods to access datasets (e.g COG or STAC). The default reader is `Reader` for `TilerFactory` and `MosaicBackend` for `MosaicTilerFactory`.
+
+    Factories classes use [dependencies injection](dependencies.md) to define most of the endpoint options.
+
+
+## BaseTilerFactory
+
+class: `titiler.core.factory.BaseTilerFactory`
+
+Most **Factories** are built from this [abstract based class](https://docs.python.org/3/library/abc.html) which is used to define commons attributes and utility functions shared between all factories.
 
 #### Methods
 
@@ -23,18 +32,20 @@ All **Factories** are built from an [abstract based class](https://docs.python.o
 - **color_formula_dependency**: Dependency to define the Color Formula. Defaults to `titiler.core.dependencies.ColorFormulaParams`.
 - **colormap_dependency**: Dependency to define the Colormap options. Defaults to `titiler.core.dependencies.ColorMapParams`
 - **render_dependency**: Dependency to control output image rendering options. Defaults to `titiler.core.dependencies.ImageRenderingParams`
+- **reader_dependency**: Dependency to control options passed to the reader instance init. Defaults to `titiler.core.dependencies.DefaultDependency`
 - **environment_dependency**: Dependency to defile GDAL environment at runtime. Default to `lambda: {}`.
-
-- **supported_tms**:
-- **default_tms**: Set default `TileMatrixSet` identifier to use. Defaults to `WebMercatorQuad`.
+- **supported_tms**: List of available TileMatrixSets. Defaults to `morecantile.tms`.
+- **default_tms**: Default `TileMatrixSet` identifier to use. Defaults to `WebMercatorQuad`.
 - **router_prefix**: Set prefix to all factory's endpoint. Defaults to `""`.
 - **optional_headers**: List of `OptionalHeader` which endpoints could add (if implemented). Defaults to `[]`.
 - **route_dependencies**: Additional routes dependencies to add after routes creations. Defaults to `[]`.
 - **extension**: TiTiler extensions to register after endpoints creations. Defaults to `[]`.
-- **templates**: *Jinja2* templates to use in endpoints. Defaults to `titiler.core.factory.DEFAULT_TEMPLATES`
+- **templates**: *Jinja2* templates to use in endpoints. Defaults to `titiler.core.factory.DEFAULT_TEMPLATES`.
 
 
 ## TilerFactory
+
+class: `titiler.core.factory.TilerFactory`
 
 Factory meant to create endpoints for single dataset using [*rio-tiler*'s `Reader`](https://cogeotiff.github.io/rio-tiler/readers/#rio_tileriorasterioreader).
 
@@ -46,9 +57,9 @@ Factory meant to create endpoints for single dataset using [*rio-tiler*'s `Reade
 - **img_preview_dependency**: Dependency to define image size for `/preview` and `/statistics` endpoints. Defaults to `titiler.core.dependencies.PreviewParams`.
 - **img_part_dependency**: Dependency to define image size for `/bbox` and `/feature` endpoints. Defaults to `titiler.core.dependencies.PartFeatureParams`.
 - **tile_dependency**: Dependency to defile `buffer` and `padding` to apply at tile creation. Defaults to `titiler.core.dependencies.TileParams`.
-- **add_preview**: . Defaults to `True`
-- **add_part**: . Defaults to `True`
-- **add_viewer**: . Defaults to `True`
+- **add_preview**: . Add `/preview` endpoint to the router. Defaults to `True`.
+- **add_part**: . Add `/bbox` and `/feature` endpoints to the router. Defaults to `True`.
+- **add_viewer**: . Add `/map` endpoints to the router. Defaults to `True`.
 
 #### Endpoints
 
@@ -57,9 +68,18 @@ from fastapi import FastAPI
 
 from titiler.core.factory import TilerFactory
 
+# Create FastAPI application
 app = FastAPI()
-cog = TilerFactory()
-app.include_router(cog.router
+
+# Create router and register set of endpoints
+cog = TilerFactory(
+    add_preview=True,
+    add_part=True,
+    add_viewer=True,
+)
+
+# add router endpoint to the main application
+app.include_router(cog.router)
 ```
 
 | Method | URL                                                             | Output                                      | Description
@@ -73,19 +93,21 @@ app.include_router(cog.router
 | `GET`  | `[/{tileMatrixSetId}]/tilejson.json`                            | JSON ([TileJSON][tilejson_model])           | return a Mapbox TileJSON document
 | `GET`  | `[/{tileMatrixSetId}]/WMTSCapabilities.xml`                     | XML                                         | return OGC WMTS Get Capabilities
 | `GET`  | `/point/{lon},{lat}`                                            | JSON ([Point][point_model])                 | return pixel values from a dataset
-| `GET`  | `/preview[.{format}]`                                           | image/bin                                   | create a preview image from a dataset (**Optional**)
-| `GET`  | `/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                   | create an image from part of a dataset (**Optional**)
-| `POST` | `/feature[/{width}x{height}][.{format}]`                           | image/bin                                   | create an image from a GeoJSON feature (**Optional**)
-| `GET`  | `/map`                                                          | HTML                                        | return a simple map viewer
-| `GET`  | `[/{tileMatrixSetId}]/map`                                      | HTML                                        | return a simple map viewer
+| `GET`  | `/preview[.{format}]`                                           | image/bin                                   | create a preview image from a dataset **Optional**
+| `GET`  | `/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                   | create an image from part of a dataset **Optional**
+| `POST` | `/feature[/{width}x{height}][.{format}]`                        | image/bin                                   | create an image from a GeoJSON feature **Optional**
+| `GET`  | `[/{tileMatrixSetId}]/map`                                      | HTML                                        | return a simple map viewer **Optional**
 
 
 ## MultiBaseTilerFactory
 
-Custom `TilerFactory` to be used with [`rio_tiler.io.MultiBaseReader`](http://127.0.0.1:8000/titiler/advanced/tiler_factories/#titilercorefactorymultibasetilerfactory) type readers (e.g `rio_tiler.io.STACReader`).
+class: `titiler.core.factory.MultiBaseTilerFactory`
+
+Custom `TilerFactory` to be used with [`rio_tiler.io.MultiBaseReader`](https://cogeotiff.github.io/rio-tiler/advanced/custom_readers/#multibasereader) type readers (e.g [`rio_tiler.io.STACReader`](https://cogeotiff.github.io/rio-tiler/readers/#rio_tileriostacstacreader)).
 
 #### Attributes
 
+- **reader**: `MultiBase` Dataset Reader **required**.
 - **layer_dependency**: Dependency to define assets or expression. Defaults to `titiler.core.dependencies.AssetsBidxExprParams`.
 - **assets_dependency**: Dependency to define assets to be used. Defaults to `titiler.core.dependencies.AssetsParams`.
 
@@ -93,14 +115,14 @@ Custom `TilerFactory` to be used with [`rio_tiler.io.MultiBaseReader`](http://12
 
 ```python
 from fastapi import FastAPI
-# rio_tiler.io.STACReader is a MultiBaseReader
-from rio_tiler.io import STACReader
+
+from rio_tiler.io import STACReader  # STACReader is a MultiBaseReader
 
 from titiler.core.factory import MultiBaseTilerFactory
 
 app = FastAPI()
 stac = MultiBaseTilerFactory(reader=STACReader)
-app.include_router(stac.router])
+app.include_router(stac.router)
 ```
 
 | Method | URL                                                             | Output                                           | Description
@@ -116,17 +138,21 @@ app.include_router(stac.router])
 | `GET`  | `/[{tileMatrixSetId}]/tilejson.json`                            | JSON ([TileJSON][tilejson_model])                | return a Mapbox TileJSON document
 | `GET`  | `/{tileMatrixSetId}/WMTSCapabilities.xml`                       | XML                                              | return OGC WMTS Get Capabilities
 | `GET`  | `/point/{lon},{lat}`                                            | JSON ([Point][multipoint_model])                 | return pixel values from assets
-| `GET`  | `/preview[.{format}]`                                           | image/bin                                        | create a preview image from assets (**Optional**)
-| `GET`  | `/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                        | create an image from part of assets (**Optional**)
-| `POST` | `/feature[/{width}x{height}][.{format}]`                           | image/bin                                        | create an image from a geojson feature intersecting assets (**Optional**)
-| `GET`  | `[/{tileMatrixSetId}]/map`                                      | HTML                                             | return a simple map viewer
+| `GET`  | `/preview[.{format}]`                                           | image/bin                                        | create a preview image from assets **Optional**
+| `GET`  | `/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                        | create an image from part of assets **Optional**
+| `POST` | `/feature[/{width}x{height}][.{format}]`                        | image/bin                                        | create an image from a geojson feature intersecting assets **Optional**
+| `GET`  | `[/{tileMatrixSetId}]/map`                                      | HTML                                             | return a simple map viewer **Optional**
+
 
 ## MultiBandTilerFactory
 
-Custom `TilerFactory` to be used with [`rio_tiler.io.MultiBandReader`](https://cogeotiff.github.io/rio-tiler/advanced/custom_readers/#multibasereader) type readers.
+class: `titiler.core.factory.MultiBandTilerFactory`
+
+Custom `TilerFactory` to be used with [`rio_tiler.io.MultiBandReader`](https://cogeotiff.github.io/rio-tiler/advanced/custom_readers/#multibandsreader) type readers.
 
 #### Attributes
 
+- **reader**: `MultiBands` Dataset Reader **required**.
 - **layer_dependency**: Dependency to define assets or expression. Defaults to `titiler.core.dependencies.BandsExprParams`.
 - **bands_dependency**: Dependency to define bands to be used. Defaults to `titiler.core.dependencies.BandsParams`.
 
@@ -134,8 +160,9 @@ Custom `TilerFactory` to be used with [`rio_tiler.io.MultiBandReader`](https://c
 
 ```python
 from fastapi import FastAPI, Query
-# rio_tiler_pds.landsat.aws.LandsatC2Reader is a MultiBandReader
-from rio_tiler_pds.landsat.aws import LandsatC2Reader
+
+
+from rio_tiler_pds.landsat.aws import LandsatC2Reader  # LandsatC2Reader is a MultiBandReader
 from titiler.core.factory import MultiBandTilerFactory
 
 
@@ -166,20 +193,28 @@ app.include_router(landsat.router)
 | `GET`  | `/[{tileMatrixSetId}]/tilejson.json`                            | JSON ([TileJSON][tilejson_model])            | return a Mapbox TileJSON document
 | `GET`  | `/{tileMatrixSetId}/WMTSCapabilities.xml`                       | XML                                          | return OGC WMTS Get Capabilities
 | `GET`  | `/point/{lon},{lat}`                                            | JSON ([Point][point_model])                  | return pixel value from a dataset
-| `GET`  | `/preview[.{format}]`                                           | image/bin                                    | create a preview image from a dataset
-| `GET`  | `/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                    | create an image from part of a dataset
-| `POST` | `/feature[/{width}x{height}][.{format}]`                           | image/bin                                    | create an image from a geojson feature
-| `GET`  | `[/{tileMatrixSetId}]/map`                                      | HTML                                         | return a simple map viewer
+| `GET`  | `/preview[.{format}]`                                           | image/bin                                    | create a preview image from a dataset **Optional**
+| `GET`  | `/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                    | create an image from part of a dataset **Optional**
+| `POST` | `/feature[/{width}x{height}][.{format}]`                        | image/bin                                    | create an image from a geojson feature **Optional**
+| `GET`  | `[/{tileMatrixSetId}]/map`                                      | HTML                                         | return a simple map viewer **Optional**
+
 
 ## MosaicTilerFactory
 
+class: `titiler.mosaic.factory.MosaicTilerFactory`
 
-In `titiler.mosaic.factory`, custom `TilerFactory`
+Endpoints factory for mosaics, built on top of [MosaicJSON](https://github.com/developmentseed/mosaicjson-spec).
 
 #### Attributes
 
-- **layer_dependency**: Dependency to define assets or expression. Defaults to `titiler.core.dependencies.BandsExprParams`.
-- **bands_dependency**: Dependency to define bands to be used. Defaults to `titiler.core.dependencies.BandsParams`.
+- **reader**: `BaseBackend` Mosaic Reader **required**.
+- **dataset_reader**: Dataset Reader. Defaults to `rio_tiler.io.Reader`
+- **backend_dependency**: Dependency to control options passed to the backend instance init. Defaults to `titiler.core.dependencies.DefaultDependency`
+- **pixel_selection_dependency**: Dependency to select the `pixel_selection` method. Defaults to `titiler.mosaic.factory.PixelSelectionParams`.
+- **tile_dependency**: Dependency to defile `buffer` and `padding` to apply at tile creation. Defaults to `titiler.core.dependencies.TileParams`.
+- **supported_tms**: List of available TileMatrixSets. Defaults to `morecantile.tms`.
+- **default_tms**: Default `TileMatrixSet` identifier to use. Defaults to `WebMercatorQuad`.
+- **add_viewer**: . Add `/map` endpoints to the router. Defaults to `True`.
 
 #### Endpoints
 
@@ -196,14 +231,92 @@ In `titiler.mosaic.factory`, custom `TilerFactory`
 | `GET`  | `/{z}/{x}/{y}/assets`                                           | JSON                                               | return list of assets intersecting a XYZ tile
 | `GET`  | `/{lon},{lat}/assets`                                           | JSON                                               | return list of assets intersecting a point
 | `GET`  | `/{minx},{miny},{maxx},{maxy}/assets`                           | JSON                                               | return list of assets intersecting a bounding box
-| `GET`  | `[/{tileMatrixSetId}]/map`                                      | HTML                                               | return a simple map viewer
+| `GET`  | `[/{tileMatrixSetId}]/map`                                      | HTML                                               | return a simple map viewer **Optional**
 
 
-!!! Important
+## TMSFactory
 
-    **Factories** are built around [`rio_tiler.io.BaseReader`](https://cogeotiff.github.io/rio-tiler/advanced/custom_readers/), which defines basic methods to access datasets (e.g COG or STAC). The default reader is `Reader` for `TilerFactory` and `MosaicBackend` for `MosaicTilerFactory`.
+class: `titiler.core.factory.TMSFactory`
 
-    Factories classes use [dependencies injection](dependencies.md) to define most of the endpoint options.
+Endpoints factory for OGC `TileMatrixSets`.
+
+#### Attributes
+
+- **supported_tms**: List of available TileMatrixSets. Defaults to `morecantile.tms`.
+
+```python
+from fastapi import FastAPI
+
+from titiler.core.factory import TMSFactory
+
+app = FastAPI()
+tms = TMSFactory()
+app.include_router(tms.router)
+```
+
+#### Endpoints
+
+| Method | URL                                   | Output                                         | Description
+| ------ | ------------------------------------- |----------------------------------------------- |--------------
+| `GET`  | `/tileMatrixSets`                     | JSON ([TileMatrixSetList][tilematrixset_list]) | retrieve the list of available tiling schemes (tile matrix sets)
+| `GET`  | `/tileMatrixSets/{tileMatrixSetId}`   | JSON ([TileMatrixSet][tilematrixset])          | retrieve the definition of the specified tiling scheme (tile matrix set)
+
+
+## AlgorithmFactory
+
+class: `titiler.core.factory.AlgorithmFactory`
+
+Endpoints factory for custom algorithms.
+
+#### Attributes
+
+- **supported_algorithm**: List of available `Algorithm`. Defaults to `titiler.core.algorithm.algorithms`.
+
+```python
+from fastapi import FastAPI
+
+from titiler.core.factory import AlgorithmFactory
+
+app = FastAPI()
+algo = AlgorithmFactory()
+app.include_router(algo.router)
+```
+
+#### Endpoints
+
+| Method | URL                          | Output                                                   | Description
+| ------ | ---------------------------- |--------------------------------------------------------- |--------------
+| `GET`  | `/algorithms`                | JSON (Dict of [Algorithm Metadata][algorithm_metadata])            | retrieve the list of available Algorithms
+| `GET`  | `/algorithms/{algorithmId}`  | JSON ([Algorithm Metadata][algorithm_metadata])                    | retrieve the metadata of the specified algorithm.
+
+
+## ColorMapFactory
+
+class: `titiler.core.factory.ColorMapFactory`
+
+Endpoints factory for colorMaps metadata.
+
+#### Attributes
+
+- **supported_colormaps**: List of available `ColorMaps`. Defaults to `rio_tiler.colormap.cmap`.
+
+```python
+from fastapi import FastAPI
+
+from titiler.core.factory import ColorMapFactory
+
+app = FastAPI()
+colormap = ColorMapFactory()
+app.include_router(colormap.router)
+```
+
+#### Endpoints
+
+| Method | URL                          | Output                                | Description
+| ------ | ---------------------------- |-------------------------------------- |--------------
+| `GET`  | `/colorMaps`                 | JSON ([colorMapList][colormap_list])  | retrieve the list of available colorMaps
+| `GET`  | `/colorMaps/{colorMapId}`    | JSON ([colorMap][colormap])           | retrieve the metadata or image of the specified colorMap.
+
 
 
 [bounds_model]: https://github.com/cogeotiff/rio-tiler/blob/9aaa88000399ee8d36e71d176f67b6ea3ec53f2d/rio_tiler/models.py#L43-L46
@@ -224,3 +337,11 @@ In `titiler.mosaic.factory`, custom `TilerFactory`
 [mosaic_geojson_info_model]: https://github.com/developmentseed/titiler/blob/2bd1b159a9cf0932ad14e9eabf1e4e66498adbdc/src/titiler/mosaic/titiler/mosaic/factory.py#L130
 [mosaic_model]: https://github.com/developmentseed/cogeo-mosaic/blob/1dc3c873472c8cf7634ad893b9cdc40105ca3874/cogeo_mosaic/mosaic.py#L55-L72
 [mosaic_point]: https://github.com/developmentseed/titiler/blob/2bd1b159a9cf0932ad14e9eabf1e4e66498adbdc/src/titiler/mosaic/titiler/mosaic/models/responses.py#L8-L17
+
+[tilematrixset_list]: https://github.com/developmentseed/titiler/blob/ffd67af34c2807a6e1447817f943446a58441ed8/src/titiler/core/titiler/core/models/OGC.py#L33-L40
+[tilematrixset]: https://github.com/developmentseed/morecantile/blob/eec54326ce2b134cfbc03dd69a3e2938e4109101/morecantile/models.py#L399-L490
+
+[algorithm_metadata]: https://github.com/developmentseed/titiler/blob/ffd67af34c2807a6e1447817f943446a58441ed8/src/titiler/core/titiler/core/algorithm/base.py#L32-L40
+
+[colormap_list]: https://github.com/developmentseed/titiler/blob/535304fd7e1b0bfbb791bdec8cbfb6e78b4a6eb5/src/titiler/core/titiler/core/models/responses.py#L51-L55
+[colormap]: https://github.com/cogeotiff/rio-tiler/blob/6343b571a367ef63a10d6807e3d907c3283ebb20/rio_tiler/types.py#L24-L27

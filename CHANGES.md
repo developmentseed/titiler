@@ -1,5 +1,11 @@
 # Release Notes
 
+## Unreleased
+
+### titiler.core
+
+* Add `ColorMapFactory` to create colorMap metadata endpoints (https://github.com/developmentseed/titiler/pull/796)
+
 ## 0.17.3 (2024-03-21)
 
 ### titiler.application
