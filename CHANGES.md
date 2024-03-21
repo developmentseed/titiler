@@ -1,5 +1,11 @@
 # Release Notes
 
+## 0.17.3 (2024-03-21)
+
+### titiler.application
+
+* Add `extra="ignore"` option `ApiSettings` to fix pydantic issue when using `.env` file (author @imanshafiei540, https://github.com/developmentseed/titiler/pull/800)
+
 ## 0.17.2 (2024-03-15)
 
 ### titiler.core
