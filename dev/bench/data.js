@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1711012597278,
+  "lastUpdate": 1711129809155,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -4822,6 +4822,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.15,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "vincent.sarago@gmail.com",
+            "name": "Vincent Sarago",
+            "username": "vincentsarago"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b24b6b5c1e31961b9ef15de6ed8e5d1f2ead6f2d",
+          "message": "deprecate default tilematrixset (#802)\n\n* deprecate default tilematrixset\r\n\r\n* move deprecation of default_tms in BaseTilerFactory\r\n\r\n* update changelog",
+          "timestamp": "2024-03-22T18:48:41+01:00",
+          "tree_id": "18884cf4c204e78715813bf5d0d1cf7f9b73427b",
+          "url": "https://github.com/developmentseed/titiler/commit/b24b6b5c1e31961b9ef15de6ed8e5d1f2ead6f2d"
+        },
+        "date": 1711129808053,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.06,
             "unit": "s"
           },
           {
