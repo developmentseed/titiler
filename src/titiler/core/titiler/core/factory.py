@@ -1,6 +1,7 @@
 """TiTiler Router factories."""
 
 import abc
+import warnings
 from dataclasses import dataclass, field
 from typing import (
     Any,
@@ -176,7 +177,7 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
 
     # TileMatrixSet dependency
     supported_tms: TileMatrixSets = morecantile_tms
-    default_tms: str = "WebMercatorQuad"
+    default_tms: Optional[str] = None
 
     # Router Prefix is needed to find the path for /tile if the TilerFactory.router is mounted
     # with other router (multiple `.../tile` routes).
@@ -197,6 +198,15 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
 
     def __post_init__(self):
         """Post Init: register route and configure specific options."""
+        # TODO: remove this in 0.19
+        if self.default_tms:
+            warnings.warn(
+                "`default_tms` attribute is deprecated and will be removed in 0.19.",
+                DeprecationWarning,
+            )
+
+        self.default_tms = self.default_tms or "WebMercatorQuad"
+
         # Register endpoints
         self.register_routes()
 

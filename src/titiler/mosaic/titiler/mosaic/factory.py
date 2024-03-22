@@ -1,7 +1,6 @@
 """TiTiler.mosaic Router factories."""
 
 import os
-import warnings
 from dataclasses import dataclass
 from typing import Callable, Dict, Literal, Optional, Type, Union
 from urllib.parse import urlencode
@@ -74,18 +73,6 @@ class MosaicTilerFactory(BaseTilerFactory):
 
     # Add/Remove some endpoints
     add_viewer: bool = True
-
-    # TODO: remove `default_tms` and `__post_init__` in 0.19
-    def __post_init__(self):
-        """Post Init."""
-        if self.default_tms:
-            warnings.warn(
-                "`default_tms` attribute is deprecated and will be removed in 0.19.",
-                DeprecationWarning,
-            )
-
-        self.default_tms = self.default_tms or "WebMercatorQuad"
-        super().__post_init__()
 
     def register_routes(self):
         """
