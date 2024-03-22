@@ -1,6 +1,6 @@
 # Release Notes
 
-## Unreleased
+## 0.18.0 (2024-03-22)
 
 ### titiler.core
 
