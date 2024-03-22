@@ -5,6 +5,47 @@
 ### titiler.core
 
 * Add `ColorMapFactory` to create colorMap metadata endpoints (https://github.com/developmentseed/titiler/pull/796)
+* **Deprecation** remove default `WebMercatorQuad` tile matrix set in `/tiles`, `/tilesjson.json`, `/map` and `/WMTSCapabilities.xml` endpoints (https://github.com/developmentseed/titiler/pull/802)
+
+    ```
+    # Before
+    /tiles/{z}/{x}/{y}
+    /tilejson.json
+    /map
+    /WMTSCapabilities.xml
+
+    # Now
+    /tiles/WebMercatorQuad/{z}/{x}/{y}
+    /WebMercatorQuad/tilejson.json
+    /WebMercatorQuad/map
+    /WebMercatorQuad/WMTSCapabilities.xml
+    ```
+
+* **Deprecation** `default_tms` attribute in `BaseTilerFactory` (because `tileMatrixSetId` is now required in endpoints).
+
+### titiler.mosaic
+
+* **Deprecation** remove default `WebMercatorQuad` tile matrix set in `/tiles`, `/tilesjson.json`, `/map` and `/WMTSCapabilities.xml` endpoints (https://github.com/developmentseed/titiler/pull/802)
+
+    ```
+    # Before
+    /tiles/{z}/{x}/{y}
+    /tilejson.json
+    /map
+    /WMTSCapabilities.xml
+
+    # Now
+    /tiles/WebMercatorQuad/{z}/{x}/{y}
+    /WebMercatorQuad/tilejson.json
+    /WebMercatorQuad/map
+    /WebMercatorQuad/WMTSCapabilities.xml
+    ```
+
+* **Deprecation** `default_tms` attribute in `MosaicTilerFactory` (because `tileMatrixSetId` is now required in endpoints).
+
+### Misc
+
+* add `request` as first argument in `TemplateResponse` to adapt with latest starlette version
 
 ## 0.17.3 (2024-03-21)
 

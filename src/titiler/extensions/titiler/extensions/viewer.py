@@ -28,10 +28,12 @@ class cogViewerExtension(FactoryExtension):
         def cog_viewer(request: Request):
             """COG Viewer."""
             return self.templates.TemplateResponse(
+                request,
                 name="cog_viewer.html",
                 context={
-                    "request": request,
-                    "tilejson_endpoint": factory.url_for(request, "tilejson"),
+                    "tilejson_endpoint": factory.url_for(
+                        request, "tilejson", tileMatrixSetId="WebMercatorQuad"
+                    ),
                     "info_endpoint": factory.url_for(request, "info"),
                     "statistics_endpoint": factory.url_for(request, "statistics"),
                 },
@@ -52,10 +54,12 @@ class stacViewerExtension(FactoryExtension):
         def stac_viewer(request: Request):
             """STAC Viewer."""
             return self.templates.TemplateResponse(
+                request,
                 name="stac_viewer.html",
                 context={
-                    "request": request,
-                    "tilejson_endpoint": factory.url_for(request, "tilejson"),
+                    "tilejson_endpoint": factory.url_for(
+                        request, "tilejson", tileMatrixSetId="WebMercatorQuad"
+                    ),
                     "info_endpoint": factory.url_for(request, "info"),
                     "statistics_endpoint": factory.url_for(request, "asset_statistics"),
                 },

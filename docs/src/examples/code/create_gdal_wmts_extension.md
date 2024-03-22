@@ -29,18 +29,6 @@ class gdalwmtsExtension(FactoryExtension):
         """Register endpoint to the tiler factory."""
 
         @factory.router.get(
-            "/wmts.xml",
-            response_class=XMLResponse,
-            responses={
-                200: {
-                    "description": "GDAL WMTS service description XML file",
-                    "content": {
-                        "application/xml": {},
-                    },
-                },
-            },
-        )
-        @factory.router.get(
             "/{tileMatrixSetId}/wmts.xml",
             response_class=XMLResponse,
             responses={
@@ -54,9 +42,8 @@ class gdalwmtsExtension(FactoryExtension):
         )
         def gdal_wmts(
             request: Request,
-            tileMatrixSetId: Literal[tuple(factory.supported_tms.list())] = Query(  # type: ignore
-                factory.default_tms,
-                description=f"TileMatrixSet Name (default: '{factory.default_tms}')",
+            tileMatrixSetId: Literal[tuple(factory.supported_tms.list())] = Path(  # type: ignore
+                description="TileMatrixSet Name",
             ),
             url: str = Depends(factory.path_dependency),  # noqa
             bandscount: int = Query(
@@ -151,7 +138,7 @@ add_exception_handlers(app, DEFAULT_STATUS_CODES)
 ```python
 from rio_tiler.io import Reader
 
-with Reader("http://0.0.0.0/wmts.xml?url=file.tif&bidx=1&bandscount=1&datatype=float32&tile_format=tif") as src:
+with Reader("http://0.0.0.0/WebMercatorQuad/wmts.xml?url=file.tif&bidx=1&bandscount=1&datatype=float32&tile_format=tif") as src:
     im = src.preview()
 ```
 

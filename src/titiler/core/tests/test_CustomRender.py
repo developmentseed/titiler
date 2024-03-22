@@ -41,7 +41,7 @@ def test_CustomRender():
     app.include_router(cog.router)
     client = TestClient(app)
 
-    response = client.get(f"/tiles/8/87/48.tif?url={DATA_DIR}/cog.tif")
+    response = client.get(f"/tiles/WebMercatorQuad/8/87/48.tif?url={DATA_DIR}/cog.tif")
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/tiff; application=geotiff"
     meta = parse_img(response.content)
@@ -51,7 +51,7 @@ def test_CustomRender():
     assert not meta.get("compress")
 
     response = client.get(
-        f"/tiles/8/87/48.tif?url={DATA_DIR}/cog.tif&return_mask=false&output_nodata=0&output_compression=deflate"
+        f"/tiles/WebMercatorQuad/8/87/48.tif?url={DATA_DIR}/cog.tif&return_mask=false&output_nodata=0&output_compression=deflate"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/tiff; application=geotiff"
@@ -62,7 +62,7 @@ def test_CustomRender():
     assert meta["compress"] == "deflate"
 
     response = client.get(
-        f"/tiles/9/289/207?url={DATA_DIR}/TCI.tif&rescale=0,1000&rescale=0,2000&rescale=0,3000"
+        f"/tiles/WebMercatorQuad/9/289/207?url={DATA_DIR}/TCI.tif&rescale=0,1000&rescale=0,2000&rescale=0,3000"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"

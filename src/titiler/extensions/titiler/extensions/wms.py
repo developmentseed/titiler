@@ -391,8 +391,9 @@ class wmsExtension(FactoryExtension):
                 )
 
                 return self.templates.TemplateResponse(
-                    f"wms_{version}.xml",
-                    {
+                    request,
+                    name=f"wms_{version}.xml",
+                    context={
                         "request": request,
                         "request_url": wms_url,
                         "formats": self.supported_format,

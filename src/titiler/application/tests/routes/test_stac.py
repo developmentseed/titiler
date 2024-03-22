@@ -75,11 +75,13 @@ def test_tile(httpx, rio, app):
     rio.open = mock_rasterio_open
 
     # Missing assets
-    response = app.get("/stac/tiles/9/289/207?url=https://myurl.com/item.json")
+    response = app.get(
+        "/stac/tiles/WebMercatorQuad/9/289/207?url=https://myurl.com/item.json"
+    )
     assert response.status_code == 400
 
     response = app.get(
-        "/stac/tiles/9/289/207?url=https://myurl.com/item.json&assets=B01&rescale=0,1000"
+        "/stac/tiles/WebMercatorQuad/9/289/207?url=https://myurl.com/item.json&assets=B01&rescale=0,1000"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
@@ -88,7 +90,7 @@ def test_tile(httpx, rio, app):
     assert meta["height"] == 256
 
     response = app.get(
-        "/stac/tiles/9/289/207?url=https://myurl.com/item.json&expression=B01_b1&rescale=0,1000"
+        "/stac/tiles/WebMercatorQuad/9/289/207?url=https://myurl.com/item.json&expression=B01_b1&rescale=0,1000"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
@@ -104,11 +106,13 @@ def test_tilejson(httpx, rio, app):
     httpx.get = mock_RequestGet
     rio.open = mock_rasterio_open
 
-    response = app.get("/stac/tilejson.json?url=https://myurl.com/item.json")
+    response = app.get(
+        "/stac/WebMercatorQuad/tilejson.json?url=https://myurl.com/item.json"
+    )
     assert response.status_code == 400
 
     response = app.get(
-        "/stac/tilejson.json?url=https://myurl.com/item.json&assets=B01&minzoom=5&maxzoom=10"
+        "/stac/WebMercatorQuad/tilejson.json?url=https://myurl.com/item.json&assets=B01&minzoom=5&maxzoom=10"
     )
     assert response.status_code == 200
     body = response.json()
@@ -125,7 +129,7 @@ def test_tilejson(httpx, rio, app):
     assert body["center"]
 
     response = app.get(
-        "/stac/tilejson.json?url=https://myurl.com/item.json&assets=B01&tile_format=png&tile_scale=2"
+        "/stac/WebMercatorQuad/tilejson.json?url=https://myurl.com/item.json&assets=B01&tile_format=png&tile_scale=2"
     )
     assert response.status_code == 200
     body = response.json()
