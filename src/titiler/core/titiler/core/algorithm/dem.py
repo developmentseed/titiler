@@ -132,7 +132,7 @@ class Terrarium(BaseAlgorithm):
 class TerrainRGB(BaseAlgorithm):
     """Encode DEM into RGB (Mapbox Terrain RGB)."""
 
-    title: str = "Terrarium"
+    title: str = "TerrainRGB"
     description: str = "Encode DEM into RGB (Mapbox Terrain RGB)."
 
     # parameters
