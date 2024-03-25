@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1711130129932,
+  "lastUpdate": 1711386483304,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -4940,6 +4940,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "igarashi.jin@water-gis.com",
+            "name": "Jin Igarashi",
+            "username": "JinIgarashi"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "98defec120f7cccffdb919b1d5aae7315f5a4f2e",
+          "message": "fix: fixed title of terrainrgb algorithm (#804)",
+          "timestamp": "2024-03-25T18:06:34+01:00",
+          "tree_id": "3a045f4b0190f945b75087b49877ca914c73d74d",
+          "url": "https://github.com/developmentseed/titiler/commit/98defec120f7cccffdb919b1d5aae7315f5a4f2e"
+        },
+        "date": 1711386482164,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.14,
             "unit": "s"
           },
           {
