@@ -1,5 +1,11 @@
 # Release Notes
 
+### Unreleased
+
+### titiler.core
+
+* fix `TerrainRGB` algorithm name (author @JinIgarashi, https://github.com/developmentseed/titiler/pull/804)
+
 ## 0.18.0 (2024-03-22)
 
 ### titiler.core
