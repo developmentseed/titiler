@@ -1,18 +1,10 @@
 {
     "type": "Feature",
-    "stac_version": "1.0.0-beta.1",
-    "stac_extensions": [
-        "eo",
-        "view",
-        "proj"
-    ],
+    "stac_version": "1.0.0",
     "id": "S2A_34SGA_20200318_0_L2A",
-    "bbox": [
-        23.293255090449595,
-        31.505183020453355,
-        24.296453548295318,
-        32.51147809805106
-    ],
+    "properties": {
+        "datetime": "2020-03-18T09:11:33Z"
+    },
     "geometry": {
         "type": "Polygon",
         "coordinates": [
@@ -40,91 +32,31 @@
             ]
         ]
     },
-    "properties": {
-        "datetime": "2020-03-18T09:11:33Z",
-        "platform": "sentinel-2a",
-        "constellation": "sentinel-2",
-        "instruments": [
-            "msi"
-        ],
-        "gsd": 10,
-        "data_coverage": 73.85,
-        "view:off_nadir": 0,
-        "eo:cloud_cover": 89.84,
-        "proj:epsg": 32634,
-        "sentinel:latitude_band": "S",
-        "sentinel:grid_square": "GA",
-        "sentinel:sequence": "0",
-        "sentinel:product_id": "S2A_MSIL2A_20200318T085701_N0214_R007_T34SGA_20200318T115254",
-        "created": "2020-05-12T21:03:26.671Z",
-        "updated": "2020-05-12T21:03:26.671Z"
-    },
-    "collection": "sentinel-s2-l2a-cogs",
-    "assets": {
-        "B01": {
-            "title": "Band 1 (coastal)",
-            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
-            "href": "https://myurl.com/B01.tif",
-            "proj:shape": [
-                1830,
-                1830
-            ],
-            "proj:transform": [
-                60,
-                0,
-                699960,
-                0,
-                -60,
-                3600000,
-                0,
-                0,
-                1
-            ]
-        },
-        "B09": {
-            "title": "Band 9",
-            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
-            "href": "https://myurl.com/B09.tif",
-            "proj:shape": [
-                1830,
-                1830
-            ],
-            "proj:transform": [
-                60,
-                0,
-                699960,
-                0,
-                -60,
-                3600000,
-                0,
-                0,
-                1
-            ]
-        }
-    },
     "links": [
         {
             "rel": "self",
-            "href": "s3://sentinel-cogs/sentinel-s2-l2a-cogs/2020/S2A_34SGA_20200318_0_L2A/S2A_34SGA_20200318_0_L2A.json",
-            "type": "application/json"
-        },
-        {
-            "rel": "parent",
-            "href": "https://myurl.com/v0/collections/sentinel-s2-l2a"
-        },
-        {
-            "rel": "collection",
-            "href": "https://myurl.com/v0/collections/sentinel-s2-l2a"
-        },
-        {
-            "rel": "root",
-            "href": "https://myurl.com/v0/"
-        },
-        {
-            "title": "Source STAC Item",
-            "rel": "derived_from",
-            "href": "https://myurl.com/collections/sentinel-s2-l2a/items/S2A_34SGA_20200318_0_L2A",
+            "href": "https://myurl.com/item.json",
             "type": "application/json"
         }
-    ]
+    ],
+    "assets": {
+        "B01": {
+            "href": "https://myurl.com/B01.tif",
+            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            "title": "Band 1 (coastal)"
+        },
+        "B09": {
+            "href": "https://myurl.com/B09.tif",
+            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            "title": "Band 9"
+        }
+    },
+    "bbox": [
+        23.293255090449595,
+        31.505183020453355,
+        24.296453548295318,
+        32.51147809805106
+    ],
+    "stac_extensions": [],
+    "collection": "sentinel-s2-l2a-cogs"
 }
