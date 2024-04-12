@@ -15,7 +15,7 @@ from rio_tiler.errors import (
 )
 from starlette import status
 from starlette.requests import Request
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, Response
 
 
 class TilerError(Exception):
@@ -52,6 +52,9 @@ def exception_handler_factory(status_code: int) -> Callable:
     """
 
     def handler(request: Request, exc: Exception):
+        if status_code == status.HTTP_204_NO_CONTENT:
+            return Response(content=None, status_code=204)
+
         return JSONResponse(content={"detail": str(exc)}, status_code=status_code)
 
     return handler
