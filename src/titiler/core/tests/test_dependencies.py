@@ -246,6 +246,18 @@ def test_assets():
     response = client.get("/third?assets=data&assets=image")
     assert response.json()["assets"] == ["data", "image"]
 
+    response = client.get(
+        "/third",
+        params=(
+            ("assets", "data"),
+            ("assets", "image"),
+        ),
+    )
+    assert response.json()["assets"] == ["data", "image"]
+
+    response = client.get("/third", params={"assets": ["data", "image"]})
+    assert response.json()["assets"] == ["data", "image"]
+
     response = client.get("/third")
     assert not response.json()["assets"]
 
@@ -256,7 +268,32 @@ def test_assets():
     assert response.json()["asset_indexes"] == {"data": [1, 2, 3], "image": [1]}
 
     response = client.get(
+        "/third",
+        params=(
+            ("assets", "data"),
+            ("assets", "image"),
+            ("asset_bidx", "data|1,2,3"),
+            ("asset_bidx", "image|1"),
+        ),
+    )
+
+    assert response.json()["assets"] == ["data", "image"]
+    assert response.json()["asset_indexes"] == {"data": [1, 2, 3], "image": [1]}
+
+    response = client.get(
         "/third?assets=data&assets=image&asset_expression=data|b1/b2&asset_expression=image|b1*b2"
+    )
+    assert response.json()["assets"] == ["data", "image"]
+    assert response.json()["asset_expression"] == {"data": "b1/b2", "image": "b1*b2"}
+
+    response = client.get(
+        "/third",
+        params=(
+            ("assets", "data"),
+            ("assets", "image"),
+            ("asset_expression", "data|b1/b2"),
+            ("asset_expression", "image|b1*b2"),
+        ),
     )
     assert response.json()["assets"] == ["data", "image"]
     assert response.json()["asset_expression"] == {"data": "b1/b2", "image": "b1*b2"}
@@ -457,3 +494,103 @@ def test_algo():
     assert response.json()["azimuth"] == 30
     assert response.json()["buffer"] == 4
     assert response.json()["input_nbands"] == 1
+
+
+def test_rescale_params():
+    """test RescalingParams dependency."""
+    app = FastAPI()
+
+    @app.get("/")
+    def main(rescale=Depends(dependencies.RescalingParams)):
+        """return rescale."""
+        return rescale
+
+    client = TestClient(app)
+
+    response = client.get("/", params={"rescale": "0,1"})
+    assert response.status_code == 200
+    assert response.json() == [[0, 1]]
+
+    response = client.get("/?rescale=0,1")
+    assert response.status_code == 200
+    assert response.json() == [[0, 1]]
+
+    response = client.get("/?rescale=0,1&rescale=2,3")
+    assert response.status_code == 200
+    assert response.json() == [[0, 1], [2, 3]]
+
+    with pytest.raises(AssertionError):
+        client.get("/", params={"rescale": [0, 1]})
+
+    response = client.get("/", params={"rescale": [[0, 1]]})
+    assert response.status_code == 200
+    assert response.json() == [[0, 1]]
+
+    response = client.get(
+        "/",
+        params=(
+            ("rescale", [0, 1]),
+            ("rescale", [0, 1]),
+        ),
+    )
+    assert response.status_code == 200
+    assert response.json() == [[0, 1], [0, 1]]
+
+    response = client.get(
+        "/",
+        params=(
+            ("rescale", "0,1"),
+            ("rescale", "0,1"),
+        ),
+    )
+    assert response.status_code == 200
+    assert response.json() == [[0, 1], [0, 1]]
+
+    response = client.get("/", params={"rescale": [[0, 1], [2, 3]]})
+    assert response.status_code == 200
+    assert response.json() == [[0, 1], [2, 3]]
+
+
+def test_histogram_params():
+    """Test HistogramParams dependency."""
+    app = FastAPI()
+
+    @app.get("/")
+    def main(params=Depends(dependencies.HistogramParams)):
+        """return rescale."""
+        return params
+
+    client = TestClient(app)
+
+    response = client.get(
+        "/",
+        params={"histogram_bins": "8"},
+    )
+    assert response.status_code == 200
+    assert response.json()["bins"] == 8
+
+    response = client.get(
+        "/",
+        params={"histogram_bins": "8,9"},
+    )
+    assert response.status_code == 200
+    assert response.json()["bins"] == [8.0, 9.0]
+
+    response = client.get(
+        "/",
+    )
+    assert response.status_code == 200
+    assert response.json()["bins"] == 10
+
+    response = client.get(
+        "/",
+        params={"histogram_range": "8,9"},
+    )
+    assert response.status_code == 200
+    assert response.json()["range"] == [8.0, 9.0]
+
+    with pytest.raises(AssertionError):
+        client.get(
+            "/",
+            params={"histogram_range": "8"},
+        )
