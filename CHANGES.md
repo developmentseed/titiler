@@ -6,6 +6,7 @@
 
 * fix `TerrainRGB` algorithm name (author @JinIgarashi, https://github.com/developmentseed/titiler/pull/804)
 * add more tests for `RescalingParams` and `HistogramParams` dependencies
+* make sure to return *empty* content for `204` Error code
 
 ## 0.18.0 (2024-03-22)
 
