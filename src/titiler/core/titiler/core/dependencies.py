@@ -146,6 +146,23 @@ class AssetsParams(DefaultDependency):
     ] = None
 
 
+def parse_asset_indexes(
+    asset_indexes: Union[Sequence[str], Dict[str, Sequence[int]]],
+) -> Dict[str, Sequence[int]]:
+    """parse asset indexes parameters."""
+    return {
+        idx.split("|")[0]: list(map(int, idx.split("|")[1].split(",")))
+        for idx in asset_indexes
+    }
+
+
+def parse_asset_expression(
+    asset_expression: Union[Sequence[str], Dict[str, str]],
+) -> Dict[str, str]:
+    """parse asset expression parameters."""
+    return {idx.split("|")[0]: idx.split("|")[1] for idx in asset_expression}
+
+
 @dataclass
 class AssetsBidxExprParams(AssetsParams, BidxParams):
     """Assets, Expression and Asset's band Indexes parameters."""
@@ -199,10 +216,7 @@ class AssetsBidxExprParams(AssetsParams, BidxParams):
             )
 
         if self.asset_indexes:
-            self.asset_indexes: Dict[str, Sequence[int]] = {  # type: ignore
-                idx.split("|")[0]: list(map(int, idx.split("|")[1].split(",")))
-                for idx in self.asset_indexes
-            }
+            self.asset_indexes = parse_asset_indexes(self.asset_indexes)
 
         if self.asset_indexes and self.indexes:
             warnings.warn(
@@ -218,10 +232,7 @@ class AssetsBidxExprParamsOptional(AssetsBidxExprParams):
     def __post_init__(self):
         """Post Init."""
         if self.asset_indexes:
-            self.asset_indexes: Dict[str, Sequence[int]] = {  # type: ignore
-                idx.split("|")[0]: list(map(int, idx.split("|")[1].split(",")))
-                for idx in self.asset_indexes
-            }
+            self.asset_indexes = parse_asset_indexes(self.asset_indexes)
 
         if self.asset_indexes and self.indexes:
             warnings.warn(
@@ -274,15 +285,10 @@ class AssetsBidxParams(AssetsParams, BidxParams):
     def __post_init__(self):
         """Post Init."""
         if self.asset_indexes:
-            self.asset_indexes: Dict[str, Sequence[int]] = {  # type: ignore
-                idx.split("|")[0]: list(map(int, idx.split("|")[1].split(",")))
-                for idx in self.asset_indexes
-            }
+            self.asset_indexes = parse_asset_indexes(self.asset_indexes)
 
         if self.asset_expression:
-            self.asset_expression: Dict[str, str] = {  # type: ignore
-                idx.split("|")[0]: idx.split("|")[1] for idx in self.asset_expression
-            }
+            self.asset_expression = parse_asset_expression(self.asset_expression)
 
         if self.asset_indexes and self.indexes:
             warnings.warn(
@@ -430,7 +436,20 @@ def RescalingParams(
 ) -> Optional[RescaleType]:
     """Min/Max data Rescaling"""
     if rescale:
-        return [tuple(map(float, r.replace(" ", "").split(","))) for r in rescale]
+        rescale_array = []
+        for r in rescale:
+            parsed = tuple(
+                map(
+                    float,
+                    r.replace(" ", "").replace("[", "").replace("]", "").split(","),
+                )
+            )
+            assert (
+                len(parsed) == 2
+            ), f"Invalid rescale values: {rescale}, should be of form ['min,max', 'min,max'] or [[min,max], [min, max]]"
+            rescale_array.append(parsed)
+
+        return rescale_array
 
     return None
 
@@ -528,7 +547,12 @@ link: https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
             self.bins = 10
 
         if self.range:
-            self.range = list(map(float, self.range.split(",")))  # type: ignore
+            parsed = list(map(float, self.range.split(",")))
+            assert (
+                len(parsed) == 2
+            ), f"Invalid histogram_range values: {self.range}, should be of form 'min,max'"
+
+            self.range = parsed  # type: ignore
 
 
 def CoordCRSParams(
