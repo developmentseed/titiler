@@ -10,6 +10,22 @@ edit_uri: "blob/main/docs/src/"
 site_url: "https://developmentseed.org/titiler/"
 
 extra:
+  analytics:
+    provider: plausible
+    domain: developmentseed.org/titiler
+
+    feedback:
+      title: Was this page helpful?
+      ratings:
+        - icon: material/emoticon-happy-outline
+          name: This page was helpful
+          data: good
+          note: Thanks for your feedback!
+
+        - icon: material/emoticon-sad-outline
+          name: This page could be improved
+          data: bad
+          note: Thanks for your feedback!
   social:
     - icon: "fontawesome/brands/github"
       link: "https://github.com/developmentseed"
