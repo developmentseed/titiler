@@ -44,7 +44,7 @@ dev = [
 docs = [
     "nbconvert",
     "mkdocs",
-    "mkdocs-jupyter<0.24.7",
+    "mkdocs-jupyter",
     "mkdocs-material",
     "pygments",
     "pdocs",
