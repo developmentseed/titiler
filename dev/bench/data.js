@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1715066836260,
+  "lastUpdate": 1715067652675,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -5825,6 +5825,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.17,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "github@firefishy.com",
+            "name": "Grant",
+            "username": "Firefishy"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c69a4d5e3ff99ceec920240f1ea8e495f38efaff",
+          "message": "Add build support for arm64 (#740)\n\n* Enable arm64 container built\r\n\r\n* Enable Dependabot for GHA\r\n\r\n* Enable workflow_dispatch for github actions\r\n\r\n* Only login to Docker Hub for upstream repo\r\n\r\n* Update GHA actions. Simplify docker tag build\r\n\r\n* Build docker with python 3.11\r\n\r\n* DO-NOT-COMMIT: disable uvicorn build\r\n\r\n* Only tag latest on default branch\r\n\r\n* Apply suggestions from code review\r\n\r\n* add TODO\r\n\r\n---------\r\n\r\nCo-authored-by: vincentsarago <vincent.sarago@gmail.com>",
+          "timestamp": "2024-05-07T09:39:24+02:00",
+          "tree_id": "472562abd802fea3f4af6620fd66b53dafe38cf8",
+          "url": "https://github.com/developmentseed/titiler/commit/c69a4d5e3ff99ceec920240f1ea8e495f38efaff"
+        },
+        "date": 1715067651634,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.11,
             "unit": "s"
           },
           {
