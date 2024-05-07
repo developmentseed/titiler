@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1715066042431,
+  "lastUpdate": 1715066129406,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -5663,6 +5663,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad longest_transaction",
             "value": 0.06,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c71ead6404f6d050fcfc94d697c9f9e03d727b00",
+          "message": "Bump helm/kind-action from 1.9.0 to 1.10.0 in the all group (#813)\n\nBumps the all group with 1 update: [helm/kind-action](https://github.com/helm/kind-action).\r\n\r\n\r\nUpdates `helm/kind-action` from 1.9.0 to 1.10.0\r\n- [Release notes](https://github.com/helm/kind-action/releases)\r\n- [Commits](https://github.com/helm/kind-action/compare/v1.9.0...v1.10.0)\r\n\r\n---\r\nupdated-dependencies:\r\n- dependency-name: helm/kind-action\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-minor\r\n  dependency-group: all\r\n...\r\n\r\nSigned-off-by: dependabot[bot] <support@github.com>\r\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2024-05-07T09:13:52+02:00",
+          "tree_id": "54e0b642c8015f280cd5692b6ca3f83f89b8bf6b",
+          "url": "https://github.com/developmentseed/titiler/commit/c71ead6404f6d050fcfc94d697c9f9e03d727b00"
+        },
+        "date": 1715066128829,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.07,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.16,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
             "unit": "s"
           }
         ]
