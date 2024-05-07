@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1713881478194,
+  "lastUpdate": 1715066042431,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -5589,6 +5589,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.25,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "ng269@cornell.edu",
+            "name": "nate giraldi",
+            "username": "n8sty"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "11aa64c75612392c0c1521c0ab8e23386851a896",
+          "message": "fastapi-slim replaces fastapi (#815)\n\nSee https://github.com/tiangolo/fastapi/pull/11522 for details",
+          "timestamp": "2024-05-07T09:11:11+02:00",
+          "tree_id": "941605c6a4a20e2978695f7c54bcf73a24de0ddc",
+          "url": "https://github.com/developmentseed/titiler/commit/11aa64c75612392c0c1521c0ab8e23386851a896"
+        },
+        "date": 1715066041260,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.16,
             "unit": "s"
           },
           {
