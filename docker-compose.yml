@@ -2,6 +2,7 @@ version: '3'
 
 services:
   titiler:
+    # TODO: remove once https://github.com/rasterio/rasterio-wheels/issues/69 is resolved
     # See https://github.com/developmentseed/titiler/discussions/387
     platform: linux/amd64
     build:
@@ -47,6 +48,7 @@ services:
       # - RIO_TILER_MAX_THREADS=
 
   titiler-uvicorn:
+    # TODO: remove once https://github.com/rasterio/rasterio-wheels/issues/69 is resolved
     # See https://github.com/developmentseed/titiler/discussions/387
     platform: linux/amd64
     build:
