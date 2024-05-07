@@ -1,5 +1,9 @@
 # Release Notes
 
+## 0.18.2 (2024-05-07)
+
+* move to `fastapi-slim` to avoid unwanted dependencies (author @n8sty, https://github.com/developmentseed/titiler/pull/815)
+
 ## 0.18.1 (2024-04-12)
 
 ### titiler.core
