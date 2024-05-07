@@ -25,7 +25,9 @@ class ApiSettings(BaseSettings):
     # an API key required to access any endpoint, passed via the ?access_token= query parameter
     global_access_token: Optional[str] = None
 
-    model_config = SettingsConfigDict(env_prefix="TITILER_API_", env_file=".env")
+    model_config = SettingsConfigDict(
+        env_prefix="TITILER_API_", env_file=".env", extra="ignore"
+    )
 
     @field_validator("cors_origins")
     def parse_cors_origin(cls, v):

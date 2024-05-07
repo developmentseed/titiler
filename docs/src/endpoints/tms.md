@@ -1,17 +1,7 @@
-The `titiler.application` package comes with a full FastAPI application with COG, STAC and MosaicJSON supports.
+
+In addition to the `/cog`, `/stac` and `/mosaicjson` endpoints, the `titiler.application` package FastAPI application comes with additional metadata endpoints.
 
 # TileMatrixSets
-
-The `tms` router extend the default `titiler.core.factory.TMSFactory`, adding some custom TileMatrixSets.
-
-```python
-from fastapi import FastAPI
-from titiler.application.routers.tms import tms
-
-app = FastAPI()
-app.include_router(tms.router, tags=["TileMatrixSets"])
-```
-
 
 ## API
 

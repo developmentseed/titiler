@@ -17,9 +17,9 @@ class HillShade(BaseAlgorithm):
     description: str = "Create hillshade from DEM dataset."
 
     # parameters
-    azimuth: int = Field(90, ge=0, lt=360)
-    angle_altitude: float = Field(90.0, ge=-90.0, lt=90.0)
-    buffer: int = Field(3, ge=0, lt=99)
+    azimuth: int = Field(90, ge=0, le=360)
+    angle_altitude: float = Field(90.0, ge=-90.0, le=90.0)
+    buffer: int = Field(3, ge=0, le=99)
 
     # metadata
     input_nbands: int = 1
@@ -69,10 +69,10 @@ class Contours(BaseAlgorithm):
     description: str = "Create contours from DEM dataset."
 
     # parameters
-    increment: int = Field(35, ge=0, lt=999)
-    thickness: int = Field(1, ge=0, lt=10)
-    minz: int = Field(-12000, ge=-99999, lt=99999)
-    maxz: int = Field(8000, ge=-99999, lt=99999)
+    increment: int = Field(35, ge=0, le=999)
+    thickness: int = Field(1, ge=0, le=10)
+    minz: int = Field(-12000, ge=-99999, le=99999)
+    maxz: int = Field(8000, ge=-99999, le=99999)
 
     # metadata
     input_nbands: int = 1
@@ -132,12 +132,12 @@ class Terrarium(BaseAlgorithm):
 class TerrainRGB(BaseAlgorithm):
     """Encode DEM into RGB (Mapbox Terrain RGB)."""
 
-    title: str = "Terrarium"
+    title: str = "TerrainRGB"
     description: str = "Encode DEM into RGB (Mapbox Terrain RGB)."
 
     # parameters
-    interval: float = Field(0.1, ge=0.0, lt=1.0)
-    baseval: float = Field(-10000.0, ge=-99999.0, lt=99999.0)
+    interval: float = Field(0.1, ge=0.0, le=1.0)
+    baseval: float = Field(-10000.0, ge=-99999.0, le=99999.0)
 
     # metadata
     input_nbands: int = 1

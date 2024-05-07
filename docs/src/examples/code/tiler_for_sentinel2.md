@@ -165,7 +165,7 @@ dates = [f["properties"]["datetime"][0:10] for f in data["features"]]
 # Fetch TileJSON
 # For this example we use the first `sceneid` returned from the STAC API
 # and we sent the Bands to B04,B03,B02 which are red,green,blue
-data = httpx.get(f"{titiler_endpoint}/scenes/tilejson.json?sceneid={sceneid[4]}&bands=B04&bands=B03&bands=B02&rescale=0,2000").json()
+data = httpx.get(f"{titiler_endpoint}/scenes/WebMercatorQuad/tilejson.json?sceneid={sceneid[4]}&bands=B04&bands=B03&bands=B02&rescale=0,2000").json()
 print(data)
 ```
 
@@ -239,6 +239,6 @@ with MosaicBackend(mosaic_file, mosaic_def=mosaic_doc) as mosaic:
 Use the mosaic in titiler
 ```python
 mosaic = str(pathlib.Path(mosaic_file).absolute())
-data = httpx.get(f"{titiler_endpoint}/mosaic/tilejson.json?url=file:///{mosaic}&bands=B01&rescale=0,1000").json()
+data = httpx.get(f"{titiler_endpoint}/mosaic/WebMercatorQuad/tilejson.json?url=file:///{mosaic}&bands=B01&rescale=0,1000").json()
 print(data)
 ```

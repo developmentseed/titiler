@@ -21,18 +21,20 @@ classifiers = [
     "Intended Audience :: Information Technology",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: GIS",
 ]
-version="0.17.0"
+version="0.18.1"
 dependencies = [
-    "titiler.core==0.17.0",
-    "titiler.extensions==0.17.0",
-    "titiler.mosaic==0.17.0",
-    "titiler.application==0.17.0",
+    "titiler.core==0.18.1",
+    "titiler.extensions==0.18.1",
+    "titiler.mosaic==0.18.1",
+    "titiler.application==0.18.1",
 ]
 
 [project.optional-dependencies]

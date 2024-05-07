@@ -10,6 +10,22 @@ edit_uri: "blob/main/docs/src/"
 site_url: "https://developmentseed.org/titiler/"
 
 extra:
+  analytics:
+    provider: plausible
+    domain: developmentseed.org/titiler
+
+    feedback:
+      title: Was this page helpful?
+      ratings:
+        - icon: material/emoticon-happy-outline
+          name: This page was helpful
+          data: good
+          note: Thanks for your feedback!
+
+        - icon: material/emoticon-sad-outline
+          name: This page could be improved
+          data: bad
+          note: Thanks for your feedback!
   social:
     - icon: "fontawesome/brands/github"
       link: "https://github.com/developmentseed"
@@ -28,7 +44,7 @@ nav:
     - Output data format: "output_format.md"
 
   - Advanced User Guide:
-      - Tiler Factories: "advanced/tiler_factories.md"
+      - Endpoints Factories: "advanced/endpoints_factories.md"
       - Dependencies: "advanced/dependencies.md"
       - Customization: "advanced/customization.md"
       - Performance Tuning: "advanced/performance_tuning.md"
@@ -42,6 +58,8 @@ nav:
     - /stac: "endpoints/stac.md"
     - /mosaicjson: "endpoints/mosaic.md"
     - /tileMatrixSets: "endpoints/tms.md"
+    - /algorithms: "endpoints/algorithms.md"
+    - /colormaps: "endpoints/colormaps.md"
 
   - Examples:
     - Create dynamic tilers with TiTiler:

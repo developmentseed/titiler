@@ -20,6 +20,7 @@ from fastapi import Depends, FastAPI, HTTPException, Path, Query, security, stat
 from morecantile.defaults import TileMatrixSets
 from rasterio.crs import CRS
 from rasterio.io import MemoryFile
+from rio_tiler.colormap import cmap as default_cmap
 from rio_tiler.errors import NoOverviewWarning
 from rio_tiler.io import BaseReader, MultiBandReader, Reader, STACReader
 from starlette.requests import Request
@@ -30,6 +31,7 @@ from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 from titiler.core.factory import (
     AlgorithmFactory,
     BaseTilerFactory,
+    ColorMapFactory,
     MultiBandTilerFactory,
     MultiBaseTilerFactory,
     TilerFactory,
@@ -62,7 +64,9 @@ def test_TilerFactory():
     response = client.get("/docs")
     assert response.status_code == 200
 
-    response = client.get(f"/something/tilejson.json?url={DATA_DIR}/cog.tif")
+    response = client.get(
+        f"/something/WebMercatorQuad/tilejson.json?url={DATA_DIR}/cog.tif"
+    )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
     assert response.json()["tilejson"]
@@ -81,17 +85,19 @@ def test_TilerFactory():
 
     client = TestClient(app)
 
-    response = client.get(f"/tiles/8/87/48?url={DATA_DIR}/cog.tif&rescale=0,1000")
+    response = client.get(
+        f"/tiles/WebMercatorQuad/8/87/48?url={DATA_DIR}/cog.tif&rescale=0,1000"
+    )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/jpeg"
     response = client.get(
-        f"/tiles/8/87/48?url={DATA_DIR}/cog.tif&rescale=-3.4028235e+38,3.4028235e+38"
+        f"/tiles/WebMercatorQuad/8/87/48?url={DATA_DIR}/cog.tif&rescale=-3.4028235e+38,3.4028235e+38"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/jpeg"
 
     response = client.get(
-        f"/tiles/8/87/48.tif?url={DATA_DIR}/cog.tif&bidx=1&bidx=1&bidx=1&return_mask=false"
+        f"/tiles/WebMercatorQuad/8/87/48.tif?url={DATA_DIR}/cog.tif&bidx=1&bidx=1&bidx=1&return_mask=false"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/tiff; application=geotiff"
@@ -102,7 +108,7 @@ def test_TilerFactory():
     assert meta["height"] == 256
 
     response = client.get(
-        "/tiles/8/87/48.tif",
+        "/tiles/WebMercatorQuad/8/87/48.tif",
         params={
             "url": f"{DATA_DIR}/cog.tif",
             "expression": "b1;b1;b1",
@@ -118,14 +124,14 @@ def test_TilerFactory():
     assert meta["height"] == 256
 
     response = client.get(
-        f"/tiles/8/84/47?url={DATA_DIR}/cog.tif&bidx=1&rescale=0,1000&colormap_name=viridis"
+        f"/tiles/WebMercatorQuad/8/84/47?url={DATA_DIR}/cog.tif&bidx=1&rescale=0,1000&colormap_name=viridis"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
 
     # Dict
     response = client.get(
-        "/tiles/8/84/47.png",
+        "/tiles/WebMercatorQuad/8/84/47.png",
         params={
             "url": f"{DATA_DIR}/cog.tif",
             "bidx": 1,
@@ -144,7 +150,7 @@ def test_TilerFactory():
 
     # Intervals
     response = client.get(
-        "/tiles/8/84/47.png",
+        "/tiles/WebMercatorQuad/8/84/47.png",
         params={
             "url": f"{DATA_DIR}/cog.tif",
             "bidx": 1,
@@ -163,23 +169,29 @@ def test_TilerFactory():
 
     # Bad colormap format
     cmap = urlencode({"colormap": json.dumps({"1": [58, 102]})})
-    response = client.get(f"/tiles/8/84/47.png?url={DATA_DIR}/cog.tif&bidx=1&{cmap}")
+    response = client.get(
+        f"/tiles/WebMercatorQuad/8/84/47.png?url={DATA_DIR}/cog.tif&bidx=1&{cmap}"
+    )
     assert response.status_code == 400
 
     # no json encoding
     cmap = urlencode({"colormap": {"1": [58, 102]}})
-    response = client.get(f"/tiles/8/84/47.png?url={DATA_DIR}/cog.tif&bidx=1&{cmap}")
+    response = client.get(
+        f"/tiles/WebMercatorQuad/8/84/47.png?url={DATA_DIR}/cog.tif&bidx=1&{cmap}"
+    )
     assert response.status_code == 400
 
     # Test NumpyTile
-    response = client.get(f"/tiles/8/87/48.npy?url={DATA_DIR}/cog.tif")
+    response = client.get(f"/tiles/WebMercatorQuad/8/87/48.npy?url={DATA_DIR}/cog.tif")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/x-binary"
     npy_tile = numpy.load(BytesIO(response.content))
     assert npy_tile.shape == (2, 256, 256)  # mask + data
 
     # Test Buffer
-    response = client.get(f"/tiles/8/87/48.npy?url={DATA_DIR}/cog.tif&buffer=10")
+    response = client.get(
+        f"/tiles/WebMercatorQuad/8/87/48.npy?url={DATA_DIR}/cog.tif&buffer=10"
+    )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/x-binary"
     npy_tile = numpy.load(BytesIO(response.content))
@@ -221,7 +233,7 @@ def test_TilerFactory():
     assert len(response.json()["values"]) == 1
     assert response.json()["band_names"] == ["b1*2"]
 
-    response = client.get(f"/tilejson.json?url={DATA_DIR}/cog.tif")
+    response = client.get(f"/WebMercatorQuad/tilejson.json?url={DATA_DIR}/cog.tif")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
     assert response.json()["tilejson"]
@@ -231,18 +243,17 @@ def test_TilerFactory():
     assert response.headers["content-type"] == "application/json"
     assert response.json()["tilejson"]
 
-    response_qs = client.get(
-        f"/tilejson.json?url={DATA_DIR}/cog.tif&tileMatrixSetId=WorldCRS84Quad"
+    response = client.get(
+        f"/WebMercatorQuad/tilejson.json?url={DATA_DIR}/cog.tif&tile_format=png"
     )
-    assert response.json()["tiles"] == response_qs.json()["tiles"]
-
-    response = client.get(f"/tilejson.json?url={DATA_DIR}/cog.tif&tile_format=png")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
     assert response.json()["tilejson"]
     assert "png" in response.json()["tiles"][0]
 
-    response = client.get(f"/tilejson.json?url={DATA_DIR}/cog.tif&minzoom=5&maxzoom=12")
+    response = client.get(
+        f"/WebMercatorQuad/tilejson.json?url={DATA_DIR}/cog.tif&minzoom=5&maxzoom=12"
+    )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
     assert response.json()["tilejson"]
@@ -250,7 +261,7 @@ def test_TilerFactory():
     assert response.json()["maxzoom"] == 12
 
     response = client.get(
-        f"/WMTSCapabilities.xml?url={DATA_DIR}/cog.tif&minzoom=5&maxzoom=12"
+        f"/WebMercatorQuad/WMTSCapabilities.xml?url={DATA_DIR}/cog.tif&minzoom=5&maxzoom=12"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/xml"
@@ -1431,7 +1442,7 @@ def test_TilerFactory_WithDependencies():
             (
                 [
                     {"path": "/bounds", "method": "GET"},
-                    {"path": "/tiles/{z}/{x}/{y}", "method": "GET"},
+                    {"path": "/tiles/{tileMatrixSetId}/{z}/{x}/{y}", "method": "GET"},
                 ],
                 [Depends(must_be_bob)],
             ),
@@ -1447,7 +1458,9 @@ def test_TilerFactory_WithDependencies():
     auth_bob = httpx.BasicAuth(username="bob", password="ILoveSponge")
     auth_notbob = httpx.BasicAuth(username="notbob", password="IHateSponge")
 
-    response = client.get(f"/something/tilejson.json?url={DATA_DIR}/cog.tif")
+    response = client.get(
+        f"/something/WebMercatorQuad/tilejson.json?url={DATA_DIR}/cog.tif"
+    )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
     assert response.json()["tilejson"]
@@ -1464,20 +1477,21 @@ def test_TilerFactory_WithDependencies():
     assert response.json()["detail"] == "You're not Bob"
 
     response = client.get(
-        f"/something/tiles/8/87/48?url={DATA_DIR}/cog.tif&rescale=0,1000", auth=auth_bob
+        f"/something/tiles/WebMercatorQuad/8/87/48?url={DATA_DIR}/cog.tif&rescale=0,1000",
+        auth=auth_bob,
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/jpeg"
 
     response = client.get(
-        f"/something/tiles/8/87/48?url={DATA_DIR}/cog.tif&rescale=0,1000",
+        f"/something/tiles/WebMercatorQuad/8/87/48?url={DATA_DIR}/cog.tif&rescale=0,1000",
         auth=auth_notbob,
     )
     assert response.status_code == 401
     assert response.json()["detail"] == "You're not Bob"
 
     response = client.get(
-        f"/something/tiles/8/87/48.jpeg?url={DATA_DIR}/cog.tif&rescale=0,1000"
+        f"/something/tiles/WebMercatorQuad/8/87/48.jpeg?url={DATA_DIR}/cog.tif&rescale=0,1000"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/jpeg"
@@ -1492,7 +1506,9 @@ def test_TilerFactory_WithDependencies():
     app.include_router(cog.router, prefix="/something")
     client = TestClient(app)
 
-    response = client.get(f"/something/tilejson.json?url={DATA_DIR}/cog.tif")
+    response = client.get(
+        f"/something/WebMercatorQuad/tilejson.json?url={DATA_DIR}/cog.tif"
+    )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
     assert response.json()["tilejson"]
@@ -1665,7 +1681,7 @@ def test_rescale_dependency():
 
     with TestClient(app) as client:
         response = client.get(
-            f"/cog/tiles/8/87/48.npy?url={DATA_DIR}/cog.tif&rescale=0,1000"
+            f"/cog/tiles/WebMercatorQuad/8/87/48.npy?url={DATA_DIR}/cog.tif&rescale=0,1000"
         )
         assert response.status_code == 200
         assert response.headers["content-type"] == "application/x-binary"
@@ -1673,7 +1689,7 @@ def test_rescale_dependency():
         assert npy_tile.shape == (2, 256, 256)  # mask + data
 
         response = client.get(
-            f"/cog_custom/tiles/8/87/48.npy?url={DATA_DIR}/cog.tif&rescale=0,1000"
+            f"/cog_custom/tiles/WebMercatorQuad/8/87/48.npy?url={DATA_DIR}/cog.tif&rescale=0,1000"
         )
         assert response.status_code == 200
         assert response.headers["content-type"] == "application/x-binary"
@@ -1749,15 +1765,146 @@ def test_color_formula_dependency():
 
     with TestClient(app) as client:
         response = client.get(
-            f"/cog/tiles/8/87/48.npy?url={DATA_DIR}/cog.tif&color_formula=sigmoidal R 10 0.1"
+            f"/cog/tiles/WebMercatorQuad/8/87/48.npy?url={DATA_DIR}/cog.tif&color_formula=sigmoidal R 10 0.1"
         )
         assert response.status_code == 200
         assert response.headers["content-type"] == "application/x-binary"
         npy_tile = numpy.load(BytesIO(response.content))
         assert npy_tile.shape == (2, 256, 256)  # mask + data
 
-        response = client.get(f"/cog_custom/tiles/8/87/48.npy?url={DATA_DIR}/cog.tif")
+        response = client.get(
+            f"/cog_custom/tiles/WebMercatorQuad/8/87/48.npy?url={DATA_DIR}/cog.tif"
+        )
         assert response.status_code == 200
         assert response.headers["content-type"] == "application/x-binary"
         numpy.load(BytesIO(response.content))
         assert npy_tile.shape == (2, 256, 256)  # mask + data
+
+
+def test_colormap_factory():
+    """Test ColorMapFactory endpoint."""
+    # Register custom colormaps
+    cmaps = default_cmap.register(
+        {
+            "cust": {0: (0, 0, 0, 255), 1: (255, 0, 0, 255), 255: (255, 255, 0, 255)},
+            "negative": {
+                -100: (0, 0, 0, 255),
+                1: (255, 0, 0, 255),
+                255: (255, 255, 0, 255),
+            },
+            "seq": [
+                ((1, 2), (255, 0, 0, 255)),
+                ((2, 3), (255, 240, 255, 255)),
+            ],
+        }
+    )
+
+    cmaps = ColorMapFactory(supported_colormaps=cmaps)
+
+    app = FastAPI()
+    app.include_router(cmaps.router)
+    client = TestClient(app)
+
+    response = client.get("/colorMaps")
+    assert response.status_code == 200
+    assert "cust" in response.json()["colorMaps"]
+    assert "negative" in response.json()["colorMaps"]
+    assert "seq" in response.json()["colorMaps"]
+    assert "viridis" in response.json()["colorMaps"]
+
+    response = client.get("/colorMaps/viridis")
+    assert response.status_code == 200
+
+    response = client.get("/colorMaps/cust")
+    assert response.status_code == 200
+
+    response = client.get("/colorMaps/negative")
+    assert response.status_code == 200
+
+    response = client.get("/colorMaps/seq")
+    assert response.status_code == 200
+
+    response = client.get("/colorMaps/yo")
+    assert response.status_code == 422
+
+    response = client.get("/colorMaps/viridis", params={"format": "png"})
+    assert response.status_code == 200
+    meta = parse_img(response.content)
+    assert meta["dtype"] == "uint8"
+    assert meta["count"] == 4
+    assert meta["width"] == 256
+    assert meta["height"] == 20
+
+    response = client.get(
+        "/colorMaps/viridis", params={"format": "png", "orientation": "vertical"}
+    )
+    assert response.status_code == 200
+    meta = parse_img(response.content)
+    assert meta["dtype"] == "uint8"
+    assert meta["count"] == 4
+    assert meta["width"] == 20
+    assert meta["height"] == 256
+
+    response = client.get(
+        "/colorMaps/viridis", params={"format": "png", "width": 1000, "height": 100}
+    )
+    assert response.status_code == 200
+    meta = parse_img(response.content)
+    assert meta["dtype"] == "uint8"
+    assert meta["count"] == 4
+    assert meta["width"] == 1000
+    assert meta["height"] == 100
+
+    response = client.get("/colorMaps/cust", params={"format": "png"})
+    assert response.status_code == 200
+    meta = parse_img(response.content)
+    assert meta["dtype"] == "uint8"
+    assert meta["count"] == 4
+    assert meta["width"] == 256
+    assert meta["height"] == 20
+
+    response = client.get(
+        "/colorMaps/cust", params={"format": "png", "orientation": "vertical"}
+    )
+    assert response.status_code == 200
+    meta = parse_img(response.content)
+    assert meta["dtype"] == "uint8"
+    assert meta["count"] == 4
+    assert meta["width"] == 20
+    assert meta["height"] == 256
+
+    response = client.get("/colorMaps/negative", params={"format": "png"})
+    assert response.status_code == 200
+    meta = parse_img(response.content)
+    assert meta["dtype"] == "uint8"
+    assert meta["count"] == 4
+    assert meta["width"] == 256
+    assert meta["height"] == 20
+
+    response = client.get(
+        "/colorMaps/negative", params={"format": "png", "orientation": "vertical"}
+    )
+    assert response.status_code == 200
+    meta = parse_img(response.content)
+    assert meta["dtype"] == "uint8"
+    assert meta["count"] == 4
+    assert meta["width"] == 20
+    assert meta["height"] == 256
+
+    response = client.get("/colorMaps/seq", params={"format": "png"})
+    assert response.status_code == 200
+    meta = parse_img(response.content)
+    assert meta["dtype"] == "uint8"
+    assert meta["count"] == 4
+    assert meta["width"] == 256
+    assert meta["height"] == 20
+
+    response = client.get(
+        "/colorMaps/seq", params={"format": "png", "orientation": "vertical"}
+    )
+    assert response.status_code == 200
+    meta = parse_img(response.content)
+    assert meta["dtype"] == "uint8"
+    assert meta["count"] == 4
+    assert meta["width"] == 20
+    assert meta["height"] == 256

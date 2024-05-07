@@ -1,6 +1,79 @@
 # Release Notes
 
-## Unreleased
+## 0.18.2 (2024-05-07)
+
+* move to `fastapi-slim` to avoid unwanted dependencies (author @n8sty, https://github.com/developmentseed/titiler/pull/815)
+
+## 0.18.1 (2024-04-12)
+
+### titiler.core
+
+* fix `TerrainRGB` algorithm name (author @JinIgarashi, https://github.com/developmentseed/titiler/pull/804)
+* add more tests for `RescalingParams` and `HistogramParams` dependencies
+* make sure to return *empty* content for `204` Error code
+
+## 0.18.0 (2024-03-22)
+
+### titiler.core
+
+* Add `ColorMapFactory` to create colorMap metadata endpoints (https://github.com/developmentseed/titiler/pull/796)
+* **Deprecation** remove default `WebMercatorQuad` tile matrix set in `/tiles`, `/tilesjson.json`, `/map` and `/WMTSCapabilities.xml` endpoints (https://github.com/developmentseed/titiler/pull/802)
+
+    ```
+    # Before
+    /tiles/{z}/{x}/{y}
+    /tilejson.json
+    /map
+    /WMTSCapabilities.xml
+
+    # Now
+    /tiles/WebMercatorQuad/{z}/{x}/{y}
+    /WebMercatorQuad/tilejson.json
+    /WebMercatorQuad/map
+    /WebMercatorQuad/WMTSCapabilities.xml
+    ```
+
+* **Deprecation** `default_tms` attribute in `BaseTilerFactory` (because `tileMatrixSetId` is now required in endpoints).
+
+### titiler.mosaic
+
+* **Deprecation** remove default `WebMercatorQuad` tile matrix set in `/tiles`, `/tilesjson.json`, `/map` and `/WMTSCapabilities.xml` endpoints (https://github.com/developmentseed/titiler/pull/802)
+
+    ```
+    # Before
+    /tiles/{z}/{x}/{y}
+    /tilejson.json
+    /map
+    /WMTSCapabilities.xml
+
+    # Now
+    /tiles/WebMercatorQuad/{z}/{x}/{y}
+    /WebMercatorQuad/tilejson.json
+    /WebMercatorQuad/map
+    /WebMercatorQuad/WMTSCapabilities.xml
+    ```
+
+* **Deprecation** `default_tms` attribute in `MosaicTilerFactory` (because `tileMatrixSetId` is now required in endpoints).
+
+### Misc
+
+* add `request` as first argument in `TemplateResponse` to adapt with latest starlette version
+
+## 0.17.3 (2024-03-21)
+
+### titiler.application
+
+* Add `extra="ignore"` option `ApiSettings` to fix pydantic issue when using `.env` file (author @imanshafiei540, https://github.com/developmentseed/titiler/pull/800)
+
+## 0.17.2 (2024-03-15)
+
+### titiler.core
+
+* fix OpenAPI metadata for algorithm (author @JinIgarashi, https://github.com/developmentseed/titiler/pull/797)
+
+## 0.17.1 (2024-03-13)
+
+* add python 3.12 support
 
 ### titiler.core
 

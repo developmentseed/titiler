@@ -54,12 +54,14 @@ def test_wmts(rio, app):
     """test wmts endpoints."""
     rio.open = mock_rasterio_open
 
-    response = app.get("/cog/WMTSCapabilities.xml?url=https://myurl.com/cog.tif")
+    response = app.get(
+        "/cog/WebMercatorQuad/WMTSCapabilities.xml?url=https://myurl.com/cog.tif"
+    )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/xml"
     assert response.headers["Cache-Control"] == "private, max-age=3600"
     assert (
-        "http://testserver/cog/WMTSCapabilities.xml?url=https"
+        "http://testserver/cog/WebMercatorQuad/WMTSCapabilities.xml?url=https"
         in response.content.decode()
     )
     assert "<ows:Identifier>cogeo</ows:Identifier>" in response.content.decode()
@@ -73,7 +75,7 @@ def test_wmts(rio, app):
     )
 
     response = app.get(
-        "/cog/WMTSCapabilities.xml?url=https://myurl.com/cog.tif&tile_scale=2&tile_format=jpg"
+        "/cog/WebMercatorQuad/WMTSCapabilities.xml?url=https://myurl.com/cog.tif&tile_scale=2&tile_format=jpg"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/xml"
@@ -83,7 +85,7 @@ def test_wmts(rio, app):
     )
 
     response = app.get(
-        "/cog/WMTSCapabilities.xml?url=https://myurl.com/cog.tif&use_epsg=true"
+        "/cog/WebMercatorQuad/WMTSCapabilities.xml?url=https://myurl.com/cog.tif&use_epsg=true"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/xml"
@@ -97,7 +99,7 @@ def test_tile(rio, app):
 
     # full tile
     response = app.get(
-        "/cog/tiles/8/87/48?url=https://myurl.com/cog.tif&rescale=0,1000"
+        "/cog/tiles/WebMercatorQuad/8/87/48?url=https://myurl.com/cog.tif&rescale=0,1000"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/jpeg"
@@ -107,7 +109,7 @@ def test_tile(rio, app):
     assert meta["height"] == 256
 
     response = app.get(
-        "/cog/tiles/8/87/48@2x?url=https://myurl.com/cog.tif&rescale=0,1000&color_formula=Gamma R 3"
+        "/cog/tiles/WebMercatorQuad/8/87/48@2x?url=https://myurl.com/cog.tif&rescale=0,1000&color_formula=Gamma R 3"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/jpeg"
@@ -116,25 +118,25 @@ def test_tile(rio, app):
     assert meta["height"] == 512
 
     response = app.get(
-        "/cog/tiles/8/87/48.jpg?url=https://myurl.com/cog.tif&rescale=0,1000"
+        "/cog/tiles/WebMercatorQuad/8/87/48.jpg?url=https://myurl.com/cog.tif&rescale=0,1000"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/jpg"
 
     response = app.get(
-        "/cog/tiles/8/87/48.jpeg?url=https://myurl.com/cog.tif&rescale=0,1000"
+        "/cog/tiles/WebMercatorQuad/8/87/48.jpeg?url=https://myurl.com/cog.tif&rescale=0,1000"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/jpeg"
 
     response = app.get(
-        "/cog/tiles/8/87/48@2x.jpg?url=https://myurl.com/cog.tif&rescale=0,1000"
+        "/cog/tiles/WebMercatorQuad/8/87/48@2x.jpg?url=https://myurl.com/cog.tif&rescale=0,1000"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/jpg"
 
     response = app.get(
-        "/cog/tiles/8/87/48@2x.tif?url=https://myurl.com/cog.tif&nodata=0&bidx=1"
+        "/cog/tiles/WebMercatorQuad/8/87/48@2x.tif?url=https://myurl.com/cog.tif&nodata=0&bidx=1"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/tiff; application=geotiff"
@@ -144,14 +146,16 @@ def test_tile(rio, app):
     assert meta["width"] == 512
     assert meta["height"] == 512
 
-    response = app.get("/cog/tiles/8/87/48.npy?url=https://myurl.com/cog.tif&nodata=0")
+    response = app.get(
+        "/cog/tiles/WebMercatorQuad/8/87/48.npy?url=https://myurl.com/cog.tif&nodata=0"
+    )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/x-binary"
     data = numpy.load(BytesIO(response.content))
     assert data.shape == (2, 256, 256)
 
     response = app.get(
-        "/cog/tiles/8/87/48.npy?url=https://myurl.com/cog.tif&nodata=0&return_mask=false"
+        "/cog/tiles/WebMercatorQuad/8/87/48.npy?url=https://myurl.com/cog.tif&nodata=0&return_mask=false"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/x-binary"
@@ -161,7 +165,7 @@ def test_tile(rio, app):
     # Test brotli compression
     headers = {"Accept-Encoding": "br"}
     response = app.get(
-        "/cog/tiles/8/87/48.npy?url=https://myurl.com/cog.tif&nodata=0&return_mask=false",
+        "/cog/tiles/WebMercatorQuad/8/87/48.npy?url=https://myurl.com/cog.tif&nodata=0&return_mask=false",
         headers=headers,
     )
     assert response.status_code == 200
@@ -170,7 +174,7 @@ def test_tile(rio, app):
     # Exclude png from compression middleware
     headers = {"Accept-Encoding": "br"}
     response = app.get(
-        "/cog/tiles/8/87/48.png?url=https://myurl.com/cog.tif&nodata=0&return_mask=false",
+        "/cog/tiles/WebMercatorQuad/8/87/48.png?url=https://myurl.com/cog.tif&nodata=0&return_mask=false",
         headers=headers,
     )
     assert response.status_code == 200
@@ -179,7 +183,7 @@ def test_tile(rio, app):
     # Test gzip fallback
     headers = {"Accept-Encoding": "gzip"}
     response = app.get(
-        "/cog/tiles/8/87/48.npy?url=https://myurl.com/cog.tif&nodata=0&return_mask=false",
+        "/cog/tiles/WebMercatorQuad/8/87/48.npy?url=https://myurl.com/cog.tif&nodata=0&return_mask=false",
         headers=headers,
     )
     assert response.status_code == 200
@@ -187,20 +191,20 @@ def test_tile(rio, app):
 
     # partial
     response = app.get(
-        "/cog/tiles/8/84/47?url=https://myurl.com/cog.tif&rescale=0,1000"
+        "/cog/tiles/WebMercatorQuad/8/84/47?url=https://myurl.com/cog.tif&rescale=0,1000"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
 
     response = app.get(
-        "/cog/tiles/8/84/47?url=https://myurl.com/cog.tif&nodata=0&rescale=0,1000&colormap_name=viridis"
+        "/cog/tiles/WebMercatorQuad/8/84/47?url=https://myurl.com/cog.tif&nodata=0&rescale=0,1000&colormap_name=viridis"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
 
     # valid colormap
     response = app.get(
-        "/cog/tiles/8/53/50.png",
+        "/cog/tiles/WebMercatorQuad/8/53/50.png",
         params={
             "url": "https://myurl.com/above_cog.tif",
             "bidx": 1,
@@ -219,7 +223,7 @@ def test_tile(rio, app):
 
     # invalid colormap shape
     response = app.get(
-        "/cog/tiles/8/53/50.png",
+        "/cog/tiles/WebMercatorQuad/8/53/50.png",
         params={
             "url": "https://myurl.com/above_cog.tif",
             "bidx": 1,
@@ -230,12 +234,12 @@ def test_tile(rio, app):
 
     # bad resampling
     response = app.get(
-        "/cog/tiles/8/53/50.png?url=https://myurl.com/above_cog.tif&bidx=1&resampling=somethingwrong"
+        "/cog/tiles/WebMercatorQuad/8/53/50.png?url=https://myurl.com/above_cog.tif&bidx=1&resampling=somethingwrong"
     )
     assert response.status_code == 422
 
     response = app.get(
-        "/cog/tiles/8/87/48@2x.tif?url=https://myurl.com/cog.tif&nodata=0&bidx=1&return_mask=false"
+        "/cog/tiles/WebMercatorQuad/8/87/48@2x.tif?url=https://myurl.com/cog.tif&nodata=0&bidx=1&return_mask=false"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/tiff; application=geotiff"
@@ -251,7 +255,9 @@ def test_tilejson(rio, app):
     """test /tilejson endpoint."""
     rio.open = mock_rasterio_open
 
-    response = app.get("/cog/tilejson.json?url=https://myurl.com/cog.tif")
+    response = app.get(
+        "/cog/WebMercatorQuad/tilejson.json?url=https://myurl.com/cog.tif"
+    )
     assert response.status_code == 200
     body = response.json()
     assert body["tilejson"] == "2.2.0"
@@ -267,7 +273,7 @@ def test_tilejson(rio, app):
     assert body["center"]
 
     response = app.get(
-        "/cog/tilejson.json?url=https://myurl.com/cog.tif&tile_format=png&tile_scale=2"
+        "/cog/WebMercatorQuad/tilejson.json?url=https://myurl.com/cog.tif&tile_format=png&tile_scale=2"
     )
     assert response.status_code == 200
     body = response.json()
@@ -282,7 +288,7 @@ def test_tilejson(rio, app):
         "4": "#ddcb9aFF",
     }
     response = app.get(
-        "/cog/tilejson.json",
+        "/cog/WebMercatorQuad/tilejson.json",
         params={
             "url": "https://myurl.com/above_cog.tif",
             "bidx": 1,
@@ -433,7 +439,9 @@ def test_tile_outside_bounds_error(rio, app):
     """raise 404 when tile is not found."""
     rio.open = mock_rasterio_open
 
-    response = app.get("/cog/tiles/15/0/0?url=https://myurl.com/cog.tif&rescale=0,1000")
+    response = app.get(
+        "/cog/tiles/WebMercatorQuad/15/0/0?url=https://myurl.com/cog.tif&rescale=0,1000"
+    )
     assert response.status_code == 404
     assert response.headers["Cache-Control"] == "private, max-age=3600"
 

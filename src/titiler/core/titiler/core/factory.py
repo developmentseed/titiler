@@ -1,11 +1,24 @@
 """TiTiler Router factories."""
 
 import abc
+import warnings
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Type, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Literal,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    Union,
+)
 from urllib.parse import urlencode
 
 import jinja2
+import numpy
 import rasterio
 from fastapi import APIRouter, Body, Depends, Path, Query
 from fastapi.dependencies.utils import get_parameterless_sub_dependant
@@ -16,9 +29,11 @@ from morecantile import TileMatrixSet
 from morecantile import tms as morecantile_tms
 from morecantile.defaults import TileMatrixSets
 from pydantic import conint
+from rio_tiler.colormap import ColorMaps
+from rio_tiler.colormap import cmap as default_cmap
 from rio_tiler.constants import WGS84_CRS
 from rio_tiler.io import BaseReader, MultiBandReader, MultiBaseReader, Reader
-from rio_tiler.models import Bounds, Info
+from rio_tiler.models import Bounds, ImageData, Info
 from rio_tiler.types import ColorMapType
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, Response
@@ -56,6 +71,7 @@ from titiler.core.dependencies import (
 from titiler.core.models.mapbox import TileJSON
 from titiler.core.models.OGC import TileMatrixSetList
 from titiler.core.models.responses import (
+    ColorMapsList,
     InfoGeoJSON,
     MultiBaseInfo,
     MultiBaseInfoGeoJSON,
@@ -161,7 +177,7 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
 
     # TileMatrixSet dependency
     supported_tms: TileMatrixSets = morecantile_tms
-    default_tms: str = "WebMercatorQuad"
+    default_tms: Optional[str] = None
 
     # Router Prefix is needed to find the path for /tile if the TilerFactory.router is mounted
     # with other router (multiple `.../tile` routes).
@@ -182,6 +198,15 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
 
     def __post_init__(self):
         """Post Init: register route and configure specific options."""
+        # TODO: remove this in 0.19
+        if self.default_tms:
+            warnings.warn(
+                "`default_tms` attribute is deprecated and will be removed in 0.19.",
+                DeprecationWarning,
+            )
+
+        self.default_tms = self.default_tms or "WebMercatorQuad"
+
         # Register endpoints
         self.register_routes()
 
@@ -505,10 +530,18 @@ class TilerFactory(BaseTilerFactory):
     def tile(self):  # noqa: C901
         """Register /tiles endpoint."""
 
-        @self.router.get(r"/tiles/{z}/{x}/{y}", **img_endpoint_params)
-        @self.router.get(r"/tiles/{z}/{x}/{y}.{format}", **img_endpoint_params)
-        @self.router.get(r"/tiles/{z}/{x}/{y}@{scale}x", **img_endpoint_params)
-        @self.router.get(r"/tiles/{z}/{x}/{y}@{scale}x.{format}", **img_endpoint_params)
+        @self.router.get(r"/tiles/{z}/{x}/{y}", **img_endpoint_params, deprecated=True)
+        @self.router.get(
+            r"/tiles/{z}/{x}/{y}.{format}", **img_endpoint_params, deprecated=True
+        )
+        @self.router.get(
+            r"/tiles/{z}/{x}/{y}@{scale}x", **img_endpoint_params, deprecated=True
+        )
+        @self.router.get(
+            r"/tiles/{z}/{x}/{y}@{scale}x.{format}",
+            **img_endpoint_params,
+            deprecated=True,
+        )
         @self.router.get(r"/tiles/{tileMatrixSetId}/{z}/{x}/{y}", **img_endpoint_params)
         @self.router.get(
             r"/tiles/{tileMatrixSetId}/{z}/{x}/{y}.{format}", **img_endpoint_params
@@ -603,6 +636,7 @@ class TilerFactory(BaseTilerFactory):
             response_model=TileJSON,
             responses={200: {"description": "Return a tilejson"}},
             response_model_exclude_none=True,
+            deprecated=True,
         )
         @self.router.get(
             "/{tileMatrixSetId}/tilejson.json",
@@ -688,7 +722,7 @@ class TilerFactory(BaseTilerFactory):
     def map_viewer(self):  # noqa: C901
         """Register /map endpoint."""
 
-        @self.router.get("/map", response_class=HTMLResponse)
+        @self.router.get("/map", response_class=HTMLResponse, deprecated=True)
         @self.router.get("/{tileMatrixSetId}/map", response_class=HTMLResponse)
         def map_viewer(
             request: Request,
@@ -737,9 +771,9 @@ class TilerFactory(BaseTilerFactory):
 
             tms = self.supported_tms.get(tileMatrixSetId)
             return self.templates.TemplateResponse(
+                request,
                 name="map.html",
                 context={
-                    "request": request,
                     "tilejson_endpoint": tilejson_url,
                     "tms": tms,
                     "resolutions": [matrix.cellSize for matrix in tms],
@@ -750,7 +784,9 @@ class TilerFactory(BaseTilerFactory):
     def wmts(self):  # noqa: C901
         """Register /wmts endpoint."""
 
-        @self.router.get("/WMTSCapabilities.xml", response_class=XMLResponse)
+        @self.router.get(
+            "/WMTSCapabilities.xml", response_class=XMLResponse, deprecated=True
+        )
         @self.router.get(
             "/{tileMatrixSetId}/WMTSCapabilities.xml", response_class=XMLResponse
         )
@@ -853,9 +889,9 @@ class TilerFactory(BaseTilerFactory):
                 supported_crs = tms.crs.srs
 
             return self.templates.TemplateResponse(
-                "wmts.xml",
-                {
-                    "request": request,
+                request,
+                name="wmts.xml",
+                context={
                     "tiles_endpoint": tiles_url,
                     "bounds": bounds,
                     "tileMatrix": tileMatrix,
@@ -1731,3 +1767,176 @@ class AlgorithmFactory:
         ):
             """Retrieve the metadata of the specified algorithm."""
             return metadata(self.supported_algorithm.get(algorithm))
+
+
+@dataclass
+class ColorMapFactory:
+    """Colormap endpoints Factory."""
+
+    # Supported colormaps
+    supported_colormaps: ColorMaps = default_cmap
+
+    # FastAPI router
+    router: APIRouter = field(default_factory=APIRouter)
+
+    def url_for(self, request: Request, name: str, **path_params: Any) -> str:
+        """Return full url (with prefix) for a specific endpoint."""
+        url_path = self.router.url_path_for(name, **path_params)
+        base_url = str(request.base_url)
+        return str(url_path.make_absolute_url(base_url=base_url))
+
+    def __post_init__(self):  # noqa: C901
+        """Post Init: register routes"""
+
+        @self.router.get(
+            "/colorMaps",
+            response_model=ColorMapsList,
+            response_model_exclude_none=True,
+            summary="Retrieve the list of available colormaps.",
+            operation_id="getColorMaps",
+        )
+        def available_colormaps(request: Request):
+            """Retrieve the list of available colormaps."""
+            return {
+                "colorMaps": self.supported_colormaps.list(),
+                "links": [
+                    {
+                        "title": "List of available colormaps",
+                        "href": self.url_for(
+                            request,
+                            "available_colormaps",
+                        ),
+                        "type": "application/json",
+                        "rel": "self",
+                    },
+                    {
+                        "title": "Retrieve colorMap metadata",
+                        "href": self.url_for(
+                            request, "colormap_metadata", colorMapId="{colorMapId}"
+                        ),
+                        "type": "application/json",
+                        "rel": "data",
+                        "templated": True,
+                    },
+                    {
+                        "title": "Retrieve colorMap as image",
+                        "href": self.url_for(
+                            request, "colormap_metadata", colorMapId="{colorMapId}"
+                        )
+                        + "?format=png",
+                        "type": "image/png",
+                        "rel": "data",
+                        "templated": True,
+                    },
+                ],
+            }
+
+        @self.router.get(
+            "/colorMaps/{colorMapId}",
+            response_model=ColorMapType,
+            summary="Retrieve the colorMap metadata or image.",
+            operation_id="getColorMap",
+            responses={
+                200: {
+                    "content": {
+                        "application/json": {},
+                        "image/png": {},
+                        "image/jpeg": {},
+                        "image/jpg": {},
+                        "image/webp": {},
+                        "image/jp2": {},
+                        "image/tiff; application=geotiff": {},
+                        "application/x-binary": {},
+                    }
+                },
+            },
+        )
+        def colormap_metadata(
+            colormap: Annotated[
+                Literal[tuple(self.supported_colormaps.list())],
+                Path(description="ColorMap name", alias="colorMapId"),
+            ],
+            # Image Output Options
+            format: Annotated[
+                Optional[ImageType],
+                Query(
+                    description="Return colorMap as Image.",
+                ),
+            ] = None,
+            orientation: Annotated[
+                Optional[Literal["vertical", "horizontal"]],
+                Query(
+                    description="Image Orientation.",
+                ),
+            ] = None,
+            height: Annotated[
+                Optional[int],
+                Query(
+                    description="Image Height (default to 20px for horizontal or 256px for vertical).",
+                ),
+            ] = None,
+            width: Annotated[
+                Optional[int],
+                Query(
+                    description="Image Width (default to 256px for horizontal or 20px for vertical).",
+                ),
+            ] = None,
+        ):
+            """Retrieve the metadata of the specified colormap."""
+            cmap = self.supported_colormaps.get(colormap)
+
+            if format:
+                ###############################################################
+                # SEQUENCE CMAP
+                if isinstance(cmap, Sequence):
+                    values = [minv for ((minv, _), _) in cmap]
+                    arr = numpy.array([values] * 20)
+
+                    if orientation == "vertical":
+                        height = height or 256 if len(values) < 256 else len(values)
+                    else:
+                        width = width or 256 if len(values) < 256 else len(values)
+
+                ###############################################################
+                # DISCRETE CMAP
+                elif len(cmap) != 256 or max(cmap) >= 256 or min(cmap) < 0:
+                    values = list(cmap)
+                    arr = numpy.array([values] * 20)
+
+                    if orientation == "vertical":
+                        height = height or 256 if len(values) < 256 else len(values)
+                    else:
+                        width = width or 256 if len(values) < 256 else len(values)
+
+                ###############################################################
+                # LINEAR CMAP
+                else:
+                    cmin, cmax = min(cmap), max(cmap)
+                    arr = numpy.array(
+                        [
+                            numpy.round(numpy.linspace(cmin, cmax, num=256)).astype(
+                                numpy.uint8
+                            )
+                        ]
+                        * 20
+                    )
+
+                if orientation == "vertical":
+                    arr = arr.transpose([1, 0])
+
+                img = ImageData(arr)
+
+                width = width or img.width
+                height = height or img.height
+                if width != img.width or height != img.height:
+                    img = img.resize(height, width)
+
+                return Response(
+                    img.render(img_format=format.driver, colormap=cmap),
+                    media_type=format.mediatype,
+                )
+
+            if isinstance(cmap, Sequence):
+                return [(k, numpy.array(v).tolist()) for (k, v) in cmap]
+            else:
+                return {k: numpy.array(v).tolist() for k, v in cmap.items()}

@@ -74,9 +74,11 @@ def test_info(app):
 
 
 def test_tilejson(app):
-    """test GET /mosaicjson/tilejson.json endpoint"""
+    """test GET /mosaicjson/WebMercatorQuad/tilejson.json endpoint"""
     mosaicjson = read_json_fixture(MOSAICJSON_FILE)
-    response = app.get("/mosaicjson/tilejson.json", params={"url": MOSAICJSON_FILE})
+    response = app.get(
+        "/mosaicjson/WebMercatorQuad/tilejson.json", params={"url": MOSAICJSON_FILE}
+    )
     assert response.status_code == 200
     body = response.json()
     TileJSON(**body)
@@ -118,7 +120,7 @@ def test_tile(app):
     with patch.object(FileBackend, "_read", mosaic_read_factory(MOSAICJSON_FILE)):
         # full tile
         response = app.get(
-            f"/mosaicjson/tiles/{tile.z}/{tile.x}/{tile.y}",
+            f"/mosaicjson/tiles/WebMercatorQuad/{tile.z}/{tile.x}/{tile.y}",
             params={"url": MOSAICJSON_FILE},
         )
         assert response.status_code == 200
@@ -127,7 +129,7 @@ def test_tile(app):
         assert meta["width"] == meta["height"] == 256
 
         response = app.get(
-            f"/mosaicjson/tiles/{tile.z}/{tile.x}/{tile.y}@2x",
+            f"/mosaicjson/tiles/WebMercatorQuad/{tile.z}/{tile.x}/{tile.y}@2x",
             params={"url": MOSAICJSON_FILE},
         )
         assert response.status_code == 200
@@ -136,7 +138,7 @@ def test_tile(app):
         assert meta["width"] == meta["height"] == 512
 
         response = app.get(
-            f"/mosaicjson/tiles/{tile.z}/{tile.x}/{tile.y}.tif",
+            f"/mosaicjson/tiles/WebMercatorQuad/{tile.z}/{tile.x}/{tile.y}.tif",
             params={"url": MOSAICJSON_FILE},
         )
         assert response.status_code == 200
@@ -146,7 +148,7 @@ def test_tile(app):
         assert meta["crs"] == 3857
 
         response = app.get(
-            f"/mosaicjson/tiles/{tile.z}/{tile.x}/{tile.y}@2x.tif",
+            f"/mosaicjson/tiles/WebMercatorQuad/{tile.z}/{tile.x}/{tile.y}@2x.tif",
             params={"url": MOSAICJSON_FILE, "nodata": 0, "bidx": 1},
         )
         assert response.status_code == 200
@@ -158,7 +160,7 @@ def test_tile(app):
         assert meta["height"] == 512
 
         response = app.get(
-            f"/mosaicjson/tiles/{tile.z}/{tile.x}/{tile.y}@2x.jpg",
+            f"/mosaicjson/tiles/WebMercatorQuad/{tile.z}/{tile.x}/{tile.y}@2x.jpg",
             params={
                 "url": MOSAICJSON_FILE,
                 "rescale": "0,1000",
@@ -171,14 +173,14 @@ def test_tile(app):
 
         # partial tile
         response = app.get(
-            f"/mosaicjson/tiles/{partial_tile.z}/{partial_tile.x}/{partial_tile.y}",
+            f"/mosaicjson/tiles/WebMercatorQuad/{partial_tile.z}/{partial_tile.x}/{partial_tile.y}",
             params={"url": MOSAICJSON_FILE},
         )
         assert response.status_code == 200
         assert response.headers["content-type"] == "image/png"
 
         response = app.get(
-            f"/mosaicjson/tiles/{partial_tile.z}/{partial_tile.x}/{partial_tile.y}.tif",
+            f"/mosaicjson/tiles/WebMercatorQuad/{partial_tile.z}/{partial_tile.x}/{partial_tile.y}.tif",
             params={"url": MOSAICJSON_FILE, "resampling": "bilinear"},
         )
         assert response.status_code == 200
@@ -186,10 +188,11 @@ def test_tile(app):
 
 
 def test_wmts(app):
-    """test GET /mosaicjson/WMTSCapabilities.xml endpoint"""
+    """test GET /mosaicjson/WebMercatorQuad/WMTSCapabilities.xml endpoint"""
     with patch.object(FileBackend, "_read", mosaic_read_factory(MOSAICJSON_FILE)):
         response = app.get(
-            "/mosaicjson/WMTSCapabilities.xml", params={"url": MOSAICJSON_FILE}
+            "/mosaicjson/WebMercatorQuad/WMTSCapabilities.xml",
+            params={"url": MOSAICJSON_FILE},
         )
         assert response.status_code == 200
         assert response.headers["content-type"] == "application/xml"
@@ -199,7 +202,7 @@ def test_wmts(app):
         )
 
         response = app.get(
-            "/mosaicjson/WMTSCapabilities.xml",
+            "/mosaicjson/WebMercatorQuad/WMTSCapabilities.xml",
             params={"url": MOSAICJSON_FILE, "tile_scale": 2},
         )
         assert response.status_code == 200
