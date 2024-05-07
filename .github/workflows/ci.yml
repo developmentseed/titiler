@@ -164,7 +164,8 @@ jobs:
       - name: Build and push uvicorn
         uses: docker/build-push-action@v5
         with:
-          platforms: linux/amd64,linux/arm64
+          # TODO: add `linux/arm64 once https://github.com/rasterio/rasterio-wheels/issues/69 is resolved
+          platforms: linux/amd64 # ,linux/arm64
           context: .
           file: dockerfiles/Dockerfile.uvicorn
           push: ${{ github.event_name != 'pull_request' }}
@@ -177,7 +178,8 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          platforms: linux/amd64,linux/arm64
+          # TODO: add `linux/arm64 once https://github.com/rasterio/rasterio-wheels/issues/69 is resolved
+          platforms: linux/amd64 # ,linux/arm64
           context: .
           file: dockerfiles/Dockerfile.gunicorn
           push: ${{ github.event_name != 'pull_request' }}
