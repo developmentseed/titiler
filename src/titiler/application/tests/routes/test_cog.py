@@ -64,7 +64,7 @@ def test_wmts(rio, app):
         "http://testserver/cog/WebMercatorQuad/WMTSCapabilities.xml?url=https"
         in response.content.decode()
     )
-    assert "<ows:Identifier>cogeo</ows:Identifier>" in response.content.decode()
+    assert "<ows:Identifier>Dataset</ows:Identifier>" in response.content.decode()
     assert (
         "http://testserver/cog/tiles/WebMercatorQuad/{TileMatrix}/{TileCol}/{TileRow}@1x.png?url=https"
         in response.content.decode()

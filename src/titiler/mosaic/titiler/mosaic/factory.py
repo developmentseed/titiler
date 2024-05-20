@@ -630,8 +630,10 @@ class MosaicTilerFactory(BaseTilerFactory):
                     "bounds": bounds,
                     "tileMatrix": tileMatrix,
                     "tms": tms,
-                    "title": "Mosaic",
-                    "layer_name": "mosaic",
+                    "title": src_path
+                    if isinstance(src_path, str)
+                    else "TiTiler Mosaic",
+                    "layer_name": "Mosaic",
                     "media_type": tile_format.mediatype,
                 },
                 media_type=MediaType.xml.value,
