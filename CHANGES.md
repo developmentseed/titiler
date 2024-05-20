@@ -1,5 +1,11 @@
 # Release Notes
 
+## 0.18.3 (2024-05-20)
+
+* fix `WMTSCapabilities.xml` response for ArcMap compatibility
+    * replace `Cloud Optimized GeoTIFF` with dataset URL or `TiTiler` for the *ows:ServiceIdentification* **title**
+    * replace `cogeo` with `Dataset` for the `layer` *ows:Identifier*
+
 ## 0.18.2 (2024-05-07)
 
 * move to `fastapi-slim` to avoid unwanted dependencies (author @n8sty, https://github.com/developmentseed/titiler/pull/815)
