@@ -1,5 +1,37 @@
 # Release Notes
 
+## Unreleased
+
+* remove all default values to the dependencies
+    * `DatasetParams.unscale`: `False` -> `None` (default to `False` in rio-tiler)
+    * `DatasetParams.resampling_method`: `nearest` -> `None` (default to `nearest` in rio-tiler)
+    * `DatasetParams.reproject_method`: `nearest` -> `None` (default to `nearest` in rio-tiler)
+    * `ImageRenderingParams.add_mask`: `True` -> `None` (default to `True` in rio-tiler)
+    * `StatisticsParams.categorical`: `False` -> `None` (default to `False` in rio-tiler)
+
+* add `kwargs` property to the `DefaultDependency` class. The `kwargs` property will return a `Dict` with only `non-None` values.
+
+    ```python
+    from typing import Optional
+    from titiler.core.dependencies import DefaultDependency
+    from dataclasses import dataclass
+
+    @dataclass
+    class Deps(DefaultDependency):
+        value: Optional[int] = None
+
+    print({**Deps()})
+    >> {'value': None}
+
+    Deps().kwargs
+    >> {}
+
+    Deps(value=1).kwargs
+    >> {'value': 1}
+    ```
+
+* use `.kwargs` property when passing option to rio-tiler methods to enable
+
 ## 0.18.3 (2024-05-20)
 
 * fix `WMTSCapabilities.xml` response for ArcMap compatibility
