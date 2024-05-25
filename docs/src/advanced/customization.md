@@ -40,7 +40,6 @@ import re
 
 from fastapi import FastAPI, HTTPException, Query
 
-from titiler.core.dependencies import DefaultDependency
 from titiler.mosaic.factory import MosaicTilerFactory
 
 

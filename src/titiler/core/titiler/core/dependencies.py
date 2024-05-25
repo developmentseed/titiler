@@ -75,6 +75,11 @@ class DefaultDependency:
         """Return value."""
         return self.__dict__[key]
 
+    @property
+    def kwargs(self) -> Dict:
+        """Transform params into dict."""
+        return {k: v for k, v in self.__dict__.items() if v is not None}
+
 
 # Dependencies for simple BaseReader (e.g COGReader)
 @dataclass
@@ -380,32 +385,34 @@ class DatasetParams(DefaultDependency):
         ),
     ] = None
     unscale: Annotated[
-        bool,
+        Optional[bool],
         Query(
             title="Apply internal Scale/Offset",
             description="Apply internal Scale/Offset. Defaults to `False`.",
         ),
-    ] = False
+    ] = None
     resampling_method: Annotated[
-        RIOResampling,
+        Optional[RIOResampling],
         Query(
             alias="resampling",
             description="RasterIO resampling algorithm. Defaults to `nearest`.",
         ),
-    ] = "nearest"
+    ] = None
     reproject_method: Annotated[
-        WarpResampling,
+        Optional[WarpResampling],
         Query(
             alias="reproject",
             description="WarpKernel resampling algorithm (only used when doing re-projection). Defaults to `nearest`.",
         ),
-    ] = "nearest"
+    ] = None
 
     def __post_init__(self):
         """Post Init."""
         if self.nodata is not None:
             self.nodata = numpy.nan if self.nodata == "nan" else float(self.nodata)
-        self.unscale = bool(self.unscale)
+
+        if self.unscale is not None:
+            self.unscale = bool(self.unscale)
 
 
 @dataclass
@@ -413,12 +420,12 @@ class ImageRenderingParams(DefaultDependency):
     """Image Rendering options."""
 
     add_mask: Annotated[
-        bool,
+        Optional[bool],
         Query(
             alias="return_mask",
             description="Add mask to the output data. Defaults to `True`",
         ),
-    ] = True
+    ] = None
 
 
 RescaleType = List[Tuple[float, ...]]
@@ -459,9 +466,11 @@ class StatisticsParams(DefaultDependency):
     """Statistics options."""
 
     categorical: Annotated[
-        bool,
-        Query(description="Return statistics for categorical dataset."),
-    ] = False
+        Optional[bool],
+        Query(
+            description="Return statistics for categorical dataset. Defaults to `False`"
+        ),
+    ] = None
     categories: Annotated[
         Optional[List[Union[float, int]]],
         Query(
