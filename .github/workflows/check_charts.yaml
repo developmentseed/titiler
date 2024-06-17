@@ -56,7 +56,7 @@ jobs:
         run: ct lint --chart-dirs deployment/k8s --target-branch ${{ github.event.repository.default_branch }}
 
       - name: Build container
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         if: steps.list-changed.outputs.changed == 'true'
         with:
           # See https://github.com/developmentseed/titiler/discussions/387
