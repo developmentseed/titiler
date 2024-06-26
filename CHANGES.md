@@ -1,5 +1,9 @@
 # Release Notes
 
+## 0.18.4 (2024-06-26)
+
+* fix Tiles URL encoding for WMTSCapabilities XML document
+
 ## 0.18.3 (2024-05-20)
 
 * fix `WMTSCapabilities.xml` response for ArcMap compatibility

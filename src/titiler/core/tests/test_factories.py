@@ -4,6 +4,7 @@ import json
 import os
 import pathlib
 import warnings
+import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from enum import Enum
 from io import BytesIO
@@ -268,6 +269,19 @@ def test_TilerFactory():
     meta = parse_img(response.content)
     assert meta["driver"] == "WMTS"
     assert meta["crs"] == "EPSG:3857"
+    root = ET.fromstring(response.content)
+    assert root
+
+    response = client.get(
+        f"/WebMercatorQuad/WMTSCapabilities.xml?url={DATA_DIR}/cog.tif&bdix=1&rescale=0,1000"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/xml"
+    meta = parse_img(response.content)
+    assert meta["driver"] == "WMTS"
+    assert meta["crs"] == "EPSG:3857"
+    root = ET.fromstring(response.content)
+    assert root
 
     response = client.get(
         f"/WorldCRS84Quad/WMTSCapabilities.xml?url={DATA_DIR}/cog.tif&minzoom=5&maxzoom=12"
@@ -277,6 +291,8 @@ def test_TilerFactory():
     meta = parse_img(response.content)
     assert meta["driver"] == "WMTS"
     assert str(meta["crs"]) == "OGC:CRS84"
+    root = ET.fromstring(response.content)
+    assert root
 
     response = client.get(f"/bounds?url={DATA_DIR}/cog.tif")
     assert response.status_code == 200
