@@ -1,12 +1,12 @@
 """rio-stac Extension."""
 
-from dataclasses import dataclass
 from typing import Any, Dict, List, Literal, Optional
 
+from attrs import define
 from fastapi import Depends, Query
 from typing_extensions import Annotated, TypedDict
 
-from titiler.core.factory import BaseTilerFactory, FactoryExtension
+from titiler.core.factory import FactoryExtension, TilerFactory
 
 try:
     import pystac
@@ -33,11 +33,11 @@ class Item(TypedDict, total=False):
     collection: str
 
 
-@dataclass
+@define
 class stacExtension(FactoryExtension):
     """Add /stac endpoint to a COG TilerFactory."""
 
-    def register(self, factory: BaseTilerFactory):
+    def register(self, factory: TilerFactory):
         """Register endpoint to the tiler factory."""
 
         assert (

@@ -1,6 +1,6 @@
 """wms Extension."""
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Tuple
 from urllib.parse import urlencode
@@ -8,6 +8,7 @@ from urllib.parse import urlencode
 import jinja2
 import numpy
 import rasterio
+from attrs import define, field
 from fastapi import Depends, HTTPException
 from rasterio.crs import CRS
 from rio_tiler.models import ImageData
@@ -18,7 +19,7 @@ from starlette.responses import Response
 from starlette.templating import Jinja2Templates
 
 from titiler.core.dependencies import ColorFormulaParams, RescalingParams
-from titiler.core.factory import BaseTilerFactory, FactoryExtension
+from titiler.core.factory import FactoryExtension, TilerFactory
 from titiler.core.resources.enums import ImageType, MediaType
 from titiler.core.utils import render_image
 
@@ -56,13 +57,13 @@ class OverlayMethod(MosaicMethodBase):
             self.mosaic.mask = mask
 
 
-@dataclass
+@define
 class wmsExtension(FactoryExtension):
     """Add /wms endpoint to a TilerFactory."""
 
-    supported_crs: List[str] = field(default_factory=lambda: ["EPSG:4326"])
+    supported_crs: List[str] = field(default=lambda: ["EPSG:4326"])
     supported_format: List[str] = field(
-        default_factory=lambda: [
+        default=lambda: [
             "image/png",
             "image/jpeg",
             "image/jpg",
@@ -71,12 +72,10 @@ class wmsExtension(FactoryExtension):
             "image/tiff; application=geotiff",
         ]
     )
-    supported_version: List[str] = field(
-        default_factory=lambda: ["1.0.0", "1.1.1", "1.3.0"]
-    )
+    supported_version: List[str] = field(default=lambda: ["1.0.0", "1.1.1", "1.3.0"])
     templates: Jinja2Templates = DEFAULT_TEMPLATES
 
-    def register(self, factory: BaseTilerFactory):  # noqa: C901
+    def register(self, factory: TilerFactory):  # noqa: C901
         """Register endpoint to the tiler factory."""
 
         @factory.router.get(
