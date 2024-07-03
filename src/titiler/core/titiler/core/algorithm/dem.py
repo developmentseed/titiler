@@ -81,7 +81,7 @@ class Contours(BaseAlgorithm):
 
     def __call__(self, img: ImageData) -> ImageData:
         """Add contours."""
-        data = img.data
+        data = img.data.astype("float64")
 
         # Apply rescaling for minz,maxz to 1->255 and apply Terrain colormap
         arr = linear_rescale(data, (self.minz, self.maxz), (1, 255)).astype(
