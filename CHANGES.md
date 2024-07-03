@@ -1,5 +1,9 @@
 # Release Notes
 
+## 0.18.5 (2024-07-03)
+
+* Set version requirement for FastAPI to `>=0.111.0`
+
 ## 0.18.4 (2024-06-26)
 
 * fix Tiles URL encoding for WMTSCapabilities XML document
