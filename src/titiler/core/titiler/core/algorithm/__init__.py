@@ -9,7 +9,8 @@ from fastapi import HTTPException, Query
 from pydantic import ValidationError
 from typing_extensions import Annotated
 
-from titiler.core.algorithm.base import AlgorithmMetadata, BaseAlgorithm  # noqa
+from titiler.core.algorithm.base import AlgorithmMetadata  # noqa
+from titiler.core.algorithm.base import BaseAlgorithm
 from titiler.core.algorithm.dem import Contours, HillShade, TerrainRGB, Terrarium
 from titiler.core.algorithm.index import NormalizedIndex
 
