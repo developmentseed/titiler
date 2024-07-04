@@ -61,9 +61,9 @@ class OverlayMethod(MosaicMethodBase):
 class wmsExtension(FactoryExtension):
     """Add /wms endpoint to a TilerFactory."""
 
-    supported_crs: List[str] = field(default=lambda: ["EPSG:4326"])
+    supported_crs: List[str] = field(default=["EPSG:4326"])
     supported_format: List[str] = field(
-        default=lambda: [
+        default=[
             "image/png",
             "image/jpeg",
             "image/jpg",
@@ -72,7 +72,7 @@ class wmsExtension(FactoryExtension):
             "image/tiff; application=geotiff",
         ]
     )
-    supported_version: List[str] = field(default=lambda: ["1.0.0", "1.1.1", "1.3.0"])
+    supported_version: List[str] = field(default=["1.0.0", "1.1.1", "1.3.0"])
     templates: Jinja2Templates = DEFAULT_TEMPLATES
 
     def register(self, factory: TilerFactory):  # noqa: C901

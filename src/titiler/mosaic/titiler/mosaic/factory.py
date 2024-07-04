@@ -1,7 +1,7 @@
 """TiTiler.mosaic Router factories."""
 
 import os
-from typing import Any, Callable, Dict, Literal, Optional, Type, Union
+from typing import Any, Callable, Dict, List, Literal, Optional, Type, Union
 from urllib.parse import urlencode
 
 import rasterio
@@ -106,6 +106,8 @@ class MosaicTilerFactory(BaseFactory):
     supported_tms: TileMatrixSets = morecantile_tms
 
     templates: Jinja2Templates = DEFAULT_TEMPLATES
+
+    optional_headers: List[OptionalHeader] = field(factory=list)
 
     # Add/Remove some endpoints
     add_viewer: bool = True

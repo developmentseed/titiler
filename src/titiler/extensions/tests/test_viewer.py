@@ -25,7 +25,9 @@ def test_cogViewerExtension():
 def test_stacViewerExtension():
     """Test stacViewerExtension class."""
     tiler = MultiBaseTilerFactory(reader=STACReader)
-    tiler_plus_viewer = MultiBaseTilerFactory(extensions=[stacViewerExtension()])
+    tiler_plus_viewer = MultiBaseTilerFactory(
+        reader=STACReader, extensions=[stacViewerExtension()]
+    )
     assert len(tiler_plus_viewer.router.routes) == len(tiler.router.routes) + 1
 
     app = FastAPI()
