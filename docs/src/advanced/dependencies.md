@@ -26,7 +26,7 @@ def preview(
     params: ImageParams = Depends(),
 ):
     with Reader(url) as cog:
-        img = cog.preview(**params.kwargs)  # we use `DefaultDependency().kwargs` to pass only non-None parameters
+        img = cog.preview(**params.as_dict())  # we use `DefaultDependency().as_dict()` to pass only non-None parameters
         # or
         img = cog.preview(max_size=params.max_size)
     ...
@@ -36,7 +36,7 @@ def preview(
 
     In the example above, we create a custom `ImageParams` dependency which will then be injected to the `preview` endpoint to add  **max_size**, **height** and **width** query string parameters.
 
-    Using `titiler.core.dependencies.DefaultDependency`, we can `unpack` the class as if it was a dictionary, which helps with customization. Since `v0.19.0`, we've added a `.kwargs` property to the base class, this property can be used to pass only `non-None` parameters. This can be useful if method or reader do not take the same parameters.
+    Using `titiler.core.dependencies.DefaultDependency`, we can use `.as_dict(exclude_none=True/False)` method to `unpack` the object parameters. This can be useful if method or reader do not take the same parameters.
 
 #### AssetsParams
 

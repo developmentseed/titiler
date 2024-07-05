@@ -69,16 +69,22 @@ class DefaultDependency:
 
     def keys(self):
         """Return Keys."""
+        warnings.warn(
+            "Dict unpacking will be removed for `DefaultDependency` in titiler 0.19.0",
+            DeprecationWarning,
+        )
         return self.__dict__.keys()
 
     def __getitem__(self, key):
         """Return value."""
         return self.__dict__[key]
 
-    @property
-    def kwargs(self) -> Dict:
-        """Transform params into dict."""
-        return {k: v for k, v in self.__dict__.items() if v is not None}
+    def as_dict(self, exclude_none: bool = True) -> Dict:
+        """Transform dataclass to dict."""
+        if exclude_none:
+            return {k: v for k, v in self.__dict__.items() if v is not None}
+
+        return dict(self.__dict__.items())
 
 
 # Dependencies for simple BaseReader (e.g COGReader)

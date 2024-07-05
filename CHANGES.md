@@ -9,7 +9,7 @@
     * `ImageRenderingParams.add_mask`: `True` -> `None` (default to `True` in rio-tiler)
     * `StatisticsParams.categorical`: `False` -> `None` (default to `False` in rio-tiler)
 
-* Add `kwargs` property to the `DefaultDependency` class. The `kwargs` property will return a `Dict` with only `non-None` values.
+* Add `as_dict(exclude_none=True/False)` method to the `DefaultDependency` class.
 
     ```python
     from typing import Optional
@@ -20,17 +20,17 @@
     class Deps(DefaultDependency):
         value: Optional[int] = None
 
-    print({**Deps()})
+    print({**Deps().__dict__.items()})
     >> {'value': None}
 
-    Deps().kwargs
+    Deps().as_dict()  # `exclude_none` defaults to True
     >> {}
 
-    Deps(value=1).kwargs
+    Deps(value=1).as_dict()
     >> {'value': 1}
     ```
 
-* Use `.kwargs` property when passing option to rio-tiler methods to enable
+* Use `.as_dict()` method when passing option to rio-tiler Reader's methods to avoid parameter conflicts when using custom Readers.
 
 ## 0.18.5 (2024-07-03)
 
