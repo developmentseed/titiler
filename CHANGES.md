@@ -1,5 +1,37 @@
 # Release Notes
 
+## 0.19.0 (TBD)
+
+### Misc
+
+* Removed default `WebMercatorQuad` tile matrix set in `/tiles`, `/tilesjson.json`, `/map` and `/WMTSCapabilities.xml` endpoints **breaking change**
+
+    ```
+    # Before
+    /tiles/{z}/{x}/{y}
+    /tilejson.json
+    /map
+    /WMTSCapabilities.xml
+
+    # Now
+    /tiles/WebMercatorQuad/{z}/{x}/{y}
+    /WebMercatorQuad/tilejson.json
+    /WebMercatorQuad/map
+    /WebMercatorQuad/WMTSCapabilities.xml
+    ```
+
+* Use `@attrs.define` instead of dataclass for factories **breaking change**
+* Use `@attrs.define` instead of dataclass for factory extensions **breaking change**
+
+### titiler.core
+
+* Renamed `BaseTilerFactory` to `BaseFactory` **breaking change**
+* Removed useless attribute in `BaseFactory` (and moved them to `TilerFactory`) **breaking change**
+
+### titiler.mosaic
+
+* Renamed `reader` attribute to `backend` in `MosaicTilerFactory`  **breaking change**
+
 ## 0.18.5 (2024-07-03)
 
 * Set version requirement for FastAPI to `>=0.111.0`
