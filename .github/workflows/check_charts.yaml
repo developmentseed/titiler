@@ -25,7 +25,7 @@ jobs:
 
       - name: Check Version
         run: |
-          current_version=$(grep 'version=' pyproject.toml | cut -f2 -d= | tr -d ' ' | tr -d '"')
+          current_version=$(grep '^version=' pyproject.toml | cut -f2 -d= | tr -d ' ' | tr -d '"')
           app_version=$(grep 'appVersion:' deployment/k8s/charts/Chart.yaml | cut -f2 -d: | tr -d ' ')
           if [[ "$current_version" != "$app_version" ]]; then
             echo "❌ current version from pyproject.toml ($current_version) and appVersion from Chart.yaml ($app_version) differs";
@@ -56,7 +56,7 @@ jobs:
         run: ct lint --chart-dirs deployment/k8s --target-branch ${{ github.event.repository.default_branch }}
 
       - name: Build container
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         if: steps.list-changed.outputs.changed == 'true'
         with:
           # See https://github.com/developmentseed/titiler/discussions/387

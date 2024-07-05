@@ -2,14 +2,14 @@
 
 ## Unreleased
 
-* remove all default values to the dependencies
+* Remove all default values to the dependencies
     * `DatasetParams.unscale`: `False` -> `None` (default to `False` in rio-tiler)
     * `DatasetParams.resampling_method`: `nearest` -> `None` (default to `nearest` in rio-tiler)
     * `DatasetParams.reproject_method`: `nearest` -> `None` (default to `nearest` in rio-tiler)
     * `ImageRenderingParams.add_mask`: `True` -> `None` (default to `True` in rio-tiler)
     * `StatisticsParams.categorical`: `False` -> `None` (default to `False` in rio-tiler)
 
-* add `kwargs` property to the `DefaultDependency` class. The `kwargs` property will return a `Dict` with only `non-None` values.
+* Add `kwargs` property to the `DefaultDependency` class. The `kwargs` property will return a `Dict` with only `non-None` values.
 
     ```python
     from typing import Optional
@@ -30,7 +30,15 @@
     >> {'value': 1}
     ```
 
-* use `.kwargs` property when passing option to rio-tiler methods to enable
+* Use `.kwargs` property when passing option to rio-tiler methods to enable
+
+## 0.18.5 (2024-07-03)
+
+* Set version requirement for FastAPI to `>=0.111.0`
+
+## 0.18.4 (2024-06-26)
+
+* fix Tiles URL encoding for WMTSCapabilities XML document
 
 ## 0.18.3 (2024-05-20)
 

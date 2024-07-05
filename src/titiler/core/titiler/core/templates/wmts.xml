@@ -48,7 +48,7 @@
             <TileMatrixSetLink>
                 <TileMatrixSet>{{ tms.id }}</TileMatrixSet>
             </TileMatrixSetLink>
-            <ResourceURL format="{{ media_type }}" resourceType="tile" template="{{ tiles_endpoint }}" />
+            <ResourceURL format="{{ media_type }}" resourceType="tile" template="{{ tiles_endpoint | escape }}" />
         </Layer>
         <TileMatrixSet>
             <ows:Identifier>{{ tms.id }}</ows:Identifier>

@@ -4,8 +4,8 @@ FROM --platform=linux/amd64 public.ecr.aws/lambda/python:${PYTHON_VERSION}
 
 WORKDIR /tmp
 
-RUN pip install pip -U
-RUN pip install "titiler.application==0.18.3" "mangum>=0.10.0" -t /asset --no-binary pydantic
+RUN python -m pip install pip -U
+RUN python -m pip install "titiler.application==0.18.5" "mangum>=0.10.0" "numexpr==2.10.0" -t /asset --no-binary pydantic
 
 # Reduce package size and remove useless files
 RUN cd /asset && find . -type f -name '*.pyc' | while read f; do n=$(echo $f | sed 's/__pycache__\///' | sed 's/.cpython-[0-9]*//'); cp $f $n; done;
