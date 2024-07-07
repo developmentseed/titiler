@@ -13,6 +13,7 @@ from aws_cdk import aws_lambda
 from aws_cdk import aws_logs as logs
 from aws_cdk.aws_apigatewayv2_integrations_alpha import HttpLambdaIntegration
 from config import StackSettings
+from construct.private_api import TitilerPrivateApiStack
 from constructs import Construct
 
 settings = StackSettings()
@@ -175,6 +176,16 @@ if settings.buckets:
         )
     )
 
+private_api = TitilerPrivateApiStack(
+    app,
+    f"{settings.name}-private-api-{settings.stage}",
+    vpc_endpoint_id=settings.vpc_endpoint_id,
+    memory=settings.memory,
+    timeout=settings.timeout,
+    concurrent=settings.max_concurrent,
+    permissions=perms,
+    environment=settings.env,
+)
 
 ecs_stack = titilerECSStack(
     app,
@@ -197,6 +208,7 @@ lambda_stack = titilerLambdaStack(
     environment=settings.env,
 )
 
+
 # Tag infrastructure
 for key, value in {
     "Project": settings.name,
@@ -207,6 +219,7 @@ for key, value in {
     if value:
         Tags.of(ecs_stack).add(key, value)
         Tags.of(lambda_stack).add(key, value)
+        Tags.of(private_api).add(key, value)
 
 
 app.synth()
