@@ -421,7 +421,7 @@ def test_dataset():
     response = client.get("/")
     assert not response.json()["nodata"]
     assert not response.json()["unscale"]
-    assert response.json()["resampling_method"] == "nearest"
+    assert not response.json()["resampling_method"]
 
     response = client.get("/?resampling=cubic")
     assert not response.json()["nodata"]
@@ -447,7 +447,7 @@ def test_render():
 
     client = TestClient(app)
     response = client.get("/")
-    assert response.json()["add_mask"] is True
+    assert not response.json()["add_mask"]
 
     response = client.get("/?return_mask=False")
     assert response.json()["add_mask"] is False

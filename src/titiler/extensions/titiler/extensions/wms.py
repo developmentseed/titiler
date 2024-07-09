@@ -375,7 +375,9 @@ class wmsExtension(FactoryExtension):
                 for layer in layers:
                     layers_dict[layer] = {}
                     with rasterio.Env(**env):
-                        with factory.reader(layer, **reader_params) as src_dst:
+                        with factory.reader(
+                            layer, **reader_params.as_dict()
+                        ) as src_dst:
                             layers_dict[layer]["srs"] = f"EPSG:{src_dst.crs.to_epsg()}"
                             layers_dict[layer]["bounds"] = src_dst.bounds
                             layers_dict[layer][
@@ -504,15 +506,17 @@ class wmsExtension(FactoryExtension):
 
                 def _reader(src_path: str):
                     with rasterio.Env(**env):
-                        with factory.reader(src_path, **reader_params) as src_dst:
+                        with factory.reader(
+                            src_path, **reader_params.as_dict()
+                        ) as src_dst:
                             return src_dst.part(
                                 bbox,
                                 width=width,
                                 height=height,
                                 dst_crs=crs,
                                 bounds_crs=crs,
-                                **layer_params,
-                                **dataset_params,
+                                **layer_params.as_dict(),
+                                **dataset_params.as_dict(),
                             )
 
                 image, assets_used = mosaic_reader(
