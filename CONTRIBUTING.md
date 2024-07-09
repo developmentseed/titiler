@@ -47,7 +47,7 @@ python -m pytest src/titiler/application --cov=titiler.application --cov-report=
 ```bash
 git clone https://github.com/developmentseed/titiler.git
 cd titiler
-python -m pip install -r requirements/requirement-docs.txt
+python -m pip install -r requirements/requirements-docs.txt
 ```
 
 Hot-reloading docs:
