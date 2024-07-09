@@ -23,6 +23,37 @@
 * Use `@attrs.define` instead of dataclass for factories **breaking change**
 * Use `@attrs.define` instead of dataclass for factory extensions **breaking change**
 
+
+* Remove all default values to the dependencies
+    * `DatasetParams.unscale`: `False` -> `None` (default to `False` in rio-tiler)
+    * `DatasetParams.resampling_method`: `nearest` -> `None` (default to `nearest` in rio-tiler)
+    * `DatasetParams.reproject_method`: `nearest` -> `None` (default to `nearest` in rio-tiler)
+    * `ImageRenderingParams.add_mask`: `True` -> `None` (default to `True` in rio-tiler)
+    * `StatisticsParams.categorical`: `False` -> `None` (default to `False` in rio-tiler)
+
+* Add `as_dict(exclude_none=True/False)` method to the `DefaultDependency` class.
+
+    ```python
+    from typing import Optional
+    from titiler.core.dependencies import DefaultDependency
+    from dataclasses import dataclass
+
+    @dataclass
+    class Deps(DefaultDependency):
+        value: Optional[int] = None
+
+    print({**Deps().__dict__.items()})
+    >> {'value': None}
+
+    Deps().as_dict()  # `exclude_none` defaults to True
+    >> {}
+
+    Deps(value=1).as_dict()
+    >> {'value': 1}
+    ```
+
+* Use `.as_dict()` method when passing option to rio-tiler Reader's methods to avoid parameter conflicts when using custom Readers.
+
 ### titiler.core
 
 * Renamed `BaseTilerFactory` to `BaseFactory` **breaking change**

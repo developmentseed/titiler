@@ -338,7 +338,7 @@ class TilerFactory(BaseFactory):
         ):
             """Return the bounds of the COG."""
             with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
+                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     return {"bounds": src_dst.geographic_bounds}
 
     ############################################################################
@@ -361,7 +361,7 @@ class TilerFactory(BaseFactory):
         ):
             """Return dataset's basic info."""
             with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
+                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     return src_dst.info()
 
         @self.router.get(
@@ -383,7 +383,7 @@ class TilerFactory(BaseFactory):
         ):
             """Return dataset's basic info as a GeoJSON feature."""
             with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
+                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     return Feature(
                         type="Feature",
                         geometry=Polygon.from_bounds(*src_dst.geographic_bounds),
@@ -421,19 +421,19 @@ class TilerFactory(BaseFactory):
         ):
             """Get Dataset statistics."""
             with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
+                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     image = src_dst.preview(
-                        **layer_params,
-                        **image_params,
-                        **dataset_params,
+                        **layer_params.as_dict(),
+                        **image_params.as_dict(),
+                        **dataset_params.as_dict(),
                     )
 
                     if post_process:
                         image = post_process(image)
 
                     return image.statistics(
-                        **stats_params,
-                        hist_options={**histogram_params},
+                        **stats_params.as_dict(),
+                        hist_options=histogram_params.as_dict(),
                     )
 
         # POST endpoint
@@ -472,7 +472,7 @@ class TilerFactory(BaseFactory):
                 fc = FeatureCollection(type="FeatureCollection", features=[geojson])
 
             with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
+                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     for feature in fc:
                         shape = feature.model_dump(exclude_none=True)
                         image = src_dst.feature(
@@ -480,9 +480,9 @@ class TilerFactory(BaseFactory):
                             shape_crs=coord_crs or WGS84_CRS,
                             dst_crs=dst_crs,
                             align_bounds_with_dataset=True,
-                            **layer_params,
-                            **image_params,
-                            **dataset_params,
+                            **layer_params.as_dict(),
+                            **image_params.as_dict(),
+                            **dataset_params.as_dict(),
                         )
 
                         # Get the coverage % array
@@ -495,8 +495,8 @@ class TilerFactory(BaseFactory):
                             image = post_process(image)
 
                         stats = image.statistics(
-                            **stats_params,
-                            hist_options={**histogram_params},
+                            **stats_params.as_dict(),
+                            hist_options=histogram_params.as_dict(),
                             coverage=coverage_array,
                         )
 
@@ -572,15 +572,17 @@ class TilerFactory(BaseFactory):
             """Create map tile from a dataset."""
             tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
-                with self.reader(src_path, tms=tms, **reader_params) as src_dst:
+                with self.reader(
+                    src_path, tms=tms, **reader_params.as_dict()
+                ) as src_dst:
                     image = src_dst.tile(
                         x,
                         y,
                         z,
                         tilesize=scale * 256,
-                        **tile_params,
-                        **layer_params,
-                        **dataset_params,
+                        **tile_params.as_dict(),
+                        **layer_params.as_dict(),
+                        **dataset_params.as_dict(),
                     )
                     dst_colormap = getattr(src_dst, "colormap", None)
 
@@ -597,7 +599,7 @@ class TilerFactory(BaseFactory):
                 image,
                 output_format=format,
                 colormap=colormap or dst_colormap,
-                **render_params,
+                **render_params.as_dict(),
             )
 
             return Response(content, media_type=media_type)
@@ -680,7 +682,9 @@ class TilerFactory(BaseFactory):
 
             tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
-                with self.reader(src_path, tms=tms, **reader_params) as src_dst:
+                with self.reader(
+                    src_path, tms=tms, **reader_params.as_dict()
+                ) as src_dst:
                     return {
                         "bounds": src_dst.geographic_bounds,
                         "minzoom": minzoom if minzoom is not None else src_dst.minzoom,
@@ -832,7 +836,9 @@ class TilerFactory(BaseFactory):
 
             tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
-                with self.reader(src_path, tms=tms, **reader_params) as src_dst:
+                with self.reader(
+                    src_path, tms=tms, **reader_params.as_dict()
+                ) as src_dst:
                     bounds = src_dst.geographic_bounds
                     minzoom = minzoom if minzoom is not None else src_dst.minzoom
                     maxzoom = maxzoom if maxzoom is not None else src_dst.maxzoom
@@ -898,13 +904,13 @@ class TilerFactory(BaseFactory):
             """Get Point value for a dataset."""
 
             with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
+                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     pts = src_dst.point(
                         lon,
                         lat,
                         coord_crs=coord_crs or WGS84_CRS,
-                        **layer_params,
-                        **dataset_params,
+                        **layer_params.as_dict(),
+                        **dataset_params.as_dict(),
                     )
 
             return {
@@ -941,11 +947,11 @@ class TilerFactory(BaseFactory):
         ):
             """Create preview of a dataset."""
             with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
+                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     image = src_dst.preview(
-                        **layer_params,
-                        **image_params,
-                        **dataset_params,
+                        **layer_params.as_dict(),
+                        **image_params.as_dict(),
+                        **dataset_params.as_dict(),
                         dst_crs=dst_crs,
                     )
                     dst_colormap = getattr(src_dst, "colormap", None)
@@ -963,7 +969,7 @@ class TilerFactory(BaseFactory):
                 image,
                 output_format=format,
                 colormap=colormap or dst_colormap,
-                **render_params,
+                **render_params.as_dict(),
             )
 
             return Response(content, media_type=media_type)
@@ -1013,9 +1019,9 @@ class TilerFactory(BaseFactory):
                         [minx, miny, maxx, maxy],
                         dst_crs=dst_crs,
                         bounds_crs=coord_crs or WGS84_CRS,
-                        **layer_params,
-                        **image_params,
-                        **dataset_params,
+                        **layer_params.as_dict(),
+                        **image_params.as_dict(),
+                        **dataset_params.as_dict(),
                     )
                     dst_colormap = getattr(src_dst, "colormap", None)
 
@@ -1032,7 +1038,7 @@ class TilerFactory(BaseFactory):
                 image,
                 output_format=format,
                 colormap=colormap or dst_colormap,
-                **render_params,
+                **render_params.as_dict(),
             )
 
             return Response(content, media_type=media_type)
@@ -1072,14 +1078,14 @@ class TilerFactory(BaseFactory):
         ):
             """Create image from a geojson feature."""
             with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
+                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     image = src_dst.feature(
                         geojson.model_dump(exclude_none=True),
                         shape_crs=coord_crs or WGS84_CRS,
                         dst_crs=dst_crs,
-                        **layer_params,
-                        **image_params,
-                        **dataset_params,
+                        **layer_params.as_dict(),
+                        **image_params.as_dict(),
+                        **dataset_params.as_dict(),
                     )
                     dst_colormap = getattr(src_dst, "colormap", None)
 
@@ -1096,7 +1102,7 @@ class TilerFactory(BaseFactory):
                 image,
                 output_format=format,
                 colormap=colormap or dst_colormap,
-                **render_params,
+                **render_params.as_dict(),
             )
 
             return Response(content, media_type=media_type)
@@ -1148,8 +1154,8 @@ class MultiBaseTilerFactory(TilerFactory):
         ):
             """Return dataset's basic info or the list of available assets."""
             with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
-                    return src_dst.info(**asset_params)
+                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
+                    return src_dst.info(**asset_params.as_dict())
 
         @self.router.get(
             "/info.geojson",
@@ -1171,14 +1177,14 @@ class MultiBaseTilerFactory(TilerFactory):
         ):
             """Return dataset's basic info as a GeoJSON feature."""
             with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
+                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     return Feature(
                         type="Feature",
                         geometry=Polygon.from_bounds(*src_dst.geographic_bounds),
                         properties={
                             asset: asset_info
                             for asset, asset_info in src_dst.info(
-                                **asset_params
+                                **asset_params.as_dict()
                             ).items()
                         },
                     )
@@ -1195,7 +1201,7 @@ class MultiBaseTilerFactory(TilerFactory):
         ):
             """Return a list of supported assets."""
             with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
+                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     return src_dst.assets
 
     # Overwrite the `/statistics` endpoint because the MultiBaseReader output model is different (Dict[str, Dict[str, BandStatistics]])
@@ -1227,13 +1233,13 @@ class MultiBaseTilerFactory(TilerFactory):
         ):
             """Per Asset statistics"""
             with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
+                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     return src_dst.statistics(
-                        **asset_params,
-                        **image_params,
-                        **dataset_params,
-                        **stats_params,
-                        hist_options={**histogram_params},
+                        **asset_params.as_dict(),
+                        **image_params.as_dict(),
+                        **dataset_params.as_dict(),
+                        **stats_params.as_dict(),
+                        hist_options=histogram_params.as_dict(),
                     )
 
         # MultiBaseReader merged statistics
@@ -1263,23 +1269,23 @@ class MultiBaseTilerFactory(TilerFactory):
         ):
             """Merged assets statistics."""
             with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
+                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     # Default to all available assets
                     if not layer_params.assets and not layer_params.expression:
                         layer_params.assets = src_dst.assets
 
                     image = src_dst.preview(
-                        **layer_params,
-                        **image_params,
-                        **dataset_params,
+                        **layer_params.as_dict(),
+                        **image_params.as_dict(),
+                        **dataset_params.as_dict(),
                     )
 
                     if post_process:
                         image = post_process(image)
 
                     return image.statistics(
-                        **stats_params,
-                        hist_options={**histogram_params},
+                        **stats_params.as_dict(),
+                        hist_options=histogram_params.as_dict(),
                     )
 
         # POST endpoint
@@ -1318,7 +1324,7 @@ class MultiBaseTilerFactory(TilerFactory):
                 fc = FeatureCollection(type="FeatureCollection", features=[geojson])
 
             with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
+                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     # Default to all available assets
                     if not layer_params.assets and not layer_params.expression:
                         layer_params.assets = src_dst.assets
@@ -1329,16 +1335,17 @@ class MultiBaseTilerFactory(TilerFactory):
                             shape_crs=coord_crs or WGS84_CRS,
                             dst_crs=dst_crs,
                             align_bounds_with_dataset=True,
-                            **layer_params,
-                            **image_params,
-                            **dataset_params,
+                            **layer_params.as_dict(),
+                            **image_params.as_dict(),
+                            **dataset_params.as_dict(),
                         )
 
                         if post_process:
                             image = post_process(image)
 
                         stats = image.statistics(
-                            **stats_params, hist_options={**histogram_params}
+                            **stats_params.as_dict(),
+                            hist_options=histogram_params.as_dict(),
                         )
 
                     feature.properties = feature.properties or {}
@@ -1392,8 +1399,8 @@ class MultiBandTilerFactory(TilerFactory):
         ):
             """Return dataset's basic info."""
             with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
-                    return src_dst.info(**bands_params)
+                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
+                    return src_dst.info(**bands_params.as_dict())
 
         @self.router.get(
             "/info.geojson",
@@ -1415,11 +1422,11 @@ class MultiBandTilerFactory(TilerFactory):
         ):
             """Return dataset's basic info as a GeoJSON feature."""
             with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
+                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     return Feature(
                         type="Feature",
                         geometry=Polygon.from_bounds(*src_dst.geographic_bounds),
-                        properties=src_dst.info(**bands_params),
+                        properties=src_dst.info(**bands_params.as_dict()),
                     )
 
         @self.router.get(
@@ -1434,7 +1441,7 @@ class MultiBandTilerFactory(TilerFactory):
         ):
             """Return a list of supported bands."""
             with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
+                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     return src_dst.bands
 
     # Overwrite the `/statistics` endpoint because we need bands to default to the list of bands.
@@ -1466,22 +1473,23 @@ class MultiBandTilerFactory(TilerFactory):
         ):
             """Get Dataset statistics."""
             with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
+                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     # Default to all available bands
                     if not bands_params.bands and not bands_params.expression:
                         bands_params.bands = src_dst.bands
 
                     image = src_dst.preview(
-                        **bands_params,
-                        **image_params,
-                        **dataset_params,
+                        **bands_params.as_dict(),
+                        **image_params.as_dict(),
+                        **dataset_params.as_dict(),
                     )
 
                     if post_process:
                         image = post_process(image)
 
                     return image.statistics(
-                        **stats_params, hist_options={**histogram_params}
+                        **stats_params.as_dict(),
+                        hist_options=histogram_params.as_dict(),
                     )
 
         # POST endpoint
@@ -1520,7 +1528,7 @@ class MultiBandTilerFactory(TilerFactory):
                 fc = FeatureCollection(type="FeatureCollection", features=[geojson])
 
             with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
+                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     # Default to all available bands
                     if not bands_params.bands and not bands_params.expression:
                         bands_params.bands = src_dst.bands
@@ -1531,16 +1539,17 @@ class MultiBandTilerFactory(TilerFactory):
                             shape_crs=coord_crs or WGS84_CRS,
                             dst_crs=dst_crs,
                             align_bounds_with_dataset=True,
-                            **bands_params,
-                            **image_params,
-                            **dataset_params,
+                            **bands_params.as_dict(),
+                            **image_params.as_dict(),
+                            **dataset_params.as_dict(),
                         )
 
                         if post_process:
                             image = post_process(image)
 
                         stats = image.statistics(
-                            **stats_params, hist_options={**histogram_params}
+                            **stats_params.as_dict(),
+                            hist_options=histogram_params.as_dict(),
                         )
 
                         feature.properties = feature.properties or {}

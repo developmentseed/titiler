@@ -141,11 +141,11 @@ class thumbnailExtension(FactoryExtension):
             env=Depends(factory.environment_dependency),
         ):
             with rasterio.Env(**env):
-                with factory.reader(src_path, **reader_params) as src:
+                with factory.reader(src_path, **reader_params.as_dict()) as src:
                     image = src.preview(
                         max_size=self.max_size,
-                        **layer_params,
-                        **dataset_params,
+                        **layer_params.as_dict(),
+                        **dataset_params.as_dict(),
                     )
 
             if post_process:
@@ -163,7 +163,7 @@ class thumbnailExtension(FactoryExtension):
                 img_format=format.driver,
                 colormap=colormap,
                 **format.profile,
-                **render_params,
+                **render_params.as_dict(),
             )
 
             return Response(content, media_type=format.mediatype)

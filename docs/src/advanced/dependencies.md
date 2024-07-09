@@ -26,7 +26,7 @@ def preview(
     params: ImageParams = Depends(),
 ):
     with Reader(url) as cog:
-        img = cog.preview(**params)  # classes built with `DefaultDependency` can be unpacked
+        img = cog.preview(**params.as_dict())  # we use `DefaultDependency().as_dict()` to pass only non-None parameters
         # or
         img = cog.preview(max_size=params.max_size)
     ...
@@ -36,7 +36,7 @@ def preview(
 
     In the example above, we create a custom `ImageParams` dependency which will then be injected to the `preview` endpoint to add  **max_size**, **height** and **width** query string parameters.
 
-    Using `titiler.core.dependencies.DefaultDependency`, we can `unpack` the class as if it was a dictionary, which helps with customization.
+    Using `titiler.core.dependencies.DefaultDependency`, we can use `.as_dict(exclude_none=True/False)` method to `unpack` the object parameters. This can be useful if method or reader do not take the same parameters.
 
 #### AssetsParams
 
@@ -547,29 +547,31 @@ class DatasetParams(DefaultDependency):
         bool,
         Query(
             title="Apply internal Scale/Offset",
-            description="Apply internal Scale/Offset. Defaults to `False`.",
+            description="Apply internal Scale/Offset. Defaults to `False` in rio-tiler.",
         ),
     ] = False
     resampling_method: Annotated[
-        RIOResampling,
+        Optional[RIOResampling],
         Query(
             alias="resampling",
-            description="RasterIO resampling algorithm. Defaults to `nearest`.",
+            description="RasterIO resampling algorithm. Defaults to `nearest` in rio-tiler.",
         ),
-    ] = "nearest"
+    ] = None
     reproject_method: Annotated[
-        WarpResampling,
+        Optional[WarpResampling],
         Query(
             alias="reproject",
-            description="WarpKernel resampling algorithm (only used when doing re-projection). Defaults to `nearest`.",
+            description="WarpKernel resampling algorithm (only used when doing re-projection). Defaults to `nearest` in rio-tiler.",
         ),
-    ] = "nearest"
+    ] = None
 
     def __post_init__(self):
         """Post Init."""
         if self.nodata is not None:
             self.nodata = numpy.nan if self.nodata == "nan" else float(self.nodata)
-        self.unscale = bool(self.unscale)
+
+        if self.unscale is not None:
+            self.unscale = bool(self.unscale)
 ```
 
 </details>
@@ -719,12 +721,12 @@ class ImageRenderingParams(DefaultDependency):
     """Image Rendering options."""
 
     add_mask: Annotated[
-        bool,
+        Optional[bool],
         Query(
             alias="return_mask",
-            description="Add mask to the output data. Defaults to `True`",
+            description="Add mask to the output data. Defaults to `True` in rio-tiler",
         ),
-    ] = True
+    ] = None
 ```
 
 </details>
@@ -861,9 +863,9 @@ class StatisticsParams(DefaultDependency):
     """Statistics options."""
 
     categorical: Annotated[
-        bool,
-        Query(description="Return statistics for categorical dataset."),
-    ] = False
+        Optional[bool],
+        Query(description="Return statistics for categorical dataset. Defaults to `False` in rio-tiler"),
+    ] = None
     categories: Annotated[
         Optional[List[Union[float, int]]],
         Query(

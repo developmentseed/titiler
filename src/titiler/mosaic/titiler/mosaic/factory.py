@@ -152,8 +152,8 @@ class MosaicTilerFactory(BaseFactory):
                 with self.backend(
                     src_path,
                     reader=self.dataset_reader,
-                    reader_options={**reader_params},
-                    **backend_params,
+                    reader_options=reader_params.as_dict(),
+                    **backend_params.as_dict(),
                 ) as src_dst:
                     return src_dst.mosaic_def
 
@@ -179,8 +179,8 @@ class MosaicTilerFactory(BaseFactory):
                 with self.backend(
                     src_path,
                     reader=self.dataset_reader,
-                    reader_options={**reader_params},
-                    **backend_params,
+                    reader_options=reader_params.as_dict(),
+                    **backend_params.as_dict(),
                 ) as src_dst:
                     return {"bounds": src_dst.geographic_bounds}
 
@@ -206,8 +206,8 @@ class MosaicTilerFactory(BaseFactory):
                 with self.backend(
                     src_path,
                     reader=self.dataset_reader,
-                    reader_options={**reader_params},
-                    **backend_params,
+                    reader_options=reader_params.as_dict(),
+                    **backend_params.as_dict(),
                 ) as src_dst:
                     return src_dst.info()
 
@@ -234,8 +234,8 @@ class MosaicTilerFactory(BaseFactory):
                 with self.backend(
                     src_path,
                     reader=self.dataset_reader,
-                    reader_options={**reader_params},
-                    **backend_params,
+                    reader_options=reader_params.as_dict(),
+                    **backend_params.as_dict(),
                 ) as src_dst:
                     info = src_dst.info()
                     return Feature(
@@ -330,8 +330,8 @@ class MosaicTilerFactory(BaseFactory):
                     src_path,
                     tms=tms,
                     reader=self.dataset_reader,
-                    reader_options={**reader_params},
-                    **backend_params,
+                    reader_options=reader_params.as_dict(),
+                    **backend_params.as_dict(),
                 ) as src_dst:
 
                     if strict_zoom and (z < src_dst.minzoom or z > src_dst.maxzoom):
@@ -347,9 +347,9 @@ class MosaicTilerFactory(BaseFactory):
                         pixel_selection=pixel_selection,
                         tilesize=scale * 256,
                         threads=threads,
-                        **tile_params,
-                        **layer_params,
-                        **dataset_params,
+                        **tile_params.as_dict(),
+                        **layer_params.as_dict(),
+                        **dataset_params.as_dict(),
                     )
 
             if post_process:
@@ -365,7 +365,7 @@ class MosaicTilerFactory(BaseFactory):
                 image,
                 output_format=format,
                 colormap=colormap,
-                **render_params,
+                **render_params.as_dict(),
             )
 
             headers: Dict[str, str] = {}
@@ -458,8 +458,8 @@ class MosaicTilerFactory(BaseFactory):
                     src_path,
                     tms=tms,
                     reader=self.dataset_reader,
-                    reader_options={**reader_params},
-                    **backend_params,
+                    reader_options=reader_params.as_dict(),
+                    **backend_params.as_dict(),
                 ) as src_dst:
                     center = list(src_dst.mosaic_def.center)
                     if minzoom is not None:
@@ -618,8 +618,8 @@ class MosaicTilerFactory(BaseFactory):
                     src_path,
                     tms=tms,
                     reader=self.dataset_reader,
-                    reader_options={**reader_params},
-                    **backend_params,
+                    reader_options=reader_params.as_dict(),
+                    **backend_params.as_dict(),
                 ) as src_dst:
                     bounds = src_dst.geographic_bounds
                     minzoom = minzoom if minzoom is not None else src_dst.minzoom
@@ -688,16 +688,16 @@ class MosaicTilerFactory(BaseFactory):
                 with self.backend(
                     src_path,
                     reader=self.dataset_reader,
-                    reader_options={**reader_params},
-                    **backend_params,
+                    reader_options=reader_params.as_dict(),
+                    **backend_params.as_dict(),
                 ) as src_dst:
                     values = src_dst.point(
                         lon,
                         lat,
                         coord_crs=coord_crs or WGS84_CRS,
                         threads=threads,
-                        **layer_params,
-                        **dataset_params,
+                        **layer_params.as_dict(),
+                        **dataset_params.as_dict(),
                     )
 
             return {
@@ -738,8 +738,8 @@ class MosaicTilerFactory(BaseFactory):
                 with self.backend(
                     src_path,
                     reader=self.dataset_reader,
-                    reader_options={**reader_params},
-                    **backend_params,
+                    reader_options=reader_params.as_dict(),
+                    **backend_params.as_dict(),
                 ) as src_dst:
                     return src_dst.assets_for_bbox(
                         minx,
@@ -767,8 +767,8 @@ class MosaicTilerFactory(BaseFactory):
                 with self.backend(
                     src_path,
                     reader=self.dataset_reader,
-                    reader_options={**reader_params},
-                    **backend_params,
+                    reader_options=reader_params.as_dict(),
+                    **backend_params.as_dict(),
                 ) as src_dst:
                     return src_dst.assets_for_point(
                         lon,
@@ -817,7 +817,7 @@ class MosaicTilerFactory(BaseFactory):
                     src_path,
                     tms=tms,
                     reader=self.dataset_reader,
-                    reader_options={**reader_params},
-                    **backend_params,
+                    reader_options=reader_params.as_dict(),
+                    **backend_params.as_dict(),
                 ) as src_dst:
                     return src_dst.assets_for_tile(x, y, z)
