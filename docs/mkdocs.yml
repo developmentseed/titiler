@@ -92,8 +92,14 @@ nav:
       - factory: api/titiler/core/factory.md
       - routing: api/titiler/core/routing.md
       - errors: api/titiler/core/errors.md
-      - enums: api/titiler/core/resources/enums.md
       - middleware: api/titiler/core/middleware.md
+      - resources:
+        - enums: api/titiler/core/resources/enums.md
+        - responses: api/titiler/core/resources/responses.md
+      - models:
+        - OGC: api/titiler/core/models/OGC.md
+        - Mapbox/MapLibre: api/titiler/core/models/mapbox.md
+        - responses: api/titiler/core/models/responses.md
     - titiler.extensions:
       - cogeo: api/titiler/extensions/cogeo.md
       - stac: api/titiler/extensions/stac.md
@@ -101,6 +107,8 @@ nav:
     - titiler.mosaic:
       - factory: api/titiler/mosaic/factory.md
       - errors: api/titiler/mosaic/errors.md
+      - models:
+        - responses: api/titiler/mosaic/models/responses.md
 
   - Deployment:
     - Amazon Web Services:
@@ -118,8 +126,36 @@ nav:
 
 plugins:
   - search
+  - social
   - mkdocs-jupyter:
-      include_source: True
+      include_source: true
+      ignore: ["**/.ipynb_checkpoints/*.ipynb"]
+  - mkdocstrings:
+      enable_inventory: true
+      handlers:
+        python:
+          paths: [src]
+          options:
+            filters:
+            - "!^__post_init__"
+            docstring_section_style: list
+            docstring_style: google
+            line_length: 100
+            separate_signature: true
+            show_root_heading: true
+            show_signature_annotations: true
+            show_source: false
+            show_symbol_type_toc: true
+            signature_crossrefs: true
+            extensions:
+              - griffe_inherited_docstrings
+          import:
+            - https://docs.python.org/3/objects.inv
+            - https://numpy.org/doc/stable/objects.inv
+            - https://rasterio.readthedocs.io/en/stable/objects.inv
+            - https://docs.pydantic.dev/latest/objects.inv
+            - https://fastapi.tiangolo.com/objects.inv
+            - https://cogeotiff.github.io/rio-tiler/objects.inv
 
 theme:
   name: material
@@ -128,6 +164,15 @@ theme:
     scheme: default
   custom_dir: 'src/overrides'
   favicon: img/favicon.png
+
+  features:
+    - content.code.annotate
+    - content.code.copy
+    - navigation.indexes
+    - navigation.instant
+    - navigation.tracking
+    - search.suggest
+    - search.share
 
 # https://github.com/kylebarron/cogeo-mosaic/blob/mkdocs/mkdocs.yml#L50-L75
 markdown_extensions:
@@ -142,7 +187,9 @@ markdown_extensions:
   - pymdownx.caret:
       insert: false
   - pymdownx.details
-  - pymdownx.emoji
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.escapeall:
       hardbreak: true
       nbsp: true

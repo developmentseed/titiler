@@ -37,19 +37,6 @@ dependencies = [
     "titiler.application==0.18.5",
 ]
 
-[project.optional-dependencies]
-dev = [
-    "pre-commit",
-]
-docs = [
-    "nbconvert",
-    "mkdocs",
-    "mkdocs-jupyter",
-    "mkdocs-material",
-    "pygments",
-    "pdocs",
-]
-
 [project.urls]
 Homepage = 'https://developmentseed.org/titiler/'
 Documentation = "https://developmentseed.org/titiler/"
