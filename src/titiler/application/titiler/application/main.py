@@ -6,7 +6,7 @@ import re
 import jinja2
 from fastapi import Depends, FastAPI, HTTPException, Security
 from fastapi.security.api_key import APIKeyQuery
-from rio_tiler.io import STACReader
+from rio_tiler.io import Reader, STACReader
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
@@ -98,6 +98,7 @@ app = FastAPI(
 # Simple Dataset endpoints (e.g Cloud Optimized GeoTIFF)
 if not api_settings.disable_cog:
     cog = TilerFactory(
+        reader=Reader,
         router_prefix="/cog",
         extensions=[
             cogValidateExtension(),

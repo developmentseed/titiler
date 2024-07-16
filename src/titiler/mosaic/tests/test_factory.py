@@ -43,7 +43,7 @@ def test_MosaicTilerFactory():
         optional_headers=[OptionalHeader.x_assets],
         router_prefix="mosaic",
     )
-    assert len(mosaic.router.routes) == 24
+    assert len(mosaic.router.routes) == 16
 
     app = FastAPI()
     app.include_router(mosaic.router, prefix="/mosaic")
@@ -104,10 +104,6 @@ def test_MosaicTilerFactory():
         )
         assert response.status_code == 200
 
-        response = client.get("/mosaic/tiles/7/37/45", params={"url": mosaic_file})
-        assert response.status_code == 200
-        assert response.headers["X-Assets"]
-
         response = client.get(
             "/mosaic/tiles/WebMercatorQuad/7/37/45", params={"url": mosaic_file}
         )
@@ -122,7 +118,8 @@ def test_MosaicTilerFactory():
 
         # Buffer
         response = client.get(
-            "/mosaic/tiles/7/37/45.npy", params={"url": mosaic_file, "buffer": 10}
+            "/mosaic/tiles/WebMercatorQuad/7/37/45.npy",
+            params={"url": mosaic_file, "buffer": 10},
         )
         assert response.status_code == 200
         assert response.headers["content-type"] == "application/x-binary"
@@ -130,7 +127,7 @@ def test_MosaicTilerFactory():
         assert npy_tile.shape == (4, 276, 276)  # mask + data
 
         response = client.get(
-            "/mosaic/tilejson.json",
+            "/mosaic/WebMercatorQuad/tilejson.json",
             params={
                 "url": mosaic_file,
                 "tile_format": "png",
@@ -148,7 +145,7 @@ def test_MosaicTilerFactory():
         assert body["maxzoom"] == 9
 
         response = client.get(
-            "/mosaic/tilejson.json",
+            "/mosaic/WebMercatorQuad/tilejson.json",
             params={
                 "url": mosaic_file,
                 "tile_format": "png",
@@ -168,7 +165,7 @@ def test_MosaicTilerFactory():
         assert "tileMatrixSetId" not in body["tiles"][0]
 
         response = client.get(
-            "/mosaic/WMTSCapabilities.xml",
+            "/mosaic/WebMercatorQuad/WMTSCapabilities.xml",
             params={
                 "url": mosaic_file,
                 "tile_format": "png",
@@ -186,7 +183,7 @@ def test_MosaicTilerFactory():
         assert response.status_code == 200
 
         response = client.get(
-            "/mosaic/7/36/45/assets",
+            "/mosaic/WebMercatorQuad/7/36/45/assets",
             params={"url": mosaic_file},
         )
         assert response.status_code == 200
@@ -260,7 +257,7 @@ class BackendParams(DefaultDependency):
 def test_MosaicTilerFactory_BackendParams():
     """Test MosaicTilerFactory factory with Backend dependency."""
     mosaic = MosaicTilerFactory(
-        reader=FileBackend,
+        backend=FileBackend,
         backend_dependency=BackendParams,
         router_prefix="/mosaic",
     )
@@ -270,7 +267,7 @@ def test_MosaicTilerFactory_BackendParams():
 
     with tmpmosaic() as mosaic_file:
         response = client.get(
-            "/mosaic/tilejson.json",
+            "/mosaic/WebMercatorQuad/tilejson.json",
             params={"url": mosaic_file},
         )
         assert response.json()["minzoom"] == 4
@@ -297,14 +294,17 @@ def test_MosaicTilerFactory_PixelSelectionParams():
     client = TestClient(app)
 
     with tmpmosaic() as mosaic_file:
-        response = client.get("/mosaic/tiles/7/37/45.npy", params={"url": mosaic_file})
+        response = client.get(
+            "/mosaic/tiles/WebMercatorQuad/7/37/45.npy", params={"url": mosaic_file}
+        )
         assert response.status_code == 200
         assert response.headers["content-type"] == "application/x-binary"
         npy_tile = numpy.load(BytesIO(response.content))
         assert npy_tile.shape == (4, 256, 256)  # mask + data
 
         response = client.get(
-            "/mosaic_highest/tiles/7/37/45.npy", params={"url": mosaic_file}
+            "/mosaic_highest/tiles/WebMercatorQuad/7/37/45.npy",
+            params={"url": mosaic_file},
         )
         assert response.status_code == 200
         assert response.headers["content-type"] == "application/x-binary"
@@ -324,13 +324,19 @@ def test_MosaicTilerFactory_strict_zoom(monkeypatch):
 
     with TestClient(app) as client:
         with tmpmosaic() as mosaic_file:
-            response = client.get("/tiles/7/37/45.png", params={"url": mosaic_file})
+            response = client.get(
+                "/tiles/WebMercatorQuad/7/37/45.png", params={"url": mosaic_file}
+            )
             assert response.status_code == 200
 
-            response = client.get("/tiles/6/18/22.png", params={"url": mosaic_file})
+            response = client.get(
+                "/tiles/WebMercatorQuad/6/18/22.png", params={"url": mosaic_file}
+            )
             assert response.status_code == 400
             assert "Invalid ZOOM level 6" in response.text
 
-            response = client.get("/tiles/11/594/734.png", params={"url": mosaic_file})
+            response = client.get(
+                "/tiles/WebMercatorQuad/11/594/734.png", params={"url": mosaic_file}
+            )
             assert response.status_code == 400
             assert "Invalid ZOOM level 11" in response.text

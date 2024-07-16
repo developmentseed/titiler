@@ -1,6 +1,28 @@
 # Release Notes
 
-## Unreleased
+## 0.19.0 (TBD)
+
+### Misc
+
+* Removed default `WebMercatorQuad` tile matrix set in `/tiles`, `/tilesjson.json`, `/map` and `/WMTSCapabilities.xml` endpoints **breaking change**
+
+    ```
+    # Before
+    /tiles/{z}/{x}/{y}
+    /tilejson.json
+    /map
+    /WMTSCapabilities.xml
+
+    # Now
+    /tiles/WebMercatorQuad/{z}/{x}/{y}
+    /WebMercatorQuad/tilejson.json
+    /WebMercatorQuad/map
+    /WebMercatorQuad/WMTSCapabilities.xml
+    ```
+
+* Use `@attrs.define` instead of dataclass for factories **breaking change**
+* Use `@attrs.define` instead of dataclass for factory extensions **breaking change**
+
 
 * Remove all default values to the dependencies
     * `DatasetParams.unscale`: `False` -> `None` (default to `False` in rio-tiler)
@@ -31,6 +53,15 @@
     ```
 
 * Use `.as_dict()` method when passing option to rio-tiler Reader's methods to avoid parameter conflicts when using custom Readers.
+
+### titiler.core
+
+* Renamed `BaseTilerFactory` to `BaseFactory` **breaking change**
+* Removed useless attribute in `BaseFactory` (and moved them to `TilerFactory`) **breaking change**
+
+### titiler.mosaic
+
+* Renamed `reader` attribute to `backend` in `MosaicTilerFactory`  **breaking change**
 
 ## 0.18.5 (2024-07-03)
 

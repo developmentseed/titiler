@@ -1,13 +1,12 @@
 """titiler Viewer Extensions."""
 
-from dataclasses import dataclass
-
 import jinja2
+from attrs import define
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
 from starlette.templating import Jinja2Templates
 
-from titiler.core.factory import BaseTilerFactory, FactoryExtension
+from titiler.core.factory import FactoryExtension, TilerFactory
 
 jinja2_env = jinja2.Environment(
     loader=jinja2.ChoiceLoader([jinja2.PackageLoader(__package__, "templates")])
@@ -15,13 +14,13 @@ jinja2_env = jinja2.Environment(
 DEFAULT_TEMPLATES = Jinja2Templates(env=jinja2_env)
 
 
-@dataclass
+@define
 class cogViewerExtension(FactoryExtension):
     """Add /viewer endpoint to the TilerFactory."""
 
     templates: Jinja2Templates = DEFAULT_TEMPLATES
 
-    def register(self, factory: BaseTilerFactory):
+    def register(self, factory: TilerFactory):
         """Register endpoint to the tiler factory."""
 
         @factory.router.get("/viewer", response_class=HTMLResponse)
@@ -41,13 +40,13 @@ class cogViewerExtension(FactoryExtension):
             )
 
 
-@dataclass
+@define
 class stacViewerExtension(FactoryExtension):
     """Add /viewer endpoint to the TilerFactory."""
 
     templates: Jinja2Templates = DEFAULT_TEMPLATES
 
-    def register(self, factory: BaseTilerFactory):
+    def register(self, factory: TilerFactory):
         """Register endpoint to the tiler factory."""
 
         @factory.router.get("/viewer", response_class=HTMLResponse)

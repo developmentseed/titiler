@@ -5,18 +5,17 @@ import os
 import pathlib
 import warnings
 import xml.etree.ElementTree as ET
-from dataclasses import dataclass
 from enum import Enum
 from io import BytesIO
 from typing import Dict, Optional, Type
 from unittest.mock import patch
 from urllib.parse import urlencode
 
-import attr
 import httpx
 import morecantile
 import numpy
 import pytest
+from attrs import define, field
 from fastapi import Depends, FastAPI, HTTPException, Path, Query, security, status
 from morecantile.defaults import TileMatrixSets
 from rasterio.crs import CRS
@@ -31,7 +30,7 @@ from titiler.core.dependencies import RescaleType
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 from titiler.core.factory import (
     AlgorithmFactory,
-    BaseTilerFactory,
+    BaseFactory,
     ColorMapFactory,
     MultiBandTilerFactory,
     MultiBaseTilerFactory,
@@ -49,7 +48,7 @@ WEB_TMS = TileMatrixSets({"WebMercatorQuad": morecantile.tms.get("WebMercatorQua
 def test_TilerFactory():
     """Test TilerFactory class."""
     cog = TilerFactory()
-    assert len(cog.router.routes) == 27
+    assert len(cog.router.routes) == 20
     assert len(cog.supported_tms.list()) == NB_DEFAULT_TMS
 
     cog = TilerFactory(router_prefix="something", supported_tms=WEB_TMS)
@@ -76,7 +75,7 @@ def test_TilerFactory():
     assert response.status_code == 422
 
     cog = TilerFactory(add_preview=False, add_part=False, add_viewer=False)
-    assert len(cog.router.routes) == 18
+    assert len(cog.router.routes) == 12
 
     app = FastAPI()
     cog = TilerFactory()
@@ -723,7 +722,7 @@ def test_MultiBaseTilerFactory(rio):
     rio.open = mock_rasterio_open
 
     stac = MultiBaseTilerFactory(reader=STACReader)
-    assert len(stac.router.routes) == 29
+    assert len(stac.router.routes) == 22
 
     app = FastAPI()
     app.include_router(stac.router)
@@ -1045,20 +1044,20 @@ def test_MultiBaseTilerFactory(rio):
     assert "(B09 - B01) / (B09 + B01)" in props
 
 
-@attr.s
+@define
 class BandFileReader(MultiBandReader):
     """Test MultiBand"""
 
-    input: str = attr.ib()
-    tms: morecantile.TileMatrixSet = attr.ib(
+    input: str = field()
+    tms: morecantile.TileMatrixSet = field(
         default=morecantile.tms.get("WebMercatorQuad")
     )
-    reader_options: Dict = attr.ib(factory=dict)
+    reader_options: Dict = field(factory=dict)
 
-    reader: Type[BaseReader] = attr.ib(default=Reader)
+    reader: Type[BaseReader] = field(default=Reader)
 
-    minzoom: int = attr.ib()
-    maxzoom: int = attr.ib()
+    minzoom: int = field()
+    maxzoom: int = field()
 
     @minzoom.default
     def _minzoom(self):
@@ -1093,7 +1092,7 @@ def test_MultiBandTilerFactory():
     bands = MultiBandTilerFactory(
         reader=BandFileReader, path_dependency=CustomPathParams
     )
-    assert len(bands.router.routes) == 28
+    assert len(bands.router.routes) == 21
 
     app = FastAPI()
     app.include_router(bands.router)
@@ -1465,7 +1464,7 @@ def test_TilerFactory_WithDependencies():
         ],
         router_prefix="something",
     )
-    assert len(cog.router.routes) == 27
+    assert len(cog.router.routes) == 20
 
     app = FastAPI()
     app.include_router(cog.router, prefix="/something")
@@ -1614,8 +1613,8 @@ def test_algorithm():
 def test_path_param_in_prefix():
     """Test path params in prefix."""
 
-    @dataclass
-    class EndpointFactory(BaseTilerFactory):
+    @define
+    class EndpointFactory(BaseFactory):
         def register_routes(self):
             """register endpoints."""
 
@@ -1632,7 +1631,7 @@ def test_path_param_in_prefix():
                 return {"value": param2}
 
     app = FastAPI()
-    endpoints = EndpointFactory(reader=Reader, router_prefix="/prefixed/{param1}")
+    endpoints = EndpointFactory(router_prefix="/prefixed/{param1}")
     app.include_router(endpoints.router, prefix="/prefixed/{param1}")
     client = TestClient(app)
 
