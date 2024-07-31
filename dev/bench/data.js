@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1722430002366,
+  "lastUpdate": 1722430626515,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -6710,6 +6710,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.4,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "101132508+jcary741@users.noreply.github.com",
+            "name": "Jay Cary",
+            "username": "jcary741"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "dd773230e1d906625f3cdf12933dfe699e952919",
+          "message": "Improve XSS security (#953)\n\n* improve XSS security\r\n\r\n* update changelog\r\n\r\n---------\r\n\r\nCo-authored-by: Jay Cary <jay@chloris.earth>\r\nCo-authored-by: vincentsarago <vincent.sarago@gmail.com>",
+          "timestamp": "2024-07-31T14:55:48+02:00",
+          "tree_id": "eae68eb00f4c1bf7eaf2bc2543e53c38687bca8d",
+          "url": "https://github.com/developmentseed/titiler/commit/dd773230e1d906625f3cdf12933dfe699e952919"
+        },
+        "date": 1722430625221,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.09,
             "unit": "s"
           },
           {
