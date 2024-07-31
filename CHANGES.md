@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Encode URL for cog_viewer and stac_viewer (author @guillemc23, https://github.com/developmentseed/titiler/pull/961)
+
 * Remove all default values to the dependencies
     * `DatasetParams.unscale`: `False` -> `None` (default to `False` in rio-tiler)
     * `DatasetParams.resampling_method`: `nearest` -> `None` (default to `nearest` in rio-tiler)
