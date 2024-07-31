@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Improve XSS security for HTML templates (author @jcary741, https://github.com/developmentseed/titiler/pull/953)
+
 * Encode URL for cog_viewer and stac_viewer (author @guillemc23, https://github.com/developmentseed/titiler/pull/961)
 
 * Remove all default values to the dependencies
