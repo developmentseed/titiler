@@ -1,0 +1,1 @@
+::: titiler.extensions.viewer

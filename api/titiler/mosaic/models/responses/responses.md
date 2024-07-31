@@ -1,0 +1,1 @@
+::: titiler.mosaic.models.responses
