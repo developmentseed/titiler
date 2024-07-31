@@ -1012,7 +1012,7 @@ const addStac = () => {
 }
 
 document.getElementById('launch').addEventListener('click', () => {
-  scope.url = document.getElementById('stac').value
+  scope.url = encodeURIComponent(document.getElementById('stac').value)
   document.getElementById('selector').classList.toggle('none')
   document.getElementById('loader').classList.add('off')
   addStac()
