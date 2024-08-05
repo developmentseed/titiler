@@ -1,0 +1,62 @@
+<Capabilities xmlns="http://www.opengis.net/wmts/1.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:gml="http://www.opengis.net/gml" xsi:schemaLocation="http://www.opengis.net/wmts/1.0 http://schemas.opengis.net/wmts/1.0/wmtsGetCapabilities_response.xsd" version="1.0.0">
+    <ows:ServiceIdentification>
+        <ows:Title>"{{ title }}"</ows:Title>
+        <ows:ServiceType>OGC WMTS</ows:ServiceType>
+        <ows:ServiceTypeVersion>1.0.0</ows:ServiceTypeVersion>
+    </ows:ServiceIdentification>
+    <ows:OperationsMetadata>
+        <ows:Operation name="GetCapabilities">
+            <ows:DCP>
+                <ows:HTTP>
+                    <ows:Get xlink:href="{{ request.url }}">
+                        <ows:Constraint name="GetEncoding">
+                            <ows:AllowedValues>
+                                <ows:Value>RESTful</ows:Value>
+                            </ows:AllowedValues>
+                        </ows:Constraint>
+                    </ows:Get>
+                </ows:HTTP>
+            </ows:DCP>
+        </ows:Operation>
+        <ows:Operation name="GetTile">
+            <ows:DCP>
+                <ows:HTTP>
+                    <ows:Get xlink:href="{{ request.url }}">
+                        <ows:Constraint name="GetEncoding">
+                            <ows:AllowedValues>
+                                <ows:Value>RESTful</ows:Value>
+                            </ows:AllowedValues>
+                        </ows:Constraint>
+                    </ows:Get>
+                </ows:HTTP>
+            </ows:DCP>
+        </ows:Operation>
+    </ows:OperationsMetadata>
+    <Contents>
+        <Layer>
+            <ows:Title>{{ title }}</ows:Title>
+            <ows:Identifier>{{ layer_name }}</ows:Identifier>
+            <ows:Abstract>{{ title }}</ows:Abstract>
+            <ows:WGS84BoundingBox crs="urn:ogc:def:crs:OGC:2:84">
+                <ows:LowerCorner>{{ bounds[0] }} {{ bounds[1] }}</ows:LowerCorner>
+                <ows:UpperCorner>{{ bounds[2] }} {{ bounds[3] }}</ows:UpperCorner>
+            </ows:WGS84BoundingBox>
+            <Style isDefault="true">
+                <ows:Identifier>default</ows:Identifier>
+            </Style>
+            <Format>{{ media_type }}</Format>
+            <TileMatrixSetLink>
+                <TileMatrixSet>{{ tms.identifier }}</TileMatrixSet>
+            </TileMatrixSetLink>
+            <ResourceURL format="{{ media_type }}" resourceType="tile" template="{{ tiles_endpoint }}" />
+        </Layer>
+        <TileMatrixSet>
+            <ows:Identifier>{{ tms.identifier }}</ows:Identifier>
+            <ows:SupportedCRS>{{ tms.crs.srs }}</ows:SupportedCRS>
+            {% for item in tileMatrix %}
+            {{ item | safe }}
+            {% endfor %}
+        </TileMatrixSet>
+    </Contents>
+    <ServiceMetadataURL xlink:href="{{ request.url }}" />
+</Capabilities>

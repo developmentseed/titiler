@@ -1,0 +1,56 @@
+# Default values for titiler.
+replicaCount: 1
+
+image:
+  repository: ghcr.io/developmentseed/titiler-uvicorn
+  tag: latest
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: titiler.local
+      paths: ["/"]
+  tls: []
+  #  - secretName: titiler-tls
+  #    hosts:
+  #      - titiler.local
+
+env:
+  PORT: 80
+  CPL_TMPDIR: /tmp
+  GDAL_CACHEMAX: 200  # 200 mb
+  VSI_CACHE: "TRUE"
+  VSI_CACHE_SIZE: 5000000  # 5 MB (per file-handle)
+  GDAL_DISABLE_READDIR_ON_OPEN: "EMPTY_DIR"
+  GDAL_HTTP_MERGE_CONSECUTIVE_RANGES: "YES"
+  GDAL_HTTP_MULTIPLEX: "YES"
+  GDAL_HTTP_VERSION: 2
+  PYTHONWARNINGS: "ignore"
+  WEB_CONCURRENCY: 2
+
+resources:
+  limits:
+    cpu: 1
+    memory: 2Gi
+  requests:
+    cpu: 1
+    memory: 2Gi
+
+serviceAccountName: ""
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

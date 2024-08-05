@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8' />
+    <title>TiTiler - STAC Viewer</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.6.1/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.6.1/mapbox-gl.css' rel='stylesheet' />
+
+    <link href='https://api.mapbox.com/mapbox-assembly/v0.23.2/assembly.min.css' rel='stylesheet'>
+    <script src='https://api.mapbox.com/mapbox-assembly/v0.23.2/assembly.js'></script>
+    <script src="https://d3js.org/d3.v4.js"></script>
+    <style>
+      body { margin:0; padding:0; width:100%; height:100%;}
+      #map { position:absolute; top:0; bottom:0; width:100%; }
+      .zoom-info {
+        z-index: 10;
+        position: absolute;
+        bottom: 17px;
+        right: 0;
+        padding: 5px;
+        width: auto;
+        height: auto;
+        font-size: 12px;
+        color: #000;
+      }
+      .loading-map {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        color: #FFF;
+        background-color: #000;
+        text-align: center;
+        opacity: 0.5;
+        font-size: 45px;
+      }
+      .loading-map.off {
+        opacity: 0;
+        -o-transition: all .5s ease;
+        -webkit-transition: all .5s ease;
+        -moz-transition: all .5s ease;
+        -ms-transition: all .5s ease;
+        transition: all ease .5s;
+        visibility: hidden;
+      }
+      .middle-center {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+
+      .middle-center * {
+        display: block;
+        padding: 5px;
+      }
+
+      #menu {
+        left: 0;
+        top: 0;
+        -o-transition: all .5s ease;
+        -webkit-transition: all .5s ease;
+        -moz-transition: all .5s ease;
+        -ms-transition: all .5s ease;
+        transition: all ease .5s;
+      }
+
+      #menu.off {
+        left: -360px;
+        -o-transition: all .5s ease;
+        -webkit-transition: all .5s ease;
+        -moz-transition: all .5s ease;
+        -ms-transition: all .5s ease;
+        transition: all ease .5s;
+      }
+      #toolbar {
+        height: 35px;
+      }
+      #toolbar li {
+        display: block;
+        color: #fff;
+        background-color: #556671;
+        font-weight: 700;
+        font-size: 12px;
+        padding: 5px;
+        height: 100%;
+        width: 100%;
+        text-transform: uppercase;
+        text-align: center;
+        text-decoration: none;
+        outline: 0;
+        cursor: pointer;
+        -webkit-touch-callout: none;
+          -webkit-user-select: none;
+            -moz-user-select: none;
+              -ms-user-select: none;
+                  user-select: none;
+      }
+      #toolbar li svg {
+        font-size: 25px;
+        line-height: 25px;
+        padding-bottom: 0;
+      }
+      #toolbar li:hover {
+        background-color: #28333b;
+      }
+      #toolbar li.active {
+        color: #000;
+        background-color: #fff;
+      }
+      #toolbar li.disabled {
+        pointer-events:none;
+        opacity:0.4;
+      }
+      #menu-content section {
+        display: none;
+      }
+      #menu-content section.active {
+        display: inherit;
+      }
+      #hide-arrow {
+        -o-transition: all .5s ease;
+        -webkit-transition: all .5s ease;
+        -moz-transition: all .5s ease;
+        -ms-transition: all .5s ease;
+        transition: all ease .5s;
+      }
+      #hide-arrow.off {
+        transform: rotate(-180deg);
+      }
+      input:checked+.toggle {
+        background: #fff;
+        border: #000;
+      }
+      #btn-hide {
+        position: absolute;
+        top: 0;
+        height: 35px;
+        font-size: 35px;
+        line-height: 35px;
+        vertical-align: middle;
+        right: -35px;
+        color: #28333b;
+        background-color: #fff;
+      }
+      #btn-hide:hover {
+        color: #fff;
+        background-color: #28333b;
+        cursor: pointer;
+      }
+      .line-red {
+        fill: none;
+        stroke: red;
+        stroke-width: 1.5px;
+      }
+      .line-green {
+        fill: none;
+        stroke: green;
+        stroke-width: 1.5px;
+      }
+      .line-blue {
+        fill: none;
+        stroke: blue;
+        stroke-width: 1.5px;
+      }
+      #histogram-table td {
+        min-width: 60px;
+      }
+
+      @media(max-width: 767px) {
+        #menu.off {
+          left: -240px;
+          -o-transition: all .5s ease;
+          -webkit-transition: all .5s ease;
+          -moz-transition: all .5s ease;
+          -ms-transition: all .5s ease;
+          transition: all ease .5s;
+        }
+        .mapboxgl-ctrl-attrib {
+          font-size: 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id='selector' class='fixed top right bottom left scroll-auto bg-darken25 z3'>
+      <div class='bg-white middle-center w600 px12 py12 round'>
+        <div class='txt-h5 mt6 mb6 color-black'>Enter STAC Item url</div>
+        <input id="stac" class='input wmax-full inline-block' value="" placeholder='STAC Item url here' />
+        <button id="launch" class='btn bts--xs btn--stroke bg-darken25-on-hover inline-block mt12 '>Apply</button>
+      </div>
+    </div>
+
+    <div id='menu' class='flex-child w240 w360-ml absolute bg-gray-faint z2 off'>
+      <div id='asset-section' class='px6 py6 wmax-full'>
+        <div class='txt-h5 mb6 color-black'><svg class='icon icon--l inline-block'><use xlink:href='#icon-layers' /></svg>Assets</div>
+        <div class='select-container'>
+          <select id='asset-selector' class='select select--s select--stroke pl6 wmax-full'></select>
+          <div class='select-arrow color-black'></div>
+        </div>
+        <div class='pt6'>Allow assets composition</div>
+        <label class='switch-container'>
+          <input id='compose-switch' type='checkbox' />
+          <div class='switch'></div>
+        </label>
+      </div>
+
+      <ul id='toolbar' class='grid'>
+        <li id='3b' class="col col--6 active" title="rgb" onclick="switchPane(this)">
+          <svg class='icon icon--l inline-block'><use xlink:href='#icon-menu' /></svg>
+        </li>
+        <li id='1b' class="col col--6" title="band" onclick="switchPane(this)">
+          <svg class='icon icon--l inline-block'><use xlink:href='#icon-minus' /></svg>
+        </li>
+      </ul>
+
+      <div id='menu-content' class='relative'>
+        <!-- RGB Selection -->
+        <section id='3b-section' class='px6 py6 active'>
+          <div class='txt-h5 mb6 color-black'><svg class='icon icon--l inline-block'><use xlink:href='#icon-layers'/></svg> RGB</div>
+          <div id='rgb-buttons' class='align-center px6 py6'>
+            <div class='select-container'>
+              <select id='r-selector' class='select select--s select--stroke wmax-full color-red'></select>
+              <div class='select-arrow color-black'></div>
+            </div>
+            <div class='select-container'>
+              <select id='g-selector' class='select select--s select--stroke wmax-full color-green'></select>
+              <div class='select-arrow color-black'></div>
+            </div>
+            <div class='select-container'>
+              <select id='b-selector' class='select select--s select--stroke wmax-full color-blue'></select>
+              <div class='select-arrow color-black'></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 1 Band Selection -->
+        <section id='1b-section' class='px6 py6'>
+          <div class='txt-h5 mb6 color-black'>
+            <svg class='icon icon--l inline-block'><use xlink:href='#icon-layers'/></svg> Layers
+          </div>
+          <div class='select-container wmax-full'>
+            <select id='layer-selector' class='select select--s select--stroke wmax-full color-black'></select>
+            <div class='select-arrow color-black'></div>
+          </div>
+
+          <!-- Color Map -->
+          <div id='colormap-section'>
+            <div class='txt-h5 mb6 color-black'><svg class='icon icon--l inline-block'><use xlink:href='#icon-palette'/></svg> Color Map</div>
+            <div class='select-container wmax-full'>
+              <select id='colormap-selector' class='select select--s select--stroke wmax-full color-black'>
+                <option value='b&w'>Internal</option>
+                <option value=cfastie>CFastie</option>
+                <option value=rplumbo>RPlumbo</option>
+                <option value=schwarzwald>Schwarzwald (elevation)</option>
+                <option value=viridis>Viridis</option>
+                <option value=rdbu_r>Blue-Red</option>
+                <option value=bugn>Blue-Green</option>
+                <option value=ylgn>Yellow-Green</option>
+                <option value=magma>Magma</option>
+                <option value=gist_earth>Earth</option>
+                <option value=ocean>Ocean</option>
+                <option value=terrain>Terrain</option>
+              </select>
+              <div class='select-arrow color-black'></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Min/Max -->
+        <div id="minmax-data" class='px6 py6 none'>
+          <div class='txt-h5 mb6 color-black'><svg class='icon icon--l inline-block'><use xlink:href='#icon-smooth-ramp'/></svg> Rescale</div>
+          <input id="data-min" class='input input--s w120-ml w60 inline-block align-center color-black' value='0' />
+          <input id="data-max" class='input input--s w120-ml w60 inline-block align-center color-black' value='0' />
+          <button id="btn-rescale" class='btn bts--xs btn--stroke bg-darken25-on-hover inline-block txt-s color-black mt6'>Apply</button>
+        </div>
+
+        <div id='cformula-section' class='px6 py6'>
+          <div class='txt-h5 mb6 color-black'>Color Formula</div>
+          <input id="ColorFormulaValue" class='input input--s w-full color-black' value='' />
+          <button id="updateColor" class='btn bts--xs btn--stroke bg-darken25-on-hover txt-s color-black mt6'>Apply</button>
+        </div>
+
+        <!-- Histogram -->
+        <div class='px6 py6 w-full'>
+          <div class='txt-h5 color-black'><svg class='icon icon--l inline-block'><use xlink:href='#icon-graph'/></svg> Histogram</div>
+          <div id='fetch-stats-div' class='w-full align-center'>
+          <button id="btn-stats" class='btn bts--xs btn--stroke bg-darken25-on-hover inline-block txt-s color-black mx12 my12'>Get Dataset Statistics</button>
+          </div>
+          <div id="histogram" class="w-full h120 h240-ml relative loading none"></div>
+          <table id="histogram-table" class="none"></table>
+        </div>
+
+      </div>
+      <button id='btn-hide'><svg id='hide-arrow' class='icon'><use xlink:href='#icon-arrow-right'/></svg></button>
+    </div>
+
+    <div id='map'>
+      <div id='loader' class="loading-map z3 off">
+        <div class="middle-center">
+          <div class="round animation-spin animation--infinite animation--speed-1">
+            <svg class='icon icon--l inline-block'><use xlink:href='#icon-satellite'/></svg>
+          </div>
+        </div>
+      </div>
+      <div class="zoom-info"><span id="zoom"></span></div>
+    </div>
+    <script>
+var scope = {
+  url: undefined,
+  assets: undefined,
+  dataset_info: undefined,
+  dataset_statistics: undefined,
+}
+
+mapboxgl.accessToken = ''
+
+const tilejson_endpoint = '{{ tilejson_endpoint }}'
+const info_endpoint = '{{ info_endpoint }}'
+const stats_endpoint = '{{ statistics_endpoint }}'
+
+const dtype_ranges = {
+  'int8': [-128, 127],
+  'uint8': [0, 255],
+  'uint16': [0, 65535],
+  'int16': [-32768, 32767],
+  'uint32': [0, 4294967295],
+  'int32': [-2147483648, 2147483647],
+  'float32': [-3.4028235e+38, 3.4028235e+38],
+  'float64': [-1.7976931348623157e+308, 1.7976931348623157e+308]
+}
+
+var map = new mapboxgl.Map({
+  container: 'map',
+  style: {
+    version: 8,
+    sources: {
+      'toner-lite': {
+        type: 'raster',
+        tiles: [
+          'https://stamen-tiles-a.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png',
+          'https://stamen-tiles-b.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png',
+          'https://stamen-tiles-c.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png',
+          'https://stamen-tiles-d.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png'
+        ],
+        tileSize: 256,
+        attribution:
+          'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.'
+      }
+    },
+    layers: [
+      {
+        'id': 'basemap',
+        'type': 'raster',
+        'source': 'toner-lite',
+        'minzoom': 0,
+        'maxzoom': 20
+      }
+    ]
+  },
+  center: [0, 0],
+  zoom: 1
+})
+
+
+map.on('zoom', function (e) {
+    const z = (map.getZoom()).toString().slice(0, 6)
+    document.getElementById('zoom').textContent = z
+})
+
+const set1bViz = () => {
+    params = {
+      url: scope.url
+    }
+    const asset = document.getElementById('asset-selector').value
+    params.assets = asset
+
+    const bidx = document.getElementById('layer-selector').selectedOptions[0].getAttribute("bidx")
+    params.asset_bidx = `${asset}|${bidx}`
+
+    if (['uint8','int8'].indexOf(scope.dataset_info[asset].dtype) === -1) {
+        params.rescale = `${document.getElementById('data-min').value},${document.getElementById('data-max').value}`
+    }
+
+    if (document.getElementById('ColorFormulaValue').value !== '') {
+        params.color_formula = document.getElementById('ColorFormulaValue').value
+    }
+
+    const cmap = document.getElementById('colormap-selector')[document.getElementById('colormap-selector').selectedIndex]
+    if (cmap.value !== 'b&w') params.colormap_name = cmap.value
+
+    const url_params = Object.keys(params).map(i => `${i}=${params[i]}`).join('&')
+    let url = `${tilejson_endpoint}?${url_params}`
+
+    map.addSource('raster', { type: 'raster', url: url , tileSize: 256})
+    map.addLayer({ id: 'raster', type: 'raster', source: 'raster' })
+    if (scope.dataset_statistics) addHisto1Band()
+}
+
+const set3bViz = () => {
+  const r = document.getElementById('r-selector').selectedOptions[0].getAttribute("bidx")
+  const g = document.getElementById('g-selector').selectedOptions[0].getAttribute("bidx")
+  const b = document.getElementById('b-selector').selectedOptions[0].getAttribute("bidx")
+
+  params = {
+    url: scope.url
+  }
+
+  let asset_params
+  let indexes_params
+  if (document.getElementById("compose-switch").checked === true) {
+    asset_params = [r, g, b].map(i => `assets=${i}`).join('&')
+    // When doing assets composition we select the first band (bidx=1)
+    indexes_params =  [r, g, b].map(i => `asset_bidx=${i}|1`).join('&')
+    params.rescale = `${document.getElementById('data-min').value},${document.getElementById('data-max').value}`
+  } else {
+    const asset = document.getElementById('asset-selector').value
+    asset_params = `assets=${asset}`
+    indexes_params =  `asset_bidx=${asset}|${r},${g},${b}`
+    if (['uint8','int8'].indexOf(scope.dataset_info[asset].dtype) === -1) {
+      params.rescale = `${document.getElementById('data-min').value},${document.getElementById('data-max').value}`
+    }
+  }
+
+  if (document.getElementById('ColorFormulaValue').value !== '') {
+    params.color_formula = document.getElementById('ColorFormulaValue').value
+  }
+
+  const url_params = Object.keys(params).map(i => `${i}=${params[i]}`).join('&')
+  let url = `{{ tilejson_endpoint }}?${url_params}&${asset_params}&${indexes_params}`
+
+  map.addSource('raster', { type: 'raster', url: url, tileSize: 256 })
+  map.addLayer({ id: 'raster', type: 'raster', source: 'raster' })
+  if (scope.dataset_statistics) addHisto3Bands()
+}
+
+const addHisto3Bands = () => {
+  const r = document.getElementById('r-selector').selectedOptions[0].getAttribute("bname")
+  const g = document.getElementById('g-selector').selectedOptions[0].getAttribute("bname")
+  const b = document.getElementById('b-selector').selectedOptions[0].getAttribute("bname")
+
+  let rStats
+  let gStats
+  let bStats
+  if (document.getElementById("compose-switch").checked === true) {
+    // When doing assets composition we select the first band (b1)
+    rStats = scope.dataset_statistics[r]['b1']
+    gStats = scope.dataset_statistics[g]['b1']
+    bStats = scope.dataset_statistics[b]['b1']
+  } else {
+    const asset = document.getElementById('asset-selector').value
+    rStats = scope.dataset_statistics[asset][r]
+    gStats = scope.dataset_statistics[asset][g]
+    bStats = scope.dataset_statistics[asset][b]
+  }
+
+  const minV = Math.min(...[rStats.min, gStats.min, bStats.min])
+  const maxV = Math.max(...[rStats.max, gStats.max, bStats.max])
+
+  let rCounts = rStats.histogram[0]
+  let gCounts = gStats.histogram[0]
+  let bCounts = bStats.histogram[0]
+
+  const rValues = rStats.histogram[1]
+  const gValues = gStats.histogram[1]
+  const bValues = bStats.histogram[1]
+
+  const add = (a, b) => a + b
+
+  const sumR = rCounts.reduce(add)
+  const sumG = gCounts.reduce(add)
+  const sumB = bCounts.reduce(add)
+
+  rCounts = rCounts.map((e) => {return e / sumR * 100})
+  gCounts = gCounts.map((e) => {return e / sumG * 100})
+  bCounts = bCounts.map((e) => {return e / sumB * 100})
+  const maxH = Math.max(...rCounts, ...gCounts, ...bCounts)
+
+  const bbox = d3.select('#histogram').node().getBoundingClientRect()
+
+  // set the dimensions and margins of the graph
+  const margin = { top: 10, right: 30, bottom: 30, left: 40 }
+  const width = bbox.width - margin.left - margin.right
+  const height = bbox.height - margin.top - margin.bottom
+
+  d3.select('#histogram').selectAll('*').remove()
+  // append the svg object to the body of the page
+  var svg = d3.select('#histogram')
+    .append('svg')
+    .attr('width', width + margin.left + margin.right)
+    .attr('height', height + margin.top + margin.bottom)
+    .append('g')
+    .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+
+  // X axis: scale and draw:
+  var x = d3.scaleLinear()
+    .domain([minV, maxV])
+    .range([0, width])
+
+  svg.append('g')
+    .attr('transform', 'translate(0,' + height + ')')
+    .call(d3.axisBottom(x))
+
+  // Y axis: scale and draw:
+  var y = d3.scaleLinear().range([height, 0])
+  y.domain([0, maxH + 5])
+  svg.append('g').call(d3.axisLeft(y))
+
+  const addLine = (counts, values, color) => {
+    const data = []
+    for (var i = 0; i < counts.length; i++) {
+      data.push({count: counts[i], value: values[i]})
+    }
+    var guide = d3.line()
+      .x(function(d){ return x(d.value) })
+      .y(function(d){ return y(d.count) });
+    var line = svg.append('path')
+      .datum(data)
+      .attr('d', guide)
+      .attr('class', `line-${color}`);
+  }
+  addLine(rCounts, rValues, "red")
+  addLine(gCounts, gValues, "green")
+  addLine(bCounts, bValues, "blue")
+
+  //Draw axes
+  svg.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + maxH + 5 + ")")
+    .call(x);
+
+  svg.append("g")
+    .attr("class", "y axis")
+    .call(y)
+    .append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("y", 6)
+    .attr("dy", ".71em")
+    .style("text-anchor", "end")
+}
+
+const addHisto1Band = () => {
+  const asset = document.getElementById('asset-selector').value
+  const band = document.getElementById('layer-selector').selectedOptions[0].getAttribute("bname")
+  const stats = scope.dataset_statistics[asset][band]
+
+  let counts = stats.histogram[0]
+  const sum = counts.reduce(function(a, b){
+    return a + b;
+  }, 0);
+  counts = counts.map((e) => {return e / sum * 100})
+  const maxH = Math.max(...counts)
+
+  const values = stats.histogram[1]
+  const bbox = d3.select('#histogram').node().getBoundingClientRect()
+
+  // set the dimensions and margins of the graph
+  const margin = { top: 10, right: 30, bottom: 30, left: 40 }
+  const width = bbox.width - margin.left - margin.right
+  const height = bbox.height - margin.top - margin.bottom
+
+  d3.select('#histogram').selectAll('*').remove()
+  // append the svg object to the body of the page
+  var svg = d3.select('#histogram')
+    .append('svg')
+    .attr('width', width + margin.left + margin.right)
+    .attr('height', height + margin.top + margin.bottom)
+    .append('g')
+    .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+
+  const min = stats.min
+  const max = stats.max
+
+  // X axis: scale and draw:
+  var x = d3.scaleLinear()
+    .domain([min, max])
+    .range([0, width])
+
+  svg.append('g')
+    .attr('transform', 'translate(0,' + height + ')')
+    .call(d3.axisBottom(x))
+
+  // Y axis: scale and draw:
+  var y = d3.scaleLinear().range([height, 0])
+  y.domain([0, maxH])
+  svg.append('g').call(d3.axisLeft(y))
+
+  const bins = []
+  for (var i = 0; i < counts.length; i++) {
+    bins.push({
+      count: counts[i],
+      value: values[i]
+    })
+  }
+
+  // append the bar rectangles to the svg element
+  svg.selectAll('rect')
+    .data(bins)
+    .enter()
+    .append('rect')
+    .attr('x', 1)
+    .attr('transform', d => { return 'translate(' + x(d.value) + ',' + y(d.count) + ')' })
+    .attr('width', 10)
+    .attr('height', d => { return height - y(d.count) })
+    .style('fill', '#69b3a2')
+}
+
+document.getElementById('btn-stats').addEventListener('click', () => {
+  document.getElementById('fetch-stats-div').classList.add('none')
+  document.getElementById('histogram').classList.remove('none')
+  document.getElementById('histogram-table').classList.remove('none')
+
+  fetch(`${stats_endpoint}?url=${scope.url}&max_size=256`)
+    .then(res => {
+      if (res.ok) return res.json()
+      throw new Error('Network response was not ok.')
+    })
+    .then(data => {
+      scope.dataset_statistics = data
+      if (document.getElementById('toolbar').querySelector(".active").id === '1b') {
+        addHisto1Band()
+      } else {
+        addHisto3Bands()
+      }
+      document.getElementById('histogram').classList.remove('loading')
+    })
+    .catch(err => {
+      console.warn(err)
+    })
+})
+
+const updateViz = () => {
+  if (map.getLayer('raster')) map.removeLayer('raster')
+  if (map.getSource('raster')) map.removeSource('raster')
+
+  const rasterType = document.getElementById('toolbar').querySelector(".active").id
+  switch (rasterType) {
+    case '1b':
+      set1bViz()
+      break
+    case '3b':
+      set3bViz()
+      break
+    default:
+      throw new Error(`Invalid ${rasterType}`)
+  }
+}
+
+document.getElementById('btn-hide').addEventListener('click', () => {
+  document.getElementById('hide-arrow').classList.toggle('off')
+  document.getElementById('menu').classList.toggle('off')
+})
+
+document.getElementById('layer-selector').addEventListener('change', () => {
+  updateViz()
+})
+
+document.getElementById('asset-selector').addEventListener('change', () => {
+  updateUI()
+  updateViz()
+})
+
+document.getElementById('compose-switch').addEventListener('change', () => {
+  updateUI()
+})
+
+document.getElementById('r-selector').addEventListener('change', () => { updateViz() })
+document.getElementById('g-selector').addEventListener('change', () => { updateViz() })
+document.getElementById('b-selector').addEventListener('change', () => { updateViz() })
+
+document.getElementById('colormap-selector').addEventListener('change', () => {
+  updateViz()
+})
+
+document.getElementById('btn-rescale').addEventListener('click', () => {
+  updateViz()
+})
+
+document.getElementById('updateColor').addEventListener('click', () => {
+  updateViz()
+})
+
+const switchPane = (event) => {
+  const cur = document.getElementById('toolbar').querySelector(".active")
+  const activeViz = cur.id
+  const nextViz = event.id
+  cur.classList.toggle('active')
+  event.classList.toggle('active')
+
+  const curSection = document.getElementById(`${activeViz}-section`)
+  curSection.classList.toggle('active')
+  const nextSection = document.getElementById(`${nextViz}-section`)
+  nextSection.classList.toggle('active')
+  updateViz()
+}
+
+const bboxPolygon = (bounds) => {
+  return {
+    'type': 'Feature',
+    'geometry': {
+      'type': 'Polygon',
+      'coordinates': [[
+        [bounds[0], bounds[1]],
+        [bounds[2], bounds[1]],
+        [bounds[2], bounds[3]],
+        [bounds[0], bounds[3]],
+        [bounds[0], bounds[1]]
+      ]]
+    },
+    'properties': {}
+  }
+}
+
+const addAOI = (bounds) => {
+  if (map.getLayer('aoi-polygon')) map.removeLayer('aoi-polygon')
+  if (map.getSource('aoi')) map.removeSource('aoi')
+
+  const geojson = {
+    "type": "FeatureCollection",
+    "features": [bboxPolygon(bounds)]
+  }
+
+  map.addSource('aoi', {
+    'type': 'geojson',
+    'data': geojson
+  })
+
+  map.addLayer({
+    id: 'aoi-polygon',
+    type: 'line',
+    source: 'aoi',
+    layout: {
+      'line-cap': 'round',
+      'line-join': 'round'
+    },
+    paint: {
+      'line-color': '#3bb2d0',
+      'line-width': 1
+    }
+  })
+  return
+}
+
+const updateUI = () => {
+  const is_checked = document.getElementById("compose-switch").checked
+  const rList = document.getElementById('r-selector')
+  rList.innerHTML = ''
+  const bList = document.getElementById('b-selector')
+  bList.innerHTML = ''
+  const gList = document.getElementById('g-selector')
+  gList.innerHTML = ''
+
+  // Allow assets composition (Asset As Band)
+  if (is_checked === true) {
+    document.getElementById('asset-selector').classList.add('disabled')
+    document.getElementById("asset-selector").disabled = true
+
+    document.getElementById('3b').classList.add('active')
+    document.getElementById('3b').classList.remove('disabled')
+    document.getElementById('3b-section').classList.add('active')
+
+    document.getElementById('1b').classList.remove('active')
+    document.getElementById('1b').classList.add('disabled')
+    document.getElementById('1b-section').classList.remove('active')
+
+    const nbands = scope.assets.length
+
+    for (var i = 0; i < nbands; i++) {
+      let l = document.createElement('option')
+      l.value = scope.assets[i]
+      l.setAttribute('bidx', scope.assets[i])
+      l.setAttribute('bname', scope.assets[i])
+      l.text = scope.assets[i]
+      if (i === 0) l.selected = "selected"
+      rList.appendChild(l)
+    }
+
+    for (var i = 0; i < nbands; i++) {
+      let l = document.createElement('option')
+      l.value = scope.assets[i]
+      l.setAttribute('bidx', scope.assets[i])
+      l.setAttribute('bname', scope.assets[i])
+      l.text = scope.assets[i]
+      if (i === 1) l.selected = "selected"
+      gList.appendChild(l)
+    }
+
+    for (var i = 0; i < nbands; i++) {
+      let l = document.createElement('option')
+      l.value = scope.assets[i]
+      l.setAttribute('bidx', scope.assets[i])
+      l.setAttribute('bname', scope.assets[i])
+      l.text = scope.assets[i]
+      l.selected = "selected"
+      bList.appendChild(l)
+    }
+
+    document.getElementById('minmax-data').classList.remove('none')
+    const mm = dtype_ranges[scope.dataset_info[scope.assets[0]].dtype]
+    document.getElementById('data-min').value = mm[0]
+    document.getElementById('data-max').value = mm[1]
+  } else {
+    document.getElementById('1b').classList.remove('disabled')
+    document.getElementById("asset-selector").disabled = false
+
+    const layerList = document.getElementById('layer-selector')
+    layerList.innerHTML = ''
+
+    const asset = document.getElementById('asset-selector').value
+    const info = scope.dataset_info[asset]
+
+    const band_descr = info.band_descriptions
+    const nbands = band_descr.length
+
+    //Populate Band (1b) selector
+    for (var i = 0; i < nbands; i++) {
+      let l = document.createElement('option')
+      l.setAttribute('bidx', i + 1)
+      l.setAttribute('bname', band_descr[i][0])
+      l.text = band_descr[i][1] || band_descr[i][0]
+      layerList.appendChild(l)
+    }
+
+    // Populate R/G/B (3b) selectors
+    const rList = document.getElementById('r-selector')
+    for (var i = 0; i < nbands; i++) {
+      let l = document.createElement('option')
+      l.setAttribute('bidx', i + 1)
+      l.setAttribute('bname', band_descr[i][0])
+      l.text = band_descr[i][1] || band_descr[i][0]
+      if (i === 0) l.selected="selected"
+      rList.appendChild(l)
+    }
+
+    const gList = document.getElementById('g-selector')
+    for (var i = 0; i < nbands; i++) {
+      let l = document.createElement('option')
+      l.setAttribute('bidx', i + 1)
+      l.setAttribute('bname', band_descr[i][0])
+      l.text = band_descr[i][1] || band_descr[i][0]
+      if (i === 1) l.selected="selected"
+      gList.appendChild(l)
+    }
+
+    const bList = document.getElementById('b-selector')
+    for (var i = 0; i < nbands; i++) {
+      let l = document.createElement('option')
+      l.setAttribute('bidx', i + 1)
+      l.setAttribute('bname', band_descr[i][0])
+      l.text = band_descr[i][1] || band_descr[i][0]
+      if (band_descr.length > 2 && i === 2) {
+          l.selected="selected"
+      } else {
+          l.selected="selected"
+      }
+      bList.appendChild(l)
+    }
+
+    if (['uint8','int8'].indexOf(info.dtype) === -1) {
+      document.getElementById('minmax-data').classList.remove('none')
+    } else {
+      document.getElementById('minmax-data').classList.add('none')
+    }
+    const mm = dtype_ranges[info.dtype]
+    document.getElementById('data-min').value = mm[0]
+    document.getElementById('data-max').value = mm[1]
+
+    let bounds = [...info.bounds]
+    // Bounds crossing dateline
+    if (bounds[0] > bounds[2]) {
+      bounds[0] = bounds[0] - 360
+    }
+    map.fitBounds(
+      [[bounds[0], bounds[1]], [bounds[2], bounds[3]]]
+    )
+    addAOI(bounds)
+
+    if (nbands === 1) {
+      document.getElementById('3b').classList.add('disabled')
+      document.getElementById('3b').classList.remove('active')
+      document.getElementById('3b-section').classList.toggle('active')
+      document.getElementById('1b').classList.add('active')
+      document.getElementById('1b-section').classList.toggle('active')
+    } else {
+      document.getElementById('3b').classList.remove('disabled')
+    }
+  }
+  updateViz()
+}
+
+const parseParams = (w_loc) => {
+  const param_list = w_loc.replace('?', '').split('&')
+  const out_params = {}
+  for (let i = 0; i < param_list.length; i++) {
+    let tPar = param_list[i].split('=')
+    out_params[tPar[0]] = tPar[1]
+  }
+  return out_params
+}
+
+const addStac = () => {
+  fetch(`${info_endpoint}?url=${scope.url}`)
+    .then(res => {
+      if (res.ok) return res.json()
+      throw new Error('Network response was not ok.')
+    })
+    .then(data => {
+      console.log(data)
+      document.getElementById('hide-arrow').classList.toggle('off')
+      document.getElementById('menu').classList.toggle('off')
+      document.getElementById('loader').classList.toggle('off')
+
+      scope.assets =  Object.entries(data).map((e) => {return e[0]})
+      scope.dataset_info = data
+
+      const assetList = document.getElementById('asset-selector')
+      for (var i = 0; i < scope.assets.length; i++) {
+        let l = document.createElement('option')
+        l.value = scope.assets[i]
+        l.setAttribute('data-asset', scope.assets[i])
+        l.text = scope.assets[i]
+        assetList.appendChild(l)
+      }
+    })
+    .then(() => {
+      updateUI()
+      document.getElementById('loader').classList.add('off')
+    })
+    .catch(err => {
+      console.warn(err)
+    })
+}
+
+document.getElementById('launch').addEventListener('click', () => {
+  scope.url = document.getElementById('stac').value
+  document.getElementById('selector').classList.toggle('none')
+  document.getElementById('loader').classList.add('off')
+  addStac()
+})
+
+map.on('load', () => {
+  const params = parseParams(window.location.search)
+  if (params.url) {
+    scope.url = params.url
+    document.getElementById('selector').classList.toggle('none')
+    addStac()
+  }
+})
+    </script>
+  </body>
+</html>

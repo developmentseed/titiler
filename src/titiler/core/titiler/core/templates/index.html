@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset='utf-8' />
+        <title>TiTiler Map Viewer</title>
+        <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"/>
+        <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+        <script src="https://unpkg.com/proj4@2.3.14/dist/proj4.js"></script>
+        <script src="https://unpkg.com/proj4leaflet@1.0.2/src/proj4leaflet.js"></script>
+        <style>
+            body { margin:0; padding:0; width:100%; height:100%; background-color: #e5e5e5;}
+            #map { position:absolute; top:0; bottom:0; width:100%; }
+        </style>
+    </head>
+    <body>
+
+    <div id='map'></div>
+
+    <script type="text/javascript">
+
+const bboxPolygon = (bounds) => {
+    return {
+        'type': 'Feature',
+        'geometry': {
+            'type': 'Polygon',
+            'coordinates': [[
+                [bounds[0], bounds[1]],
+                [bounds[2], bounds[1]],
+                [bounds[2], bounds[3]],
+                [bounds[0], bounds[3]],
+                [bounds[0], bounds[1]]
+            ]]
+        },
+        'properties': {}
+    }
+}
+
+var crs = new L.Proj.CRS(
+    '{{ tms.crs.srs }}',
+    '{{ tms.crs.to_proj4() }}', {
+    origin: [{{ tms.xy_bbox.left }}, {{ tms.xy_bbox.top }}],
+    bounds: L.bounds(
+      L.Point({{ tms.xy_bbox.left}}, {{ tms.xy_bbox.bottom }}),
+      L.Point({{ tms.xy_bbox.right}}, {{ tms.xy_bbox.top }})
+    ),
+    resolutions: {{ resolutions|safe }},
+  }
+);
+
+
+var map = L.map('map', {
+  crs: crs,
+  minZoom: {{ tms.minzoom }},
+  maxZoom: {{ tms.maxzoom }}
+});
+
+// const nullIsland = L.marker([0, 0]).addTo(map);
+// const madrid = L.marker([40, -3]).addTo(map);
+// const london = L.marker([51.50722, -0.1275]).addTo(map)
+// const auckland = L.marker([-36.864664, 174.792059]).addTo(map);
+// const seattle = L.marker([47.596842, -122.333087]).addTo(map);
+
+fetch('{{ tilejson_endpoint|safe }}')
+  .then(res => {
+    if (res.ok) return res.json()
+    throw new Error('Network response was not ok.')
+  })
+  .then(data => {
+    console.log(data)
+
+    let bounds = [...data.bounds]
+    // Bounds crossing dateline
+    if (bounds[0] > bounds[2]) {
+      bounds[0] = bounds[0] - 360
+    }
+    var left = bounds[0],
+      bottom = bounds[1],
+      right = bounds[2],
+      top = bounds[3];
+
+    var aoi = L.geoJSON(
+      bboxPolygon(bounds), {
+        color: '#3bb2d0', fill: false
+      }
+    ).addTo(map);
+    map.fitBounds(aoi.getBounds());
+
+    L.tileLayer(
+      data.tiles[0], {
+        minZoom: data.minzoom,
+        maxNativeZoom: data.maxzoom,
+        bounds: L.latLngBounds([bottom, left], [top, right]),
+      }
+    ).addTo(map);
+  })
+  .catch(err => {
+    console.warn(err)
+  })
+    </script>
+    </body>
+    </html>

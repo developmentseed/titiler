@@ -1,0 +1,10 @@
+.history
+.tox
+.git
+.github
+.vscode
+
+deployment/*
+docs/*
+
+deployment/aws/**

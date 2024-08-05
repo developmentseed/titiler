@@ -1,0 +1,44 @@
+# Default values for titiler.
+replicaCount: 4
+
+ingress:
+  enabled: true
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: titiler.charter.uat.esaportal.eu
+      paths: ["/"]
+  tls:
+   - secretName: domain-tls
+     hosts:
+       - titiler.charter.uat.esaportal.eu
+
+env:
+  PORT: 80
+  CPL_TMPDIR: /tmp
+  GDAL_CACHEMAX: 75%
+  VSI_CACHE: TRUE
+  VSI_CACHE_SIZE: 1073741824
+  GDAL_DISABLE_READDIR_ON_OPEN: EMPTY_DIR
+  GDAL_HTTP_MERGE_CONSECUTIVE_RANGES: YES
+  GDAL_HTTP_MULTIPLEX: YES
+  GDAL_HTTP_VERSION: 2
+  PYTHONWARNINGS: ignore
+  WEB_CONCURRENCY: 2
+
+resources:
+   limits:
+    cpu: 256m
+    memory: 1Gi
+    # ephemeral-storage: 10Gi
+   requests:
+    cpu: 256m
+    memory: 1Gi
+    # ephemeral-storage: 10Gi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

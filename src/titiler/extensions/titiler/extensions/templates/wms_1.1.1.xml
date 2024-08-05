@@ -1,0 +1,65 @@
+<?xml version='1.0' encoding="UTF-8" standalone="no" ?>
+<WMT_MS_Capabilities version="1.1.1">
+
+<Service>
+  <Name>TiTiler WMS</Name>
+  <Title>TiTiler WMS</Title>
+  <Abstract>COG URLs specified in the "LAYERS" parameter will show up as available layers</Abstract>
+</Service>
+
+<Capability>
+  <Request>
+    <GetCapabilities>
+      <Format>application/vnd.ogc.wms_xml</Format>
+      <DCPType>
+        <HTTP>
+          <Get><OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{{ request_url }}"/></Get>
+          <Post><OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{{ request_url }}"/></Post>
+        </HTTP>
+      </DCPType>
+    </GetCapabilities>
+    <GetMap>
+      {% for format in formats %}
+      <Format>{{format}}</Format>
+      {% endfor %}
+      <DCPType>
+        <HTTP>
+          <Get><OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{{ request_url }}"/></Get>
+          <Post><OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{{ request_url }}"/></Post>
+        </HTTP>
+      </DCPType>
+    </GetMap>
+  </Request>
+  <Exception>
+    <Format>application/vnd.ogc.se_xml</Format>
+    <Format>application/vnd.ogc.se_inimage</Format>
+    <Format>application/vnd.ogc.se_blank</Format>
+  </Exception>
+  
+  <Layer>
+    <Name>TiTiler WMS</Name>
+    <Title>TiTiler WMS</Title>
+    <Abstract>COG URLs specified in the "LAYERS" parameter will show up as available layers</Abstract>
+    
+    {% for srs in available_epsgs %}
+    <SRS>{{srs}}</SRS>
+    {% endfor %}
+    
+    <LatLonBoundingBox minx="{{service_dict['xmin']}}" miny="{{service_dict['ymin']}}" maxx="{{service_dict['xmax']}}" maxy="{{service_dict['ymax']}}" />
+    <BoundingBox SRS="EPSG:4326" minx="{{service_dict['xmin']}}" miny="{{service_dict['ymin']}}" maxx="{{service_dict['xmax']}}" maxy="{{service_dict['ymax']}}" />
+    
+    {% for layer in layers_dict.keys() %}
+    <Layer queryable="0" opaque="0" cascaded="0">
+        <Name>{{layer}}</Name>
+        <Title>{{layer}}</Title>
+        <Abstract>{{layers_dict[layer]['abstract']}}</Abstract>
+        {% for srs in available_epsgs %}
+        <SRS>{{srs}}</SRS>
+        {% endfor %}
+        <LatLonBoundingBox minx="{{layers_dict[layer]['bounds_wgs84'][0]}}" miny="{{layers_dict[layer]['bounds_wgs84'][1]}}" maxx="{{layers_dict[layer]['bounds_wgs84'][2]}}" maxy="{{layers_dict[layer]['bounds_wgs84'][3]}}" />
+        <BoundingBox SRS="{{layers_dict[layer]['srs']}}" minx="{{layers_dict[layer]['bounds'][0]}}" miny="{{layers_dict[layer]['bounds'][1]}}" maxx="{{layers_dict[layer]['bounds'][2]}}" maxy="{{layers_dict[layer]['bounds'][3]}}"/>
+    </Layer>
+    {% endfor %}
+  </Layer>
+</Capability>
+</WMT_MS_Capabilities>

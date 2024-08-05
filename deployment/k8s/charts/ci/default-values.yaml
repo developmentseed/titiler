@@ -1,0 +1,5 @@
+replicaCount: 1
+
+image:
+  repository: titiler
+  tag: dev

@@ -1,0 +1,115 @@
+version: '3'
+
+services:
+  titiler:
+    # See https://github.com/developmentseed/titiler/discussions/387
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.gunicorn
+    ports:
+      - "8000:8000"
+    environment:
+      # Application
+      - HOST=0.0.0.0
+      - PORT=8000
+      # Gunicorn / Uvicorn
+      # https://github.com/tiangolo/uvicorn-gunicorn-docker#web_concurrency
+      - WEB_CONCURRENCY=1
+      # https://github.com/tiangolo/uvicorn-gunicorn-docker#workers_per_core
+      - WORKERS_PER_CORE=1
+      # GDAL config
+      - CPL_TMPDIR=/tmp
+      - GDAL_CACHEMAX=75%
+      - GDAL_INGESTED_BYTES_AT_OPEN=32768
+      - GDAL_DISABLE_READDIR_ON_OPEN=EMPTY_DIR
+      - GDAL_HTTP_MERGE_CONSECUTIVE_RANGES=YES
+      - GDAL_HTTP_MULTIPLEX=YES
+      - GDAL_HTTP_VERSION=2
+      - PYTHONWARNINGS=ignore
+      - VSI_CACHE=TRUE
+      - VSI_CACHE_SIZE=536870912
+      # GDAL VSI Config
+      # https://gdal.org/user/virtual_file_systems.html#vsis3-aws-s3-files
+      # https://gdal.org/user/virtual_file_systems.html#vsigs-google-cloud-storage-files
+      # https://gdal.org/user/virtual_file_systems.html#vsiaz-microsoft-azure-blob-files
+      # - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      # - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      # TiTiler config
+      # - TITILER_API_DISABLE_STAC=TRUE/FALSE
+      # - TITILER_API_DISABLE_MOSAIC=TRUE/FALSE
+      # - TITILER_API_DISABLE_COG=TRUE/FALSE
+      # - TITILER_API_CORS_ORIGIN=url.io,url.xyz
+      # - TITILER_API_CACHECONTROL=public, max-age=3600
+      # - TITILER_API_DEBUG=TRUE/FALSE
+      # - MOSAIC_CONCURRENCY= # will default to `RIO_TILER_MAX_THREADS`
+      # rio-tiler config
+      # - RIO_TILER_MAX_THREADS=
+
+  titiler-uvicorn:
+    # See https://github.com/developmentseed/titiler/discussions/387
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.uvicorn
+    ports:
+      - "8000:8000"
+    environment:
+      # Application
+      - HOST=0.0.0.0
+      - PORT=8000
+      # Uvicorn
+      # http://www.uvicorn.org/settings/#production
+      - WEB_CONCURRENCY=1
+      # GDAL config
+      - CPL_TMPDIR=/tmp
+      - GDAL_CACHEMAX=75%
+      - GDAL_INGESTED_BYTES_AT_OPEN=32768
+      - GDAL_DISABLE_READDIR_ON_OPEN=EMPTY_DIR
+      - GDAL_HTTP_MERGE_CONSECUTIVE_RANGES=YES
+      - GDAL_HTTP_MULTIPLEX=YES
+      - GDAL_HTTP_VERSION=2
+      - PYTHONWARNINGS=ignore
+      - VSI_CACHE=TRUE
+      - VSI_CACHE_SIZE=536870912
+      # GDAL VSI Config
+      # https://gdal.org/user/virtual_file_systems.html#vsis3-aws-s3-files
+      # https://gdal.org/user/virtual_file_systems.html#vsigs-google-cloud-storage-files
+      # https://gdal.org/user/virtual_file_systems.html#vsiaz-microsoft-azure-blob-files
+      # - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      # - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      # TiTiler config
+      # - TITILER_API_DISABLE_STAC=TRUE/FALSE
+      # - TITILER_API_DISABLE_MOSAIC=TRUE/FALSE
+      # - TITILER_API_DISABLE_COG=TRUE/FALSE
+      # - TITILER_API_CORS_ORIGIN=url.io,url.xyz
+      # - TITILER_API_CACHECONTROL=public, max-age=3600
+      # - TITILER_API_DEBUG=TRUE/FALSE
+      # - MOSAIC_CONCURRENCY= # will default to `RIO_TILER_MAX_THREADS`
+      # rio-tiler config
+      # - RIO_TILER_MAX_THREADS=
+
+  benchmark:
+    extends:
+      service: titiler-uvicorn
+    volumes:
+      - ./.github/data:/data
+
+  nginx-titiler:
+    extends:
+      service: titiler
+    ports:
+      - 8081:8081
+    environment:
+      - PORT=8081
+      - TITILER_API_ROOT_PATH=/api/v1/titiler
+
+  nginx:
+    image: nginx
+    ports:
+      - 80:80
+    volumes:
+      - ./dockerfiles/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - nginx-titiler
+    command: ["nginx-debug", "-g", "daemon off;"]

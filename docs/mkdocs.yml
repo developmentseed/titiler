@@ -1,0 +1,138 @@
+site_name: TiTiler
+site_description: A lightweight service for creating map tiles from Cloud-Optimized GeoTiff
+
+docs_dir: 'src'
+site_dir: 'build'
+
+repo_name: "developmentseed/titiler"
+repo_url: "https://github.com/developmentseed/titiler"
+edit_uri: "blob/master/docs/src/"
+site_url: "https://developmentseed.org/titiler/"
+
+extra:
+  social:
+    - icon: "fontawesome/brands/github"
+      link: "https://github.com/developmentseed"
+    - icon: "fontawesome/brands/twitter"
+      link: "https://twitter.com/developmentseed"
+    - icon: "fontawesome/brands/medium"
+      link: "https://medium.com/devseed"
+
+nav:
+  - TiTiler: "index.md"
+  - User Guide:
+    - Intro: "intro.md"
+    - Dynamic Tiling: "dynamic_tiling.md"
+    - Mosaics: "mosaics.md"
+    - TileMatrixSets: "tile_matrix_sets.md"
+    - Output data format: "output_format.md"
+
+  - Advanced User Guide:
+      - Tiler Factories: "advanced/tiler_factories.md"
+      - Dependencies: "advanced/dependencies.md"
+      - Customization: "advanced/customization.md"
+      - Performance Tuning: "advanced/performance_tuning.md"
+      - Custom Algorithm: "advanced/Algorithms.md"
+      - Extensions: "advanced/Extensions.md"
+      # - APIRoute and environment variables: "advanced/APIRoute_and_environment_variables.md"
+
+  - Examples:
+    - Create dynamic tilers with TiTiler:
+      - Minimal COG Tiler: "examples/code/mini_cog_tiler.md"
+      - Tiler with Auth: "examples/code/tiler_with_auth.md"
+      - Tiler with custom TMS: "examples/code/tiler_with_custom_tms.md"
+      - Tiler with Cache: "examples/code/tiler_with_cache.md"
+      - Mosaic from COG urls: "examples/code/mosaic_from_urls.md"
+      - Tiler with custom Colormap dependency: "examples/code/tiler_with_custom_colormap.md"
+      - Loading data with signed URLs: "examples/code/working_with_signed_urls.md"
+      - STAC endpoints with custom `/validate`: "examples/code/tiler_with_custom_stac_validation.md"
+      - Custom Sentinel 2 Tiler: "examples/code/tiler_for_sentinel2.md"
+      - Add custom algorithms: "examples/code/tiler_with_custom_algorithm.md"
+      - GDAL WMTS Extension: "examples/code/create_gdal_wmts_extension.md"
+
+    - Use TiTiler endpoints:
+      - COG: "examples/notebooks/Working_with_CloudOptimizedGeoTIFF_simple.ipynb"
+      - COG at scale: "examples/notebooks/Working_with_CloudOptimizedGeoTIFF.ipynb"
+      - STAC: "examples/notebooks/Working_with_STAC_simple.ipynb"
+      - STAC at scale: "examples/notebooks/Working_with_STAC.ipynb"
+      - MosaicJSON: "examples/notebooks/Working_with_MosaicJSON.ipynb"
+      - Non-WebMercator TMS: "examples/notebooks/Working_with_nonWebMercatorTMS.ipynb"
+      - NumpyTile: "examples/notebooks/Working_with_NumpyTile.ipynb"
+      - Algorithm: "examples/notebooks/Working_with_Algorithm.ipynb"
+
+  - API:
+    - titiler.core:
+      - dependencies: api/titiler/core/dependencies.md
+      - factory: api/titiler/core/factory.md
+      - routing: api/titiler/core/routing.md
+      - errors: api/titiler/core/errors.md
+      - enums: api/titiler/core/resources/enums.md
+      - middleware: api/titiler/core/middleware.md
+    - titiler.extensions:
+      - cogeo: api/titiler/extensions/cogeo.md
+      - stac: api/titiler/extensions/stac.md
+      - viewer: api/titiler/extensions/viewer.md
+    - titiler.mosaic:
+      - factory: api/titiler/mosaic/factory.md
+      - enums: api/titiler/mosaic/resources/enums.md
+      - errors: api/titiler/mosaic/errors.md
+
+  - titiler.application:
+    - /cog: "endpoints/cog.md"
+    - /stac: "endpoints/stac.md"
+    - /mosaicjson: "endpoints/mosaic.md"
+    - /tileMatrixSets: "endpoints/tms.md"
+
+  - Deployment:
+    - Amazon Web Services:
+      - Intro: "deployment/aws/intro.md"
+      - ECS: "deployment/aws/ecs.md"
+      - Lambda: "deployment/aws/lambda.md"
+      - SAM: "deployment/aws/sam.md"
+    - k8s / Helm Deployment: "deployment/k8s.md"
+    - Azure: "deployment/azure.md"
+
+  - External links: "external_links.md"
+  - Development - Contributing: "contributing.md"
+  - Release Notes: "release-notes.md"
+
+plugins:
+  - search
+  - mkdocs-jupyter:
+      include_source: True
+
+theme:
+  name: material
+  palette:
+    primary: indigo
+    scheme: default
+  custom_dir: 'src/overrides'
+  favicon: img/favicon.png
+
+# https://github.com/kylebarron/cogeo-mosaic/blob/mkdocs/mkdocs.yml#L50-L75
+markdown_extensions:
+  - admonition
+  - attr_list
+  - codehilite:
+      guess_lang: false
+  - def_list
+  - footnotes
+  - pymdownx.arithmatex
+  - pymdownx.betterem
+  - pymdownx.caret:
+      insert: false
+  - pymdownx.details
+  - pymdownx.emoji
+  - pymdownx.escapeall:
+      hardbreak: true
+      nbsp: true
+  - pymdownx.magiclink:
+      hide_protocol: true
+      repo_url_shortener: true
+  - pymdownx.smartsymbols
+  - pymdownx.superfences
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+  - toc:
+      permalink: true
