@@ -24,7 +24,7 @@ jobs:
           siege -C
 
       - name: Start containers
-        run: docker-compose -f "docker-compose.yml" up -d --build benchmark
+        run: docker compose -f "docker-compose.yml" up -d --build benchmark
 
       # Let's wait a bit to make sure the docker are up
       - name: Sleep for 10 seconds
@@ -49,7 +49,7 @@ jobs:
 
       - name: Stop containers
         if: always()
-        run: docker-compose -f "docker-compose.yml" down
+        run: docker compose -f "docker-compose.yml" down
 
       - name: Merge Outputs
         run: |
