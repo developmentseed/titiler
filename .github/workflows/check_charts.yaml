@@ -4,6 +4,7 @@ on:
   push:
     branches:
     - main
+    - maint-0.18.x
     - chartsimprovements
     tags:
     - '*'

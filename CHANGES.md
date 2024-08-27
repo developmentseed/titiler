@@ -1,5 +1,9 @@
 # Release Notes
 
+## 0.18.6 (2024-08-27)
+
+* Switch back to `fastapi` instead of `fastapi-slim` and use `>=0.109.0` version
+
 ## 0.18.5 (2024-07-03)
 
 * Set version requirement for FastAPI to `>=0.111.0`
