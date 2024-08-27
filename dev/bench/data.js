@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1722430626515,
+  "lastUpdate": 1724765540745,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -6769,6 +6769,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.09,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "vincent.sarago@gmail.com",
+            "name": "Vincent Sarago",
+            "username": "vincentsarago"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4c7a957a65d4c2909601392e9484b0380b43c897",
+          "message": "Patch/update from maint 0.18 (#970)\n\n* revert to fastapi and update version\r\n\r\n* docker compose\r\n\r\n* Bump version: 0.18.5 → 0.18.6\r\n\r\n* fix aws dockerfile\r\n\r\n* bump version",
+          "timestamp": "2024-08-27T15:31:01+02:00",
+          "tree_id": "c76d5a1f6a28e42c8a96e4755d05c39fe18cac65",
+          "url": "https://github.com/developmentseed/titiler/commit/4c7a957a65d4c2909601392e9484b0380b43c897"
+        },
+        "date": 1724765540065,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.29,
             "unit": "s"
           },
           {
