@@ -34,6 +34,10 @@
     >> {'value': 1}
     ```
 
+* fix Hillshade algorithm (bad `azimuth` angle)
+
+* set default `azimuth` and `altitude` angles to 45º for the Hillshade algorithm **breaking change**
+
 * Use `.as_dict()` method when passing option to rio-tiler Reader's methods to avoid parameter conflicts when using custom Readers.
 
 ## 0.18.6 (2024-08-27)
