@@ -1,5 +1,11 @@
 # Release Notes
 
+## 0.18.7 (2024-09-19)
+
+* fix Hillshade algorithm (bad `azimuth` angle) (https://github.com/developmentseed/titiler/pull/985) [Backported]
+* Encode URL for cog_viewer and stac_viewer (author @guillemc23, https://github.com/developmentseed/titiler/pull/961) [Backported]
+* Improve XSS security for HTML templates (author @jcary741, https://github.com/developmentseed/titiler/pull/953) [Backported]
+
 ## 0.18.6 (2024-08-27)
 
 * Switch back to `fastapi` instead of `fastapi-slim` and use `>=0.109.0` version
