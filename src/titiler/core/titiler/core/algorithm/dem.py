@@ -17,8 +17,8 @@ class HillShade(BaseAlgorithm):
     description: str = "Create hillshade from DEM dataset."
 
     # parameters
-    azimuth: int = Field(90, ge=0, le=360)
-    angle_altitude: float = Field(90.0, ge=-90.0, le=90.0)
+    azimuth: int = Field(45, ge=0, le=360)
+    angle_altitude: float = Field(45.0, ge=-90.0, le=90.0)
     buffer: int = Field(3, ge=0, le=99)
 
     # metadata
@@ -31,12 +31,14 @@ class HillShade(BaseAlgorithm):
         x, y = numpy.gradient(img.array[0])
         slope = numpy.pi / 2.0 - numpy.arctan(numpy.sqrt(x * x + y * y))
         aspect = numpy.arctan2(-x, y)
-        azimuthrad = self.azimuth * numpy.pi / 180.0
+        azimuth = 360.0 - self.azimuth
+        azimuthrad = azimuth * numpy.pi / 180.0
         altituderad = self.angle_altitude * numpy.pi / 180.0
         shaded = numpy.sin(altituderad) * numpy.sin(slope) + numpy.cos(
             altituderad
         ) * numpy.cos(slope) * numpy.cos(azimuthrad - aspect)
         data = 255 * (shaded + 1) / 2
+        data[data < 0] = 0  # set hillshade values to min of 0.
 
         bounds = img.bounds
         if self.buffer:
