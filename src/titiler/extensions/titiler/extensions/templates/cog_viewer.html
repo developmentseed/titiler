@@ -955,8 +955,7 @@ document.getElementById('btn-share-link').addEventListener('click', () => {
     params.append('rescale', `${document.getElementById("data-min").value},${document.getElementById("data-max").value}`);
   }
 
-  const path_name = `${window.location.pathname}`.replace("viewer", "map");
-  console.log("path_name: ", path_name);
+  const path_name = `${window.location.pathname}`.replace("viewer", "WebMercatorQuad/map");
   const shareUrl = `${window.location.origin}${path_name}?${params.toString()}`;
   
   // Create a temporary input element to copy the URL
@@ -972,43 +971,70 @@ document.getElementById('btn-share-link').addEventListener('click', () => {
 
 document.getElementById('btn-export').addEventListener('click', () => {
   const rasterType = document.getElementById("toolbar").querySelector(".active").id;
-  params = {}
-  if (rasterType === "1b") {
+  let params = {};
 
-    params.bidx = document.getElementById("layer-selector").selectedOptions[0].getAttribute("bidx");
+  if (rasterType === "1b") {
+    // Convert bidx to a single-element array
+    params.bidx = [parseInt(document.getElementById("layer-selector").selectedOptions[0].getAttribute("bidx"))];
+
     const colormap_name = document.getElementById('colormap-selector').value;
-    if (colormap_name != "b&w") {
+    if (colormap_name !== "b&w") {
       params.colormap_name = colormap_name;
     }
+  } else if (rasterType === "3b") {
+    params.bidx = [
+      parseFloat(document.getElementById("r-selector").selectedOptions[0].getAttribute("bidx")),
+      parseFloat(document.getElementById("g-selector").selectedOptions[0].getAttribute("bidx")),
+      parseFloat(document.getElementById("b-selector").selectedOptions[0].getAttribute("bidx")),
+    ]
   } 
+
   // Add rescale parameter for both 1b and 3b if applicable
   if (["uint8", "int8"].indexOf(scope.data_type) === -1 && !scope.colormap) {
-    params.rescale = `${document.getElementById("data-min").value},${document.getElementById("data-max").value}`;
+    // Convert rescale to a nested array
+    params.rescale = [[
+      parseFloat(document.getElementById("data-min").value),
+      parseFloat(document.getElementById("data-max").value)
+    ]];
   }
+
   showJsonPopup(params);
 });
-  function showJsonPopup(jsonContent) {
-    const popup = document.createElement('div');
-    popup.style.position = 'fixed';
-    popup.style.left = '50%';
-    popup.style.top = '50%';
-    popup.style.transform = 'translate(-50%, -50%)';
-    popup.style.backgroundColor = 'white';
-    popup.style.padding = '20px';
-    popup.style.border = '1px solid black';
-    popup.style.zIndex = '1000';
+function showJsonPopup(jsonContent) {
+  const popup = document.createElement('div');
+  popup.style.position = 'fixed';
+  popup.style.left = '50%';
+  popup.style.top = '50%';
+  popup.style.transform = 'translate(-50%, -50%)';
+  popup.style.backgroundColor = 'white';
+  popup.style.padding = '30px 20px 20px'; // Increased top padding for close button
+  popup.style.border = '1px solid black';
+  popup.style.zIndex = '1000';
+  popup.style.borderRadius = '5px'; // Optional: rounded corners
+  popup.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)'; // Optional: shadow for depth
 
-    const pre = document.createElement('pre');
-    pre.textContent = JSON.stringify(jsonContent, null, 2);
-    popup.appendChild(pre);
+  const closeButton = document.createElement('button');
+  closeButton.textContent = '×'; // Using '×' character for close
+  closeButton.style.position = 'absolute';
+  closeButton.style.right = '10px';
+  closeButton.style.top = '10px';
+  closeButton.style.border = 'none';
+  closeButton.style.background = 'none';
+  closeButton.style.fontSize = '20px';
+  closeButton.style.cursor = 'pointer';
+  closeButton.style.color = '#333';
+  closeButton.onclick = () => document.body.removeChild(popup);
+  popup.appendChild(closeButton);
 
-    const closeButton = document.createElement('button');
-    closeButton.textContent = 'Close';
-    closeButton.onclick = () => document.body.removeChild(popup);
-    popup.appendChild(closeButton);
+  const pre = document.createElement('pre');
+  pre.textContent = JSON.stringify(jsonContent, null, 2);
+  pre.style.margin = '0'; // Remove default margins
+  pre.style.whiteSpace = 'pre-wrap'; // Allow text to wrap
+  pre.style.wordBreak = 'break-word'; // Break long words if necessary
+  popup.appendChild(pre);
 
-    document.body.appendChild(popup);
-  }
+  document.body.appendChild(popup);
+}
     </script>
   </body>
 </html>
