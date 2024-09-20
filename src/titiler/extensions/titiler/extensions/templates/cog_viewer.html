@@ -284,6 +284,29 @@
           <table id="histogram-table" class="none"></table>
         </div>
 
+        <div class="px6 py6 w-full">
+          <div class="txt-h5 color-black">
+            <svg class="icon icon--l inline-block">
+              <use xlink:href="#icon-share" />
+            </svg>
+            Share
+          </div>
+          <div id="export-div" class="w-full align-center">
+            <button
+              id="btn-export"
+              class="btn bts--xs btn--stroke bg-darken25-on-hover inline-block txt-s color-black mx12 my12"
+            >
+              Show Render Parameters
+            </button>
+            <button
+              id="btn-share-link"
+              class="btn bts--xs btn--stroke bg-darken25-on-hover inline-block txt-s color-black mx12 my12"
+            >
+              Share Map
+            </button>
+          </div>
+        </div>
+      </div>
       </div>
       <button id='btn-hide'><svg id='hide-arrow' class='icon'><use xlink:href='#icon-arrow-right'/></svg></button>
     </div>
@@ -907,6 +930,85 @@ map.on('load', () => {
     addCogeo()
   }
 })
+
+document.getElementById('btn-share-link').addEventListener('click', () => {
+  const rasterType = document.getElementById("toolbar").querySelector(".active").id;
+  
+  let params = new URLSearchParams();
+  params.append('url', scope.url);
+
+  if (rasterType === "1b") {
+
+    params.append('bidx', document.getElementById("layer-selector").selectedOptions[0].getAttribute("bidx"));
+    const colormap_name = document.getElementById('colormap-selector').value;
+    if (colormap_name != "b&w") {
+      params.append('colormap_name', colormap_name);
+    }
+  } else if (rasterType === "3b") {
+    params.append('bidx', document.getElementById("r-selector").selectedOptions[0].getAttribute("bidx"));
+    params.append('bidx', document.getElementById("g-selector").selectedOptions[0].getAttribute("bidx"));
+    params.append('bidx', document.getElementById("b-selector").selectedOptions[0].getAttribute("bidx"));
+  }
+
+  // Add rescale parameter for both 1b and 3b if applicable
+  if (["uint8", "int8"].indexOf(scope.data_type) === -1 && !scope.colormap) {
+    params.append('rescale', `${document.getElementById("data-min").value},${document.getElementById("data-max").value}`);
+  }
+
+  const path_name = `${window.location.pathname}`.replace("viewer", "map");
+  console.log("path_name: ", path_name);
+  const shareUrl = `${window.location.origin}${path_name}?${params.toString()}`;
+  
+  // Create a temporary input element to copy the URL
+  const tempInput = document.createElement('input');
+  tempInput.value = shareUrl;
+  document.body.appendChild(tempInput);
+  tempInput.select();
+  document.execCommand('copy');
+  document.body.removeChild(tempInput);
+
+  alert('Share link copied to clipboard!');
+});
+
+document.getElementById('btn-export').addEventListener('click', () => {
+  const rasterType = document.getElementById("toolbar").querySelector(".active").id;
+  params = {}
+  if (rasterType === "1b") {
+
+    params.bidx = document.getElementById("layer-selector").selectedOptions[0].getAttribute("bidx");
+    const colormap_name = document.getElementById('colormap-selector').value;
+    if (colormap_name != "b&w") {
+      params.colormap_name = colormap_name;
+    }
+  } 
+  // Add rescale parameter for both 1b and 3b if applicable
+  if (["uint8", "int8"].indexOf(scope.data_type) === -1 && !scope.colormap) {
+    params.rescale = `${document.getElementById("data-min").value},${document.getElementById("data-max").value}`;
+  }
+  showJsonPopup(params);
+});
+  function showJsonPopup(jsonContent) {
+    const popup = document.createElement('div');
+    popup.style.position = 'fixed';
+    popup.style.left = '50%';
+    popup.style.top = '50%';
+    popup.style.transform = 'translate(-50%, -50%)';
+    popup.style.backgroundColor = 'white';
+    popup.style.padding = '20px';
+    popup.style.border = '1px solid black';
+    popup.style.zIndex = '1000';
+
+    const pre = document.createElement('pre');
+    pre.textContent = JSON.stringify(jsonContent, null, 2);
+    popup.appendChild(pre);
+
+    const closeButton = document.createElement('button');
+    closeButton.textContent = 'Close';
+    closeButton.onclick = () => document.body.removeChild(popup);
+    popup.appendChild(closeButton);
+
+    document.body.appendChild(popup);
+  }
     </script>
   </body>
 </html>
