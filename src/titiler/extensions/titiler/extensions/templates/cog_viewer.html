@@ -60,6 +60,9 @@
           display: block;
           padding: 5px;
       }
+      .share-button.hidden {
+        display: none !important;
+      }
       #menu {
         left: 0;
         top: 0;
@@ -290,6 +293,29 @@
           <table id="histogram-table" class="none"></table>
         </div>
 
+        <div class="px6 py6 w-full">
+          <div class="txt-h5 color-black">
+            <svg class="icon icon--l inline-block">
+              <use xlink:href="#icon-share" />
+            </svg>
+            Share
+          </div>
+          <div id="export-div" class="w-full align-center">
+            <button
+              id="btn-export"
+              class="btn bts--xs btn--stroke bg-darken25-on-hover inline-block txt-s color-black mx12 my12"
+            >
+              Show Render Parameters
+            </button>
+            <button
+              id="btn-share-link"
+              class="btn bts--xs btn--stroke bg-darken25-on-hover inline-block txt-s color-black mx12 my12 share-button"
+            >
+              Share Map
+            </button>
+          </div>
+        </div>
+      </div>
       </div>
       <button id='btn-hide'><svg id='hide-arrow' class='icon'><use xlink:href='#icon-arrow-right'/></svg></button>
     </div>
@@ -317,6 +343,7 @@ var scope = {
 const tilejson_endpoint = '{{ tilejson_endpoint }}'
 const info_endpoint = '{{ info_endpoint }}'
 const stats_endpoint = '{{ statistics_endpoint }}'
+const viewer_enabled = '{{ viewer_enabled|tojson }}'
 
 const dtype_ranges = {
   'int8': [-128, 127],
@@ -328,6 +355,28 @@ const dtype_ranges = {
   'float32': [-3.4028235e+38, 3.4028235e+38],
   'float64': [-1.7976931348623157e+308, 1.7976931348623157e+308]
 }
+
+function updateShareButtonVisibility() {
+  console.log('updateShareButtonVisibility called');
+  console.log('viewer_enabled:', viewer_enabled);
+
+  const shareButton = document.getElementById('btn-share-link');
+  if (!shareButton) {
+    console.log('Share button not found in the DOM');
+    return;
+  }
+
+  console.log('shareButton:', shareButton);
+
+  if (viewer_enabled === 'true') {
+    console.log('Setting button to visible');
+    shareButton.classList.remove('hidden');
+  } else {
+    console.log('Setting button to hidden');
+    shareButton.classList.add('hidden');
+  }
+}
+updateShareButtonVisibility();
 
 var map = new maplibregl.Map({
   container: 'map',
@@ -900,7 +949,7 @@ const addCogeo = () => {
 }
 
 document.getElementById('launch').addEventListener('click', () => {
-  scope.url = encodeURIComponent(document.getElementById('cogeo').value)
+  scope.url = document.getElementById('cogeo').value
   document.getElementById('selector').classList.toggle('none')
   addCogeo()
 })
@@ -913,6 +962,111 @@ map.on('load', () => {
     addCogeo()
   }
 })
+
+document.getElementById('btn-share-link').addEventListener('click', () => {
+  const rasterType = document.getElementById("toolbar").querySelector(".active").id;
+
+  let params = new URLSearchParams();
+  params.append('url', scope.url);
+
+  if (rasterType === "1b") {
+
+    params.append('bidx', document.getElementById("layer-selector").selectedOptions[0].getAttribute("bidx"));
+    const colormap_name = document.getElementById('colormap-selector').value;
+    if (colormap_name != "b&w") {
+      params.append('colormap_name', colormap_name);
+    }
+  } else if (rasterType === "3b") {
+    params.append('bidx', document.getElementById("r-selector").selectedOptions[0].getAttribute("bidx"));
+    params.append('bidx', document.getElementById("g-selector").selectedOptions[0].getAttribute("bidx"));
+    params.append('bidx', document.getElementById("b-selector").selectedOptions[0].getAttribute("bidx"));
+  }
+
+  // Add rescale parameter for both 1b and 3b if applicable
+  if (["uint8", "int8"].indexOf(scope.data_type) === -1 && !scope.colormap) {
+    params.append('rescale', `${document.getElementById("data-min").value},${document.getElementById("data-max").value}`);
+  }
+
+  const path_name = `${window.location.pathname}`.replace("viewer", "WebMercatorQuad/map");
+  const shareUrl = `${window.location.origin}${path_name}?${params.toString()}`;
+
+  // Create a temporary input element to copy the URL
+  const tempInput = document.createElement('input');
+  tempInput.value = shareUrl;
+  document.body.appendChild(tempInput);
+  tempInput.select();
+  document.execCommand('copy');
+  document.body.removeChild(tempInput);
+
+  alert('Share link copied to clipboard!');
+});
+
+document.getElementById('btn-export').addEventListener('click', () => {
+  const rasterType = document.getElementById("toolbar").querySelector(".active").id;
+  let params = {};
+
+  if (rasterType === "1b") {
+    // Convert bidx to a single-element array
+    params.bidx = [parseInt(document.getElementById("layer-selector").selectedOptions[0].getAttribute("bidx"))];
+
+    const colormap_name = document.getElementById('colormap-selector').value;
+    if (colormap_name !== "b&w") {
+      params.colormap_name = colormap_name;
+    }
+  } else if (rasterType === "3b") {
+    params.bidx = [
+      parseFloat(document.getElementById("r-selector").selectedOptions[0].getAttribute("bidx")),
+      parseFloat(document.getElementById("g-selector").selectedOptions[0].getAttribute("bidx")),
+      parseFloat(document.getElementById("b-selector").selectedOptions[0].getAttribute("bidx")),
+    ]
+  }
+
+  // Add rescale parameter for both 1b and 3b if applicable
+  if (["uint8", "int8"].indexOf(scope.data_type) === -1 && !scope.colormap) {
+    // Convert rescale to a nested array
+    params.rescale = [[
+      parseFloat(document.getElementById("data-min").value),
+      parseFloat(document.getElementById("data-max").value)
+    ]];
+  }
+
+  showJsonPopup(params);
+});
+function showJsonPopup(jsonContent) {
+  const popup = document.createElement('div');
+  popup.style.position = 'fixed';
+  popup.style.left = '50%';
+  popup.style.top = '50%';
+  popup.style.transform = 'translate(-50%, -50%)';
+  popup.style.backgroundColor = 'white';
+  popup.style.padding = '30px 20px 20px'; // Increased top padding for close button
+  popup.style.border = '1px solid black';
+  popup.style.zIndex = '1000';
+  popup.style.borderRadius = '5px'; // Optional: rounded corners
+  popup.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)'; // Optional: shadow for depth
+
+  const closeButton = document.createElement('button');
+  closeButton.textContent = '×'; // Using '×' character for close
+  closeButton.style.position = 'absolute';
+  closeButton.style.right = '10px';
+  closeButton.style.top = '10px';
+  closeButton.style.border = 'none';
+  closeButton.style.background = 'none';
+  closeButton.style.fontSize = '20px';
+  closeButton.style.cursor = 'pointer';
+  closeButton.style.color = '#333';
+  closeButton.onclick = () => document.body.removeChild(popup);
+  popup.appendChild(closeButton);
+
+  const pre = document.createElement('pre');
+  pre.textContent = JSON.stringify(jsonContent, null, 2);
+  pre.style.margin = '0'; // Remove default margins
+  pre.style.whiteSpace = 'pre-wrap'; // Allow text to wrap
+  pre.style.wordBreak = 'break-word'; // Break long words if necessary
+  popup.appendChild(pre);
+
+  document.body.appendChild(popup);
+}
     </script>
   </body>
 </html>

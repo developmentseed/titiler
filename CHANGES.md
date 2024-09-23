@@ -1,5 +1,11 @@
 # Release Notes
 
+## 0.18.8 (2024-09-23)
+
+### titiler.extensions
+
+* Add links for render parameters and /map link to viewer dashboard (author @hrodmn, https://github.com/developmentseed/titiler/pull/987)
+
 ## 0.18.7 (2024-09-19)
 
 * fix Hillshade algorithm (bad `azimuth` angle) (https://github.com/developmentseed/titiler/pull/985) [Backported]
