@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1726752135708,
+  "lastUpdate": 1727097230339,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -7020,6 +7020,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad longest_transaction",
             "value": 0.06,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "henry.rodman@gmail.com",
+            "name": "Henry Rodman",
+            "username": "hrodmn"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6e43eecceeb2076f839084b34152ae8facbaf872",
+          "message": "feature: add links for render parameters and /cog/map link to /cog/viewer dashboard (#987)\n\n* add buttons for sharing parameters and a link\r\n\r\n* print arrays instead of strings, fix 3-band params\r\n\r\n* only show 'share' button when enable_viewer=True\r\n\r\n* simplify viewer_enabled logic",
+          "timestamp": "2024-09-23T15:12:18+02:00",
+          "tree_id": "ae47bdb8350b3cb7d7683df4df64f54992192442",
+          "url": "https://github.com/developmentseed/titiler/commit/6e43eecceeb2076f839084b34152ae8facbaf872"
+        },
+        "date": 1727097229263,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.27,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
             "unit": "s"
           }
         ]
