@@ -2,9 +2,9 @@
 
 ## Unreleased
 
-* Improve XSS security for HTML templates (author @jcary741, https://github.com/developmentseed/titiler/pull/953)
+### titiler.core
 
-* Encode URL for cog_viewer and stac_viewer (author @guillemc23, https://github.com/developmentseed/titiler/pull/961)
+* Improve XSS security for HTML templates (author @jcary741, https://github.com/developmentseed/titiler/pull/953)
 
 * Remove all default values to the dependencies
     * `DatasetParams.unscale`: `False` -> `None` (default to `False` in rio-tiler)
@@ -39,6 +39,12 @@
 * set default `azimuth` and `altitude` angles to 45º for the Hillshade algorithm **breaking change**
 
 * Use `.as_dict()` method when passing option to rio-tiler Reader's methods to avoid parameter conflicts when using custom Readers.
+
+### titiler.extensions
+
+* Encode URL for cog_viewer and stac_viewer (author @guillemc23, https://github.com/developmentseed/titiler/pull/961)
+
+* Add links for render parameters and `/map` link to **viewer** dashboard (author @hrodmn, https://github.com/developmentseed/titiler/pull/987)
 
 ## 0.18.7 (2024-09-19)
 
