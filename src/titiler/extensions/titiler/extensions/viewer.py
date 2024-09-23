@@ -36,6 +36,7 @@ class cogViewerExtension(FactoryExtension):
                     ),
                     "info_endpoint": factory.url_for(request, "info"),
                     "statistics_endpoint": factory.url_for(request, "statistics"),
+                    "viewer_enabled": getattr(factory, "add_viewer", False),
                 },
                 media_type="text/html",
             )
