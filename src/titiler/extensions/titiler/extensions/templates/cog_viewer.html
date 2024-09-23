@@ -949,7 +949,7 @@ const addCogeo = () => {
 }
 
 document.getElementById('launch').addEventListener('click', () => {
-  scope.url = document.getElementById('cogeo').value
+  scope.url = encodeURIComponent(document.getElementById('cogeo').value)
   document.getElementById('selector').classList.toggle('none')
   addCogeo()
 })

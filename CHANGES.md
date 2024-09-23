@@ -1,5 +1,9 @@
 # Release Notes
 
+## 0.18.9 (2024-09-23)
+
+* fix release 0.18.8
+
 ## 0.18.8 (2024-09-23)
 
 ### titiler.extensions
