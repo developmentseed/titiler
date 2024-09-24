@@ -1,8 +1,6 @@
 """TiTiler Router factories."""
 
 import abc
-import warnings
-from dataclasses import dataclass, field
 from typing import (
     Any,
     Callable,
@@ -20,6 +18,7 @@ from urllib.parse import urlencode
 import jinja2
 import numpy
 import rasterio
+from attrs import define, field
 from fastapi import APIRouter, Body, Depends, Path, Query
 from fastapi.dependencies.utils import get_parameterless_sub_dependant
 from fastapi.params import Depends as DependsFunc
@@ -28,7 +27,7 @@ from geojson_pydantic.geometries import Polygon
 from morecantile import TileMatrixSet
 from morecantile import tms as morecantile_tms
 from morecantile.defaults import TileMatrixSets
-from pydantic import conint
+from pydantic import Field
 from rio_tiler.colormap import ColorMaps
 from rio_tiler.colormap import cmap as default_cmap
 from rio_tiler.constants import WGS84_CRS
@@ -81,7 +80,7 @@ from titiler.core.models.responses import (
     Statistics,
     StatisticsGeoJSON,
 )
-from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
+from titiler.core.resources.enums import ImageType, MediaType
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
 from titiler.core.routing import EndpointScope
 from titiler.core.utils import render_image
@@ -110,103 +109,45 @@ img_endpoint_params: Dict[str, Any] = {
 }
 
 
-@dataclass  # type: ignore
+@define
 class FactoryExtension(metaclass=abc.ABCMeta):
     """Factory Extension."""
 
     @abc.abstractmethod
-    def register(self, factory: "BaseTilerFactory"):
+    def register(self, factory: "BaseFactory"):
         """Register extension to the factory."""
         ...
 
 
-# ref: https://github.com/python/mypy/issues/5374
-@dataclass  # type: ignore
-class BaseTilerFactory(metaclass=abc.ABCMeta):
-    """BaseTiler Factory.
+@define(kw_only=True)
+class BaseFactory(metaclass=abc.ABCMeta):
+    """Base Factory.
 
     Abstract Base Class which defines most inputs used by dynamic tiler.
 
     Attributes:
-        reader (rio_tiler.io.base.BaseReader): A rio-tiler reader (e.g Reader).
         router (fastapi.APIRouter): Application router to register endpoints to.
-        path_dependency (Callable): Endpoint dependency defining `path` to pass to the reader init.
-        dataset_dependency (titiler.core.dependencies.DefaultDependency): Endpoint dependency defining dataset overwriting options (e.g nodata).
-        layer_dependency (titiler.core.dependencies.DefaultDependency): Endpoint dependency defining dataset indexes/bands/assets options.
-        render_dependency (titiler.core.dependencies.DefaultDependency): Endpoint dependency defining image rendering options (e.g add_mask).
-        colormap_dependency (Callable): Endpoint dependency defining ColorMap options (e.g colormap_name).
-        process_dependency (titiler.core.dependencies.DefaultDependency): Endpoint dependency defining image post-processing options (e.g rescaling, color-formula).
-        tms_dependency (Callable): Endpoint dependency defining TileMatrixSet to use.
-        reader_dependency (titiler.core.dependencies.DefaultDependency): Endpoint dependency defining BaseReader options.
-        environment_dependency (Callable): Endpoint dependency to define GDAL environment at runtime.
         router_prefix (str): prefix where the router will be mounted in the application.
-        optional_headers(sequence of titiler.core.resources.enums.OptionalHeader): additional headers to return with the response.
 
     """
 
-    reader: Type[BaseReader]
-
     # FastAPI router
-    router: APIRouter = field(default_factory=APIRouter)
-
-    # Path Dependency
-    path_dependency: Callable[..., Any] = DatasetPathParams
-
-    # Indexes/Expression Dependencies
-    layer_dependency: Type[DefaultDependency] = BidxExprParams
-
-    # Rasterio Dataset Options (nodata, unscale, resampling, reproject)
-    dataset_dependency: Type[DefaultDependency] = DatasetParams
-
-    # Post Processing Dependencies (algorithm)
-    process_dependency: Callable[
-        ..., Optional[BaseAlgorithm]
-    ] = available_algorithms.dependency
-
-    # Image rendering Dependencies
-    rescale_dependency: Callable[..., Optional[RescaleType]] = RescalingParams
-    color_formula_dependency: Callable[..., Optional[str]] = ColorFormulaParams
-    colormap_dependency: Callable[..., Optional[ColorMapType]] = ColorMapParams
-    render_dependency: Type[DefaultDependency] = ImageRenderingParams
-
-    # Reader dependency
-    reader_dependency: Type[DefaultDependency] = DefaultDependency
-
-    # GDAL ENV dependency
-    environment_dependency: Callable[..., Dict] = field(default=lambda: {})
-
-    # TileMatrixSet dependency
-    supported_tms: TileMatrixSets = morecantile_tms
-    default_tms: Optional[str] = None
+    router: APIRouter = field(factory=APIRouter)
 
     # Router Prefix is needed to find the path for /tile if the TilerFactory.router is mounted
     # with other router (multiple `.../tile` routes).
     # e.g if you mount the route with `/cog` prefix, set router_prefix to cog and
     router_prefix: str = ""
 
-    # add additional headers in response
-    optional_headers: List[OptionalHeader] = field(default_factory=list)
-
     # add dependencies to specific routes
     route_dependencies: List[Tuple[List[EndpointScope], List[DependsFunc]]] = field(
-        default_factory=list
+        factory=list
     )
 
-    extensions: List[FactoryExtension] = field(default_factory=list)
+    extensions: List[FactoryExtension] = field(factory=list)
 
-    templates: Jinja2Templates = DEFAULT_TEMPLATES
-
-    def __post_init__(self):
+    def __attrs_post_init__(self):
         """Post Init: register route and configure specific options."""
-        # TODO: remove this in 0.19
-        if self.default_tms:
-            warnings.warn(
-                "`default_tms` attribute is deprecated and will be removed in 0.19.",
-                DeprecationWarning,
-            )
-
-        self.default_tms = self.default_tms or "WebMercatorQuad"
-
         # Register endpoints
         self.register_routes()
 
@@ -220,7 +161,7 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def register_routes(self):
-        """Register Tiler Routes."""
+        """Register Routes."""
         ...
 
     def url_for(self, request: Request, name: str, **path_params: Any) -> str:
@@ -275,12 +216,21 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
                 route.dependencies.extend(dependencies)  # type: ignore
 
 
-@dataclass
-class TilerFactory(BaseTilerFactory):
+@define(kw_only=True)
+class TilerFactory(BaseFactory):
     """Tiler Factory.
 
     Attributes:
         reader (rio_tiler.io.base.BaseReader): A rio-tiler reader. Defaults to `rio_tiler.io.Reader`.
+        path_dependency (Callable): Endpoint dependency defining `path` to pass to the reader init.
+        dataset_dependency (titiler.core.dependencies.DefaultDependency): Endpoint dependency defining dataset overwriting options (e.g nodata).
+        layer_dependency (titiler.core.dependencies.DefaultDependency): Endpoint dependency defining dataset indexes/bands/assets options.
+        render_dependency (titiler.core.dependencies.DefaultDependency): Endpoint dependency defining image rendering options (e.g add_mask).
+        colormap_dependency (Callable): Endpoint dependency defining ColorMap options (e.g colormap_name).
+        process_dependency (titiler.core.dependencies.DefaultDependency): Endpoint dependency defining image post-processing options (e.g rescaling, color-formula).
+        tms_dependency (Callable): Endpoint dependency defining TileMatrixSet to use.
+        reader_dependency (titiler.core.dependencies.DefaultDependency): Endpoint dependency defining BaseReader options.
+        environment_dependency (Callable): Endpoint dependency to define GDAL environment at runtime.
         stats_dependency (titiler.core.dependencies.DefaultDependency): Endpoint dependency defining options for rio-tiler's statistics method.
         histogram_dependency (titiler.core.dependencies.DefaultDependency): Endpoint dependency defining options for numpy's histogram method.
         img_preview_dependency (titiler.core.dependencies.DefaultDependency): Endpoint dependency defining options for rio-tiler's preview method.
@@ -294,6 +244,21 @@ class TilerFactory(BaseTilerFactory):
     # Default reader is set to rio_tiler.io.Reader
     reader: Type[BaseReader] = Reader
 
+    # Reader dependency
+    reader_dependency: Type[DefaultDependency] = DefaultDependency
+
+    # Path Dependency
+    path_dependency: Callable[..., Any] = DatasetPathParams
+
+    # Indexes/Expression Dependencies
+    layer_dependency: Type[DefaultDependency] = BidxExprParams
+
+    # Rasterio Dataset Options (nodata, unscale, resampling, reproject)
+    dataset_dependency: Type[DefaultDependency] = DatasetParams
+
+    # Tile/Tilejson/WMTS Dependencies
+    tile_dependency: Type[DefaultDependency] = TileParams
+
     # Statistics/Histogram Dependencies
     stats_dependency: Type[DefaultDependency] = StatisticsParams
     histogram_dependency: Type[DefaultDependency] = HistogramParams
@@ -302,8 +267,24 @@ class TilerFactory(BaseTilerFactory):
     img_preview_dependency: Type[DefaultDependency] = PreviewParams
     img_part_dependency: Type[DefaultDependency] = PartFeatureParams
 
-    # Tile/Tilejson/WMTS Dependencies
-    tile_dependency: Type[DefaultDependency] = TileParams
+    # Post Processing Dependencies (algorithm)
+    process_dependency: Callable[
+        ..., Optional[BaseAlgorithm]
+    ] = available_algorithms.dependency
+
+    # Image rendering Dependencies
+    rescale_dependency: Callable[..., Optional[RescaleType]] = RescalingParams
+    color_formula_dependency: Callable[..., Optional[str]] = ColorFormulaParams
+    colormap_dependency: Callable[..., Optional[ColorMapType]] = ColorMapParams
+    render_dependency: Type[DefaultDependency] = ImageRenderingParams
+
+    # GDAL ENV dependency
+    environment_dependency: Callable[..., Dict] = field(default=lambda: {})
+
+    # TileMatrixSet dependency
+    supported_tms: TileMatrixSets = morecantile_tms
+
+    templates: Jinja2Templates = DEFAULT_TEMPLATES
 
     # Add/Remove some endpoints
     add_preview: bool = True
@@ -530,18 +511,6 @@ class TilerFactory(BaseTilerFactory):
     def tile(self):  # noqa: C901
         """Register /tiles endpoint."""
 
-        @self.router.get(r"/tiles/{z}/{x}/{y}", **img_endpoint_params, deprecated=True)
-        @self.router.get(
-            r"/tiles/{z}/{x}/{y}.{format}", **img_endpoint_params, deprecated=True
-        )
-        @self.router.get(
-            r"/tiles/{z}/{x}/{y}@{scale}x", **img_endpoint_params, deprecated=True
-        )
-        @self.router.get(
-            r"/tiles/{z}/{x}/{y}@{scale}x.{format}",
-            **img_endpoint_params,
-            deprecated=True,
-        )
         @self.router.get(r"/tiles/{tileMatrixSetId}/{z}/{x}/{y}", **img_endpoint_params)
         @self.router.get(
             r"/tiles/{tileMatrixSetId}/{z}/{x}/{y}.{format}", **img_endpoint_params
@@ -574,10 +543,15 @@ class TilerFactory(BaseTilerFactory):
             ],
             tileMatrixSetId: Annotated[
                 Literal[tuple(self.supported_tms.list())],
-                f"Identifier selecting one of the TileMatrixSetId supported (default: '{self.default_tms}')",
-            ] = self.default_tms,
+                Path(
+                    description="Identifier selecting one of the TileMatrixSetId supported."
+                ),
+            ],
             scale: Annotated[
-                conint(gt=0, le=4), "Tile size scale. 1=256x256, 2=512x512..."
+                int,
+                Field(
+                    gt=0, le=4, description="Tile size scale. 1=256x256, 2=512x512..."
+                ),
             ] = 1,
             format: Annotated[
                 ImageType,
@@ -634,13 +608,6 @@ class TilerFactory(BaseTilerFactory):
         """Register /tilejson.json endpoint."""
 
         @self.router.get(
-            "/tilejson.json",
-            response_model=TileJSON,
-            responses={200: {"description": "Return a tilejson"}},
-            response_model_exclude_none=True,
-            deprecated=True,
-        )
-        @self.router.get(
             "/{tileMatrixSetId}/tilejson.json",
             response_model=TileJSON,
             responses={200: {"description": "Return a tilejson"}},
@@ -650,8 +617,10 @@ class TilerFactory(BaseTilerFactory):
             request: Request,
             tileMatrixSetId: Annotated[
                 Literal[tuple(self.supported_tms.list())],
-                f"Identifier selecting one of the TileMatrixSetId supported (default: '{self.default_tms}')",
-            ] = self.default_tms,
+                Path(
+                    description="Identifier selecting one of the TileMatrixSetId supported."
+                ),
+            ],
             src_path=Depends(self.path_dependency),
             tile_format: Annotated[
                 Optional[ImageType],
@@ -726,15 +695,16 @@ class TilerFactory(BaseTilerFactory):
     def map_viewer(self):  # noqa: C901
         """Register /map endpoint."""
 
-        @self.router.get("/map", response_class=HTMLResponse, deprecated=True)
         @self.router.get("/{tileMatrixSetId}/map", response_class=HTMLResponse)
         def map_viewer(
             request: Request,
-            src_path=Depends(self.path_dependency),
             tileMatrixSetId: Annotated[
                 Literal[tuple(self.supported_tms.list())],
-                f"Identifier selecting one of the TileMatrixSetId supported (default: '{self.default_tms}')",
-            ] = self.default_tms,
+                Path(
+                    description="Identifier selecting one of the TileMatrixSetId supported."
+                ),
+            ],
+            src_path=Depends(self.path_dependency),
             tile_format: Annotated[
                 Optional[ImageType],
                 Query(
@@ -789,17 +759,16 @@ class TilerFactory(BaseTilerFactory):
         """Register /wmts endpoint."""
 
         @self.router.get(
-            "/WMTSCapabilities.xml", response_class=XMLResponse, deprecated=True
-        )
-        @self.router.get(
             "/{tileMatrixSetId}/WMTSCapabilities.xml", response_class=XMLResponse
         )
         def wmts(
             request: Request,
             tileMatrixSetId: Annotated[
                 Literal[tuple(self.supported_tms.list())],
-                f"Identifier selecting one of the TileMatrixSetId supported (default: '{self.default_tms}')",
-            ] = self.default_tms,
+                Path(
+                    description="Identifier selecting one of the TileMatrixSetId supported."
+                ),
+            ],
             src_path=Depends(self.path_dependency),
             tile_format: Annotated[
                 ImageType,
@@ -1139,7 +1108,7 @@ class TilerFactory(BaseTilerFactory):
             return Response(content, media_type=media_type)
 
 
-@dataclass
+@define(kw_only=True)
 class MultiBaseTilerFactory(TilerFactory):
     """Custom Tiler Factory for MultiBaseReader classes.
 
@@ -1387,7 +1356,7 @@ class MultiBaseTilerFactory(TilerFactory):
             return fc.features[0] if isinstance(geojson, Feature) else fc
 
 
-@dataclass
+@define(kw_only=True)
 class MultiBandTilerFactory(TilerFactory):
     """Custom Tiler Factory for MultiBandReader classes.
 
@@ -1589,40 +1558,11 @@ class MultiBandTilerFactory(TilerFactory):
             return fc.features[0] if isinstance(geojson, Feature) else fc
 
 
-@dataclass
-class TMSFactory:
+@define(kw_only=True)
+class TMSFactory(BaseFactory):
     """TileMatrixSet endpoints Factory."""
 
     supported_tms: TileMatrixSets = morecantile_tms
-
-    # FastAPI router
-    router: APIRouter = field(default_factory=APIRouter)
-
-    # Router Prefix is needed to find the path for /tile if the TilerFactory.router is mounted
-    # with other router (multiple `.../tile` routes).
-    # e.g if you mount the route with `/cog` prefix, set router_prefix to cog and
-    router_prefix: str = ""
-
-    def __post_init__(self):
-        """Post Init: register route and configure specific options."""
-        self.register_routes()
-
-    def url_for(self, request: Request, name: str, **path_params: Any) -> str:
-        """Return full url (with prefix) for a specific endpoint."""
-        url_path = self.router.url_path_for(name, **path_params)
-        base_url = str(request.base_url)
-        if self.router_prefix:
-            prefix = self.router_prefix.lstrip("/")
-            # If we have prefix with custom path param we check and replace them with
-            # the path params provided
-            if "{" in prefix:
-                _, path_format, param_convertors = compile_path(prefix)
-                prefix, _ = replace_params(
-                    path_format, param_convertors, request.path_params.copy()
-                )
-            base_url += prefix
-
-        return str(url_path.make_absolute_url(base_url=base_url))
 
     def register_routes(self):
         """Register TMS endpoint routes."""
@@ -1695,18 +1635,15 @@ class TMSFactory:
             return self.supported_tms.get(tileMatrixSetId)
 
 
-@dataclass
-class AlgorithmFactory:
+@define(kw_only=True)
+class AlgorithmFactory(BaseFactory):
     """Algorithm endpoints Factory."""
 
     # Supported algorithm
     supported_algorithm: Algorithms = available_algorithms
 
-    # FastAPI router
-    router: APIRouter = field(default_factory=APIRouter)
-
-    def __post_init__(self):
-        """Post Init: register routes"""
+    def register_routes(self):
+        """Register Algorithm routes."""
 
         def metadata(algorithm: BaseAlgorithm) -> AlgorithmMetadata:
             """Algorithm Metadata"""
@@ -1778,24 +1715,15 @@ class AlgorithmFactory:
             return metadata(self.supported_algorithm.get(algorithm))
 
 
-@dataclass
-class ColorMapFactory:
+@define(kw_only=True)
+class ColorMapFactory(BaseFactory):
     """Colormap endpoints Factory."""
 
     # Supported colormaps
     supported_colormaps: ColorMaps = default_cmap
 
-    # FastAPI router
-    router: APIRouter = field(default_factory=APIRouter)
-
-    def url_for(self, request: Request, name: str, **path_params: Any) -> str:
-        """Return full url (with prefix) for a specific endpoint."""
-        url_path = self.router.url_path_for(name, **path_params)
-        base_url = str(request.base_url)
-        return str(url_path.make_absolute_url(base_url=base_url))
-
-    def __post_init__(self):  # noqa: C901
-        """Post Init: register routes"""
+    def register_routes(self):  # noqa: C901
+        """Register ColorMap routes."""
 
         @self.router.get(
             "/colorMaps",

@@ -1,12 +1,35 @@
 # Release Notes
 
-## Unreleased
+## 0.19.0 (TBD)
+
+### Misc
+
+* Removed default `WebMercatorQuad` tile matrix set in `/tiles`, `/tilesjson.json`, `/map` and `/WMTSCapabilities.xml` endpoints **breaking change**
+
+    ```
+    # Before
+    /tiles/{z}/{x}/{y}
+    /tilejson.json
+    /map
+    /WMTSCapabilities.xml
+
+    # Now
+    /tiles/WebMercatorQuad/{z}/{x}/{y}
+    /WebMercatorQuad/tilejson.json
+    /WebMercatorQuad/map
+    /WebMercatorQuad/WMTSCapabilities.xml
+    ```
+
+* Use `@attrs.define` instead of dataclass for factories **breaking change**
+* Use `@attrs.define` instead of dataclass for factory extensions **breaking change**
+
 
 ### titiler.core
 
 * Improve XSS security for HTML templates (author @jcary741, https://github.com/developmentseed/titiler/pull/953)
 
-* Remove all default values to the dependencies
+* Remove all default values to the dependencies **breaking change**
+
     * `DatasetParams.unscale`: `False` -> `None` (default to `False` in rio-tiler)
     * `DatasetParams.resampling_method`: `nearest` -> `None` (default to `nearest` in rio-tiler)
     * `DatasetParams.reproject_method`: `nearest` -> `None` (default to `nearest` in rio-tiler)
@@ -40,11 +63,29 @@
 
 * Use `.as_dict()` method when passing option to rio-tiler Reader's methods to avoid parameter conflicts when using custom Readers.
 
+* Renamed `BaseTilerFactory` to `BaseFactory` **breaking change**
+
+* Removed useless attribute in `BaseFactory` (and moved them to `TilerFactory`) **breaking change**
+
+### titiler.mosaic
+
+* Renamed `reader` attribute to `backend` in `MosaicTilerFactory`  **breaking change**
+
 ### titiler.extensions
 
 * Encode URL for cog_viewer and stac_viewer (author @guillemc23, https://github.com/developmentseed/titiler/pull/961)
 
 * Add links for render parameters and `/map` link to **viewer** dashboard (author @hrodmn, https://github.com/developmentseed/titiler/pull/987)
+
+## 0.18.9 (2024-09-23)
+
+* fix release 0.18.8
+
+## 0.18.8 (2024-09-23)
+
+### titiler.extensions
+
+* Add links for render parameters and /map link to viewer dashboard (author @hrodmn, https://github.com/developmentseed/titiler/pull/987)
 
 ## 0.18.7 (2024-09-19)
 
