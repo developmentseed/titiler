@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1727097466806,
+  "lastUpdate": 1727180142381,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -7138,6 +7138,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad longest_transaction",
             "value": 0.06,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "vincent.sarago@gmail.com",
+            "name": "Vincent Sarago",
+            "username": "vincentsarago"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1825dce9f8c8a478e7cef3f3172aa5f660e7454a",
+          "message": "simplify Factories (#943)\n\n* simplify Factories\r\n\r\n* fix\r\n\r\n* fix mosaic\r\n\r\n* update changelog\r\n\r\n* update version number\r\n\r\n* update changelog\r\n\r\n* update changelog",
+          "timestamp": "2024-09-24T14:14:12+02:00",
+          "tree_id": "d7fd02eb0ea979ae1e7e621aeb965d4c4dfc15f7",
+          "url": "https://github.com/developmentseed/titiler/commit/1825dce9f8c8a478e7cef3f3172aa5f660e7454a"
+        },
+        "date": 1727180141912,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 0,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.01,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.25,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.08,
             "unit": "s"
           }
         ]
