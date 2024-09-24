@@ -24,6 +24,10 @@
 * Use `@attrs.define` instead of dataclass for factory extensions **breaking change**
 
 
+### titiler.core
+
+* Improve XSS security for HTML templates (author @jcary741, https://github.com/developmentseed/titiler/pull/953)
+
 * Remove all default values to the dependencies
     * `DatasetParams.unscale`: `False` -> `None` (default to `False` in rio-tiler)
     * `DatasetParams.resampling_method`: `nearest` -> `None` (default to `nearest` in rio-tiler)
@@ -52,16 +56,35 @@
     >> {'value': 1}
     ```
 
+* fix Hillshade algorithm (bad `azimuth` angle)
+
+* set default `azimuth` and `altitude` angles to 45º for the Hillshade algorithm **breaking change**
+
 * Use `.as_dict()` method when passing option to rio-tiler Reader's methods to avoid parameter conflicts when using custom Readers.
 
-### titiler.core
-
 * Renamed `BaseTilerFactory` to `BaseFactory` **breaking change**
+
 * Removed useless attribute in `BaseFactory` (and moved them to `TilerFactory`) **breaking change**
 
 ### titiler.mosaic
 
 * Renamed `reader` attribute to `backend` in `MosaicTilerFactory`  **breaking change**
+
+### titiler.extensions
+
+* Encode URL for cog_viewer and stac_viewer (author @guillemc23, https://github.com/developmentseed/titiler/pull/961)
+
+* Add links for render parameters and `/map` link to **viewer** dashboard (author @hrodmn, https://github.com/developmentseed/titiler/pull/987)
+
+## 0.18.7 (2024-09-19)
+
+* fix Hillshade algorithm (bad `azimuth` angle) (https://github.com/developmentseed/titiler/pull/985) [Backported]
+* Encode URL for cog_viewer and stac_viewer (author @guillemc23, https://github.com/developmentseed/titiler/pull/961) [Backported]
+* Improve XSS security for HTML templates (author @jcary741, https://github.com/developmentseed/titiler/pull/953) [Backported]
+
+## 0.18.6 (2024-08-27)
+
+* Switch back to `fastapi` instead of `fastapi-slim` and use `>=0.109.0` version
 
 ## 0.18.5 (2024-07-03)
 

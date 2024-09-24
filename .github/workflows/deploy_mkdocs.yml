@@ -30,35 +30,8 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install src/titiler/core src/titiler/extensions["cogeo,stac"] src/titiler/mosaic src/titiler/application
-          python -m pip install nbconvert mkdocs mkdocs-material mkdocs-jupyter pygments pdocs
+          python -m pip install -r requirements/requirements-docs.txt
 
-      - name: update API docs
-        run: |
-          pdocs as_markdown \
-            --output_dir docs/src/api \
-            --exclude_source \
-            --overwrite \
-            titiler.core.dependencies \
-            titiler.core.factory \
-            titiler.core.routing \
-            titiler.core.errors \
-            titiler.core.resources.enums \
-            titiler.core.middleware
-
-          pdocs as_markdown \
-            --output_dir docs/src/api \
-            --exclude_source \
-            --overwrite \
-            titiler.extensions.cogeo \
-            titiler.extensions.viewer \
-            titiler.extensions.stac
-
-          pdocs as_markdown \
-            --output_dir docs/src/api \
-            --exclude_source \
-            --overwrite \
-            titiler.mosaic.factory \
-            titiler.mosaic.errors
 
       - name: Deploy docs
         run: mkdocs gh-deploy --force -f docs/mkdocs.yml

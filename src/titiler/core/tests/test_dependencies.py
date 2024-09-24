@@ -480,7 +480,7 @@ def test_algo():
     assert response.status_code == 422
 
     response = client.get("/?algorithm=hillshade")
-    assert response.json()["azimuth"] == 90
+    assert response.json()["azimuth"] == 45
     assert response.json()["buffer"] == 3
     assert response.json()["input_nbands"] == 1
 

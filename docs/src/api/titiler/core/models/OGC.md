@@ -1,0 +1,2 @@
+
+::: titiler.core.models.OGC

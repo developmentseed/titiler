@@ -29,25 +29,12 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: GIS",
 ]
-version="0.18.5"
+version="0.18.6"
 dependencies = [
-    "titiler.core==0.18.5",
-    "titiler.extensions==0.18.5",
-    "titiler.mosaic==0.18.5",
-    "titiler.application==0.18.5",
-]
-
-[project.optional-dependencies]
-dev = [
-    "pre-commit",
-]
-docs = [
-    "nbconvert",
-    "mkdocs",
-    "mkdocs-jupyter",
-    "mkdocs-material",
-    "pygments",
-    "pdocs",
+    "titiler.core==0.18.6",
+    "titiler.extensions==0.18.6",
+    "titiler.mosaic==0.18.6",
+    "titiler.application==0.18.6",
 ]
 
 [project.urls]
@@ -139,7 +126,7 @@ filterwarnings = [
 bypass-selection = true
 
 [tool.bumpversion]
-current_version = "0.18.5"
+current_version = "0.18.6"
 parse = """(?x)
     (?P<major>\\d+)\\.
     (?P<minor>\\d+)\\.

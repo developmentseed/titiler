@@ -114,7 +114,7 @@ docker run --name titiler \
 git clone https://github.com/developmentseed/titiler.git
 cd titiler
 
-docker-compose up --build titiler  # or titiler-uvicorn
+docker compose up --build titiler  # or titiler-uvicorn
 ```
 
 Some options can be set via environment variables, see: https://github.com/tiangolo/uvicorn-gunicorn-docker#advanced-usage

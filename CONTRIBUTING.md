@@ -47,7 +47,7 @@ python -m pytest src/titiler/application --cov=titiler.application --cov-report=
 ```bash
 git clone https://github.com/developmentseed/titiler.git
 cd titiler
-python -m pip install nbconvert mkdocs mkdocs-material mkdocs-jupyter pygments pdocs
+python -m pip install -r requirements/requirements-docs.txt
 ```
 
 Hot-reloading docs:
@@ -61,34 +61,4 @@ Actions deploys automatically for new commits.):
 
 ```bash
 mkdocs gh-deploy -f docs/mkdocs.yml
-```
-
-```bash
-pdocs as_markdown \
-   --output_dir docs/src/api \
-   --exclude_source \
-   --overwrite \
-   titiler.core.dependencies \
-   titiler.core.factory \
-   titiler.core.utils \
-   titiler.core.routing \
-   titiler.core.errors \
-   titiler.core.resources.enums \
-   titiler.core.middleware
-
-pdocs as_markdown \
-   --output_dir docs/src/api \
-   --exclude_source \
-   --overwrite \
-   titiler.extensions.cogeo \
-   titiler.extensions.viewer \
-   titiler.extensions.stac
-
-pdocs as_markdown \
-   --output_dir docs/src/api \
-   --exclude_source \
-   --overwrite \
-   titiler.mosaic.factory \
-   titiler.mosaic.resources.enums \
-   titiler.mosaic.errors
 ```
