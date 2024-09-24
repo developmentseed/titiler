@@ -28,7 +28,8 @@
 
 * Improve XSS security for HTML templates (author @jcary741, https://github.com/developmentseed/titiler/pull/953)
 
-* Remove all default values to the dependencies
+* Remove all default values to the dependencies **breaking change**
+
     * `DatasetParams.unscale`: `False` -> `None` (default to `False` in rio-tiler)
     * `DatasetParams.resampling_method`: `nearest` -> `None` (default to `nearest` in rio-tiler)
     * `DatasetParams.reproject_method`: `nearest` -> `None` (default to `nearest` in rio-tiler)
