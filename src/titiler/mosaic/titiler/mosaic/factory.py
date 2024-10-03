@@ -640,14 +640,20 @@ class MosaicTilerFactory(BaseFactory):
                         </TileMatrix>"""
                 tileMatrix.append(tm)
 
+            supported_crs = tms.crs.srs
+            
+            bounds_crs = tms.crs.geographic_crs.srs or "urn:ogc:def:crs:OGC:2:84"
+
             return self.templates.TemplateResponse(
                 request,
                 name="wmts.xml",
                 context={
                     "tiles_endpoint": tiles_url,
                     "bounds": bounds,
+                    "bounds_crs": bounds_crs,
                     "tileMatrix": tileMatrix,
                     "tms": tms,
+                    "supported_crs": supported_crs,
                     "title": src_path
                     if isinstance(src_path, str)
                     else "TiTiler Mosaic",

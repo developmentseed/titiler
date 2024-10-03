@@ -37,7 +37,7 @@
             <ows:Title>{{ title }}</ows:Title>
             <ows:Identifier>{{ layer_name }}</ows:Identifier>
             <ows:Abstract>{{ title }}</ows:Abstract>
-            <ows:WGS84BoundingBox crs="urn:ogc:def:crs:OGC:2:84">
+            <ows:WGS84BoundingBox crs={{ bounds_crs }}>
                 <ows:LowerCorner>{{ bounds[0] }} {{ bounds[1] }}</ows:LowerCorner>
                 <ows:UpperCorner>{{ bounds[2] }} {{ bounds[3] }}</ows:UpperCorner>
             </ows:WGS84BoundingBox>
