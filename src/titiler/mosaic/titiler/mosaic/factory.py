@@ -14,6 +14,7 @@ from geojson_pydantic.features import Feature
 from geojson_pydantic.geometries import Polygon
 from morecantile import tms as morecantile_tms
 from morecantile.defaults import TileMatrixSets
+from morecantile.models import CRS_to_uri
 from pydantic import Field
 from rio_tiler.constants import MAX_THREADS, WGS84_CRS
 from rio_tiler.io import BaseReader, MultiBandReader, MultiBaseReader, Reader
@@ -642,7 +643,7 @@ class MosaicTilerFactory(BaseFactory):
 
             supported_crs = tms.crs.srs
             
-            bounds_crs = tms.crs.geographic_crs.srs or "urn:ogc:def:crs:OGC:2:84"
+            bounds_crs = CRS_to_uri(tms.crs.geographic_crs) or "urn:ogc:def:crs:OGC:2:84"
 
             return self.templates.TemplateResponse(
                 request,

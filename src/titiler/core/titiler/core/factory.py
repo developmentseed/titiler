@@ -27,6 +27,7 @@ from geojson_pydantic.geometries import Polygon
 from morecantile import TileMatrixSet
 from morecantile import tms as morecantile_tms
 from morecantile.defaults import TileMatrixSets
+from morecantile.models import CRS_to_uri
 from pydantic import Field
 from rio_tiler.colormap import ColorMaps
 from rio_tiler.colormap import cmap as default_cmap
@@ -863,7 +864,7 @@ class TilerFactory(BaseFactory):
             else:
                 supported_crs = tms.crs.srs
             
-            bounds_crs = tms.crs.geographic_crs.srs or "urn:ogc:def:crs:OGC:2:84"
+            bounds_crs = CRS_to_uri(tms.geographic_crs) or "urn:ogc:def:crs:OGC:2:84"
 
             return self.templates.TemplateResponse(
                 request,
