@@ -643,7 +643,7 @@ class MosaicTilerFactory(BaseFactory):
 
             supported_crs = tms.crs.srs
             
-            bounds_crs = CRS_to_uri(tms.crs.geographic_crs)
+            bounds_crs = CRS_to_uri(tms.geographic_crs)
             bounds_type = 'WGS84BoundingBox' if tms.geographic_crs == WGS84_CRS else 'BoundingBox'
 
             return self.templates.TemplateResponse(
