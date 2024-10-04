@@ -574,7 +574,10 @@ class TilerFactory(BaseFactory):
             tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
                 with self.reader(
-                    src_path, tms=tms, **reader_params.as_dict()
+                    src_path,
+                    tms=tms,
+                    geographic_crs=tms.geographic_crs,
+                    **reader_params.as_dict(),
                 ) as src_dst:
                     image = src_dst.tile(
                         x,
@@ -684,7 +687,10 @@ class TilerFactory(BaseFactory):
             tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
                 with self.reader(
-                    src_path, tms=tms, **reader_params.as_dict()
+                    src_path,
+                    tms=tms,
+                    geographic_crs=tms.geographic_crs,
+                    **reader_params.as_dict(),
                 ) as src_dst:
                     return {
                         "bounds": src_dst.geographic_bounds,
@@ -838,7 +844,10 @@ class TilerFactory(BaseFactory):
             tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
                 with self.reader(
-                    src_path, tms=tms, **reader_params.as_dict()
+                    src_path,
+                    tms=tms,
+                    geographic_crs=tms.geographic_crs,
+                    **reader_params.as_dict(),
                 ) as src_dst:
                     bounds = src_dst.geographic_bounds
                     minzoom = minzoom if minzoom is not None else src_dst.minzoom

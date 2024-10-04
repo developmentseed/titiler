@@ -330,6 +330,7 @@ class MosaicTilerFactory(BaseFactory):
                 with self.backend(
                     src_path,
                     tms=tms,
+                    geographic_crs=tms.geographic_crs,
                     reader=self.dataset_reader,
                     reader_options=reader_params.as_dict(),
                     **backend_params.as_dict(),
@@ -458,6 +459,7 @@ class MosaicTilerFactory(BaseFactory):
                 with self.backend(
                     src_path,
                     tms=tms,
+                    geographic_crs=tms.geographic_crs,
                     reader=self.dataset_reader,
                     reader_options=reader_params.as_dict(),
                     **backend_params.as_dict(),
@@ -618,6 +620,7 @@ class MosaicTilerFactory(BaseFactory):
                 with self.backend(
                     src_path,
                     tms=tms,
+                    geographic_crs=tms.geographic_crs,
                     reader=self.dataset_reader,
                     reader_options=reader_params.as_dict(),
                     **backend_params.as_dict(),
@@ -829,6 +832,7 @@ class MosaicTilerFactory(BaseFactory):
                 with self.backend(
                     src_path,
                     tms=tms,
+                    geographic_crs=tms.geographic_crs,
                     reader=self.dataset_reader,
                     reader_options=reader_params.as_dict(),
                     **backend_params.as_dict(),
