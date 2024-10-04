@@ -89,9 +89,9 @@ class MosaicTilerFactory(BaseFactory):
     tile_dependency: Type[DefaultDependency] = TileParams
 
     # Post Processing Dependencies (algorithm)
-    process_dependency: Callable[
-        ..., Optional[BaseAlgorithm]
-    ] = available_algorithms.dependency
+    process_dependency: Callable[..., Optional[BaseAlgorithm]] = (
+        available_algorithms.dependency
+    )
 
     # Image rendering Dependencies
     rescale_dependency: Callable[..., Optional[RescaleType]] = RescalingParams
@@ -642,9 +642,13 @@ class MosaicTilerFactory(BaseFactory):
                 tileMatrix.append(tm)
 
             supported_crs = tms.crs.srs
-            
+
             bounds_crs = CRS_to_uri(tms.geographic_crs)
-            bounds_type = 'WGS84BoundingBox' if tms.geographic_crs == WGS84_CRS else 'BoundingBox'
+
+            if tms.geographic_crs == WGS84_CRS:
+                bounds_type = "WGS84BoundingBox"
+            else:
+                bounds_type = "BoundingBox"
 
             return self.templates.TemplateResponse(
                 request,
@@ -657,9 +661,9 @@ class MosaicTilerFactory(BaseFactory):
                     "tileMatrix": tileMatrix,
                     "tms": tms,
                     "supported_crs": supported_crs,
-                    "title": src_path
-                    if isinstance(src_path, str)
-                    else "TiTiler Mosaic",
+                    "title": (
+                        src_path if isinstance(src_path, str) else "TiTiler Mosaic"
+                    ),
                     "layer_name": "Mosaic",
                     "media_type": tile_format.mediatype,
                 },

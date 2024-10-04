@@ -70,7 +70,7 @@ def test_wmts(rio, app):
     )
     assert (
         '<ows:WGS84BoundingBox crs="https://www.opengis.net/def/crs/EPSG/0/4326">'
-        not in response.content.decode() # I don't understand yet why this test fails.
+        not in response.content.decode()  # I don't understand yet why this test fails.
     )
     assert (
         "<ows:SupportedCRS>http://www.opengis.net/def/crs/EPSG/0/3857</ows:SupportedCRS>"

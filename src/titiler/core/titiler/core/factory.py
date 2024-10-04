@@ -269,9 +269,9 @@ class TilerFactory(BaseFactory):
     img_part_dependency: Type[DefaultDependency] = PartFeatureParams
 
     # Post Processing Dependencies (algorithm)
-    process_dependency: Callable[
-        ..., Optional[BaseAlgorithm]
-    ] = available_algorithms.dependency
+    process_dependency: Callable[..., Optional[BaseAlgorithm]] = (
+        available_algorithms.dependency
+    )
 
     # Image rendering Dependencies
     rescale_dependency: Callable[..., Optional[RescaleType]] = RescalingParams
@@ -863,9 +863,13 @@ class TilerFactory(BaseFactory):
                 supported_crs = f"EPSG:{tms.crs.to_epsg()}"
             else:
                 supported_crs = tms.crs.srs
-            
+
             bounds_crs = CRS_to_uri(tms.geographic_crs)
-            bounds_type = 'WGS84BoundingBox' if tms.geographic_crs == WGS84_CRS else 'BoundingBox'
+
+            if tms.geographic_crs == WGS84_CRS:
+                bounds_type = "WGS84BoundingBox"
+            else:
+                bounds_type = "BoundingBox"
 
             return self.templates.TemplateResponse(
                 request,
