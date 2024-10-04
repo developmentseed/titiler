@@ -864,7 +864,7 @@ class TilerFactory(BaseFactory):
             else:
                 supported_crs = tms.crs.srs
             
-            bounds_crs = CRS_to_uri(tms.geographic_crs) or "urn:ogc:def:crs:OGC:2:84"
+            bounds_crs = CRS_to_uri(tms.geographic_crs)
 
             return self.templates.TemplateResponse(
                 request,

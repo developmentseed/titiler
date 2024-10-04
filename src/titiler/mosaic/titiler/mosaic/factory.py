@@ -643,7 +643,7 @@ class MosaicTilerFactory(BaseFactory):
 
             supported_crs = tms.crs.srs
             
-            bounds_crs = CRS_to_uri(tms.crs.geographic_crs) or "urn:ogc:def:crs:OGC:2:84"
+            bounds_crs = CRS_to_uri(tms.crs.geographic_crs)
 
             return self.templates.TemplateResponse(
                 request,
