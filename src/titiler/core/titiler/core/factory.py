@@ -865,12 +865,14 @@ class TilerFactory(BaseFactory):
                 supported_crs = tms.crs.srs
             
             bounds_crs = CRS_to_uri(tms.geographic_crs)
+            bounds_type = 'WGS84BoundingBox' if tms.geographic_crs == WGS84_CRS else 'BoundingBox'
 
             return self.templates.TemplateResponse(
                 request,
                 name="wmts.xml",
                 context={
                     "tiles_endpoint": tiles_url,
+                    "bounds_type": bounds_type,
                     "bounds": bounds,
                     "bounds_crs": bounds_crs,
                     "tileMatrix": tileMatrix,

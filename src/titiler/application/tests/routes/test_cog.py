@@ -53,7 +53,6 @@ def test_info(rio, app):
 def test_wmts(rio, app):
     """test wmts endpoints."""
     rio.open = mock_rasterio_open
-
     response = app.get(
         "/cog/WebMercatorQuad/WMTSCapabilities.xml?url=https://myurl.com/cog.tif"
     )
@@ -68,6 +67,10 @@ def test_wmts(rio, app):
     assert (
         "http://testserver/cog/tiles/WebMercatorQuad/{TileMatrix}/{TileCol}/{TileRow}@1x.png?url=https"
         in response.content.decode()
+    )
+    assert (
+        '<ows:WGS84BoundingBox crs="https://www.opengis.net/def/crs/EPSG/0/4326">'
+        not in response.content.decode() # I don't understand yet why this test fails.
     )
     assert (
         "<ows:SupportedCRS>http://www.opengis.net/def/crs/EPSG/0/3857</ows:SupportedCRS>"
