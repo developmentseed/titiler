@@ -27,6 +27,7 @@ from geojson_pydantic.geometries import Polygon
 from morecantile import TileMatrixSet
 from morecantile import tms as morecantile_tms
 from morecantile.defaults import TileMatrixSets
+from morecantile.models import CRS_to_uri
 from pydantic import Field
 from rio_tiler.colormap import ColorMaps
 from rio_tiler.colormap import cmap as default_cmap
@@ -268,9 +269,9 @@ class TilerFactory(BaseFactory):
     img_part_dependency: Type[DefaultDependency] = PartFeatureParams
 
     # Post Processing Dependencies (algorithm)
-    process_dependency: Callable[
-        ..., Optional[BaseAlgorithm]
-    ] = available_algorithms.dependency
+    process_dependency: Callable[..., Optional[BaseAlgorithm]] = (
+        available_algorithms.dependency
+    )
 
     # Image rendering Dependencies
     rescale_dependency: Callable[..., Optional[RescaleType]] = RescalingParams
@@ -573,7 +574,10 @@ class TilerFactory(BaseFactory):
             tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
                 with self.reader(
-                    src_path, tms=tms, **reader_params.as_dict()
+                    src_path,
+                    tms=tms,
+                    geographic_crs=tms.geographic_crs,
+                    **reader_params.as_dict(),
                 ) as src_dst:
                     image = src_dst.tile(
                         x,
@@ -683,7 +687,10 @@ class TilerFactory(BaseFactory):
             tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
                 with self.reader(
-                    src_path, tms=tms, **reader_params.as_dict()
+                    src_path,
+                    tms=tms,
+                    geographic_crs=tms.geographic_crs,
+                    **reader_params.as_dict(),
                 ) as src_dst:
                     return {
                         "bounds": src_dst.geographic_bounds,
@@ -837,7 +844,10 @@ class TilerFactory(BaseFactory):
             tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
                 with self.reader(
-                    src_path, tms=tms, **reader_params.as_dict()
+                    src_path,
+                    tms=tms,
+                    geographic_crs=tms.geographic_crs,
+                    **reader_params.as_dict(),
                 ) as src_dst:
                     bounds = src_dst.geographic_bounds
                     minzoom = minzoom if minzoom is not None else src_dst.minzoom
@@ -863,12 +873,21 @@ class TilerFactory(BaseFactory):
             else:
                 supported_crs = tms.crs.srs
 
+            bounds_crs = CRS_to_uri(tms.geographic_crs)
+
+            if tms.geographic_crs == WGS84_CRS:
+                bounds_type = "WGS84BoundingBox"
+            else:
+                bounds_type = "BoundingBox"
+
             return self.templates.TemplateResponse(
                 request,
                 name="wmts.xml",
                 context={
                     "tiles_endpoint": tiles_url,
+                    "bounds_type": bounds_type,
                     "bounds": bounds,
+                    "bounds_crs": bounds_crs,
                     "tileMatrix": tileMatrix,
                     "tms": tms,
                     "supported_crs": supported_crs,

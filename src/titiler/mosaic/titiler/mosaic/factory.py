@@ -14,6 +14,7 @@ from geojson_pydantic.features import Feature
 from geojson_pydantic.geometries import Polygon
 from morecantile import tms as morecantile_tms
 from morecantile.defaults import TileMatrixSets
+from morecantile.models import CRS_to_uri
 from pydantic import Field
 from rio_tiler.constants import MAX_THREADS, WGS84_CRS
 from rio_tiler.io import BaseReader, MultiBandReader, MultiBaseReader, Reader
@@ -88,9 +89,9 @@ class MosaicTilerFactory(BaseFactory):
     tile_dependency: Type[DefaultDependency] = TileParams
 
     # Post Processing Dependencies (algorithm)
-    process_dependency: Callable[
-        ..., Optional[BaseAlgorithm]
-    ] = available_algorithms.dependency
+    process_dependency: Callable[..., Optional[BaseAlgorithm]] = (
+        available_algorithms.dependency
+    )
 
     # Image rendering Dependencies
     rescale_dependency: Callable[..., Optional[RescaleType]] = RescalingParams
@@ -640,17 +641,29 @@ class MosaicTilerFactory(BaseFactory):
                         </TileMatrix>"""
                 tileMatrix.append(tm)
 
+            supported_crs = tms.crs.srs
+
+            bounds_crs = CRS_to_uri(tms.geographic_crs)
+
+            if tms.geographic_crs == WGS84_CRS:
+                bounds_type = "WGS84BoundingBox"
+            else:
+                bounds_type = "BoundingBox"
+
             return self.templates.TemplateResponse(
                 request,
                 name="wmts.xml",
                 context={
                     "tiles_endpoint": tiles_url,
+                    "bounds_type": bounds_type,
                     "bounds": bounds,
+                    "bounds_crs": bounds_crs,
                     "tileMatrix": tileMatrix,
                     "tms": tms,
-                    "title": src_path
-                    if isinstance(src_path, str)
-                    else "TiTiler Mosaic",
+                    "supported_crs": supported_crs,
+                    "title": (
+                        src_path if isinstance(src_path, str) else "TiTiler Mosaic"
+                    ),
                     "layer_name": "Mosaic",
                     "media_type": tile_format.mediatype,
                 },
