@@ -34,7 +34,7 @@ dependencies = [
     "titiler.core==0.18.9",
     "titiler.extensions[cogeo,stac]==0.18.9",
     "titiler.mosaic==0.18.9",
-    "starlette-cramjam>=0.3,<0.4",
+    "starlette-cramjam>=0.4,<0.5",
     "pydantic-settings~=2.0",
 ]
 
