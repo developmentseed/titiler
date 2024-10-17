@@ -139,10 +139,14 @@ parse = """(?x)
         \\.post
         (?P<post_n>\\d+)    # post-release version number
     )?                      # post-release section is optional
+    (?:
+        \\.dev
+    )?
 """
 serialize = [
     "{major}.{minor}.{patch}.post{post_n}",
     "{major}.{minor}.{patch}{pre_l}{pre_n}",
+    "{major}.{minor}.{patch}.dev",
     "{major}.{minor}.{patch}",
 ]
 
