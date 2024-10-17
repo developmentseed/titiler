@@ -188,6 +188,7 @@ app.add_middleware(
         "image/jp2",
         "image/webp",
     },
+    compression_level=6,
 )
 
 app.add_middleware(
