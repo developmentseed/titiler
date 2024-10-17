@@ -1,5 +1,11 @@
 # Release Notes
 
+## 0.18.10 (2024-10-17)
+
+### titiler.application
+
+* update `starlette-cramjam` dependency and set compression-level default to `6`
+
 ## 0.18.9 (2024-09-23)
 
 * fix release 0.18.8
