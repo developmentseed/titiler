@@ -1,0 +1,19 @@
+{
+  "bounds": [
+    -182.5,
+    -92.57142857142857,
+    177.5,
+    92.57142857142857
+  ],
+  "minzoom": 0,
+  "maxzoom": 0,
+  "band_metadata": [],
+  "band_descriptions": [],
+  "dtype": "uint8",
+  "nodata_type": "None",
+  "name": "CDD0",
+  "count": 1,
+  "width": 72,
+  "height": 36,
+  "attrs": {}
+}

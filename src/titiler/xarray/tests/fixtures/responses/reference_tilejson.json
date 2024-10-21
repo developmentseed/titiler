@@ -1,0 +1,12 @@
+{
+    "tilejson": "2.2.0",
+    "version": "1.0.0",
+    "scheme": "xyz",
+    "tiles": [
+        "http://testserver/tiles/WebMercatorQuad/{z}/{x}/{y}@1x?url=tests%2Ffixtures%2Freference.json&variable=value&reference=true&decode_times=false"
+    ],
+    "minzoom": 0,
+    "maxzoom": 0,
+    "bounds": [-110.5, 39.5, -100.5, 49.5],
+    "center": [-105.5, 44.5, 0]
+}

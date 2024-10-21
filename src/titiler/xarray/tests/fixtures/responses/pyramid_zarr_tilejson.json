@@ -1,0 +1,21 @@
+{
+  "tilejson": "2.2.0",
+  "version": "1.0.0",
+  "scheme": "xyz",
+  "tiles": [
+    "http://testserver/tiles/WebMercatorQuad/{z}/{x}/{y}@1x?url=tests%2Ffixtures%2Fpyramid.zarr&variable=value&decode_times=false&multiscale=true&consolidated=false"
+  ],
+  "minzoom": 0,
+  "maxzoom": 0,
+  "bounds": [
+    -180.0,
+    -90.0,
+    180.0,
+    90.0
+  ],
+  "center": [
+    0.0,
+    0.0,
+    0
+  ]
+}

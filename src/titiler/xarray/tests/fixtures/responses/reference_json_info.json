@@ -1,0 +1,16 @@
+{
+    "bounds": [-110.5, 39.5, -100.5, 49.5],
+    "minzoom": 0,
+    "maxzoom": 0,
+    "band_metadata": [],
+    "band_descriptions": [],
+    "dtype": "float32",
+    "nodata_type": "None",
+    "count": 1,
+    "height": 10,
+    "attrs": {
+        "units": "Unknown"
+    },
+    "name": "value",
+    "width": 10
+}
