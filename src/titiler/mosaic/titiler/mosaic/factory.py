@@ -590,6 +590,12 @@ class MosaicTilerFactory(BaseFactory):
                 Optional[int],
                 Query(description="Overwrite default maxzoom."),
             ] = None,
+            use_epsg: Annotated[
+                bool,
+                Query(
+                    description="Use EPSG code, not opengis.net, for the ows:SupportedCRS in the TileMatrixSet (set to True to enable ArcMap compatability)"
+                ),
+            ] = False,
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             pixel_selection=Depends(self.pixel_selection_dependency),
@@ -621,6 +627,7 @@ class MosaicTilerFactory(BaseFactory):
                 "minzoom",
                 "maxzoom",
                 "service",
+                "use_epsg",
                 "request",
             ]
             qs = [
@@ -640,7 +647,7 @@ class MosaicTilerFactory(BaseFactory):
                     reader_options=reader_params.as_dict(),
                     **backend_params.as_dict(),
                 ) as src_dst:
-                    bounds = src_dst.get_geographic_bounds(WGS84_CRS)
+                    bounds = src_dst.get_geographic_bounds(tms.rasterio_geographic_crs)
                     minzoom = minzoom if minzoom is not None else src_dst.minzoom
                     maxzoom = maxzoom if maxzoom is not None else src_dst.maxzoom
 
@@ -659,6 +666,17 @@ class MosaicTilerFactory(BaseFactory):
                         </TileMatrix>"""
                 tileMatrix.append(tm)
 
+            if use_epsg:
+                supported_crs = f"EPSG:{tms.crs.to_epsg()}"
+            else:
+                supported_crs = tms.crs.srs
+
+            bbox_crs_type = "WGS84BoundingBox"
+            bbox_crs_uri = "urn:ogc:def:crs:OGC:2:84"
+            if tms.rasterio_geographic_crs != WGS84_CRS:
+                bbox_crs_type = "BoundingBox"
+                bbox_crs_uri = CRS_to_uri(tms.rasterio_geographic_crs)
+
             return self.templates.TemplateResponse(
                 request,
                 name="wmts.xml",
@@ -667,6 +685,9 @@ class MosaicTilerFactory(BaseFactory):
                     "bounds": bounds,
                     "tileMatrix": tileMatrix,
                     "tms": tms,
+                    "supported_crs": supported_crs,
+                    "bbox_crs_type": bbox_crs_type,
+                    "bbox_crs_uri": bbox_crs_uri,
                     "title": src_path
                     if isinstance(src_path, str)
                     else "TiTiler Mosaic",
