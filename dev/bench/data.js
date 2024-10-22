@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1729201607682,
+  "lastUpdate": 1729630125736,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -7241,6 +7241,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.19,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.07,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "vincent.sarago@gmail.com",
+            "name": "Vincent Sarago",
+            "username": "vincentsarago"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ede9f603e96589d9c7aae8a949d1ee4f80b2ad53",
+          "message": "update rio-tiler dependency (#1003)\n\n* update rio-tiler dependency\r\n\r\n* fix\r\n\r\n* use BoundingBox instead of WGS84BoundingBox in wmts when tms is not based on WGS84 (#1004)",
+          "timestamp": "2024-10-22T22:47:26+02:00",
+          "tree_id": "3c25640cf6435f2f925d2b86f9d179afbce906fa",
+          "url": "https://github.com/developmentseed/titiler/commit/ede9f603e96589d9c7aae8a949d1ee4f80b2ad53"
+        },
+        "date": 1729630125200,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 0,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.01,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.21,
             "unit": "s"
           },
           {
