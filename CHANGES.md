@@ -4,7 +4,7 @@
 
 ### Misc
 
-* Removed default `WebMercatorQuad` tile matrix set in `/tiles`, `/tilesjson.json`, `/map` and `/WMTSCapabilities.xml` endpoints **breaking change**
+* Remove default `WebMercatorQuad` tile matrix set in `/tiles`, `/tilesjson.json`, `/map` and `/WMTSCapabilities.xml` endpoints **breaking change**
 
     ```
     # Before
@@ -23,8 +23,13 @@
 * Use `@attrs.define` instead of dataclass for factories **breaking change**
 * Use `@attrs.define` instead of dataclass for factory extensions **breaking change**
 
-
 ### titiler.core
+
+* Update `rio-tiler` dependency to `>=7.0,<8.0`
+
+* Update `geojson-pydantic` dependency to `>=1.1.2,<2.0` which better handle antimeridian crossing dataset
+
+* handle `antimeridian` crossing bounds in `/info.geojson` endpoints (returning MultiPolygon instead of Polygon)
 
 * Improve XSS security for HTML templates (author @jcary741, https://github.com/developmentseed/titiler/pull/953)
 
@@ -57,25 +62,37 @@
     >> {'value': 1}
     ```
 
-* fix Hillshade algorithm (bad `azimuth` angle)
+* Fix Hillshade algorithm (bad `azimuth` angle)
 
-* set default `azimuth` and `altitude` angles to 45º for the Hillshade algorithm **breaking change**
+* Set default `azimuth` and `altitude` angles to 45º for the Hillshade algorithm **breaking change**
 
 * Use `.as_dict()` method when passing option to rio-tiler Reader's methods to avoid parameter conflicts when using custom Readers.
 
-* Renamed `BaseTilerFactory` to `BaseFactory` **breaking change**
+* Rename `BaseTilerFactory` to `BaseFactory` **breaking change**
 
-* Removed useless attribute in `BaseFactory` (and moved them to `TilerFactory`) **breaking change**
+* Remove useless attribute in `BaseFactory` (and moved them to `TilerFactory`) **breaking change**
+
+* Add `crs` option to `/bounds` endpoints to enable geographic_crs selection by the user
+
+* `/bounds` endpoints now return a `crs: str` attribute in the response
 
 ### titiler.mosaic
 
-* Renamed `reader` attribute to `backend` in `MosaicTilerFactory`  **breaking change**
+* Rename `reader` attribute to `backend` in `MosaicTilerFactory`  **breaking change**
+
+* Add `crs` option to `/bounds` endpoints to enable geographic_crs selection by the user
+
+* `/bounds` endpoints now return a `crs: str` attribute in the response
+
+* Update `cogeo-mosaic` dependency to `>=8.0,<9.0`
 
 ### titiler.extensions
 
 * Encode URL for cog_viewer and stac_viewer (author @guillemc23, https://github.com/developmentseed/titiler/pull/961)
 
 * Add links for render parameters and `/map` link to **viewer** dashboard (author @hrodmn, https://github.com/developmentseed/titiler/pull/987)
+
+* Update viewers to use `/info.geojson` endpoint instead of `/info`
 
 ## 0.18.10 (2024-10-17)
 

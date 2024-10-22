@@ -807,49 +807,6 @@ const bboxPolygon = (bounds) => {
   }
 }
 
-const addAOI = (bounds) => {
-  if (map.getLayer('aoi-polygon')) map.removeLayer('aoi-polygon')
-  if (map.getSource('aoi')) map.removeSource('aoi')
-
-  // handle files that span accross dateline
-  if (bounds[0] > bounds[2]) {
-    map.addSource('aoi', {
-      'type': 'geojson',
-      'data': {
-        "type": "FeatureCollection",
-        "features": [
-          bboxPolygon([-180, bounds[1], bounds[2], bounds[3]]),
-          bboxPolygon([bounds[0], bounds[1], 180, bounds[3]]),
-        ]
-      }
-    })
-
-  } else {
-    map.addSource('aoi', {
-      'type': 'geojson',
-      'data': {
-        "type": "FeatureCollection",
-        "features": [bboxPolygon(bounds)]
-      }
-    })
-  }
-
-  map.addLayer({
-    id: 'aoi-polygon',
-    type: 'line',
-    source: 'aoi',
-    layout: {
-      'line-cap': 'round',
-      'line-join': 'round'
-    },
-    paint: {
-      'line-color': '#3bb2d0',
-      'line-width': 1
-    }
-  })
-  return
-}
-
 const updateUI = () => {
   const is_checked = document.getElementById("compose-switch").checked
   const rList = document.getElementById('r-selector')
@@ -952,16 +909,6 @@ const updateUI = () => {
     document.getElementById('data-min').value = mm[0]
     document.getElementById('data-max').value = mm[1]
 
-    let bounds = [...info.bounds]
-    // Bounds crossing dateline
-    if (bounds[0] > bounds[2]) {
-      bounds[0] = bounds[0] - 360
-    }
-    map.fitBounds(
-      [[bounds[0], bounds[1]], [bounds[2], bounds[3]]]
-    )
-    addAOI(info.bounds)
-
     if (nbands === 1) {
       document.getElementById('3b').classList.add('disabled')
       document.getElementById('3b').classList.remove('active')
@@ -997,8 +944,23 @@ const addStac = () => {
       document.getElementById('menu').classList.toggle('off')
       document.getElementById('loader').classList.toggle('off')
 
-      scope.assets =  Object.entries(data).map((e) => {return e[0]})
-      scope.dataset_info = data
+      scope.assets = Object.entries(data.properties).map((e) => {return e[0]})
+      scope.dataset_info = data.properties
+
+      let bounds = [...data.bbox]
+      // Bounds crossing dateline
+      if (bounds[0] > bounds[2]) {
+        bounds[0] = bounds[0] - 360
+      }
+      map.fitBounds([[bounds[0], bounds[1]], [bounds[2], bounds[3]]])
+      map.addSource('aoi', {'type': 'geojson', 'data': data})
+      map.addLayer({
+        id: 'aoi-polygon',
+        type: 'line',
+        source: 'aoi',
+        layout: {'line-cap': 'round', 'line-join': 'round'},
+        paint: {'line-color': '#3bb2d0', 'line-width': 1}
+      })
 
       const assetList = document.getElementById('asset-selector')
       for (var i = 0; i < scope.assets.length; i++) {
