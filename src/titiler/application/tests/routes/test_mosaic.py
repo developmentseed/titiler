@@ -57,20 +57,22 @@ def test_info(app):
     response = app.get("/mosaicjson/info", params={"url": MOSAICJSON_FILE})
     assert response.status_code == 200
     body = response.json()
-    assert body["minzoom"] == 7
-    assert body["maxzoom"] == 9
     assert body["name"] == "mosaic"  # mosaic.name is not set
     assert body["quadkeys"] == []
+    assert body["mosaic_minzoom"] == 7
+    assert body["mosaic_maxzoom"] == 9
+    assert body["mosaic_tilematrixset"]
 
     response = app.get("/mosaicjson/info.geojson", params={"url": MOSAICJSON_FILE})
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/geo+json"
     body = response.json()
     assert body["geometry"]
-    assert body["properties"]["minzoom"] == 7
-    assert body["properties"]["maxzoom"] == 9
     assert body["properties"]["name"] == "mosaic"  # mosaic.name is not set
     assert body["properties"]["quadkeys"] == []
+    assert body["properties"]["mosaic_minzoom"] == 7
+    assert body["properties"]["mosaic_maxzoom"] == 9
+    assert body["properties"]["mosaic_tilematrixset"]
 
 
 def test_tilejson(app):
