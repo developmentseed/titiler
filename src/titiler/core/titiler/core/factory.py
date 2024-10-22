@@ -861,7 +861,7 @@ class TilerFactory(BaseFactory):
                 with self.reader(
                     src_path, tms=tms, **reader_params.as_dict()
                 ) as src_dst:
-                    bounds = src_dst.get_geographic_bounds(WGS84_CRS)
+                    bounds = src_dst.get_geographic_bounds(tms.rasterio_geographic_crs)
                     minzoom = minzoom if minzoom is not None else src_dst.minzoom
                     maxzoom = maxzoom if maxzoom is not None else src_dst.maxzoom
 
@@ -885,6 +885,12 @@ class TilerFactory(BaseFactory):
             else:
                 supported_crs = tms.crs.srs
 
+            bbox_crs_type = "WGS84BoundingBox"
+            bbox_crs_uri = "urn:ogc:def:crs:OGC:2:84"
+            if tms.rasterio_geographic_crs != WGS84_CRS:
+                bbox_crs_type = "BoundingBox"
+                bbox_crs_uri = CRS_to_uri(tms.rasterio_geographic_crs)
+
             return self.templates.TemplateResponse(
                 request,
                 name="wmts.xml",
@@ -894,6 +900,8 @@ class TilerFactory(BaseFactory):
                     "tileMatrix": tileMatrix,
                     "tms": tms,
                     "supported_crs": supported_crs,
+                    "bbox_crs_type": bbox_crs_type,
+                    "bbox_crs_uri": bbox_crs_uri,
                     "title": src_path if isinstance(src_path, str) else "TiTiler",
                     "layer_name": "Dataset",
                     "media_type": tile_format.mediatype,
