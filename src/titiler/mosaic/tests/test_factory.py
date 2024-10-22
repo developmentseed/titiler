@@ -75,7 +75,8 @@ def test_MosaicTilerFactory():
             params={"url": mosaic_file},
         )
         assert response.status_code == 200
-        assert response.json()["bounds"]
+        assert len(response.json()["bounds"]) == 4
+        assert response.json()["crs"]
 
         response = client.get(
             "/mosaic/info",

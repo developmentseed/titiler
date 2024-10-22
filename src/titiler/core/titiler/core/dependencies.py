@@ -602,6 +602,21 @@ def DstCRSParams(
     return None
 
 
+def CRSParams(
+    crs: Annotated[
+        Optional[str],
+        Query(
+            description="Coordinate Reference System`.",
+        ),
+    ] = None,
+) -> Optional[CRS]:
+    """Coordinate Reference System Coordinates Param."""
+    if crs:
+        return CRS.from_user_input(crs)
+
+    return None
+
+
 def BufferParams(
     buffer: Annotated[
         Optional[float],

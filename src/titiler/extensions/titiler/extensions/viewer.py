@@ -33,7 +33,7 @@ class cogViewerExtension(FactoryExtension):
                     "tilejson_endpoint": factory.url_for(
                         request, "tilejson", tileMatrixSetId="WebMercatorQuad"
                     ),
-                    "info_endpoint": factory.url_for(request, "info"),
+                    "info_endpoint": factory.url_for(request, "info_geojson"),
                     "statistics_endpoint": factory.url_for(request, "statistics"),
                     "viewer_enabled": getattr(factory, "add_viewer", False),
                 },
@@ -60,7 +60,7 @@ class stacViewerExtension(FactoryExtension):
                     "tilejson_endpoint": factory.url_for(
                         request, "tilejson", tileMatrixSetId="WebMercatorQuad"
                     ),
-                    "info_endpoint": factory.url_for(request, "info"),
+                    "info_endpoint": factory.url_for(request, "info_geojson"),
                     "statistics_endpoint": factory.url_for(request, "asset_statistics"),
                 },
                 media_type="text/html",

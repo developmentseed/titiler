@@ -296,7 +296,8 @@ def test_TilerFactory():
     response = client.get(f"/bounds?url={DATA_DIR}/cog.tif")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
-    assert response.json()["bounds"]
+    assert len(response.json()["bounds"]) == 4
+    assert response.json()["crs"]
 
     response = client.get(f"/info?url={DATA_DIR}/cog.tif")
     assert response.status_code == 200
@@ -307,6 +308,15 @@ def test_TilerFactory():
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/geo+json"
     assert response.json()["type"] == "Feature"
+    assert "bbox" in response.json()
+    assert response.json()["geometry"]["type"] == "Polygon"
+
+    response = client.get(f"/info.geojson?url={DATA_DIR}/cog_dateline.tif")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/geo+json"
+    assert response.json()["type"] == "Feature"
+    assert "bbox" in response.json()
+    assert response.json()["geometry"]["type"] == "MultiPolygon"
 
     response = client.get(
         f"/preview.png?url={DATA_DIR}/cog.tif&rescale=0,1000&max_size=256"
@@ -744,6 +754,7 @@ def test_MultiBaseTilerFactory(rio):
     response = client.get(f"/bounds?url={DATA_DIR}/item.json")
     assert response.status_code == 200
     assert len(response.json()["bounds"]) == 4
+    assert response.json()["crs"]
 
     response = client.get(f"/info?url={DATA_DIR}/item.json")
     assert response.status_code == 200
