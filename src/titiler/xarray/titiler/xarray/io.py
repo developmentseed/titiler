@@ -163,6 +163,12 @@ def arrange_coordinates(da: xarray.DataArray) -> xarray.DataArray:
     else:
         da = da.transpose("y", "x")
 
+    # If min/max values are stored in `valid_range` we add them in `valid_min/valid_max`
+    vmin, vmax = da.attrs.get("valid_min"), da.attrs.get("valid_max")
+    if "valid_range" in da.attrs and not (vmin is not None and vmax is not None):
+        valid_range = da.attrs.get("valid_range")
+        da.attrs.update({"valid_min": valid_range[0], "valid_max": valid_range[1]})
+
     return da
 
 
@@ -174,8 +180,6 @@ def get_variable(
 ) -> xarray.DataArray:
     """Get Xarray variable as DataArray."""
     da = ds[variable]
-    da = arrange_coordinates(da)  # TODO: Duplicated call L173
-
     # TODO: add test
     if drop_dim:
         dim_to_drop, dim_val = drop_dim.split("=")
