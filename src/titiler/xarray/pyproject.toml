@@ -1,6 +1,6 @@
 [project]
 name = "titiler.xarray"
-description = "cogeo-mosaic (MosaicJSON) plugin for TiTiler."
+description = "Xarray plugin for TiTiler."
 readme = "README.md"
 requires-python = ">=3.8"
 authors = [
@@ -9,14 +9,11 @@ authors = [
 ]
 license = {text = "MIT"}
 keywords = [
-    "COG",
-    "STAC",
-    "MosaicJSON",
-    "Fastapi",
-    "Dynamic tile server",
-    "GDAL",
-    "Rasterio",
-    "OGC",
+    "TiTiler",
+    "Xarray",
+    "Zarr",
+    "NetCDF",
+    "HDF",
 ]
 classifiers = [
     "Intended Audience :: Information Technology",
@@ -33,6 +30,7 @@ classifiers = [
 dynamic = ["version"]
 dependencies = [
     "titiler.core==0.19.0.dev",
+    "rio-tiler>=7.1,<8.0",  # Not Released yet
     "cftime",
     "h5netcdf",
     "xarray",

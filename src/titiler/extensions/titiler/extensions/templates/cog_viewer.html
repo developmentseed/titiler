@@ -360,15 +360,15 @@ const dtype_ranges = {
 function updateShareButtonVisibility() {
   console.log('updateShareButtonVisibility called');
   console.log('viewer_enabled:', viewer_enabled);
-  
+
   const shareButton = document.getElementById('btn-share-link');
   if (!shareButton) {
     console.log('Share button not found in the DOM');
     return;
   }
-  
+
   console.log('shareButton:', shareButton);
-  
+
   if (viewer_enabled === 'true') {
     console.log('Setting button to visible');
     shareButton.classList.remove('hidden');
@@ -823,48 +823,6 @@ const bboxPolygon = (bounds) => {
     }
 }
 
-const addAOI = (bounds) => {
-  if (map.getLayer('aoi-polygon')) map.removeLayer('aoi-polygon')
-  if (map.getSource('aoi')) map.removeSource('aoi')
-
-  // handle files that span accross dateline
-  if (bounds[0] > bounds[2]) {
-    map.addSource('aoi', {
-      'type': 'geojson',
-      'data': {
-        "type": "FeatureCollection",
-        "features": [
-          bboxPolygon([-180, bounds[1], bounds[2], bounds[3]]),
-          bboxPolygon([bounds[0], bounds[1], 180, bounds[3]]),
-        ]
-      }
-    })
-
-  } else {
-    map.addSource('aoi', {
-      'type': 'geojson',
-      'data': {
-        "type": "FeatureCollection",
-        "features": [bboxPolygon(bounds)]
-      }
-    })
-  }
-
-  map.addLayer({
-    id: 'aoi-polygon',
-    type: 'line',
-    source: 'aoi',
-    layout: {
-      'line-cap': 'round',
-      'line-join': 'round'
-    },
-    paint: {
-      'line-color': '#3bb2d0',
-      'line-width': 1
-    }
-  })
-  return
-}
 
 const parseParams = (w_loc) => {
   const param_list = w_loc.replace('?', '').split('&')
@@ -884,8 +842,8 @@ const addCogeo = () => {
     })
     .then(data => {
       console.log(data)
-      scope.data_type = data.dtype
-      scope.colormap = data.colormap
+      scope.data_type = data.properties.dtype
+      scope.colormap = data.properties.colormap
 
       if (['uint8','int8'].indexOf(scope.data_type) === -1 && !scope.colormap) document.getElementById('minmax-data').classList.remove('none')
 
@@ -893,8 +851,8 @@ const addCogeo = () => {
       document.getElementById('data-min').value = mm[0]
       document.getElementById('data-max').value = mm[1]
 
-      scope.band_descriptions = data.band_descriptions
-      const band_descr = data.band_descriptions
+      scope.band_descriptions = data.properties.band_descriptions
+      const band_descr = data.properties.band_descriptions
       const nbands = band_descr.length
 
       //Populate Band (1b) selector
@@ -925,15 +883,20 @@ const addCogeo = () => {
       document.getElementById('hide-arrow').classList.toggle('off')
       document.getElementById('menu').classList.toggle('off')
 
-      let bounds = [...data.bounds]
+      let bounds = [...data.bbox]
       // Bounds crossing dateline
       if (bounds[0] > bounds[2]) {
         bounds[0] = bounds[0] - 360
       }
-      map.fitBounds(
-        [[bounds[0], bounds[1]], [bounds[2], bounds[3]]]
-      )
-      addAOI(data.bounds)
+      map.fitBounds([[bounds[0], bounds[1]], [bounds[2], bounds[3]]])
+      map.addSource('aoi', {'type': 'geojson', 'data': data})
+      map.addLayer({
+        id: 'aoi-polygon',
+        type: 'line',
+        source: 'aoi',
+        layout: {'line-cap': 'round', 'line-join': 'round'},
+        paint: {'line-color': '#3bb2d0', 'line-width': 1}
+      })
 
       if (nbands === 1) {
         document.getElementById('3b').classList.add('disabled')
@@ -966,7 +929,7 @@ map.on('load', () => {
 
 document.getElementById('btn-share-link').addEventListener('click', () => {
   const rasterType = document.getElementById("toolbar").querySelector(".active").id;
-  
+
   let params = new URLSearchParams();
   params.append('url', scope.url);
 
@@ -990,7 +953,7 @@ document.getElementById('btn-share-link').addEventListener('click', () => {
 
   const path_name = `${window.location.pathname}`.replace("viewer", "WebMercatorQuad/map");
   const shareUrl = `${window.location.origin}${path_name}?${params.toString()}`;
-  
+
   // Create a temporary input element to copy the URL
   const tempInput = document.createElement('input');
   tempInput.value = shareUrl;
@@ -1020,7 +983,7 @@ document.getElementById('btn-export').addEventListener('click', () => {
       parseFloat(document.getElementById("g-selector").selectedOptions[0].getAttribute("bidx")),
       parseFloat(document.getElementById("b-selector").selectedOptions[0].getAttribute("bidx")),
     ]
-  } 
+  }
 
   // Add rescale parameter for both 1b and 3b if applicable
   if (["uint8", "int8"].indexOf(scope.data_type) === -1 && !scope.colormap) {

@@ -11,6 +11,7 @@ import rasterio
 from attrs import define, field
 from fastapi import Depends, HTTPException
 from rasterio.crs import CRS
+from rio_tiler.constants import WGS84_CRS
 from rio_tiler.models import ImageData
 from rio_tiler.mosaic import mosaic_reader
 from rio_tiler.mosaic.methods.base import MosaicMethodBase
@@ -381,7 +382,7 @@ class wmsExtension(FactoryExtension):
                             layers_dict[layer]["bounds"] = src_dst.bounds
                             layers_dict[layer][
                                 "bounds_wgs84"
-                            ] = src_dst.geographic_bounds
+                            ] = src_dst.get_geographic_bounds(WGS84_CRS)
                             layers_dict[layer][
                                 "abstract"
                             ] = src_dst.info().model_dump_json()

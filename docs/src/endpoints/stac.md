@@ -307,6 +307,7 @@ Example:
 
 - QueryParams:
     - **url** (str): STAC Item URL. **Required**
+    - **crs** (str): Geographic Coordinate Reference System. Default to `epsg:4326`.
 
 Example:
 
@@ -330,11 +331,7 @@ Example:
 - QueryParams:
     - **url** (str): STAC Item URL. **Required**
     - **assets** (array[str]): asset names. Default to all available assets.
-
-Example:
-
-- `https://myendpoint/stac/info.geojson?url=https://somewhere.com/item.json&assets=B01`
-
+    - **crs** (str): Geographic Coordinate Reference System. Default to `epsg:4326`.
 
 `:endpoint:/stac/assets` - Return the list of available assets
 

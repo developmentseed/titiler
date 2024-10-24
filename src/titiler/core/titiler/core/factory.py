@@ -23,7 +23,7 @@ from fastapi import APIRouter, Body, Depends, Path, Query
 from fastapi.dependencies.utils import get_parameterless_sub_dependant
 from fastapi.params import Depends as DependsFunc
 from geojson_pydantic.features import Feature, FeatureCollection
-from geojson_pydantic.geometries import Polygon
+from geojson_pydantic.geometries import MultiPolygon, Polygon
 from morecantile import TileMatrixSet
 from morecantile import tms as morecantile_tms
 from morecantile.defaults import TileMatrixSets
@@ -34,6 +34,7 @@ from rio_tiler.constants import WGS84_CRS
 from rio_tiler.io import BaseReader, MultiBandReader, MultiBaseReader, Reader
 from rio_tiler.models import Bounds, ImageData, Info
 from rio_tiler.types import ColorMapType
+from rio_tiler.utils import CRS_to_uri
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, Response
 from starlette.routing import Match, compile_path, replace_params
@@ -54,6 +55,7 @@ from titiler.core.dependencies import (
     ColorFormulaParams,
     ColorMapParams,
     CoordCRSParams,
+    CRSParams,
     DatasetParams,
     DatasetPathParams,
     DefaultDependency,
@@ -334,12 +336,17 @@ class TilerFactory(BaseFactory):
         def bounds(
             src_path=Depends(self.path_dependency),
             reader_params=Depends(self.reader_dependency),
+            crs=Depends(CRSParams),
             env=Depends(self.environment_dependency),
         ):
             """Return the bounds of the COG."""
             with rasterio.Env(**env):
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
-                    return {"bounds": src_dst.geographic_bounds}
+                    crs = crs or WGS84_CRS
+                    return {
+                        "bounds": src_dst.get_geographic_bounds(crs or WGS84_CRS),
+                        "crs": CRS_to_uri(crs) or crs.to_wkt(),
+                    }
 
     ############################################################################
     # /info
@@ -379,14 +386,27 @@ class TilerFactory(BaseFactory):
         def info_geojson(
             src_path=Depends(self.path_dependency),
             reader_params=Depends(self.reader_dependency),
+            crs=Depends(CRSParams),
             env=Depends(self.environment_dependency),
         ):
             """Return dataset's basic info as a GeoJSON feature."""
             with rasterio.Env(**env):
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
+                    bounds = src_dst.get_geographic_bounds(crs or WGS84_CRS)
+                    if bounds[0] > bounds[2]:
+                        pl = Polygon.from_bounds(-180, bounds[1], bounds[2], bounds[3])
+                        pr = Polygon.from_bounds(bounds[0], bounds[1], 180, bounds[3])
+                        geometry = MultiPolygon(
+                            type="MultiPolygon",
+                            coordinates=[pl.coordinates, pr.coordinates],
+                        )
+                    else:
+                        geometry = Polygon.from_bounds(*bounds)
+
                     return Feature(
                         type="Feature",
-                        geometry=Polygon.from_bounds(*src_dst.geographic_bounds),
+                        bbox=bounds,
+                        geometry=geometry,
                         properties=src_dst.info(),
                     )
 
@@ -686,7 +706,9 @@ class TilerFactory(BaseFactory):
                     src_path, tms=tms, **reader_params.as_dict()
                 ) as src_dst:
                     return {
-                        "bounds": src_dst.geographic_bounds,
+                        "bounds": src_dst.get_geographic_bounds(
+                            tms.rasterio_geographic_crs
+                        ),
                         "minzoom": minzoom if minzoom is not None else src_dst.minzoom,
                         "maxzoom": maxzoom if maxzoom is not None else src_dst.maxzoom,
                         "tiles": [tiles_url],
@@ -839,7 +861,7 @@ class TilerFactory(BaseFactory):
                 with self.reader(
                     src_path, tms=tms, **reader_params.as_dict()
                 ) as src_dst:
-                    bounds = src_dst.geographic_bounds
+                    bounds = src_dst.get_geographic_bounds(tms.rasterio_geographic_crs)
                     minzoom = minzoom if minzoom is not None else src_dst.minzoom
                     maxzoom = maxzoom if maxzoom is not None else src_dst.maxzoom
 
@@ -863,6 +885,12 @@ class TilerFactory(BaseFactory):
             else:
                 supported_crs = tms.crs.srs
 
+            bbox_crs_type = "WGS84BoundingBox"
+            bbox_crs_uri = "urn:ogc:def:crs:OGC:2:84"
+            if tms.rasterio_geographic_crs != WGS84_CRS:
+                bbox_crs_type = "BoundingBox"
+                bbox_crs_uri = CRS_to_uri(tms.rasterio_geographic_crs)
+
             return self.templates.TemplateResponse(
                 request,
                 name="wmts.xml",
@@ -872,6 +900,8 @@ class TilerFactory(BaseFactory):
                     "tileMatrix": tileMatrix,
                     "tms": tms,
                     "supported_crs": supported_crs,
+                    "bbox_crs_type": bbox_crs_type,
+                    "bbox_crs_uri": bbox_crs_uri,
                     "title": src_path if isinstance(src_path, str) else "TiTiler",
                     "layer_name": "Dataset",
                     "media_type": tile_format.mediatype,
@@ -1173,14 +1203,27 @@ class MultiBaseTilerFactory(TilerFactory):
             src_path=Depends(self.path_dependency),
             asset_params=Depends(self.assets_dependency),
             reader_params=Depends(self.reader_dependency),
+            crs=Depends(CRSParams),
             env=Depends(self.environment_dependency),
         ):
             """Return dataset's basic info as a GeoJSON feature."""
             with rasterio.Env(**env):
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
+                    bounds = src_dst.get_geographic_bounds(crs or WGS84_CRS)
+                    if bounds[0] > bounds[2]:
+                        pl = Polygon.from_bounds(-180, bounds[1], bounds[2], bounds[3])
+                        pr = Polygon.from_bounds(bounds[0], bounds[1], 180, bounds[3])
+                        geometry = MultiPolygon(
+                            type="MultiPolygon",
+                            coordinates=[pl.coordinates, pr.coordinates],
+                        )
+                    else:
+                        geometry = Polygon.from_bounds(*bounds)
+
                     return Feature(
                         type="Feature",
-                        geometry=Polygon.from_bounds(*src_dst.geographic_bounds),
+                        bbox=bounds,
+                        geometry=geometry,
                         properties={
                             asset: asset_info
                             for asset, asset_info in src_dst.info(
@@ -1418,14 +1461,27 @@ class MultiBandTilerFactory(TilerFactory):
             src_path=Depends(self.path_dependency),
             bands_params=Depends(self.bands_dependency),
             reader_params=Depends(self.reader_dependency),
+            crs=Depends(CRSParams),
             env=Depends(self.environment_dependency),
         ):
             """Return dataset's basic info as a GeoJSON feature."""
             with rasterio.Env(**env):
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
+                    bounds = src_dst.get_geographic_bounds(crs or WGS84_CRS)
+                    if bounds[0] > bounds[2]:
+                        pl = Polygon.from_bounds(-180, bounds[1], bounds[2], bounds[3])
+                        pr = Polygon.from_bounds(bounds[0], bounds[1], 180, bounds[3])
+                        geometry = MultiPolygon(
+                            type="MultiPolygon",
+                            coordinates=[pl.coordinates, pr.coordinates],
+                        )
+                    else:
+                        geometry = Polygon.from_bounds(*bounds)
+
                     return Feature(
                         type="Feature",
-                        geometry=Polygon.from_bounds(*src_dst.geographic_bounds),
+                        bbox=bounds,
+                        geometry=geometry,
                         properties=src_dst.info(**bands_params.as_dict()),
                     )
 

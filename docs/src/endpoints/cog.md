@@ -280,6 +280,7 @@ Example:
 
 - QueryParams:
     - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
+    - **crs** (str): Geographic Coordinate Reference System. Default to `epsg:4326`.
 
 Example:
 
@@ -289,16 +290,22 @@ Example:
 
 `:endpoint:/cog/info` general raster info
 
-`:endpoint:/cog/info.geojson` general raster info as a GeoJSON feature
-
 - QueryParams:
     - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
 
 Example:
 
 - `https://myendpoint/cog/info?url=https://somewhere.com/mycog.tif`
-- `https://myendpoint/cog/info.geojson?url=https://somewhere.com/mycog.tif`
 
+`:endpoint:/cog/info.geojson` general raster info as a GeoJSON feature
+
+- QueryParams:
+    - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
+    - **crs** (str): Geographic Coordinate Reference System. Default to `epsg:4326`.
+
+Example:
+
+- `https://myendpoint/cog/info.geojson?url=https://somewhere.com/mycog.tif`
 
 ### Statistics
 

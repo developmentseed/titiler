@@ -8,18 +8,18 @@ Adds support for Xarray Dataset (NetCDF/Zarr) in Titiler.
 $ python -m pip install -U pip
 
 # From Pypi
-$ python -m pip install titiler.mosaic
+$ python -m pip install titiler.xarray
 
 # Or from sources
 $ git clone https://github.com/developmentseed/titiler.git
-$ cd titiler && python -m pip install -e src/titiler/core -e src/titiler/mosaic
+$ cd titiler && python -m pip install -e src/titiler/core -e src/titiler/xarray
 ```
 
 ## How To
 
 ```python
 from fastapi import FastAPI
-from titiler.mosaic.factory import MosaicTilerFactory
+from titiler.xarray.factory import TilerFactory
 
 # Create a FastAPI application
 app = FastAPI(
@@ -27,23 +27,20 @@ app = FastAPI(
 )
 
 # Create a set of MosaicJSON endpoints
-mosaic = MosaicTilerFactory()
+endpoint = TilerFactory()
 
 # Register the Mosaic endpoints to the application
-app.include_router(mosaic.router, tags=["MosaicJSON"])
+app.include_router(endpoint.router)
 ```
-
-See [titiler.application](../application) for a full example.
 
 ## Package structure
 
 ```
 titiler/
- └── mosaic/
+ └── xarray/
     ├── tests/                   - Tests suite
-    └── titiler/mosaic/            - `mosaic` namespace package
-        ├── models/
-        |   └── responses.py     - mosaic response models
-        ├── errors.py            - cogeo-mosaic known errors
-        └── factory.py           - Mosaic endpoints factory
+    └── titiler/xarray/          - `xarray` namespace package
+        ├── dependencies.py      - titiler-xarray dependencies
+        ├── io.py                - titiler-xarray Readers
+        └── factory.py           - endpoints factory
 ```

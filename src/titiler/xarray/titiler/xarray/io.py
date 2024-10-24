@@ -1,8 +1,8 @@
-"""ZarrReader."""
+"""titiler.xarray.io"""
 
 import pickle
 import re
-from typing import Any, Dict, List, Optional, Protocol
+from typing import Any, Callable, Dict, List, Optional, Protocol
 
 import attr
 import fsspec
@@ -209,10 +209,13 @@ class Reader(XarrayReader):
     variable: str = attr.ib()
 
     # xarray.Dataset options
+    opener: Callable[..., xarray.Dataset] = attr.ib(default=xarray_open_dataset)
+
+    group: Optional[Any] = attr.ib(default=None)
     reference: bool = attr.ib(default=False)
     decode_times: bool = attr.ib(default=False)
-    group: Optional[Any] = attr.ib(default=None)
     consolidated: Optional[bool] = attr.ib(default=True)
+    cache_client: Optional[CacheClient] = attr.ib(default=None)
 
     # xarray.DataArray options
     datetime: Optional[str] = attr.ib(default=None)
@@ -222,15 +225,18 @@ class Reader(XarrayReader):
 
     ds: xarray.Dataset = attr.ib(init=False)
     input: xarray.DataArray = attr.ib(init=False)
+
     _dims: List = attr.ib(init=False, factory=list)
 
     def __attrs_post_init__(self):
         """Set bounds and CRS."""
-        self.ds = xarray_open_dataset(
+        self.ds = self.opener(
             self.src_path,
             group=self.group,
             reference=self.reference,
+            decode_times=self.decode_times,
             consolidated=self.consolidated,
+            cache_client=self.cache_client,
         )
 
         self.input = get_variable(

@@ -32,13 +32,13 @@ classifiers = [
 dynamic = ["version"]
 dependencies = [
     "fastapi>=0.108.0",
-    "geojson-pydantic>=1.0,<2.0",
+    "geojson-pydantic>=1.1.2,<2.0",
     "jinja2>=2.11.2,<4.0.0",
     "numpy",
     "pydantic~=2.0",
     "rasterio",
-    "rio-tiler>=6.3.0,<7.0",
-    "morecantile>=5.0,<6.0",
+    "rio-tiler>=7.0,<8.0",
+    "morecantile",
     "simplejson",
     "typing_extensions>=4.6.1",
 ]
