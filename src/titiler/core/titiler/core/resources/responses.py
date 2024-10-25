@@ -2,6 +2,7 @@
 
 from typing import Any
 
+import numpy
 import simplejson as json
 from starlette import responses
 
@@ -10,6 +11,16 @@ class XMLResponse(responses.Response):
     """XML Response"""
 
     media_type = "application/xml"
+
+
+class NumpyEncoder(json.JSONEncoder):
+    """Custom JSON Encoder."""
+
+    def default(self, obj):
+        """Catch numpy types and convert them."""
+        if isinstance(obj, (numpy.ndarray, numpy.generic)):
+            return obj.tolist()
+        return super().default(obj)
 
 
 class JSONResponse(responses.JSONResponse):
@@ -27,6 +38,7 @@ class JSONResponse(responses.JSONResponse):
             indent=None,
             ignore_nan=True,
             separators=(",", ":"),
+            cls=NumpyEncoder,
         ).encode("utf-8")
 
 

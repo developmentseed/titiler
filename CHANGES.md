@@ -22,6 +22,7 @@
 
 * Use `@attrs.define` instead of dataclass for factories **breaking change**
 * Use `@attrs.define` instead of dataclass for factory extensions **breaking change**
+* Handle `numpy` types in JSON/GeoJSON response
 
 ### titiler.core
 
