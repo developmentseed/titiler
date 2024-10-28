@@ -137,29 +137,29 @@ def xarray_open_dataset(
     return ds
 
 
-def arrange_coordinates(da: xarray.DataArray) -> xarray.DataArray:
-    """Arrange coordinates to DataArray.
+def _arrange_dims(da: xarray.DataArray) -> xarray.DataArray:
+    """Arrange coordinates and time dimensions.
 
     An rioxarray.exceptions.InvalidDimensionOrder error is raised if the coordinates are not in the correct order time, y, and x.
     See: https://github.com/corteva/rioxarray/discussions/674
 
-    We conform to using x and y as the spatial dimension names. You can do this a bit more elegantly with metpy but that is a heavy dependency.
+    We conform to using x and y as the spatial dimension names..
 
     """
     if "x" not in da.dims and "y" not in da.dims:
         latitude_var_name = next(
-            x for x in ["lat", "latitude", "LAT", "LATITUDE"] if x in da.dims
+            x for x in ["lat", "latitude", "LAT", "LATITUDE", "Lat"] if x in da.dims
         )
         longitude_var_name = next(
-            x for x in ["lon", "longitude", "LON", "LONGITUDE"] if x in da.dims
+            x for x in ["lon", "longitude", "LON", "LONGITUDE", "Lon"] if x in da.dims
         )
         da = da.rename({latitude_var_name: "y", longitude_var_name: "x"})
 
     if "TIME" in da.dims:
         da = da.rename({"TIME": "time"})
 
-    if "time" in da.dims:
-        da = da.transpose("time", "y", "x")
+    if _dims := [d for d in da.dims if d not in ["x", "y"]]:
+        da = da.transpose(*_dims, "y", "x")
     else:
         da = da.transpose("y", "x")
 
@@ -180,12 +180,12 @@ def get_variable(
 ) -> xarray.DataArray:
     """Get Xarray variable as DataArray."""
     da = ds[variable]
-    # TODO: add test
+
     if drop_dim:
         dim_to_drop, dim_val = drop_dim.split("=")
-        da = da.sel({dim_to_drop: dim_val}).drop(dim_to_drop)
+        da = da.sel({dim_to_drop: dim_val}).drop_vars(dim_to_drop)
 
-    da = arrange_coordinates(da)
+    da = _arrange_dims(da)
 
     # Make sure we have a valid CRS
     crs = da.rio.crs or "epsg:4326"
@@ -198,16 +198,21 @@ def get_variable(
         # Sort the dataset by the updated longitude coordinates
         da = da.sortby(da.x)
 
+    # TODO: Technically we don't have to select the first time, rio-tiler should handle 3D dataset
     if "time" in da.dims:
         if datetime:
+            # TODO: handle time interval
             time_as_str = datetime.split("T")[0]
             if da["time"].dtype == "O":
                 da["time"] = da["time"].astype("datetime64[ns]")
+
             da = da.sel(
                 time=numpy.array(time_as_str, dtype=numpy.datetime64), method="nearest"
             )
         else:
             da = da.isel(time=0)
+
+    assert len(da.dims) in [2, 3], "titiler.xarray can only work with 2D or 3D dataset"
 
     return da
 
