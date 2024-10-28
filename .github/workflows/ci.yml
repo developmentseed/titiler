@@ -49,6 +49,11 @@ jobs:
           python -m pip install -e src/titiler/extensions["test,cogeo,stac"]
           python -m pytest src/titiler/extensions --cov=titiler.extensions --cov-report=xml --cov-append --cov-report=term-missing
 
+      - name: Test titiler.xarray
+        run: |
+          python -m pip install -e src/titiler/xarray["test"]
+          python -m pytest src/titiler/xarray --cov=titiler.xarray --cov-report=xml --cov-append --cov-report=term-missing
+
       - name: Test titiler.mosaic
         run: |
           python -m pip install -e src/titiler/mosaic["test"]
