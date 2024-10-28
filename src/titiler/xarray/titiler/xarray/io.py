@@ -147,12 +147,18 @@ def _arrange_dims(da: xarray.DataArray) -> xarray.DataArray:
 
     """
     if "x" not in da.dims and "y" not in da.dims:
-        latitude_var_name = next(
-            x for x in ["lat", "latitude", "LAT", "LATITUDE", "Lat"] if x in da.dims
-        )
-        longitude_var_name = next(
-            x for x in ["lon", "longitude", "LON", "LONGITUDE", "Lon"] if x in da.dims
-        )
+        try:
+            latitude_var_name = next(
+                x for x in ["lat", "latitude", "LAT", "LATITUDE", "Lat"] if x in da.dims
+            )
+            longitude_var_name = next(
+                x
+                for x in ["lon", "longitude", "LON", "LONGITUDE", "Lon"]
+                if x in da.dims
+            )
+        except StopIteration as e:
+            raise ValueError(f"Couldn't find X/Y dimensions in {da.dims}") from e
+
         da = da.rename({latitude_var_name: "y", longitude_var_name: "x"})
 
     if "TIME" in da.dims:

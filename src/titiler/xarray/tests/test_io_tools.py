@@ -87,3 +87,19 @@ def test_get_variable():
     da = get_variable(ds, "dataset", drop_dim="universe=somewhere")
     assert da.rio.crs
     assert da.dims == ("z", "y", "x")
+
+    # 5D dataset
+    arr = numpy.arange(0, 33 * 35 * 2).reshape(2, 33, 35)
+    data = xarray.DataArray(
+        arr,
+        dims=("time", "haut_bas", "gauche_droite"),
+        coords={
+            "gauche_droite": numpy.arange(-170, 180, 10),
+            "haut_bas": numpy.arange(-80, 85, 5),
+            "time": [datetime(2022, 1, 1), datetime(2023, 1, 1)],
+        },
+    )
+
+    ds = data.to_dataset(name="dataset")
+    with pytest.raises(ValueError):
+        da = get_variable(ds, "dataset")
