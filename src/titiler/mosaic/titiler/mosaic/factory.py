@@ -45,7 +45,7 @@ from titiler.core.dependencies import (
 )
 from titiler.core.factory import DEFAULT_TEMPLATES, BaseFactory, img_endpoint_params
 from titiler.core.models.mapbox import TileJSON
-from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
+from titiler.core.resources.enums import ImageType, OptionalHeader
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
 from titiler.core.utils import render_image
 from titiler.mosaic.models.responses import Point
@@ -635,8 +635,6 @@ class MosaicTilerFactory(BaseFactory):
                 for (key, value) in request.query_params._list
                 if key.lower() not in qs_key_to_remove
             ]
-            if qs:
-                tiles_url += f"?{urlencode(qs)}"
 
             tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
@@ -671,6 +669,18 @@ class MosaicTilerFactory(BaseFactory):
             else:
                 supported_crs = tms.crs.srs
 
+            layers = [
+                {
+                    "title": src_path
+                    if isinstance(src_path, str)
+                    else "TiTiler Mosaic",
+                    "name": "default",
+                    "tiles_url": tiles_url,
+                    "query_string": urlencode(qs, doseq=True) if qs else None,
+                    "bounds": bounds,
+                },
+            ]
+
             bbox_crs_type = "WGS84BoundingBox"
             bbox_crs_uri = "urn:ogc:def:crs:OGC:2:84"
             if tms.rasterio_geographic_crs != WGS84_CRS:
@@ -681,20 +691,15 @@ class MosaicTilerFactory(BaseFactory):
                 request,
                 name="wmts.xml",
                 context={
-                    "tiles_endpoint": tiles_url,
-                    "bounds": bounds,
+                    "tileMatrixSetId": tms.id,
                     "tileMatrix": tileMatrix,
-                    "tms": tms,
                     "supported_crs": supported_crs,
                     "bbox_crs_type": bbox_crs_type,
                     "bbox_crs_uri": bbox_crs_uri,
-                    "title": src_path
-                    if isinstance(src_path, str)
-                    else "TiTiler Mosaic",
-                    "layer_name": "Mosaic",
+                    "layers": layers,
                     "media_type": tile_format.mediatype,
                 },
-                media_type=MediaType.xml.value,
+                media_type="application/xml",
             )
 
     ############################################################################

@@ -82,7 +82,7 @@ from titiler.core.models.responses import (
     Statistics,
     StatisticsGeoJSON,
 )
-from titiler.core.resources.enums import ImageType, MediaType
+from titiler.core.resources.enums import ImageType
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
 from titiler.core.routing import EndpointScope
 from titiler.core.utils import render_image
@@ -911,7 +911,7 @@ class TilerFactory(BaseFactory):
                     "layers": layers,
                     "media_type": tile_format.mediatype,
                 },
-                media_type=MediaType.xml.value,
+                media_type="application/xml",
             )
 
     ############################################################################
@@ -1637,7 +1637,7 @@ class TMSFactory(BaseFactory):
             responses={
                 200: {
                     "content": {
-                        MediaType.json.value: {},
+                        "application/json": {},
                     },
                 },
             },
@@ -1678,7 +1678,7 @@ class TMSFactory(BaseFactory):
             responses={
                 200: {
                     "content": {
-                        MediaType.json.value: {},
+                        "application/json": {},
                     },
                 },
             },

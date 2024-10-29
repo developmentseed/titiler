@@ -53,7 +53,7 @@
         </Layer>
     {% endfor %}
         <TileMatrixSet>
-            <ows:Identifier>{{ tileMatrixSetId}}</ows:Identifier>
+            <ows:Identifier>{{ tileMatrixSetId }}</ows:Identifier>
             <ows:SupportedCRS>{{ supported_crs }}</ows:SupportedCRS>
             {% for item in tileMatrix %}
             {{ item | safe }}
