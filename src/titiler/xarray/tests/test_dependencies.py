@@ -32,7 +32,7 @@ def test_xarray_tile():
                 description="Row (Y) index of the tile on the selected TileMatrix. It cannot exceed the MatrixWidth-1 for the selected TileMatrix.",
             ),
         ],
-        params=Depends(dependencies.XarrayIOParamsTiles),
+        params=Depends(dependencies.CompatXarrayParams),
     ):
         """return params."""
         return params.as_dict()
