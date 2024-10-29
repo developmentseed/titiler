@@ -184,7 +184,18 @@ def get_variable(
     datetime: Optional[str] = None,
     drop_dim: Optional[str] = None,
 ) -> xarray.DataArray:
-    """Get Xarray variable as DataArray."""
+    """Get Xarray variable as DataArray.
+
+    Args:
+        ds (xarray.Dataset): Xarray Dataset.
+        variable (str): Variable to extract from the Dataset.
+        datetime (str, optional): datetime to select from the DataArray.
+        drop_dim (str, optional): DataArray dimension to drop in form of `{dimension}={value}`.
+
+    Returns:
+        xarray.DataArray: 2D or 3D DataArray.
+
+    """
     da = ds[variable]
 
     if drop_dim:
