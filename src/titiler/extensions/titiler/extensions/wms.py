@@ -284,13 +284,13 @@ class wmsExtension(FactoryExtension):
         def wms(  # noqa: C901
             request: Request,
             # vendor (titiler) parameters
+            reader_params=Depends(factory.reader_dependency),
             layer_params=Depends(factory.layer_dependency),
             dataset_params=Depends(factory.dataset_dependency),
             post_process=Depends(factory.process_dependency),
             rescale=Depends(RescalingParams),
             color_formula=Depends(ColorFormulaParams),
             colormap=Depends(factory.colormap_dependency),
-            reader_params=Depends(factory.reader_dependency),
             env=Depends(factory.environment_dependency),
         ):
             """Return a WMS query for a single COG.

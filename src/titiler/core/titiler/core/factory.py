@@ -82,7 +82,7 @@ from titiler.core.models.responses import (
     Statistics,
     StatisticsGeoJSON,
 )
-from titiler.core.resources.enums import ImageType, MediaType
+from titiler.core.resources.enums import ImageType
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
 from titiler.core.routing import EndpointScope
 from titiler.core.utils import render_image
@@ -430,13 +430,13 @@ class TilerFactory(BaseFactory):
         )
         def statistics(
             src_path=Depends(self.path_dependency),
+            reader_params=Depends(self.reader_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_preview_dependency),
             post_process=Depends(self.process_dependency),
             stats_params=Depends(self.stats_dependency),
             histogram_params=Depends(self.histogram_dependency),
-            reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
         ):
             """Get Dataset statistics."""
@@ -475,6 +475,7 @@ class TilerFactory(BaseFactory):
                 Body(description="GeoJSON Feature or FeatureCollection."),
             ],
             src_path=Depends(self.path_dependency),
+            reader_params=Depends(self.reader_dependency),
             coord_crs=Depends(CoordCRSParams),
             dst_crs=Depends(DstCRSParams),
             layer_params=Depends(self.layer_dependency),
@@ -483,7 +484,6 @@ class TilerFactory(BaseFactory):
             post_process=Depends(self.process_dependency),
             stats_params=Depends(self.stats_dependency),
             histogram_params=Depends(self.histogram_dependency),
-            reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
         ):
             """Get Statistics from a geojson feature or featureCollection."""
@@ -578,15 +578,15 @@ class TilerFactory(BaseFactory):
                 "Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
             ] = None,
             src_path=Depends(self.path_dependency),
+            reader_params=Depends(self.reader_dependency),
+            tile_params=Depends(self.tile_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
-            tile_params=Depends(self.tile_dependency),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
             color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
-            reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
         ):
             """Create map tile from a dataset."""
@@ -641,7 +641,6 @@ class TilerFactory(BaseFactory):
                     description="Identifier selecting one of the TileMatrixSetId supported."
                 ),
             ],
-            src_path=Depends(self.path_dependency),
             tile_format: Annotated[
                 Optional[ImageType],
                 Query(
@@ -662,15 +661,16 @@ class TilerFactory(BaseFactory):
                 Optional[int],
                 Query(description="Overwrite default maxzoom."),
             ] = None,
+            src_path=Depends(self.path_dependency),
+            reader_params=Depends(self.reader_dependency),
+            tile_params=Depends(self.tile_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
-            tile_params=Depends(self.tile_dependency),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
             color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
-            reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
         ):
             """Return TileJSON document for a dataset."""
@@ -726,7 +726,6 @@ class TilerFactory(BaseFactory):
                     description="Identifier selecting one of the TileMatrixSetId supported."
                 ),
             ],
-            src_path=Depends(self.path_dependency),
             tile_format: Annotated[
                 Optional[ImageType],
                 Query(
@@ -747,15 +746,16 @@ class TilerFactory(BaseFactory):
                 Optional[int],
                 Query(description="Overwrite default maxzoom."),
             ] = None,
+            src_path=Depends(self.path_dependency),
+            reader_params=Depends(self.reader_dependency),
+            tile_params=Depends(self.tile_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
-            tile_params=Depends(self.tile_dependency),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
             color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
-            reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
         ):
             """Return TileJSON document for a dataset."""
@@ -791,7 +791,6 @@ class TilerFactory(BaseFactory):
                     description="Identifier selecting one of the TileMatrixSetId supported."
                 ),
             ],
-            src_path=Depends(self.path_dependency),
             tile_format: Annotated[
                 ImageType,
                 Query(description="Output image type. Default is png."),
@@ -816,15 +815,16 @@ class TilerFactory(BaseFactory):
                     description="Use EPSG code, not opengis.net, for the ows:SupportedCRS in the TileMatrixSet (set to True to enable ArcMap compatability)"
                 ),
             ] = False,
+            src_path=Depends(self.path_dependency),
+            reader_params=Depends(self.reader_dependency),
+            tile_params=Depends(self.tile_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
-            tile_params=Depends(self.tile_dependency),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
             color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
-            reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
         ):
             """OGC WMTS endpoint."""
@@ -853,8 +853,6 @@ class TilerFactory(BaseFactory):
                 for (key, value) in request.query_params._list
                 if key.lower() not in qs_key_to_remove
             ]
-            if qs:
-                tiles_url += f"?{urlencode(qs)}"
 
             tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
@@ -885,6 +883,16 @@ class TilerFactory(BaseFactory):
             else:
                 supported_crs = tms.crs.srs
 
+            layers = [
+                {
+                    "title": src_path if isinstance(src_path, str) else "TiTiler",
+                    "name": "default",
+                    "tiles_url": tiles_url,
+                    "query_string": urlencode(qs, doseq=True) if qs else None,
+                    "bounds": bounds,
+                },
+            ]
+
             bbox_crs_type = "WGS84BoundingBox"
             bbox_crs_uri = "urn:ogc:def:crs:OGC:2:84"
             if tms.rasterio_geographic_crs != WGS84_CRS:
@@ -895,18 +903,15 @@ class TilerFactory(BaseFactory):
                 request,
                 name="wmts.xml",
                 context={
-                    "tiles_endpoint": tiles_url,
-                    "bounds": bounds,
+                    "tileMatrixSetId": tms.id,
                     "tileMatrix": tileMatrix,
-                    "tms": tms,
                     "supported_crs": supported_crs,
                     "bbox_crs_type": bbox_crs_type,
                     "bbox_crs_uri": bbox_crs_uri,
-                    "title": src_path if isinstance(src_path, str) else "TiTiler",
-                    "layer_name": "Dataset",
+                    "layers": layers,
                     "media_type": tile_format.mediatype,
                 },
-                media_type=MediaType.xml.value,
+                media_type="application/xml",
             )
 
     ############################################################################
@@ -925,10 +930,10 @@ class TilerFactory(BaseFactory):
             lon: Annotated[float, Path(description="Longitude")],
             lat: Annotated[float, Path(description="Latitude")],
             src_path=Depends(self.path_dependency),
+            reader_params=Depends(self.reader_dependency),
             coord_crs=Depends(CoordCRSParams),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
-            reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
         ):
             """Get Point value for a dataset."""
@@ -963,16 +968,16 @@ class TilerFactory(BaseFactory):
                 "Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
             ] = None,
             src_path=Depends(self.path_dependency),
+            reader_params=Depends(self.reader_dependency),
             layer_params=Depends(self.layer_dependency),
-            dst_crs=Depends(DstCRSParams),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_preview_dependency),
+            dst_crs=Depends(DstCRSParams),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
             color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
-            reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
         ):
             """Create preview of a dataset."""
@@ -1029,17 +1034,17 @@ class TilerFactory(BaseFactory):
                 "Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
             ] = None,
             src_path=Depends(self.path_dependency),
-            dst_crs=Depends(DstCRSParams),
-            coord_crs=Depends(CoordCRSParams),
+            reader_params=Depends(self.reader_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_part_dependency),
+            dst_crs=Depends(DstCRSParams),
+            coord_crs=Depends(CoordCRSParams),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
             color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
-            reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
         ):
             """Create image from a bbox."""
@@ -1093,17 +1098,17 @@ class TilerFactory(BaseFactory):
                 "Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
             ] = None,
             src_path=Depends(self.path_dependency),
-            coord_crs=Depends(CoordCRSParams),
-            dst_crs=Depends(DstCRSParams),
+            reader_params=Depends(self.reader_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_part_dependency),
+            coord_crs=Depends(CoordCRSParams),
+            dst_crs=Depends(DstCRSParams),
             post_process=Depends(self.process_dependency),
             rescale=Depends(self.rescale_dependency),
             color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
-            reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
         ):
             """Create image from a geojson feature."""
@@ -1178,8 +1183,8 @@ class MultiBaseTilerFactory(TilerFactory):
         )
         def info(
             src_path=Depends(self.path_dependency),
-            asset_params=Depends(self.assets_dependency),
             reader_params=Depends(self.reader_dependency),
+            asset_params=Depends(self.assets_dependency),
             env=Depends(self.environment_dependency),
         ):
             """Return dataset's basic info or the list of available assets."""
@@ -1201,8 +1206,8 @@ class MultiBaseTilerFactory(TilerFactory):
         )
         def info_geojson(
             src_path=Depends(self.path_dependency),
-            asset_params=Depends(self.assets_dependency),
             reader_params=Depends(self.reader_dependency),
+            asset_params=Depends(self.assets_dependency),
             crs=Depends(CRSParams),
             env=Depends(self.environment_dependency),
         ):
@@ -1266,12 +1271,12 @@ class MultiBaseTilerFactory(TilerFactory):
         )
         def asset_statistics(
             src_path=Depends(self.path_dependency),
+            reader_params=Depends(self.reader_dependency),
             asset_params=Depends(AssetsBidxParams),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_preview_dependency),
             stats_params=Depends(self.stats_dependency),
             histogram_params=Depends(self.histogram_dependency),
-            reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
         ):
             """Per Asset statistics"""
@@ -1301,13 +1306,13 @@ class MultiBaseTilerFactory(TilerFactory):
         )
         def statistics(
             src_path=Depends(self.path_dependency),
+            reader_params=Depends(self.reader_dependency),
             layer_params=Depends(AssetsBidxExprParamsOptional),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_preview_dependency),
             post_process=Depends(self.process_dependency),
             stats_params=Depends(self.stats_dependency),
             histogram_params=Depends(self.histogram_dependency),
-            reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
         ):
             """Merged assets statistics."""
@@ -1350,15 +1355,15 @@ class MultiBaseTilerFactory(TilerFactory):
                 Body(description="GeoJSON Feature or FeatureCollection."),
             ],
             src_path=Depends(self.path_dependency),
-            coord_crs=Depends(CoordCRSParams),
-            dst_crs=Depends(DstCRSParams),
+            reader_params=Depends(self.reader_dependency),
             layer_params=Depends(AssetsBidxExprParamsOptional),
             dataset_params=Depends(self.dataset_dependency),
+            coord_crs=Depends(CoordCRSParams),
+            dst_crs=Depends(DstCRSParams),
             post_process=Depends(self.process_dependency),
             image_params=Depends(self.img_part_dependency),
             stats_params=Depends(self.stats_dependency),
             histogram_params=Depends(self.histogram_dependency),
-            reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
         ):
             """Get Statistics from a geojson feature or featureCollection."""
@@ -1436,8 +1441,8 @@ class MultiBandTilerFactory(TilerFactory):
         )
         def info(
             src_path=Depends(self.path_dependency),
-            bands_params=Depends(self.bands_dependency),
             reader_params=Depends(self.reader_dependency),
+            bands_params=Depends(self.bands_dependency),
             env=Depends(self.environment_dependency),
         ):
             """Return dataset's basic info."""
@@ -1459,8 +1464,8 @@ class MultiBandTilerFactory(TilerFactory):
         )
         def info_geojson(
             src_path=Depends(self.path_dependency),
-            bands_params=Depends(self.bands_dependency),
             reader_params=Depends(self.reader_dependency),
+            bands_params=Depends(self.bands_dependency),
             crs=Depends(CRSParams),
             env=Depends(self.environment_dependency),
         ):
@@ -1518,13 +1523,13 @@ class MultiBandTilerFactory(TilerFactory):
         )
         def statistics(
             src_path=Depends(self.path_dependency),
+            reader_params=Depends(self.reader_dependency),
             bands_params=Depends(BandsExprParamsOptional),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_preview_dependency),
             post_process=Depends(self.process_dependency),
             stats_params=Depends(self.stats_dependency),
             histogram_params=Depends(self.histogram_dependency),
-            reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
         ):
             """Get Dataset statistics."""
@@ -1567,15 +1572,15 @@ class MultiBandTilerFactory(TilerFactory):
                 Body(description="GeoJSON Feature or FeatureCollection."),
             ],
             src_path=Depends(self.path_dependency),
-            coord_crs=Depends(CoordCRSParams),
-            dst_crs=Depends(DstCRSParams),
+            reader_params=Depends(self.reader_dependency),
             bands_params=Depends(BandsExprParamsOptional),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_part_dependency),
+            coord_crs=Depends(CoordCRSParams),
+            dst_crs=Depends(DstCRSParams),
             post_process=Depends(self.process_dependency),
             stats_params=Depends(self.stats_dependency),
             histogram_params=Depends(self.histogram_dependency),
-            reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
         ):
             """Get Statistics from a geojson feature or featureCollection."""
@@ -1632,7 +1637,7 @@ class TMSFactory(BaseFactory):
             responses={
                 200: {
                     "content": {
-                        MediaType.json.value: {},
+                        "application/json": {},
                     },
                 },
             },
@@ -1673,7 +1678,7 @@ class TMSFactory(BaseFactory):
             responses={
                 200: {
                     "content": {
-                        MediaType.json.value: {},
+                        "application/json": {},
                     },
                 },
             },

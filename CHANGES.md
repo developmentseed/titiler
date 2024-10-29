@@ -77,6 +77,12 @@
 
 * `/bounds` endpoints now return a `crs: str` attribute in the response
 
+* update `wmts.xml` template to support multiple layers
+
+* re-order endpoints parameters
+
+* avoid `lat/lon` overflow in `map` viewer
+
 ### titiler.mosaic
 
 * Rename `reader` attribute to `backend` in `MosaicTilerFactory`  **breaking change**
@@ -86,6 +92,8 @@
 * `/bounds` endpoints now return a `crs: str` attribute in the response
 
 * Update `cogeo-mosaic` dependency to `>=8.0,<9.0`
+
+* re-order endpoints parameters
 
 ### titiler.extensions
 
