@@ -55,6 +55,7 @@ Starting with version `0.3.0`, the `TiTiler` python module has been split into a
 | Package | Version |  Description
 | ------- | ------- |-------------
 [**titiler.core**](https://github.com/developmentseed/titiler/tree/main/src/titiler/core) | [![titiler.core](https://img.shields.io/pypi/v/titiler.core?color=%2334D058&label=pypi)](https://pypi.org/project/titiler.core) | The `Core` package contains libraries to help create a  dynamic tiler for COG and STAC
+[**titiler.xarray**](https://github.com/developmentseed/titiler/tree/main/src/titiler/xarray) | [![titiler.xarray](https://img.shields.io/pypi/v/titiler.xarray?color=%2334D058&label=pypi)](https://pypi.org/project/titiler.xarray) | The `xarray` package contains libraries to help create a  dynamic tiler for Zarr/NetCDF datasets
 [**titiler.extensions**](https://github.com/developmentseed/titiler/tree/main/src/titiler/extensions) | [![titiler.extensions](https://img.shields.io/pypi/v/titiler.extensions?color=%2334D058&label=pypi)](https://pypi.org/project/titiler.extensions) | TiTiler's extensions package. Contains extensions for Tiler Factories.
 [**titiler.mosaic**](https://github.com/developmentseed/titiler/tree/main/src/titiler/mosaic) | [![titiler.mosaic](https://img.shields.io/pypi/v/titiler.mosaic?color=%2334D058&label=pypi)](https://pypi.org/project/titiler.mosaic) | The `mosaic` package contains libraries to help create a dynamic tiler for MosaicJSON (adds `cogeo-mosaic` requirement)
 [**titiler.application**](https://github.com/developmentseed/titiler/tree/main/src/titiler/application) | [![titiler.application](https://img.shields.io/pypi/v/titiler.application?color=%2334D058&label=pypi)](https://pypi.org/project/titiler.application) | TiTiler's `demo` package. Contains a FastAPI application with full support of COG, STAC and MosaicJSON
@@ -71,6 +72,7 @@ python -m pip install -U pip
 python -m pip  install titiler.{package}
 # e.g.,
 # python -m pip  install titiler.core
+# python -m pip  install titiler.xarray
 # python -m pip  install titiler.extensions
 # python -m pip  install titiler.mosaic
 # python -m pip  install titiler.application (also installs core, extensions and mosaic)
@@ -89,7 +91,7 @@ git clone https://github.com/developmentseed/titiler.git
 cd titiler
 
 python -m pip install -U pip
-python -m pip install -e src/titiler/core -e src/titiler/extensions -e src/titiler/mosaic -e src/titiler/application
+python -m pip install -e src/titiler/core -e src/titiler/xarray -e src/titiler/extensions -e src/titiler/mosaic -e src/titiler/application
 python -m pip install uvicorn
 
 uvicorn titiler.application.main:app --reload
@@ -125,6 +127,7 @@ Some options can be set via environment variables, see: https://github.com/tiang
 src/titiler/                     - titiler modules.
  ├── application/                - Titiler's `Application` package
  ├── extensions/                 - Titiler's `Extensions` package
+ ├── xarray/                     - Titiler's `Xarray` package
  ├── core/                       - Titiler's `Core` package
  └── mosaic/                     - Titiler's `Mosaic` package
 ```
