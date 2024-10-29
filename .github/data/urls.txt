@@ -1,7 +1,7 @@
 PROT=http
 HOST=localhost
 PORT=8000
-PATH=cog/tiles/
+PATH=cog/tiles/WebMercatorQuad/
 EXT=.png
 QUERYSTRING=?url=/data/world.tif
 $(PROT)://$(HOST):$(PORT)/$(PATH)0/0/0$(EXT)$(QUERYSTRING)
