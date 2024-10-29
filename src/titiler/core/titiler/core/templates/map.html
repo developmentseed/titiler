@@ -86,20 +86,33 @@ fetch('{{ tilejson_endpoint|safe }}')
 
     let bounds = [...data.bounds]
 
+    var left = bounds[0],
+      bottom = bounds[1],
+      right = bounds[2],
+      top = bounds[3];
+
+    if (left < right) {
+      left = Math.max(left, {{ tms.bbox.left }})
+      right = Math.min(right, {{ tms.bbox.right }})
+    }
+    bottom = Math.max(bottom, {{ tms.bbox.bottom }})
+    top = Math.min(top, {{ tms.bbox.top }})
+    console.log(left, bottom, right, top)
+
     let geo;
     // handle files that span accross dateline
-    if (bounds[0] > bounds[2]) {
+    if (left > right) {
       geo = {
         "type": "FeatureCollection",
         "features": [
-          bboxPolygon([-180, bounds[1], bounds[2], bounds[3]]),
-          bboxPolygon([bounds[0], bounds[1], 180, bounds[3]]),
+          bboxPolygon([-180, bottom, right, top]),
+          bboxPolygon([left, bottom, 180, top]),
         ]
       }
     } else {
       geo = {
         "type": "FeatureCollection",
-        "features": [bboxPolygon(bounds)]
+        "features": [bboxPolygon([left, bottom, right, top])]
       }
     }
     console.log(geo)
@@ -110,13 +123,9 @@ fetch('{{ tilejson_endpoint|safe }}')
     map.fitBounds(aoi.getBounds());
 
     // Bounds crossing dateline
-    if (bounds[0] > bounds[2]) {
-      bounds[0] = bounds[0] - 360
+    if (left > right) {
+      left = right - 360
     }
-    var left = bounds[0],
-      bottom = bounds[1],
-      right = bounds[2],
-      top = bounds[3];
 
     L.tileLayer(
       data.tiles[0], {

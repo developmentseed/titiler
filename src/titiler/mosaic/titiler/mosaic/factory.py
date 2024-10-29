@@ -316,6 +316,8 @@ class MosaicTilerFactory(BaseFactory):
                 "Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
             ] = None,
             src_path=Depends(self.path_dependency),
+            backend_params=Depends(self.backend_dependency),
+            reader_params=Depends(self.reader_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             pixel_selection=Depends(self.pixel_selection_dependency),
@@ -325,8 +327,6 @@ class MosaicTilerFactory(BaseFactory):
             color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
-            backend_params=Depends(self.backend_dependency),
-            reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
         ):
             """Create map tile from a COG."""
@@ -410,7 +410,6 @@ class MosaicTilerFactory(BaseFactory):
                     description="Identifier selecting one of the TileMatrixSetId supported."
                 ),
             ],
-            src_path=Depends(self.path_dependency),
             tile_format: Annotated[
                 Optional[ImageType],
                 Query(
@@ -431,6 +430,9 @@ class MosaicTilerFactory(BaseFactory):
                 Optional[int],
                 Query(description="Overwrite default maxzoom."),
             ] = None,
+            src_path=Depends(self.path_dependency),
+            backend_params=Depends(self.backend_dependency),
+            reader_params=Depends(self.reader_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             pixel_selection=Depends(self.pixel_selection_dependency),
@@ -440,8 +442,6 @@ class MosaicTilerFactory(BaseFactory):
             color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
-            backend_params=Depends(self.backend_dependency),
-            reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
         ):
             """Return TileJSON document for a COG."""
@@ -504,7 +504,6 @@ class MosaicTilerFactory(BaseFactory):
                     description="Identifier selecting one of the TileMatrixSetId supported."
                 ),
             ],
-            src_path=Depends(self.path_dependency),
             tile_format: Annotated[
                 Optional[ImageType],
                 Query(
@@ -525,6 +524,9 @@ class MosaicTilerFactory(BaseFactory):
                 Optional[int],
                 Query(description="Overwrite default maxzoom."),
             ] = None,
+            src_path=Depends(self.path_dependency),
+            backend_params=Depends(self.backend_dependency),
+            reader_params=Depends(self.reader_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             pixel_selection=Depends(self.pixel_selection_dependency),
@@ -534,8 +536,6 @@ class MosaicTilerFactory(BaseFactory):
             color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
-            backend_params=Depends(self.backend_dependency),
-            reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
         ):
             """Return TileJSON document for a dataset."""
@@ -571,7 +571,6 @@ class MosaicTilerFactory(BaseFactory):
                     description="Identifier selecting one of the TileMatrixSetId supported."
                 ),
             ],
-            src_path=Depends(self.path_dependency),
             tile_format: Annotated[
                 ImageType,
                 Query(description="Output image type. Default is png."),
@@ -596,6 +595,9 @@ class MosaicTilerFactory(BaseFactory):
                     description="Use EPSG code, not opengis.net, for the ows:SupportedCRS in the TileMatrixSet (set to True to enable ArcMap compatability)"
                 ),
             ] = False,
+            src_path=Depends(self.path_dependency),
+            backend_params=Depends(self.backend_dependency),
+            reader_params=Depends(self.reader_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             pixel_selection=Depends(self.pixel_selection_dependency),
@@ -605,8 +607,6 @@ class MosaicTilerFactory(BaseFactory):
             color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
-            backend_params=Depends(self.backend_dependency),
-            reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
         ):
             """OGC WMTS endpoint."""
@@ -714,11 +714,11 @@ class MosaicTilerFactory(BaseFactory):
             lon: Annotated[float, Path(description="Longitude")],
             lat: Annotated[float, Path(description="Latitude")],
             src_path=Depends(self.path_dependency),
+            backend_params=Depends(self.backend_dependency),
+            reader_params=Depends(self.reader_dependency),
             coord_crs=Depends(CoordCRSParams),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
-            backend_params=Depends(self.backend_dependency),
-            reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
         ):
             """Get Point value for a Mosaic."""
@@ -768,9 +768,9 @@ class MosaicTilerFactory(BaseFactory):
             maxx: Annotated[float, Path(description="Bounding box max X")],
             maxy: Annotated[float, Path(description="Bounding box max Y")],
             src_path=Depends(self.path_dependency),
-            coord_crs=Depends(CoordCRSParams),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
+            coord_crs=Depends(CoordCRSParams),
             env=Depends(self.environment_dependency),
         ):
             """Return a list of assets which overlap a bounding box"""

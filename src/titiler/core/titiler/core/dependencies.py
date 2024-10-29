@@ -606,7 +606,7 @@ def CRSParams(
     crs: Annotated[
         Optional[str],
         Query(
-            description="Coordinate Reference System`.",
+            description="Coordinate Reference System.",
         ),
     ] = None,
 ) -> Optional[CRS]:

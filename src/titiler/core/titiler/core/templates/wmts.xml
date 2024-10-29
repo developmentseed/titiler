@@ -33,25 +33,27 @@
         </ows:Operation>
     </ows:OperationsMetadata>
     <Contents>
+    {% for layer in layers %}
         <Layer>
-            <ows:Title>{{ title }}</ows:Title>
-            <ows:Identifier>{{ layer_name }}</ows:Identifier>
-            <ows:Abstract>{{ title }}</ows:Abstract>
+            <ows:Title>{{ layer.title }}</ows:Title>
+            <ows:Identifier>{{ layer.name }}</ows:Identifier>
+            <ows:Abstract>{{ layer.name }}</ows:Abstract>
             <ows:{{ bbox_crs_type }} crs="{{ bbox_crs_uri }}">
-                <ows:LowerCorner>{{ bounds[0] }} {{ bounds[1] }}</ows:LowerCorner>
-                <ows:UpperCorner>{{ bounds[2] }} {{ bounds[3] }}</ows:UpperCorner>
+                <ows:LowerCorner>{{ layer.bounds[0] }} {{ layer.bounds[1] }}</ows:LowerCorner>
+                <ows:UpperCorner>{{ layer.bounds[2] }} {{ layer.bounds[3] }}</ows:UpperCorner>
             </ows:{{ bbox_crs_type }}>
             <Style isDefault="true">
                 <ows:Identifier>default</ows:Identifier>
             </Style>
             <Format>{{ media_type }}</Format>
             <TileMatrixSetLink>
-                <TileMatrixSet>{{ tms.id }}</TileMatrixSet>
+                <TileMatrixSet>{{ tileMatrixSetId }}</TileMatrixSet>
             </TileMatrixSetLink>
-            <ResourceURL format="{{ media_type }}" resourceType="tile" template="{{ tiles_endpoint | escape }}" />
+            <ResourceURL format="{{ media_type }}" resourceType="tile" template="{{ layer.tiles_url }}?{{ layer.query_string | escape }}" />
         </Layer>
+    {% endfor %}
         <TileMatrixSet>
-            <ows:Identifier>{{ tms.id }}</ows:Identifier>
+            <ows:Identifier>{{ tileMatrixSetId}}</ows:Identifier>
             <ows:SupportedCRS>{{ supported_crs }}</ows:SupportedCRS>
             {% for item in tileMatrix %}
             {{ item | safe }}
