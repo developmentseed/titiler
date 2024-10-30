@@ -23,6 +23,7 @@
 * Use `@attrs.define` instead of dataclass for factories **breaking change**
 * Use `@attrs.define` instead of dataclass for factory extensions **breaking change**
 * Handle `numpy` types in JSON/GeoJSON response
+* In the `map.html` template, use the tilejson's `minzoom` and `maxzoom` to populate `minNativeZoom` and `maxNativeZoom` parameters in leaflet `tileLayer` instead of `minZoom` and `maxZoom` 
 
 ### titiler.core
 
