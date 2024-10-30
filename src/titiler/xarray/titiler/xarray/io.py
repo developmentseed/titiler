@@ -110,7 +110,7 @@ def xarray_open_dataset(
     }
 
     # Argument if we're opening a datatree
-    if isinstance(group, int):
+    if group is not None:
         xr_open_args["group"] = group
 
     # NetCDF arguments

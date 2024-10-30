@@ -3,6 +3,7 @@ import os
 
 import pytest
 from fastapi import FastAPI
+from rasterio.io import MemoryFile
 from starlette.testclient import TestClient
 
 from titiler.xarray.factory import TilerFactory
@@ -13,6 +14,7 @@ dataset_2d_nc = os.path.join(prefix, "dataset_2d.nc")
 dataset_3d_nc = os.path.join(prefix, "dataset_3d.nc")
 dataset_3d_zarr = os.path.join(prefix, "dataset_3d.zarr")
 dataset_4d_nc = os.path.join(prefix, "dataset_4d.nc")
+zarr_pyramid = os.path.join(prefix, "pyramid.zarr")
 
 
 def test_tiler_factory():
@@ -160,6 +162,24 @@ def test_tiles(filename, app):
     )
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "application/json"
+
+
+# Test Multiscale (group == zoom level)
+@pytest.mark.parametrize(
+    "group",
+    [0, 1, 2],
+)
+def test_tiles_multiscale(group, app):
+    """Test /tiles endpoints."""
+    resp = app.get(
+        f"/md/tiles/WebMercatorQuad/{group}/0/0.tif",
+        params={"url": zarr_pyramid, "variable": "dataset", "multiscale": True},
+    )
+    assert resp.status_code == 200
+    with MemoryFile(resp.content) as mem:
+        with mem.open() as dst:
+            arr = dst.read(1)
+            assert arr.max() == group * 2
 
 
 @pytest.mark.parametrize(
