@@ -337,7 +337,6 @@ class TilerFactory(BaseTilerFactory):
                             shape,
                             shape_crs=coord_crs or WGS84_CRS,
                             dst_crs=dst_crs,
-                            align_bounds_with_dataset=True,
                             **layer_params.as_dict(),
                             **image_params.as_dict(),
                             **dataset_params.as_dict(),

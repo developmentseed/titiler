@@ -1,12 +1,15 @@
 """test titiler.xarray.io utility functions."""
 
+import os
 from datetime import datetime
 
 import numpy
 import pytest
 import xarray
 
-from titiler.xarray.io import get_variable
+from titiler.xarray.io import Reader, get_variable
+
+prefix = os.path.join(os.path.dirname(__file__), "fixtures")
 
 
 def test_get_variable():
@@ -103,3 +106,17 @@ def test_get_variable():
     ds = data.to_dataset(name="dataset")
     with pytest.raises(ValueError):
         da = get_variable(ds, "dataset")
+
+
+@pytest.mark.parametrize(
+    "filename",
+    ["dataset_2d.nc", "dataset_3d.nc", "dataset_3d.zarr"],
+)
+def test_reader(filename):
+    """test reader."""
+    src_path = os.path.join(prefix, filename)
+    assert Reader.list_variables(src_path) == ["dataset"]
+
+    with Reader(src_path, variable="dataset") as src:
+        assert src.info()
+        assert src.tile(0, 0, 0)
