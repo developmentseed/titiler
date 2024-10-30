@@ -45,7 +45,3 @@ def test_xarray_tile():
         response = client.get("/tiles/1/2/3", params={"variable": "yo"})
         params = response.json()
         assert params == {"variable": "yo"}
-
-        response = client.get("/tiles/1/2/3", params={"multiscale": True})
-        params = response.json()
-        assert params == {"group": 1}

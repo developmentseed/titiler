@@ -1,16 +1,14 @@
 """TiTiler.xarray factory."""
 
-from typing import Callable, List, Literal, Optional, Type, Union
+from typing import Callable, List, Optional, Type, Union
 
 import rasterio
 from attrs import define, field
-from fastapi import Body, Depends, Path, Query
+from fastapi import Body, Depends, Query
 from geojson_pydantic.features import Feature, FeatureCollection
 from geojson_pydantic.geometries import MultiPolygon, Polygon
-from pydantic import Field
 from rio_tiler.constants import WGS84_CRS
 from rio_tiler.models import Info
-from starlette.responses import Response
 from typing_extensions import Annotated
 
 from titiler.core.dependencies import (
@@ -23,15 +21,11 @@ from titiler.core.dependencies import (
     StatisticsParams,
 )
 from titiler.core.factory import TilerFactory as BaseTilerFactory
-from titiler.core.factory import img_endpoint_params
 from titiler.core.models.responses import InfoGeoJSON, StatisticsGeoJSON
-from titiler.core.resources.enums import ImageType
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse
-from titiler.core.utils import render_image
 from titiler.xarray.dependencies import (
     DatasetParams,
     PartFeatureParams,
-    TileParams,
     XarrayIOParams,
     XarrayParams,
 )
@@ -54,8 +48,8 @@ class TilerFactory(BaseTilerFactory):
     # Dataset Options (nodata, reproject)
     dataset_dependency: Type[DefaultDependency] = DatasetParams
 
-    # Tile/Tilejson/WMTS Dependencies (multiscale option)
-    tile_dependency: Type[TileParams] = TileParams
+    # Tile/Tilejson/WMTS Dependencies  (Not used in titiler.xarray)
+    tile_dependency: Type[DefaultDependency] = DefaultDependency
 
     # Statistics/Histogram Dependencies
     stats_dependency: Type[DefaultDependency] = StatisticsParams
@@ -184,111 +178,6 @@ class TilerFactory(BaseTilerFactory):
                 geometry=geometry,
                 properties=info,
             )
-
-    # custom /tiles endpoints (adds `multiscale` options)
-    def tile(self):
-        """Register /tiles endpoint."""
-
-        @self.router.get(r"/tiles/{tileMatrixSetId}/{z}/{x}/{y}", **img_endpoint_params)
-        @self.router.get(
-            r"/tiles/{tileMatrixSetId}/{z}/{x}/{y}.{format}", **img_endpoint_params
-        )
-        @self.router.get(
-            r"/tiles/{tileMatrixSetId}/{z}/{x}/{y}@{scale}x", **img_endpoint_params
-        )
-        @self.router.get(
-            r"/tiles/{tileMatrixSetId}/{z}/{x}/{y}@{scale}x.{format}",
-            **img_endpoint_params,
-        )
-        def tile(
-            z: Annotated[
-                int,
-                Path(
-                    description="Identifier (Z) selecting one of the scales defined in the TileMatrixSet and representing the scaleDenominator the tile.",
-                ),
-            ],
-            x: Annotated[
-                int,
-                Path(
-                    description="Column (X) index of the tile on the selected TileMatrix. It cannot exceed the MatrixHeight-1 for the selected TileMatrix.",
-                ),
-            ],
-            y: Annotated[
-                int,
-                Path(
-                    description="Row (Y) index of the tile on the selected TileMatrix. It cannot exceed the MatrixWidth-1 for the selected TileMatrix.",
-                ),
-            ],
-            tileMatrixSetId: Annotated[
-                Literal[tuple(self.supported_tms.list())],
-                Path(
-                    description="Identifier selecting one of the TileMatrixSetId supported."
-                ),
-            ],
-            scale: Annotated[
-                int,
-                Field(
-                    gt=0, le=4, description="Tile size scale. 1=256x256, 2=512x512..."
-                ),
-            ] = 1,
-            format: Annotated[
-                ImageType,
-                "Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
-            ] = None,
-            multiscale: Annotated[
-                Optional[bool],
-                Query(
-                    title="multiscale",
-                    description="Whether the dataset has multiscale groups (Zoom levels)",
-                ),
-            ] = None,
-            src_path=Depends(self.path_dependency),
-            reader_params=Depends(self.reader_dependency),
-            tile_params=Depends(self.tile_dependency),
-            layer_params=Depends(self.layer_dependency),
-            dataset_params=Depends(self.dataset_dependency),
-            post_process=Depends(self.process_dependency),
-            rescale=Depends(self.rescale_dependency),
-            color_formula=Depends(self.color_formula_dependency),
-            colormap=Depends(self.colormap_dependency),
-            render_params=Depends(self.render_dependency),
-            env=Depends(self.environment_dependency),
-        ):
-            """Create map tile from a dataset."""
-            tms = self.supported_tms.get(tileMatrixSetId)
-
-            reader_options = reader_params.as_dict()
-            if getattr(tile_params, "multiscale", False):
-                reader_options["group"] = z
-
-            with rasterio.Env(**env):
-                with self.reader(src_path, tms=tms, **reader_options) as src_dst:
-                    image = src_dst.tile(
-                        x,
-                        y,
-                        z,
-                        tilesize=scale * 256,
-                        **layer_params.as_dict(),
-                        **dataset_params.as_dict(),
-                    )
-
-            if post_process:
-                image = post_process(image)
-
-            if rescale:
-                image.rescale(rescale)
-
-            if color_formula:
-                image.apply_color_formula(color_formula)
-
-            content, media_type = render_image(
-                image,
-                output_format=format,
-                colormap=colormap,
-                **render_params.as_dict(),
-            )
-
-            return Response(content, media_type=media_type)
 
     # custom /statistics endpoints (remove /statistics - GET)
     def statistics(self):

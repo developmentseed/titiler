@@ -164,24 +164,6 @@ def test_tiles(filename, app):
     assert resp.headers["content-type"] == "application/json"
 
 
-# Test Multiscale (group == zoom level)
-@pytest.mark.parametrize(
-    "group",
-    [0, 1, 2],
-)
-def test_tiles_multiscale(group, app):
-    """Test /tiles endpoints."""
-    resp = app.get(
-        f"/md/tiles/WebMercatorQuad/{group}/0/0.tif",
-        params={"url": zarr_pyramid, "variable": "dataset", "multiscale": True},
-    )
-    assert resp.status_code == 200
-    with MemoryFile(resp.content) as mem:
-        with mem.open() as dst:
-            arr = dst.read(1)
-            assert arr.max() == group * 2
-
-
 @pytest.mark.parametrize(
     "filename",
     [dataset_2d_nc, dataset_3d_nc, dataset_3d_zarr],
@@ -316,3 +298,26 @@ def test_part(filename, app):
     )
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "image/png"
+
+
+@pytest.mark.parametrize(
+    "group",
+    [0, 1, 2],
+)
+def test_zarr_group(group, app):
+    """Test /tiles endpoints."""
+    resp = app.get(
+        f"/md/tiles/WebMercatorQuad/{group}/0/0.tif",
+        params={"url": zarr_pyramid, "variable": "dataset", "group": group},
+    )
+    assert resp.status_code == 200
+    with MemoryFile(resp.content) as mem:
+        with mem.open() as dst:
+            arr = dst.read(1)
+            assert arr.max() == group * 2
+
+    resp = app.get(
+        "/md/point/0,0",
+        params={"url": zarr_pyramid, "variable": "dataset", "group": group},
+    )
+    assert resp.json()["values"] == [group * 2]

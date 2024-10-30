@@ -6,7 +6,6 @@ from typing import Optional, Union
 import numpy
 from fastapi import Query
 from rio_tiler.types import RIOResampling, WarpResampling
-from starlette.requests import Request
 from typing_extensions import Annotated
 
 from titiler.core.dependencies import DefaultDependency
@@ -73,8 +72,8 @@ class XarrayParams(XarrayIOParams, XarrayDsParams):
     pass
 
 
-@dataclass(init=False)
-class CompatXarrayParams(DefaultDependency):
+@dataclass
+class CompatXarrayParams(XarrayIOParams):
     """Custom XarrayParams endpoints.
 
     This Dependency aims to be used in a tiler where both GDAL/Xarray dataset would be supported.
@@ -82,73 +81,16 @@ class CompatXarrayParams(DefaultDependency):
     it would fail without the variable query-parameter set.
     """
 
-    # File IO Options
-    group: Optional[int] = None
-    reference: Optional[bool] = None
-    decode_times: Optional[bool] = None
-    consolidated: Optional[bool] = None
+    variable: Annotated[Optional[str], Query(description="Xarray Variable name")] = None
 
-    # Dataset Options
-    variable: Optional[str] = None
-    drop_dim: Optional[str] = None
-    datetime: Optional[str] = None
+    drop_dim: Annotated[
+        Optional[str],
+        Query(description="Dimension to drop"),
+    ] = None
 
-    def __init__(
-        self,
-        request: Request,
-        variable: Annotated[
-            Optional[str], Query(description="Xarray Variable name")
-        ] = None,
-        group: Annotated[
-            Optional[int],
-            Query(
-                description="Select a specific zarr group from a zarr hierarchy. Could be associated with a zoom level or dataset."
-            ),
-        ] = None,
-        reference: Annotated[
-            Optional[bool],
-            Query(
-                title="reference",
-                description="Whether the dataset is a kerchunk reference",
-            ),
-        ] = None,
-        decode_times: Annotated[
-            Optional[bool],
-            Query(
-                title="decode_times",
-                description="Whether to decode times",
-            ),
-        ] = None,
-        consolidated: Annotated[
-            Optional[bool],
-            Query(
-                title="consolidated",
-                description="Whether to expect and open zarr store with consolidated metadata",
-            ),
-        ] = None,
-        drop_dim: Annotated[
-            Optional[str],
-            Query(description="Dimension to drop"),
-        ] = None,
-        datetime: Annotated[
-            Optional[str], Query(description="Slice of time to read (if available)")
-        ] = None,
-    ):
-        """Initialize XarrayIOParamsTiles
-
-        Note: Because we don't want `z and multi-scale` to appear in the documentation we use a dataclass with a custom `__init__` method.
-        FastAPI will use the `__init__` method but will exclude Request in the documentation making `pool` an invisible dependency.
-        """
-        self.variable = variable
-        self.group = group
-        self.reference = reference
-        self.decode_times = decode_times
-        self.consolidated = consolidated
-        self.drop_dim = drop_dim
-        self.datetime = datetime
-
-        if request.query_params.get("multiscale") and request.path_params.get("z"):
-            self.group = int(request.path_params.get("z"))
+    datetime: Annotated[
+        Optional[str], Query(description="Slice of time to read (if available)")
+    ] = None
 
 
 @dataclass
@@ -174,19 +116,6 @@ class DatasetParams(DefaultDependency):
         """Post Init."""
         if self.nodata is not None:
             self.nodata = numpy.nan if self.nodata == "nan" else float(self.nodata)
-
-
-@dataclass
-class TileParams(DefaultDependency):
-    """Custom TileParams for Xarray."""
-
-    multiscale: Annotated[
-        Optional[bool],
-        Query(
-            title="multiscale",
-            description="Whether the dataset has multiscale groups (Zoom levels)",
-        ),
-    ] = None
 
 
 # Custom PartFeatureParams which add `resampling`
