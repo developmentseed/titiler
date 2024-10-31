@@ -742,8 +742,8 @@ def test_TilerFactory():
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
-    # covers only 4 zoom levels
-    assert len(resp["tileMatrixSetLimits"]) == 4
+    # covers only 5 zoom levels
+    assert len(resp["tileMatrixSetLimits"]) == 5
 
 
 @patch("rio_tiler.io.rasterio.rasterio")
