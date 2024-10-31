@@ -14,14 +14,16 @@ The `/cog` routes are based on `titiler.core.factory.TilerFactory` but with `cog
 | `GET`  | `/cog/info.geojson`                                                 | GeoJSON   | return dataset's basic info as a GeoJSON feature
 | `GET`  | `/cog/statistics`                                                   | JSON      | return dataset's statistics
 | `POST` | `/cog/statistics`                                                   | GeoJSON   | return dataset's statistics for a GeoJSON
+| `GET`  | `/cog/tiles`                                                        | JSON      | List of OGC Tilesets available
+| `GET`  | `/cog/tiles/{tileMatrixSetId}`                                      | JSON      | OGC Tileset metadata
 | `GET`  | `/cog/tiles/{tileMatrixSetId}/{z}/{x}/{y}[@{scale}x][.{format}]`    | image/bin | create a web map tile image from a dataset
+| `GET`  | `/cog/{tileMatrixSetId}/map`                                        | HTML      | simple map viewer
 | `GET`  | `/cog/{tileMatrixSetId}/tilejson.json`                              | JSON      | return a Mapbox TileJSON document
 | `GET`  | `/cog/{tileMatrixSetId}/WMTSCapabilities.xml`                       | XML       | return OGC WMTS Get Capabilities
 | `GET`  | `/cog/point/{lon},{lat}`                                            | JSON      | return pixel values from a dataset
 | `GET`  | `/cog/preview[.{format}]`                                           | image/bin | create a preview image from a dataset
 | `GET`  | `/cog/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin | create an image from part of a dataset
 | `POST` | `/cog/feature[/{width}x{height}][].{format}]`                       | image/bin | create an image from a GeoJSON feature
-| `GET`  | `/cog/{tileMatrixSetId}/map`                                        | HTML      | simple map viewer
 | `GET`  | `/cog/validate`                                                     | JSON      | validate a COG and return dataset info (from `titiler.extensions.cogValidateExtension`)
 | `GET`  | `/cog/viewer`                                                       | HTML      | demo webpage (from `titiler.extensions.cogViewerExtension`)
 | `GET`  | `/cog/stac`                                                         | GeoJSON   | create STAC Items from a dataset (from `titiler.extensions.stacExtension`)

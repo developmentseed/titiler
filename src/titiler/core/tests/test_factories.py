@@ -7,15 +7,16 @@ import warnings
 import xml.etree.ElementTree as ET
 from enum import Enum
 from io import BytesIO
-from typing import Dict, Optional, Type
+from typing import Dict, Optional, Sequence, Type
 from unittest.mock import patch
 from urllib.parse import urlencode
 
+import attr
 import httpx
 import morecantile
 import numpy
 import pytest
-from attrs import define, field
+from attrs import define
 from fastapi import Depends, FastAPI, HTTPException, Path, Query, security, status
 from morecantile.defaults import TileMatrixSets
 from rasterio.crs import CRS
@@ -48,7 +49,7 @@ WEB_TMS = TileMatrixSets({"WebMercatorQuad": morecantile.tms.get("WebMercatorQua
 def test_TilerFactory():
     """Test TilerFactory class."""
     cog = TilerFactory()
-    assert len(cog.router.routes) == 20
+    assert len(cog.router.routes) == 22
     assert len(cog.supported_tms.list()) == NB_DEFAULT_TMS
 
     cog = TilerFactory(router_prefix="something", supported_tms=WEB_TMS)
@@ -75,7 +76,7 @@ def test_TilerFactory():
     assert response.status_code == 422
 
     cog = TilerFactory(add_preview=False, add_part=False, add_viewer=False)
-    assert len(cog.router.routes) == 12
+    assert len(cog.router.routes) == 14
 
     app = FastAPI()
     cog = TilerFactory()
@@ -725,6 +726,25 @@ def test_TilerFactory():
     assert meta["dtype"] == "uint8"
     assert meta["count"] == 3
 
+    # OGC Tileset
+    response = client.get(f"/tiles?url={DATA_DIR}/cog.tif")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    resp = response.json()
+    assert len(resp["tilesets"]) == NB_DEFAULT_TMS
+
+    first_tms = resp["tilesets"][0]
+    first_id = DEFAULT_TMS.list()[0]
+    assert first_id in first_tms["title"]
+    assert len(first_tms["links"]) == 2  # no link to the tms definition
+
+    response = client.get(f"/tiles/WebMercatorQuad?url={DATA_DIR}/cog.tif")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    resp = response.json()
+    # covers only 4 zoom levels
+    assert len(resp["tileMatrixSetLimits"]) == 4
+
 
 @patch("rio_tiler.io.rasterio.rasterio")
 def test_MultiBaseTilerFactory(rio):
@@ -732,7 +752,7 @@ def test_MultiBaseTilerFactory(rio):
     rio.open = mock_rasterio_open
 
     stac = MultiBaseTilerFactory(reader=STACReader)
-    assert len(stac.router.routes) == 22
+    assert len(stac.router.routes) == 24
 
     app = FastAPI()
     app.include_router(stac.router)
@@ -1054,29 +1074,43 @@ def test_MultiBaseTilerFactory(rio):
     assert len(props) == 1
     assert "(B09 - B01) / (B09 + B01)" in props
 
+    # OGC Tileset
+    response = client.get(f"/tiles?url={DATA_DIR}/item.json")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    resp = response.json()
+    assert len(resp["tilesets"]) == NB_DEFAULT_TMS
 
-@define
+    first_tms = resp["tilesets"][0]
+    first_id = DEFAULT_TMS.list()[0]
+    assert first_id in first_tms["title"]
+    assert len(first_tms["links"]) == 2  # no link to the tms definition
+
+    response = client.get(f"/tiles/WebMercatorQuad?url={DATA_DIR}/item.json")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    resp = response.json()
+    # default minzoom/maxzoom are 0->24
+    assert len(resp["tileMatrixSetLimits"]) == 25
+
+
+@attr.s
 class BandFileReader(MultiBandReader):
     """Test MultiBand"""
 
-    input: str = field()
-    tms: morecantile.TileMatrixSet = field(
+    input: str = attr.ib()
+    tms: morecantile.TileMatrixSet = attr.ib(
         default=morecantile.tms.get("WebMercatorQuad")
     )
-    reader_options: Dict = field(factory=dict)
 
-    reader: Type[BaseReader] = field(default=Reader)
+    reader: Type[BaseReader] = attr.ib(default=Reader)
+    reader_options: Dict = attr.ib(factory=dict)
 
-    minzoom: int = field()
-    maxzoom: int = field()
+    bands: Sequence[str] = attr.ib(init=False)
+    default_bands: Optional[Sequence[str]] = attr.ib(init=False, default=None)
 
-    @minzoom.default
-    def _minzoom(self):
-        return self.tms.minzoom
-
-    @maxzoom.default
-    def _maxzoom(self):
-        return self.tms.maxzoom
+    minzoom: int = attr.ib(init=False)
+    maxzoom: int = attr.ib(init=False)
 
     def __attrs_post_init__(self):
         """Parse Sceneid and get grid bounds."""
@@ -1086,6 +1120,9 @@ class BandFileReader(MultiBandReader):
             self.crs = cog.crs
             self.minzoom = cog.minzoom
             self.maxzoom = cog.maxzoom
+            self.width = cog.width
+            self.height = cog.height
+            self.transform = cog.transform
 
     def _get_band_url(self, band: str) -> str:
         """Validate band's name and return band's url."""
@@ -1103,7 +1140,7 @@ def test_MultiBandTilerFactory():
     bands = MultiBandTilerFactory(
         reader=BandFileReader, path_dependency=CustomPathParams
     )
-    assert len(bands.router.routes) == 21
+    assert len(bands.router.routes) == 23
 
     app = FastAPI()
     app.include_router(bands.router)
@@ -1397,6 +1434,25 @@ def test_MultiBandTilerFactory():
     assert props["B01"]
     assert props["B09"]
 
+    # OGC Tileset
+    response = client.get(f"/tiles?directory={DATA_DIR}")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    resp = response.json()
+    assert len(resp["tilesets"]) == NB_DEFAULT_TMS
+
+    first_tms = resp["tilesets"][0]
+    first_id = DEFAULT_TMS.list()[0]
+    assert first_id in first_tms["title"]
+    assert len(first_tms["links"]) == 2  # no link to the tms definition
+
+    response = client.get(f"/tiles/WebMercatorQuad?directory={DATA_DIR}")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    resp = response.json()
+    # 1 Zoom level (8)
+    assert len(resp["tileMatrixSetLimits"]) == 1
+
 
 def test_TMSFactory():
     """test TMSFactory."""
@@ -1475,7 +1531,7 @@ def test_TilerFactory_WithDependencies():
         ],
         router_prefix="something",
     )
-    assert len(cog.router.routes) == 20
+    assert len(cog.router.routes) == 22
 
     app = FastAPI()
     app.include_router(cog.router, prefix="/something")

@@ -6,6 +6,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from io import BytesIO
 
+import morecantile
 import numpy
 from cogeo_mosaic.backends import FileBackend
 from cogeo_mosaic.mosaic import MosaicJSON
@@ -20,6 +21,8 @@ from titiler.mosaic.factory import MosaicTilerFactory
 from .conftest import DATA_DIR
 
 assets = [os.path.join(DATA_DIR, asset) for asset in ["cog1.tif", "cog2.tif"]]
+DEFAULT_TMS = morecantile.tms
+NB_DEFAULT_TMS = len(DEFAULT_TMS.list())
 
 
 @contextmanager
@@ -43,7 +46,7 @@ def test_MosaicTilerFactory():
         optional_headers=[OptionalHeader.x_assets],
         router_prefix="mosaic",
     )
-    assert len(mosaic.router.routes) == 16
+    assert len(mosaic.router.routes) == 18
 
     app = FastAPI()
     app.include_router(mosaic.router, prefix="/mosaic")
@@ -245,6 +248,25 @@ def test_MosaicTilerFactory():
         )
         assert response.status_code == 200
         assert response.json() == []
+
+        # OGC Tileset
+        response = client.get(f"/mosaic/tiles?url={mosaic_file}")
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "application/json"
+        resp = response.json()
+        assert len(resp["tilesets"]) == NB_DEFAULT_TMS
+
+        first_tms = resp["tilesets"][0]
+        first_id = DEFAULT_TMS.list()[0]
+        assert first_id in first_tms["title"]
+        assert len(first_tms["links"]) == 2  # no link to the tms definition
+
+        response = client.get(f"/mosaic/tiles/WebMercatorQuad?url={mosaic_file}")
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "application/json"
+        resp = response.json()
+        # covers only 3 zoom levels
+        assert len(resp["tileMatrixSetLimits"]) == 3
 
 
 @dataclass
