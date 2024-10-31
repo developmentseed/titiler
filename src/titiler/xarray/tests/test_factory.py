@@ -311,6 +311,8 @@ def test_zarr_group(group, app):
         params={"url": zarr_pyramid, "variable": "dataset", "group": group},
     )
     assert resp.status_code == 200
+    # see src/titiler/xarray/tests/fixtures/generate_fixtures.ipynb
+    # for structure of zarr pyramid
     with MemoryFile(resp.content) as mem:
         with mem.open() as dst:
             arr = dst.read(1)
