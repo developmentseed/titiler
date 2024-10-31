@@ -22,27 +22,11 @@ class XarrayIOParams(DefaultDependency):
         ),
     ] = None
 
-    reference: Annotated[
-        Optional[bool],
-        Query(
-            title="reference",
-            description="Whether the dataset is a kerchunk reference",
-        ),
-    ] = None
-
     decode_times: Annotated[
         Optional[bool],
         Query(
             title="decode_times",
             description="Whether to decode times",
-        ),
-    ] = None
-
-    consolidated: Annotated[
-        Optional[bool],
-        Query(
-            title="consolidated",
-            description="Whether to expect and open zarr store with consolidated metadata",
         ),
     ] = None
 
