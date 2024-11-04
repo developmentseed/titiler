@@ -1,17 +1,26 @@
 """titiler.xarray.io"""
 
 import pickle
-import re
 from typing import Any, Callable, Dict, List, Optional, Protocol
+from urllib.parse import urlparse
 
 import attr
 import fsspec
 import numpy
-import s3fs
 import xarray
 from morecantile import TileMatrixSet
 from rio_tiler.constants import WEB_MERCATOR_TMS
 from rio_tiler.io.xarray import XarrayReader
+
+try:
+    import s3fs
+except ImportError:  # pragma: nocover
+    s3fs = None  # type: ignore
+
+try:
+    import aiohttp
+except ImportError:  # pragma: nocover
+    aiohttp = None  # type: ignore
 
 
 class CacheClient(Protocol):
@@ -26,18 +35,10 @@ class CacheClient(Protocol):
         ...
 
 
-def parse_protocol(src_path: str, reference: Optional[bool] = False) -> str:
+def parse_protocol(src_path: str) -> str:
     """Parse protocol from path."""
-    match = re.match(r"^(s3|https|http)", src_path)
-    protocol = "file"
-    if match:
-        protocol = match.group(0)
-
-    # override protocol if reference
-    if reference:
-        protocol = "reference"
-
-    return protocol
+    parsed = urlparse(src_path)
+    return parsed.scheme or "file"
 
 
 def xarray_engine(src_path: str) -> str:
@@ -45,8 +46,8 @@ def xarray_engine(src_path: str) -> str:
     #  ".hdf", ".hdf5", ".h5" will be supported once we have tests + expand the type permitted for the group parameter
     if any(src_path.lower().endswith(ext) for ext in [".nc", ".nc4"]):
         return "h5netcdf"
-    else:
-        return "zarr"
+
+    return "zarr"
 
 
 def get_filesystem(
@@ -59,6 +60,8 @@ def get_filesystem(
     Get the filesystem for the given source path.
     """
     if protocol == "s3":
+        assert s3fs is not None, "s3fs must be installed to support S3:// url"
+
         s3_filesystem = s3fs.S3FileSystem()
         return (
             s3_filesystem.open(src_path)
@@ -66,11 +69,12 @@ def get_filesystem(
             else s3fs.S3Map(root=src_path, s3=s3_filesystem)
         )
 
-    elif protocol == "reference":
-        reference_args = {"fo": src_path, "remote_options": {"anon": anon}}
-        return fsspec.filesystem("reference", **reference_args).get_mapper("")
-
     elif protocol in ["https", "http", "file"]:
+        if protocol.startswith("http"):
+            assert (
+                aiohttp is not None
+            ), "aiohttp must be installed to support HTTP:// url"
+
         filesystem = fsspec.filesystem(protocol)  # type: ignore
         return (
             filesystem.open(src_path)
@@ -85,9 +89,7 @@ def get_filesystem(
 def xarray_open_dataset(
     src_path: str,
     group: Optional[Any] = None,
-    reference: Optional[bool] = False,
     decode_times: Optional[bool] = True,
-    consolidated: Optional[bool] = True,
     cache_client: Optional[CacheClient] = None,
 ) -> xarray.Dataset:
     """Open dataset."""
@@ -98,7 +100,7 @@ def xarray_open_dataset(
         if data_bytes:
             return pickle.loads(data_bytes)
 
-    protocol = parse_protocol(src_path, reference=reference)
+    protocol = parse_protocol(src_path)
     xr_engine = xarray_engine(src_path)
     file_handler = get_filesystem(src_path, protocol, xr_engine)
 
@@ -115,19 +117,26 @@ def xarray_open_dataset(
 
     # NetCDF arguments
     if xr_engine == "h5netcdf":
-        xr_open_args["engine"] = "h5netcdf"
-        xr_open_args["lock"] = False
+        xr_open_args.update(
+            {
+                "engine": "h5netcdf",
+                "lock": False,
+            }
+        )
+
+        ds = xarray.open_dataset(file_handler, **xr_open_args)
+
+    # Fallback to Zarr
     else:
-        # Zarr arguments
-        xr_open_args["engine"] = "zarr"
-        xr_open_args["consolidated"] = consolidated
+        if protocol == "reference":
+            xr_open_args.update(
+                {
+                    "consolidated": False,
+                    "backend_kwargs": {"consolidated": False},
+                }
+            )
 
-    # Additional arguments when dealing with a reference file.
-    if reference:
-        xr_open_args["consolidated"] = False
-        xr_open_args["backend_kwargs"] = {"consolidated": False}
-
-    ds = xarray.open_dataset(file_handler, **xr_open_args)
+        ds = xarray.open_zarr(file_handler, **xr_open_args)
 
     if cache_client:
         # Serialize the dataset to bytes using pickle
@@ -245,9 +254,7 @@ class Reader(XarrayReader):
     opener: Callable[..., xarray.Dataset] = attr.ib(default=xarray_open_dataset)
 
     group: Optional[Any] = attr.ib(default=None)
-    reference: bool = attr.ib(default=False)
     decode_times: bool = attr.ib(default=False)
-    consolidated: Optional[bool] = attr.ib(default=True)
     cache_client: Optional[CacheClient] = attr.ib(default=None)
 
     # xarray.DataArray options
@@ -266,9 +273,7 @@ class Reader(XarrayReader):
         self.ds = self.opener(
             self.src_path,
             group=self.group,
-            reference=self.reference,
             decode_times=self.decode_times,
-            consolidated=self.consolidated,
             cache_client=self.cache_client,
         )
 
@@ -293,14 +298,10 @@ class Reader(XarrayReader):
         cls,
         src_path: str,
         group: Optional[Any] = None,
-        reference: Optional[bool] = False,
-        consolidated: Optional[bool] = True,
     ) -> List[str]:
         """List available variable in a dataset."""
         with xarray_open_dataset(
             src_path,
             group=group,
-            reference=reference,
-            consolidated=consolidated,
         ) as ds:
             return list(ds.data_vars)  # type: ignore

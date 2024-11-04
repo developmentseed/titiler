@@ -109,12 +109,19 @@ def test_get_variable():
 
 
 @pytest.mark.parametrize(
-    "filename",
-    ["dataset_2d.nc", "dataset_3d.nc", "dataset_3d.zarr"],
+    "protocol,filename",
+    [
+        ("file://", "dataset_2d.nc"),
+        ("file://", "dataset_3d.nc"),
+        ("file://", "dataset_3d.zarr"),
+        ("", "dataset_2d.nc"),
+        ("", "dataset_3d.nc"),
+        ("", "dataset_3d.zarr"),
+    ],
 )
-def test_reader(filename):
+def test_reader(protocol, filename):
     """test reader."""
-    src_path = os.path.join(prefix, filename)
+    src_path = protocol + os.path.join(protocol, prefix, filename)
     assert Reader.list_variables(src_path) == ["dataset"]
 
     with Reader(src_path, variable="dataset") as src:

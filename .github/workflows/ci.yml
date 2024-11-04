@@ -51,7 +51,7 @@ jobs:
 
       - name: Test titiler.xarray
         run: |
-          python -m pip install -e src/titiler/xarray["test"]
+          python -m pip install -e src/titiler/xarray["test,all"]
           python -m pytest src/titiler/xarray --cov=titiler.xarray --cov-report=xml --cov-append --cov-report=term-missing
 
       - name: Test titiler.mosaic

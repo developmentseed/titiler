@@ -30,19 +30,25 @@ classifiers = [
 dynamic = ["version"]
 dependencies = [
     "titiler.core==0.19.0.dev",
-    "cftime",
-    "h5netcdf",
     "xarray",
     "rioxarray",
-    "zarr",
     "fsspec",
-    "s3fs",
-    "aiohttp",
-    "pandas",
-    "httpx",
+    "zarr",
+    "h5netcdf",
+    "cftime",
 ]
 
 [project.optional-dependencies]
+s3 = [
+    "s3fs",
+]
+http = [
+    "aiohttp",
+]
+all = [
+    "s3fs",
+    "aiohttp",
+]
 test = [
     "pytest",
     "pytest-cov",
