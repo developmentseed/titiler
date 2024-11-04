@@ -86,6 +86,8 @@
 
 * add OGC Tiles `/tiles` and `/tiles/{tileMatrixSet}` endpoints
 
+* add `gif` media type
+
 ### titiler.mosaic
 
 * Rename `reader` attribute to `backend` in `MosaicTilerFactory`  **breaking change**
