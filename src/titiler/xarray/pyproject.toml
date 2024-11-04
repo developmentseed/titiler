@@ -55,6 +55,7 @@ test = [
     "pytest-asyncio",
     "httpx",
     "kerchunk",
+    "fastparquet",
 ]
 
 [project.urls]

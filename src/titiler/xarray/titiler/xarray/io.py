@@ -46,6 +46,7 @@ def xarray_engine(src_path: str) -> str:
     #  ".hdf", ".hdf5", ".h5" will be supported once we have tests + expand the type permitted for the group parameter
     if any(src_path.lower().endswith(ext) for ext in [".nc", ".nc4"]):
         return "h5netcdf"
+
     return "zarr"
 
 
@@ -67,14 +68,15 @@ def get_filesystem(
             if xr_engine == "h5netcdf"
             else s3fs.S3Map(root=src_path, s3=s3_filesystem)
         )
-    elif protocol == "reference" or src_path.lower().endswith(".json"):
+
+    elif protocol == "reference":
         reference_args = {
             "fo": src_path.replace("reference://", ""),
             "remote_options": {"anon": anon},
         }
         return fsspec.filesystem("reference", **reference_args).get_mapper("")
 
-    elif protocol in ["https", "http", "file", "reference"]:
+    elif protocol in ["https", "http", "file"]:
         if protocol.startswith("http"):
             assert (
                 aiohttp is not None
@@ -120,13 +122,7 @@ def xarray_open_dataset(
     if group is not None:
         xr_open_args["group"] = group
 
-    # NetCDF arguments
-    if xr_engine == "h5netcdf":
-        xr_open_args["engine"] = "h5netcdf"
-        xr_open_args["lock"] = False
-        ds = xarray.open_dataset(file_handler, **xr_open_args)
-
-    elif protocol == "reference" or src_path.lower().endswith(".json"):
+    if protocol == "reference":
         xr_open_args.update(
             {
                 "engine": "zarr",
@@ -137,8 +133,27 @@ def xarray_open_dataset(
 
         ds = xarray.open_dataset(file_handler, **xr_open_args)
 
+    # NetCDF arguments
+    elif xr_engine == "h5netcdf":
+        xr_open_args.update(
+            {
+                "engine": "h5netcdf",
+                "lock": False,
+            }
+        )
+
+        ds = xarray.open_dataset(file_handler, **xr_open_args)
+
     # Fallback to Zarr
     else:
+        if protocol == "reference":
+            xr_open_args.update(
+                {
+                    "consolidated": False,
+                    "backend_kwargs": {"consolidated": False},
+                }
+            )
+
         ds = xarray.open_zarr(file_handler, **xr_open_args)
 
     if cache_client:
