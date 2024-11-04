@@ -110,7 +110,7 @@ def test_get_variable():
 
 @pytest.mark.parametrize(
     "filename",
-    ["dataset_2d.nc", "dataset_3d.nc", "dataset_3d.zarr"],
+    ["dataset_2d.nc", "dataset_3d.nc", "dataset_3d.zarr", "reference.json"],
 )
 def test_reader(filename):
     """test reader."""

@@ -46,8 +46,7 @@ def xarray_engine(src_path: str) -> str:
     #  ".hdf", ".hdf5", ".h5" will be supported once we have tests + expand the type permitted for the group parameter
     if any(src_path.lower().endswith(ext) for ext in [".nc", ".nc4"]):
         return "h5netcdf"
-    else:
-        return "zarr"
+    return "zarr"
 
 
 def get_filesystem(
@@ -68,8 +67,14 @@ def get_filesystem(
             if xr_engine == "h5netcdf"
             else s3fs.S3Map(root=src_path, s3=s3_filesystem)
         )
+    elif protocol == "reference" or src_path.lower().endswith(".json"):
+        reference_args = {
+            "fo": src_path.replace("reference://", ""),
+            "remote_options": {"anon": anon},
+        }
+        return fsspec.filesystem("reference", **reference_args).get_mapper("")
 
-    elif protocol in ["https", "http", "file"]:
+    elif protocol in ["https", "http", "file", "reference"]:
         if protocol.startswith("http"):
             assert (
                 aiohttp is not None
@@ -119,6 +124,17 @@ def xarray_open_dataset(
     if xr_engine == "h5netcdf":
         xr_open_args["engine"] = "h5netcdf"
         xr_open_args["lock"] = False
+        ds = xarray.open_dataset(file_handler, **xr_open_args)
+
+    elif src_path.lower().endswith(".json"):
+        xr_open_args.update(
+            {
+                "engine": "zarr",
+                "consolidated": False,
+                "backend_kwargs": {"consolidated": False},
+            }
+        )
+
         ds = xarray.open_dataset(file_handler, **xr_open_args)
 
     # Fallback to Zarr
@@ -285,8 +301,6 @@ class Reader(XarrayReader):
         cls,
         src_path: str,
         group: Optional[Any] = None,
-        reference: Optional[bool] = False,
-        consolidated: Optional[bool] = True,
     ) -> List[str]:
         """List available variable in a dataset."""
         with xarray_open_dataset(
