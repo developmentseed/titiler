@@ -24,6 +24,7 @@ from rio_tiler.types import ColorMapType
 from rio_tiler.utils import CRS_to_uri
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, Response
+from starlette.routing import NoMatchFound
 from starlette.templating import Jinja2Templates
 from typing_extensions import Annotated
 
@@ -36,7 +37,6 @@ from titiler.core.dependencies import (
     CoordCRSParams,
     CRSParams,
     DatasetParams,
-    DatasetPathParams,
     DefaultDependency,
     ImageRenderingParams,
     RescaleType,
@@ -45,6 +45,7 @@ from titiler.core.dependencies import (
 )
 from titiler.core.factory import DEFAULT_TEMPLATES, BaseFactory, img_endpoint_params
 from titiler.core.models.mapbox import TileJSON
+from titiler.core.models.OGC import TileSet, TileSetList
 from titiler.core.resources.enums import ImageType, OptionalHeader
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
 from titiler.core.utils import render_image
@@ -61,6 +62,11 @@ def PixelSelectionParams(
     Returns the mosaic method used to combine datasets together.
     """
     return PixelSelectionMethod[pixel_selection].value()
+
+
+def DatasetPathParams(url: Annotated[str, Query(description="Mosaic URL")]) -> str:
+    """Create dataset path from args"""
+    return url
 
 
 @define(kw_only=True)
@@ -120,16 +126,15 @@ class MosaicTilerFactory(BaseFactory):
         self.read()
         self.bounds()
         self.info()
+        self.tilesets()
         self.tile()
+        if self.add_viewer:
+            self.map_viewer()
         self.tilejson()
         self.wmts()
         self.point()
         self.validate()
         self.assets()
-
-        # Optional Routes
-        if self.add_viewer:
-            self.map_viewer()
 
     ############################################################################
     # /read
@@ -262,6 +267,240 @@ class MosaicTilerFactory(BaseFactory):
                         geometry=geometry,
                         properties=src_dst.info(),
                     )
+
+    ############################################################################
+    # /tileset
+    ############################################################################
+    def tilesets(self):
+        """Register OGC tilesets endpoints."""
+
+        @self.router.get(
+            "/tiles",
+            response_model=TileSetList,
+            response_class=JSONResponse,
+            response_model_exclude_none=True,
+            responses={
+                200: {
+                    "content": {
+                        "application/json": {},
+                    }
+                }
+            },
+            summary="Retrieve a list of available raster tilesets for the specified dataset.",
+        )
+        async def tileset_list(
+            request: Request,
+            src_path=Depends(self.path_dependency),
+            backend_params=Depends(self.backend_dependency),
+            reader_params=Depends(self.reader_dependency),
+            crs=Depends(CRSParams),
+            env=Depends(self.environment_dependency),
+        ):
+            """Retrieve a list of available raster tilesets for the specified dataset."""
+            with rasterio.Env(**env):
+                with self.backend(
+                    src_path,
+                    reader=self.dataset_reader,
+                    reader_options=reader_params.as_dict(),
+                    **backend_params.as_dict(),
+                ) as src_dst:
+                    bounds = src_dst.get_geographic_bounds(crs or WGS84_CRS)
+
+            collection_bbox = {
+                "lowerLeft": [bounds[0], bounds[1]],
+                "upperRight": [bounds[2], bounds[3]],
+                "crs": CRS_to_uri(crs or WGS84_CRS),
+            }
+
+            qs = [
+                (key, value)
+                for (key, value) in request.query_params._list
+                if key.lower() not in ["crs"]
+            ]
+            query_string = f"?{urlencode(qs)}" if qs else ""
+
+            tilesets = []
+            for tms in self.supported_tms.list():
+                tileset = {
+                    "title": f"tileset tiled using {tms} TileMatrixSet",
+                    "dataType": "map",
+                    "crs": self.supported_tms.get(tms).crs,
+                    "boundingBox": collection_bbox,
+                    "links": [
+                        {
+                            "href": self.url_for(
+                                request, "tileset", tileMatrixSetId=tms
+                            )
+                            + query_string,
+                            "rel": "self",
+                            "type": "application/json",
+                            "title": f"Tileset tiled using {tms} TileMatrixSet",
+                        },
+                        {
+                            "href": self.url_for(
+                                request,
+                                "tile",
+                                tileMatrixSetId=tms,
+                                z="{z}",
+                                x="{x}",
+                                y="{y}",
+                            )
+                            + query_string,
+                            "rel": "tile",
+                            "title": "Templated link for retrieving Raster tiles",
+                        },
+                    ],
+                }
+
+                try:
+                    tileset["links"].append(
+                        {
+                            "href": str(
+                                request.url_for("tilematrixset", tileMatrixSetId=tms)
+                            ),
+                            "rel": "http://www.opengis.net/def/rel/ogc/1.0/tiling-schemes",
+                            "type": "application/json",
+                            "title": f"Definition of '{tms}' tileMatrixSet",
+                        }
+                    )
+                except NoMatchFound:
+                    pass
+
+                tilesets.append(tileset)
+
+            data = TileSetList.model_validate({"tilesets": tilesets})
+            return data
+
+        @self.router.get(
+            "/tiles/{tileMatrixSetId}",
+            response_model=TileSet,
+            response_class=JSONResponse,
+            response_model_exclude_none=True,
+            responses={200: {"content": {"application/json": {}}}},
+            summary="Retrieve the raster tileset metadata for the specified dataset and tiling scheme (tile matrix set).",
+        )
+        async def tileset(
+            request: Request,
+            tileMatrixSetId: Annotated[
+                Literal[tuple(self.supported_tms.list())],
+                Path(
+                    description="Identifier selecting one of the TileMatrixSetId supported."
+                ),
+            ],
+            src_path=Depends(self.path_dependency),
+            backend_params=Depends(self.backend_dependency),
+            reader_params=Depends(self.reader_dependency),
+            env=Depends(self.environment_dependency),
+        ):
+            """Retrieve the raster tileset metadata for the specified dataset and tiling scheme (tile matrix set)."""
+            tms = self.supported_tms.get(tileMatrixSetId)
+            with rasterio.Env(**env):
+                with self.backend(
+                    src_path,
+                    tms=tms,
+                    reader=self.dataset_reader,
+                    reader_options=reader_params.as_dict(),
+                    **backend_params.as_dict(),
+                ) as src_dst:
+                    bounds = src_dst.get_geographic_bounds(tms.rasterio_geographic_crs)
+                    minzoom = src_dst.minzoom
+                    maxzoom = src_dst.maxzoom
+
+                    collection_bbox = {
+                        "lowerLeft": [bounds[0], bounds[1]],
+                        "upperRight": [bounds[2], bounds[3]],
+                        "crs": CRS_to_uri(tms.rasterio_geographic_crs),
+                    }
+
+                    tilematrix_limit = []
+                    for zoom in range(minzoom, maxzoom + 1, 1):
+                        matrix = tms.matrix(zoom)
+                        ulTile = tms.tile(bounds[0], bounds[3], int(matrix.id))
+                        lrTile = tms.tile(bounds[2], bounds[1], int(matrix.id))
+                        minx, maxx = (min(ulTile.x, lrTile.x), max(ulTile.x, lrTile.x))
+                        miny, maxy = (min(ulTile.y, lrTile.y), max(ulTile.y, lrTile.y))
+                        tilematrix_limit.append(
+                            {
+                                "tileMatrix": matrix.id,
+                                "minTileRow": max(miny, 0),
+                                "maxTileRow": min(maxy, matrix.matrixHeight),
+                                "minTileCol": max(minx, 0),
+                                "maxTileCol": min(maxx, matrix.matrixWidth),
+                            }
+                        )
+
+            qs = [(key, value) for (key, value) in request.query_params._list]
+            query_string = f"?{urlencode(qs)}" if qs else ""
+
+            links = [
+                {
+                    "href": self.url_for(
+                        request,
+                        "tileset",
+                        tileMatrixSetId=tileMatrixSetId,
+                    ),
+                    "rel": "self",
+                    "type": "application/json",
+                    "title": f"Tileset tiled using {tileMatrixSetId} TileMatrixSet",
+                },
+                {
+                    "href": self.url_for(
+                        request,
+                        "tile",
+                        tileMatrixSetId=tileMatrixSetId,
+                        z="{z}",
+                        x="{x}",
+                        y="{y}",
+                    )
+                    + query_string,
+                    "rel": "tile",
+                    "title": "Templated link for retrieving Raster tiles",
+                    "templated": True,
+                },
+            ]
+            try:
+                links.append(
+                    {
+                        "href": str(
+                            request.url_for(
+                                "tilematrixset", tileMatrixSetId=tileMatrixSetId
+                            )
+                        ),
+                        "rel": "http://www.opengis.net/def/rel/ogc/1.0/tiling-schemes",
+                        "type": "application/json",
+                        "title": f"Definition of '{tileMatrixSetId}' tileMatrixSet",
+                    }
+                )
+            except NoMatchFound:
+                pass
+
+            if self.add_viewer:
+                links.append(
+                    {
+                        "href": self.url_for(
+                            request,
+                            "map_viewer",
+                            tileMatrixSetId=tileMatrixSetId,
+                        )
+                        + query_string,
+                        "type": "text/html",
+                        "rel": "data",
+                        "title": f"Map viewer for '{tileMatrixSetId}' tileMatrixSet",
+                    }
+                )
+
+            data = TileSet.model_validate(
+                {
+                    "title": f"tileset tiled using {tileMatrixSetId} TileMatrixSet",
+                    "dataType": "map",
+                    "crs": tms.crs,
+                    "boundingBox": collection_bbox,
+                    "links": links,
+                    "tileMatrixSetLimits": tilematrix_limit,
+                }
+            )
+
+            return data
 
     ############################################################################
     # /tiles

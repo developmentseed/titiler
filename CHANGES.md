@@ -23,6 +23,7 @@
 * Use `@attrs.define` instead of dataclass for factories **breaking change**
 * Use `@attrs.define` instead of dataclass for factory extensions **breaking change**
 * Handle `numpy` types in JSON/GeoJSON response
+* In the `map.html` template, use the tilejson's `minzoom` and `maxzoom` to populate `minNativeZoom` and `maxNativeZoom` parameters in leaflet `tileLayer` instead of `minZoom` and `maxZoom`
 
 ### titiler.core
 
@@ -83,6 +84,10 @@
 
 * avoid `lat/lon` overflow in `map` viewer
 
+* add OGC Tiles `/tiles` and `/tiles/{tileMatrixSet}` endpoints
+
+* add `gif` media type
+
 ### titiler.mosaic
 
 * Rename `reader` attribute to `backend` in `MosaicTilerFactory`  **breaking change**
@@ -94,6 +99,8 @@
 * Update `cogeo-mosaic` dependency to `>=8.0,<9.0`
 
 * re-order endpoints parameters
+
+* add OGC Tiles `/tiles` and `/tiles/{tileMatrixSet}` endpoints
 
 ### titiler.extensions
 

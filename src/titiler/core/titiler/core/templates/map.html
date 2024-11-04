@@ -129,8 +129,8 @@ fetch('{{ tilejson_endpoint|safe }}')
 
     L.tileLayer(
       data.tiles[0], {
-        minZoom: data.minzoom,
-        maxZoom: data.maxzoom,
+        maxNativeZoom: data.maxzoom,
+        minNativeZoom: data.minzoom,
         bounds: L.latLngBounds([bottom, left], [top, right]),
       }
     ).addTo(map);
