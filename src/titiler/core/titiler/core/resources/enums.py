@@ -30,6 +30,7 @@ class MediaType(str, Enum):
     csv = "text/csv"
     openapi30_json = "application/vnd.oai.openapi+json;version=3.0"
     openapi30_yaml = "application/vnd.oai.openapi;version=3.0"
+    gif = "image/gif"
 
 
 class ImageDriver(str, Enum):
@@ -43,6 +44,7 @@ class ImageDriver(str, Enum):
     webp = "WEBP"
     jp2 = "JP2OpenJPEG"
     npy = "NPY"
+    gif = "GIF"
 
 
 class ImageType(str, Enum):
