@@ -31,8 +31,9 @@ def xarray_open_dataset(  # noqa: C901
     cache_client: Optional[CacheClient] = None,
 ) -> xarray.Dataset:
     """Open dataset."""
-    import fsspec
-    import s3fs
+    import aiohttp  # noqa
+    import fsspec  # noqa
+    import s3fs  # noqa
 
     # Generate cache key and attempt to fetch the dataset from cache
     if cache_client:
