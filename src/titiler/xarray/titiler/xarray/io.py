@@ -5,22 +5,11 @@ from typing import Any, Callable, Dict, List, Optional, Protocol
 from urllib.parse import urlparse
 
 import attr
-import fsspec
 import numpy
 import xarray
 from morecantile import TileMatrixSet
 from rio_tiler.constants import WEB_MERCATOR_TMS
 from rio_tiler.io.xarray import XarrayReader
-
-try:
-    import s3fs
-except ImportError:  # pragma: nocover
-    s3fs = None  # type: ignore
-
-try:
-    import aiohttp
-except ImportError:  # pragma: nocover
-    aiohttp = None  # type: ignore
 
 
 class CacheClient(Protocol):
@@ -35,64 +24,16 @@ class CacheClient(Protocol):
         ...
 
 
-def parse_protocol(src_path: str) -> str:
-    """Parse protocol from path."""
-    parsed = urlparse(src_path)
-    return parsed.scheme or "file"
-
-
-def xarray_engine(src_path: str) -> str:
-    """Parse xarray engine from path."""
-    #  ".hdf", ".hdf5", ".h5" will be supported once we have tests + expand the type permitted for the group parameter
-    if any(src_path.lower().endswith(ext) for ext in [".nc", ".nc4"]):
-        return "h5netcdf"
-
-    return "zarr"
-
-
-def get_filesystem(
-    src_path: str,
-    protocol: str,
-    xr_engine: str,
-    anon: bool = True,
-):
-    """
-    Get the filesystem for the given source path.
-    """
-    if protocol == "s3":
-        assert s3fs is not None, "s3fs must be installed to support S3:// url"
-
-        s3_filesystem = s3fs.S3FileSystem()
-        return (
-            s3_filesystem.open(src_path)
-            if xr_engine == "h5netcdf"
-            else s3fs.S3Map(root=src_path, s3=s3_filesystem)
-        )
-
-    elif protocol in ["https", "http", "file"]:
-        if protocol.startswith("http"):
-            assert (
-                aiohttp is not None
-            ), "aiohttp must be installed to support HTTP:// url"
-
-        filesystem = fsspec.filesystem(protocol)  # type: ignore
-        return (
-            filesystem.open(src_path)
-            if xr_engine == "h5netcdf"
-            else filesystem.get_mapper(src_path)
-        )
-
-    else:
-        raise ValueError(f"Unsupported protocol: {protocol}")
-
-
-def xarray_open_dataset(
+def xarray_open_dataset(  # noqa: C901
     src_path: str,
     group: Optional[Any] = None,
     decode_times: Optional[bool] = True,
     cache_client: Optional[CacheClient] = None,
 ) -> xarray.Dataset:
     """Open dataset."""
+    import fsspec
+    import s3fs
+
     # Generate cache key and attempt to fetch the dataset from cache
     if cache_client:
         cache_key = f"{src_path}_{group}" if group is not None else src_path
@@ -100,9 +41,31 @@ def xarray_open_dataset(
         if data_bytes:
             return pickle.loads(data_bytes)
 
-    protocol = parse_protocol(src_path)
-    xr_engine = xarray_engine(src_path)
-    file_handler = get_filesystem(src_path, protocol, xr_engine)
+    parsed = urlparse(src_path)
+    protocol = parsed.scheme or "file"
+    if protocol not in ["s3", "https", "http", "file"]:
+        raise ValueError(f"Unsupported protocol: {protocol}")
+
+    if any(src_path.lower().endswith(ext) for ext in [".nc", ".nc4"]):
+        xr_engine = "h5netcdf"
+    else:
+        xr_engine = "zarr"
+
+    if protocol == "s3":
+        s3_filesystem = s3fs.S3FileSystem()
+        file_handler = (
+            s3_filesystem.open(src_path)
+            if xr_engine == "h5netcdf"
+            else s3fs.S3Map(root=src_path, s3=s3_filesystem)
+        )
+
+    else:
+        filesystem = fsspec.filesystem(protocol)  # type: ignore
+        file_handler = (
+            filesystem.open(src_path)
+            if xr_engine == "h5netcdf"
+            else filesystem.get_mapper(src_path)
+        )
 
     # Arguments for xarray.open_dataset
     # Default args
@@ -292,16 +255,3 @@ class Reader(XarrayReader):
     def __exit__(self, exc_type, exc_value, traceback):
         """Support using with Context Managers."""
         self.close()
-
-    @classmethod
-    def list_variables(
-        cls,
-        src_path: str,
-        group: Optional[Any] = None,
-    ) -> List[str]:
-        """List available variable in a dataset."""
-        with xarray_open_dataset(
-            src_path,
-            group=group,
-        ) as ds:
-            return list(ds.data_vars)  # type: ignore

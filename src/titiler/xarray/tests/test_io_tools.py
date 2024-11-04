@@ -122,8 +122,6 @@ def test_get_variable():
 def test_reader(protocol, filename):
     """test reader."""
     src_path = protocol + os.path.join(protocol, prefix, filename)
-    assert Reader.list_variables(src_path) == ["dataset"]
-
     with Reader(src_path, variable="dataset") as src:
         assert src.info()
         assert src.tile(0, 0, 0)

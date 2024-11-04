@@ -32,20 +32,13 @@ dependencies = [
     "titiler.core==0.19.0.dev",
     "xarray",
     "rioxarray",
-    "fsspec",
-    "zarr",
-    "h5netcdf",
-    "cftime",
 ]
 
 [project.optional-dependencies]
-s3 = [
-    "s3fs",
-]
-http = [
-    "aiohttp",
-]
 all = [
+    "zarr",
+    "h5netcdf",
+    "fsspec",
     "s3fs",
     "aiohttp",
 ]

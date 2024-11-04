@@ -2,6 +2,7 @@
 
 from fastapi import FastAPI
 
+from titiler.xarray.extensions import VariablesExtension
 from titiler.xarray.factory import TilerFactory
 
 ###############################################################################
@@ -21,7 +22,12 @@ app = FastAPI(
     """,
 )
 
-md = TilerFactory(router_prefix="/md")
+md = TilerFactory(
+    router_prefix="/md",
+    extensions=[
+        VariablesExtension(),
+    ],
+)
 
 app.include_router(
     md.router,

@@ -1,6 +1,6 @@
 """TiTiler.xarray factory."""
 
-from typing import Callable, List, Optional, Type, Union
+from typing import Callable, Optional, Type, Union
 
 import rasterio
 from attrs import define, field
@@ -23,12 +23,7 @@ from titiler.core.dependencies import (
 from titiler.core.factory import TilerFactory as BaseTilerFactory
 from titiler.core.models.responses import InfoGeoJSON, StatisticsGeoJSON
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse
-from titiler.xarray.dependencies import (
-    DatasetParams,
-    PartFeatureParams,
-    XarrayIOParams,
-    XarrayParams,
-)
+from titiler.xarray.dependencies import DatasetParams, PartFeatureParams, XarrayParams
 from titiler.xarray.io import Reader
 
 
@@ -57,47 +52,12 @@ class TilerFactory(BaseTilerFactory):
 
     img_part_dependency: Type[DefaultDependency] = PartFeatureParams
 
-    # Custom dependency for /variable
-    io_dependency: Type[DefaultDependency] = XarrayIOParams
-
     add_viewer: bool = True
     add_part: bool = True
 
     # remove some attribute from init
     img_preview_dependency: Type[DefaultDependency] = field(init=False)
-    add_preview: bool = field(init=False)
-
-    def register_routes(self):
-        """Register routes to the router."""
-        self.variables()
-        self.bounds()
-        self.info()
-        self.tile()
-        self.tilejson()
-        self.wmts()
-        self.point()
-        self.statistics()
-
-        if self.add_part:
-            self.part()
-
-        if self.add_viewer:
-            self.map_viewer()
-
-    def variables(self):
-        """Register /variables endpoint."""
-
-        @self.router.get(
-            "/variables",
-            response_model=List[str],
-            responses={200: {"description": "Return Xarray Dataset variables."}},
-        )
-        def variables(
-            src_path=Depends(self.path_dependency),
-            io_params=Depends(self.io_dependency),
-        ):
-            """return available variables."""
-            return self.reader.list_variables(src_path, **io_params.as_dict())
+    add_preview: bool = field(init=False, default=False)
 
     # Custom /info endpoints (adds `show_times` options)
     def info(self):

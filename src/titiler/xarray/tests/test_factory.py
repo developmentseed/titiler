@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from rasterio.io import MemoryFile
 from starlette.testclient import TestClient
 
+from titiler.xarray.extensions import VariablesExtension
 from titiler.xarray.factory import TilerFactory
 
 prefix = os.path.join(os.path.dirname(__file__), "fixtures")
@@ -20,11 +21,13 @@ zarr_pyramid = os.path.join(prefix, "pyramid.zarr")
 def test_tiler_factory():
     """Test factory with options."""
     """Test TilerFactory class."""
-    md = TilerFactory(add_viewer=False, add_part=False)
-    assert len(md.router.routes) == 12
+    md = TilerFactory(
+        add_viewer=False, add_part=False, extensions=[VariablesExtension()]
+    )
+    assert len(md.router.routes) == 14
 
-    md = TilerFactory(router_prefix="/md")
-    assert len(md.router.routes) == 18
+    md = TilerFactory(router_prefix="/md", extensions=[VariablesExtension()])
+    assert len(md.router.routes) == 20
 
     app = FastAPI()
     app.include_router(md.router, prefix="/md")
@@ -40,8 +43,8 @@ def test_tiler_factory():
 @pytest.fixture
 def app():
     """App fixture."""
-    md = TilerFactory(router_prefix="/md")
-    assert len(md.router.routes) == 18
+    md = TilerFactory(router_prefix="/md", extensions=[VariablesExtension()])
+    assert len(md.router.routes) == 20
 
     app = FastAPI()
     app.include_router(md.router, prefix="/md")
