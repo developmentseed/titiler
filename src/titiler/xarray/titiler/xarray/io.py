@@ -126,7 +126,7 @@ def xarray_open_dataset(
         xr_open_args["lock"] = False
         ds = xarray.open_dataset(file_handler, **xr_open_args)
 
-    elif src_path.lower().endswith(".json"):
+    elif protocol == "reference" or src_path.lower().endswith(".json"):
         xr_open_args.update(
             {
                 "engine": "zarr",
