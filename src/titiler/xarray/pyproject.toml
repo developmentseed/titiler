@@ -54,6 +54,7 @@ test = [
     "pytest-cov",
     "pytest-asyncio",
     "httpx",
+    "kerchunk",
 ]
 
 [project.urls]
