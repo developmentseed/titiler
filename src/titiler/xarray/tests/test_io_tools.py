@@ -1,15 +1,11 @@
 """test titiler.xarray.io utility functions."""
 
-import json
 import os
 from datetime import datetime
 
-import fsspec
 import numpy
 import pytest
 import xarray
-from kerchunk.df import refs_to_dataframe
-from kerchunk.hdf import SingleHdf5ToZarr
 
 from titiler.xarray.io import Reader, get_variable
 
@@ -145,41 +141,3 @@ def test_zarr_group(group):
         assert src.info()
         assert src.tile(0, 0, 0)
         assert src.point(0, 0).data[0] == group * 2
-
-
-def test_kerchunk_reference(tmp_path):
-    """test Kerchunk reference."""
-    d = tmp_path / "ref"
-    d.mkdir()
-
-    netcdf = os.path.join(prefix, "dataset_3d.nc")
-
-    # JSON kerchunk
-    reference = os.path.join(
-        str(d),
-        "reference.json",
-    )
-    with fsspec.open(netcdf, mode="rb", anon=True) as infile:
-        h5chunks = SingleHdf5ToZarr(infile, netcdf, inline_threshold=100)
-        with open(reference, "w") as f:
-            out_dict = h5chunks.translate()
-            f.write(json.dumps(h5chunks.translate()))
-
-    src_path = "reference://" + reference
-    assert Reader.list_variables(src_path) == ["dataset"]
-    with Reader(src_path, variable="dataset") as src:
-        assert src.info()
-        assert src.tile(0, 0, 0)
-
-    # kerchunk Parquet impl
-    reference_parquet = os.path.join(
-        str(d),
-        "reference.parq",
-    )
-
-    refs_to_dataframe(out_dict, reference_parquet)
-    src_path = "reference://" + reference_parquet
-    assert Reader.list_variables(src_path) == ["dataset"]
-    with Reader(src_path, variable="dataset") as src:
-        assert src.info()
-        assert src.tile(0, 0, 0)

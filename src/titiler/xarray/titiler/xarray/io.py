@@ -69,13 +69,6 @@ def get_filesystem(
             else s3fs.S3Map(root=src_path, s3=s3_filesystem)
         )
 
-    elif protocol == "reference":
-        reference_args = {
-            "fo": src_path.replace("reference://", ""),
-            "remote_options": {"anon": anon},
-        }
-        return fsspec.filesystem("reference", **reference_args).get_mapper("")
-
     elif protocol in ["https", "http", "file"]:
         if protocol.startswith("http"):
             assert (
@@ -122,19 +115,8 @@ def xarray_open_dataset(
     if group is not None:
         xr_open_args["group"] = group
 
-    if protocol == "reference":
-        xr_open_args.update(
-            {
-                "engine": "zarr",
-                "consolidated": False,
-                "backend_kwargs": {"consolidated": False},
-            }
-        )
-
-        ds = xarray.open_dataset(file_handler, **xr_open_args)
-
     # NetCDF arguments
-    elif xr_engine == "h5netcdf":
+    if xr_engine == "h5netcdf":
         xr_open_args.update(
             {
                 "engine": "h5netcdf",
