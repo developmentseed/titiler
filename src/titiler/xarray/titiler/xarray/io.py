@@ -1,7 +1,6 @@
 """titiler.xarray.io"""
 
-import pickle
-from typing import Any, Callable, Dict, List, Optional, Protocol
+from typing import Any, Callable, Dict, List, Optional
 from urllib.parse import urlparse
 
 import attr
@@ -12,35 +11,15 @@ from rio_tiler.constants import WEB_MERCATOR_TMS
 from rio_tiler.io.xarray import XarrayReader
 
 
-class CacheClient(Protocol):
-    """CacheClient Protocol."""
-
-    def get(self, key: str) -> bytes:
-        """Get key."""
-        ...
-
-    def set(self, key: str, body: bytes) -> None:
-        """Set key."""
-        ...
-
-
 def xarray_open_dataset(  # noqa: C901
     src_path: str,
     group: Optional[Any] = None,
     decode_times: Optional[bool] = True,
-    cache_client: Optional[CacheClient] = None,
 ) -> xarray.Dataset:
     """Open dataset."""
     import aiohttp  # noqa
     import fsspec  # noqa
     import s3fs  # noqa
-
-    # Generate cache key and attempt to fetch the dataset from cache
-    if cache_client:
-        cache_key = f"{src_path}_{group}" if group is not None else src_path
-        data_bytes = cache_client.get(cache_key)
-        if data_bytes:
-            return pickle.loads(data_bytes)
 
     parsed = urlparse(src_path)
     protocol = parsed.scheme or "file"
@@ -101,11 +80,6 @@ def xarray_open_dataset(  # noqa: C901
             )
 
         ds = xarray.open_zarr(file_handler, **xr_open_args)
-
-    if cache_client:
-        # Serialize the dataset to bytes using pickle
-        data_bytes = pickle.dumps(ds)
-        cache_client.set(cache_key, data_bytes)
 
     return ds
 
@@ -219,7 +193,6 @@ class Reader(XarrayReader):
 
     group: Optional[Any] = attr.ib(default=None)
     decode_times: bool = attr.ib(default=False)
-    cache_client: Optional[CacheClient] = attr.ib(default=None)
 
     # xarray.DataArray options
     datetime: Optional[str] = attr.ib(default=None)
@@ -238,7 +211,6 @@ class Reader(XarrayReader):
             self.src_path,
             group=self.group,
             decode_times=self.decode_times,
-            cache_client=self.cache_client,
         )
 
         self.input = get_variable(
