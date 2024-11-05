@@ -63,7 +63,7 @@ titiler/
 ## Custom Dataset Opener
 
 A default Dataset IO is provided within `titiler.xarray.Reader` class but will require optional dependencies (fsspec, zarr, h5netcdf, ...) to be installed with `python -m pip install "titiler.xarray[all]"`.
-The goal of making those dependencies optional is for the user to use their own data access process.
+Dependencies are optional so the entire package size can be optimized to only include dependencies required by a given application.
 
 ```python
 from titiler.xarray.io import Reader
