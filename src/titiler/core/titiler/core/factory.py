@@ -1178,7 +1178,7 @@ class TilerFactory(BaseFactory):
 
             return {
                 "coordinates": [lon, lat],
-                "values": pts.data.tolist(),
+                "values": pts.array.tolist(),
                 "band_names": pts.band_names,
             }
 

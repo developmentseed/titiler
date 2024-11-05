@@ -987,7 +987,7 @@ class MosaicTilerFactory(BaseFactory):
             return {
                 "coordinates": [lon, lat],
                 "values": [
-                    (src, pts.data.tolist(), pts.band_names) for src, pts in values
+                    (src, pts.array.tolist(), pts.band_names) for src, pts in values
                 ],
             }
 

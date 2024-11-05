@@ -1,6 +1,6 @@
 """TiTiler response models."""
 
-from typing import Dict, List, Union
+from typing import Dict, List, Optional, Union
 
 from geojson_pydantic.features import Feature, FeatureCollection
 from geojson_pydantic.geometries import Geometry, MultiPolygon, Polygon
@@ -19,7 +19,7 @@ class Point(BaseModel):
     """
 
     coordinates: List[float]
-    values: List[float]
+    values: List[Optional[float]]
     band_names: List[str]
 
 

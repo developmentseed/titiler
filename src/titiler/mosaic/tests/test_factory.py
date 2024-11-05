@@ -101,6 +101,25 @@ def test_MosaicTilerFactory():
             params={"url": mosaic_file},
         )
         assert response.status_code == 200
+        assert response.json()["coordinates"]
+        v = response.json()["values"]
+        assert len(v) == 1
+        values = v[0][1]
+        assert len(values) == 3
+        assert values[0]
+
+        # Masked values
+        response = client.get(
+            "/mosaic/point/-75.759,46.3847",
+            params={"url": mosaic_file},
+        )
+        assert response.status_code == 200
+        assert response.json()["coordinates"]
+        v = response.json()["values"]
+        assert len(v) == 1
+        values = v[0][1]
+        assert len(values) == 3
+        assert values[0] is None
 
         response = client.get(
             "/mosaic/point/-7903683.846322423,5780349.220256353",

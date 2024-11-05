@@ -88,6 +88,8 @@
 
 * add `gif` media type
 
+* `/point` endpoint returned masked values (`None` is nodata)
+
 ### titiler.mosaic
 
 * Rename `reader` attribute to `backend` in `MosaicTilerFactory`  **breaking change**
@@ -101,6 +103,8 @@
 * re-order endpoints parameters
 
 * add OGC Tiles `/tiles` and `/tiles/{tileMatrixSet}` endpoints
+
+* `/point` endpoint returned masked values (`None` is nodata)
 
 ### titiler.extensions
 
