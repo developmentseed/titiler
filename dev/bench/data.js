@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1730711026115,
+  "lastUpdate": 1730826304234,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -7669,6 +7669,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad longest_transaction",
             "value": 0.06,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "emmanuelferdman@gmail.com",
+            "name": "Emmanuel Ferdman",
+            "username": "emmanuel-ferdman"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e137d673d1e546f96f5a58a56a9f8bee39ed3d92",
+          "message": "update STAC reference (#1005)\n\nSigned-off-by: Emmanuel Ferdman <emmanuelferdman@gmail.com>",
+          "timestamp": "2024-11-05T18:03:36+01:00",
+          "tree_id": "ece19df587ed19e200984708a37d4b0054ff2d02",
+          "url": "https://github.com/developmentseed/titiler/commit/e137d673d1e546f96f5a58a56a9f8bee39ed3d92"
+        },
+        "date": 1730826303185,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.13,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.4,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
             "unit": "s"
           }
         ]
