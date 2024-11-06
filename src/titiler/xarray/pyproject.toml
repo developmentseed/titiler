@@ -16,6 +16,7 @@ keywords = [
     "HDF",
 ]
 classifiers = [
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Information Technology",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
