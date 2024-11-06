@@ -35,8 +35,8 @@
                 "x"
             ],
             "fill_value": 0,
-            "valid_max": 0,
-            "valid_min": 0
+            "valid_max": 1,
+            "valid_min": 1
         },
         "0/x/.zarray": {
             "chunks": [
@@ -120,8 +120,8 @@
                 "x"
             ],
             "fill_value": 0,
-            "valid_max": 2,
-            "valid_min": 2
+            "valid_max": 3,
+            "valid_min": 3
         },
         "1/x/.zarray": {
             "chunks": [
@@ -205,8 +205,8 @@
                 "x"
             ],
             "fill_value": 0,
-            "valid_max": 4,
-            "valid_min": 4
+            "valid_max": 5,
+            "valid_min": 5
         },
         "2/x/.zarray": {
             "chunks": [

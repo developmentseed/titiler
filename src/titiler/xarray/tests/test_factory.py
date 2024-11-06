@@ -319,10 +319,10 @@ def test_zarr_group(group, app):
     with MemoryFile(resp.content) as mem:
         with mem.open() as dst:
             arr = dst.read(1)
-            assert arr.max() == group * 2
+            assert arr.max() == group * 2 + 1
 
     resp = app.get(
         "/md/point/0,0",
         params={"url": zarr_pyramid, "variable": "dataset", "group": group},
     )
-    assert resp.json()["values"] == [group * 2]
+    assert resp.json()["values"] == [group * 2 + 1]

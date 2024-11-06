@@ -138,4 +138,4 @@ def test_zarr_group(group):
     with Reader(src_path, variable="dataset", group=group) as src:
         assert src.info()
         assert src.tile(0, 0, 0)
-        assert src.point(0, 0).data[0] == group * 2
+        assert src.point(0, 0).data[0] == group * 2 + 1
