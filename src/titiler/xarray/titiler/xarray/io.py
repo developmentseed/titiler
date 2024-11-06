@@ -99,9 +99,9 @@ def _arrange_dims(da: xarray.DataArray) -> xarray.DataArray:
                 name for name in ["lat", "latitude", "LAT", "LATITUDE", "Lat"] if name in da.dims
             )
             longitude_var_name = next(
-                x
-                for x in ["lon", "longitude", "LON", "LONGITUDE", "Lon"]
-                if x in da.dims
+                name
+                for name in ["lon", "longitude", "LON", "LONGITUDE", "Lon"]
+                if name in da.dims
             )
         except StopIteration as e:
             raise ValueError(f"Couldn't find X/Y dimensions in {da.dims}") from e
