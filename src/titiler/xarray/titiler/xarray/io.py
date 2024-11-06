@@ -111,8 +111,8 @@ def _arrange_dims(da: xarray.DataArray) -> xarray.DataArray:
     if "TIME" in da.dims:
         da = da.rename({"TIME": "time"})
 
-    if _dims := [d for d in da.dims if d not in ["x", "y"]]:
-        da = da.transpose(*_dims, "y", "x")
+    if extra_dims := [d for d in da.dims if d not in ["x", "y"]]:
+        da = da.transpose(*extra_dims, "y", "x")
     else:
         da = da.transpose("y", "x")
 
