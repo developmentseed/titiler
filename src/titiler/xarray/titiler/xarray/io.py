@@ -96,7 +96,7 @@ def _arrange_dims(da: xarray.DataArray) -> xarray.DataArray:
     if "x" not in da.dims and "y" not in da.dims:
         try:
             latitude_var_name = next(
-                x for x in ["lat", "latitude", "LAT", "LATITUDE", "Lat"] if x in da.dims
+                name for name in ["lat", "latitude", "LAT", "LATITUDE", "Lat"] if name in da.dims
             )
             longitude_var_name = next(
                 x
