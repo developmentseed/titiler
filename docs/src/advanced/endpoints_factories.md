@@ -7,8 +7,9 @@ TiTiler's endpoints factories are helper functions that let users create a FastA
 
     Factories classes use [dependencies injection](dependencies.md) to define most of the endpoint options.
 
+## titiler.core
 
-## BaseFactory
+### BaseFactory
 
 class: `titiler.core.factory.BaseFactory`
 
@@ -27,7 +28,7 @@ Most **Factories** are built from this [abstract based class](https://docs.pytho
 - **url_for**: Method to construct endpoint URL
 - **add_route_dependencies**: Add dependencies to routes.
 
-## TilerFactory
+### TilerFactory
 
 class: `titiler.core.factory.TilerFactory`
 
@@ -40,7 +41,7 @@ Factory meant to create endpoints for single dataset using [*rio-tiler*'s `Reade
 - **path_dependency**: Dependency to use to define the dataset url. Defaults to `titiler.core.dependencies.DatasetPathParams`.
 - **layer_dependency**: Dependency to define band indexes or expression. Defaults to `titiler.core.dependencies.BidxExprParams`.
 - **dataset_dependency**: Dependency to overwrite `nodata` value, apply `rescaling` and change the `I/O` or `Warp` resamplings. Defaults to `titiler.core.dependencies.DatasetParams`.
-- **tile_dependency**: Dependency to defile `buffer` and `padding` to apply at tile creation. Defaults to `titiler.core.dependencies.TileParams`.
+- **tile_dependency**: Dependency to define `buffer` and `padding` to apply at tile creation. Defaults to `titiler.core.dependencies.TileParams`.
 - **stats_dependency**: Dependency to define options for *rio-tiler*'s statistics method used in `/statistics` endpoints. Defaults to `titiler.core.dependencies.StatisticsParams`.
 - **histogram_dependency**: Dependency to define *numpy*'s histogram options used in `/statistics` endpoints. Defaults to `titiler.core.dependencies.HistogramParams`.
 - **img_preview_dependency**: Dependency to define image size for `/preview` and `/statistics` endpoints. Defaults to `titiler.core.dependencies.PreviewParams`.
@@ -50,7 +51,7 @@ Factory meant to create endpoints for single dataset using [*rio-tiler*'s `Reade
 - **color_formula_dependency**: Dependency to define the Color Formula. Defaults to `titiler.core.dependencies.ColorFormulaParams`.
 - **colormap_dependency**: Dependency to define the Colormap options. Defaults to `titiler.core.dependencies.ColorMapParams`
 - **render_dependency**: Dependency to control output image rendering options. Defaults to `titiler.core.dependencies.ImageRenderingParams`
-- **environment_dependency**: Dependency to defile GDAL environment at runtime. Default to `lambda: {}`.
+- **environment_dependency**: Dependency to define GDAL environment at runtime. Default to `lambda: {}`.
 - **supported_tms**: List of available TileMatrixSets. Defaults to `morecantile.tms`.
 - **templates**: *Jinja2* templates to use in endpoints. Defaults to `titiler.core.factory.DEFAULT_TEMPLATES`.
 - **add_preview**: . Add `/preview` endpoint to the router. Defaults to `True`.
@@ -97,7 +98,7 @@ app.include_router(cog.router)
 | `POST` | `/feature[/{width}x{height}][.{format}]`                        | image/bin                                   | create an image from a GeoJSON feature **Optional**
 
 
-## MultiBaseTilerFactory
+### MultiBaseTilerFactory
 
 class: `titiler.core.factory.MultiBaseTilerFactory`
 
@@ -143,8 +144,7 @@ app.include_router(stac.router)
 | `GET`  | `/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                        | create an image from part of assets **Optional**
 | `POST` | `/feature[/{width}x{height}][.{format}]`                        | image/bin                                        | create an image from a geojson feature intersecting assets **Optional**
 
-
-## MultiBandTilerFactory
+### MultiBandTilerFactory
 
 class: `titiler.core.factory.MultiBandTilerFactory`
 
@@ -201,56 +201,7 @@ app.include_router(landsat.router)
 | `POST` | `/feature[/{width}x{height}][.{format}]`                        | image/bin                                    | create an image from a geojson feature **Optional**
 
 
-## MosaicTilerFactory
-
-class: `titiler.mosaic.factory.MosaicTilerFactory`
-
-Endpoints factory for mosaics, built on top of [MosaicJSON](https://github.com/developmentseed/mosaicjson-spec).
-
-#### Attributes
-
-- **backend**: `cogeo_mosaic.backends.BaseBackend` Mosaic backend. Defaults to `cogeo_mosaic.backend.MosaicBackend`.
-- **backend_dependency**: Dependency to control options passed to the backend instance init. Defaults to `titiler.core.dependencies.DefaultDependency`
-- **dataset_reader**: Dataset Reader. Defaults to `rio_tiler.io.Reader`
-- **reader_dependency**: Dependency to control options passed to the reader instance init. Defaults to `titiler.core.dependencies.DefaultDependency`
-- **path_dependency**: Dependency to use to define the dataset url. Defaults to `titiler.mosaic.factory.DatasetPathParams`.
-- **layer_dependency**: Dependency to define band indexes or expression. Defaults to `titiler.core.dependencies.BidxExprParams`.
-- **dataset_dependency**: Dependency to overwrite `nodata` value, apply `rescaling` and change the `I/O` or `Warp` resamplings. Defaults to `titiler.core.dependencies.DatasetParams`.
-- **tile_dependency**: Dependency to defile `buffer` and `padding` to apply at tile creation. Defaults to `titiler.core.dependencies.TileParams`.
-- **process_dependency**: Dependency to control which `algorithm` to apply to the data. Defaults to `titiler.core.algorithm.algorithms.dependency`.
-- **rescale_dependency**: Dependency to set Min/Max values to rescale from, to 0 -> 255. Defaults to `titiler.core.dependencies.RescalingParams`.
-- **color_formula_dependency**: Dependency to define the Color Formula. Defaults to `titiler.core.dependencies.ColorFormulaParams`.
-- **colormap_dependency**: Dependency to define the Colormap options. Defaults to `titiler.core.dependencies.ColorMapParams`
-- **render_dependency**: Dependency to control output image rendering options. Defaults to `titiler.core.dependencies.ImageRenderingParams`
-- **pixel_selection_dependency**: Dependency to select the `pixel_selection` method. Defaults to `titiler.mosaic.factory.PixelSelectionParams`.
-- **environment_dependency**: Dependency to defile GDAL environment at runtime. Default to `lambda: {}`.
-- **supported_tms**: List of available TileMatrixSets. Defaults to `morecantile.tms`.
-- **supported_tms**: List of available TileMatrixSets. Defaults to `morecantile.tms`.
-- **templates**: *Jinja2* templates to use in endpoints. Defaults to `titiler.core.factory.DEFAULT_TEMPLATES`.
-- **optional_headers**: List of OptionalHeader which endpoints could add (if implemented). Defaults to `[]`.
-- **add_viewer**: . Add `/map` endpoints to the router. Defaults to `True`.
-
-#### Endpoints
-
-| Method | URL                                                             | Output                                             | Description
-| ------ | --------------------------------------------------------------- |--------------------------------------------------- |--------------
-| `GET`  | `/`                                                             | JSON [MosaicJSON][mosaic_model]                    | return a MosaicJSON document
-| `GET`  | `/bounds`                                                       | JSON ([Bounds][bounds_model])                      | return mosaic's bounds
-| `GET`  | `/info`                                                         | JSON ([Info][mosaic_info_model])                   | return mosaic's basic info
-| `GET`  | `/info.geojson`                                                 | GeoJSON ([InfoGeoJSON][mosaic_geojson_info_model]) | return mosaic's basic info  as a GeoJSON feature
-| `GET`  | `/tiles`                                                        | JSON                                               | List of OGC Tilesets available
-| `GET`  | `/tiles/{tileMatrixSetId}`                                      | JSON                                               | OGC Tileset metadata
-| `GET`  | `/tiles/{tileMatrixSetId}/{z}/{x}/{y}[@{scale}x][.{format}]`    | image/bin                                          | create a web map tile image from a MosaicJSON
-| `GET`  | `/{tileMatrixSetId}/map`                                        | HTML                                               | return a simple map viewer **Optional**
-| `GET`  | `/{tileMatrixSetId}/tilejson.json`                              | JSON ([TileJSON][tilejson_model])                  | return a Mapbox TileJSON document
-| `GET`  | `/{tileMatrixSetId}/WMTSCapabilities.xml`                       | XML                                                | return OGC WMTS Get Capabilities
-| `GET`  | `/point/{lon},{lat}`                                            | JSON ([Point][mosaic_point])                       | return pixel value from a MosaicJSON dataset
-| `GET`  | `/{z}/{x}/{y}/assets`                                           | JSON                                               | return list of assets intersecting a XYZ tile
-| `GET`  | `/{lon},{lat}/assets`                                           | JSON                                               | return list of assets intersecting a point
-| `GET`  | `/{minx},{miny},{maxx},{maxy}/assets`                           | JSON                                               | return list of assets intersecting a bounding box
-
-
-## TMSFactory
+### TMSFactory
 
 class: `titiler.core.factory.TMSFactory`
 
@@ -278,7 +229,7 @@ app.include_router(tms.router)
 | `GET`  | `/tileMatrixSets/{tileMatrixSetId}`   | JSON ([TileMatrixSet][tilematrixset])          | retrieve the definition of the specified tiling scheme (tile matrix set)
 
 
-## AlgorithmFactory
+### AlgorithmFactory
 
 class: `titiler.core.factory.AlgorithmFactory`
 
@@ -306,7 +257,7 @@ app.include_router(algo.router)
 | `GET`  | `/algorithms/{algorithmId}`  | JSON ([Algorithm Metadata][algorithm_metadata])                    | retrieve the metadata of the specified algorithm.
 
 
-## ColorMapFactory
+### ColorMapFactory
 
 class: `titiler.core.factory.ColorMapFactory`
 
@@ -333,6 +284,121 @@ app.include_router(colormap.router)
 | `GET`  | `/colorMaps`                 | JSON ([colorMapList][colormap_list])  | retrieve the list of available colorMaps
 | `GET`  | `/colorMaps/{colorMapId}`    | JSON ([colorMap][colormap])           | retrieve the metadata or image of the specified colorMap.
 
+
+## titiler.mosaic
+
+### MosaicTilerFactory
+
+class: `titiler.mosaic.factory.MosaicTilerFactory`
+
+Endpoints factory for mosaics, built on top of [MosaicJSON](https://github.com/developmentseed/mosaicjson-spec).
+
+#### Attributes
+
+- **backend**: `cogeo_mosaic.backends.BaseBackend` Mosaic backend. Defaults to `cogeo_mosaic.backend.MosaicBackend`.
+- **backend_dependency**: Dependency to control options passed to the backend instance init. Defaults to `titiler.core.dependencies.DefaultDependency`
+- **dataset_reader**: Dataset Reader. Defaults to `rio_tiler.io.Reader`
+- **reader_dependency**: Dependency to control options passed to the reader instance init. Defaults to `titiler.core.dependencies.DefaultDependency`
+- **path_dependency**: Dependency to use to define the dataset url. Defaults to `titiler.mosaic.factory.DatasetPathParams`.
+- **layer_dependency**: Dependency to define band indexes or expression. Defaults to `titiler.core.dependencies.BidxExprParams`.
+- **dataset_dependency**: Dependency to overwrite `nodata` value, apply `rescaling` and change the `I/O` or `Warp` resamplings. Defaults to `titiler.core.dependencies.DatasetParams`.
+- **tile_dependency**: Dependency to define `buffer` and `padding` to apply at tile creation. Defaults to `titiler.core.dependencies.TileParams`.
+- **process_dependency**: Dependency to control which `algorithm` to apply to the data. Defaults to `titiler.core.algorithm.algorithms.dependency`.
+- **rescale_dependency**: Dependency to set Min/Max values to rescale from, to 0 -> 255. Defaults to `titiler.core.dependencies.RescalingParams`.
+- **color_formula_dependency**: Dependency to define the Color Formula. Defaults to `titiler.core.dependencies.ColorFormulaParams`.
+- **colormap_dependency**: Dependency to define the Colormap options. Defaults to `titiler.core.dependencies.ColorMapParams`
+- **render_dependency**: Dependency to control output image rendering options. Defaults to `titiler.core.dependencies.ImageRenderingParams`
+- **pixel_selection_dependency**: Dependency to select the `pixel_selection` method. Defaults to `titiler.mosaic.factory.PixelSelectionParams`.
+- **environment_dependency**: Dependency to define GDAL environment at runtime. Default to `lambda: {}`.
+- **supported_tms**: List of available TileMatrixSets. Defaults to `morecantile.tms`.
+- **supported_tms**: List of available TileMatrixSets. Defaults to `morecantile.tms`.
+- **templates**: *Jinja2* templates to use in endpoints. Defaults to `titiler.core.factory.DEFAULT_TEMPLATES`.
+- **optional_headers**: List of OptionalHeader which endpoints could add (if implemented). Defaults to `[]`.
+- **add_viewer**: . Add `/map` endpoints to the router. Defaults to `True`.
+
+#### Endpoints
+
+| Method | URL                                                             | Output                                             | Description
+| ------ | --------------------------------------------------------------- |--------------------------------------------------- |--------------
+| `GET`  | `/`                                                             | JSON [MosaicJSON][mosaic_model]                    | return a MosaicJSON document
+| `GET`  | `/bounds`                                                       | JSON ([Bounds][bounds_model])                      | return mosaic's bounds
+| `GET`  | `/info`                                                         | JSON ([Info][mosaic_info_model])                   | return mosaic's basic info
+| `GET`  | `/info.geojson`                                                 | GeoJSON ([InfoGeoJSON][mosaic_geojson_info_model]) | return mosaic's basic info  as a GeoJSON feature
+| `GET`  | `/tiles`                                                        | JSON                                               | List of OGC Tilesets available
+| `GET`  | `/tiles/{tileMatrixSetId}`                                      | JSON                                               | OGC Tileset metadata
+| `GET`  | `/tiles/{tileMatrixSetId}/{z}/{x}/{y}[@{scale}x][.{format}]`    | image/bin                                          | create a web map tile image from a MosaicJSON
+| `GET`  | `/{tileMatrixSetId}/map`                                        | HTML                                               | return a simple map viewer **Optional**
+| `GET`  | `/{tileMatrixSetId}/tilejson.json`                              | JSON ([TileJSON][tilejson_model])                  | return a Mapbox TileJSON document
+| `GET`  | `/{tileMatrixSetId}/WMTSCapabilities.xml`                       | XML                                                | return OGC WMTS Get Capabilities
+| `GET`  | `/point/{lon},{lat}`                                            | JSON ([Point][mosaic_point])                       | return pixel value from a MosaicJSON dataset
+| `GET`  | `/{z}/{x}/{y}/assets`                                           | JSON                                               | return list of assets intersecting a XYZ tile
+| `GET`  | `/{lon},{lat}/assets`                                           | JSON                                               | return list of assets intersecting a point
+| `GET`  | `/{minx},{miny},{maxx},{maxy}/assets`                           | JSON                                               | return list of assets intersecting a bounding box
+
+## titiler.xarray
+
+### TilerFactory
+
+class: `titiler.xarray.factory.TilerFactory`
+
+#### Attributes
+
+- **reader**: Dataset Reader **required**.
+- **path_dependency**: Dependency to use to define the dataset url. Defaults to `titiler.core.dependencies.DatasetPathParams`.
+- **reader_dependency**: Dependency to control options passed to the reader instance init. Defaults to `titiler.xarray.dependencies.XarrayParams`
+- **layer_dependency**: Dependency to define band indexes or expression. Defaults to `titiler.core.dependencies.DefaultDependency`.
+- **dataset_dependency**: Dependency to overwrite `nodata` value and change the `Warp` resamplings. Defaults to `titiler.xarray.dependencies.DatasetParams`.
+- **tile_dependency**: Dependency for tile creation options. Defaults to `titiler.core.dependencies.DefaultDependency`.
+- **stats_dependency**: Dependency to define options for *rio-tiler*'s statistics method used in `/statistics` endpoints. Defaults to `titiler.core.dependencies.StatisticsParams`.
+- **histogram_dependency**: Dependency to define *numpy*'s histogram options used in `/statistics` endpoints. Defaults to `titiler.core.dependencies.HistogramParams`.
+- **img_part_dependency**: Dependency to define image size for `/bbox` and `/feature` endpoints. Defaults to `titiler.xarray.dependencies.PartFeatureParams`.
+- **process_dependency**: Dependency to control which `algorithm` to apply to the data. Defaults to `titiler.core.algorithm.algorithms.dependency`.
+- **rescale_dependency**: Dependency to set Min/Max values to rescale from, to 0 -> 255. Defaults to `titiler.core.dependencies.RescalingParams`.
+- **color_formula_dependency**: Dependency to define the Color Formula. Defaults to `titiler.core.dependencies.ColorFormulaParams`.
+- **colormap_dependency**: Dependency to define the Colormap options. Defaults to `titiler.core.dependencies.ColorMapParams`
+- **render_dependency**: Dependency to control output image rendering options. Defaults to `titiler.core.dependencies.ImageRenderingParams`
+- **environment_dependency**: Dependency to define GDAL environment at runtime. Default to `lambda: {}`.
+- **supported_tms**: List of available TileMatrixSets. Defaults to `morecantile.tms`.
+- **templates**: *Jinja2* templates to use in endpoints. Defaults to `titiler.core.factory.DEFAULT_TEMPLATES`.
+- **add_part**: . Add `/bbox` and `/feature` endpoints to the router. Defaults to `True`.
+- **add_viewer**: . Add `/map` endpoints to the router. Defaults to `True`.
+
+
+```python
+from fastapi import FastAPI
+
+from titiler.xarray.factory import TilerFactory
+
+# Create FastAPI application
+app = FastAPI()
+
+# Create router and register set of endpoints
+md = TilerFactory(
+    add_part=True,
+    add_viewer=True,
+)
+
+# add router endpoint to the main application
+app.include_router(md.router)
+```
+
+#### Endpoints
+
+| Method | URL                                                             | Output                                      | Description
+| ------ | --------------------------------------------------------------- |-------------------------------------------- |--------------
+| `GET`  | `/bounds`                                                       | JSON ([Bounds][bounds_model])               | return dataset's bounds
+| `GET`  | `/info`                                                         | JSON ([Info][info_model])                   | return dataset's basic info
+| `GET`  | `/info.geojson`                                                 | GeoJSON ([InfoGeoJSON][info_geojson_model]) | return dataset's basic info as a GeoJSON feature
+| `POST` | `/statistics`                                                   | GeoJSON ([Statistics][stats_geojson_model]) | return dataset's statistics for a GeoJSON
+| `GET`  | `/tiles`                                                        | JSON                                        | List of OGC Tilesets available
+| `GET`  | `/tiles/{tileMatrixSetId}`                                      | JSON                                        | OGC Tileset metadata
+| `GET`  | `/tiles/{tileMatrixSetId}/{z}/{x}/{y}[@{scale}x][.{format}]`    | image/bin                                   | create a web map tile image from a dataset
+| `GET`  | `/{tileMatrixSetId}/map`                                        | HTML                                        | return a simple map viewer **Optional**
+| `GET`  | `/{tileMatrixSetId}/tilejson.json`                              | JSON ([TileJSON][tilejson_model])           | return a Mapbox TileJSON document
+| `GET`  | `/{tileMatrixSetId}/WMTSCapabilities.xml`                       | XML                                         | return OGC WMTS Get Capabilities
+| `GET`  | `/point/{lon},{lat}`                                            | JSON ([Point][point_model])                 | return pixel values from a dataset
+| `GET`  | `/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                   | create an image from part of a dataset **Optional**
+| `POST` | `/feature[/{width}x{height}][.{format}]`                        | image/bin                                   | create an image from a GeoJSON feature **Optional**
 
 
 [bounds_model]: https://github.com/cogeotiff/rio-tiler/blob/9aaa88000399ee8d36e71d176f67b6ea3ec53f2d/rio_tiler/models.py#L43-L46

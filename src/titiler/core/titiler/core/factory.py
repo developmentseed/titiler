@@ -1277,7 +1277,7 @@ class TilerFactory(BaseFactory):
         ):
             """Create image from a bbox."""
             with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params) as src_dst:
+                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     image = src_dst.part(
                         [minx, miny, maxx, maxy],
                         dst_crs=dst_crs,
