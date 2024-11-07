@@ -32,6 +32,7 @@ classifiers = [
 version="0.19.0.dev"
 dependencies = [
     "titiler.core==0.19.0.dev",
+    "titiler.xarray==0.19.0.dev",
     "titiler.extensions==0.19.0.dev",
     "titiler.mosaic==0.19.0.dev",
     "titiler.application==0.19.0.dev",
@@ -170,6 +171,12 @@ filename = "pyproject.toml"
 search = 'titiler.core=={current_version}'
 replace = 'titiler.core=={new_version}'
 
+# xarray
+[[tool.bumpversion.files]]
+filename = "pyproject.toml"
+search = 'titiler.xarray=={current_version}'
+replace = 'titiler.xarray=={new_version}'
+
 # extensions
 [[tool.bumpversion.files]]
 filename = "pyproject.toml"
@@ -196,6 +203,12 @@ filename = "src/titiler/core/titiler/core/__init__.py"
 search = '__version__ = "{current_version}"'
 replace = '__version__ = "{new_version}"'
 
+# titiler.xarray
+[[tool.bumpversion.files]]
+filename = "src/titiler/xarray/titiler/xarray/__init__.py"
+search = '__version__ = "{current_version}"'
+replace = '__version__ = "{new_version}"'
+
 # titiler.extensions
 [[tool.bumpversion.files]]
 filename = "src/titiler/extensions/titiler/extensions/__init__.py"
@@ -216,16 +229,25 @@ replace = '__version__ = "{new_version}"'
 
 ###############################################################################
 # Update sub modules dependencies
+# titiler.xarray
+[[tool.bumpversion.files]]
+filename = "src/titiler/xarray/pyproject.toml"
+search = 'titiler.core=={current_version}'
+replace = 'titiler.core=={new_version}'
+
+# titiler.extensions
 [[tool.bumpversion.files]]
 filename = "src/titiler/extensions/pyproject.toml"
 search = 'titiler.core=={current_version}'
 replace = 'titiler.core=={new_version}'
 
+# titiler.mosaic
 [[tool.bumpversion.files]]
 filename = "src/titiler/mosaic/pyproject.toml"
 search = 'titiler.core=={current_version}'
 replace = 'titiler.core=={new_version}'
 
+# titiler.application
 [[tool.bumpversion.files]]
 filename = "src/titiler/application/pyproject.toml"
 search = 'titiler.core=={current_version}'
@@ -241,7 +263,8 @@ filename = "src/titiler/application/pyproject.toml"
 search = 'titiler.mosaic=={current_version}'
 replace = 'titiler.mosaic=={new_version}'
 
-# deployment files
+###############################################################################
+# Others
 [[tool.bumpversion.files]]
 filename = "deployment/aws/lambda/Dockerfile"
 search = 'titiler.application=={current_version}'
