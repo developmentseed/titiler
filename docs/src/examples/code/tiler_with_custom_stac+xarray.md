@@ -2,6 +2,7 @@
 **Goal**: Create a custom STAC Reader supporting both COG and NetCDF/Zarr dataset
 
 **requirements**:
+
 - `titiler.core`
 - `titiler.xarray`
 - `fsspec`
