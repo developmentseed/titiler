@@ -1,0 +1,1 @@
+../../../src/titiler/core/README.md

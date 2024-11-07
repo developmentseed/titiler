@@ -5,14 +5,14 @@ Core of Titiler's application. Contains blocks to create dynamic tile servers.
 ## Installation
 
 ```bash
-$ python -m pip install -U pip
+python -m pip install -U pip
 
 # From Pypi
-$ python -m pip install titiler.core
+python -m pip install titiler.core
 
 # Or from sources
-$ git clone https://github.com/developmentseed/titiler.git
-$ cd titiler && python -m pip install -e src/titiler/core
+git clone https://github.com/developmentseed/titiler.git
+cd titiler && python -m pip install -e src/titiler/core
 ```
 
 ## How To
