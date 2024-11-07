@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1730829434051,
+  "lastUpdate": 1730974349626,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -7772,6 +7772,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.45,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "vincent.sarago@gmail.com",
+            "name": "Vincent Sarago",
+            "username": "vincentsarago"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d33d60a6e43026fed1f4e652bff488f28e63f7fa",
+          "message": "Add Xarray sub-package  (#1013)\n\n* sketch\r\n\r\n* add tests\r\n\r\n* add pyramid tests\r\n\r\n* remove multiscale option\r\n\r\n* Update src/titiler/xarray/tests/test_factory.py\r\n\r\nCo-authored-by: Henry Rodman <henry.rodman@gmail.com>\r\n\r\n* use xarray.open_zarr and make aiohttp and s3fs optional (#1016)\r\n\r\n* use xarray.open_zarr and make aiohttp and s3fs optional\r\n\r\n* add support for references\r\n\r\n* tests prefixed protocol\r\n\r\n* use tmp_dir for reference\r\n\r\n* add parquet support\r\n\r\n* remove kerchunk support\r\n\r\n* create variable extension\r\n\r\n* add aiohttp\r\n\r\n* remove cache layer (#1019)\r\n\r\n* remove cache layer\r\n\r\n* Update src/titiler/xarray/README.md\r\n\r\nCo-authored-by: Aimee Barciauskas <aimee@developmentseed.org>\r\n\r\n* add tile example\r\n\r\n---------\r\n\r\nCo-authored-by: Aimee Barciauskas <aimee@developmentseed.org>\r\n\r\n* Update src/titiler/xarray/titiler/xarray/io.py\r\n\r\nCo-authored-by: Jonas <j08lue@gmail.com>\r\n\r\n* Update src/titiler/xarray/titiler/xarray/io.py\r\n\r\nCo-authored-by: Jonas <j08lue@gmail.com>\r\n\r\n* Update src/titiler/xarray/titiler/xarray/io.py\r\n\r\nCo-authored-by: Jonas <j08lue@gmail.com>\r\n\r\n* lint\r\n\r\n* fix zarr pyramid tests\r\n\r\n* Update src/titiler/xarray/pyproject.toml\r\n\r\nCo-authored-by: Max Jones <14077947+maxrjones@users.noreply.github.com>\r\n\r\n* refactor dependencies\r\n\r\n* update docs\r\n\r\n---------\r\n\r\nCo-authored-by: Henry Rodman <henry.rodman@gmail.com>\r\nCo-authored-by: Aimee Barciauskas <aimee@developmentseed.org>\r\nCo-authored-by: Jonas <j08lue@gmail.com>\r\nCo-authored-by: Max Jones <14077947+maxrjones@users.noreply.github.com>",
+          "timestamp": "2024-11-07T11:11:06+01:00",
+          "tree_id": "4bf8f55677c8ced7739c261fb1eafe5a66d5d0b3",
+          "url": "https://github.com/developmentseed/titiler/commit/d33d60a6e43026fed1f4e652bff488f28e63f7fa"
+        },
+        "date": 1730974348459,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.1,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.29,
             "unit": "s"
           },
           {
