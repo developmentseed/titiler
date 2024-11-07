@@ -311,7 +311,7 @@ def test_zarr_group(group, app):
     """Test /tiles endpoints."""
     resp = app.get(
         f"/md/tiles/WebMercatorQuad/{group}/0/0.tif",
-        params={"url": zarr_pyramid, "variable": "dataset", "group": group},
+        params={"url": zarr_pyramid, "variable": "dataset", "group": str(group)},
     )
     assert resp.status_code == 200
     # see src/titiler/xarray/tests/fixtures/generate_fixtures.ipynb
@@ -323,6 +323,6 @@ def test_zarr_group(group, app):
 
     resp = app.get(
         "/md/point/0,0",
-        params={"url": zarr_pyramid, "variable": "dataset", "group": group},
+        params={"url": zarr_pyramid, "variable": "dataset", "group": str(group)},
     )
     assert resp.json()["values"] == [group * 2 + 1]

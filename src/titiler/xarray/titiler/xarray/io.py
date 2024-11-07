@@ -13,25 +13,75 @@ from rio_tiler.io.xarray import XarrayReader
 
 def xarray_open_dataset(  # noqa: C901
     src_path: str,
-    group: Optional[Any] = None,
-    decode_times: Optional[bool] = True,
+    group: Optional[str] = None,
+    decode_times: bool = True,
 ) -> xarray.Dataset:
-    """Open dataset."""
-    import aiohttp  # noqa
+    """Open Xarray dataset with fsspec.
+
+    Args:
+        src_path (str): dataset path.
+        group (Optional, str): path to the netCDF/Zarr group in the given file to open given as a str.
+        decode_times (bool):  If True, decode times encoded in the standard NetCDF datetime format into datetime objects. Otherwise, leave them encoded as numbers.
+
+    Returns:
+        xarray.Dataset
+
+    """
     import fsspec  # noqa
-    import s3fs  # noqa
+
+    try:
+        import gcsfs
+    except ImportError:  # pragma: nocover
+        gcsfs = None  # type: ignore
+
+    try:
+        import s3fs
+    except ImportError:  # pragma: nocover
+        s3fs = None  # type: ignore
+
+    try:
+        import aiohttp
+    except ImportError:  # pragma: nocover
+        aiohttp = None  # type: ignore
+
+    try:
+        import h5netcdf
+    except ImportError:  # pragma: nocover
+        h5netcdf = None  # type: ignore
+
+    try:
+        import zarr
+    except ImportError:  # pragma: nocover
+        zarr = None  # type: ignore
 
     parsed = urlparse(src_path)
     protocol = parsed.scheme or "file"
-    if protocol not in ["s3", "https", "http", "file"]:
-        raise ValueError(f"Unsupported protocol: {protocol}")
 
     if any(src_path.lower().endswith(ext) for ext in [".nc", ".nc4"]):
+        assert (
+            h5netcdf is not None
+        ), "'h5netcdf' must be installed to read NetCDF dataset"
+
         xr_engine = "h5netcdf"
+
     else:
+        assert zarr is not None, "'zarr' must be installed to read Zarr dataset"
+
         xr_engine = "zarr"
 
-    if protocol == "s3":
+    if protocol in ["", "file"]:
+        filesystem = fsspec.filesystem(protocol)  # type: ignore
+        file_handler = (
+            filesystem.open(src_path)
+            if xr_engine == "h5netcdf"
+            else filesystem.get_mapper(src_path)
+        )
+
+    elif protocol == "s3":
+        assert (
+            s3fs is not None
+        ), "'aiohttp' must be installed to read dataset stored online"
+
         s3_filesystem = s3fs.S3FileSystem()
         file_handler = (
             s3_filesystem.open(src_path)
@@ -39,13 +89,32 @@ def xarray_open_dataset(  # noqa: C901
             else s3fs.S3Map(root=src_path, s3=s3_filesystem)
         )
 
-    else:
+    elif protocol == "gs":
+        assert (
+            gcsfs is not None
+        ), "'gcsfs' must be installed to read dataset stored in Google Cloud Storage"
+
+        gcs_filesystem = gcsfs.GCSFileSystem()
+        file_handler = (
+            gcs_filesystem.open(src_path)
+            if xr_engine == "h5netcdf"
+            else gcs_filesystem.get_mapper(root=src_path)
+        )
+
+    elif protocol in ["http", "https"]:
+        assert (
+            aiohttp is not None
+        ), "'aiohttp' must be installed to read dataset stored online"
+
         filesystem = fsspec.filesystem(protocol)  # type: ignore
         file_handler = (
             filesystem.open(src_path)
             if xr_engine == "h5netcdf"
             else filesystem.get_mapper(src_path)
         )
+
+    else:
+        raise ValueError(f"Unsupported protocol: {protocol}, for {src_path}")
 
     # Arguments for xarray.open_dataset
     # Default args
@@ -71,14 +140,6 @@ def xarray_open_dataset(  # noqa: C901
 
     # Fallback to Zarr
     else:
-        if protocol == "reference":
-            xr_open_args.update(
-                {
-                    "consolidated": False,
-                    "backend_kwargs": {"consolidated": False},
-                }
-            )
-
         ds = xarray.open_zarr(file_handler, **xr_open_args)
 
     return ds
@@ -193,8 +254,8 @@ class Reader(XarrayReader):
     # xarray.Dataset options
     opener: Callable[..., xarray.Dataset] = attr.ib(default=xarray_open_dataset)
 
-    group: Optional[Any] = attr.ib(default=None)
-    decode_times: bool = attr.ib(default=False)
+    group: Optional[str] = attr.ib(default=None)
+    decode_times: bool = attr.ib(default=True)
 
     # xarray.DataArray options
     datetime: Optional[str] = attr.ib(default=None)

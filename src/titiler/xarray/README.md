@@ -5,15 +5,27 @@ Adds support for Xarray Dataset (NetCDF/Zarr) in Titiler.
 ## Installation
 
 ```bash
-$ python -m pip install -U pip
+python -m pip install -U pip
 
 # From Pypi
-$ python -m pip install "titiler.xarray[all]"
+python -m pip install "titiler.xarray[full]"
 
 # Or from sources
-$ git clone https://github.com/developmentseed/titiler.git
-$ cd titiler && python -m pip install -e src/titiler/core -e "src/titiler/xarray[all]"
+git clone https://github.com/developmentseed/titiler.git
+cd titiler && python -m pip install -e src/titiler/core -e "src/titiler/xarray[full]"
 ```
+
+#### Installation options
+
+Default installation for `titiler.xarray` DOES NOT include `fsspec` or any storage's specific dependencies (e.g `s3fs`) nor `engine` dependencies (`zarr`, `h5netcdf`). This is to ease the customization and deployment of user's applications. If you want to use the default's dataset reader you will need to at least use the `[minimal]` dependencies (e.g `python -m pip install "titiler.xarray[minimal]"`).
+
+Here is the list of available options:
+
+- **full**: `zarr`, `h5netcdf`,  `fsspec`, `s3fs`, `aiohttp`, `gcsfs`
+- **minimal**: `zarr`, `h5netcdf`,  `fsspec`
+- **gcs**: `gcsfs`
+- **s3**: `s3fs`
+- **http**: `aiohttp`
 
 ## How To
 
@@ -62,27 +74,47 @@ titiler/
 
 ## Custom Dataset Opener
 
-A default Dataset IO is provided within `titiler.xarray.Reader` class but will require optional dependencies (fsspec, zarr, h5netcdf, ...) to be installed with `python -m pip install "titiler.xarray[all]"`.
+A default Dataset IO is provided within `titiler.xarray.Reader` class but will require optional dependencies (`fsspec`, `zarr`, `h5netcdf`, ...) to be installed with `python -m pip install "titiler.xarray[full]"`.
 Dependencies are optional so the entire package size can be optimized to only include dependencies required by a given application.
 
+Example:
+
+**requirements**:
+- `titiler.xarray` (base)
+- `h5netcdf`
+
+
 ```python
+from typing import Callable
+import attr
+from fastapi import FastAPI
 from titiler.xarray.io import Reader
+from titiler.xarray.extensions import VariablesExtension
+from titiler.xarray.factory import TilerFactory
 
 import xarray
 import h5netcdf  # noqa
 
-with Reader(
-    "tests/fixtures/dataset_2d.nc",
-    "dataset",
-    opener=xarray.open_dataset,
-) as src:
-    print(src.ds)
+# Create a simple Custom reader, using `xarray.open_dataset` opener
+@attr.s
+class CustomReader(Reader):
+    """Custom io.Reader using xarray.open_dataset opener."""
+    # xarray.Dataset options
+    opener: Callable[..., xarray.Dataset] = attr.ib(default=xarray.open_dataset)
 
->>> <xarray.Dataset> Size: 16MB
-Dimensions:  (x: 2000, y: 1000)
-Coordinates:
-  * x        (x) float64 16kB -170.0 -169.8 -169.7 -169.5 ... 169.5 169.7 169.8
-  * y        (y) float64 8kB -80.0 -79.84 -79.68 -79.52 ... 79.52 79.68 79.84
-Data variables:
-    dataset  (y, x) float64 16MB ...
+
+# Create FastAPI application
+app = FastAPI(openapi_url="/api", docs_url="/api.html")
+
+# Create custom endpoints with the CustomReader
+md = TilerFactory(
+    reader=CustomReader,
+    router_prefix="/md",
+    extensions=[
+        # we also want to use the simple opener for the Extension
+        VariablesExtension(dataset_opener==xarray.open_dataset),
+    ],
+)
+
+app.include_router(md.router, prefix="/md", tags=["Multi Dimensional"])
 ```

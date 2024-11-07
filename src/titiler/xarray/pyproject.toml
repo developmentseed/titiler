@@ -37,11 +37,26 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-all = [
+full = [
     "zarr",
     "h5netcdf",
     "fsspec",
     "s3fs",
+    "aiohttp",
+    "gcsfs",
+]
+minimal = [
+    "zarr",
+    "h5netcdf",
+    "fsspec",
+]
+gcs = [
+    "gcsfs",
+]
+s3 = [
+    "s3fs",
+]
+http = [
     "aiohttp",
 ]
 test = [
@@ -49,6 +64,9 @@ test = [
     "pytest-cov",
     "pytest-asyncio",
     "httpx",
+    "zarr",
+    "h5netcdf",
+    "fsspec",
 ]
 
 [project.urls]

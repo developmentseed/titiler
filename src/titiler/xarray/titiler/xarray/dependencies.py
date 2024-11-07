@@ -16,7 +16,7 @@ class XarrayIOParams(DefaultDependency):
     """Dataset IO Options."""
 
     group: Annotated[
-        Optional[int],
+        Optional[str],
         Query(
             description="Select a specific zarr group from a zarr hierarchy. Could be associated with a zoom level or dataset."
         ),
