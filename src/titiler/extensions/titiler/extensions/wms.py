@@ -542,7 +542,7 @@ class wmsExtension(FactoryExtension):
                 if post_process:
                     image = post_process(image)
 
-                content, media_type = self.render_func(
+                content, media_type = factory.render_func(
                     image,
                     output_format=format,
                     colormap=colormap,
