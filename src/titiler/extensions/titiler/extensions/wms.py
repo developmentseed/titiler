@@ -22,7 +22,6 @@ from starlette.templating import Jinja2Templates
 from titiler.core.dependencies import ColorFormulaParams, RescalingParams
 from titiler.core.factory import FactoryExtension, TilerFactory
 from titiler.core.resources.enums import ImageType, MediaType
-from titiler.core.utils import render_image
 
 jinja2_env = jinja2.Environment(
     loader=jinja2.ChoiceLoader([jinja2.PackageLoader(__package__, "templates")])
@@ -543,20 +542,13 @@ class wmsExtension(FactoryExtension):
                 if post_process:
                     image = post_process(image)
 
-                if rescale:
-                    image.rescale(rescale)
-
-                if color_formula:
-                    image.apply_color_formula(color_formula)
-
-                if colormap:
-                    image = image.apply_colormap(colormap)
-
-                content, media_type = render_image(
+                content, media_type = self.render_func(
                     image,
                     output_format=format,
                     colormap=colormap,
                     add_mask=transparent,
+                    rescale=rescale,
+                    color_formula=color_formula,
                 )
                 return Response(content, media_type=media_type)
 

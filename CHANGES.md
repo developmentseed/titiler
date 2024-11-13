@@ -1,5 +1,27 @@
 # Release Notes
 
+## 0.20.0 (TBD)
+
+### titiler.core
+
+* Remove `rescale_dependency` and `color_formula_dependency` attributes in `TilerFactory` class
+
+* Move `rescale` and `color_formula` QueryParameters dependencies in `ImageRenderingParams` class
+
+* Handle image rescaling and color_formula within `titiler.core.utils.render_image` function
+
+* Add `render_func: Callable[..., Tuple[bytes, str]] = render_image` attribute in `TilerFactory` class
+
+### titiler.mosaic
+
+* Remove `rescale_dependency` and `color_formula_dependency` attributes in `MosaicTilerFactory` class
+
+* Add `render_func: Callable[..., Tuple[bytes, str]] = render_image` attribute in `MosaicTilerFactory` class
+
+### titiler.extensions
+
+* Use `factory.render_func` as render function in `wmsExtension` endpoints
+
 ## 0.19.0 (2024-11-07)
 
 ### Misc
