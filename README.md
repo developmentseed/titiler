@@ -43,7 +43,7 @@ Note: This project is the descendant of [`cogeo-tiler`](https://github.com/devel
 - [SpatioTemporal Asset Catalog](https://stacspec.org) support
 - Multiple projections support (see [TileMatrixSets](https://www.ogc.org/standards/tms)) via [`morecantile`](https://github.com/developmentseed/morecantile).
 - MultiDimensional dataset support via [Xarray](https://github.com/pydata/xarray)
-- JPEG / JP2 / PNG / WEBP / GTIFF / NumpyTile
+- JPEG / JP2 / PNG / WEBP / GTIFF / NumpyTile output format support
 - OGC WMTS support
 - Automatic OpenAPI documentation (FastAPI builtin)
 - Virtual mosaic support (via [MosaicJSON](https://github.com/developmentseed/mosaicjson-spec/))
