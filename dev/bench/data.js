@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1731359893810,
+  "lastUpdate": 1731576901847,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -8141,6 +8141,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad longest_transaction",
             "value": 0.07,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "9111975+ciaransweet@users.noreply.github.com",
+            "name": "Ciaran Sweet",
+            "username": "ciaransweet"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7a4b688538787804c65494ad3f4ce636bb4a60a5",
+          "message": "docs: add multidimensional data via xarray as supported on readme (#1027)\n\n* docs: add netcdf/zarr as supported data on readme\r\n\r\n* fix: address review comments\r\n\r\n* Update README.md\r\n\r\n---------\r\n\r\nCo-authored-by: Vincent Sarago <vincent.sarago@gmail.com>",
+          "timestamp": "2024-11-14T10:33:48+01:00",
+          "tree_id": "ad224cb8196be92a5b41461fdb2c5f384a4244ee",
+          "url": "https://github.com/developmentseed/titiler/commit/7a4b688538787804c65494ad3f4ce636bb4a60a5"
+        },
+        "date": 1731576901177,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.1,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.95,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
             "unit": "s"
           }
         ]
