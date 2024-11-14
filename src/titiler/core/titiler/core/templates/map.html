@@ -61,8 +61,11 @@ var crs = new L.Proj.CRS(
 var map = L.map('map', {
   crs: crs,
   minZoom: {{ tms.minzoom }},
-  maxZoom: {{ tms.maxzoom }}
+  maxZoom: {{ tms.maxzoom }},
+  attributionControl: false
 });
+
+L.control.attribution({prefix: '<a href="https://leafletjs.com" target="_blank">Leaflet</a> | <a href="https://developmentseed.org/titiler" target="_blank">Titiler</a>'}).addTo(map)
 
 const nullIsland = L.marker([0, 0]).addTo(map);
 const madrid = L.marker([40, -3]).addTo(map);
