@@ -50,27 +50,27 @@ templates = Jinja2Templates(env=jinja2_env)
 
 api_settings = ApiSettings()
 
-###############################################################################
-# Setup a global API access key, if configured
-api_key_query = APIKeyQuery(name="access_token", auto_error=False)
+app_dependencies = []
+if api_settings.global_access_token:
+    ###############################################################################
+    # Setup a global API access key, if configured
+    api_key_query = APIKeyQuery(name="access_token", auto_error=False)
 
+    def validate_access_token(access_token: str = Security(api_key_query)):
+        """Validates API key access token, set as the `api_settings.global_access_token` value.
+        Returns True if no access token is required, or if the access token is valid.
+        Raises an HTTPException (401) if the access token is required but invalid/missing.
+        """
+        if not access_token:
+            raise HTTPException(status_code=401, detail="Missing `access_token`")
 
-def validate_access_token(access_token: str = Security(api_key_query)):
-    """Validates API key access token, set as the `api_settings.global_access_token` value.
-    Returns True if no access token is required, or if the access token is valid.
-    Raises an HTTPException (401) if the access token is required but invalid/missing.
-    """
-    if api_settings.global_access_token is None:
+        # if access_token == `token` then OK
+        if access_token != api_settings.global_access_token:
+            raise HTTPException(status_code=401, detail="Invalid `access_token`")
+
         return True
 
-    if not access_token:
-        raise HTTPException(status_code=401, detail="Missing `access_token`")
-
-    # if access_token == `token` then OK
-    if access_token != api_settings.global_access_token:
-        raise HTTPException(status_code=401, detail="Invalid `access_token`")
-
-    return True
+    app_dependencies.append(Depends(validate_access_token))
 
 
 ###############################################################################
@@ -91,7 +91,7 @@ app = FastAPI(
     """,
     version=titiler_version,
     root_path=api_settings.root_path,
-    dependencies=[Depends(validate_access_token)],
+    dependencies=app_dependencies,
 )
 
 ###############################################################################
