@@ -22,6 +22,10 @@
 
 * Use `factory.render_func` as render function in `wmsExtension` endpoints
 
+## 0.19.1 (2024-11-14)
+
+* Add `titiler` links in Map attributions
+
 ## 0.19.0 (2024-11-07)
 
 ### Misc
