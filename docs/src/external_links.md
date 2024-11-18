@@ -19,7 +19,7 @@
 
 * [developmentseed/titiler-xarray](https://github.com/developmentseed/titiler-xarray): TiTiler extension for xarray
 
-* [developmentseed/titiler-images](https://github.com/developmentseed/titiler-images): TiTiler demo application for Sentinel-2 Digital Twin dataset
+* [developmentseed/titiler-image](https://github.com/developmentseed/titiler-image): TiTiler demo application for Sentinel-2 Digital Twin dataset
 
 
 ## Projects / Demo using TiTiler
