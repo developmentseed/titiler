@@ -32,6 +32,7 @@ from titiler.core.middleware import (
 from titiler.extensions import (
     cogValidateExtension,
     cogViewerExtension,
+    renderExtension,
     stacExtension,
     stacViewerExtension,
 )
@@ -122,6 +123,7 @@ if not api_settings.disable_stac:
         router_prefix="/stac",
         extensions=[
             stacViewerExtension(),
+            renderExtension(),
         ],
     )
 
