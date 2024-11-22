@@ -26,7 +26,7 @@
 
 ---
 
-**Documentation**: <a href="https://devseed.com/titiler/" target="_blank">https://devseed.com/titiler/</a>
+**Documentation**: <a href="https://ds.io/titiler/" target="_blank">https://devseed.com/titiler/</a>
 
 **Source Code**: <a href="https://github.com/developmentseed/titiler" target="_blank">https://github.com/developmentseed/titiler</a>
 
