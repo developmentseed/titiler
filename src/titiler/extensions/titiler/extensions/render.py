@@ -22,7 +22,7 @@ class RenderItem(BaseModel, extra="allow"):
 
     assets: List[str]
     title: Optional[str] = None
-    rescale: Optional[list[Annotated[List[float], 2]]] = None
+    rescale: Optional[List[Annotated[List[float], 2]]] = None
     nodata: Optional[float] = None
     colormap_name: Optional[str] = None
     colormap: Optional[Dict] = None
