@@ -1,4 +1,8 @@
-"""render Extension."""
+"""STAC Render Extension.
+
+Implements support for reading and applying Item level render extension.
+See: https://github.com/stac-extensions/render
+"""
 
 from typing import Dict, List, Optional
 from urllib.parse import urlencode
@@ -50,6 +54,11 @@ class stacRenderExtension(FactoryExtension):
         """Register endpoint to the tiler factory."""
 
         def _prepare_query_string(render: Dict, src_path: str) -> str:
+            """Prepare render related query params.
+
+            Validates and filters query params that titiler can understand.
+            If titiler does not support parameter, it will be ignored.
+            """
             # List of dependencies a `/tile` URL should validate
             # Note: Those dependencies should only require Query() inputs
             tile_dependencies = [
@@ -80,8 +89,7 @@ class stacRenderExtension(FactoryExtension):
         def _prepare_render_item(
             render_id: str, render: Dict, request: Request, src_path: str
         ) -> Dict:
-            # url = factory.url_for(request, "tile", tileMatrixSetId="{tileMatrixSetId}")
-
+            """Prepare single render item."""
             query_string = _prepare_query_string(render, src_path)
             links = [
                 {
