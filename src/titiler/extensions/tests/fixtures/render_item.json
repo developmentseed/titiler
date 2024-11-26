@@ -1,0 +1,323 @@
+{
+    "type": "Feature",
+    "stac_version": "1.0.0",
+    "stac_extensions": [
+        "https://stac-extensions.github.io/eo/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/projection/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/view/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/render/v2.0.0/schema.json",
+        "https://stac-extensions.github.io/virtual-assets/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/web-map-links/v1.2.0/schema.json"
+    ],
+    "id": "LC08_L1TP_044033_20210305_20210312_01_T1",
+    "properties": {
+        "gsd": 30,
+        "platform": "LANDSAT_8",
+        "instruments": [
+            "OLI",
+            "TIRS"
+        ],
+        "eo:cloud_cover": 7.41,
+        "proj:epsg": 32610,
+        "view:sun_azimuth": 149.10910644,
+        "view:sun_elevation": 40.48243563,
+        "view:off_nadir": 0.001,
+        "landsat:scene_id": "LC80440332021064LGN00",
+        "landsat:processing_level": "L1TP",
+        "landsat:collection_number": "01",
+        "landsat:collection_category": "T1",
+        "landsat:cloud_cover_land": 7.4,
+        "landsat:wrs_path": "44",
+        "landsat:wrs_row": "33",
+        "datetime": "2021-03-05T18:45:37.619485Z",
+        "created": "2021-03-16T01:40:56.703Z",
+        "updated": "2021-03-16T01:40:56.703Z",
+        "renders": {
+            "thumbnail": {
+                "title": "Thumbnail",
+                "assets": [
+                    "B4",
+                    "B3",
+                    "B2"
+                ],
+                "rescale": [
+                    [
+                        0,
+                        150
+                    ]
+                ],
+                "colormap_name": "rainbow",
+                "resampling": "bilinear",
+                "bidx": [
+                    1
+                ],
+                "width": 1024,
+                "height": 1024,
+                "bands": [
+                    "B4",
+                    "B3",
+                    "B2"
+                ]
+            },
+            "ndvi": {
+                "title": "Normalized Difference Vegetation Index",
+                "assets": [
+                    "ndvi"
+                ],
+                "resampling": "average",
+                "colormap_name": "ylgn"
+            }
+        }
+    },
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    -122.49680286164214,
+                    39.958062660227306
+                ],
+                [
+                    -120.31547276090922,
+                    39.578858170656
+                ],
+                [
+                    -120.82135075676177,
+                    37.82701417652536
+                ],
+                [
+                    -122.9993441554352,
+                    38.2150173967007
+                ],
+                [
+                    -122.49680286164214,
+                    39.958062660227306
+                ]
+            ]
+        ]
+    },
+    "links": [
+        {
+            "href": "https://maps.example.com/xyz/{z}/{x}/{y}.png",
+            "rel": "xyz",
+            "type": "image/png",
+            "title": "RGB composite visualized through a XYZ"
+        },
+        {
+            "rel": "xyz",
+            "type": "image/png",
+            "title": "NDVI",
+            "href": "https://api.cogeo.xyz/stac/preview.png?url=https://raw.githubusercontent.com/stac-extensions/raster/main/examples/item-landsat8.json&expression=(B5–B4)/(B5+B4)&max_size=512&width=512&resampling_method=average&rescale=-1,1&color_map=ylgn&return_mask=true",
+            "render": "ndvi"
+        },
+        {
+            "rel": "collection",
+            "href": "https://landsat-stac.s3.amazonaws.com/collections/landsat-8-l1.json",
+            "type": "application/json",
+            "title": "The full collection"
+        }
+    ],
+    "assets": {
+        "index": {
+            "href": "https://landsat-pds.s3.us-west-2.amazonaws.com/c1/L8/044/033/LC08_L1TP_044033_20210305_20210312_01_T1/index.html",
+            "type": "application/html",
+            "title": "HTML Page"
+        },
+        "ANG": {
+            "href": "https://landsat-pds.s3.us-west-2.amazonaws.com/c1/L8/044/033/LC08_L1TP_044033_20210305_20210312_01_T1/LC08_L1TP_044033_20210305_20210312_01_T1_ANG.txt",
+            "type": "text/plain",
+            "title": "ANG Metadata",
+            "roles": [
+                "metadata"
+            ]
+        },
+        "MTL": {
+            "href": "https://landsat-pds.s3.us-west-2.amazonaws.com/c1/L8/044/033/LC08_L1TP_044033_20210305_20210312_01_T1/LC08_L1TP_044033_20210305_20210312_01_T1_MTL.txt",
+            "type": "text/plain",
+            "title": "MTL Metadata",
+            "roles": [
+                "metadata"
+            ]
+        },
+        "BQA": {
+            "href": "https://landsat-pds.s3.us-west-2.amazonaws.com/c1/L8/044/033/LC08_L1TP_044033_20210305_20210312_01_T1/LC08_L1TP_044033_20210305_20210312_01_T1_BQA.TIF",
+            "type": "image/tiff; application=geotiff",
+            "title": "Quality Band",
+            "roles": [
+                "quality"
+            ]
+        },
+        "B1": {
+            "href": "https://landsat-pds.s3.us-west-2.amazonaws.com/c1/L8/044/033/LC08_L1TP_044033_20210305_20210312_01_T1/LC08_L1TP_044033_20210305_20210312_01_T1_B1.TIF",
+            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            "eo:bands": [
+                {
+                    "name": "B1",
+                    "common_name": "coastal",
+                    "center_wavelength": 0.48,
+                    "full_width_half_max": 0.02
+                }
+            ]
+        },
+        "B2": {
+            "href": "https://landsat-pds.s3.us-west-2.amazonaws.com/c1/L8/044/033/LC08_L1TP_044033_20210305_20210312_01_T1/LC08_L1TP_044033_20210305_20210312_01_T1_B2.TIF",
+            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            "eo:bands": [
+                {
+                    "name": "B2",
+                    "common_name": "blue",
+                    "center_wavelength": 0.44,
+                    "full_width_half_max": 0.06
+                }
+            ]
+        },
+        "B3": {
+            "href": "https://landsat-pds.s3.us-west-2.amazonaws.com/c1/L8/044/033/LC08_L1TP_044033_20210305_20210312_01_T1/LC08_L1TP_044033_20210305_20210312_01_T1_B3.TIF",
+            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            "eo:bands": [
+                {
+                    "name": "B3",
+                    "common_name": "green",
+                    "center_wavelength": 0.56,
+                    "full_width_half_max": 0.06
+                }
+            ]
+        },
+        "B4": {
+            "href": "https://landsat-pds.s3.us-west-2.amazonaws.com/c1/L8/044/033/LC08_L1TP_044033_20210305_20210312_01_T1/LC08_L1TP_044033_20210305_20210312_01_T1_B4.TIF",
+            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            "eo:bands": [
+                {
+                    "name": "B4",
+                    "common_name": "red",
+                    "center_wavelength": 0.65,
+                    "full_width_half_max": 0.04
+                }
+            ]
+        },
+        "B5": {
+            "href": "https://landsat-pds.s3.us-west-2.amazonaws.com/c1/L8/044/033/LC08_L1TP_044033_20210305_20210312_01_T1/LC08_L1TP_044033_20210305_20210312_01_T1_B5.TIF",
+            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            "eo:bands": [
+                {
+                    "name": "B5",
+                    "common_name": "nir",
+                    "center_wavelength": 0.86,
+                    "full_width_half_max": 0.03
+                }
+            ]
+        },
+        "B6": {
+            "href": "https://landsat-pds.s3.us-west-2.amazonaws.com/c1/L8/044/033/LC08_L1TP_044033_20210305_20210312_01_T1/LC08_L1TP_044033_20210305_20210312_01_T1_B6.TIF",
+            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            "eo:bands": [
+                {
+                    "name": "B6",
+                    "common_name": "swir16",
+                    "center_wavelength": 1.6,
+                    "full_width_half_max": 0.08
+                }
+            ]
+        },
+        "B7": {
+            "href": "https://landsat-pds.s3.us-west-2.amazonaws.com/c1/L8/044/033/LC08_L1TP_044033_20210305_20210312_01_T1/LC08_L1TP_044033_20210305_20210312_01_T1_B7.TIF",
+            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            "eo:bands": [
+                {
+                    "name": "B7",
+                    "common_name": "swir22",
+                    "center_wavelength": 2.2,
+                    "full_width_half_max": 0.2
+                }
+            ]
+        },
+        "B8": {
+            "href": "https://landsat-pds.s3.us-west-2.amazonaws.com/c1/L8/044/033/LC08_L1TP_044033_20210305_20210312_01_T1/LC08_L1TP_044033_20210305_20210312_01_T1_B8.TIF",
+            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            "eo:bands": [
+                {
+                    "name": "B8",
+                    "common_name": "pan",
+                    "center_wavelength": 0.59,
+                    "full_width_half_max": 0.18
+                }
+            ],
+            "gsd": 15
+        },
+        "B9": {
+            "href": "https://landsat-pds.s3.us-west-2.amazonaws.com/c1/L8/044/033/LC08_L1TP_044033_20210305_20210312_01_T1/LC08_L1TP_044033_20210305_20210312_01_T1_B9.TIF",
+            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            "eo:bands": [
+                {
+                    "name": "B9",
+                    "common_name": "cirrus",
+                    "center_wavelength": 1.37,
+                    "full_width_half_max": 0.02
+                }
+            ]
+        },
+        "B10": {
+            "href": "https://landsat-pds.s3.us-west-2.amazonaws.com/c1/L8/044/033/LC08_L1TP_044033_20210305_20210312_01_T1/LC08_L1TP_044033_20210305_20210312_01_T1_B10.TIF",
+            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            "eo:bands": [
+                {
+                    "name": "B10",
+                    "common_name": "lwir11",
+                    "center_wavelength": 10.9,
+                    "full_width_half_max": 0.8
+                }
+            ],
+            "gsd": 100
+        },
+        "B11": {
+            "href": "https://landsat-pds.s3.us-west-2.amazonaws.com/c1/L8/044/033/LC08_L1TP_044033_20210305_20210312_01_T1/LC08_L1TP_044033_20210305_20210312_01_T1_B11.TIF",
+            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            "eo:bands": [
+                {
+                    "name": "B11",
+                    "common_name": "lwir12",
+                    "center_wavelength": 12,
+                    "full_width_half_max": 1
+                }
+            ],
+            "gsd": 100
+        },
+        "ndvi": {
+            "roles": [
+                "virtual",
+                "data",
+                "index"
+            ],
+            "type": "image/vnd.stac.geotiff; cloud-optimized=true",
+            "href": "https://landsat-pds.s3.us-west-2.amazonaws.com/c1/L8/044/033/LC08_L1TP_044033_20210305_20210312_01_T1#/assets/NDVI",
+            "vrt:hrefs": [
+                {
+                    "key": "B4",
+                    "href": "#/assets/B4"
+                },
+                {
+                    "key": "B5",
+                    "href": "#/assets/B5"
+                }
+            ],
+            "title": "Normalized Difference Vegetation Index",
+            "vrt:algorithm": "band_arithmetic",
+            "vrt:algorithm_opts": {
+                "expression": "(B05-B04)/(B05+B04)",
+                "rescale": [
+                    [
+                        -1,
+                        1
+                    ]
+                ]
+            }
+        }
+    },
+    "bbox": [
+        -123.00234,
+        37.82405,
+        -120.31321,
+        39.95894
+    ],
+    "collection": "landsat-8-l1-c1"
+}

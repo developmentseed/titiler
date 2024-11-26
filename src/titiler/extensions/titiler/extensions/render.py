@@ -1,6 +1,5 @@
 """render Extension."""
 
-from pprint import pprint
 from typing import Dict, List, Optional
 from urllib.parse import urlencode
 
@@ -137,12 +136,10 @@ class stacRenderExtension(FactoryExtension):
         def render_list(request: Request, src_path=Depends(factory.path_dependency)):
             with factory.reader(src_path) as src:
                 renders = src.item.properties.get("renders", {})
-            pprint(renders)
             prepared_renders = {
                 render_id: _prepare_render_item(render_id, render, request, src_path)
                 for render_id, render in renders.items()
             }
-            pprint(prepared_renders)
             return {
                 "renders": prepared_renders,
                 "links": [
