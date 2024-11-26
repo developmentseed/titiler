@@ -47,6 +47,7 @@ def test_stacExtension():
             "colormap_name": "ylgn",
             "resampling": "average",
             "title": "Normalized Difference Vegetation Index",
+            "extra_param": "that titiler does not know",
         }
         assert body["renders"]["ndvi"]["params"] == expected_params
 
