@@ -44,7 +44,7 @@ class RenderItemList(BaseModel):
 
 
 @define
-class renderExtension(FactoryExtension):
+class stacRenderExtension(FactoryExtension):
     """Add /renders endpoint to a STAC TilerFactory."""
 
     def register(self, factory: MultiBaseTilerFactory):
