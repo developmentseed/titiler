@@ -47,13 +47,12 @@ Factory meant to create endpoints for single dataset using [*rio-tiler*'s `Reade
 - **img_preview_dependency**: Dependency to define image size for `/preview` and `/statistics` endpoints. Defaults to `titiler.core.dependencies.PreviewParams`.
 - **img_part_dependency**: Dependency to define image size for `/bbox` and `/feature` endpoints. Defaults to `titiler.core.dependencies.PartFeatureParams`.
 - **process_dependency**: Dependency to control which `algorithm` to apply to the data. Defaults to `titiler.core.algorithm.algorithms.dependency`.
-- **rescale_dependency**: Dependency to set Min/Max values to rescale from, to 0 -> 255. Defaults to `titiler.core.dependencies.RescalingParams`.
-- **color_formula_dependency**: Dependency to define the Color Formula. Defaults to `titiler.core.dependencies.ColorFormulaParams`.
 - **colormap_dependency**: Dependency to define the Colormap options. Defaults to `titiler.core.dependencies.ColorMapParams`
 - **render_dependency**: Dependency to control output image rendering options. Defaults to `titiler.core.dependencies.ImageRenderingParams`
 - **environment_dependency**: Dependency to define GDAL environment at runtime. Default to `lambda: {}`.
 - **supported_tms**: List of available TileMatrixSets. Defaults to `morecantile.tms`.
 - **templates**: *Jinja2* templates to use in endpoints. Defaults to `titiler.core.factory.DEFAULT_TEMPLATES`.
+- **render_func**: Image rendering method. Defaults to `titiler.core.utils.render_image`.
 - **add_preview**: . Add `/preview` endpoint to the router. Defaults to `True`.
 - **add_part**: . Add `/bbox` and `/feature` endpoints to the router. Defaults to `True`.
 - **add_viewer**: . Add `/map` endpoints to the router. Defaults to `True`.
@@ -304,8 +303,6 @@ Endpoints factory for mosaics, built on top of [MosaicJSON](https://github.com/d
 - **dataset_dependency**: Dependency to overwrite `nodata` value, apply `rescaling` and change the `I/O` or `Warp` resamplings. Defaults to `titiler.core.dependencies.DatasetParams`.
 - **tile_dependency**: Dependency to define `buffer` and `padding` to apply at tile creation. Defaults to `titiler.core.dependencies.TileParams`.
 - **process_dependency**: Dependency to control which `algorithm` to apply to the data. Defaults to `titiler.core.algorithm.algorithms.dependency`.
-- **rescale_dependency**: Dependency to set Min/Max values to rescale from, to 0 -> 255. Defaults to `titiler.core.dependencies.RescalingParams`.
-- **color_formula_dependency**: Dependency to define the Color Formula. Defaults to `titiler.core.dependencies.ColorFormulaParams`.
 - **colormap_dependency**: Dependency to define the Colormap options. Defaults to `titiler.core.dependencies.ColorMapParams`
 - **render_dependency**: Dependency to control output image rendering options. Defaults to `titiler.core.dependencies.ImageRenderingParams`
 - **pixel_selection_dependency**: Dependency to select the `pixel_selection` method. Defaults to `titiler.mosaic.factory.PixelSelectionParams`.
@@ -353,8 +350,6 @@ class: `titiler.xarray.factory.TilerFactory`
 - **histogram_dependency**: Dependency to define *numpy*'s histogram options used in `/statistics` endpoints. Defaults to `titiler.core.dependencies.HistogramParams`.
 - **img_part_dependency**: Dependency to define image size for `/bbox` and `/feature` endpoints. Defaults to `titiler.xarray.dependencies.PartFeatureParams`.
 - **process_dependency**: Dependency to control which `algorithm` to apply to the data. Defaults to `titiler.core.algorithm.algorithms.dependency`.
-- **rescale_dependency**: Dependency to set Min/Max values to rescale from, to 0 -> 255. Defaults to `titiler.core.dependencies.RescalingParams`.
-- **color_formula_dependency**: Dependency to define the Color Formula. Defaults to `titiler.core.dependencies.ColorFormulaParams`.
 - **colormap_dependency**: Dependency to define the Colormap options. Defaults to `titiler.core.dependencies.ColorMapParams`
 - **render_dependency**: Dependency to control output image rendering options. Defaults to `titiler.core.dependencies.ImageRenderingParams`
 - **environment_dependency**: Dependency to define GDAL environment at runtime. Default to `lambda: {}`.

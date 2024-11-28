@@ -44,17 +44,25 @@ def rescale_array(
     return array.astype(out_dtype)
 
 
-def render_image(
+def render_image(  # noqa: C901
     image: ImageData,
-    output_format: Optional[ImageType] = None,
     colormap: Optional[ColorMapType] = None,
+    output_format: Optional[ImageType] = None,
     add_mask: bool = True,
+    rescale: Optional[Sequence[IntervalTuple]] = None,
+    color_formula: Optional[str] = None,
     **kwargs: Any,
 ) -> Tuple[bytes, str]:
     """convert image data to file.
 
     This is adapted from https://github.com/cogeotiff/rio-tiler/blob/066878704f841a332a53027b74f7e0a97f10f4b2/rio_tiler/models.py#L698-L764
     """
+    if rescale:
+        image.rescale(rescale)
+
+    if color_formula:
+        image.apply_color_formula(color_formula)
+
     data, mask = image.data.copy(), image.mask.copy()
     datatype_range = image.dataset_statistics or (dtype_ranges[str(data.dtype)],)
 

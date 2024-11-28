@@ -412,32 +412,6 @@ class BidxExprParams(ExpressionParams, BidxParams):
 
 </details>
 
-#### `ColorFormulaParams`
-
-Color Formula option (see https://github.com/vincentsarago/color-operations).
-
-| Name      | Type      | Required | Default
-| ------    | ----------|----------|--------------
-| **color_formula**  | Query (str)     | No       | None
-
-<details>
-
-```python
-def ColorFormulaParams(
-    color_formula: Annotated[
-        Optional[str],
-        Query(
-            title="Color Formula",
-            description="rio-color formula (info: https://github.com/mapbox/rio-color)",
-        ),
-    ] = None,
-) -> Optional[str]:
-    """ColorFormula Parameter."""
-    return color_formula
-```
-
-</details>
-
 #### `ColorMapParams`
 
 Colormap options. See [titiler.core.dependencies](https://github.com/developmentseed/titiler/blob/e46c35c8927b207f08443a274544901eb9ef3914/src/titiler/core/titiler/core/dependencies.py#L18-L54).
@@ -709,9 +683,11 @@ link: https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
 
 Control output image rendering options.
 
-| Name      | Type      | Required | Default
-| ------    | ----------|----------|--------------
-| **return_mask**  | Query (bool)     | No       | False
+| Name               | Type                               | Required | Default
+| ------             | ----------                         |----------|--------------
+| **rescale**        | Query (str, comma delimited Numer) | No       | None
+| **color_formula**  | Query (str)                        | No       | None
+| **return_mask**    | Query (bool)                       | No       | False
 
 <details>
 
@@ -720,13 +696,49 @@ Control output image rendering options.
 class ImageRenderingParams(DefaultDependency):
     """Image Rendering options."""
 
+    rescale: Annotated[
+        Optional[List[str]],
+        Query(
+            title="Min/Max data Rescaling",
+            description="comma (',') delimited Min,Max range. Can set multiple time for multiple bands.",
+            examples=["0,2000", "0,1000", "0,10000"],  # band 1  # band 2  # band 3
+        ),
+    ] = None
+
+    color_formula: Annotated[
+        Optional[str],
+        Query(
+            title="Color Formula",
+            description="rio-color formula (info: https://github.com/mapbox/rio-color)",
+        ),
+    ] = None
+
     add_mask: Annotated[
         Optional[bool],
         Query(
             alias="return_mask",
-            description="Add mask to the output data. Defaults to `True` in rio-tiler",
+            description="Add mask to the output data. Defaults to `True`",
         ),
     ] = None
+
+    def __post_init__(self):
+        """Post Init."""
+        if self.rescale:
+            rescale_array = []
+            for r in self.rescale:
+                parsed = tuple(
+                    map(
+                        float,
+                        r.replace(" ", "").replace("[", "").replace("]", "").split(","),
+                    )
+                )
+                assert (
+                    len(parsed) == 2
+                ), f"Invalid rescale values: {self.rescale}, should be of form ['min,max', 'min,max'] or [[min,max], [min, max]]"
+                rescale_array.append(parsed)
+
+            self.rescale: RescaleType = rescale_array  # Noqa
+
 ```
 
 </details>
@@ -811,36 +823,6 @@ class PreviewParams(DefaultDependency):
         """Post Init."""
         if self.width and self.height:
             self.max_size = None
-```
-
-</details>
-
-#### `RescalingParams`
-
-Set Min/Max values to rescale from, to 0 -> 255.
-
-| Name      | Type      | Required | Default
-| ------    | ----------|----------|--------------
-| **rescale**  | Query (str, comma delimited Numer)     | No       | None
-
-<details>
-
-```python
-def RescalingParams(
-    rescale: Annotated[
-        Optional[List[str]],
-        Query(
-            title="Min/Max data Rescaling",
-            description="comma (',') delimited Min,Max range. Can set multiple time for multiple bands.",
-            examples=["0,2000", "0,1000", "0,10000"],  # band 1  # band 2  # band 3
-        ),
-    ] = None,
-) -> Optional[RescaleType]:
-    """Min/Max data Rescaling"""
-    if rescale:
-        return [tuple(map(float, r.replace(" ", "").split(","))) for r in rescale]
-
-    return None
 ```
 
 </details>
