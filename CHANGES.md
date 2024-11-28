@@ -1,5 +1,11 @@
 # Release Notes
 
+## 0.19.2 (2024-11-28)
+
+### titiler.mosaic
+
+* Define variable (`MOSAIC_CONCURRENCY` and `MOSAIC_STRICT_ZOOM`) from env-variable outside endpoint code
+
 ## 0.19.1 (2024-11-14)
 
 * Add `titiler` links in Map attributions
