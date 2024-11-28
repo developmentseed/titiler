@@ -1,5 +1,5 @@
 [project]
-name = "titiler.extensions"
+name = "titiler-extensions"
 description = "Extensions for TiTiler Factories."
 readme = "README.md"
 requires-python = ">=3.8"
@@ -57,8 +57,8 @@ Source = "https://github.com/developmentseed/titiler"
 Changelog = "https://developmentseed.org/titiler/release-notes/"
 
 [build-system]
-requires = ["pdm-pep517"]
-build-backend = "pdm.pep517.api"
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
 
 [tool.pdm.version]
 source = "file"
