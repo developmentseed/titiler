@@ -51,6 +51,12 @@ from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLR
 from titiler.core.utils import render_image
 from titiler.mosaic.models.responses import Point
 
+MOSAIC_THREADS = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
+MOSAIC_STRICT_ZOOM = str(os.getenv("MOSAIC_STRICT_ZOOM", False)).lower() in [
+    "true",
+    "yes",
+]
+
 
 def PixelSelectionParams(
     pixel_selection: Annotated[  # type: ignore
@@ -575,13 +581,6 @@ class MosaicTilerFactory(BaseFactory):
                     f"Invalid 'scale' parameter: {scale}. Scale HAVE TO be between 1 and 4",
                 )
 
-            threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
-
-            strict_zoom = str(os.getenv("MOSAIC_STRICT_ZOOM", False)).lower() in [
-                "true",
-                "yes",
-            ]
-
             tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
                 with self.backend(
@@ -592,7 +591,9 @@ class MosaicTilerFactory(BaseFactory):
                     **backend_params.as_dict(),
                 ) as src_dst:
 
-                    if strict_zoom and (z < src_dst.minzoom or z > src_dst.maxzoom):
+                    if MOSAIC_STRICT_ZOOM and (
+                        z < src_dst.minzoom or z > src_dst.maxzoom
+                    ):
                         raise HTTPException(
                             400,
                             f"Invalid ZOOM level {z}. Should be between {src_dst.minzoom} and {src_dst.maxzoom}",
@@ -604,7 +605,7 @@ class MosaicTilerFactory(BaseFactory):
                         z,
                         pixel_selection=pixel_selection,
                         tilesize=scale * 256,
-                        threads=threads,
+                        threads=MOSAIC_THREADS,
                         **tile_params.as_dict(),
                         **layer_params.as_dict(),
                         **dataset_params.as_dict(),
@@ -779,10 +780,12 @@ class MosaicTilerFactory(BaseFactory):
         ):
             """Return TileJSON document for a dataset."""
             tilejson_url = self.url_for(
-                request, "tilejson", tileMatrixSetId=tileMatrixSetId
+                request,
+                "tilejson",
+                tileMatrixSetId=tileMatrixSetId,
             )
             if request.query_params._list:
-                tilejson_url += f"?{urlencode(request.query_params._list)}"
+                tilejson_url += f"?{urlencode(request.query_params._list, doseq=True)}"
 
             tms = self.supported_tms.get(tileMatrixSetId)
             return self.templates.TemplateResponse(
@@ -966,8 +969,6 @@ class MosaicTilerFactory(BaseFactory):
             env=Depends(self.environment_dependency),
         ):
             """Get Point value for a Mosaic."""
-            threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
-
             with rasterio.Env(**env):
                 with self.backend(
                     src_path,
@@ -979,7 +980,7 @@ class MosaicTilerFactory(BaseFactory):
                         lon,
                         lat,
                         coord_crs=coord_crs or WGS84_CRS,
-                        threads=threads,
+                        threads=MOSAIC_THREADS,
                         **layer_params.as_dict(),
                         **dataset_params.as_dict(),
                     )
