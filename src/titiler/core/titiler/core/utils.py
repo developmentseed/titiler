@@ -1,9 +1,12 @@
 """titiler.core utilities."""
 
 import warnings
-from typing import Any, Optional, Sequence, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, TypeVar, Union
+from urllib.parse import urlencode
 
 import numpy
+from fastapi.datastructures import QueryParams
+from fastapi.dependencies.utils import get_dependant, request_params_to_args
 from rasterio.dtypes import dtype_ranges
 from rio_tiler.colormap import apply_cmap
 from rio_tiler.errors import InvalidDatatypeWarning
@@ -116,3 +119,52 @@ def render_image(
         ),
         output_format.mediatype,
     )
+
+
+T = TypeVar("T")
+
+ValidParams = Dict[str, Any]
+Errors = List[Any]
+
+
+def get_dependency_query_params(
+    dependency: Callable,
+    params: Dict,
+) -> Tuple[ValidParams, Errors]:
+    """Check QueryParams for Query dependency.
+
+    1. `get_dependant` is used to get the query-parameters required by the `callable`
+    2. we use `request_params_to_args` to construct arguments needed to call the `callable`
+    3. we call the `callable` and catch any errors
+
+    Important: We assume the `callable` in not a co-routine.
+    """
+    dep = get_dependant(path="", call=dependency)
+    return request_params_to_args(
+        dep.query_params, QueryParams(urlencode(params, doseq=True))
+    )
+
+
+def deserialize_query_params(
+    dependency: Callable[..., T], params: Dict
+) -> Tuple[T, Errors]:
+    """Deserialize QueryParams for given dependency.
+
+    Parse params as query params and deserialize with dependency.
+
+    Important: We assume the `callable` in not a co-routine.
+    """
+    values, errors = get_dependency_query_params(dependency, params)
+    return dependency(**values), errors
+
+
+def extract_query_params(dependencies, params) -> Tuple[ValidParams, Errors]:
+    """Extract query params given list of dependencies."""
+    values = {}
+    errors = []
+    for dep in dependencies:
+        dep_values, dep_errors = deserialize_query_params(dep, params)
+        if dep_values:
+            values.update(dep_values)
+        errors += dep_errors
+    return values, errors

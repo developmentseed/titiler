@@ -9,12 +9,12 @@ from urllib.parse import urlencode
 
 from attrs import define
 from fastapi import Depends, HTTPException, Path, Request
-from fastapi.dependencies.utils import get_dependant, request_params_to_args
 from pydantic import BaseModel
 from typing_extensions import Annotated
 
 from titiler.core.factory import FactoryExtension, MultiBaseTilerFactory
 from titiler.core.models.OGC import Link
+from titiler.core.utils import extract_query_params
 
 
 class RenderItem(BaseModel, extra="allow"):
@@ -53,15 +53,12 @@ class stacRenderExtension(FactoryExtension):
     def register(self, factory: MultiBaseTilerFactory):
         """Register endpoint to the tiler factory."""
 
-        def _prepare_query_string(render: Dict, src_path: str) -> str:
-            """Prepare render related query params.
-
-            Validates and filters query params that titiler can understand.
-            If titiler does not support parameter, it will be ignored.
-            """
+        def _validate_params(render: Dict) -> bool:
+            """Validate render related query params."""
             # List of dependencies a `/tile` URL should validate
             # Note: Those dependencies should only require Query() inputs
             tile_dependencies = [
+                factory.reader_dependency,
                 factory.layer_dependency,
                 factory.dataset_dependency,
                 # Image rendering Dependencies
@@ -71,64 +68,65 @@ class stacRenderExtension(FactoryExtension):
                 factory.render_dependency,
             ]
 
-            query = {"url": src_path}
-            for dependency in tile_dependencies:
-                dep = get_dependant(path="", call=dependency)
-                if dep.query_params:
-                    # call the dependency with the query-parameters values
-                    query_values, _errors = request_params_to_args(
-                        dep.query_params, render
-                    )
-                    _ = dependency(**query_values)
-                    query.update(query_values)
-            return urlencode(
-                {key: value for key, value in query.items() if value is not None},
-                doseq=True,
-            )
+            _values, errors = extract_query_params(tile_dependencies, render)
+
+            return errors
 
         def _prepare_render_item(
             render_id: str, render: Dict, request: Request, src_path: str
         ) -> Dict:
             """Prepare single render item."""
-            query_string = _prepare_query_string(render, src_path)
             links = [
                 {
                     "href": factory.url_for(
                         request,
-                        "Show STAC render",
+                        "STAC Renders metadata",
                         render_id=render_id,
                     )
                     + "?"
                     + urlencode({"url": src_path}),
                     "rel": "self",
                     "type": "application/json",
-                    "title": f"{render_id} render item",
-                },
-                {
-                    "href": factory.url_for(
-                        request,
-                        "tilejson",
-                        tileMatrixSetId="{tileMatrixSetId}",
-                    )
-                    + "?"
-                    + query_string,
-                    "rel": "tilesets-map",
-                    "title": f"tilejson file for {render_id}",
-                    "templated": True,
-                },
-                {
-                    "href": factory.url_for(
-                        request,
-                        "wmts",
-                        tileMatrixSetId="{tileMatrixSetId}",
-                    )
-                    + "?"
-                    + query_string,
-                    "rel": "tilesets-map",
-                    "title": f"WMTS service for {render_id}",
-                    "templated": True,
-                },
+                    "title": f"STAC Renders metadata for {render_id}",
+                }
             ]
+            errors = _validate_params(render)
+
+            if not errors:
+                query_string = urlencode(
+                    {
+                        "url": src_path,
+                        **render,
+                    },
+                    doseq=True,
+                )
+
+                links += [
+                    {
+                        "href": factory.url_for(
+                            request,
+                            "tilejson",
+                            tileMatrixSetId="{tileMatrixSetId}",
+                        )
+                        + "?"
+                        + query_string,
+                        "rel": "tilesets-map",
+                        "title": f"tilejson file for {render_id}",
+                        "templated": True,
+                    },
+                    {
+                        "href": factory.url_for(
+                            request,
+                            "wmts",
+                            tileMatrixSetId="{tileMatrixSetId}",
+                        )
+                        + "?"
+                        + query_string,
+                        "rel": "tilesets-map",
+                        "title": f"WMTS service for {render_id}",
+                        "templated": True,
+                    },
+                ]
 
             return {
                 "params": render,
@@ -139,11 +137,12 @@ class stacRenderExtension(FactoryExtension):
             "/renders",
             response_model=RenderItemList,
             response_model_exclude_none=True,
-            name="List STAC renders",
+            name="List STAC Renders metadata",
         )
         def render_list(request: Request, src_path=Depends(factory.path_dependency)):
             with factory.reader(src_path) as src:
                 renders = src.item.properties.get("renders", {})
+
             prepared_renders = {
                 render_id: _prepare_render_item(render_id, render, request, src_path)
                 for render_id, render in renders.items()
@@ -155,7 +154,7 @@ class stacRenderExtension(FactoryExtension):
                         "href": str(request.url),
                         "rel": "self",
                         "type": "application/json",
-                        "title": "List Render Items",
+                        "title": "List STAC Renders metadata",
                     },
                 ],
             }
@@ -164,7 +163,7 @@ class stacRenderExtension(FactoryExtension):
             "/renders/{render_id}",
             response_model=RenderItemWithLinks,
             response_model_exclude_none=True,
-            name="Show STAC render",
+            name="STAC Renders metadata",
         )
         def render(
             request: Request,
@@ -175,8 +174,10 @@ class stacRenderExtension(FactoryExtension):
         ):
             with factory.reader(src_path) as src:
                 renders = src.item.properties.get("renders", {})
-                if render_id not in renders:
-                    raise HTTPException(status_code=404, detail="Render not found")
-                render = renders[render_id]
 
-                return _prepare_render_item(render_id, render, request, src_path)
+            if render_id not in renders:
+                raise HTTPException(status_code=404, detail="Render not found")
+
+            render = renders[render_id]
+
+            return _prepare_render_item(render_id, render, request, src_path)

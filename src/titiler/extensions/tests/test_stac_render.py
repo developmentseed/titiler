@@ -1,4 +1,5 @@
 """Test STAC Render extension."""
+
 import os
 from urllib.parse import urlencode
 
@@ -55,11 +56,12 @@ def test_stacExtension():
         assert len(links) == 3
 
         stac_item_param = urlencode({"url": stac_item})
+        additional_params = "title=Normalized+Difference+Vegetation+Index&assets=ndvi&resampling=average&colormap_name=ylgn&extra_param=that+titiler+does+not+know"
         hrefs = {link["href"] for link in links}
         expected_hrefs = {
             f"http://testserver/renders/ndvi?{stac_item_param}",
-            f"http://testserver/{{tileMatrixSetId}}/WMTSCapabilities.xml?{stac_item_param}&assets=ndvi&resampling_method=average&colormap_name=ylgn",
-            f"http://testserver/{{tileMatrixSetId}}/tilejson.json?{stac_item_param}&assets=ndvi&resampling_method=average&colormap_name=ylgn",
+            f"http://testserver/{{tileMatrixSetId}}/WMTSCapabilities.xml?{stac_item_param}&{additional_params}",
+            f"http://testserver/{{tileMatrixSetId}}/tilejson.json?{stac_item_param}&{additional_params}",
         }
         assert hrefs == expected_hrefs
 
