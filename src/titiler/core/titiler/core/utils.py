@@ -68,31 +68,20 @@ def render_image(
     if not output_format:
         output_format = ImageType.jpeg if mask.all() else ImageType.png
 
-    if output_format == ImageType.png and data.dtype not in ["uint8", "uint16"]:
-        warnings.warn(
-            f"Invalid type: `{data.dtype}` for the `{output_format}` driver. Data will be rescaled using min/max type bounds or dataset_statistics.",
-            InvalidDatatypeWarning,
-        )
-        data = rescale_array(data, mask, in_range=datatype_range)
+    # format-specific valid dtypes
+    format_dtypes = {
+        ImageType.png: ["uint8", "uint16"],
+        ImageType.jpeg: ["uint8"],
+        ImageType.jpg: ["uint8"],
+        ImageType.webp: ["uint8"],
+        ImageType.jp2: ["uint8", "int16", "uint16"],
+    }
 
-    elif output_format in [
-        ImageType.jpeg,
-        ImageType.jpg,
-        ImageType.webp,
-    ] and data.dtype not in ["uint8"]:
+    valid_dtypes = format_dtypes.get(output_format, [])
+    if valid_dtypes and data.dtype not in valid_dtypes:
         warnings.warn(
-            f"Invalid type: `{data.dtype}` for the `{output_format}` driver. Data will be rescaled using min/max type bounds or dataset_statistics.",
-            InvalidDatatypeWarning,
-        )
-        data = rescale_array(data, mask, in_range=datatype_range)
-
-    elif output_format == ImageType.jp2 and data.dtype not in [
-        "uint8",
-        "int16",
-        "uint16",
-    ]:
-        warnings.warn(
-            f"Invalid type: `{data.dtype}` for the `{output_format}` driver. Data will be rescaled using min/max type bounds or dataset_statistics.",
+            f"Invalid type: `{data.dtype}` for the `{output_format}` driver. "
+            "Data will be rescaled using min/max type bounds or dataset_statistics.",
             InvalidDatatypeWarning,
         )
         data = rescale_array(data, mask, in_range=datatype_range)
