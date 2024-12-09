@@ -50,10 +50,7 @@ class CacheControlMiddleware:
                         scope["method"] in ["HEAD", "GET"]
                         and message["status"] < self.cachecontrol_max_http_code
                         and not any(
-                            [
-                                re.match(path, scope["path"])
-                                for path in self.exclude_path
-                            ]
+                            re.match(path, scope["path"]) for path in self.exclude_path
                         )
                     ):
                         response_headers["Cache-Control"] = self.cachecontrol
