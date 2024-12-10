@@ -3,7 +3,7 @@
 import logging
 import re
 import time
-import urllib.parse
+from urllib.parse import urlencode
 from typing import Optional, Set
 
 from fastapi.logger import logger
@@ -156,14 +156,11 @@ class LowerCaseQueryStringMiddleware:
         """Handle call."""
         if scope["type"] == "http":
             request = Request(scope)
-
             DECODE_FORMAT = "latin-1"
-
-            query_string = ""
-            for k, v in request.query_params.multi_items():
-                query_string += k.lower() + "=" + urllib.parse.quote(v) + "&"
-
-            query_string = query_string[:-1]
+            query_items = [
+                (k.lower(), v) for k, v in request.query_params.multi_items()
+            ]
+            query_string = urlencode(query_items, doseq=True)
             request.scope["query_string"] = query_string.encode(DECODE_FORMAT)
 
         await self.app(scope, receive, send)
