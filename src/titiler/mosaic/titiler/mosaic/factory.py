@@ -13,7 +13,7 @@ from fastapi import Depends, HTTPException, Path, Query
 from geojson_pydantic.features import Feature
 from geojson_pydantic.geometries import MultiPolygon, Polygon
 from morecantile import tms as morecantile_tms
-from morecantile.model import crs_axis_inverted
+from morecantile.models import crs_axis_inverted
 from morecantile.defaults import TileMatrixSets
 from pydantic import Field
 from rio_tiler.constants import MAX_THREADS, WGS84_CRS
