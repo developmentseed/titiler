@@ -33,12 +33,12 @@
         </ows:Operation>
     </ows:OperationsMetadata>
     <Contents>
-    {% for layer in layers %}
+    {% for layer in layers -%}
         <Layer>
             <ows:Title>{{ layer.title }}</ows:Title>
             <ows:Identifier>{{ layer.name }}</ows:Identifier>
             <ows:Abstract>{{ layer.name }}</ows:Abstract>
-            <ows:{{ bbox_crs_type }} crs="{{ bbox_crs_uri }}">
+            <ows:{{ bbox_crs_type }} crs="{{ bbox_crs_uri | escape }}">
                 <ows:LowerCorner>{{ layer.bounds[0] }} {{ layer.bounds[1] }}</ows:LowerCorner>
                 <ows:UpperCorner>{{ layer.bounds[2] }} {{ layer.bounds[3] }}</ows:UpperCorner>
             </ows:{{ bbox_crs_type }}>
@@ -51,13 +51,13 @@
             </TileMatrixSetLink>
             <ResourceURL format="{{ media_type }}" resourceType="tile" template="{{ layer.tiles_url }}?{{ layer.query_string | escape }}" />
         </Layer>
-    {% endfor %}
+    {%- endfor %}
         <TileMatrixSet>
             <ows:Identifier>{{ tileMatrixSetId }}</ows:Identifier>
             <ows:SupportedCRS>{{ supported_crs }}</ows:SupportedCRS>
-            {% for item in tileMatrix %}
+            {% for item in tileMatrix -%}
             {{ item | safe }}
-            {% endfor %}
+            {%- endfor %}
         </TileMatrixSet>
     </Contents>
     <ServiceMetadataURL xlink:href="{{ request.url | escape }}" />
