@@ -1,146 +1,182 @@
-<!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset='utf-8' />
-        <title>TiTiler Map Viewer</title>
-        <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
-              integrity="sha384-o/2yZuJZWGJ4s/adjxVW71R+EO/LyCwdQfP5UWSgX/w87iiTXuvDZaejd3TsN7mf"
-              crossorigin="anonymous"/>
-        <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
-                integrity="sha384-okbbMvvx/qfQkmiQKfd5VifbKZ/W8p1qIsWvE1ROPUfHWsDcC8/BnHohF7vPg2T6"
-                crossorigin="anonymous"></script>
-        <script src="https://unpkg.com/proj4@2.3.14/dist/proj4.js"
-                integrity="sha384-R7x++v2MKcATI+D1/GJsn636xbHca492Sdpm8BD36lj5vdWB9+OUBpM1oKkrzqv9"
-                crossorigin="anonymous"></script>
-        <script src="https://unpkg.com/proj4leaflet@1.0.2/src/proj4leaflet.js"
-                integrity="sha384-aDnBHDK9AhLbrYhThBxEVMriFbix8Sz2059IlD3HbZhz7+WNmz+pSkOcI7MY72cE"
-                crossorigin="anonymous"></script>
-        <style>
-            body { margin:0; padding:0; width:100%; height:100%; background-color: #e5e5e5;}
-            #map { position:absolute; top:0; bottom:0; width:100%; }
-        </style>
-    </head>
-    <body>
-
-    <div id='map'></div>
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>TiTiler Map Viewer</title>
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+      integrity="sha384-o/2yZuJZWGJ4s/adjxVW71R+EO/LyCwdQfP5UWSgX/w87iiTXuvDZaejd3TsN7mf"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+      integrity="sha384-okbbMvvx/qfQkmiQKfd5VifbKZ/W8p1qIsWvE1ROPUfHWsDcC8/BnHohF7vPg2T6"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://unpkg.com/proj4@2.3.14/dist/proj4.js"
+      integrity="sha384-R7x++v2MKcATI+D1/GJsn636xbHca492Sdpm8BD36lj5vdWB9+OUBpM1oKkrzqv9"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://unpkg.com/proj4leaflet@1.0.2/src/proj4leaflet.js"
+      integrity="sha384-aDnBHDK9AhLbrYhThBxEVMriFbix8Sz2059IlD3HbZhz7+WNmz+pSkOcI7MY72cE"
+      crossorigin="anonymous"
+    ></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #e5e5e5;
+      }
+      #map {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
 
     <script type="text/javascript">
 
-const bboxPolygon = (bounds) => {
-    var LL_EPSILON = 1e-6
-    return {
-        'type': 'Feature',
-        'geometry': {
-            'type': 'Polygon',
-            'coordinates': [[
-                [bounds[0] + LL_EPSILON, bounds[1] + LL_EPSILON],
-                [bounds[2] -  LL_EPSILON, bounds[1] + LL_EPSILON],
-                [bounds[2] - LL_EPSILON, bounds[3] - LL_EPSILON],
-                [bounds[0] + LL_EPSILON, bounds[3] - LL_EPSILON],
-                [bounds[0] + LL_EPSILON, bounds[1] + LL_EPSILON]
-            ]]
-        },
-        'properties': {}
-    }
-}
-
-var crs = new L.Proj.CRS(
-    '{{ tms.crs.srs }}',
-    '{{ tms.crs.to_proj4() }}', {
-    origin: [{{ tms.xy_bbox.left }}, {{ tms.xy_bbox.top }}],
-    bounds: L.bounds(
-      L.Point({{ tms.xy_bbox.left}}, {{ tms.xy_bbox.bottom }}),
-      L.Point({{ tms.xy_bbox.right}}, {{ tms.xy_bbox.top }})
-    ),
-    resolutions: {{ resolutions|safe }},
-  }
-);
-
-
-var map = L.map('map', {
-  crs: crs,
-  minZoom: {{ tms.minzoom }},
-  maxZoom: {{ tms.maxzoom }},
-  attributionControl: false
-});
-
-L.control.attribution({prefix: '<a href="https://leafletjs.com" target="_blank">Leaflet</a> | <a href="https://developmentseed.org/titiler" target="_blank">Titiler</a>'}).addTo(map)
-
-const nullIsland = L.marker([0, 0]).addTo(map);
-const madrid = L.marker([40, -3]).addTo(map);
-const london = L.marker([51.50722, -0.1275]).addTo(map)
-const auckland = L.marker([-36.864664, 174.792059]).addTo(map);
-const seattle = L.marker([47.596842, -122.333087]).addTo(map);
-
-if ("{{ tms.id }}" === "WebMercatorQuad") {
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-  }).addTo(map);
-}
-
-fetch('{{ tilejson_endpoint|safe }}')
-  .then(res => {
-    if (res.ok) return res.json()
-    throw new Error('Network response was not ok.')
-  })
-  .then(data => {
-    console.log(data)
-
-    let bounds = [...data.bounds]
-
-    var left = bounds[0],
-      bottom = bounds[1],
-      right = bounds[2],
-      top = bounds[3];
-
-    if (left < right) {
-      left = Math.max(left, {{ tms.bbox.left }})
-      right = Math.min(right, {{ tms.bbox.right }})
-    }
-    bottom = Math.max(bottom, {{ tms.bbox.bottom }})
-    top = Math.min(top, {{ tms.bbox.top }})
-    console.log(left, bottom, right, top)
-
-    let geo;
-    // handle files that span accross dateline
-    if (left > right) {
-      geo = {
-        "type": "FeatureCollection",
-        "features": [
-          bboxPolygon([-180, bottom, right, top]),
-          bboxPolygon([left, bottom, 180, top]),
-        ]
+      const bboxPolygon = (bounds) => {
+          var LL_EPSILON = 1e-6
+          return {
+              'type': 'Feature',
+              'geometry': {
+                  'type': 'Polygon',
+                  'coordinates': [[
+                      [bounds[0] + LL_EPSILON, bounds[1] + LL_EPSILON],
+                      [bounds[2] -  LL_EPSILON, bounds[1] + LL_EPSILON],
+                      [bounds[2] - LL_EPSILON, bounds[3] - LL_EPSILON],
+                      [bounds[0] + LL_EPSILON, bounds[3] - LL_EPSILON],
+                      [bounds[0] + LL_EPSILON, bounds[1] + LL_EPSILON]
+                  ]]
+              },
+              'properties': {}
+          }
       }
-    } else {
-      geo = {
-        "type": "FeatureCollection",
-        "features": [bboxPolygon([left, bottom, right, top])]
+
+      var crs = new L.Proj.CRS(
+          '{{ tms.crs.srs }}',
+          '{{ tms.crs.to_proj4() }}', {
+          origin: [{{ tms.xy_bbox.left }}, {{ tms.xy_bbox.top }}],
+          bounds: L.bounds(
+            L.Point({{ tms.xy_bbox.left}}, {{ tms.xy_bbox.bottom }}),
+            L.Point({{ tms.xy_bbox.right}}, {{ tms.xy_bbox.top }})
+          ),
+          resolutions: {{ resolutions|safe }},
+        }
+      );
+
+
+      var map = L.map('map', {
+        crs: crs,
+        minZoom: {{ tms.minzoom }},
+        maxZoom: {{ tms.maxzoom }},
+        attributionControl: false
+      });
+
+      L.control.attribution({prefix: '<a href="https://leafletjs.com" target="_blank">Leaflet</a> | <a href="https://developmentseed.org/titiler" target="_blank">Titiler</a>'}).addTo(map)
+
+      let baseLayers = {};
+      let overlayLayers = {};
+      let activeBaseLayer = null;
+
+      if ("{{ tms.id }}" === "WebMercatorQuad") {
+
+        const esriSatelliteLayer = L.tileLayer(
+          'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; ESRI &mdash; Source: Esri, DigitalGlobe, GeoEye, i-cubed, USDA FSA, USGS, AEX, Getmapping, Aerogrid, IGN, IGP, swisstopo, and the GIS User Community',
+            maxZoom: 19
+          }
+        );
+        esriSatelliteLayer.addTo(map);
+        baseLayers["Esri Satellite"] = esriSatelliteLayer;
+
+        const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        });
+        osmLayer.addTo(map);
+        baseLayers["OpenStreetMap"] = osmLayer;
+        activeBaseLayer = osmLayer;
       }
-    }
-    console.log(geo)
 
-    var aoi = L.geoJSON(geo, {
-        color: '#3bb2d0', fill: false
-    }).addTo(map);
-    map.fitBounds(aoi.getBounds());
+      fetch('{{ tilejson_endpoint|safe }}')
+        .then(res => {
+          if (res.ok) return res.json()
+          throw new Error('Network response was not ok.')
+        })
+        .then(data => {
+          console.log(data);
 
-    // Bounds crossing dateline
-    if (left > right) {
-      left = right - 360
-    }
+          let bounds = [...data.bounds];
 
-    L.tileLayer(
-      data.tiles[0], {
-        maxNativeZoom: data.maxzoom,
-        minNativeZoom: data.minzoom,
-        bounds: L.latLngBounds([bottom, left], [top, right]),
-      }
-    ).addTo(map);
-  })
-  .catch(err => {
-    console.warn(err)
-  })
+          var left = bounds[0],
+            bottom = bounds[1],
+            right = bounds[2],
+            top = bounds[3];
+
+          if (left < right) {
+            left = Math.max(left, {{ tms.bbox.left }});
+            right = Math.min(right, {{ tms.bbox.right }});
+          }
+          bottom = Math.max(bottom, {{ tms.bbox.bottom }});
+          top = Math.min(top, {{ tms.bbox.top }});
+
+          let geo;
+          if (left > right) {
+            geo = {
+              "type": "FeatureCollection",
+              "features": [
+                bboxPolygon([-180, bottom, right, top]),
+                bboxPolygon([left, bottom, 180, top]),
+              ]
+            };
+          } else {
+            geo = {
+              "type": "FeatureCollection",
+              "features": [bboxPolygon([left, bottom, right, top])]
+            };
+          }
+
+          var aoi = L.geoJSON(geo, {
+              color: '#3bb2d0', fill: false
+          }).addTo(map);
+          map.fitBounds(aoi.getBounds());
+
+          if (left > right) {
+            left = right - 360;
+          }
+
+          const tileLayer = L.tileLayer(
+            data.tiles[0], {
+              maxNativeZoom: data.maxzoom,
+              minNativeZoom: data.minzoom,
+              bounds: L.latLngBounds([bottom, left], [top, right]),
+            }
+          );
+
+          overlayLayers["TiTiler Layer"] = tileLayer;
+
+          tileLayer.addTo(map);
+
+          // Add L.control.layers with base and overlay layers
+          L.control.layers(baseLayers, overlayLayers, {collapsed: false}).addTo(map);
+        })
+        .catch(err => {
+          console.warn(err);
+        });
     </script>
-    </body>
-    </html>
+  </body>
+</html>
