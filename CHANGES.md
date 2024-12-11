@@ -3,7 +3,7 @@
 ## Unreleased
 
 ### titiler.core
-* Add layer control to map viewer template
+* Add layer control to map viewer template (author @hrodmn, https://github.com/developmentseed/titiler/pull/1051)
 
 ## 0.19.2 (2024-11-28)
 
