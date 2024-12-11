@@ -11,6 +11,8 @@
 
 * update `/healthz` endpoint to return dependencies versions (titiler, rasterio, gdal, ...) (author @scottyhq, https://github.com/developmentseed/titiler/pull/1056)
 
+* Simplify image format dtype validation in `render_image` (author @PratapVardhan, https://github.com/developmentseed/titiler/pull/1046)
+
 ## 0.19.2 (2024-11-28)
 
 ### Misc
