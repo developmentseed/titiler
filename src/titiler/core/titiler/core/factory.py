@@ -276,9 +276,9 @@ class TilerFactory(BaseFactory):
     img_part_dependency: Type[DefaultDependency] = PartFeatureParams
 
     # Post Processing Dependencies (algorithm)
-    process_dependency: Callable[
-        ..., Optional[BaseAlgorithm]
-    ] = available_algorithms.dependency
+    process_dependency: Callable[..., Optional[BaseAlgorithm]] = (
+        available_algorithms.dependency
+    )
 
     # Image rendering Dependencies
     rescale_dependency: Callable[..., Optional[RescaleType]] = RescalingParams

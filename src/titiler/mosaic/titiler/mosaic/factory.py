@@ -103,9 +103,9 @@ class MosaicTilerFactory(BaseFactory):
     tile_dependency: Type[DefaultDependency] = TileParams
 
     # Post Processing Dependencies (algorithm)
-    process_dependency: Callable[
-        ..., Optional[BaseAlgorithm]
-    ] = available_algorithms.dependency
+    process_dependency: Callable[..., Optional[BaseAlgorithm]] = (
+        available_algorithms.dependency
+    )
 
     # Image rendering Dependencies
     rescale_dependency: Callable[..., Optional[RescaleType]] = RescalingParams
@@ -914,9 +914,9 @@ class MosaicTilerFactory(BaseFactory):
 
             layers = [
                 {
-                    "title": src_path
-                    if isinstance(src_path, str)
-                    else "TiTiler Mosaic",
+                    "title": (
+                        src_path if isinstance(src_path, str) else "TiTiler Mosaic"
+                    ),
                     "name": "default",
                     "tiles_url": tiles_url,
                     "query_string": urlencode(qs, doseq=True) if qs else None,
