@@ -1,5 +1,7 @@
 # Release Notes
 
+## Unreleased
+
 ## 0.19.2 (2024-11-28)
 
 ### Misc
