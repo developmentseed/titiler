@@ -5,6 +5,10 @@
 ### titiler.core
 * Add layer control to map viewer template (author @hrodmn, https://github.com/developmentseed/titiler/pull/1051)
 
+### titiler.application
+
+* migrate `templates/index.html` to bootstrap5, remove unused css, reuse bs classes (author @PratapVardhan, https://github.com/developmentseed/titiler/pull/1048)
+
 ## 0.19.2 (2024-11-28)
 
 ### Misc
