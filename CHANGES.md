@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Misc
+
+* Updated WMTS Capabilities template to avoid inserting extra new lines (author @AndrewAnnex, https://github.com/developmentseed/titiler/pull/1052).  
+
+* Updated WMTS endpoint in titiler.mosaic and titiler.core to return layer bounds in coordinate ordering matching CRS order if WGS84 is not used (author @AndrewAnnex, https://github.com/developmentseed/titiler/pull/1052). 
+
 ## 0.19.2 (2024-11-28)
 
 ### Misc
