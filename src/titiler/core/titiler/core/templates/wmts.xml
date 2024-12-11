@@ -38,7 +38,7 @@
             <ows:Title>{{ layer.title }}</ows:Title>
             <ows:Identifier>{{ layer.name }}</ows:Identifier>
             <ows:Abstract>{{ layer.name }}</ows:Abstract>
-            <ows:{{ bbox_crs_type }} crs="{{ bbox_crs_uri | escape }}">
+            <ows:{{ bbox_crs_type }} crs="{{ bbox_crs_uri }}">
                 <ows:LowerCorner>{{ layer.bounds[0] }} {{ layer.bounds[1] }}</ows:LowerCorner>
                 <ows:UpperCorner>{{ layer.bounds[2] }} {{ layer.bounds[3] }}</ows:UpperCorner>
             </ows:{{ bbox_crs_type }}>
