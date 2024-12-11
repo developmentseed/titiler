@@ -5,6 +5,8 @@
 ### titiler.core
 * Add layer control to map viewer template (author @hrodmn, https://github.com/developmentseed/titiler/pull/1051)
 
+* Simplify image format dtype validation in `render_image` (author @PratapVardhan, https://github.com/developmentseed/titiler/pull/1046)
+
 ## 0.19.2 (2024-11-28)
 
 ### Misc
