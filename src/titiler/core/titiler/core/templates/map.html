@@ -112,6 +112,50 @@
         activeBaseLayer = osmLayer;
       }
 
+      // Add some placemarks for use in validating display with custom TMS
+      var nullIsland = L.marker([0, 0]),
+        madrid = L.marker([40, -3]),
+        london = L.marker([51.50722, -0.1275]),
+        auckland = L.marker([-36.864664, 174.792059]),
+        seattle = L.marker([47.596842, -122.333087]);
+
+      var cities = L.layerGroup([nullIsland, london, auckland, seattle]);
+
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'b' || e.key === 'B') {
+          if (map.hasLayer(cities)) {
+            map.removeLayer(cities);
+          } else {
+            map.addLayer(cities);
+          }
+        }
+      });
+
+      const toggleButton = L.control({position: 'bottomright'});
+      toggleButton.onAdd = function(map) {
+          const div = L.DomUtil.create('div', 'toggle-cities');
+          div.innerHTML = `
+              <button style="
+                  font-size: 10px;
+                  padding: 2px 5px;
+                  background: rgba(255, 255, 255, 0.8);
+                  border: 1px solid #ccc;
+                  border-radius: 3px;
+                  cursor: pointer;
+              ">⚲</button>
+          `;
+          div.onclick = function() {
+              if (map.hasLayer(cities)) {
+                  map.removeLayer(cities);
+              } else {
+                  map.addLayer(cities);
+              }
+          };
+          return div;
+      };
+      toggleButton.addTo(map);
+
+      // Add the tile layer!
       fetch('{{ tilejson_endpoint|safe }}')
         .then(res => {
           if (res.ok) return res.json()
