@@ -6,7 +6,6 @@ import rasterio
 from attrs import define, field
 from fastapi import Body, Depends, Query
 from geojson_pydantic.features import Feature, FeatureCollection
-from geojson_pydantic.geometries import MultiPolygon, Polygon
 from rio_tiler.constants import WGS84_CRS
 from rio_tiler.models import Info
 from typing_extensions import Annotated
@@ -23,6 +22,7 @@ from titiler.core.dependencies import (
 from titiler.core.factory import TilerFactory as BaseTilerFactory
 from titiler.core.models.responses import InfoGeoJSON, StatisticsGeoJSON
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse
+from titiler.core.utils import bounds_to_geometry
 from titiler.xarray.dependencies import DatasetParams, PartFeatureParams, XarrayParams
 from titiler.xarray.io import Reader
 
@@ -116,16 +116,7 @@ class TilerFactory(BaseTilerFactory):
             with rasterio.Env(**env):
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     bounds = src_dst.get_geographic_bounds(crs or WGS84_CRS)
-                    if bounds[0] > bounds[2]:
-                        pl = Polygon.from_bounds(-180, bounds[1], bounds[2], bounds[3])
-                        pr = Polygon.from_bounds(bounds[0], bounds[1], 180, bounds[3])
-                        geometry = MultiPolygon(
-                            type="MultiPolygon",
-                            coordinates=[pl.coordinates, pr.coordinates],
-                        )
-                    else:
-                        geometry = Polygon.from_bounds(*bounds)
-
+                    geometry = bounds_to_geometry(bounds)
                     info = src_dst.info().model_dump()
                     if show_times and "time" in src_dst.input.dims:
                         times = [str(x.data) for x in src_dst.input.time]
