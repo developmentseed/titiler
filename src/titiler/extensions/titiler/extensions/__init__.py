@@ -1,8 +1,5 @@
-"""titiler.extensions"""
+"""TiTiler.extensions."""
 
-__version__ = "0.19.2"
+from . import stac, renders, ogcmaps  # noqa
 
-from .cogeo import cogValidateExtension  # noqa
-from .stac import stacExtension  # noqa
-from .viewer import cogViewerExtension, stacViewerExtension  # noqa
-from .wms import wmsExtension  # noqa
+__all__ = ["stac", "renders", "ogcmaps"]
