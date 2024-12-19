@@ -97,7 +97,7 @@ known_third_party = [
 ]
 default_section = "THIRDPARTY"
 
-[tool.ruff]
+[tool.ruff.lint]
 select = [
     "D1",  # pydocstyle errors
     "E",  # pycodestyle errors

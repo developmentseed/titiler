@@ -1,4 +1,5 @@
 """test titiler.xarray factory."""
+
 import os
 
 import pytest

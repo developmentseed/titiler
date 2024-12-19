@@ -128,9 +128,7 @@ class stacExtension(FactoryExtension):
             ] = -1,
         ):
             """Create STAC item."""
-            properties = (
-                {}
-            )  # or properties = properties or {} if we add properties in Query
+            properties = {}  # or properties = properties or {} if we add properties in Query
 
             dt = None
             if datetime:
