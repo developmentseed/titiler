@@ -11,7 +11,7 @@ from cogeo_mosaic.models import Info as mosaicInfo
 from cogeo_mosaic.mosaic import MosaicJSON
 from fastapi import Depends, HTTPException, Path, Query
 from geojson_pydantic.features import Feature
-from geojson_pydantic.geometries import MultiPolygon, Polygon
+from geojson_pydantic.geometries import Polygon
 from morecantile import tms as morecantile_tms
 from morecantile.defaults import TileMatrixSets
 from pydantic import Field
@@ -48,7 +48,7 @@ from titiler.core.models.mapbox import TileJSON
 from titiler.core.models.OGC import TileSet, TileSetList
 from titiler.core.resources.enums import ImageType, OptionalHeader
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
-from titiler.core.utils import render_image
+from titiler.core.utils import bounds_to_geometry, render_image
 from titiler.mosaic.models.responses import Point
 
 MOSAIC_THREADS = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
@@ -257,15 +257,7 @@ class MosaicTilerFactory(BaseFactory):
                     **backend_params.as_dict(),
                 ) as src_dst:
                     bounds = src_dst.get_geographic_bounds(crs or WGS84_CRS)
-                    if bounds[0] > bounds[2]:
-                        pl = Polygon.from_bounds(-180, bounds[1], bounds[2], bounds[3])
-                        pr = Polygon.from_bounds(bounds[0], bounds[1], 180, bounds[3])
-                        geometry = MultiPolygon(
-                            type="MultiPolygon",
-                            coordinates=[pl.coordinates, pr.coordinates],
-                        )
-                    else:
-                        geometry = Polygon.from_bounds(*bounds)
+                    geometry = bounds_to_geometry(bounds)
 
                     return Feature(
                         type="Feature",
