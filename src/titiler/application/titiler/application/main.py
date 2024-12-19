@@ -33,6 +33,7 @@ from titiler.extensions import (
     cogValidateExtension,
     cogViewerExtension,
     stacExtension,
+    stacRenderExtension,
     stacViewerExtension,
 )
 from titiler.mosaic.errors import MOSAIC_STATUS_CODES
@@ -122,6 +123,7 @@ if not api_settings.disable_stac:
         router_prefix="/stac",
         extensions=[
             stacViewerExtension(),
+            stacRenderExtension(),
         ],
     )
 
