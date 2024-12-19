@@ -213,7 +213,7 @@ if api_settings.lower_case_query_parameters:
     operation_id="healthCheck",
     tags=["Health Check"],
 )
-def ping():
+def application_health_check():
     """Health check."""
     return {
         "versions": {
