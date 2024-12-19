@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1734637147237,
+  "lastUpdate": 1734637219895,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -9085,6 +9085,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad longest_transaction",
             "value": 0.06,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "pratapapvr@gmail.com",
+            "name": "Pratap Vardhan",
+            "username": "pratapvardhan"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ae48c2b49bf7127cfd3d9cbb9169df737f96ba69",
+          "message": "cleanup: migrate bootstrap5, remove unused css, fix indent, reuse bs classes (#1048)\n\n* migrate: bootstrap5, remove unused css, fix indent, reuse bs classes\r\n\r\n* DOC: changes.md",
+          "timestamp": "2024-12-19T20:38:57+01:00",
+          "tree_id": "e8393e2cdabe0325cc82c057594a440591268a9e",
+          "url": "https://github.com/developmentseed/titiler/commit/ae48c2b49bf7127cfd3d9cbb9169df737f96ba69"
+        },
+        "date": 1734637218747,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.3,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
             "unit": "s"
           }
         ]
