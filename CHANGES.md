@@ -11,6 +11,7 @@
 
 * update `/healthz` endpoint to return dependencies versions (titiler, rasterio, gdal, ...) (author @scottyhq, https://github.com/developmentseed/titiler/pull/1056)
 * migrate `templates/index.html` to bootstrap5, remove unused css, reuse bs classes (author @PratapVardhan, https://github.com/developmentseed/titiler/pull/1048)
+* add `titiler.core.utils.bounds_to_geometry` and reduce code duplication in factories (author @PratapVardhan, https://github.com/developmentseed/titiler/pull/1047)
 
 ## 0.19.2 (2024-11-28)
 
