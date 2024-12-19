@@ -1,8 +1,22 @@
 # Release Notes
 
+## Unreleased
+
+### titiler.core
+
+* Add layer control to map viewer template (author @hrodmn, https://github.com/developmentseed/titiler/pull/1051)
+* improve query string handling in LowerCaseQueryStringMiddleware using urlencode (author @pratapvardhan, https://github.com/developmentseed/titiler/pull/1050)
+
+### titiler.application
+
+* update `/healthz` endpoint to return dependencies versions (titiler, rasterio, gdal, ...) (author @scottyhq, https://github.com/developmentseed/titiler/pull/1056)
+* migrate `templates/index.html` to bootstrap5, remove unused css, reuse bs classes (author @PratapVardhan, https://github.com/developmentseed/titiler/pull/1048)
+
 ## 0.19.2 (2024-11-28)
 
 ### Misc
+
+* drop python 3.8 and add python 3.13 support (author @pratapvardhan, https://github.com/developmentseed/titiler/pull/1058)
 
 * Update package build backend from `pdm-pep517` to `pdm-backend` (https://backend.pdm-project.org/#migrate-from-pdm-pep517)
 
