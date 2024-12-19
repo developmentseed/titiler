@@ -5,6 +5,7 @@
 ### titiler.core
 
 * Add layer control to map viewer template (author @hrodmn, https://github.com/developmentseed/titiler/pull/1051)
+* improve query string handling in LowerCaseQueryStringMiddleware using urlencode (author @pratapvardhan, https://github.com/developmentseed/titiler/pull/1050)
 
 ### titiler.application
 
