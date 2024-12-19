@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1734640068575,
+  "lastUpdate": 1734640657565,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -9321,6 +9321,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad longest_transaction",
             "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "pratapapvr@gmail.com",
+            "name": "Pratap Vardhan",
+            "username": "pratapvardhan"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f978c3ecbccf76e7244b7a85c24d6cdf9377f7ff",
+          "message": "refactor: add core.utils.bounds_to_geometry to reuse in factories (#1047)\n\n* refactor: add core.utils.bounds_to_geometry to reuse in factories\r\n\r\n* Update src/titiler/core/titiler/core/utils.py\r\n\r\n* update changelog\r\n\r\n* lint\r\n\r\n---------\r\n\r\nCo-authored-by: vincentsarago <vincent.sarago@gmail.com>",
+          "timestamp": "2024-12-19T21:36:17+01:00",
+          "tree_id": "6f8903efe079bc9dd31b2fbd6c36f72d3cebfc73",
+          "url": "https://github.com/developmentseed/titiler/commit/f978c3ecbccf76e7244b7a85c24d6cdf9377f7ff"
+        },
+        "date": 1734640656454,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.07,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.06,
             "unit": "s"
           }
         ]
