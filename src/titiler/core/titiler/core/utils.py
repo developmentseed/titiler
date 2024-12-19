@@ -124,10 +124,10 @@ def render_image(
 
 def bounds_to_geometry(bounds: BBox) -> Union[Polygon, MultiPolygon]:
     """Convert bounds to geometry.
-    
+
     Note: if bounds are crossing the dateline separation line, a MultiPolygon geometry will be returned.
 
-        """
+    """
     if bounds[0] > bounds[2]:
         pl = Polygon.from_bounds(-180, bounds[1], bounds[2], bounds[3])
         pr = Polygon.from_bounds(bounds[0], bounds[1], 180, bounds[3])
