@@ -1,13 +1,11 @@
 """titiler app."""
-import io
 import logging
 import re
-from contextlib import redirect_stdout
 
 import jinja2
+import rasterio
 from fastapi import Depends, FastAPI, HTTPException, Security
 from fastapi.security.api_key import APIKeyQuery
-from rasterio import show_versions
 from rio_tiler.io import Reader, STACReader
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
@@ -217,10 +215,15 @@ if api_settings.lower_case_query_parameters:
 )
 def ping():
     """Health check."""
-    with redirect_stdout(io.StringIO()) as f:
-        show_versions()
-    rasterio_versions = f.getvalue().splitlines()
-    return {"Hello from titiler!": rasterio_versions}
+    return {
+        "versions": {
+            "titiler": titiler_version,
+            "rasterio": rasterio.__version__,
+            "gdal": rasterio.__gdal_version__,
+            "proj": rasterio.__proj_version__,
+            "geos": rasterio.__geos_version__,
+        }
+    }
 
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
