@@ -1,9 +1,9 @@
 """titiler app."""
-
 import logging
 import re
 
 import jinja2
+import rasterio
 from fastapi import Depends, FastAPI, HTTPException, Security
 from fastapi.security.api_key import APIKeyQuery
 from rio_tiler.io import Reader, STACReader
@@ -213,9 +213,17 @@ if api_settings.lower_case_query_parameters:
     operation_id="healthCheck",
     tags=["Health Check"],
 )
-def ping():
+def application_health_check():
     """Health check."""
-    return {"ping": "pong!"}
+    return {
+        "versions": {
+            "titiler": titiler_version,
+            "rasterio": rasterio.__version__,
+            "gdal": rasterio.__gdal_version__,
+            "proj": rasterio.__proj_version__,
+            "geos": rasterio.__geos_version__,
+        }
+    }
 
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
