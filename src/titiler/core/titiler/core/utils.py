@@ -4,11 +4,12 @@ import warnings
 from typing import Any, Optional, Sequence, Tuple, Union
 
 import numpy
+from geojson_pydantic.geometries import MultiPolygon, Polygon
 from rasterio.dtypes import dtype_ranges
 from rio_tiler.colormap import apply_cmap
 from rio_tiler.errors import InvalidDatatypeWarning
 from rio_tiler.models import ImageData
-from rio_tiler.types import ColorMapType, IntervalTuple
+from rio_tiler.types import BBox, ColorMapType, IntervalTuple
 from rio_tiler.utils import linear_rescale, render
 
 from titiler.core.resources.enums import ImageType
@@ -83,6 +84,7 @@ def render_image(
             f"Invalid type: `{data.dtype}` for the `{output_format}` driver. "
             "Data will be rescaled using min/max type bounds or dataset_statistics.",
             InvalidDatatypeWarning,
+            stacklevel=1,
         )
         data = rescale_array(data, mask, in_range=datatype_range)
 
@@ -105,3 +107,19 @@ def render_image(
         ),
         output_format.mediatype,
     )
+
+
+def bounds_to_geometry(bounds: BBox) -> Union[Polygon, MultiPolygon]:
+    """Convert bounds to geometry.
+
+    Note: if bounds are crossing the dateline separation line, a MultiPolygon geometry will be returned.
+
+    """
+    if bounds[0] > bounds[2]:
+        pl = Polygon.from_bounds(-180, bounds[1], bounds[2], bounds[3])
+        pr = Polygon.from_bounds(bounds[0], bounds[1], 180, bounds[3])
+        return MultiPolygon(
+            type="MultiPolygon",
+            coordinates=[pl.coordinates, pr.coordinates],
+        )
+    return Polygon.from_bounds(*bounds)
