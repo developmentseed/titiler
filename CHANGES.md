@@ -3,7 +3,12 @@
 ## Unreleased
 
 ### titiler.core
+
 * Add layer control to map viewer template (author @hrodmn, https://github.com/developmentseed/titiler/pull/1051)
+
+### titiler.application
+
+* update `/healthz` endpoint to return dependencies versions (titiler, rasterio, gdal, ...) (author @scottyhq, https://github.com/developmentseed/titiler/pull/1056)
 
 ## 0.19.2 (2024-11-28)
 
