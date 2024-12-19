@@ -1,6 +1,5 @@
 """test dependencies."""
 
-
 from fastapi import Depends, FastAPI, Path
 from starlette.testclient import TestClient
 from typing_extensions import Annotated

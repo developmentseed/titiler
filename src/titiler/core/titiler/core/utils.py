@@ -72,6 +72,7 @@ def render_image(
         warnings.warn(
             f"Invalid type: `{data.dtype}` for the `{output_format}` driver. Data will be rescaled using min/max type bounds or dataset_statistics.",
             InvalidDatatypeWarning,
+            stacklevel=1,
         )
         data = rescale_array(data, mask, in_range=datatype_range)
 
@@ -83,6 +84,7 @@ def render_image(
         warnings.warn(
             f"Invalid type: `{data.dtype}` for the `{output_format}` driver. Data will be rescaled using min/max type bounds or dataset_statistics.",
             InvalidDatatypeWarning,
+            stacklevel=1,
         )
         data = rescale_array(data, mask, in_range=datatype_range)
 
@@ -94,6 +96,7 @@ def render_image(
         warnings.warn(
             f"Invalid type: `{data.dtype}` for the `{output_format}` driver. Data will be rescaled using min/max type bounds or dataset_statistics.",
             InvalidDatatypeWarning,
+            stacklevel=1,
         )
         data = rescale_array(data, mask, in_range=datatype_range)
 

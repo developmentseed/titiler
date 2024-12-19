@@ -380,12 +380,12 @@ class wmsExtension(FactoryExtension):
                         ) as src_dst:
                             layers_dict[layer]["srs"] = f"EPSG:{src_dst.crs.to_epsg()}"
                             layers_dict[layer]["bounds"] = src_dst.bounds
-                            layers_dict[layer][
-                                "bounds_wgs84"
-                            ] = src_dst.get_geographic_bounds(WGS84_CRS)
-                            layers_dict[layer][
-                                "abstract"
-                            ] = src_dst.info().model_dump_json()
+                            layers_dict[layer]["bounds_wgs84"] = (
+                                src_dst.get_geographic_bounds(WGS84_CRS)
+                            )
+                            layers_dict[layer]["abstract"] = (
+                                src_dst.info().model_dump_json()
+                            )
 
                 # Build information for the whole service
                 minx, miny, maxx, maxy = zip(
