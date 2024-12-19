@@ -5,7 +5,8 @@ def test_health(app):
     """Test /healthz endpoint."""
     response = app.get("/healthz")
     assert response.status_code == 200
-    assert set(response["versions"].keys()) == {
+    resp = response.json()
+    assert set(resp["versions"].keys()) == {
         "titiler",
         "gdal",
         "geos",
