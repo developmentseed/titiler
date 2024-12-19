@@ -111,6 +111,9 @@ ignore = [
     "B008",  # do not perform function calls in argument defaults
     "B905",  # ignore zip() without an explicit strict= parameter, only support with python >3.10
 ]
+exclude = [
+    "*.ipynb"
+]
 
 [tool.mypy]
 no_implicit_optional = true

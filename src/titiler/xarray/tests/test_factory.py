@@ -49,8 +49,6 @@ def app():
 
     app = FastAPI()
     app.include_router(md.router, prefix="/md")
-    client = TestClient(app)
-
     with TestClient(app) as client:
         yield client
 
