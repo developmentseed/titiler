@@ -102,9 +102,9 @@ class MosaicTilerFactory(BaseFactory):
     tile_dependency: Type[DefaultDependency] = TileParams
 
     # Post Processing Dependencies (algorithm)
-    process_dependency: Callable[
-        ..., Optional[BaseAlgorithm]
-    ] = available_algorithms.dependency
+    process_dependency: Callable[..., Optional[BaseAlgorithm]] = (
+        available_algorithms.dependency
+    )
 
     # Image rendering Dependencies
     rescale_dependency: Callable[..., Optional[RescaleType]] = RescalingParams
@@ -427,8 +427,11 @@ class MosaicTilerFactory(BaseFactory):
                             }
                         )
 
-            qs = [(key, value) for (key, value) in request.query_params._list]
-            query_string = f"?{urlencode(qs)}" if qs else ""
+            query_string = (
+                f"?{urlencode(request.query_params._list)}"
+                if request.query_params._list
+                else ""
+            )
 
             links = [
                 {
@@ -582,7 +585,6 @@ class MosaicTilerFactory(BaseFactory):
                     reader_options=reader_params.as_dict(),
                     **backend_params.as_dict(),
                 ) as src_dst:
-
                     if MOSAIC_STRICT_ZOOM and (
                         z < src_dst.minzoom or z > src_dst.maxzoom
                     ):

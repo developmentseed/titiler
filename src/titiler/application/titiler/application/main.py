@@ -1,4 +1,5 @@
 """titiler app."""
+
 import logging
 import re
 

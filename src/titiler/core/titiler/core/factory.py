@@ -274,9 +274,9 @@ class TilerFactory(BaseFactory):
     img_part_dependency: Type[DefaultDependency] = PartFeatureParams
 
     # Post Processing Dependencies (algorithm)
-    process_dependency: Callable[
-        ..., Optional[BaseAlgorithm]
-    ] = available_algorithms.dependency
+    process_dependency: Callable[..., Optional[BaseAlgorithm]] = (
+        available_algorithms.dependency
+    )
 
     # Image rendering Dependencies
     rescale_dependency: Callable[..., Optional[RescaleType]] = RescalingParams
@@ -671,8 +671,11 @@ class TilerFactory(BaseFactory):
                             }
                         )
 
-            qs = [(key, value) for (key, value) in request.query_params._list]
-            query_string = f"?{urlencode(qs)}" if qs else ""
+            query_string = (
+                f"?{urlencode(request.query_params._list)}"
+                if request.query_params._list
+                else ""
+            )
 
             links = [
                 {
@@ -1440,12 +1443,7 @@ class MultiBaseTilerFactory(TilerFactory):
                         type="Feature",
                         bbox=bounds,
                         geometry=geometry,
-                        properties={
-                            asset: asset_info
-                            for asset, asset_info in src_dst.info(
-                                **asset_params.as_dict()
-                            ).items()
-                        },
+                        properties=src_dst.info(**asset_params.as_dict()),
                     )
 
         @self.router.get(

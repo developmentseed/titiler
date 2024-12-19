@@ -1,6 +1,5 @@
 """test /COG endpoints."""
 
-
 from typing import Dict
 from unittest.mock import patch
 

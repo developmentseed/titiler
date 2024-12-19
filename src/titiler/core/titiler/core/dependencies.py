@@ -72,6 +72,7 @@ class DefaultDependency:
         warnings.warn(
             "Dict unpacking will be removed for `DefaultDependency` in titiler 0.19.0",
             DeprecationWarning,
+            stacklevel=1,
         )
         return self.__dict__.keys()
 
@@ -233,6 +234,7 @@ class AssetsBidxExprParams(AssetsParams, BidxParams):
             warnings.warn(
                 "Both `asset_bidx` and `bidx` passed; only `asset_bidx` will be considered.",
                 UserWarning,
+                stacklevel=1,
             )
 
 
@@ -249,6 +251,7 @@ class AssetsBidxExprParamsOptional(AssetsBidxExprParams):
             warnings.warn(
                 "Both `asset_bidx` and `bidx` passed; only `asset_bidx` will be considered.",
                 UserWarning,
+                stacklevel=1,
             )
 
 
@@ -305,6 +308,7 @@ class AssetsBidxParams(AssetsParams, BidxParams):
             warnings.warn(
                 "Both `asset_bidx` and `bidx` passed; only `asset_bidx` will be considered.",
                 UserWarning,
+                stacklevel=1,
             )
 
 
@@ -434,7 +438,7 @@ class ImageRenderingParams(DefaultDependency):
     ] = None
 
 
-RescaleType = List[Tuple[float, ...]]
+RescaleType = List[Tuple[float, float]]
 
 
 def RescalingParams(
@@ -460,6 +464,7 @@ def RescalingParams(
             assert (
                 len(parsed) == 2
             ), f"Invalid rescale values: {rescale}, should be of form ['min,max', 'min,max'] or [[min,max], [min, max]]"
+
             rescale_array.append(parsed)
 
         return rescale_array
