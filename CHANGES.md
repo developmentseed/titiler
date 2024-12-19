@@ -15,6 +15,8 @@
 
 ### Misc
 
+* drop python 3.8 and add python 3.13 support (author @pratapvardhan, https://github.com/developmentseed/titiler/pull/1058)
+
 * Update package build backend from `pdm-pep517` to `pdm-backend` (https://backend.pdm-project.org/#migrate-from-pdm-pep517)
 
 * Update namespace package from using `.` to `-` as separator to comply with PEP-625 (https://peps.python.org/pep-0625/)
