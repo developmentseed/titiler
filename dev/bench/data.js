@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1734682118372,
+  "lastUpdate": 1734682546713,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -9424,6 +9424,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.12,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "ama6fy@virginia.edu",
+            "name": "Dr. Andrew Annex",
+            "username": "AndrewAnnex"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "98a417d87f8341232cd2a687bbefcc6230e3f3ce",
+          "message": "WMTS BoundingBox fix and WMTS template adjustment (#1052)\n\n* fixes a bug where the WMTS BoundingBox coordinates flipped incorrectly\r\nif boundingbox element is used, as the coords must match the CRS order\r\n\r\nupdates WMTS XML template to avoid placing extra new lines in various\r\nplaces\r\n\r\n* fixed typo in import\r\n\r\n* updated changelog, removed experimental change in wmts template that is needed for another pending pr\r\n\r\n* reformatting\r\n\r\n---------\r\n\r\nCo-authored-by: vincentsarago <vincent.sarago@gmail.com>",
+          "timestamp": "2024-12-20T09:14:25+01:00",
+          "tree_id": "5ff1cecae52dafd77d4bd1bd8059ad23c1ec89ab",
+          "url": "https://github.com/developmentseed/titiler/commit/98a417d87f8341232cd2a687bbefcc6230e3f3ce"
+        },
+        "date": 1734682545520,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.14,
             "unit": "s"
           },
           {
