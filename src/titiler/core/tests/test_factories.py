@@ -1640,7 +1640,6 @@ def test_TilerFactory_WithGdalEnv():
     assert response.json()["overviews"]
 
     class ReaddirType(str, Enum):
-
         false = "false"
         true = "true"
         empty_dir = "empty_dir"

@@ -34,6 +34,7 @@ def app(set_env) -> TestClient:
 
 def mock_RequestGet(src_path):
     """Mock Requests."""
+
     # HTTP
     class MockResponse:
         def __init__(self, data):

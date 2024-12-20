@@ -66,5 +66,5 @@ def add_exception_handlers(
     """
     Add exception handlers to the FastAPI app.
     """
-    for (exc, code) in status_codes.items():
+    for exc, code in status_codes.items():
         app.add_exception_handler(exc, exception_handler_factory(code))

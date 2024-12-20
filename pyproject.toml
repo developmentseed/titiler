@@ -2,7 +2,7 @@
 name = "titiler"
 description = "A modern dynamic tile server built on top of FastAPI and Rasterio/GDAL."
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 license = {file = "LICENSE"}
 authors = [
     {name = "Vincent Sarago", email = "vincent@developmentseed.com"},
@@ -22,20 +22,20 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering :: GIS",
 ]
-version="0.19.1"
+version="0.19.2"
 dependencies = [
-    "titiler.core==0.19.1",
-    "titiler.xarray==0.19.1",
-    "titiler.extensions==0.19.1",
-    "titiler.mosaic==0.19.1",
-    "titiler.application==0.19.1",
+    "titiler.core==0.19.2",
+    "titiler.xarray==0.19.2",
+    "titiler.extensions==0.19.2",
+    "titiler.mosaic==0.19.2",
+    "titiler.application==0.19.2",
 ]
 
 [project.urls]
@@ -97,7 +97,7 @@ known_third_party = [
 ]
 default_section = "THIRDPARTY"
 
-[tool.ruff]
+[tool.ruff.lint]
 select = [
     "D1",  # pydocstyle errors
     "E",  # pycodestyle errors
@@ -110,6 +110,9 @@ ignore = [
     "E501",  # line too long, handled by black
     "B008",  # do not perform function calls in argument defaults
     "B905",  # ignore zip() without an explicit strict= parameter, only support with python >3.10
+]
+exclude = [
+    "*.ipynb"
 ]
 
 [tool.mypy]
@@ -127,7 +130,7 @@ filterwarnings = [
 bypass-selection = true
 
 [tool.bumpversion]
-current_version = "0.19.1"
+current_version = "0.19.2"
 parse = """(?x)
     (?P<major>\\d+)\\.
     (?P<minor>\\d+)\\.

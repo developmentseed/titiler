@@ -168,9 +168,9 @@ class BoundingBox(BaseModel):
         ),
     ]
     crs: Annotated[Optional[CRSType], Field(json_schema_extra={"title": "CRS"})] = None
-    orderedAxes: Annotated[
-        Optional[List[str]], Field(max_length=2, min_length=2)
-    ] = None
+    orderedAxes: Annotated[Optional[List[str]], Field(max_length=2, min_length=2)] = (
+        None
+    )
 
 
 # Ref: https://github.com/opengeospatial/ogcapi-tiles/blob/master/openapi/schemas/tms/propertiesSchema.yaml

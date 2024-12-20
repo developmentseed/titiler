@@ -3,8 +3,8 @@
 import logging
 import re
 import time
-import urllib.parse
 from typing import Optional, Set
+from urllib.parse import urlencode
 
 from fastapi.logger import logger
 from starlette.datastructures import MutableHeaders
@@ -50,10 +50,7 @@ class CacheControlMiddleware:
                         scope["method"] in ["HEAD", "GET"]
                         and message["status"] < self.cachecontrol_max_http_code
                         and not any(
-                            [
-                                re.match(path, scope["path"])
-                                for path in self.exclude_path
-                            ]
+                            re.match(path, scope["path"]) for path in self.exclude_path
                         )
                     ):
                         response_headers["Cache-Control"] = self.cachecontrol
@@ -156,14 +153,11 @@ class LowerCaseQueryStringMiddleware:
         """Handle call."""
         if scope["type"] == "http":
             request = Request(scope)
-
             DECODE_FORMAT = "latin-1"
-
-            query_string = ""
-            for k, v in request.query_params.multi_items():
-                query_string += k.lower() + "=" + urllib.parse.quote(v) + "&"
-
-            query_string = query_string[:-1]
+            query_items = [
+                (k.lower(), v) for k, v in request.query_params.multi_items()
+            ]
+            query_string = urlencode(query_items, doseq=True)
             request.scope["query_string"] = query_string.encode(DECODE_FORMAT)
 
         await self.app(scope, receive, send)

@@ -5,6 +5,7 @@ import tempfile
 from contextlib import contextmanager
 from dataclasses import dataclass
 from io import BytesIO
+from unittest.mock import patch
 
 import morecantile
 import numpy
@@ -356,10 +357,9 @@ def test_MosaicTilerFactory_PixelSelectionParams():
         assert (npy_tile != npy_tile_highest).any()
 
 
-def test_MosaicTilerFactory_strict_zoom(monkeypatch):
+@patch("titiler.mosaic.factory.MOSAIC_STRICT_ZOOM", new=True)
+def test_MosaicTilerFactory_strict_zoom():
     """Test MosaicTilerFactory factory with STRICT Zoom Mode"""
-    monkeypatch.setenv("MOSAIC_STRICT_ZOOM", "TRUE")
-
     mosaic = MosaicTilerFactory()
     app = FastAPI()
     app.include_router(mosaic.router)

@@ -72,6 +72,7 @@ class DefaultDependency:
         warnings.warn(
             "Dict unpacking will be removed for `DefaultDependency` in titiler 0.19.0",
             DeprecationWarning,
+            stacklevel=1,
         )
         return self.__dict__.keys()
 
@@ -233,6 +234,7 @@ class AssetsBidxExprParams(AssetsParams, BidxParams):
             warnings.warn(
                 "Both `asset_bidx` and `bidx` passed; only `asset_bidx` will be considered.",
                 UserWarning,
+                stacklevel=1,
             )
 
 
@@ -249,6 +251,7 @@ class AssetsBidxExprParamsOptional(AssetsBidxExprParams):
             warnings.warn(
                 "Both `asset_bidx` and `bidx` passed; only `asset_bidx` will be considered.",
                 UserWarning,
+                stacklevel=1,
             )
 
 
@@ -305,6 +308,7 @@ class AssetsBidxParams(AssetsParams, BidxParams):
             warnings.warn(
                 "Both `asset_bidx` and `bidx` passed; only `asset_bidx` will be considered.",
                 UserWarning,
+                stacklevel=1,
             )
 
 
@@ -421,7 +425,7 @@ class DatasetParams(DefaultDependency):
             self.unscale = bool(self.unscale)
 
 
-RescaleType = List[Tuple[float, ...]]
+RescaleType = List[Tuple[float, float]]
 
 
 @dataclass
@@ -469,7 +473,7 @@ class ImageRenderingParams(DefaultDependency):
                 ), f"Invalid rescale values: {self.rescale}, should be of form ['min,max', 'min,max'] or [[min,max], [min, max]]"
                 rescale_array.append(parsed)
 
-            self.rescale: RescaleType = rescale_array  # Noqa
+            self.rescale: RescaleType = rescale_array
 
 
 def RescalingParams(
@@ -486,6 +490,7 @@ def RescalingParams(
     warnings.warn(
         "RescalingParams is deprecated and set to be removed in 0.20",
         DeprecationWarning,
+        stacklevel=1,
     )
     if rescale:
         rescale_array = []
@@ -499,6 +504,7 @@ def RescalingParams(
             assert (
                 len(parsed) == 2
             ), f"Invalid rescale values: {rescale}, should be of form ['min,max', 'min,max'] or [[min,max], [min, max]]"
+
             rescale_array.append(parsed)
 
         return rescale_array
@@ -683,6 +689,7 @@ def ColorFormulaParams(
     warnings.warn(
         "ColorFormulaParams is deprecated and set to be removed in 0.20",
         DeprecationWarning,
+        stacklevel=1,
     )
     return color_formula
 

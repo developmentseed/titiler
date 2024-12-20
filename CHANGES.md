@@ -1,26 +1,50 @@
 # Release Notes
 
-## 0.20.0 (TBD)
+## Unreleased
 
 ### titiler.core
 
-* Remove `rescale_dependency` and `color_formula_dependency` attributes in `TilerFactory` class
+* add layer control to map viewer template (author @hrodmn, https://github.com/developmentseed/titiler/pull/1051)
+* improve query string handling in LowerCaseQueryStringMiddleware using urlencode (author @pratapvardhan, https://github.com/developmentseed/titiler/pull/1050)
+* add `titiler.core.utils.bounds_to_geometry` and reduce code duplication in factories (author @PratapVardhan, https://github.com/developmentseed/titiler/pull/1047)
+* simplify image format dtype validation in `render_image` (author @PratapVardhan, https://github.com/developmentseed/titiler/pull/1046)
+* remove `rescale_dependency` and `color_formula_dependency` attributes in `TilerFactory` class  **breaking change**
+* move `rescale` and `color_formula` QueryParameters dependencies in `ImageRenderingParams` class  **breaking change**
+* handle image rescaling and color_formula within `titiler.core.utils.render_image` function  **breaking change**
+* add `render_func: Callable[..., Tuple[bytes, str]] = render_image` attribute in `TilerFactory` class
 
-* Move `rescale` and `color_formula` QueryParameters dependencies in `ImageRenderingParams` class
+### titiler.application
 
-* Handle image rescaling and color_formula within `titiler.core.utils.render_image` function
-
-* Add `render_func: Callable[..., Tuple[bytes, str]] = render_image` attribute in `TilerFactory` class
+* update `/healthz` endpoint to return dependencies versions (titiler, rasterio, gdal, ...) (author @scottyhq, https://github.com/developmentseed/titiler/pull/1056)
+* migrate `templates/index.html` to bootstrap5, remove unused css, reuse bs classes (author @PratapVardhan, https://github.com/developmentseed/titiler/pull/1048)
 
 ### titiler.mosaic
 
-* Remove `rescale_dependency` and `color_formula_dependency` attributes in `MosaicTilerFactory` class
-
-* Add `render_func: Callable[..., Tuple[bytes, str]] = render_image` attribute in `MosaicTilerFactory` class
+* remove `rescale_dependency` and `color_formula_dependency` attributes in `MosaicTilerFactory` class  **breaking change**
+* add `render_func: Callable[..., Tuple[bytes, str]] = render_image` attribute in `MosaicTilerFactory` class  **breaking change**
 
 ### titiler.extensions
 
-* Use `factory.render_func` as render function in `wmsExtension` endpoints
+* use `factory.render_func` as render function in `wmsExtension` endpoints
+
+### Misc
+
+* Updated WMTS Capabilities template to avoid inserting extra new lines (author @AndrewAnnex, https://github.com/developmentseed/titiler/pull/1052).
+* Updated WMTS endpoint in titiler.mosaic and titiler.core to return layer bounds in coordinate ordering matching CRS order if WGS84 is not used (author @AndrewAnnex, https://github.com/developmentseed/titiler/pull/1052).
+
+## 0.19.2 (2024-11-28)
+
+### Misc
+
+* drop python 3.8 and add python 3.13 support (author @pratapvardhan, https://github.com/developmentseed/titiler/pull/1058)
+
+* Update package build backend from `pdm-pep517` to `pdm-backend` (https://backend.pdm-project.org/#migrate-from-pdm-pep517)
+
+* Update namespace package from using `.` to `-` as separator to comply with PEP-625 (https://peps.python.org/pep-0625/)
+
+### titiler.mosaic
+
+* Define variable (`MOSAIC_CONCURRENCY` and `MOSAIC_STRICT_ZOOM`) from env-variable outside endpoint code
 
 ## 0.19.1 (2024-11-14)
 
