@@ -17,13 +17,16 @@ def app():
     app.add_middleware(LowerCaseQueryStringMiddleware)
     return app
 
+
 @pytest.fixture
 def client(app):
     """Create test client."""
     return TestClient(app)
 
+
 def test_lowercase_middleware(app, client):
     """Make sure upper and lower case QS are accepted."""
+
     @app.get("/route1")
     async def route1(value: Annotated[str, Query()]):
         """route1."""
@@ -35,8 +38,10 @@ def test_lowercase_middleware(app, client):
     response = client.get("/route1?VALUE=lorenzori")
     assert response.json() == {"value": "lorenzori"}
 
+
 def test_lowercase_middleware_multiple_values(app, client):
     """Make sure all values are available for lists."""
+
     @app.get("/route1")
     async def route1(value: Annotated[List[str], Query()]):
         """route1."""
@@ -48,8 +53,10 @@ def test_lowercase_middleware_multiple_values(app, client):
     response = client.get("/route1?VALUE=lorenzori&VALUE=dogs&value=trucks")
     assert response.json() == {"value": ["lorenzori", "dogs", "trucks"]}
 
+
 def test_lowercase_middleware_url_with_query_parameters(app, client):
     """Make sure all query parameters return."""
+
     @app.get("/route1")
     async def route1(url: List[str] = Query(...)):
         """route1."""
