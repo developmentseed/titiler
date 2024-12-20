@@ -29,6 +29,7 @@ def apiroute_factory(env: Optional[Dict] = None) -> Type[APIRoute]:
         "'apiroute_factory' has been deprecated and will be removed"
         "in titiler 0.1.0. Please see `environment_dependency` option in endpoint factories.",
         DeprecationWarning,
+        stacklevel=1,
     )
 
     class EnvAPIRoute(APIRoute):
@@ -82,7 +83,8 @@ def add_route_dependencies(
                 route.dependant.dependencies.insert(  # type: ignore
                     0,
                     get_parameterless_sub_dependant(
-                        depends=depends, path=route.path_format  # type: ignore
+                        depends=depends,
+                        path=route.path_format,  # type: ignore
                     ),
                 )
 

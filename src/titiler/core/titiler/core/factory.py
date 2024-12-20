@@ -23,11 +23,10 @@ from fastapi import APIRouter, Body, Depends, Path, Query
 from fastapi.dependencies.utils import get_parameterless_sub_dependant
 from fastapi.params import Depends as DependsFunc
 from geojson_pydantic.features import Feature, FeatureCollection
-from geojson_pydantic.geometries import MultiPolygon, Polygon
 from morecantile import TileMatrixSet
 from morecantile import tms as morecantile_tms
-from morecantile.models import crs_axis_inverted
 from morecantile.defaults import TileMatrixSets
+from morecantile.models import crs_axis_inverted
 from pydantic import Field
 from rio_tiler.colormap import ColorMaps
 from rio_tiler.colormap import cmap as default_cmap
@@ -86,7 +85,7 @@ from titiler.core.models.responses import (
 from titiler.core.resources.enums import ImageType
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
 from titiler.core.routing import EndpointScope
-from titiler.core.utils import render_image
+from titiler.core.utils import bounds_to_geometry, render_image
 
 jinja2_env = jinja2.Environment(
     loader=jinja2.ChoiceLoader([jinja2.PackageLoader(__package__, "templates")])
@@ -399,15 +398,7 @@ class TilerFactory(BaseFactory):
             with rasterio.Env(**env):
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     bounds = src_dst.get_geographic_bounds(crs or WGS84_CRS)
-                    if bounds[0] > bounds[2]:
-                        pl = Polygon.from_bounds(-180, bounds[1], bounds[2], bounds[3])
-                        pr = Polygon.from_bounds(bounds[0], bounds[1], 180, bounds[3])
-                        geometry = MultiPolygon(
-                            type="MultiPolygon",
-                            coordinates=[pl.coordinates, pr.coordinates],
-                        )
-                    else:
-                        geometry = Polygon.from_bounds(*bounds)
+                    geometry = bounds_to_geometry(bounds)
 
                     return Feature(
                         type="Feature",
@@ -681,8 +672,11 @@ class TilerFactory(BaseFactory):
                             }
                         )
 
-            qs = [(key, value) for (key, value) in request.query_params._list]
-            query_string = f"?{urlencode(qs)}" if qs else ""
+            query_string = (
+                f"?{urlencode(request.query_params._list)}"
+                if request.query_params._list
+                else ""
+            )
 
             links = [
                 {
@@ -1448,26 +1442,13 @@ class MultiBaseTilerFactory(TilerFactory):
             with rasterio.Env(**env):
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     bounds = src_dst.get_geographic_bounds(crs or WGS84_CRS)
-                    if bounds[0] > bounds[2]:
-                        pl = Polygon.from_bounds(-180, bounds[1], bounds[2], bounds[3])
-                        pr = Polygon.from_bounds(bounds[0], bounds[1], 180, bounds[3])
-                        geometry = MultiPolygon(
-                            type="MultiPolygon",
-                            coordinates=[pl.coordinates, pr.coordinates],
-                        )
-                    else:
-                        geometry = Polygon.from_bounds(*bounds)
+                    geometry = bounds_to_geometry(bounds)
 
                     return Feature(
                         type="Feature",
                         bbox=bounds,
                         geometry=geometry,
-                        properties={
-                            asset: asset_info
-                            for asset, asset_info in src_dst.info(
-                                **asset_params.as_dict()
-                            ).items()
-                        },
+                        properties=src_dst.info(**asset_params.as_dict()),
                     )
 
         @self.router.get(
@@ -1706,15 +1687,7 @@ class MultiBandTilerFactory(TilerFactory):
             with rasterio.Env(**env):
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     bounds = src_dst.get_geographic_bounds(crs or WGS84_CRS)
-                    if bounds[0] > bounds[2]:
-                        pl = Polygon.from_bounds(-180, bounds[1], bounds[2], bounds[3])
-                        pr = Polygon.from_bounds(bounds[0], bounds[1], 180, bounds[3])
-                        geometry = MultiPolygon(
-                            type="MultiPolygon",
-                            coordinates=[pl.coordinates, pr.coordinates],
-                        )
-                    else:
-                        geometry = Polygon.from_bounds(*bounds)
+                    geometry = bounds_to_geometry(bounds)
 
                     return Feature(
                         type="Feature",
