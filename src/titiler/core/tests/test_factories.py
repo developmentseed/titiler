@@ -5,6 +5,7 @@ import os
 import pathlib
 import warnings
 import xml.etree.ElementTree as ET
+from dataclasses import dataclass
 from enum import Enum
 from io import BytesIO
 from typing import Dict, Optional, Sequence, Type
@@ -26,8 +27,9 @@ from rio_tiler.errors import NoOverviewWarning
 from rio_tiler.io import BaseReader, MultiBandReader, Reader, STACReader
 from starlette.requests import Request
 from starlette.testclient import TestClient
+from typing_extensions import Annotated
 
-from titiler.core.dependencies import RescaleType
+from titiler.core import dependencies
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 from titiler.core.factory import (
     AlgorithmFactory,
@@ -1757,11 +1759,34 @@ def test_AutoFormat_Colormap():
 def test_rescale_dependency():
     """Ensure that we can set default rescale values via the rescale_dependency"""
 
-    def custom_rescale_params() -> Optional[RescaleType]:
-        return [(0, 100)]
+    @dataclass
+    class ImageRenderingParams(dependencies.ImageRenderingParams):
+        """Custom ImageParams."""
+
+        def __post_init__(self):
+            if self.rescale:
+                rescale_array = []
+                for r in self.rescale:
+                    parsed = tuple(
+                        map(
+                            float,
+                            r.replace(" ", "")
+                            .replace("[", "")
+                            .replace("]", "")
+                            .split(","),
+                        )
+                    )
+                    assert (
+                        len(parsed) == 2
+                    ), f"Invalid rescale values: {self.rescale}, should be of form ['min,max', 'min,max'] or [[min,max], [min, max]]"
+                    rescale_array.append(parsed)
+
+                self.rescale = rescale_array  # Noqa
+            else:
+                self.rescale = [(0, 100)]
 
     cog = TilerFactory()
-    cog_custom_range = TilerFactory(rescale_dependency=custom_rescale_params)
+    cog_custom_range = TilerFactory(render_dependency=ImageRenderingParams)
 
     app = FastAPI()
     app.include_router(cog.router, prefix="/cog")
@@ -1839,13 +1864,20 @@ def test_dst_crs_option():
 def test_color_formula_dependency():
     """Ensure that we can set default color formulae via the color_formula_dependency"""
 
-    def custom_color_formula_params() -> Optional[str]:
-        return "sigmoidal R 7 0.4"
+    @dataclass
+    class ImageRenderingParams(dependencies.ImageRenderingParams):
+        """Custom ImageParams."""
+
+        color_formula: Annotated[
+            Optional[str],
+            Query(
+                title="Color Formula",
+                description="rio-color formula (info: https://github.com/mapbox/rio-color)",
+            ),
+        ] = "sigmoidal R 7 0.4"
 
     cog = TilerFactory()
-    cog_custom_color_formula = TilerFactory(
-        color_formula_dependency=custom_color_formula_params
-    )
+    cog_custom_color_formula = TilerFactory(render_dependency=ImageRenderingParams)
 
     app = FastAPI()
     app.include_router(cog.router, prefix="/cog")

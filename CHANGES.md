@@ -8,11 +8,24 @@
 * improve query string handling in LowerCaseQueryStringMiddleware using urlencode (author @pratapvardhan, https://github.com/developmentseed/titiler/pull/1050)
 * add `titiler.core.utils.bounds_to_geometry` and reduce code duplication in factories (author @PratapVardhan, https://github.com/developmentseed/titiler/pull/1047)
 * simplify image format dtype validation in `render_image` (author @PratapVardhan, https://github.com/developmentseed/titiler/pull/1046)
+* remove `rescale_dependency` and `color_formula_dependency` attributes in `TilerFactory` class  **breaking change**
+* move `rescale` and `color_formula` QueryParameters dependencies in `ImageRenderingParams` class  **breaking change**
+* handle image rescaling and color_formula within `titiler.core.utils.render_image` function  **breaking change**
+* add `render_func: Callable[..., Tuple[bytes, str]] = render_image` attribute in `TilerFactory` class
 
 ### titiler.application
 
 * update `/healthz` endpoint to return dependencies versions (titiler, rasterio, gdal, ...) (author @scottyhq, https://github.com/developmentseed/titiler/pull/1056)
 * migrate `templates/index.html` to bootstrap5, remove unused css, reuse bs classes (author @PratapVardhan, https://github.com/developmentseed/titiler/pull/1048)
+
+### titiler.mosaic
+
+* remove `rescale_dependency` and `color_formula_dependency` attributes in `MosaicTilerFactory` class  **breaking change**
+* add `render_func: Callable[..., Tuple[bytes, str]] = render_image` attribute in `MosaicTilerFactory` class  **breaking change**
+
+### titiler.extensions
+
+* use `factory.render_func` as render function in `wmsExtension` endpoints
 
 ### Misc
 

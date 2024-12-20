@@ -30,6 +30,7 @@ class CustomRenderParams(ImageRenderingParams):
 
     def __post_init__(self):
         """post init."""
+        super().__post_init__()
         if self.nodata is not None:
             self.nodata = numpy.nan if self.nodata == "nan" else float(self.nodata)
 

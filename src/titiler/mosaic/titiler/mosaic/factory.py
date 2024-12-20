@@ -1,7 +1,7 @@
 """TiTiler.mosaic Router factories."""
 
 import os
-from typing import Any, Callable, Dict, List, Literal, Optional, Type, Union
+from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Type, Union
 from urllib.parse import urlencode
 
 import rasterio
@@ -33,15 +33,12 @@ from titiler.core.algorithm import BaseAlgorithm
 from titiler.core.algorithm import algorithms as available_algorithms
 from titiler.core.dependencies import (
     BidxExprParams,
-    ColorFormulaParams,
     ColorMapParams,
     CoordCRSParams,
     CRSParams,
     DatasetParams,
     DefaultDependency,
     ImageRenderingParams,
-    RescaleType,
-    RescalingParams,
     TileParams,
 )
 from titiler.core.factory import DEFAULT_TEMPLATES, BaseFactory, img_endpoint_params
@@ -108,8 +105,6 @@ class MosaicTilerFactory(BaseFactory):
     )
 
     # Image rendering Dependencies
-    rescale_dependency: Callable[..., Optional[RescaleType]] = RescalingParams
-    color_formula_dependency: Callable[..., Optional[str]] = ColorFormulaParams
     colormap_dependency: Callable[..., Optional[ColorMapType]] = ColorMapParams
     render_dependency: Type[DefaultDependency] = ImageRenderingParams
 
@@ -121,6 +116,8 @@ class MosaicTilerFactory(BaseFactory):
     supported_tms: TileMatrixSets = morecantile_tms
 
     templates: Jinja2Templates = DEFAULT_TEMPLATES
+
+    render_func: Callable[..., Tuple[bytes, str]] = render_image
 
     optional_headers: List[OptionalHeader] = field(factory=list)
 
@@ -564,8 +561,6 @@ class MosaicTilerFactory(BaseFactory):
             pixel_selection=Depends(self.pixel_selection_dependency),
             tile_params=Depends(self.tile_dependency),
             post_process=Depends(self.process_dependency),
-            rescale=Depends(self.rescale_dependency),
-            color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             env=Depends(self.environment_dependency),
@@ -609,13 +604,7 @@ class MosaicTilerFactory(BaseFactory):
             if post_process:
                 image = post_process(image)
 
-            if rescale:
-                image.rescale(rescale)
-
-            if color_formula:
-                image.apply_color_formula(color_formula)
-
-            content, media_type = render_image(
+            content, media_type = self.render_func(
                 image,
                 output_format=format,
                 colormap=colormap,
@@ -673,8 +662,6 @@ class MosaicTilerFactory(BaseFactory):
             pixel_selection=Depends(self.pixel_selection_dependency),
             tile_params=Depends(self.tile_dependency),
             post_process=Depends(self.process_dependency),
-            rescale=Depends(self.rescale_dependency),
-            color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             env=Depends(self.environment_dependency),
@@ -767,8 +754,6 @@ class MosaicTilerFactory(BaseFactory):
             pixel_selection=Depends(self.pixel_selection_dependency),
             tile_params=Depends(self.tile_dependency),
             post_process=Depends(self.process_dependency),
-            rescale=Depends(self.rescale_dependency),
-            color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             env=Depends(self.environment_dependency),
@@ -840,8 +825,6 @@ class MosaicTilerFactory(BaseFactory):
             pixel_selection=Depends(self.pixel_selection_dependency),
             tile_params=Depends(self.tile_dependency),
             post_process=Depends(self.process_dependency),
-            rescale=Depends(self.rescale_dependency),
-            color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             env=Depends(self.environment_dependency),

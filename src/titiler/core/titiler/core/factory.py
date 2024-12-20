@@ -52,7 +52,6 @@ from titiler.core.dependencies import (
     BandsExprParamsOptional,
     BandsParams,
     BidxExprParams,
-    ColorFormulaParams,
     ColorMapParams,
     CoordCRSParams,
     CRSParams,
@@ -64,8 +63,6 @@ from titiler.core.dependencies import (
     ImageRenderingParams,
     PartFeatureParams,
     PreviewParams,
-    RescaleType,
-    RescalingParams,
     StatisticsParams,
     TileParams,
 )
@@ -280,8 +277,6 @@ class TilerFactory(BaseFactory):
     )
 
     # Image rendering Dependencies
-    rescale_dependency: Callable[..., Optional[RescaleType]] = RescalingParams
-    color_formula_dependency: Callable[..., Optional[str]] = ColorFormulaParams
     colormap_dependency: Callable[..., Optional[ColorMapType]] = ColorMapParams
     render_dependency: Type[DefaultDependency] = ImageRenderingParams
 
@@ -292,6 +287,8 @@ class TilerFactory(BaseFactory):
     supported_tms: TileMatrixSets = morecantile_tms
 
     templates: Jinja2Templates = DEFAULT_TEMPLATES
+
+    render_func: Callable[..., Tuple[bytes, str]] = render_image
 
     # Add/Remove some endpoints
     add_preview: bool = True
@@ -806,8 +803,6 @@ class TilerFactory(BaseFactory):
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             post_process=Depends(self.process_dependency),
-            rescale=Depends(self.rescale_dependency),
-            color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             env=Depends(self.environment_dependency),
@@ -832,13 +827,7 @@ class TilerFactory(BaseFactory):
             if post_process:
                 image = post_process(image)
 
-            if rescale:
-                image.rescale(rescale)
-
-            if color_formula:
-                image.apply_color_formula(color_formula)
-
-            content, media_type = render_image(
+            content, media_type = self.render_func(
                 image,
                 output_format=format,
                 colormap=colormap or dst_colormap,
@@ -890,8 +879,6 @@ class TilerFactory(BaseFactory):
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             post_process=Depends(self.process_dependency),
-            rescale=Depends(self.rescale_dependency),
-            color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             env=Depends(self.environment_dependency),
@@ -975,8 +962,6 @@ class TilerFactory(BaseFactory):
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             post_process=Depends(self.process_dependency),
-            rescale=Depends(self.rescale_dependency),
-            color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             env=Depends(self.environment_dependency),
@@ -1044,8 +1029,6 @@ class TilerFactory(BaseFactory):
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             post_process=Depends(self.process_dependency),
-            rescale=Depends(self.rescale_dependency),
-            color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             env=Depends(self.environment_dependency),
@@ -1201,8 +1184,6 @@ class TilerFactory(BaseFactory):
             image_params=Depends(self.img_preview_dependency),
             dst_crs=Depends(DstCRSParams),
             post_process=Depends(self.process_dependency),
-            rescale=Depends(self.rescale_dependency),
-            color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             env=Depends(self.environment_dependency),
@@ -1221,13 +1202,7 @@ class TilerFactory(BaseFactory):
             if post_process:
                 image = post_process(image)
 
-            if rescale:
-                image.rescale(rescale)
-
-            if color_formula:
-                image.apply_color_formula(color_formula)
-
-            content, media_type = render_image(
+            content, media_type = self.render_func(
                 image,
                 output_format=format,
                 colormap=colormap or dst_colormap,
@@ -1268,8 +1243,6 @@ class TilerFactory(BaseFactory):
             dst_crs=Depends(DstCRSParams),
             coord_crs=Depends(CoordCRSParams),
             post_process=Depends(self.process_dependency),
-            rescale=Depends(self.rescale_dependency),
-            color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             env=Depends(self.environment_dependency),
@@ -1290,13 +1263,7 @@ class TilerFactory(BaseFactory):
             if post_process:
                 image = post_process(image)
 
-            if rescale:
-                image.rescale(rescale)
-
-            if color_formula:
-                image.apply_color_formula(color_formula)
-
-            content, media_type = render_image(
+            content, media_type = self.render_func(
                 image,
                 output_format=format,
                 colormap=colormap or dst_colormap,
@@ -1332,8 +1299,6 @@ class TilerFactory(BaseFactory):
             coord_crs=Depends(CoordCRSParams),
             dst_crs=Depends(DstCRSParams),
             post_process=Depends(self.process_dependency),
-            rescale=Depends(self.rescale_dependency),
-            color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             env=Depends(self.environment_dependency),
@@ -1354,13 +1319,7 @@ class TilerFactory(BaseFactory):
             if post_process:
                 image = post_process(image)
 
-            if rescale:
-                image.rescale(rescale)
-
-            if color_formula:
-                image.apply_color_formula(color_formula)
-
-            content, media_type = render_image(
+            content, media_type = self.render_func(
                 image,
                 output_format=format,
                 colormap=colormap or dst_colormap,
