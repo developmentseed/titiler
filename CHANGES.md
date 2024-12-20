@@ -26,6 +26,7 @@
 ### titiler.extensions
 
 * use `factory.render_func` as render function in `wmsExtension` endpoints
+* add `stacRenderExtension` which adds two endpoints: `/renders` (lists all renders) and `/renders/<render_id>` (render metadata and links) (author @alekzvik, https://github.com/developmentseed/titiler/pull/1038)
 
 ### Misc
 
