@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1734684416408,
+  "lastUpdate": 1734687034127,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -9542,6 +9542,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.11,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "alekzvik@users.noreply.github.com",
+            "name": "Oleksii Vykaliuk",
+            "username": "alekzvik"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "72a8df9510895405e183ecb2b41df45ce1d4f089",
+          "message": "feat: STAC Render Extension support (#1038)\n\n* Render Extension\r\nRender extension started during STAC render sprint in SatSummit Lisbon 2024.\r\n\r\n- listing (or showing to please Vincent)\r\n\r\nPlease contribute to complete the feature to\r\n\r\n- generate the final XYZ link for rendering following the rules in STAC extensions\r\n- add a dedicated endpoint for render XYZ\r\n\r\n* feat(stac): add render extenstions support\r\n\r\n* remove unnecessary item.json file\r\n\r\n* Rework the response structure to include links.\r\n\r\n* rename renderExtension -> stacRenderExtension\r\n\r\n* add tests for stacRenderExtension\r\n\r\n* add test for extra param\r\n\r\n* docs and docstrings\r\n\r\n* fix typing in python 3.8\r\n\r\n* Move out query params validation\r\n\r\n* edits\r\n\r\n* update changelog\r\n\r\n---------\r\n\r\nCo-authored-by: Emmanuel Mathot <emmanuel.mathot@gmail.com>\r\nCo-authored-by: vincentsarago <vincent.sarago@gmail.com>",
+          "timestamp": "2024-12-20T10:29:19+01:00",
+          "tree_id": "e1707c1beafa7439dd8745531c6f4b0c8891eab4",
+          "url": "https://github.com/developmentseed/titiler/commit/72a8df9510895405e183ecb2b41df45ce1d4f089"
+        },
+        "date": 1734687033549,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.04,
             "unit": "s"
           },
           {
