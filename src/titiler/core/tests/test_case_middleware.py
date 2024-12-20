@@ -1,6 +1,7 @@
 """Test titiler.core.middleware.LowerCaseQueryStringMiddleware."""
 
 from typing import List
+
 import pytest
 from fastapi import FastAPI, Query
 from starlette.testclient import TestClient
