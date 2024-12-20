@@ -14,6 +14,7 @@ from geojson_pydantic.features import Feature
 from geojson_pydantic.geometries import Polygon
 from morecantile import tms as morecantile_tms
 from morecantile.defaults import TileMatrixSets
+from morecantile.models import crs_axis_inverted
 from pydantic import Field
 from rio_tiler.constants import MAX_THREADS, WGS84_CRS
 from rio_tiler.io import BaseReader, MultiBandReader, MultiBaseReader, Reader
@@ -907,9 +908,9 @@ class MosaicTilerFactory(BaseFactory):
 
             layers = [
                 {
-                    "title": src_path
-                    if isinstance(src_path, str)
-                    else "TiTiler Mosaic",
+                    "title": (
+                        src_path if isinstance(src_path, str) else "TiTiler Mosaic"
+                    ),
                     "name": "default",
                     "tiles_url": tiles_url,
                     "query_string": urlencode(qs, doseq=True) if qs else None,
@@ -922,6 +923,10 @@ class MosaicTilerFactory(BaseFactory):
             if tms.rasterio_geographic_crs != WGS84_CRS:
                 bbox_crs_type = "BoundingBox"
                 bbox_crs_uri = CRS_to_uri(tms.rasterio_geographic_crs)
+                # WGS88BoundingBox is always xy ordered, but BoundingBox must match the CRS order
+                if crs_axis_inverted(tms.geographic_crs):
+                    # match the bounding box coordinate order to the CRS
+                    bounds = [bounds[1], bounds[0], bounds[3], bounds[2]]
 
             return self.templates.TemplateResponse(
                 request,
