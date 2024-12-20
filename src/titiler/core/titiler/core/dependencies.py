@@ -72,6 +72,7 @@ class DefaultDependency:
         warnings.warn(
             "Dict unpacking will be removed for `DefaultDependency` in titiler 0.19.0",
             DeprecationWarning,
+            stacklevel=1,
         )
         return self.__dict__.keys()
 
@@ -233,6 +234,7 @@ class AssetsBidxExprParams(AssetsParams, BidxParams):
             warnings.warn(
                 "Both `asset_bidx` and `bidx` passed; only `asset_bidx` will be considered.",
                 UserWarning,
+                stacklevel=1,
             )
 
 
@@ -249,6 +251,7 @@ class AssetsBidxExprParamsOptional(AssetsBidxExprParams):
             warnings.warn(
                 "Both `asset_bidx` and `bidx` passed; only `asset_bidx` will be considered.",
                 UserWarning,
+                stacklevel=1,
             )
 
 
@@ -305,6 +308,7 @@ class AssetsBidxParams(AssetsParams, BidxParams):
             warnings.warn(
                 "Both `asset_bidx` and `bidx` passed; only `asset_bidx` will be considered.",
                 UserWarning,
+                stacklevel=1,
             )
 
 
@@ -421,9 +425,29 @@ class DatasetParams(DefaultDependency):
             self.unscale = bool(self.unscale)
 
 
+RescaleType = List[Tuple[float, float]]
+
+
 @dataclass
 class ImageRenderingParams(DefaultDependency):
     """Image Rendering options."""
+
+    rescale: Annotated[
+        Optional[List[str]],
+        Query(
+            title="Min/Max data Rescaling",
+            description="comma (',') delimited Min,Max range. Can set multiple time for multiple bands.",
+            examples=["0,2000", "0,1000", "0,10000"],  # band 1  # band 2  # band 3
+        ),
+    ] = None
+
+    color_formula: Annotated[
+        Optional[str],
+        Query(
+            title="Color Formula",
+            description="rio-color formula (info: https://github.com/mapbox/rio-color)",
+        ),
+    ] = None
 
     add_mask: Annotated[
         Optional[bool],
@@ -433,8 +457,23 @@ class ImageRenderingParams(DefaultDependency):
         ),
     ] = None
 
+    def __post_init__(self):
+        """Post Init."""
+        if self.rescale:
+            rescale_array = []
+            for r in self.rescale:
+                parsed = tuple(
+                    map(
+                        float,
+                        r.replace(" ", "").replace("[", "").replace("]", "").split(","),
+                    )
+                )
+                assert (
+                    len(parsed) == 2
+                ), f"Invalid rescale values: {self.rescale}, should be of form ['min,max', 'min,max'] or [[min,max], [min, max]]"
+                rescale_array.append(parsed)
 
-RescaleType = List[Tuple[float, ...]]
+            self.rescale: RescaleType = rescale_array
 
 
 def RescalingParams(
@@ -448,6 +487,11 @@ def RescalingParams(
     ] = None,
 ) -> Optional[RescaleType]:
     """Min/Max data Rescaling"""
+    warnings.warn(
+        "RescalingParams is deprecated and set to be removed in 0.20",
+        DeprecationWarning,
+        stacklevel=1,
+    )
     if rescale:
         rescale_array = []
         for r in rescale:
@@ -460,6 +504,7 @@ def RescalingParams(
             assert (
                 len(parsed) == 2
             ), f"Invalid rescale values: {rescale}, should be of form ['min,max', 'min,max'] or [[min,max], [min, max]]"
+
             rescale_array.append(parsed)
 
         return rescale_array
@@ -641,6 +686,11 @@ def ColorFormulaParams(
     ] = None,
 ) -> Optional[str]:
     """ColorFormula Parameter."""
+    warnings.warn(
+        "ColorFormulaParams is deprecated and set to be removed in 0.20",
+        DeprecationWarning,
+        stacklevel=1,
+    )
     return color_formula
 
 

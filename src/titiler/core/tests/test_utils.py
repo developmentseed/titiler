@@ -1,6 +1,5 @@
 """Test utils."""
 
-
 from titiler.core.dependencies import BidxParams
 from titiler.core.utils import deserialize_query_params, get_dependency_query_params
 

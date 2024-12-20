@@ -147,7 +147,6 @@ def test_default():
 
     @dataclass
     class dep(dependencies.DefaultDependency):
-
         v: int
 
     # make sure we can unpack the class
@@ -501,9 +500,9 @@ def test_rescale_params():
     app = FastAPI()
 
     @app.get("/")
-    def main(rescale=Depends(dependencies.RescalingParams)):
+    def main(params=Depends(dependencies.ImageRenderingParams)):
         """return rescale."""
-        return rescale
+        return params.rescale
 
     client = TestClient(app)
 

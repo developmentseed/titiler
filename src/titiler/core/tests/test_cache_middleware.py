@@ -1,6 +1,5 @@
 """Test titiler.core.CacheControlMiddleware."""
 
-
 from fastapi import FastAPI, Path
 from starlette.responses import Response
 from starlette.testclient import TestClient

@@ -1,7 +1,7 @@
 """TiTiler.mosaic Router factories."""
 
 import os
-from typing import Any, Callable, Dict, List, Literal, Optional, Type, Union
+from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Type, Union
 from urllib.parse import urlencode
 
 import rasterio
@@ -11,9 +11,10 @@ from cogeo_mosaic.models import Info as mosaicInfo
 from cogeo_mosaic.mosaic import MosaicJSON
 from fastapi import Depends, HTTPException, Path, Query
 from geojson_pydantic.features import Feature
-from geojson_pydantic.geometries import MultiPolygon, Polygon
+from geojson_pydantic.geometries import Polygon
 from morecantile import tms as morecantile_tms
 from morecantile.defaults import TileMatrixSets
+from morecantile.models import crs_axis_inverted
 from pydantic import Field
 from rio_tiler.constants import MAX_THREADS, WGS84_CRS
 from rio_tiler.io import BaseReader, MultiBandReader, MultiBaseReader, Reader
@@ -32,15 +33,12 @@ from titiler.core.algorithm import BaseAlgorithm
 from titiler.core.algorithm import algorithms as available_algorithms
 from titiler.core.dependencies import (
     BidxExprParams,
-    ColorFormulaParams,
     ColorMapParams,
     CoordCRSParams,
     CRSParams,
     DatasetParams,
     DefaultDependency,
     ImageRenderingParams,
-    RescaleType,
-    RescalingParams,
     TileParams,
 )
 from titiler.core.factory import DEFAULT_TEMPLATES, BaseFactory, img_endpoint_params
@@ -48,8 +46,14 @@ from titiler.core.models.mapbox import TileJSON
 from titiler.core.models.OGC import TileSet, TileSetList
 from titiler.core.resources.enums import ImageType, OptionalHeader
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
-from titiler.core.utils import render_image
+from titiler.core.utils import bounds_to_geometry, render_image
 from titiler.mosaic.models.responses import Point
+
+MOSAIC_THREADS = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
+MOSAIC_STRICT_ZOOM = str(os.getenv("MOSAIC_STRICT_ZOOM", False)).lower() in [
+    "true",
+    "yes",
+]
 
 
 def PixelSelectionParams(
@@ -96,13 +100,11 @@ class MosaicTilerFactory(BaseFactory):
     tile_dependency: Type[DefaultDependency] = TileParams
 
     # Post Processing Dependencies (algorithm)
-    process_dependency: Callable[
-        ..., Optional[BaseAlgorithm]
-    ] = available_algorithms.dependency
+    process_dependency: Callable[..., Optional[BaseAlgorithm]] = (
+        available_algorithms.dependency
+    )
 
     # Image rendering Dependencies
-    rescale_dependency: Callable[..., Optional[RescaleType]] = RescalingParams
-    color_formula_dependency: Callable[..., Optional[str]] = ColorFormulaParams
     colormap_dependency: Callable[..., Optional[ColorMapType]] = ColorMapParams
     render_dependency: Type[DefaultDependency] = ImageRenderingParams
 
@@ -114,6 +116,8 @@ class MosaicTilerFactory(BaseFactory):
     supported_tms: TileMatrixSets = morecantile_tms
 
     templates: Jinja2Templates = DEFAULT_TEMPLATES
+
+    render_func: Callable[..., Tuple[bytes, str]] = render_image
 
     optional_headers: List[OptionalHeader] = field(factory=list)
 
@@ -251,15 +255,7 @@ class MosaicTilerFactory(BaseFactory):
                     **backend_params.as_dict(),
                 ) as src_dst:
                     bounds = src_dst.get_geographic_bounds(crs or WGS84_CRS)
-                    if bounds[0] > bounds[2]:
-                        pl = Polygon.from_bounds(-180, bounds[1], bounds[2], bounds[3])
-                        pr = Polygon.from_bounds(bounds[0], bounds[1], 180, bounds[3])
-                        geometry = MultiPolygon(
-                            type="MultiPolygon",
-                            coordinates=[pl.coordinates, pr.coordinates],
-                        )
-                    else:
-                        geometry = Polygon.from_bounds(*bounds)
+                    geometry = bounds_to_geometry(bounds)
 
                     return Feature(
                         type="Feature",
@@ -429,8 +425,11 @@ class MosaicTilerFactory(BaseFactory):
                             }
                         )
 
-            qs = [(key, value) for (key, value) in request.query_params._list]
-            query_string = f"?{urlencode(qs)}" if qs else ""
+            query_string = (
+                f"?{urlencode(request.query_params._list)}"
+                if request.query_params._list
+                else ""
+            )
 
             links = [
                 {
@@ -562,8 +561,6 @@ class MosaicTilerFactory(BaseFactory):
             pixel_selection=Depends(self.pixel_selection_dependency),
             tile_params=Depends(self.tile_dependency),
             post_process=Depends(self.process_dependency),
-            rescale=Depends(self.rescale_dependency),
-            color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             env=Depends(self.environment_dependency),
@@ -575,13 +572,6 @@ class MosaicTilerFactory(BaseFactory):
                     f"Invalid 'scale' parameter: {scale}. Scale HAVE TO be between 1 and 4",
                 )
 
-            threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
-
-            strict_zoom = str(os.getenv("MOSAIC_STRICT_ZOOM", False)).lower() in [
-                "true",
-                "yes",
-            ]
-
             tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
                 with self.backend(
@@ -591,8 +581,9 @@ class MosaicTilerFactory(BaseFactory):
                     reader_options=reader_params.as_dict(),
                     **backend_params.as_dict(),
                 ) as src_dst:
-
-                    if strict_zoom and (z < src_dst.minzoom or z > src_dst.maxzoom):
+                    if MOSAIC_STRICT_ZOOM and (
+                        z < src_dst.minzoom or z > src_dst.maxzoom
+                    ):
                         raise HTTPException(
                             400,
                             f"Invalid ZOOM level {z}. Should be between {src_dst.minzoom} and {src_dst.maxzoom}",
@@ -604,7 +595,7 @@ class MosaicTilerFactory(BaseFactory):
                         z,
                         pixel_selection=pixel_selection,
                         tilesize=scale * 256,
-                        threads=threads,
+                        threads=MOSAIC_THREADS,
                         **tile_params.as_dict(),
                         **layer_params.as_dict(),
                         **dataset_params.as_dict(),
@@ -613,13 +604,7 @@ class MosaicTilerFactory(BaseFactory):
             if post_process:
                 image = post_process(image)
 
-            if rescale:
-                image.rescale(rescale)
-
-            if color_formula:
-                image.apply_color_formula(color_formula)
-
-            content, media_type = render_image(
+            content, media_type = self.render_func(
                 image,
                 output_format=format,
                 colormap=colormap,
@@ -677,8 +662,6 @@ class MosaicTilerFactory(BaseFactory):
             pixel_selection=Depends(self.pixel_selection_dependency),
             tile_params=Depends(self.tile_dependency),
             post_process=Depends(self.process_dependency),
-            rescale=Depends(self.rescale_dependency),
-            color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             env=Depends(self.environment_dependency),
@@ -771,18 +754,18 @@ class MosaicTilerFactory(BaseFactory):
             pixel_selection=Depends(self.pixel_selection_dependency),
             tile_params=Depends(self.tile_dependency),
             post_process=Depends(self.process_dependency),
-            rescale=Depends(self.rescale_dependency),
-            color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             env=Depends(self.environment_dependency),
         ):
             """Return TileJSON document for a dataset."""
             tilejson_url = self.url_for(
-                request, "tilejson", tileMatrixSetId=tileMatrixSetId
+                request,
+                "tilejson",
+                tileMatrixSetId=tileMatrixSetId,
             )
             if request.query_params._list:
-                tilejson_url += f"?{urlencode(request.query_params._list)}"
+                tilejson_url += f"?{urlencode(request.query_params._list, doseq=True)}"
 
             tms = self.supported_tms.get(tileMatrixSetId)
             return self.templates.TemplateResponse(
@@ -842,8 +825,6 @@ class MosaicTilerFactory(BaseFactory):
             pixel_selection=Depends(self.pixel_selection_dependency),
             tile_params=Depends(self.tile_dependency),
             post_process=Depends(self.process_dependency),
-            rescale=Depends(self.rescale_dependency),
-            color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             env=Depends(self.environment_dependency),
@@ -910,9 +891,9 @@ class MosaicTilerFactory(BaseFactory):
 
             layers = [
                 {
-                    "title": src_path
-                    if isinstance(src_path, str)
-                    else "TiTiler Mosaic",
+                    "title": (
+                        src_path if isinstance(src_path, str) else "TiTiler Mosaic"
+                    ),
                     "name": "default",
                     "tiles_url": tiles_url,
                     "query_string": urlencode(qs, doseq=True) if qs else None,
@@ -925,6 +906,10 @@ class MosaicTilerFactory(BaseFactory):
             if tms.rasterio_geographic_crs != WGS84_CRS:
                 bbox_crs_type = "BoundingBox"
                 bbox_crs_uri = CRS_to_uri(tms.rasterio_geographic_crs)
+                # WGS88BoundingBox is always xy ordered, but BoundingBox must match the CRS order
+                if crs_axis_inverted(tms.geographic_crs):
+                    # match the bounding box coordinate order to the CRS
+                    bounds = [bounds[1], bounds[0], bounds[3], bounds[2]]
 
             return self.templates.TemplateResponse(
                 request,
@@ -966,8 +951,6 @@ class MosaicTilerFactory(BaseFactory):
             env=Depends(self.environment_dependency),
         ):
             """Get Point value for a Mosaic."""
-            threads = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
-
             with rasterio.Env(**env):
                 with self.backend(
                     src_path,
@@ -979,7 +962,7 @@ class MosaicTilerFactory(BaseFactory):
                         lon,
                         lat,
                         coord_crs=coord_crs or WGS84_CRS,
-                        threads=threads,
+                        threads=MOSAIC_THREADS,
                         **layer_params.as_dict(),
                         **dataset_params.as_dict(),
                     )

@@ -23,10 +23,10 @@ from fastapi import APIRouter, Body, Depends, Path, Query
 from fastapi.dependencies.utils import get_parameterless_sub_dependant
 from fastapi.params import Depends as DependsFunc
 from geojson_pydantic.features import Feature, FeatureCollection
-from geojson_pydantic.geometries import MultiPolygon, Polygon
 from morecantile import TileMatrixSet
 from morecantile import tms as morecantile_tms
 from morecantile.defaults import TileMatrixSets
+from morecantile.models import crs_axis_inverted
 from pydantic import Field
 from rio_tiler.colormap import ColorMaps
 from rio_tiler.colormap import cmap as default_cmap
@@ -52,7 +52,6 @@ from titiler.core.dependencies import (
     BandsExprParamsOptional,
     BandsParams,
     BidxExprParams,
-    ColorFormulaParams,
     ColorMapParams,
     CoordCRSParams,
     CRSParams,
@@ -64,8 +63,6 @@ from titiler.core.dependencies import (
     ImageRenderingParams,
     PartFeatureParams,
     PreviewParams,
-    RescaleType,
-    RescalingParams,
     StatisticsParams,
     TileParams,
 )
@@ -85,7 +82,7 @@ from titiler.core.models.responses import (
 from titiler.core.resources.enums import ImageType
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
 from titiler.core.routing import EndpointScope
-from titiler.core.utils import render_image
+from titiler.core.utils import bounds_to_geometry, render_image
 
 jinja2_env = jinja2.Environment(
     loader=jinja2.ChoiceLoader([jinja2.PackageLoader(__package__, "templates")])
@@ -275,13 +272,11 @@ class TilerFactory(BaseFactory):
     img_part_dependency: Type[DefaultDependency] = PartFeatureParams
 
     # Post Processing Dependencies (algorithm)
-    process_dependency: Callable[
-        ..., Optional[BaseAlgorithm]
-    ] = available_algorithms.dependency
+    process_dependency: Callable[..., Optional[BaseAlgorithm]] = (
+        available_algorithms.dependency
+    )
 
     # Image rendering Dependencies
-    rescale_dependency: Callable[..., Optional[RescaleType]] = RescalingParams
-    color_formula_dependency: Callable[..., Optional[str]] = ColorFormulaParams
     colormap_dependency: Callable[..., Optional[ColorMapType]] = ColorMapParams
     render_dependency: Type[DefaultDependency] = ImageRenderingParams
 
@@ -292,6 +287,8 @@ class TilerFactory(BaseFactory):
     supported_tms: TileMatrixSets = morecantile_tms
 
     templates: Jinja2Templates = DEFAULT_TEMPLATES
+
+    render_func: Callable[..., Tuple[bytes, str]] = render_image
 
     # Add/Remove some endpoints
     add_preview: bool = True
@@ -398,15 +395,7 @@ class TilerFactory(BaseFactory):
             with rasterio.Env(**env):
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     bounds = src_dst.get_geographic_bounds(crs or WGS84_CRS)
-                    if bounds[0] > bounds[2]:
-                        pl = Polygon.from_bounds(-180, bounds[1], bounds[2], bounds[3])
-                        pr = Polygon.from_bounds(bounds[0], bounds[1], 180, bounds[3])
-                        geometry = MultiPolygon(
-                            type="MultiPolygon",
-                            coordinates=[pl.coordinates, pr.coordinates],
-                        )
-                    else:
-                        geometry = Polygon.from_bounds(*bounds)
+                    geometry = bounds_to_geometry(bounds)
 
                     return Feature(
                         type="Feature",
@@ -680,8 +669,11 @@ class TilerFactory(BaseFactory):
                             }
                         )
 
-            qs = [(key, value) for (key, value) in request.query_params._list]
-            query_string = f"?{urlencode(qs)}" if qs else ""
+            query_string = (
+                f"?{urlencode(request.query_params._list)}"
+                if request.query_params._list
+                else ""
+            )
 
             links = [
                 {
@@ -811,8 +803,6 @@ class TilerFactory(BaseFactory):
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             post_process=Depends(self.process_dependency),
-            rescale=Depends(self.rescale_dependency),
-            color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             env=Depends(self.environment_dependency),
@@ -837,13 +827,7 @@ class TilerFactory(BaseFactory):
             if post_process:
                 image = post_process(image)
 
-            if rescale:
-                image.rescale(rescale)
-
-            if color_formula:
-                image.apply_color_formula(color_formula)
-
-            content, media_type = render_image(
+            content, media_type = self.render_func(
                 image,
                 output_format=format,
                 colormap=colormap or dst_colormap,
@@ -895,8 +879,6 @@ class TilerFactory(BaseFactory):
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             post_process=Depends(self.process_dependency),
-            rescale=Depends(self.rescale_dependency),
-            color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             env=Depends(self.environment_dependency),
@@ -980,8 +962,6 @@ class TilerFactory(BaseFactory):
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             post_process=Depends(self.process_dependency),
-            rescale=Depends(self.rescale_dependency),
-            color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             env=Depends(self.environment_dependency),
@@ -1049,8 +1029,6 @@ class TilerFactory(BaseFactory):
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             post_process=Depends(self.process_dependency),
-            rescale=Depends(self.rescale_dependency),
-            color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             env=Depends(self.environment_dependency),
@@ -1126,6 +1104,10 @@ class TilerFactory(BaseFactory):
             if tms.rasterio_geographic_crs != WGS84_CRS:
                 bbox_crs_type = "BoundingBox"
                 bbox_crs_uri = CRS_to_uri(tms.rasterio_geographic_crs)
+                # WGS88BoundingBox is always xy ordered, but BoundingBox must match the CRS order
+                if crs_axis_inverted(tms.geographic_crs):
+                    # match the bounding box coordinate order to the CRS
+                    bounds = [bounds[1], bounds[0], bounds[3], bounds[2]]
 
             return self.templates.TemplateResponse(
                 request,
@@ -1202,8 +1184,6 @@ class TilerFactory(BaseFactory):
             image_params=Depends(self.img_preview_dependency),
             dst_crs=Depends(DstCRSParams),
             post_process=Depends(self.process_dependency),
-            rescale=Depends(self.rescale_dependency),
-            color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             env=Depends(self.environment_dependency),
@@ -1222,13 +1202,7 @@ class TilerFactory(BaseFactory):
             if post_process:
                 image = post_process(image)
 
-            if rescale:
-                image.rescale(rescale)
-
-            if color_formula:
-                image.apply_color_formula(color_formula)
-
-            content, media_type = render_image(
+            content, media_type = self.render_func(
                 image,
                 output_format=format,
                 colormap=colormap or dst_colormap,
@@ -1269,8 +1243,6 @@ class TilerFactory(BaseFactory):
             dst_crs=Depends(DstCRSParams),
             coord_crs=Depends(CoordCRSParams),
             post_process=Depends(self.process_dependency),
-            rescale=Depends(self.rescale_dependency),
-            color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             env=Depends(self.environment_dependency),
@@ -1291,13 +1263,7 @@ class TilerFactory(BaseFactory):
             if post_process:
                 image = post_process(image)
 
-            if rescale:
-                image.rescale(rescale)
-
-            if color_formula:
-                image.apply_color_formula(color_formula)
-
-            content, media_type = render_image(
+            content, media_type = self.render_func(
                 image,
                 output_format=format,
                 colormap=colormap or dst_colormap,
@@ -1333,8 +1299,6 @@ class TilerFactory(BaseFactory):
             coord_crs=Depends(CoordCRSParams),
             dst_crs=Depends(DstCRSParams),
             post_process=Depends(self.process_dependency),
-            rescale=Depends(self.rescale_dependency),
-            color_formula=Depends(self.color_formula_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             env=Depends(self.environment_dependency),
@@ -1355,13 +1319,7 @@ class TilerFactory(BaseFactory):
             if post_process:
                 image = post_process(image)
 
-            if rescale:
-                image.rescale(rescale)
-
-            if color_formula:
-                image.apply_color_formula(color_formula)
-
-            content, media_type = render_image(
+            content, media_type = self.render_func(
                 image,
                 output_format=format,
                 colormap=colormap or dst_colormap,
@@ -1443,26 +1401,13 @@ class MultiBaseTilerFactory(TilerFactory):
             with rasterio.Env(**env):
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     bounds = src_dst.get_geographic_bounds(crs or WGS84_CRS)
-                    if bounds[0] > bounds[2]:
-                        pl = Polygon.from_bounds(-180, bounds[1], bounds[2], bounds[3])
-                        pr = Polygon.from_bounds(bounds[0], bounds[1], 180, bounds[3])
-                        geometry = MultiPolygon(
-                            type="MultiPolygon",
-                            coordinates=[pl.coordinates, pr.coordinates],
-                        )
-                    else:
-                        geometry = Polygon.from_bounds(*bounds)
+                    geometry = bounds_to_geometry(bounds)
 
                     return Feature(
                         type="Feature",
                         bbox=bounds,
                         geometry=geometry,
-                        properties={
-                            asset: asset_info
-                            for asset, asset_info in src_dst.info(
-                                **asset_params.as_dict()
-                            ).items()
-                        },
+                        properties=src_dst.info(**asset_params.as_dict()),
                     )
 
         @self.router.get(
@@ -1701,15 +1646,7 @@ class MultiBandTilerFactory(TilerFactory):
             with rasterio.Env(**env):
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     bounds = src_dst.get_geographic_bounds(crs or WGS84_CRS)
-                    if bounds[0] > bounds[2]:
-                        pl = Polygon.from_bounds(-180, bounds[1], bounds[2], bounds[3])
-                        pr = Polygon.from_bounds(bounds[0], bounds[1], 180, bounds[3])
-                        geometry = MultiPolygon(
-                            type="MultiPolygon",
-                            coordinates=[pl.coordinates, pr.coordinates],
-                        )
-                    else:
-                        geometry = Polygon.from_bounds(*bounds)
+                    geometry = bounds_to_geometry(bounds)
 
                     return Feature(
                         type="Feature",
