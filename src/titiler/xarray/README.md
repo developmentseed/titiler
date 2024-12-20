@@ -67,7 +67,7 @@ titiler/
     ├── tests/                   - Tests suite
     └── titiler/xarray/          - `xarray` namespace package
         ├── dependencies.py      - titiler-xarray dependencies
-        ├── extentions.py        - titiler-xarray extensions
+        ├── extensions.py        - titiler-xarray extensions
         ├── io.py                - titiler-xarray Readers
         └── factory.py           - endpoints factory
 ```
@@ -112,7 +112,7 @@ md = TilerFactory(
     router_prefix="/md",
     extensions=[
         # we also want to use the simple opener for the Extension
-        VariablesExtension(dataset_opener==xarray.open_dataset),
+        VariablesExtension(dataset_opener=xarray.open_dataset),
     ],
 )
 
