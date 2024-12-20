@@ -55,6 +55,10 @@ class FactoryExtension(metaclass=abc.ABCMeta):
 
 - Goal: adds a `/wms` endpoint to support OGC WMS specification (`GetCapabilities` and `GetMap`)
 
+#### stacRenderExtenstion
+
+- Goal: adds `/render` and `/render/{render_id}` endpoints which return the contents of [STAC render extension](https://github.com/stac-extensions/render) and links to tileset.json and WMTS service
+
 ## How To
 
 ### Use extensions
