@@ -59,11 +59,11 @@ class stacRenderExtension(FactoryExtension):
             # Note: Those dependencies should only require Query() inputs
             tile_dependencies = [
                 factory.reader_dependency,
+                factory.tile_dependency,
                 factory.layer_dependency,
                 factory.dataset_dependency,
+                factory.process_dependency,
                 # Image rendering Dependencies
-                factory.rescale_dependency,
-                factory.color_formula_dependency,
                 factory.colormap_dependency,
                 factory.render_dependency,
             ]
@@ -73,7 +73,10 @@ class stacRenderExtension(FactoryExtension):
             return errors
 
         def _prepare_render_item(
-            render_id: str, render: Dict, request: Request, src_path: str
+            render_id: str,
+            render: Dict,
+            request: Request,
+            src_path: str,
         ) -> Dict:
             """Prepare single render item."""
             links = [
@@ -90,16 +93,9 @@ class stacRenderExtension(FactoryExtension):
                     "title": f"STAC Renders metadata for {render_id}",
                 }
             ]
-            errors = _validate_params(render)
 
-            if not errors:
-                query_string = urlencode(
-                    {
-                        "url": src_path,
-                        **render,
-                    },
-                    doseq=True,
-                )
+            if not _validate_params(render):
+                query_string = urlencode({"url": src_path, **render}, doseq=True)
 
                 links += [
                     {
@@ -128,10 +124,7 @@ class stacRenderExtension(FactoryExtension):
                     },
                 ]
 
-            return {
-                "params": render,
-                "links": links,
-            }
+            return {"params": render, "links": links}
 
         @factory.router.get(
             "/renders",
@@ -178,6 +171,9 @@ class stacRenderExtension(FactoryExtension):
             if render_id not in renders:
                 raise HTTPException(status_code=404, detail="Render not found")
 
-            render = renders[render_id]
-
-            return _prepare_render_item(render_id, render, request, src_path)
+            return _prepare_render_item(
+                render_id,
+                renders[render_id],
+                request,
+                src_path,
+            )
