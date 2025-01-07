@@ -11,6 +11,9 @@ We added a set of custom algorithms:
 - `terrarium`: Mapzen's format to encode elevation value in RGB values (https://github.com/tilezen/joerd/blob/master/docs/formats.md#terrarium)
 - `terrainrgb`: Mapbox's format to encode elevation value in RGB values (https://docs.mapbox.com/data/tilesets/guides/access-elevation-data/)
 - `normalizedIndex`: Normalized Difference Index (e.g NDVI)
+- `cast`: Cast data to integer
+- `floor`: Round data to the smallest integer
+- `ceil`: Round data to the largest integer
 
 ### Usage
 
