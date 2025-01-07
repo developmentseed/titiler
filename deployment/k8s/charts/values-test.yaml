@@ -26,7 +26,6 @@ extraHostPathMounts: []
 imagePullSecrets: []
 
 env:
-  PORT: 80
   CPL_TMPDIR: /tmp
   GDAL_CACHEMAX: 75%
   VSI_CACHE: TRUE
@@ -36,7 +35,8 @@ env:
   GDAL_HTTP_MULTIPLEX: YES
   GDAL_HTTP_VERSION: 2
   PYTHONWARNINGS: ignore
-  WEB_CONCURRENCY: 2
+
+command: ["uvicorn", "titiler.application.main:app", "--host", "0.0.0.0", "--port", "80", "--workers", "1"]
 
 resources:
    limits:

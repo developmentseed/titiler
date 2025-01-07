@@ -2,7 +2,7 @@ apiVersion: v1
 appVersion: 0.20.0
 description: A dynamic Web Map tile server
 name: titiler
-version: 1.1.7
+version: 1.2.0
 icon: https://raw.githubusercontent.com/developmentseed/titiler/main/docs/logos/TiTiler_logo_small.png
 maintainers:
   - name: emmanuelmathot  # Emmanuel Mathot

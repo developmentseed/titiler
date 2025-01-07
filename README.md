@@ -105,11 +105,11 @@ Ready to use/deploy images can be found on Github registry.
 - https://github.com/developmentseed/titiler/pkgs/container/titiler
 
 ```bash
-docker run --name titiler \
+docker run
+    --platform=linux/amd64 \
     -p 8000:8000 \
-    --env PORT=8000 \
-    --env WORKERS_PER_CORE=1 \
-    --rm -it ghcr.io/developmentseed/titiler:latest
+    --rm -it ghcr.io/developmentseed/titiler:latest \
+    uvicorn titiler.application.main:app --host 0.0.0.0 --port 8000 --workers 1
 ```
 
 - Built the docker locally
@@ -117,10 +117,8 @@ docker run --name titiler \
 git clone https://github.com/developmentseed/titiler.git
 cd titiler
 
-docker compose up --build titiler  # or titiler-uvicorn
+docker compose up --build titiler
 ```
-
-Some options can be set via environment variables, see: https://github.com/tiangolo/uvicorn-gunicorn-docker#advanced-usage
 
 ## Project structure
 
