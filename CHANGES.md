@@ -12,6 +12,7 @@
 * move `rescale` and `color_formula` QueryParameters dependencies in `ImageRenderingParams` class  **breaking change**
 * handle image rescaling and color_formula within `titiler.core.utils.render_image` function  **breaking change**
 * add `render_func: Callable[..., Tuple[bytes, str]] = render_image` attribute in `TilerFactory` class
+* add `castToInt`, `Floor`, `Ceil` algorithms
 
 ### titiler.application
 
@@ -32,6 +33,8 @@
 
 * Updated WMTS Capabilities template to avoid inserting extra new lines (author @AndrewAnnex, https://github.com/developmentseed/titiler/pull/1052).
 * Updated WMTS endpoint in titiler.mosaic and titiler.core to return layer bounds in coordinate ordering matching CRS order if WGS84 is not used (author @AndrewAnnex, https://github.com/developmentseed/titiler/pull/1052).
+* Remove `python3.8` support (author @pratapvardhan, https://github.com/developmentseed/titiler/pull/1058)
+* Add `python3.13` support (author @pratapvardhan, https://github.com/developmentseed/titiler/pull/1058)
 
 ## 0.19.2 (2024-11-28)
 

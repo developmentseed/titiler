@@ -235,3 +235,39 @@ def test_terrainrgb():
     assert out.array.shape == (3, 256, 256)
     assert out.array.dtype == "uint8"
     assert out.array[0, 0, 0] is numpy.ma.masked
+
+
+def test_ops():
+    """test ops: cast, ceil and floor."""
+    arr = numpy.ma.MaskedArray(
+        numpy.random.randint(0, 5000, (1, 256, 256)).astype("float32"),
+        mask=numpy.zeros((1, 256, 256), dtype="bool"),
+    )
+    arr.data[0, 0, 0] = 1.6
+    arr.mask[0, 1:100, 1:100] = True
+
+    img = ImageData(arr)
+    assert img.array.dtype == numpy.float32
+
+    algo = default_algorithms.get("cast")()
+    out = algo(img)
+    assert out.array.shape == (1, 256, 256)
+    assert out.array.dtype == "uint8"
+    assert out.array[0, 0, 0] == 1
+    assert out.array[0, 1, 1] is numpy.ma.masked
+
+    assert img.array.dtype == numpy.float32
+    algo = default_algorithms.get("floor")()
+    out = algo(img)
+    assert out.array.shape == (1, 256, 256)
+    assert out.array.dtype == "uint8"
+    assert out.array[0, 0, 0] == 1
+    assert out.array[0, 1, 1] is numpy.ma.masked
+
+    assert img.array.dtype == numpy.float32
+    algo = default_algorithms.get("ceil")()
+    out = algo(img)
+    assert out.array.shape == (1, 256, 256)
+    assert out.array.dtype == "uint8"
+    assert out.array[0, 0, 0] == 2
+    assert out.array[0, 1, 1] is numpy.ma.masked

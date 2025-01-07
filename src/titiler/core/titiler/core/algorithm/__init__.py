@@ -13,6 +13,7 @@ from titiler.core.algorithm.base import AlgorithmMetadata  # noqa
 from titiler.core.algorithm.base import BaseAlgorithm
 from titiler.core.algorithm.dem import Contours, HillShade, TerrainRGB, Terrarium
 from titiler.core.algorithm.index import NormalizedIndex
+from titiler.core.algorithm.ops import CastToInt, Ceil, Floor
 
 default_algorithms: Dict[str, Type[BaseAlgorithm]] = {
     "hillshade": HillShade,
@@ -20,6 +21,9 @@ default_algorithms: Dict[str, Type[BaseAlgorithm]] = {
     "normalizedIndex": NormalizedIndex,
     "terrarium": Terrarium,
     "terrainrgb": TerrainRGB,
+    "cast": CastToInt,
+    "ceil": Ceil,
+    "floor": Floor,
 }
 
 
