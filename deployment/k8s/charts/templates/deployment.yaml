@@ -20,8 +20,11 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          command: {{ .Values.image.command }}
-          args: {{ .Values.image.args }}
+          command: [ {{ .Values.image.command }} ]
+          args: [ {{- range $arg := .Values.image.args }}
+            {{- $arg | quote }},
+            {{- end }}
+          ]
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           env:

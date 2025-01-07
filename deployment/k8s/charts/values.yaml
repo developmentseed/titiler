@@ -5,8 +5,15 @@ image:
   repository: ghcr.io/developmentseed/titiler
   tag: latest
   pullPolicy: IfNotPresent
-  command: ["uvicorn"]
-  args: ["titiler.application.main:app", "--host", "0.0.0.0", "--port", "80", "--workers", "1"]
+  command: "uvicorn"
+  args:
+    - "titiler.application.main:app"
+    - "--host"
+    - "0.0.0.0"
+    - "--port"
+    - "80"
+    - "--workers"
+    - "1"
 
 nameOverride: ""
 fullnameOverride: ""
