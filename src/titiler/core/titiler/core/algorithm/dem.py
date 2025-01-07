@@ -9,6 +9,8 @@ from rio_tiler.utils import linear_rescale
 
 from titiler.core.algorithm.base import BaseAlgorithm
 
+__all__ = ["HillShade", "Contours", "Terrarium", "TerrainRGB"]
+
 
 class HillShade(BaseAlgorithm):
     """Hillshade."""

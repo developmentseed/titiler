@@ -7,6 +7,8 @@ from rio_tiler.models import ImageData
 
 from titiler.core.algorithm.base import BaseAlgorithm
 
+__all__ = ["NormalizedIndex"]
+
 
 class NormalizedIndex(BaseAlgorithm):
     """Normalized Difference Index."""
