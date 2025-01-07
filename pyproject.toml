@@ -153,8 +153,9 @@ serialize = [
 search = "{current_version}"
 replace = "{new_version}"
 regex = false
-tag = true
-commit = true
+tag = false
+commit = false
+allow_dirty = true
 tag_name = "{new_version}"
 
 ###############################################################################
