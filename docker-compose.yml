@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   titiler:
     # TODO: remove once https://github.com/rasterio/rasterio-wheels/issues/69 is resolved
