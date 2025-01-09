@@ -1,5 +1,43 @@
 # Release Notes
 
+## Unreleased
+
+### Misc
+
+* Unify Docker images (deprecate `titiler-uvicorn`)
+
+    ```
+    # Uvicorn
+    # before
+    docker run \
+        --platform=linux/amd64 \
+        -p 8000:8000 \
+        --env PORT=8000 \
+        --rm -it ghcr.io/developmentseed/titiler-uvicorn:latest
+
+    # now
+    docker run \
+        --platform=linux/amd64 \
+        -p 8000:8000 \
+        --rm -it ghcr.io/developmentseed/titiler:latest \
+        uvicorn titiler.application.main:app --host 0.0.0.0 --port 8000 --workers 1
+
+    # Gunicorn
+    # before
+    docker run \
+        --platform=linux/amd64 \
+        -p 8000:8000 \
+        --env PORT=8000 \
+        --rm -it ghcr.io/developmentseed/titiler:latest
+
+    # now
+    docker run \
+        --platform=linux/amd64 \
+        -p 8000:8000 \
+        --rm -it ghcr.io/developmentseed/titiler:latest \
+        gunicorn -k uvicorn.workers.UvicornWorker titiler.application.main:app --bind 0.0.0.0:8000 --workers 1
+    ```
+
 ## 0.20.0 (2025-01-07)
 
 ### titiler.core
