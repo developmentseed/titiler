@@ -62,7 +62,7 @@ jobs:
           # See https://github.com/developmentseed/titiler/discussions/387
           platforms: linux/amd64
           context: .
-          file: dockerfiles/Dockerfile.uvicorn
+          file: dockerfiles/Dockerfile
           push: false
           tags: "titiler:dev"
 

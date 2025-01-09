@@ -141,20 +141,8 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Docker meta (unicorn)
-        id: meta-uvicorn
-        uses: docker/metadata-action@v5
-        with:
-          images: |
-            ghcr.io/${{ github.repository }}-uvicorn
-          flavor: |
-            latest=false
-          tags: |
-            type=semver,pattern={{version}}
-            type=raw,value=latest,enable={{is_default_branch}}
-
-      - name: Docker meta (gunicorn)
-        id: meta-gunicorn
+      - name: Docker meta
+        id: meta
         uses: docker/metadata-action@v5
         with:
           images: |
@@ -165,31 +153,16 @@ jobs:
             type=semver,pattern={{version}}
             type=raw,value=latest,enable={{is_default_branch}}
 
-      # Uvicorn
-      - name: Build and push uvicorn
-        uses: docker/build-push-action@v6
-        with:
-          # TODO: add `linux/arm64 once https://github.com/rasterio/rasterio-wheels/issues/69 is resolved
-          platforms: linux/amd64 # ,linux/arm64
-          context: .
-          file: dockerfiles/Dockerfile.uvicorn
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta-uvicorn.outputs.tags }}
-          labels: ${{ steps.meta-uvicorn.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      # Gunicorn
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
           # TODO: add `linux/arm64 once https://github.com/rasterio/rasterio-wheels/issues/69 is resolved
           platforms: linux/amd64 # ,linux/arm64
           context: .
-          file: dockerfiles/Dockerfile.gunicorn
+          file: dockerfiles/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta-gunicorn.outputs.tags }}
-          labels: ${{ steps.meta-gunicorn.outputs.labels }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

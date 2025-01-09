@@ -1,5 +1,43 @@
 # Release Notes
 
+## Unreleased
+
+### Misc
+
+* Unify Docker images (deprecate `titiler-uvicorn`)
+
+    ```
+    # Uvicorn
+    # before
+    docker run \
+        --platform=linux/amd64 \
+        -p 8000:8000 \
+        --env PORT=8000 \
+        --rm -it ghcr.io/developmentseed/titiler-uvicorn:latest
+
+    # now
+    docker run \
+        --platform=linux/amd64 \
+        -p 8000:8000 \
+        --rm -it ghcr.io/developmentseed/titiler:latest \
+        uvicorn titiler.application.main:app --host 0.0.0.0 --port 8000 --workers 1
+
+    # Gunicorn
+    # before
+    docker run \
+        --platform=linux/amd64 \
+        -p 8000:8000 \
+        --env PORT=8000 \
+        --rm -it ghcr.io/developmentseed/titiler:latest
+
+    # now
+    docker run \
+        --platform=linux/amd64 \
+        -p 8000:8000 \
+        --rm -it ghcr.io/developmentseed/titiler:latest \
+        gunicorn -k uvicorn.workers.UvicornWorker titiler.application.main:app --bind 0.0.0.0:8000 --workers 1
+    ```
+
 ## 0.20.1 (2025-01-09)
 
 ### titiler.xarray
@@ -41,6 +79,13 @@
 * Updated WMTS endpoint in titiler.mosaic and titiler.core to return layer bounds in coordinate ordering matching CRS order if WGS84 is not used (author @AndrewAnnex, https://github.com/developmentseed/titiler/pull/1052).
 * Remove `python3.8` support (author @pratapvardhan, https://github.com/developmentseed/titiler/pull/1058)
 * Add `python3.13` support (author @pratapvardhan, https://github.com/developmentseed/titiler/pull/1058)
+
+## 0.19.3 (2025-01-09)
+
+### titiler.xarray
+
+* pin python zarr to >2,<3.0 to avoid zarr 3.0 breaking changes [Backported from 0.20.1]
+
 
 ## 0.19.2 (2024-11-28)
 
