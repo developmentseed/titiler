@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1736456382396,
+  "lastUpdate": 1736459124304,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -10014,6 +10014,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.29,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "vincent.sarago@gmail.com",
+            "name": "Vincent Sarago",
+            "username": "vincentsarago"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5fab6048387db9bcbb24399ca220a93632ee7b42",
+          "message": "create uniq docker image (#1067)\n\n* create uniq docker image\r\n\r\n* remove test values file and update image repository in values.yaml\r\n\r\n* update deployment configuration to use command and args from values.yaml\r\n\r\n* refactor deployment configuration to use array syntax for command and args in values.yaml\r\n\r\n* update changelog and ensure compatibility\r\n\r\n* update python for ci\r\n\r\n---------\r\n\r\nCo-authored-by: Emmanuel Mathot <emmanuel.mathot@gmail.com>",
+          "timestamp": "2025-01-09T22:43:59+01:00",
+          "tree_id": "5a5e20548eb4447928c213d10138bdf357fdf07c",
+          "url": "https://github.com/developmentseed/titiler/commit/5fab6048387db9bcbb24399ca220a93632ee7b42"
+        },
+        "date": 1736459123098,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.37,
             "unit": "s"
           },
           {
