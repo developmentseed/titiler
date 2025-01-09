@@ -29,13 +29,13 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: GIS",
 ]
-version="0.19.2"
+version="0.19.3"
 dependencies = [
-    "titiler.core==0.19.2",
-    "titiler.xarray==0.19.2",
-    "titiler.extensions==0.19.2",
-    "titiler.mosaic==0.19.2",
-    "titiler.application==0.19.2",
+    "titiler.core==0.19.3",
+    "titiler.xarray==0.19.3",
+    "titiler.extensions==0.19.3",
+    "titiler.mosaic==0.19.3",
+    "titiler.application==0.19.3",
 ]
 
 [project.urls]
@@ -127,7 +127,7 @@ filterwarnings = [
 bypass-selection = true
 
 [tool.bumpversion]
-current_version = "0.19.2"
+current_version = "0.19.3"
 parse = """(?x)
     (?P<major>\\d+)\\.
     (?P<minor>\\d+)\\.
