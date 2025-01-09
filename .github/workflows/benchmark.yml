@@ -5,6 +5,7 @@ on:
   push:
     branches:
     - main
+    - maint-0.19.x
     tags:
     - '*'
   pull_request:
