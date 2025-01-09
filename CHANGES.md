@@ -1,5 +1,11 @@
 # Release Notes
 
+## 0.20.1 (2025-01-09)
+
+### titiler.xarray
+
+* pin python `zarr` to `>2,<3.0` to avoid zarr 3.0 breaking changes
+
 ## 0.20.0 (2025-01-07)
 
 ### titiler.core
