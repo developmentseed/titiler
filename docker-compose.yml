@@ -8,7 +8,17 @@ services:
       dockerfile: dockerfiles/Dockerfile
     ports:
       - "8000:8000"
-    command: ["uvicorn", "titiler.application.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
+    command:
+      [
+        "uvicorn",
+        "titiler.application.main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000",
+        "--workers",
+        "1",
+      ]
     # Or Using Gunicorn
     # command: ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "titiler.application.main:app", "--bind", "0.0.0.0:8000", "--workers", "1"]
     environment:
@@ -59,8 +69,20 @@ services:
     image: nginx
     ports:
       - 80:80
+      - 443:443
     volumes:
-      - ./dockerfiles/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/conf:/etc/nginx/conf.d
+      - ./certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/nginx/ssl
     depends_on:
       - nginx-titiler
+      - certbot
     command: ["nginx-debug", "-g", "daemon off;"]
+
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes:
+      - ./certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt
+    command: certonly --webroot -w /var/www/certbot --force-renewal --no-eff-email --email your@email.com -d nutriplan.cl --agree-tos
