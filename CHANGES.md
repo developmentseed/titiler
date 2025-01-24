@@ -1,6 +1,6 @@
 # Release Notes
 
-## Unreleased
+## 0.21.0 (2025-01-24)
 
 ### Misc
 
