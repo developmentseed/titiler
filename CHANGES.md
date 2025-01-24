@@ -4,6 +4,8 @@
 
 ### Misc
 
+* use `URN` style CRS notation in WMTS document
+
 * Unify Docker images (deprecate `titiler-uvicorn`)
 
     ```

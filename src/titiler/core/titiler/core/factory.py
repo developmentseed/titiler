@@ -34,7 +34,7 @@ from rio_tiler.constants import WGS84_CRS
 from rio_tiler.io import BaseReader, MultiBandReader, MultiBaseReader, Reader
 from rio_tiler.models import Bounds, ImageData, Info
 from rio_tiler.types import ColorMapType
-from rio_tiler.utils import CRS_to_uri
+from rio_tiler.utils import CRS_to_uri, CRS_to_urn
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, Response
 from starlette.routing import Match, NoMatchFound, compile_path, replace_params
@@ -1103,7 +1103,7 @@ class TilerFactory(BaseFactory):
             bbox_crs_uri = "urn:ogc:def:crs:OGC:2:84"
             if tms.rasterio_geographic_crs != WGS84_CRS:
                 bbox_crs_type = "BoundingBox"
-                bbox_crs_uri = CRS_to_uri(tms.rasterio_geographic_crs)
+                bbox_crs_uri = CRS_to_urn(tms.rasterio_geographic_crs)
                 # WGS88BoundingBox is always xy ordered, but BoundingBox must match the CRS order
                 if crs_axis_inverted(tms.geographic_crs):
                     # match the bounding box coordinate order to the CRS
