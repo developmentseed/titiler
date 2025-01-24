@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1737722887576,
+  "lastUpdate": 1737722921784,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -10191,6 +10191,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.23,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4f662d3efbf75af8b76c32d69d8daad79aad0192",
+          "message": "Bump helm/chart-testing-action from 2.6.1 to 2.7.0 in the all group (#1073)\n\nBumps the all group with 1 update: [helm/chart-testing-action](https://github.com/helm/chart-testing-action).\r\n\r\n\r\nUpdates `helm/chart-testing-action` from 2.6.1 to 2.7.0\r\n- [Release notes](https://github.com/helm/chart-testing-action/releases)\r\n- [Commits](https://github.com/helm/chart-testing-action/compare/v2.6.1...v2.7.0)\r\n\r\n---\r\nupdated-dependencies:\r\n- dependency-name: helm/chart-testing-action\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-minor\r\n  dependency-group: all\r\n...\r\n\r\nSigned-off-by: dependabot[bot] <support@github.com>\r\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2025-01-24T13:47:15+01:00",
+          "tree_id": "c69eb260ff2437c315cd2e4ca0a1ce5c0e304ef8",
+          "url": "https://github.com/developmentseed/titiler/commit/4f662d3efbf75af8b76c32d69d8daad79aad0192"
+        },
+        "date": 1737722921390,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.21,
             "unit": "s"
           },
           {
