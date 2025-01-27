@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1737723312521,
+  "lastUpdate": 1738005858154,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -10309,6 +10309,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.13,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "14077947+maxrjones@users.noreply.github.com",
+            "name": "Max Jones",
+            "username": "maxrjones"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c7c5426273819be9f46fdf16a494ead334432f1b",
+          "message": "Fix type used for group argument in xarray tests (#1081)\n\n* Fix type used for group argument in xarray tests\r\n\r\n* Fix test",
+          "timestamp": "2025-01-27T20:22:41+01:00",
+          "tree_id": "38ad5257713505fb5fa34c17a9c331e47c67f6da",
+          "url": "https://github.com/developmentseed/titiler/commit/c7c5426273819be9f46fdf16a494ead334432f1b"
+        },
+        "date": 1738005856907,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.17,
             "unit": "s"
           },
           {
