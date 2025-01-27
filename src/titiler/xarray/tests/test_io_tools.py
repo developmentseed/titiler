@@ -129,13 +129,13 @@ def test_reader(protocol, filename):
 
 @pytest.mark.parametrize(
     "group",
-    ["0", "1", "2"],
+    [0, 1, 2],
 )
 def test_zarr_group(group):
     """test reader."""
     src_path = os.path.join(prefix, "pyramid.zarr")
 
-    with Reader(src_path, variable="dataset", group=group) as src:
+    with Reader(src_path, variable="dataset", group=str(group)) as src:
         assert src.info()
         assert src.tile(0, 0, 0)
         assert src.point(0, 0).data[0] == group * 2 + 1
