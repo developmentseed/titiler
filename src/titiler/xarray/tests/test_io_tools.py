@@ -129,7 +129,7 @@ def test_reader(protocol, filename):
 
 @pytest.mark.parametrize(
     "group",
-    [0, 1, 2],
+    ["0", "1", "2"],
 )
 def test_zarr_group(group):
     """test reader."""
