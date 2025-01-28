@@ -53,7 +53,6 @@ def xarray_open_dataset(  # noqa: C901
     else:
         assert zarr is not None, "'zarr' must be installed to read Zarr dataset"
         xr_engine = "zarr"
-        _zarr_v3 = module_available("zarr", minversion="3.0")
 
     # Arguments for xarray.open_dataset
     # Default args
