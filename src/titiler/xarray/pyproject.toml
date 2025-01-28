@@ -68,15 +68,6 @@ test = [
     "h5netcdf",
     "fsspec",
 ]
-test-zarr-v2 = [
-    "pytest",
-    "pytest-cov",
-    "pytest-asyncio",
-    "httpx",
-    "zarr<3.0",
-    "h5netcdf",
-    "fsspec",
-]
 
 [project.urls]
 Homepage = "https://developmentseed.org/titiler/"
