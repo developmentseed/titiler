@@ -79,16 +79,17 @@ def xarray_open_dataset(  # noqa: C901
 
     # Fallback to Zarr
     else:
-        if _zarr_v3:
+        if module_available("zarr", minversion="3.0"):
             if protocol == "file":
                 store = zarr.storage.LocalStore(parsed.path, read_only=True)
             else:
                 fs = fsspec.filesystem(protocol, storage_options={"asynchronous": True})
                 store = zarr.storage.FsspecStore(fs, path=src_path, read_only=True)
-            ds = xarray.open_zarr(store, **xr_open_args)
+            
         else:
-            fs = fsspec.filesystem(protocol)
-            ds = xarray.open_zarr(fs.get_mapper(src_path), **xr_open_args)
+            store = fsspec.filesystem(protocol).get_mapper(src_path)
+
+        ds = xarray.open_zarr(store, **xr_open_args)
     return ds
 
 
