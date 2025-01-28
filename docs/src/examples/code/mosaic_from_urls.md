@@ -136,7 +136,7 @@ def DatasetPathParams(url: str = Query(..., description="Dataset URL")) -> List[
     return url.split(",")
 
 
-mosaic = MosaicTiler(reader=MultiFilesBackend, path_dependency=DatasetPathParams)
+mosaic = MosaicTiler(backend=MultiFilesBackend, path_dependency=DatasetPathParams)
 
 ```
 
