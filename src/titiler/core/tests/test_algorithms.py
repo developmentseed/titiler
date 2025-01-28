@@ -168,6 +168,29 @@ def test_hillshade():
     assert out.array[0, 0, 0] is numpy.ma.masked
 
 
+def test_slope():
+    """test slope."""
+    algo = default_algorithms.get("slope")()
+
+    arr = numpy.random.randint(0, 5000, (1, 262, 262), dtype="uint16")
+    img = ImageData(arr)
+    out = algo(img)
+    assert out.array.shape == (1, 256, 256)
+    assert out.array.dtype == "float32"
+
+    arr = numpy.ma.MaskedArray(
+        numpy.random.randint(0, 5000, (1, 262, 262), dtype="uint16"),
+        mask=numpy.zeros((1, 262, 262), dtype="bool"),
+    )
+    arr.mask[0, 0:100, 0:100] = True
+
+    img = ImageData(arr)
+    out = algo(img)
+    assert out.array.shape == (1, 256, 256)
+    assert out.array.dtype == "float32"
+    assert out.array[0, 0, 0] is numpy.ma.masked
+
+
 def test_contours():
     """test contours."""
     algo = default_algorithms.get("contours")()
