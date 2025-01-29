@@ -31,9 +31,9 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-    "titiler.core==0.21.0",
-    "titiler.extensions[cogeo,stac]==0.21.0",
-    "titiler.mosaic==0.21.0",
+    "titiler.core==0.21.1",
+    "titiler.extensions[cogeo,stac]==0.21.1",
+    "titiler.mosaic==0.21.1",
     "starlette-cramjam>=0.4,<0.5",
     "pydantic-settings~=2.0",
 ]
