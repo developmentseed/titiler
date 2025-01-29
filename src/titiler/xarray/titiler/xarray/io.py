@@ -9,6 +9,7 @@ import xarray
 from morecantile import TileMatrixSet
 from rio_tiler.constants import WEB_MERCATOR_TMS
 from rio_tiler.io.xarray import XarrayReader
+from xarray.namedarray.utils import module_available
 
 
 def xarray_open_dataset(  # noqa: C901
@@ -28,21 +29,6 @@ def xarray_open_dataset(  # noqa: C901
 
     """
     import fsspec  # noqa
-
-    try:
-        import gcsfs
-    except ImportError:  # pragma: nocover
-        gcsfs = None  # type: ignore
-
-    try:
-        import s3fs
-    except ImportError:  # pragma: nocover
-        s3fs = None  # type: ignore
-
-    try:
-        import aiohttp
-    except ImportError:  # pragma: nocover
-        aiohttp = None  # type: ignore
 
     try:
         import h5netcdf
@@ -66,55 +52,7 @@ def xarray_open_dataset(  # noqa: C901
 
     else:
         assert zarr is not None, "'zarr' must be installed to read Zarr dataset"
-
         xr_engine = "zarr"
-
-    if protocol in ["", "file"]:
-        filesystem = fsspec.filesystem(protocol)  # type: ignore
-        file_handler = (
-            filesystem.open(src_path)
-            if xr_engine == "h5netcdf"
-            else filesystem.get_mapper(src_path)
-        )
-
-    elif protocol == "s3":
-        assert (
-            s3fs is not None
-        ), "'aiohttp' must be installed to read dataset stored online"
-
-        s3_filesystem = s3fs.S3FileSystem()
-        file_handler = (
-            s3_filesystem.open(src_path)
-            if xr_engine == "h5netcdf"
-            else s3fs.S3Map(root=src_path, s3=s3_filesystem)
-        )
-
-    elif protocol == "gs":
-        assert (
-            gcsfs is not None
-        ), "'gcsfs' must be installed to read dataset stored in Google Cloud Storage"
-
-        gcs_filesystem = gcsfs.GCSFileSystem()
-        file_handler = (
-            gcs_filesystem.open(src_path)
-            if xr_engine == "h5netcdf"
-            else gcs_filesystem.get_mapper(root=src_path)
-        )
-
-    elif protocol in ["http", "https"]:
-        assert (
-            aiohttp is not None
-        ), "'aiohttp' must be installed to read dataset stored online"
-
-        filesystem = fsspec.filesystem(protocol)  # type: ignore
-        file_handler = (
-            filesystem.open(src_path)
-            if xr_engine == "h5netcdf"
-            else filesystem.get_mapper(src_path)
-        )
-
-    else:
-        raise ValueError(f"Unsupported protocol: {protocol}, for {src_path}")
 
     # Arguments for xarray.open_dataset
     # Default args
@@ -135,13 +73,22 @@ def xarray_open_dataset(  # noqa: C901
                 "lock": False,
             }
         )
-
-        ds = xarray.open_dataset(file_handler, **xr_open_args)
+        fs = fsspec.filesystem(protocol)
+        ds = xarray.open_dataset(fs.open(src_path), **xr_open_args)
 
     # Fallback to Zarr
     else:
-        ds = xarray.open_zarr(file_handler, **xr_open_args)
+        if module_available("zarr", minversion="3.0"):
+            if protocol == "file":
+                store = zarr.storage.LocalStore(parsed.path, read_only=True)
+            else:
+                fs = fsspec.filesystem(protocol, storage_options={"asynchronous": True})
+                store = zarr.storage.FsspecStore(fs, path=src_path, read_only=True)
 
+        else:
+            store = fsspec.filesystem(protocol).get_mapper(src_path)
+
+        ds = xarray.open_zarr(store, **xr_open_args)
     return ds
 
 
