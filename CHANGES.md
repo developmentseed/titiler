@@ -1,5 +1,11 @@
 # Release Notes
 
+## Unreleased
+
+### titiler.xarray
+
+* Support Zarr-Python >=3 (author @maxrjones, https://github.com/developmentseed/titiler/pull/1082)
+
 ## 0.21.0 (2025-01-24)
 
 ### Misc

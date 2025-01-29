@@ -84,7 +84,7 @@ def xarray_open_dataset(  # noqa: C901
             else:
                 fs = fsspec.filesystem(protocol, storage_options={"asynchronous": True})
                 store = zarr.storage.FsspecStore(fs, path=src_path, read_only=True)
-            
+
         else:
             store = fsspec.filesystem(protocol).get_mapper(src_path)
 
