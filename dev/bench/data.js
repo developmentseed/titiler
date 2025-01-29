@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1738146237603,
+  "lastUpdate": 1738149563793,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -10427,6 +10427,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.24,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "14077947+maxrjones@users.noreply.github.com",
+            "name": "Max Jones",
+            "username": "maxrjones"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ea71607b7ca535d88b7dba15085fc8ece1206e08",
+          "message": "Support Zarr-Python 3 (#1082)\n\n* Support Zarr-Python 3\r\n\r\n* Remove test-zarr-v2 deps\r\n\r\n* Update src/titiler/xarray/titiler/xarray/io.py\r\n\r\nCo-authored-by: Vincent Sarago <vincent.sarago@gmail.com>\r\n\r\n* Update io.py\r\n\r\n* update changelog\r\n\r\n---------\r\n\r\nCo-authored-by: Vincent Sarago <vincent.sarago@gmail.com>",
+          "timestamp": "2025-01-29T12:17:50+01:00",
+          "tree_id": "88caa19516684c9c03b0449599fcc5cec7b8569f",
+          "url": "https://github.com/developmentseed/titiler/commit/ea71607b7ca535d88b7dba15085fc8ece1206e08"
+        },
+        "date": 1738149563241,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.17,
             "unit": "s"
           },
           {
