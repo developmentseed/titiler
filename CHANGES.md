@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### titiler.core
+
+* add `slope` algorithm (@tayden, https://github.com/developmentseed/titiler/pull/1088)
+
 ### titiler.xarray
 
 * Support Zarr-Python >=3 (author @maxrjones, https://github.com/developmentseed/titiler/pull/1082)
