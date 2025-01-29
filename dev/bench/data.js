@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1738149563793,
+  "lastUpdate": 1738153275593,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -10486,6 +10486,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.17,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "taylor.denouden@hakai.org",
+            "name": "Taylor Denouden",
+            "username": "tayden"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9f0c29ff6c45f8f19e8e8905085b5874c632c8e8",
+          "message": "Add slope algorithm (#1088)\n\n* Add slope algorithm\r\n\r\n* Add test for slope algorithm",
+          "timestamp": "2025-01-29T13:19:42+01:00",
+          "tree_id": "d44b37cca37a41037b7a7f916330442dc5a0472f",
+          "url": "https://github.com/developmentseed/titiler/commit/9f0c29ff6c45f8f19e8e8905085b5874c632c8e8"
+        },
+        "date": 1738153274405,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.37,
             "unit": "s"
           },
           {
