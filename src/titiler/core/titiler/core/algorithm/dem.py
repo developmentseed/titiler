@@ -9,7 +9,7 @@ from rio_tiler.utils import linear_rescale
 
 from titiler.core.algorithm.base import BaseAlgorithm
 
-__all__ = ["HillShade", "Contours", "Terrarium", "TerrainRGB"]
+__all__ = ["HillShade", "Slope", "Contours", "Terrarium", "TerrainRGB"]
 
 
 class HillShade(BaseAlgorithm):
@@ -60,6 +60,53 @@ class HillShade(BaseAlgorithm):
             crs=img.crs,
             bounds=bounds,
             band_names=["hillshade"],
+        )
+
+
+class Slope(BaseAlgorithm):
+    """Slope calculation."""
+
+    title: str = "Slope"
+    description: str = "Calculate degrees of slope from DEM dataset."
+
+    # parameters
+    buffer: int = Field(3, ge=0, le=99, description="Buffer size for edge effects")
+
+    # metadata
+    input_nbands: int = 1
+    output_nbands: int = 1
+    output_dtype: str = "float32"
+
+    def __call__(self, img: ImageData) -> ImageData:
+        """Calculate degrees slope from DEM dataset."""
+        # Get the pixel size from the transform
+        pixel_size_x = abs(img.transform[0])
+        pixel_size_y = abs(img.transform[4])
+
+        x, y = numpy.gradient(img.array[0])
+        dx = x / pixel_size_x
+        dy = y / pixel_size_y
+
+        slope = numpy.arctan(numpy.sqrt(dx * dx + dy * dy)) * (180 / numpy.pi)
+
+        bounds = img.bounds
+        if self.buffer:
+            slope = slope[self.buffer : -self.buffer, self.buffer : -self.buffer]
+
+            window = windows.Window(
+                col_off=self.buffer,
+                row_off=self.buffer,
+                width=slope.shape[1],
+                height=slope.shape[0],
+            )
+            bounds = windows.bounds(window, img.transform)
+
+        return ImageData(
+            slope.astype(self.output_dtype),
+            assets=img.assets,
+            crs=img.crs,
+            bounds=bounds,
+            band_names=["slope"],
         )
 
 
