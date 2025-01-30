@@ -40,7 +40,7 @@ The `/stac` routes are based on `titiler.core.factory.MultiBaseTilerFactory` but
     - **x** (int): TMS tile's column.
     - **y** (int): TMS tile's row.
     - **scale** (int): Tile size scale, default is set to 1 (256x256). **Optional**
-    - **format** (str): Output image format, default is set to None and will be either JPEG or PNG depending on masked value. **Optional**
+    - **format** (str): Output [image format](../output_format.md), default is set to None and will be either JPEG or PNG depending on masked value. **Optional**
 
 - QueryParams:
     - **url** (str): STAC Item URL. **Required**
@@ -77,7 +77,7 @@ Example:
 `:endpoint:/stac/preview[.{format}]`
 
 - PathParams:
-    - **format**: Output image format, default is set to None and will be either JPEG or PNG depending on masked value. **Optional**
+    - **format**: Output [image format](../output_format.md), default is set to None and will be either JPEG or PNG depending on masked value. **Optional**
 
 - QueryParams:
     - **url** (str): STAC Item URL. **Required**
@@ -122,7 +122,7 @@ Example:
     - **minx,miny,maxx,maxy** (str): Comma (',') delimited bounding box in WGS84.
     - **height** (int): Force output image height. **Optional**
     - **width** (int): Force output image width. **Optional**
-    - **format** (str): Output image format, default is set to None and will be either JPEG or PNG depending on masked value. **Optional**
+    - **format** (str): Output [image format](../output_format.md), default is set to None and will be either JPEG or PNG depending on masked value. **Optional**
 
 - QueryParams:
     - **url** (str): STAC Item URL. **Required**
@@ -163,7 +163,7 @@ Example:
 - PathParams:
     - **height** (int): Force output image height. **Optional**
     - **width** (int): Force output image width. **Optional**
-    - **format** (str): Output image format, default is set to None and will be either JPEG or PNG depending on masked value. **Optional**
+    - **format** (str): Output [image format](../output_format.md), default is set to None and will be either JPEG or PNG depending on masked value. **Optional**
 
 - QueryParams:
     - **url** (str): STAC Item URL. **Required**
@@ -235,7 +235,7 @@ Example:
     - **expression** (str): rio-tiler's math expression with asset names (e.g `Asset1_b1/Asset2_b1`).
     - **asset_as_band** (bool): tell rio-tiler that each asset is a 1 band dataset, so expression `Asset1/Asset2` can be passed.
     - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1,2,3`).
-    - **tile_format** (str): Output image format, default is set to None and will be either JPEG or PNG depending on masked value.
+    - **tile_format** (str): Output [image format](../output_format.md), default is set to None and will be either JPEG or PNG depending on masked value.
     - **tile_scale** (int): Tile size scale, default is set to 1 (256x256).
     - **minzoom** (int): Overwrite default minzoom.
     - **maxzoom** (int): Overwrite default maxzoom.
@@ -275,7 +275,7 @@ Example:
     - **expression** (str): rio-tiler's math expression with asset names (e.g `Asset1_b1/Asset2_b1`).
     - **asset_as_band** (bool): tell rio-tiler that each asset is a 1 band dataset, so expression `Asset1/Asset2` can be passed.
     - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1,2,3`).
-    - **tile_format** (str): Output image format, default is set to None and will be either JPEG or PNG depending on masked value.
+    - **tile_format** (str): Output [image format](../output_format.md), default is set to None and will be either JPEG or PNG depending on masked value.
     - **tile_scale** (int): Tile size scale, default is set to 1 (256x256).
     - **minzoom** (int): Overwrite default minzoom.
     - **maxzoom** (int): Overwrite default maxzoom.
