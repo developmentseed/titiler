@@ -105,7 +105,7 @@ Ready to use/deploy images can be found on Github registry.
 - https://github.com/developmentseed/titiler/pkgs/container/titiler
 
 ```bash
-docker run
+docker run \
     --platform=linux/amd64 \
     -p 8000:8000 \
     --rm -it ghcr.io/developmentseed/titiler:latest \
