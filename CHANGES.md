@@ -1,5 +1,11 @@
 # Release Notes
 
+## Unreleased
+
+### titiler.core
+
+* add `output_min` and `output_max` metadata attributes to `slope` algorithm (@tayden, https://github.com/developmentseed/titiler/pull/1089)
+
 ## 0.21.1 (2025-01-29)
 
 ### titiler.core

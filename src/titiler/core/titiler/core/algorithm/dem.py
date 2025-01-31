@@ -76,6 +76,8 @@ class Slope(BaseAlgorithm):
     input_nbands: int = 1
     output_nbands: int = 1
     output_dtype: str = "float32"
+    output_min: float = 0
+    output_max: float = 90
 
     def __call__(self, img: ImageData) -> ImageData:
         """Calculate degrees slope from DEM dataset."""
