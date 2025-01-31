@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1738217372799,
+  "lastUpdate": 1738363253117,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -10781,6 +10781,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.15,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "taylor.denouden@hakai.org",
+            "name": "Taylor Denouden",
+            "username": "tayden"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e1feb4156fc318cad0aea27eef7b3d4fc846937c",
+          "message": "Add output min and max metadata to slope algorithm (#1089)\n\n* Add output min and max metadata to slope algorithm\r\n\r\n* Update changelog",
+          "timestamp": "2025-01-31T23:39:18+01:00",
+          "tree_id": "da113c4aa06ba276fff9d3711d5d0012f29602c4",
+          "url": "https://github.com/developmentseed/titiler/commit/e1feb4156fc318cad0aea27eef7b3d4fc846937c"
+        },
+        "date": 1738363252687,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.24,
             "unit": "s"
           },
           {
