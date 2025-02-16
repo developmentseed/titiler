@@ -9,8 +9,6 @@ services:
     ports:
       - "8000:8000"
     command: ["uvicorn", "titiler.application.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
-    # Or Using Gunicorn
-    # command: ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "titiler.application.main:app", "--bind", "0.0.0.0:8000", "--workers", "1"]
     environment:
       # GDAL config
       - CPL_TMPDIR=/tmp
@@ -39,6 +37,13 @@ services:
       # - MOSAIC_CONCURRENCY= # will default to `RIO_TILER_MAX_THREADS`
       # rio-tiler config
       # - RIO_TILER_MAX_THREADS=
+
+  titiler-gunicorn:
+    extends:
+      service: titiler
+    ports:
+      - "8000:8000"
+    command: ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "titiler.application.main:app", "--bind", "0.0.0.0:8000", "--workers", "1"]
 
   benchmark:
     extends:
