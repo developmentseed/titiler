@@ -221,6 +221,71 @@
         .catch(err => {
           console.warn(err);
         });
+      
+      // run point query on right-click
+      map.on('contextmenu', function(e) {
+        const lat = e.latlng.lat.toFixed(3);
+        const lng = e.latlng.lng.toFixed(3);
+
+        const popup = L.popup()
+          .setLatLng(e.latlng)
+          .setContent("<p>Loading point data...</p>")
+          .openOn(map);
+
+        fetch(`{{ point_endpoint|safe }}`.replace('{lat}', lat).replace('{lon}', lng))
+          .then(res => {
+            if (res.ok) return res.json();
+
+            return res.json().then(errorData => {
+              const error = new Error(errorData.detail || `Server error: ${res.status}`);
+              error.status = res.status;
+              error.errorData = errorData;
+              throw error;
+            })
+          })
+          .then(data => {
+            const formatPopupContent = (data) => {
+              let html = '<div style="max-width: 250px;">';
+
+              html += `<p><strong>Coordinates:</strong> ${lat}, ${lng}</p>`;
+
+              // single band case - just show the value
+              if (data.band_names.length === 1) {
+                const value = data.values[0] !== null ? data.values[0] : 'No data';
+                html += `<p><strong>Value:</strong> ${value}</p>`;
+              }
+              // multiple bands case - show in a table
+              else {
+                html += '<table style="width: 100%; border-collapse: collapse;">';
+                html += '<tr><th style="text-align: left; padding: 1px; border-bottom: 1px solid #ddd;">Band</th>' +
+                        '<th style="text-align: right; padding: 1px; border-bottom: 1px solid #ddd;">Value</th></tr>';
+
+                for (let i = 0; i < data.band_names.length; i++) {
+                  const value = data.values[i] !== null ? data.values[i] : 'No data';
+                  html += `<tr>
+                    <td style="text-align: left; padding: 1px;">${data.band_names[i]}</td>
+                    <td style="text-align: right; padding: 1px;">${value}</td>
+                  </tr>`;
+                }
+
+                html += '</table>';
+              }
+
+              html += '</div>';
+              return html;
+            };
+
+          popup.setContent(formatPopupContent(data));
+        })
+        .catch(err => {
+          if (err.errorData && err.errorData.detail) {
+            popup.setContent(`<p>${err.errorData.detail}</p>`);
+          } else {
+            popup.setContent(`<p>Error: ${err.message || 'An unknown error occurred'}</p>`);
+          }
+        });
+      });
+
     </script>
   </body>
 </html>

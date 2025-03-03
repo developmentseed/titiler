@@ -6,6 +6,8 @@
 
 * add `output_min` and `output_max` metadata attributes to `slope` algorithm (@tayden, https://github.com/developmentseed/titiler/pull/1089)
 
+* add point value query on right-click to map viewer (@hrodmn, https://github.com/developmentseed/titiler/pull/1100)
+
 ## 0.21.1 (2025-01-29)
 
 ### titiler.core
