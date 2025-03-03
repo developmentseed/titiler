@@ -970,8 +970,11 @@ class TilerFactory(BaseFactory):
             tilejson_url = self.url_for(
                 request, "tilejson", tileMatrixSetId=tileMatrixSetId
             )
+            point_url = self.url_for(request, "point", lon="{lon}", lat="{lat}")
             if request.query_params._list:
-                tilejson_url += f"?{urlencode(request.query_params._list)}"
+                params = f"?{urlencode(request.query_params._list)}"
+                tilejson_url += params
+                point_url += params
 
             tms = self.supported_tms.get(tileMatrixSetId)
             return self.templates.TemplateResponse(
@@ -979,6 +982,7 @@ class TilerFactory(BaseFactory):
                 name="map.html",
                 context={
                     "tilejson_endpoint": tilejson_url,
+                    "point_endpoint": point_url,
                     "tms": tms,
                     "resolutions": [matrix.cellSize for matrix in tms],
                 },
