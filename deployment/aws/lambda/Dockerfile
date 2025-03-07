@@ -21,5 +21,5 @@ RUN rm -rdf /asset/numpy/doc/ /asset/boto3* /asset/botocore* /asset/bin /asset/g
 RUN yum remove -y gcc-c++
 
 COPY lambda/handler.py /asset/handler.py
-
-CMD ["echo", "hello world"]
+RUN mv /asset/* ${LAMBDA_TASK_ROOT}/
+CMD ["handler.handler"]
