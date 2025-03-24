@@ -1,4 +1,4 @@
-ARG PYTHON_VERSION=3.12
+ARG PYTHON_VERSION=3.13
 
 FROM bitnami/python:${PYTHON_VERSION}
 RUN apt update && apt upgrade -y \
