@@ -1,7 +1,7 @@
 """titiler.xarray dependencies."""
 
 from dataclasses import dataclass
-from typing import Optional, Union
+from typing import List, Optional, Union
 
 import numpy
 from fastapi import Query
@@ -40,8 +40,8 @@ class XarrayDsParams(DefaultDependency):
     variable: Annotated[str, Query(description="Xarray Variable name")]
 
     drop_dim: Annotated[
-        Optional[str],
-        Query(description="Dimension to drop"),
+        Optional[List[str]],
+        Query(description="Dimensions to drop in form of `{dimension}={value}`"),
     ] = None
 
     datetime: Annotated[
@@ -69,7 +69,7 @@ class CompatXarrayParams(XarrayIOParams):
 
     drop_dim: Annotated[
         Optional[str],
-        Query(description="Dimension to drop"),
+        Query(description="Dimensions to drop in form of `{dimension}={value}`"),
     ] = None
 
     datetime: Annotated[

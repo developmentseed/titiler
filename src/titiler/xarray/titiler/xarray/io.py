@@ -139,7 +139,7 @@ def get_variable(
     ds: xarray.Dataset,
     variable: str,
     datetime: Optional[str] = None,
-    drop_dim: Optional[str] = None,
+    drop_dim: Optional[List[str]] = None,
 ) -> xarray.DataArray:
     """Get Xarray variable as DataArray.
 
@@ -147,7 +147,7 @@ def get_variable(
         ds (xarray.Dataset): Xarray Dataset.
         variable (str): Variable to extract from the Dataset.
         datetime (str, optional): datetime to select from the DataArray.
-        drop_dim (str, optional): DataArray dimension to drop in form of `{dimension}={value}`.
+        drop_dim (list of str, optional): DataArray dimension to drop in form of `[{dimension}={value}],`.
 
     Returns:
         xarray.DataArray: 2D or 3D DataArray.
@@ -156,8 +156,9 @@ def get_variable(
     da = ds[variable]
 
     if drop_dim:
-        dim_to_drop, dim_val = drop_dim.split("=")
-        da = da.sel({dim_to_drop: dim_val}).drop_vars(dim_to_drop)
+        for dim in drop_dim:
+            dim_to_drop, dim_val = dim.split("=")
+            da = da.sel({dim_to_drop: dim_val}).drop_vars(dim_to_drop)
 
     da = _arrange_dims(da)
 
