@@ -1,39 +1,36 @@
 """Titiler middlewares."""
 
+from __future__ import annotations
+
+import json
 import logging
 import re
+import sys
 import time
-from typing import Optional, Set
+from dataclasses import dataclass, field
+from typing import List, Literal, Set, get_args
 from urllib.parse import urlencode
 
-from fastapi.logger import logger
 from starlette.datastructures import MutableHeaders
 from starlette.requests import Request
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 
+@dataclass(frozen=True)
 class CacheControlMiddleware:
-    """MiddleWare to add CacheControl in response headers."""
+    """MiddleWare to add CacheControl in response headers.
 
-    def __init__(
-        self,
-        app: ASGIApp,
-        cachecontrol: Optional[str] = None,
-        cachecontrol_max_http_code: Optional[int] = 500,
-        exclude_path: Optional[Set[str]] = None,
-    ) -> None:
-        """Init Middleware.
+    Args:
+        app (ASGIApp): starlette/FastAPI application.
+        cachecontrol (str): Cache-Control string to add to the response.
+        exclude_path (set): Set of regex expression to use to filter the path.
 
-        Args:
-            app (ASGIApp): starlette/FastAPI application.
-            cachecontrol (str): Cache-Control string to add to the response.
-            exclude_path (set): Set of regex expression to use to filter the path.
+    """
 
-        """
-        self.app = app
-        self.cachecontrol = cachecontrol
-        self.cachecontrol_max_http_code = cachecontrol_max_http_code
-        self.exclude_path = exclude_path or set()
+    app: ASGIApp
+    cachecontrol: str | None = None
+    cachecontrol_max_http_code: int = 500
+    exclude_path: Set[str] = field(default_factory=set)
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send):
         """Handle call."""
@@ -60,17 +57,16 @@ class CacheControlMiddleware:
         await self.app(scope, receive, send_wrapper)
 
 
+@dataclass(frozen=True)
 class TotalTimeMiddleware:
-    """MiddleWare to add Total process time in response headers."""
+    """MiddleWare to add Total process time in response headers.
 
-    def __init__(self, app: ASGIApp) -> None:
-        """Init Middleware.
+    Args:
+        app (ASGIApp): starlette/FastAPI application.
 
-        Args:
-            app (ASGIApp): starlette/FastAPI application.
+    """
 
-        """
-        self.app = app
+    app: ASGIApp
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send):
         """Handle call."""
@@ -82,6 +78,8 @@ class TotalTimeMiddleware:
 
         async def send_wrapper(message: Message):
             """Send Message."""
+            nonlocal start_time
+
             if message["type"] == "http.response.start":
                 response_headers = MutableHeaders(scope=message)
                 process_time = time.time() - start_time
@@ -97,57 +95,62 @@ class TotalTimeMiddleware:
         await self.app(scope, receive, send_wrapper)
 
 
+AVAILABLE_LOG_DATA = Literal[
+    "method", "referer", "origin", "path", "path_params", "query_params", "headers"
+]
+
+
+def create_logger() -> logging.Logger:
+    """Create titiler logger."""
+    logger = logging.getLogger("titiler")
+    logger.setLevel(logging.INFO)
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.INFO)
+    handler.setFormatter(logging.Formatter("%(name)s - %(message)s"))
+    logger.addHandler(handler)
+    return logger
+
+
+@dataclass(frozen=True)
 class LoggerMiddleware:
     """MiddleWare to add logging."""
 
-    def __init__(
-        self,
-        app: ASGIApp,
-        querystrings: bool = False,
-        headers: bool = False,
-    ) -> None:
-        """Init Middleware.
-
-        Args:
-            app (ASGIApp): starlette/FastAPI application.
-
-        """
-        self.app = app
-        self.querystrings = querystrings
-        self.headers = headers
-        self.logger = logger
-        logger.setLevel(logging.DEBUG)
+    app: ASGIApp
+    logger: logging.Logger = field(default_factory=create_logger)
+    log_data: List[AVAILABLE_LOG_DATA] = field(
+        default_factory=lambda: list(get_args(AVAILABLE_LOG_DATA))
+    )
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send):
         """Handle call."""
         if scope["type"] == "http":
             request = Request(scope)
 
-            self.logger.debug(str(request.url))
+            data = {
+                "method": request.method,
+                "referer": request.headers.get("referer")
+                or request.headers.get("referrer"),
+                "origin": request.headers.get("origin"),
+                "path": request.url.path,
+                "path_params": request.path_params,
+                "query_params": dict(request.query_params),
+                "headers": dict(request.headers),
+            }
+            data = {k: v for k, v in data.items() if k in self.log_data}
 
-            qs = dict(request.query_params)
-            if qs and self.querystrings:
-                self.logger.debug(qs)
-
-            if self.headers:
-                self.logger.debug(dict(request.headers))
+            self.logger.info(f"Request: {json.dumps(data)}")
 
         await self.app(scope, receive, send)
 
 
+@dataclass(frozen=True)
 class LowerCaseQueryStringMiddleware:
     """Middleware to make URL parameters case-insensitive.
     taken from: https://github.com/tiangolo/fastapi/issues/826
+
     """
 
-    def __init__(self, app: ASGIApp) -> None:
-        """Init Middleware.
-
-        Args:
-            app (ASGIApp): starlette/FastAPI application.
-
-        """
-        self.app = app
+    app: ASGIApp
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send):
         """Handle call."""

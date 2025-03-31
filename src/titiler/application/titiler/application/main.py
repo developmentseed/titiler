@@ -202,7 +202,7 @@ app.add_middleware(
 )
 
 if api_settings.debug:
-    app.add_middleware(LoggerMiddleware, headers=True, querystrings=True)
+    app.add_middleware(LoggerMiddleware)
     app.add_middleware(TotalTimeMiddleware)
 
 if api_settings.lower_case_query_parameters:

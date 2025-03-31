@@ -8,6 +8,30 @@
 
 * add point value query on right-click to map viewer (@hrodmn, https://github.com/developmentseed/titiler/pull/1100)
 
+* refactor middlewares to use python's dataclasses
+
+* update `LoggerMiddleware` output format and options **breaking change**
+
+    ```python
+    from fastapi import FastAPI
+
+    from titiler.core.middlewares import LoggerMiddleware
+
+    # before
+    app = FastAPI()
+    app.add_middlewares(LoggerMiddleware, querystrings=True, headers=True)
+
+    # now
+    app = FastAPI()
+    app.add_middlewares(
+        LoggerMiddleware,
+        # custom Logger
+        logger=logger,
+        # log_data is a list of "method", "referer", "origin", "path", "path_params", "query_params", "headers"
+        log_data=["query_params", "headers"],
+    )
+    ```
+
 ## 0.21.1 (2025-01-29)
 
 ### titiler.core
