@@ -37,6 +37,8 @@ services:
       # - MOSAIC_CONCURRENCY= # will default to `RIO_TILER_MAX_THREADS`
       # rio-tiler config
       # - RIO_TILER_MAX_THREADS=
+    volumes:
+      - ./:/data
 
   titiler-gunicorn:
     extends:
@@ -58,12 +60,12 @@ services:
       - 8081:8081
     environment:
       - TITILER_API_ROOT_PATH=/api/v1/titiler
-    command: ["uvicorn", "titiler.application.main:app", "--host", "0.0.0.0", "--port", "8081", "--workers", "1"]
+    command: ["uvicorn", "titiler.application.main:app", "--host", "0.0.0.0", "--port", "8081", "--workers", "1", "--proxy-headers", "--forwarded-allow-ips=*"]
 
   nginx:
     image: nginx
     ports:
-      - 80:80
+      - 8080:80
     volumes:
       - ./dockerfiles/nginx.conf:/etc/nginx/nginx.conf
     depends_on:
