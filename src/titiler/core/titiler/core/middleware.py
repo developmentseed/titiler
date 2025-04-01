@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-import json
 import logging
 import re
-import sys
 import time
 from dataclasses import dataclass, field
-from typing import List, Literal, Set, get_args
+from typing import Set
 from urllib.parse import urlencode
 
 from starlette.datastructures import MutableHeaders
@@ -95,30 +93,13 @@ class TotalTimeMiddleware:
         await self.app(scope, receive, send_wrapper)
 
 
-AVAILABLE_LOG_DATA = Literal[
-    "method", "referer", "origin", "path", "path_params", "query_params", "headers"
-]
-
-
-def create_logger() -> logging.Logger:
-    """Create titiler logger."""
-    logger = logging.getLogger("titiler")
-    logger.setLevel(logging.INFO)
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setLevel(logging.INFO)
-    handler.setFormatter(logging.Formatter("%(name)s - %(message)s"))
-    logger.addHandler(handler)
-    return logger
-
-
 @dataclass(frozen=True)
 class LoggerMiddleware:
     """MiddleWare to add logging."""
 
     app: ASGIApp
-    logger: logging.Logger = field(default_factory=create_logger)
-    log_data: List[AVAILABLE_LOG_DATA] = field(
-        default_factory=lambda: list(get_args(AVAILABLE_LOG_DATA))
+    logger: logging.Logger = field(
+        default_factory=lambda: logging.getLogger("titiler-requests")
     )
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send):
@@ -128,17 +109,21 @@ class LoggerMiddleware:
 
             data = {
                 "method": request.method,
-                "referer": request.headers.get("referer")
-                or request.headers.get("referrer"),
+                "referer": next(
+                    (request.headers.get(attr) for attr in ["referer", "referrer"]),
+                    None,
+                ),
                 "origin": request.headers.get("origin"),
                 "path": request.url.path,
                 "path_params": request.path_params,
                 "query_params": dict(request.query_params),
                 "headers": dict(request.headers),
             }
-            data = {k: v for k, v in data.items() if k in self.log_data}
 
-            self.logger.info(f"Request: {json.dumps(data)}")
+            self.logger.info(
+                f"Request received: {request.url.path} {request.method}",
+                extra=data,
+            )
 
         await self.app(scope, receive, send)
 
