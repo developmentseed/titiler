@@ -22,6 +22,7 @@ class HillShade(BaseAlgorithm):
     azimuth: int = Field(45, ge=0, le=360)
     angle_altitude: float = Field(45.0, ge=-90.0, le=90.0)
     buffer: int = Field(3, ge=0, le=99)
+    z_exaggeration: float = Field(1., ge=1e-6, le=1e6)
 
     # metadata
     input_nbands: int = 1
@@ -31,6 +32,8 @@ class HillShade(BaseAlgorithm):
     def __call__(self, img: ImageData) -> ImageData:
         """Create hillshade from DEM dataset."""
         x, y = numpy.gradient(img.array[0])
+        x *= self.z_exaggeration
+        y *= self.z_exaggeration
         slope = numpy.pi / 2.0 - numpy.arctan(numpy.sqrt(x * x + y * y))
         aspect = numpy.arctan2(-x, y)
         azimuth = 360.0 - self.azimuth
@@ -71,6 +74,7 @@ class Slope(BaseAlgorithm):
 
     # parameters
     buffer: int = Field(3, ge=0, le=99, description="Buffer size for edge effects")
+    z_exaggeration: float = Field(1., ge=1e-6, le=1e6)
 
     # metadata
     input_nbands: int = 1
@@ -86,6 +90,8 @@ class Slope(BaseAlgorithm):
         pixel_size_y = abs(img.transform[4])
 
         x, y = numpy.gradient(img.array[0])
+        x *= self.z_exaggeration
+        y *= self.z_exaggeration
         dx = x / pixel_size_x
         dy = y / pixel_size_y
 
