@@ -201,8 +201,7 @@ class TerrainRGB(BaseAlgorithm):
     # parameters
     interval: float = Field(0.1, ge=0.0, le=1.0)
     baseval: float = Field(-10000.0, ge=-99999.0, le=99999.0)
-    use_nodata_height: bool = Field(False)
-    nodata_height: float = Field(0.0, ge=-99999.0, le=99999.0)
+    nodata_height: Optional[float] = Field(None, ge=-99999.0, le=99999.0)
 
     # metadata
     input_nbands: int = 1
