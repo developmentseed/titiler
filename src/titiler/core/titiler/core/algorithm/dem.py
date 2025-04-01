@@ -191,6 +191,8 @@ class TerrainRGB(BaseAlgorithm):
     # parameters
     interval: float = Field(0.1, ge=0.0, le=1.0)
     baseval: float = Field(-10000.0, ge=-99999.0, le=99999.0)
+    use_nodata_height: bool = Field(False)
+    nodata_height: float = Field(0.0, ge=-99999.0, le=99999.0)
 
     # metadata
     input_nbands: int = 1
@@ -224,9 +226,13 @@ class TerrainRGB(BaseAlgorithm):
         if _range_check(datarange):
             raise ValueError(f"Data of {datarange} larger than 256 ** 3")
 
-        r = ((((data // 256) // 256) / 256) - (((data // 256) // 256) // 256)) * 256
-        g = (((data // 256) / 256) - ((data // 256) // 256)) * 256
-        b = ((data / 256) - (data // 256)) * 256
+        if self.use_nodata_height: 
+            data[img.array.mask[0]] = (0 - self.baseval) / self.interval
+
+        data_int32 = data.astype(numpy.int32)
+        b = (data_int32) & 0xff 
+        g = (data_int32 >> 8) & 0xff
+        r = (data_int32 >> 16) & 0xff
 
         return ImageData(
             numpy.ma.stack([r, g, b]).astype(self.output_dtype),
