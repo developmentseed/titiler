@@ -5,6 +5,7 @@ from typing import List, Optional, Union
 
 import numpy
 from fastapi import Query
+from pydantic.types import StringConstraints
 from rio_tiler.types import RIOResampling, WarpResampling
 from typing_extensions import Annotated
 
@@ -33,6 +34,9 @@ class XarrayIOParams(DefaultDependency):
     # cache_client
 
 
+DropDimStr = Annotated[str, StringConstraints(pattern=r"^[^=]+=[^=]+$")]
+
+
 @dataclass
 class XarrayDsParams(DefaultDependency):
     """Xarray Dataset Options."""
@@ -40,8 +44,10 @@ class XarrayDsParams(DefaultDependency):
     variable: Annotated[str, Query(description="Xarray Variable name")]
 
     drop_dim: Annotated[
-        Optional[List[str]],
-        Query(description="Dimensions to drop in form of `{dimension}={value}`"),
+        Optional[List[DropDimStr]],
+        Query(
+            description="Dimensions to drop in form of `{dimension}={value}`",
+        ),
     ] = None
 
     datetime: Annotated[
@@ -68,8 +74,10 @@ class CompatXarrayParams(XarrayIOParams):
     variable: Annotated[Optional[str], Query(description="Xarray Variable name")] = None
 
     drop_dim: Annotated[
-        Optional[str],
-        Query(description="Dimensions to drop in form of `{dimension}={value}`"),
+        Optional[List[DropDimStr]],
+        Query(
+            description="Dimensions to drop in form of `{dimension}={value}`",
+        ),
     ] = None
 
     datetime: Annotated[

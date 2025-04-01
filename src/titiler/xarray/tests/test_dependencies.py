@@ -44,3 +44,24 @@ def test_xarray_tile():
         response = client.get("/tiles/1/2/3", params={"variable": "yo"})
         params = response.json()
         assert params == {"variable": "yo"}
+
+        response = client.get("/tiles/1/2/3", params={"drop_dim": "yo=yo"})
+        params = response.json()
+        assert params == {"drop_dim": ["yo=yo"]}
+
+        response = client.get("/tiles/1/2/3", params={"drop_dim": "yo=1.0"})
+        params = response.json()
+        assert params == {"drop_dim": ["yo=1.0"]}
+
+        response = client.get("/tiles/1/2/3", params={"drop_dim": ["yo=yo", "ye=ye"]})
+        params = response.json()
+        assert params == {"drop_dim": ["yo=yo", "ye=ye"]}
+
+        response = client.get("/tiles/1/2/3", params={"drop_dim": "yo"})
+        assert response.status_code == 422
+
+        response = client.get("/tiles/1/2/3", params={"drop_dim": "=yo"})
+        assert response.status_code == 422
+
+        response = client.get("/tiles/1/2/3", params={"drop_dim": "yo="})
+        assert response.status_code == 422
