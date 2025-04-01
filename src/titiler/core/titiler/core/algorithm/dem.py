@@ -167,8 +167,7 @@ class Terrarium(BaseAlgorithm):
 
     title: str = "Terrarium"
     description: str = "Encode DEM into RGB (Mapzen Terrarium)."
-    use_nodata_height: bool = Field(False)
-    nodata_height: float = Field(0.0, ge=-99999.0, le=99999.0)
+    nodata_height: Optional[float] = Field(None, ge=-99999.0, le=99999.0)
 
     # metadata
     input_nbands: int = 1
