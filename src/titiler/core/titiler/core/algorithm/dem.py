@@ -1,6 +1,7 @@
 """titiler.core.algorithm DEM."""
 
 import numpy
+from typing import Optional
 from pydantic import Field
 from rasterio import windows
 from rio_tiler.colormap import apply_cmap, cmap
