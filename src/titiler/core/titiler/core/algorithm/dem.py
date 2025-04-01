@@ -161,6 +161,8 @@ class Terrarium(BaseAlgorithm):
 
     title: str = "Terrarium"
     description: str = "Encode DEM into RGB (Mapzen Terrarium)."
+    use_nodata_height: bool = Field(False)
+    nodata_height: float = Field(0.0, ge=-99999.0, le=99999.0)
 
     # metadata
     input_nbands: int = 1
@@ -170,6 +172,8 @@ class Terrarium(BaseAlgorithm):
     def __call__(self, img: ImageData) -> ImageData:
         """Encode DEM into RGB."""
         data = numpy.clip(img.array[0] + 32768.0, 0.0, 65535.0)
+        if self.use_nodata_height: 
+            data[img.array.mask[0]] = numpy.clip(self.nodata_height + 32768.0, 0.0, 65535.0)
         r = data / 256
         g = data % 256
         b = (data * 256) % 256
