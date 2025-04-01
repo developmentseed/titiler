@@ -227,7 +227,7 @@ class TerrainRGB(BaseAlgorithm):
             raise ValueError(f"Data of {datarange} larger than 256 ** 3")
 
         if self.use_nodata_height: 
-            data[img.array.mask[0]] = (0 - self.baseval) / self.interval
+            data[img.array.mask[0]] = (self.nodata_height - self.baseval) / self.interval
 
         data_int32 = data.astype(numpy.int32)
         b = (data_int32) & 0xff 
