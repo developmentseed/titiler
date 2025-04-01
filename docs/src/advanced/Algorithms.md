@@ -8,6 +8,7 @@ We added a set of custom algorithms:
 
 - `hillshade`: Create hillshade from elevation dataset
 - `contours`: Create contours lines (raster) from elevation dataset
+- `slope`: Create degrees of slope from elevation dataset 
 - `terrarium`: Mapzen's format to encode elevation value in RGB values (https://github.com/tilezen/joerd/blob/master/docs/formats.md#terrarium)
 - `terrainrgb`: Mapbox's format to encode elevation value in RGB values (https://docs.mapbox.com/data/tilesets/guides/access-elevation-data/)
 - `normalizedIndex`: Normalized Difference Index (e.g NDVI)
