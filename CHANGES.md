@@ -8,6 +8,10 @@
 
 * add point value query on right-click to map viewer (@hrodmn, https://github.com/developmentseed/titiler/pull/1100)
 
+### titiler.xarray
+
+* change `get_variable.drop_dim` parameter type from `str` to `List[str]` **breaking change**
+
 ## 0.21.1 (2025-01-29)
 
 ### titiler.core

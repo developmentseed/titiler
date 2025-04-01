@@ -87,7 +87,27 @@ def test_get_variable():
     with pytest.raises(AssertionError):
         get_variable(ds, "dataset")
 
-    da = get_variable(ds, "dataset", drop_dim="universe=somewhere")
+    da = get_variable(ds, "dataset", drop_dim=["universe=somewhere"])
+    assert da.rio.crs
+    assert da.dims == ("z", "y", "x")
+
+    # 5D dataset - drop time dim
+    arr = numpy.arange(0, 33 * 35 * 2).reshape(2, 1, 1, 33, 35)
+    data = xarray.DataArray(
+        arr,
+        dims=("time", "universe", "z", "y", "x"),
+        coords={
+            "x": numpy.arange(-170, 180, 10),
+            "y": numpy.arange(-80, 85, 5),
+            "z": [0],
+            "universe": ["somewhere"],
+            "time": [datetime(2022, 1, 1), datetime(2023, 1, 1)],
+        },
+    )
+
+    da = get_variable(
+        ds, "dataset", drop_dim=["universe=somewhere", "time=2022-01-01T00:00:00"]
+    )
     assert da.rio.crs
     assert da.dims == ("z", "y", "x")
 
