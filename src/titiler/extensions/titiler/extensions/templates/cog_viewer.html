@@ -486,9 +486,11 @@ const setAlgorithmParams = (params) => {
   const algorithm = algorithmSelector.selectedOptions[0].value; 
   if (algorithm !== 'no-algo') {
     params.algorithm = algorithm
-    const params_inputs = document.getElementById('algorithm-params-form').getElementsByTagName('input')
-    const algorithm_params = Object.fromEntries(Array.from(params_inputs).map(e => [e.name, e.value]))
-    params.algorithm_params = JSON.stringify(algorithm_params)
+    const params_inputs = document.getElementById('algorithm-params-form')?.getElementsByTagName('input')
+    if (params_inputs) {
+      const algorithm_params = Object.fromEntries(Array.from(params_inputs).map(e => [e.name, e.value]))
+      params.algorithm_params = JSON.stringify(algorithm_params)
+    }
   }
   return params
 }
@@ -987,12 +989,12 @@ const addCogeo = () => {
 }
 
 function updateAlgorithmParams() {
+  const algorithmSelector = document.getElementById('algorithm-selector');
   // Recreate div to host params
   const paramsElOld = Array.from(algorithmSelector.parentNode.parentNode.children).find(el => el.id == 'algorithm-params');
   if (paramsElOld) {
     paramsElOld.remove();
   }
-  const algorithmSelector = document.getElementById('algorithm-selector');
   const selected = algorithmSelector.selectedOptions[0].value; 
   if (selected === 'no-algo') { return; }
 
