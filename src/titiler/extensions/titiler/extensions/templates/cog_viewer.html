@@ -487,7 +487,7 @@ const setAlgorithmParams = (params) => {
   if (algorithm !== 'no-algo') {
     params.algorithm = algorithm
     const params_inputs = document.getElementById('algorithm-params-form').getElementsByTagName('input')
-    algorithm_params = Object.fromEntries(Array.from(params_inputs).map(e => [e.name, e.value]))
+    const algorithm_params = Object.fromEntries(Array.from(params_inputs).map(e => [e.name, e.value]))
     params.algorithm_params = JSON.stringify(algorithm_params)
   }
   return params
@@ -502,6 +502,7 @@ const set1bViz = () => {
   if (['uint8','int8'].indexOf(scope.data_type) === -1 && !scope.colormap) {
     params.rescale = `${document.getElementById('data-min').value},${document.getElementById('data-max').value}`
   }
+
   params = setAlgorithmParams(params)
 
   const cmap = document.getElementById('colormap-selector')[document.getElementById('colormap-selector').selectedIndex]
@@ -524,6 +525,7 @@ const set3bViz = () => {
   if (['uint8','int8'].indexOf(scope.data_type) === -1 && !scope.colormap) {
     params.rescale = `${document.getElementById('data-min').value},${document.getElementById('data-max').value}`
   }
+
   params = setAlgorithmParams(params)
   
   let url_params = Object.keys(params).map(i => `${i}=${params[i]}`).join('&')
@@ -547,20 +549,15 @@ const updateViz = () => {
   const algorithmOptions = Array.from(document.getElementById('algorithm-selector').getElementsByTagName('option'));
   for (o of algorithmOptions) {o.disabled = true}
   document.getElementById('no-algo').disabled = false
-  console.log('3b', '1b', filtered_3b, filtered_1b)
   switch (rasterType) {
     case '1b':
-      console.log('1b')
       for (const algo_id in algorithms_filtered_1b) {
         algorithmOptions.find(o => o.value == algo_id).disabled = false
-        console.log('dedisabled', algo_id)
       }
       break
     case '3b':
-    console.log('3b')
     for (const algo_id in algorithms_filtered_3b) {
         algorithmOptions.find(o => o.value == algo_id).disabled = false
-        console.log('dedisabled', algo_id)
       }
       break
   }
