@@ -256,6 +256,12 @@
               <div class='select-arrow color-black'></div>
             </div>
           </div>
+
+        <!-- Expression -->
+        <div id='expression-section' class='px6 py6'>
+          <div class='txt-h5 mb6 color-black'><svg class='icon icon--l inline-block'><use xlink:href='#icon-printer'/></svg> Expression</div>
+          <input name="expression" id="expression" type="text" class="input input--s row" value="" onChange="updateViz()" />
+        </div>
         </section>
 
         <!-- Algorithm -->
@@ -507,6 +513,10 @@ const set1bViz = () => {
 
   params = setAlgorithmParams(params)
 
+  if (expression && expression?.length > 0) {
+    params.expression = encodeURIComponent(expression)
+  } 
+
   const cmap = document.getElementById('colormap-selector')[document.getElementById('colormap-selector').selectedIndex]
   if (cmap.value !== 'b&w') params.colormap_name = cmap.value
 
@@ -529,6 +539,10 @@ const set3bViz = () => {
   }
 
   params = setAlgorithmParams(params)
+  const expression = document.getElementById('expression').value
+  if (expression && expression?.length > 0) {
+    params.expression = expression
+  } 
   
   let url_params = Object.keys(params).map(i => `${i}=${params[i]}`).join('&')
   if (url_params !== '') url_params = `${url_params}&`
