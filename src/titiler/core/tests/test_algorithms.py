@@ -106,26 +106,6 @@ def test_terrain_algo():
     elevation = (data[0] * 256 + data[1] + data[2] / 256) - 32768
     numpy.testing.assert_array_equal(elevation, arr[0])
 
-    # # test nodata_height 
-    # # MAPBOX Terrain RGB
-    # response = client.get("/", params={"algorithm": "terrainrgb", "algorithm_params":json.dumps({"nodata_height":10.0})})
-    # assert response.status_code == 200
-    # with MemoryFile(response.content) as mem:
-    #     with mem.open() as dst:
-    #         data = dst.read().astype(numpy.float64)
-    # elevation = -10000 + (((data[0] * 256 * 256) + (data[1] * 256) + data[2]) * 0.1)
-    # numpy.testing.assert_array_equal(elevation, arr[0])
-
-    # # TILEZEN Terrarium
-    # response = client.get("/", params={"algorithm": "terrarium", "algorithm_params":json.dumps({"nodata_height":10.0})})
-    # assert response.status_code == 200
-    # with MemoryFile(response.content) as mem:
-    #     with mem.open() as dst:
-    #         data = dst.read().astype(numpy.float64)
-    # elevation = (data[0] * 256 + data[1] + data[2] / 256) - 32768
-    # numpy.testing.assert_array_equal(elevation, arr[0])
-
-
 def test_normalized_index():
     """test ndi."""
     algo = default_algorithms.get("normalizedIndex")()
