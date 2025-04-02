@@ -987,15 +987,15 @@ const addCogeo = () => {
 }
 
 function updateAlgorithmParams() {
-  const algorithmSelector = document.getElementById('algorithm-selector');
-  const selected = algorithmSelector.selectedOptions[0].value; 
-  const params = scope.algorithms[selected]['parameters']; 
-
   // Recreate div to host params
   const paramsElOld = Array.from(algorithmSelector.parentNode.parentNode.children).find(el => el.id == 'algorithm-params');
   if (paramsElOld) {
     paramsElOld.remove();
   }
+  const algorithmSelector = document.getElementById('algorithm-selector');
+  const selected = algorithmSelector.selectedOptions[0].value; 
+  if (selected === 'no-algo') { return; }
+
   // Reproduce the div + form from lat/lon inputs
   const paramsEl = document.createElement('div');
   paramsEl.className = 'grid w-full';
@@ -1005,6 +1005,8 @@ function updateAlgorithmParams() {
   paramsForm.className = 'grid';
   paramsForm.id = 'algorithm-params-form';
   paramsEl.appendChild(paramsForm);
+  
+  const params = scope.algorithms[selected]['parameters']; 
   for (const param_id in params) {
     const param = params[param_id];
     const paramEl = document.createElement('div');
