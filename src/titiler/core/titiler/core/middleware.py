@@ -104,28 +104,39 @@ class LoggerMiddleware:
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send):
         """Handle call."""
-        if scope["type"] == "http":
-            request = Request(scope)
+        if scope["type"] != "http":
+            return await self.app(scope, receive, send)
 
-            data = {
-                "method": request.method,
-                "referer": next(
-                    (request.headers.get(attr) for attr in ["referer", "referrer"]),
-                    None,
-                ),
-                "origin": request.headers.get("origin"),
-                "path": request.url.path,
-                "path_params": request.path_params,
-                "query_params": dict(request.query_params),
-                "headers": dict(request.headers),
-            }
+        exception: Exception | None = None
+        try:
+            await self.app(scope, receive, send)
+        except Exception as e:
+            exception = e
 
-            self.logger.info(
-                f"Request received: {request.url.path} {request.method}",
-                extra=data,
-            )
+        request = Request(scope, receive=receive)
 
-        await self.app(scope, receive, send)
+        data = {
+            "method": request.method,
+            "referer": next(
+                (request.headers.get(attr) for attr in ["referer", "referrer"]),
+                None,
+            ),
+            "origin": request.headers.get("origin"),
+            "path": request.url.path,
+            "path_params": request.path_params,
+            "query_params": dict(request.query_params),
+            "headers": dict(request.headers),
+        }
+
+        if route := scope.get("route"):
+            data["route"] = route.path
+
+        self.logger.info(
+            f"Request received: {request.url.path} {request.method}",
+            extra=data,
+        )
+        if exception:
+            raise exception
 
 
 @dataclass(frozen=True)
