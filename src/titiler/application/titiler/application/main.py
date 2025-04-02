@@ -225,6 +225,7 @@ if api_settings.debug:
                                     "method",
                                     "referer",
                                     "origin",
+                                    "route",
                                     "path",
                                     "path_params",
                                     "query_params",

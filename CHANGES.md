@@ -26,9 +26,59 @@
     app.add_middlewares(
         LoggerMiddleware,
         # custom Logger
-        logger=logger,
-        # log_data is a list of "method", "referer", "origin", "path", "path_params", "query_params", "headers"
-        log_data=["query_params", "headers"],
+        logger=logging.getLogger("tiler-requests"),  # default to logging.getLogger("titiler-requests")
+    )
+    ```
+
+    Note: logger needs then to be `configured` at runtime. e.g :
+
+    ```python
+    from logging import config
+    config.dictConfig(
+        {
+            "version": 1,
+            "disable_existing_loggers": False,
+            "formatters": {
+                "detailed": {
+                    "format": "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+                },
+                "request": {
+                    "format": (
+                        "%(asctime)s - %(levelname)s - %(name)s - %(message)s "
+                        + json.dumps(
+                            {
+                                k: f"%({k})s"
+                                for k in [
+                                    "method",
+                                    "referer",
+                                    "origin",
+                                    "route",
+                                    "path",
+                                    "path_params",
+                                    "query_params",
+                                    "headers",
+                                ]
+                            }
+                        )
+                    ),
+                },
+            },
+            "handlers": {
+                "console_request": {
+                    "class": "logging.StreamHandler",
+                    "level": "DEBUG",
+                    "formatter": "request",
+                    "stream": "ext://sys.stdout",
+                },
+            },
+            "loggers": {
+                "tiler-requests": {
+                    "level": "INFO",
+                    "handlers": ["console_request"],
+                    "propagate": False,
+                },
+            },
+        }
     )
     ```
 
