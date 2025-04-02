@@ -513,6 +513,7 @@ const set1bViz = () => {
 
   params = setAlgorithmParams(params)
 
+  const expression = document.getElementById('expression').value
   if (expression && expression?.length > 0) {
     params.expression = encodeURIComponent(expression)
   } 
@@ -539,6 +540,7 @@ const set3bViz = () => {
   }
 
   params = setAlgorithmParams(params)
+
   const expression = document.getElementById('expression').value
   if (expression && expression?.length > 0) {
     params.expression = expression
