@@ -502,7 +502,6 @@ const set1bViz = () => {
   if (['uint8','int8'].indexOf(scope.data_type) === -1 && !scope.colormap) {
     params.rescale = `${document.getElementById('data-min').value},${document.getElementById('data-max').value}`
   }
-
   params = setAlgorithmParams(params)
 
   const cmap = document.getElementById('colormap-selector')[document.getElementById('colormap-selector').selectedIndex]
@@ -510,7 +509,6 @@ const set1bViz = () => {
 
   const url_params = Object.keys(params).map(i => `${i}=${params[i]}`).join('&')
   let url = `${tilejson_endpoint}?${url_params}`
-  console.log(url)
   setMapLayers(url)
   if (scope.dataset_statistics) addHisto1Band()
 }
@@ -526,7 +524,6 @@ const set3bViz = () => {
   if (['uint8','int8'].indexOf(scope.data_type) === -1 && !scope.colormap) {
     params.rescale = `${document.getElementById('data-min').value},${document.getElementById('data-max').value}`
   }
-  
   params = setAlgorithmParams(params)
   
   let url_params = Object.keys(params).map(i => `${i}=${params[i]}`).join('&')
@@ -899,6 +896,7 @@ const addCogeo = () => {
       throw new Error('Network response was not ok.')
     })
     .then(data => {
+      console.log(data)
       scope.data_type = data.properties.dtype
       scope.colormap = data.properties.colormap
 
@@ -967,9 +965,7 @@ const addCogeo = () => {
     .catch(err => {
       console.warn(err)
     })
-
     
-  // fetch(`/colorMaps`) then /colorMaps/accent?format=png but one request per colormap pretty heavy
   fetch(`/algorithms`)
     .then(res => {
       if (res.ok) return res.json()
@@ -977,7 +973,6 @@ const addCogeo = () => {
     })
     .then(algorithms => {
       // console.log('ALGORITHMS', algorithms)
-     
       scope.algorithms = algorithms;
       const algorithmSelector = document.getElementById('algorithm-selector');
       for (const algo_id in algorithms) {
