@@ -260,11 +260,10 @@
           <!-- Algorithm -->
           <div id='algorithm-section'>
             <div class='txt-h5 mb6 color-black'><svg class='icon icon--l inline-block'><use xlink:href='#icon-functions'/></svg> Algorithm</div>
-            <div class='select-container wmax-full grid'>
-              <select id='algorithm-selector' class='select select--s select--stroke wmax-full color-black row'>
-                <option value='no-algo'>None</option>
+            <div class='select-container wmax-full'>
+              <select id='algorithm-selector' class='select select--s select--stroke wmax-full color-black'>
               </select>
-              <!-- <div class='select-arrow color-black'></div> -->
+              <div class='select-arrow color-black'></div>
             </div>
           </div>
         </section>
@@ -491,20 +490,11 @@ const set1bViz = () => {
     params.rescale = `${document.getElementById('data-min').value},${document.getElementById('data-max').value}`
   }
 
-  const algorithmSelector = document.getElementById('algorithm-selector');
-  const algorithm = algorithmSelector.selectedOptions[0].value; 
-  if (algorithm !== 'no-algo') {
-    params.algorithm = algorithm
-    params.algorithm_params = JSON.stringify({})
-  }
-  // const params = scope.algorithms[selected]['parameters']; 
-
   const cmap = document.getElementById('colormap-selector')[document.getElementById('colormap-selector').selectedIndex]
   if (cmap.value !== 'b&w') params.colormap_name = cmap.value
 
   const url_params = Object.keys(params).map(i => `${i}=${params[i]}`).join('&')
   let url = `${tilejson_endpoint}?${url_params}`
-  console.log(url)
   setMapLayers(url)
   if (scope.dataset_statistics) addHisto1Band()
 }
@@ -939,54 +929,56 @@ const addCogeo = () => {
       throw new Error('Network response was not ok.')
     })
     .then(algorithms => {
-      // console.log('ALGORITHMS', algorithms)
-      scope.algorithms = algorithms;
+      console.log('ALGORITHMS', algorithms)
+      scope.algorithms = algorithms
       const algorithmSelector = document.getElementById('algorithm-selector');
       for (const algo_id in algorithms) {
-        const algo = algorithms[algo_id];
+        const algo = algorithms[algo_id]
+        console.log(algo)
         const opt = document.createElement('option');
         opt.value = algo_id;
         opt.innerHTML = algo['title'];
         algorithmSelector.appendChild(opt);
       }
-      algorithmSelector.addEventListener('change', updateAlgorithmParams);
+      algorithmSelector.addEventListener('change', updateAlgorithmParams)
     })
     .catch(err => {
-      console.warn(err);
+      console.warn(err)
     })
 }
 
 function updateAlgorithmParams() {
   const algorithmSelector = document.getElementById('algorithm-selector');
+  console.log('algorithmSelector', algorithmSelector)
   const selected = algorithmSelector.selectedOptions[0].value; 
+  console.log("selected", selected)
   const params = scope.algorithms[selected]['parameters']; 
+  console.log(params)
 
   // Recreate div to host params
-  const paramsElOld = Array.from(algorithmSelector.parentNode.children).find(el => el.id == 'algorithm-params');
+  const paramsElOld = Array.from(algorithmSelector.parentNode.children).find(el => el.id == 'algorithm-params')
   if (paramsElOld) {
-    paramsElOld.remove();
+    paramsElOld.remove()
   }
   // Reproduce the div + form from lat/lon inputs
   const paramsEl = document.createElement('div');
-  paramsEl.className = 'grid px12 py12 w-full grid';
+  paramsEl.className = 'px6 py6 w-full'
   paramsEl.id = 'algorithm-params';
-  algorithmSelector.parentNode.appendChild(paramsEl);
+  algorithmSelector.parentNode.appendChild(paramsEl)
   const paramsForm = document.createElement('form');
-  paramsForm.className = 'grid grid--gut12 mx12 mt12';
+  paramsForm.className = 'grid grid--gut12 mx12 mt12'
   paramsForm.id = 'algorithm-params-form';
-  paramsEl.appendChild(paramsForm);
+  paramsEl.appendChild(paramsForm)
   for (const param_id in params) {
-    const param = params[param_id];
+    const param = params[param_id]
     const paramEl = document.createElement('div');
-    paramEl.className = 'row';
+    paramEl.className = 'row'
     paramsForm.appendChild(paramEl);
     paramEl.innerHTML = `
       <label for="param_${param_id}" class='col'>${param_id}:</label>
-      <input name="${param_id}" id="param_${param_id}" type="${(['integer', 'number'].includes(param.type)) ? 'number' : 'text'}" class="input input--s col" step=1 value="${param.default}"/>
-    `;
+      <input name="${param_id}" id="param_${param_id}" type="text" class="input input--s col"> ${param.default} </input>
+    `
   }
-  // Update to react to params change
-  updateViz();
 }
 
 document.getElementById('launch').addEventListener('click', () => {
