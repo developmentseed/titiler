@@ -495,7 +495,9 @@ const set1bViz = () => {
   const algorithm = algorithmSelector.selectedOptions[0].value; 
   if (algorithm !== 'no-algo') {
     params.algorithm = algorithm
-    params.algorithm_params = JSON.stringify({})
+    const params_inputs = document.getElementById('algorithm-params-form').getElementsByTagName('input')
+    algorithm_params = Object.fromEntries(Array.from(params_inputs).map(e => [e.name, e.value]))
+    params.algorithm_params = JSON.stringify(algorithm_params)
   }
   // const params = scope.algorithms[selected]['parameters']; 
 
@@ -962,17 +964,17 @@ function updateAlgorithmParams() {
   const params = scope.algorithms[selected]['parameters']; 
 
   // Recreate div to host params
-  const paramsElOld = Array.from(algorithmSelector.parentNode.children).find(el => el.id == 'algorithm-params');
+  const paramsElOld = Array.from(algorithmSelector.parentNode.parentNode.children).find(el => el.id == 'algorithm-params');
   if (paramsElOld) {
     paramsElOld.remove();
   }
   // Reproduce the div + form from lat/lon inputs
   const paramsEl = document.createElement('div');
-  paramsEl.className = 'grid px12 py12 w-full grid';
+  paramsEl.className = 'grid w-full';
   paramsEl.id = 'algorithm-params';
-  algorithmSelector.parentNode.appendChild(paramsEl);
+  algorithmSelector.parentNode.parentNode.appendChild(paramsEl);
   const paramsForm = document.createElement('form');
-  paramsForm.className = 'grid grid--gut12 mx12 mt12';
+  paramsForm.className = 'grid';
   paramsForm.id = 'algorithm-params-form';
   paramsEl.appendChild(paramsForm);
   for (const param_id in params) {
@@ -981,8 +983,8 @@ function updateAlgorithmParams() {
     paramEl.className = 'row';
     paramsForm.appendChild(paramEl);
     paramEl.innerHTML = `
-      <label for="param_${param_id}" class='col'>${param_id}:</label>
-      <input name="${param_id}" id="param_${param_id}" type="${(['integer', 'number'].includes(param.type)) ? 'number' : 'text'}" class="input input--s col" step=1 value="${param.default}"/>
+      <label for="param_${param_id}" class='col' style="font-size:80%;">${param_id}:</label>
+      <input name="${param_id}" id="param_${param_id}" type="${(['integer', 'number'].includes(param.type)) ? 'number' : 'text'}" class="input input--s col" onChange="updateViz()" step=1 value="${param.default}"/>
     `;
   }
   // Update to react to params change
