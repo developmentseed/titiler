@@ -256,19 +256,19 @@
               <div class='select-arrow color-black'></div>
             </div>
           </div>
-
-          <!-- Algorithm -->
-          <div id='algorithm-section'>
-            <div class='txt-h5 mb6 color-black'><svg class='icon icon--l inline-block'><use xlink:href='#icon-functions'/></svg> Algorithm</div>
-            <div class='select-container wmax-full grid'>
-              <select id='algorithm-selector' class='select select--s select--stroke wmax-full color-black row'>
-                <option value='no-algo'>None</option>
-              </select>
-              <div class='select-arrow color-black'></div>
-            </div>
-          </div>
         </section>
 
+        <!-- Algorithm -->
+        <div id='algorithm-section' class='px6 py6'>
+          <div class='txt-h5 mb6 color-black'><svg class='icon icon--l inline-block'><use xlink:href='#icon-functions'/></svg> Algorithm</div>
+          <div class='select-container wmax-full grid'>
+            <select id='algorithm-selector' class='select select--s select--stroke wmax-full color-black row'>
+              <option id='no-algo' value='no-algo'>None</option>
+            </select>
+            <div class='select-arrow color-black'></div>
+          </div>
+        </div>
+        
         <!-- Min/Max -->
         <div id="minmax-data" class='px6 py6 none'>
           <div class='txt-h5 mb6 color-black'><svg class='icon icon--l inline-block'><use xlink:href='#icon-smooth-ramp'/></svg> Rescale</div>
@@ -481,6 +481,18 @@ const setMapLayers = (url) => {
     })
 }
 
+const setAlgorithmParams = (params) => {
+  const algorithmSelector = document.getElementById('algorithm-selector');
+  const algorithm = algorithmSelector.selectedOptions[0].value; 
+  if (algorithm !== 'no-algo') {
+    params.algorithm = algorithm
+    const params_inputs = document.getElementById('algorithm-params-form').getElementsByTagName('input')
+    algorithm_params = Object.fromEntries(Array.from(params_inputs).map(e => [e.name, e.value]))
+    params.algorithm_params = JSON.stringify(algorithm_params)
+  }
+  return params
+}
+
 const set1bViz = () => {
   params = {
     url: scope.url
@@ -491,14 +503,7 @@ const set1bViz = () => {
     params.rescale = `${document.getElementById('data-min').value},${document.getElementById('data-max').value}`
   }
 
-  const algorithmSelector = document.getElementById('algorithm-selector');
-  const algorithm = algorithmSelector.selectedOptions[0].value; 
-  if (algorithm !== 'no-algo') {
-    params.algorithm = algorithm
-    const params_inputs = document.getElementById('algorithm-params-form').getElementsByTagName('input')
-    algorithm_params = Object.fromEntries(Array.from(params_inputs).map(e => [e.name, e.value]))
-    params.algorithm_params = JSON.stringify(algorithm_params)
-  }
+  params = setAlgorithmParams(params)
 
   const cmap = document.getElementById('colormap-selector')[document.getElementById('colormap-selector').selectedIndex]
   if (cmap.value !== 'b&w') params.colormap_name = cmap.value
@@ -521,6 +526,9 @@ const set3bViz = () => {
   if (['uint8','int8'].indexOf(scope.data_type) === -1 && !scope.colormap) {
     params.rescale = `${document.getElementById('data-min').value},${document.getElementById('data-max').value}`
   }
+  
+  params = setAlgorithmParams(params)
+  
   let url_params = Object.keys(params).map(i => `${i}=${params[i]}`).join('&')
   if (url_params !== '') url_params = `${url_params}&`
 
@@ -532,6 +540,34 @@ const set3bViz = () => {
 
 const updateViz = () => {
   const rasterType = document.getElementById('toolbar').querySelector(".active").id
+
+  // only select algorithms applicable to 1d or 3d inputs
+  const algorithms_arr = Object.entries(scope.algorithms);
+  const filtered_1b = algorithms_arr.filter(([algo_id, algo]) => (algo.inputs.nbands === 1) || (algo.inputs.nbands === null));
+  const algorithms_filtered_1b = Object.fromEntries(filtered_1b);
+  const filtered_3b = algorithms_arr.filter(([algo_id, algo]) => (algo.inputs.nbands >= 2) || (algo.inputs.nbands === null));
+  const algorithms_filtered_3b = Object.fromEntries(filtered_3b);
+  const algorithmOptions = Array.from(document.getElementById('algorithm-selector').getElementsByTagName('option'));
+  for (o of algorithmOptions) {o.disabled = true}
+  document.getElementById('no-algo').disabled = false
+  console.log('3b', '1b', filtered_3b, filtered_1b)
+  switch (rasterType) {
+    case '1b':
+      console.log('1b')
+      for (const algo_id in algorithms_filtered_1b) {
+        algorithmOptions.find(o => o.value == algo_id).disabled = false
+        console.log('dedisabled', algo_id)
+      }
+      break
+    case '3b':
+    console.log('3b')
+    for (const algo_id in algorithms_filtered_3b) {
+        algorithmOptions.find(o => o.value == algo_id).disabled = false
+        console.log('dedisabled', algo_id)
+      }
+      break
+  }
+
   switch (rasterType) {
     case '1b':
       set1bViz()
@@ -941,15 +977,11 @@ const addCogeo = () => {
     })
     .then(algorithms => {
       // console.log('ALGORITHMS', algorithms)
-      // only select algorithms applicable to 1d inputs, like DEM: 
-      const algorithms_arr = Object.entries(algorithms);
-      const filtered = algorithms_arr.filter(([algo_id, algo]) => algo.inputs.nbands == 1);
-      const algorithms_filtered = Object.fromEntries(filtered);
-
-      scope.algorithms = algorithms_filtered;
+     
+      scope.algorithms = algorithms;
       const algorithmSelector = document.getElementById('algorithm-selector');
-      for (const algo_id in algorithms_filtered) {
-        const algo = algorithms_filtered[algo_id];
+      for (const algo_id in algorithms) {
+        const algo = algorithms[algo_id];
         const opt = document.createElement('option');
         opt.value = algo_id;
         opt.innerHTML = algo['title'];
