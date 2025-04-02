@@ -264,7 +264,7 @@
               <select id='algorithm-selector' class='select select--s select--stroke wmax-full color-black row'>
                 <option value='no-algo'>None</option>
               </select>
-              <!-- <div class='select-arrow color-black'></div> -->
+              <div class='select-arrow color-black'></div>
             </div>
           </div>
         </section>
@@ -499,7 +499,6 @@ const set1bViz = () => {
     algorithm_params = Object.fromEntries(Array.from(params_inputs).map(e => [e.name, e.value]))
     params.algorithm_params = JSON.stringify(algorithm_params)
   }
-  // const params = scope.algorithms[selected]['parameters']; 
 
   const cmap = document.getElementById('colormap-selector')[document.getElementById('colormap-selector').selectedIndex]
   if (cmap.value !== 'b&w') params.colormap_name = cmap.value
@@ -942,10 +941,15 @@ const addCogeo = () => {
     })
     .then(algorithms => {
       // console.log('ALGORITHMS', algorithms)
-      scope.algorithms = algorithms;
+      // only select algorithms applicable to 1d inputs, like DEM: 
+      const algorithms_arr = Object.entries(algorithms);
+      const filtered = algorithms_arr.filter(([algo_id, algo]) => algo.inputs.nbands == 1);
+      const algorithms_filtered = Object.fromEntries(filtered);
+
+      scope.algorithms = algorithms_filtered;
       const algorithmSelector = document.getElementById('algorithm-selector');
-      for (const algo_id in algorithms) {
-        const algo = algorithms[algo_id];
+      for (const algo_id in algorithms_filtered) {
+        const algo = algorithms_filtered[algo_id];
         const opt = document.createElement('option');
         opt.value = algo_id;
         opt.innerHTML = algo['title'];
