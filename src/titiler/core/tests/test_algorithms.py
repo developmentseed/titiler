@@ -106,6 +106,7 @@ def test_terrain_algo():
     elevation = (data[0] * 256 + data[1] + data[2] / 256) - 32768
     numpy.testing.assert_array_equal(elevation, arr[0])
 
+
 def test_normalized_index():
     """test ndi."""
     algo = default_algorithms.get("normalizedIndex")()
@@ -239,9 +240,11 @@ def test_terrarium():
     nodata_height = 10.0
     algo = default_algorithms.get("terrarium")(nodata_height=nodata_height)
     out = algo(img)
-    masked = out.array[:, arr.mask[0,:,:]]
+    masked = out.array[:, arr.mask[0, :, :]]
     masked_height = (masked[0] * 256 + masked[1] + masked[2] / 256) - 32768
-    numpy.testing.assert_array_equal(masked_height, nodata_height * numpy.ones((100 * 100), dtype="bool"))
+    numpy.testing.assert_array_equal(
+        masked_height, nodata_height * numpy.ones((100 * 100), dtype="bool")
+    )
 
 
 def test_terrainrgb():
@@ -270,9 +273,13 @@ def test_terrainrgb():
     nodata_height = 10.0
     algo = default_algorithms.get("terrainrgb")(nodata_height=nodata_height)
     out = algo(img)
-    masked = out.array[:, arr.mask[0,:,:]]
-    masked_height = -10000 + (((masked[0] * 256 * 256) + (masked[1] * 256) + masked[2]) * 0.1)
-    numpy.testing.assert_array_equal(masked_height, nodata_height * numpy.ones((100 * 100), dtype="bool"))
+    masked = out.array[:, arr.mask[0, :, :]]
+    masked_height = -10000 + (
+        ((masked[0] * 256 * 256) + (masked[1] * 256) + masked[2]) * 0.1
+    )
+    numpy.testing.assert_array_equal(
+        masked_height, nodata_height * numpy.ones((100 * 100), dtype="bool")
+    )
 
 
 def test_ops():

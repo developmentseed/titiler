@@ -1,7 +1,8 @@
 """titiler.core.algorithm DEM."""
 
-import numpy
 from typing import Optional
+
+import numpy
 from pydantic import Field
 from rasterio import windows
 from rio_tiler.colormap import apply_cmap, cmap
@@ -23,7 +24,7 @@ class HillShade(BaseAlgorithm):
     azimuth: int = Field(45, ge=0, le=360)
     angle_altitude: float = Field(45.0, ge=-90.0, le=90.0)
     buffer: int = Field(3, ge=0, le=99)
-    z_exaggeration: float = Field(1., ge=1e-6, le=1e6)
+    z_exaggeration: float = Field(1.0, ge=1e-6, le=1e6)
 
     # metadata
     input_nbands: int = 1
@@ -75,7 +76,7 @@ class Slope(BaseAlgorithm):
 
     # parameters
     buffer: int = Field(3, ge=0, le=99, description="Buffer size for edge effects")
-    z_exaggeration: float = Field(1., ge=1e-6, le=1e6)
+    z_exaggeration: float = Field(1.0, ge=1e-6, le=1e6)
 
     # metadata
     input_nbands: int = 1
@@ -178,8 +179,10 @@ class Terrarium(BaseAlgorithm):
     def __call__(self, img: ImageData) -> ImageData:
         """Encode DEM into RGB."""
         data = numpy.clip(img.array[0] + 32768.0, 0.0, 65535.0)
-        if self.nodata_height is not None: 
-            data[img.array.mask[0]] = numpy.clip(self.nodata_height + 32768.0, 0.0, 65535.0)
+        if self.nodata_height is not None:
+            data[img.array.mask[0]] = numpy.clip(
+                self.nodata_height + 32768.0, 0.0, 65535.0
+            )
         r = data / 256
         g = data % 256
         b = (data * 256) % 256
@@ -235,13 +238,15 @@ class TerrainRGB(BaseAlgorithm):
         if _range_check(datarange):
             raise ValueError(f"Data of {datarange} larger than 256 ** 3")
 
-        if self.nodata_height is not None: 
-            data[img.array.mask[0]] = (self.nodata_height - self.baseval) / self.interval
+        if self.nodata_height is not None:
+            data[img.array.mask[0]] = (
+                self.nodata_height - self.baseval
+            ) / self.interval
 
         data_int32 = data.astype(numpy.int32)
-        b = (data_int32) & 0xff 
-        g = (data_int32 >> 8) & 0xff
-        r = (data_int32 >> 16) & 0xff
+        b = (data_int32) & 0xFF
+        g = (data_int32 >> 8) & 0xFF
+        r = (data_int32 >> 16) & 0xFF
 
         return ImageData(
             numpy.ma.stack([r, g, b]).astype(self.output_dtype),
