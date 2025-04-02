@@ -106,6 +106,25 @@ def test_terrain_algo():
     elevation = (data[0] * 256 + data[1] + data[2] / 256) - 32768
     numpy.testing.assert_array_equal(elevation, arr[0])
 
+    # # test nodata_height 
+    # # MAPBOX Terrain RGB
+    # response = client.get("/", params={"algorithm": "terrainrgb", "algorithm_params":json.dumps({"nodata_height":10.0})})
+    # assert response.status_code == 200
+    # with MemoryFile(response.content) as mem:
+    #     with mem.open() as dst:
+    #         data = dst.read().astype(numpy.float64)
+    # elevation = -10000 + (((data[0] * 256 * 256) + (data[1] * 256) + data[2]) * 0.1)
+    # numpy.testing.assert_array_equal(elevation, arr[0])
+
+    # # TILEZEN Terrarium
+    # response = client.get("/", params={"algorithm": "terrarium", "algorithm_params":json.dumps({"nodata_height":10.0})})
+    # assert response.status_code == 200
+    # with MemoryFile(response.content) as mem:
+    #     with mem.open() as dst:
+    #         data = dst.read().astype(numpy.float64)
+    # elevation = (data[0] * 256 + data[1] + data[2] / 256) - 32768
+    # numpy.testing.assert_array_equal(elevation, arr[0])
+
 
 def test_normalized_index():
     """test ndi."""
@@ -236,6 +255,14 @@ def test_terrarium():
     assert out.array.dtype == "uint8"
     assert out.array[0, 0, 0] is numpy.ma.masked
 
+    # works on the above masked array img, with algo which was passed nodata_height
+    nodata_height = 10.0
+    algo = default_algorithms.get("terrarium")(nodata_height=nodata_height)
+    out = algo(img)
+    masked = out.array[:, arr.mask[0,:,:]]
+    masked_height = (masked[0] * 256 + masked[1] + masked[2] / 256) - 32768
+    numpy.testing.assert_array_equal(masked_height, nodata_height * numpy.ones((100 * 100), dtype="bool"))
+
 
 def test_terrainrgb():
     """test terrainrgb."""
@@ -258,6 +285,14 @@ def test_terrainrgb():
     assert out.array.shape == (3, 256, 256)
     assert out.array.dtype == "uint8"
     assert out.array[0, 0, 0] is numpy.ma.masked
+
+    # works on the above masked array img, with algo which was passed nodata_height
+    nodata_height = 10.0
+    algo = default_algorithms.get("terrainrgb")(nodata_height=nodata_height)
+    out = algo(img)
+    masked = out.array[:, arr.mask[0,:,:]]
+    masked_height = -10000 + (((masked[0] * 256 * 256) + (masked[1] * 256) + masked[2]) * 0.1)
+    numpy.testing.assert_array_equal(masked_height, nodata_height * numpy.ones((100 * 100), dtype="bool"))
 
 
 def test_ops():
