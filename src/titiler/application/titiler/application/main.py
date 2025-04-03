@@ -1,7 +1,6 @@
 """titiler app."""
 
 import logging
-import re
 
 import jinja2
 import rasterio
@@ -232,6 +231,25 @@ def application_health_check():
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
 def landing(request: Request):
     """TiTiler landing page."""
+    urlpath = request.url.path
+    if root_path := request.scope.get("root_path"):
+        urlpath = urlpath.removeprefix(root_path)
+
+    crumbs = []
+    baseurl = str(request.base_url).rstrip("/")
+
+    crumbpath = str(baseurl)
+    if urlpath == "/":
+        urlpath = ""
+
+    for crumb in urlpath.split("/"):
+        crumbpath = crumbpath.rstrip("/")
+        part = crumb
+        if part is None or part == "":
+            part = "Home"
+        crumbpath += f"/{crumb}"
+        crumbs.append({"url": crumbpath.rstrip("/"), "part": part.capitalize()})
+
     data = {
         "title": "titiler",
         "links": [
@@ -268,21 +286,6 @@ def landing(request: Request):
         ],
     }
 
-    urlpath = request.url.path
-    if root_path := request.app.root_path:
-        urlpath = re.sub(r"^" + root_path, "", urlpath)
-    crumbs = []
-    baseurl = str(request.base_url).rstrip("/")
-
-    crumbpath = str(baseurl)
-    for crumb in urlpath.split("/"):
-        crumbpath = crumbpath.rstrip("/")
-        part = crumb
-        if part is None or part == "":
-            part = "Home"
-        crumbpath += f"/{crumb}"
-        crumbs.append({"url": crumbpath.rstrip("/"), "part": part.capitalize()})
-
     return templates.TemplateResponse(
         "index.html",
         {
@@ -294,9 +297,5 @@ def landing(request: Request):
                 "title": "TiTiler",
             },
             "crumbs": crumbs,
-            "url": str(request.url),
-            "baseurl": baseurl,
-            "urlpath": str(request.url.path),
-            "urlparams": str(request.url.query),
         },
     )
