@@ -67,7 +67,7 @@ def test_timing_middleware(caplog):
                 },
             },
             "loggers": {
-                "titiler-requests": {
+                "titiler.requests": {
                     "level": "INFO",
                     "handlers": ["console_request"],
                     "propagate": True,
@@ -77,11 +77,11 @@ def test_timing_middleware(caplog):
     )
 
     with TestClient(app) as client:
-        with caplog.at_level(logging.INFO, logger="titiler-requests"):
+        with caplog.at_level(logging.INFO, logger="titiler.requests"):
             caplog.clear()
             client.get("/route1")
             log = caplog.records[0]
-            assert log.name == "titiler-requests"
+            assert log.name == "titiler.requests"
             assert log.levelname == "INFO"
             assert log.message == "Request received: /route1 GET"
             assert hasattr(log, "query_params")
@@ -105,7 +105,7 @@ def test_timing_middleware(caplog):
             caplog.clear()
             client.get("/route2/val")
             log = caplog.records[0]
-            assert log.name == "titiler-requests"
+            assert log.name == "titiler.requests"
             assert log.levelname == "INFO"
             assert log.message == "Request received: /route2/val GET"
             assert hasattr(log, "query_params")
@@ -115,7 +115,7 @@ def test_timing_middleware(caplog):
             with pytest.raises(Exception):  # noqa: B017
                 client.get("/route3/val")
                 log = caplog.records[0]
-                assert log.name == "titiler-requests"
+                assert log.name == "titiler.requests"
                 assert log.levelname == "INFO"
                 assert log.message == "Request received: /route3/val GET"
                 assert hasattr(log, "query_params")

@@ -26,7 +26,7 @@
     app.add_middlewares(
         LoggerMiddleware,
         # custom Logger
-        logger=logging.getLogger("tiler-requests"),  # default to logging.getLogger("titiler-requests")
+        logger=logging.getLogger("mytiler.requests"),  # default to logging.getLogger("titiler.requests")
     )
     ```
 
@@ -72,7 +72,7 @@
                 },
             },
             "loggers": {
-                "tiler-requests": {
+                "mytiler.requests": {
                     "level": "INFO",
                     "handlers": ["console_request"],
                     "propagate": False,

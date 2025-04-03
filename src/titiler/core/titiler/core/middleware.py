@@ -99,7 +99,7 @@ class LoggerMiddleware:
 
     app: ASGIApp
     logger: logging.Logger = field(
-        default_factory=lambda: logging.getLogger("titiler-requests")
+        default_factory=lambda: logging.getLogger("titiler.requests")
     )
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send):
