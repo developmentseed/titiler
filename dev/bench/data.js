@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1744009248612,
+  "lastUpdate": 1744009446329,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -11253,6 +11253,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.15,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "jos.chemla@gmail.com",
+            "name": "Jonathan Chemla",
+            "username": "jo-chemla"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "790fc97aad533229b0eff38b699dd1b542bdb318",
+          "message": "Fix TerrainRGB algorithm and param user-controlled nodata-height (#1116)\n\n* Fix TerrainRGB algorithm and param user-controlled nodata-height\n\nAdded two params `use_nodata_height and nodata_height` (or could have used a field which cold be either undefined or that height value?\n\n* Make use of user-controlled height in terrainrgb\n\n* Add user-controlled nodata-height for terrarium as well\n\n* Add z_exaggeration parameter to hillshade/slope algorithms\n\ndefaults to 1, applied to gradients directly\n\n* Add slope in algorithms doc\n\n* Make terrainRGB/terrarium docs links instead of plain urls\n\n* Add parameters hints to hillshade/contours\n\n* nodata_height optional\n\nCo-authored-by: Vincent Sarago <vincent.sarago@gmail.com>\n\n* check nodata_height not None\n\nCo-authored-by: Vincent Sarago <vincent.sarago@gmail.com>\n\n* Update src/titiler/core/titiler/core/algorithm/dem.py\n\nCo-authored-by: Vincent Sarago <vincent.sarago@gmail.com>\n\n* Update src/titiler/core/titiler/core/algorithm/dem.py\n\nCo-authored-by: Vincent Sarago <vincent.sarago@gmail.com>\n\n* from typing import Optional\n\n* WIP /cog/viewer algorithms inputs\n\nAdding algorithm params dynamically based on the /algorithms endpoint, stored in scope, and params updated on change of selected algorithm\n\n* Final touch-ups to /cog/viewer for algorithms visualization\n\nUses number inputs if param is integer or number, otherwise text input (eg nodata-height which can be either null or number)\n\nUpdates tilejson url when algorithm or its params are changed\n\n* Revert \"Final touch-ups to /cog/viewer for algorithms visualization\"\n\nThis reverts commit bf094ae74afbc4103573698d88f77c094a435eb9.\n\n* Revert \"WIP /cog/viewer algorithms inputs\"\n\nThis reverts commit 31d5277cf3657a39f84ed9d533367d0b8309aff1.\n\n* Add nodata_height coverage to tests\n\n* Discard solution 1 for testing terrainrgb and terrarium\n\n* pre-commit run --all-files\n\n---------\n\nCo-authored-by: Vincent Sarago <vincent.sarago@gmail.com>",
+          "timestamp": "2025-04-07T09:02:29+02:00",
+          "tree_id": "7635648d0366fa30896f32b0c86716a4dc597807",
+          "url": "https://github.com/developmentseed/titiler/commit/790fc97aad533229b0eff38b699dd1b542bdb318"
+        },
+        "date": 1744009445615,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.38,
             "unit": "s"
           },
           {
