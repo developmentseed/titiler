@@ -56,11 +56,7 @@ services:
   nginx-titiler:
     extends:
       service: titiler
-    ports:
-      - 8081:8081
-    environment:
-      - TITILER_API_ROOT_PATH=/api/v1/titiler
-    command: ["uvicorn", "titiler.application.main:app", "--host", "0.0.0.0", "--port", "8081", "--workers", "1", "--proxy-headers", "--forwarded-allow-ips=*"]
+    command: ["uvicorn", "titiler.application.main:app", "--host", "0.0.0.0", "--port", "8081", "--workers", "1", "--proxy-headers", "--forwarded-allow-ips='*'", "--root-path=/api/v1/titiler"]
 
   nginx:
     image: nginx

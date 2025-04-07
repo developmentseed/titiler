@@ -6,10 +6,11 @@ The algorithms are meant to overcome the limitation of `expression` (using [nume
 
 We added a set of custom algorithms:
 
-- `hillshade`: Create hillshade from elevation dataset
-- `contours`: Create contours lines (raster) from elevation dataset
-- `terrarium`: Mapzen's format to encode elevation value in RGB values (https://github.com/tilezen/joerd/blob/master/docs/formats.md#terrarium)
-- `terrainrgb`: Mapbox's format to encode elevation value in RGB values (https://docs.mapbox.com/data/tilesets/guides/access-elevation-data/)
+- `hillshade`: Create hillshade from elevation dataset (parameters: azimuth (45), angle_altitude(45))
+- `contours`: Create contours lines (raster) from elevation dataset (parameters: increment (35), thickness (1))
+- `slope`: Create degrees of slope from elevation dataset 
+- `terrarium`: [Mapzen's format]((https://github.com/tilezen/joerd/blob/master/docs/formats.md#terrarium)) to encode elevation value in RGB values  `elevation = (red * 256 + green + blue / 256) - 32768`
+- `terrainrgb`: [Mapbox](https://docs.mapbox.com/data/tilesets/guides/access-elevation-data/)/[Maptiler](https://docs.maptiler.com/guides/map-tilling-hosting/data-hosting/rgb-terrain-by-maptiler/)'s format to encode elevation value in RGB values `elevation = -10000 + ((red * 256 * 256 + green * 256 + blue) * 0.1)`
 - `normalizedIndex`: Normalized Difference Index (e.g NDVI)
 - `cast`: Cast data to integer
 - `floor`: Round data to the smallest integer

@@ -2,11 +2,91 @@
 
 ## Unreleased
 
+### titiler.application
+
+* fix Landing page links when app is behind proxy
+
 ### titiler.core
+
+* Fix TerrainRGB algorithm and param user-controlled nodata-height (@jo-chemla, https://github.com/developmentseed/titiler/pull/1116)
 
 * add `output_min` and `output_max` metadata attributes to `slope` algorithm (@tayden, https://github.com/developmentseed/titiler/pull/1089)
 
 * add point value query on right-click to map viewer (@hrodmn, https://github.com/developmentseed/titiler/pull/1100)
+
+* refactor middlewares to use python's dataclasses
+
+* update `LoggerMiddleware` output format and options **breaking change**
+
+    ```python
+    from fastapi import FastAPI
+
+    from titiler.core.middlewares import LoggerMiddleware
+
+    # before
+    app = FastAPI()
+    app.add_middlewares(LoggerMiddleware, querystrings=True, headers=True)
+
+    # now
+    app = FastAPI()
+    app.add_middlewares(
+        LoggerMiddleware,
+        # custom Logger
+        logger=logging.getLogger("mytiler.requests"),  # default to logging.getLogger("titiler.requests")
+    )
+    ```
+
+    Note: logger needs then to be `configured` at runtime. e.g :
+
+    ```python
+    from logging import config
+    config.dictConfig(
+        {
+            "version": 1,
+            "disable_existing_loggers": False,
+            "formatters": {
+                "detailed": {
+                    "format": "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+                },
+                "request": {
+                    "format": (
+                        "%(asctime)s - %(levelname)s - %(name)s - %(message)s "
+                        + json.dumps(
+                            {
+                                k: f"%({k})s"
+                                for k in [
+                                    "method",
+                                    "referer",
+                                    "origin",
+                                    "route",
+                                    "path",
+                                    "path_params",
+                                    "query_params",
+                                    "headers",
+                                ]
+                            }
+                        )
+                    ),
+                },
+            },
+            "handlers": {
+                "console_request": {
+                    "class": "logging.StreamHandler",
+                    "level": "DEBUG",
+                    "formatter": "request",
+                    "stream": "ext://sys.stdout",
+                },
+            },
+            "loggers": {
+                "mytiler.requests": {
+                    "level": "INFO",
+                    "handlers": ["console_request"],
+                    "propagate": False,
+                },
+            },
+        }
+    )
+    ```
 
 ### titiler.xarray
 
