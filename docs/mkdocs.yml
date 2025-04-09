@@ -92,6 +92,7 @@ nav:
       - NumpyTile: "examples/notebooks/Working_with_NumpyTile.ipynb"
       - Algorithm: "examples/notebooks/Working_with_Algorithm.ipynb"
       - Statistics: "examples/notebooks/Working_with_Statistics.ipynb"
+    - Getting Started with TiTiler: "examples/getting_started_with_titiler.md"
 
   - API:
     - titiler.core:
