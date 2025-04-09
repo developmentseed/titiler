@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1744103714543,
+  "lastUpdate": 1744206512803,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -11430,6 +11430,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.13,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "jose.lpa@gmail.com",
+            "name": "José L. Patiño Andrés",
+            "username": "jose-lpa"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "cf37c6bbcdce3f24b1867b97e5bd4e89f943af3c",
+          "message": "Issue 1122: Fixed mistake in \"Working with STAC\" documentation. (#1127)",
+          "timestamp": "2025-04-09T15:46:49+02:00",
+          "tree_id": "d39ad2b3ead9437917f41a6a2d066c6c40fba7c7",
+          "url": "https://github.com/developmentseed/titiler/commit/cf37c6bbcdce3f24b1867b97e5bd4e89f943af3c"
+        },
+        "date": 1744206511051,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.19,
             "unit": "s"
           },
           {
