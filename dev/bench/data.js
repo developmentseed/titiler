@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1744206512803,
+  "lastUpdate": 1744207075631,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -11504,6 +11504,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad longest_transaction",
             "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "64060256+jaiindimple@users.noreply.github.com",
+            "name": "Dimple Jain",
+            "username": "jaiindimple"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "78fb6d94aa81a2532b3875849d3ca7512f542b97",
+          "message": "Added document on getting started with TiTiler (#1124)\n\n* created document on getting started with titiler\n\n* updated based on comment\n\n---------\n\nCo-authored-by: dimplejaiin <dimple@pixxel.co.in>",
+          "timestamp": "2025-04-09T15:56:25+02:00",
+          "tree_id": "2c71dba4ef7cb5f07ddbdda3a695373158c8df6c",
+          "url": "https://github.com/developmentseed/titiler/commit/78fb6d94aa81a2532b3875849d3ca7512f542b97"
+        },
+        "date": 1744207074807,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.19,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.06,
             "unit": "s"
           }
         ]
