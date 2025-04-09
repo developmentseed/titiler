@@ -141,33 +141,33 @@ When working with web maps, understanding tile coordinates is essential. Let's b
 
 At zoom level 0, there's just 1 tile for the whole world. Each zoom level increase splits each tile into 4 more detailed tiles.
 
-### Why Visualize Specific Tiles?
+### **Why Visualize Specific Tiles?**
 
 - **Performance**: Load only what users can see
 - **Debugging**: Inspect problematic tiles
 - **Specific Analysis**: Extract data from exact locations
 
-### Finding Z, X, Y for Your Image
+### **Finding Z, X, Y for Your Image**
 
-The `mercantile` library makes this straightforward:
+The `rio_tiler` and `morecantile` library makes this straightforward:
 
 ```python
-import mercantile
-import rasterio
+from rio_tiler.io import Reader
+import morecantile
 
-# Open your GeoTIFF file
-with rasterio.open('/path/to/your/raster.tif') as src:
-    bbox = src.bounds
+# Web Mercator is the default tiling scheme for most web map clients
+WEB_MERCATOR_TMS = morecantile.tms.get("WebMercatorQuad")  
+
+with Reader('/path/to/your/raster.tif', tms=WEB_MERCATOR_TMS) as src:
+    bbox = src.get_geographic_bounds("epsg:4326")
     zoom = 15
-
     # Find all tiles covering the bounding box
-    tiles = list(mercantile.tiles(bbox[0], bbox[1], bbox[2], bbox[3], zoom))
-
+    tiles = list(src.tms.tiles(bbox[0], bbox[1], bbox[2], bbox[3], zoom))
     for t in tiles:
         print("Tile coordinate (x, y, z):", t.x, t.y, t.z)
 ```
 
-### Viewing a Specific Tile in TiTiler
+### **Viewing a Specific Tile in TiTiler**
 
 For example, if your tile has coordinates `x=5412, y=12463, z=15`, you would access the specific tile with:
 
