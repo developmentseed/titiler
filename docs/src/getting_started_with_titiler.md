@@ -88,7 +88,7 @@ def read_index():
 ```
 
 > 💡 **Code Breakdown**:
-> 
+>
 > - We create a FastAPI app and add CORS middleware to allow web maps to access our images
 > - The `TilerFactory()` creates all the endpoints needed for serving COG tiles
 > - We include those endpoints in our app with `app.include_router()`
@@ -102,7 +102,7 @@ uvicorn main:app --reload
 ```
 You should see output similar to this:
 
-![server logs](../img/server_logs.png)
+![server logs](img/server_logs.png)
 
 > 💡 **The `--reload` flag** automatically restarts the server whenever you change your code - perfect for development!
 
@@ -112,11 +112,11 @@ Open your browser and go to:
 
 ``` http://127.0.0.1:8000/ ``` - See your welcome message
 
-![browser](../img/browser.png)
+![browser](img/browser.png)
 
 ```  http://127.0.0.1:8000/docs ``` - Explore the interactive API documentation. The `/docs` page is your mission control center. It shows all the endpoints TiTiler created for you and lets you test them directly in your browser:
 
-![api docs](../img/api_docs.png)
+![api docs](img/api_docs.png)
 
 ## Visualizing Your Geospatial Data
 
@@ -156,7 +156,7 @@ from rio_tiler.io import Reader
 import morecantile
 
 # Web Mercator is the default tiling scheme for most web map clients
-WEB_MERCATOR_TMS = morecantile.tms.get("WebMercatorQuad")  
+WEB_MERCATOR_TMS = morecantile.tms.get("WebMercatorQuad")
 
 with Reader('/path/to/your/raster.tif', tms=WEB_MERCATOR_TMS) as src:
     bbox = src.get_geographic_bounds("epsg:4326")
