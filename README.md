@@ -32,7 +32,7 @@
 
 ---
 
-`Titiler`, pronounced **tee-tiler** (*ti* is the diminutive version of the french *petit* which means small), is a set of python modules that focus on creating FastAPI application for dynamic tiling.
+`TiTiler`, pronounced **tee-tiler** (*ti* is the diminutive version of the french *petit* which means small), is a set of python modules that focus on creating FastAPI application for dynamic tiling.
 
 Note: This project is the descendant of [`cogeo-tiler`](https://github.com/developmentseed/cogeo-tiler) and [`cogeo-mosaic-tiler`](https://github.com/developmentseed/cogeo-mosaic-tiler).
 

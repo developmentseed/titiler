@@ -41,6 +41,7 @@ nav:
     - Dynamic Tiling: "dynamic_tiling.md"
     - TileMatrixSets: "tile_matrix_sets.md"
     - Output data format: "output_format.md"
+    - Getting Started with TiTiler: "getting_started_with_titiler.md"
 
   - Advanced User Guide:
       - Endpoints Factories: "advanced/endpoints_factories.md"
