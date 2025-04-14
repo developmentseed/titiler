@@ -1,5 +1,6 @@
 """titiler.xarray Extensions."""
 
+import warnings
 from typing import Annotated, Any, Callable, Dict, List, Optional, Type
 
 import xarray
@@ -22,6 +23,14 @@ class VariablesExtension(FactoryExtension):
     # Custom dependency for /variables
     io_dependency: Type[DefaultDependency] = XarrayIOParams
     dataset_opener: Callable[..., xarray.Dataset] = xarray_open_dataset
+
+    def __attrs_post_init__(self):
+        """raise deprecation warning."""
+        warnings.warn(
+            "VariablesExtension extension is deprecated and will be removed in next titiler version",
+            DeprecationWarning,
+            stacklevel=1,
+        )
 
     def register(self, factory: TilerFactory):
         """Register endpoint to the tiler factory."""

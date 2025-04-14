@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from rasterio.io import MemoryFile
 from starlette.testclient import TestClient
 
-from titiler.xarray.extensions import VariablesExtension
+from titiler.xarray.extensions import DatasetMetadataExtension, VariablesExtension
 from titiler.xarray.factory import TilerFactory
 
 prefix = os.path.join(os.path.dirname(__file__), "fixtures")
@@ -19,16 +19,26 @@ dataset_4d_nc = os.path.join(prefix, "dataset_4d.nc")
 zarr_pyramid = os.path.join(prefix, "pyramid.zarr")
 
 
+def test_deprecated_extension():
+    """Test factory with options."""
+    """Test TilerFactory class."""
+    with pytest.warns(DeprecationWarning):
+        md = TilerFactory(extensions=[VariablesExtension()])
+    assert len(md.router.routes) == 20
+
+
 def test_tiler_factory():
     """Test factory with options."""
     """Test TilerFactory class."""
     md = TilerFactory(
-        add_viewer=False, add_part=False, extensions=[VariablesExtension()]
+        add_viewer=False,
+        add_part=False,
+        extensions=[DatasetMetadataExtension()],
     )
-    assert len(md.router.routes) == 14
+    assert len(md.router.routes) == 15
 
-    md = TilerFactory(router_prefix="/md", extensions=[VariablesExtension()])
-    assert len(md.router.routes) == 20
+    md = TilerFactory(router_prefix="/md", extensions=[DatasetMetadataExtension()])
+    assert len(md.router.routes) == 21
 
     app = FastAPI()
     app.include_router(md.router, prefix="/md")
@@ -44,8 +54,8 @@ def test_tiler_factory():
 @pytest.fixture
 def app():
     """App fixture."""
-    md = TilerFactory(router_prefix="/md", extensions=[VariablesExtension()])
-    assert len(md.router.routes) == 20
+    md = TilerFactory(router_prefix="/md", extensions=[DatasetMetadataExtension()])
+    assert len(md.router.routes) == 21
 
     app = FastAPI()
     app.include_router(md.router, prefix="/md")
@@ -57,12 +67,31 @@ def app():
     "filename",
     [dataset_2d_nc, dataset_3d_nc, dataset_3d_zarr],
 )
-def test_variable(filename, app):
-    """Test /variables endpoint."""
-    resp = app.get("/md/variables", params={"url": filename})
+def test_dataset_extension(filename, app):
+    """Test /dataset endpoints."""
+    resp = app.get("/md/dataset/keys", params={"url": filename})
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "application/json"
     assert resp.json() == ["dataset"]
+
+    resp = app.get("/md/dataset/info", params={"url": filename})
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "application/json"
+    assert resp.json()["data_vars"]["dataset"]
+
+    resp = app.get("/md/dataset/info", params={"url": filename, "f": "json"})
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "application/json"
+
+    resp = app.get("/md/dataset/info", params={"url": filename, "f": "html"})
+    assert resp.status_code == 200
+    assert "text/html" in resp.headers["content-type"]
+
+    resp = app.get(
+        "/md/dataset/info", params={"url": filename}, headers={"Accept": "text/html"}
+    )
+    assert resp.status_code == 200
+    assert "text/html" in resp.headers["content-type"]
 
 
 @pytest.mark.parametrize(

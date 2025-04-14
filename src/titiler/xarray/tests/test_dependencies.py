@@ -1,9 +1,11 @@
 """test dependencies."""
 
+from typing import Annotated, Optional
+
 from fastapi import Depends, FastAPI, Path
 from starlette.testclient import TestClient
-from typing_extensions import Annotated
 
+from titiler.core.resources.enums import MediaType
 from titiler.xarray import dependencies
 
 
@@ -65,3 +67,55 @@ def test_xarray_tile():
 
         response = client.get("/tiles/1/2/3", params={"drop_dim": "yo="})
         assert response.status_code == 422
+
+
+def test_xarray_mediatype_dep():
+    """test MetadataOutputType dependency."""
+    app = FastAPI()
+
+    @app.get("/endpoint")
+    def endpoint(
+        output_type: Annotated[
+            Optional[MediaType],
+            Depends(dependencies.MetadataOutputType),
+        ] = None,
+    ):
+        """return params."""
+        return {"format": output_type}
+
+    with TestClient(app) as client:
+        response = client.get("/endpoint")
+        params = response.json()
+        assert params == {"format": None}
+
+        response = client.get("/endpoint", params={"f": "html"})
+        params = response.json()
+        assert params == {"format": "text/html"}
+
+        response = client.get("/endpoint", params={"f": "json"})
+        params = response.json()
+        assert params == {"format": "application/json"}
+
+        response = client.get(
+            "/endpoint", headers={"Accept": "application/json,text/html"}
+        )
+        params = response.json()
+        assert params == {"format": "application/json"}
+
+        # application/json is the first mediatype defined by list ["json", "html"]
+        response = client.get(
+            "/endpoint", headers={"Accept": "text/html,application/json"}
+        )
+        params = response.json()
+        assert params == {"format": "application/json"}
+
+        response = client.get(
+            "/endpoint", headers={"Accept": "text/html,application/json;q=0.8"}
+        )
+        params = response.json()
+        assert params == {"format": "text/html"}
+
+        # application/json is the first mediatype defined by list ["json", "html"]
+        response = client.get("/endpoint", headers={"Accept": "*"})
+        params = response.json()
+        assert params == {"format": "application/json"}
