@@ -1,7 +1,7 @@
 """titiler.xarray Extensions."""
 
 import warnings
-from typing import Annotated, Any, Callable, Dict, List, Optional, Type
+from typing import Callable, List, Type
 
 import xarray
 from attrs import define
@@ -11,7 +11,7 @@ from starlette.responses import HTMLResponse
 from titiler.core.dependencies import DefaultDependency
 from titiler.core.factory import FactoryExtension
 from titiler.core.resources.enums import MediaType
-from titiler.xarray.dependencies import MetadataOutputType, XarrayIOParams
+from titiler.xarray.dependencies import XarrayIOParams
 from titiler.xarray.factory import TilerFactory
 from titiler.xarray.io import xarray_open_dataset
 
@@ -60,42 +60,52 @@ class DatasetMetadataExtension(FactoryExtension):
         """Register endpoint to the tiler factory."""
 
         @factory.router.get(
+            "/dataset/",
+            responses={
+                200: {
+                    "description": "Returns the HTML representation of the Xarray Dataset.",
+                    "content": {
+                        MediaType.html.value: {},
+                    },
+                },
+            },
+            response_class=HTMLResponse,
+        )
+        def dataset_metadata_html(
+            src_path=Depends(factory.path_dependency),
+            io_params=Depends(self.io_dependency),
+        ):
+            """Returns the HTML representation of the Xarray Dataset."""
+            with self.dataset_opener(src_path, **io_params.as_dict()) as ds:
+                return HTMLResponse(ds._repr_html_())
+
+        @factory.router.get(
+            "/dataset/dict",
+            responses={
+                200: {"description": "Returns the full Xarray dataset as a dictionary."}
+            },
+        )
+        def dataset_metadata_dict(
+            src_path=Depends(factory.path_dependency),
+            io_params=Depends(self.io_dependency),
+        ):
+            """Returns the full Xarray dataset as a dictionary."""
+            with self.dataset_opener(src_path, **io_params.as_dict()) as ds:
+                return ds.to_dict(data=False)
+
+        @factory.router.get(
             "/dataset/keys",
             response_model=List[str],
-            responses={200: {"description": "Return Xarray Dataset variables."}},
+            responses={
+                200: {
+                    "description": "Returns the list of keys/variables in the Dataset."
+                }
+            },
         )
         def dataset_variables(
             src_path=Depends(factory.path_dependency),
             io_params=Depends(self.io_dependency),
         ):
-            """return available variables."""
+            """Returns the list of keys/variables in the Dataset."""
             with self.dataset_opener(src_path, **io_params.as_dict()) as ds:
                 return list(ds.data_vars)
-
-        @factory.router.get(
-            "/dataset/info",
-            responses={
-                200: {
-                    "description": "Return Xarray Dataset metadata.",
-                    "content": {
-                        MediaType.json.value: {},
-                        MediaType.html.value: {},
-                    },
-                },
-            },
-            response_model=Dict[str, Any],
-        )
-        def dataset_metadata(
-            src_path=Depends(factory.path_dependency),
-            io_params=Depends(self.io_dependency),
-            output_type: Annotated[
-                Optional[MediaType],
-                Depends(MetadataOutputType),
-            ] = None,
-        ):
-            """return dataset as dict."""
-            with self.dataset_opener(src_path, **io_params.as_dict()) as ds:
-                if output_type == MediaType.html:
-                    return HTMLResponse(ds._repr_html_())
-
-                return ds.to_dict(data=False)

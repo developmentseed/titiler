@@ -35,10 +35,10 @@ def test_tiler_factory():
         add_part=False,
         extensions=[DatasetMetadataExtension()],
     )
-    assert len(md.router.routes) == 15
+    assert len(md.router.routes) == 16
 
     md = TilerFactory(router_prefix="/md", extensions=[DatasetMetadataExtension()])
-    assert len(md.router.routes) == 21
+    assert len(md.router.routes) == 22
 
     app = FastAPI()
     app.include_router(md.router, prefix="/md")
@@ -55,7 +55,7 @@ def test_tiler_factory():
 def app():
     """App fixture."""
     md = TilerFactory(router_prefix="/md", extensions=[DatasetMetadataExtension()])
-    assert len(md.router.routes) == 21
+    assert len(md.router.routes) == 22
 
     app = FastAPI()
     app.include_router(md.router, prefix="/md")
@@ -74,22 +74,12 @@ def test_dataset_extension(filename, app):
     assert resp.headers["content-type"] == "application/json"
     assert resp.json() == ["dataset"]
 
-    resp = app.get("/md/dataset/info", params={"url": filename})
+    resp = app.get("/md/dataset/dict", params={"url": filename})
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "application/json"
     assert resp.json()["data_vars"]["dataset"]
 
-    resp = app.get("/md/dataset/info", params={"url": filename, "f": "json"})
-    assert resp.status_code == 200
-    assert resp.headers["content-type"] == "application/json"
-
-    resp = app.get("/md/dataset/info", params={"url": filename, "f": "html"})
-    assert resp.status_code == 200
-    assert "text/html" in resp.headers["content-type"]
-
-    resp = app.get(
-        "/md/dataset/info", params={"url": filename}, headers={"Accept": "text/html"}
-    )
+    resp = app.get("/md/dataset/", params={"url": filename})
     assert resp.status_code == 200
     assert "text/html" in resp.headers["content-type"]
 

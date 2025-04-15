@@ -1,18 +1,15 @@
 """titiler.xarray dependencies."""
 
 from dataclasses import dataclass
-from typing import List, Literal, Optional, Union
+from typing import List, Optional, Union
 
 import numpy
 from fastapi import Query
 from pydantic.types import StringConstraints
 from rio_tiler.types import RIOResampling, WarpResampling
-from starlette.requests import Request
 from typing_extensions import Annotated
 
 from titiler.core.dependencies import DefaultDependency
-from titiler.core.resources.enums import MediaType
-from titiler.core.utils import accept_media_type
 
 
 @dataclass
@@ -133,20 +130,3 @@ class PartFeatureParams(DefaultDependency):
         """Post Init."""
         if self.width and self.height:
             self.max_size = None
-
-
-def MetadataOutputType(
-    request: Request,
-    f: Annotated[
-        Optional[Literal["json", "html"]],
-        Query(
-            description="Response MediaType. Defaults to `json` or value defined in `accept` header."
-        ),
-    ] = None,
-) -> Optional[MediaType]:
-    """Output MediaType: json or html."""
-    if f:
-        return MediaType[f]
-
-    accepted_media = [MediaType.json, MediaType.html]
-    return accept_media_type(request.headers.get("accept", ""), accepted_media)
