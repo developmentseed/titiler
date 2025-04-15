@@ -15,7 +15,7 @@ from rio_tiler.models import ImageData
 from rio_tiler.types import BBox, ColorMapType, IntervalTuple
 from rio_tiler.utils import linear_rescale, render
 
-from titiler.core.resources.enums import ImageType
+from titiler.core.resources.enums import ImageType, MediaType
 
 
 def rescale_array(
@@ -183,3 +183,50 @@ def extract_query_params(dependencies, params) -> Tuple[ValidParams, Errors]:
             values.update(dep_values)
         errors += dep_errors
     return values, errors
+
+
+def accept_media_type(accept: str, mediatypes: List[MediaType]) -> Optional[MediaType]:
+    """Return MediaType based on accept header and available mediatype.
+
+    Links:
+    - https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
+    - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept
+
+    """
+    accept_values = {}
+    for m in accept.replace(" ", "").split(","):
+        values = m.split(";")
+        if len(values) == 1:
+            name = values[0]
+            quality = 1.0
+        else:
+            name = values[0]
+            groups = dict([param.split("=") for param in values[1:]])  # type: ignore
+            try:
+                q = groups.get("q")
+                quality = float(q) if q else 1.0
+            except ValueError:
+                quality = 0
+
+        # if quality is 0 we ignore encoding
+        if quality:
+            accept_values[name] = quality
+
+    # Create Preference matrix
+    media_preference = {
+        v: [n for (n, q) in accept_values.items() if q == v]
+        for v in sorted(set(accept_values.values()), reverse=True)
+    }
+
+    # Loop through available compression and encoding preference
+    for _, pref in media_preference.items():
+        for media in mediatypes:
+            if media.value in pref:
+                return media
+
+    # If no specified encoding is supported but "*" is accepted,
+    # take one of the available compressions.
+    if "*" in accept_values and mediatypes:
+        return mediatypes[0]
+
+    return None

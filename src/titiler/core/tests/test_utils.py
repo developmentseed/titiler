@@ -1,7 +1,14 @@
 """Test utils."""
 
+import pytest
+
 from titiler.core.dependencies import BidxParams
-from titiler.core.utils import deserialize_query_params, get_dependency_query_params
+from titiler.core.resources.enums import MediaType
+from titiler.core.utils import (
+    accept_media_type,
+    deserialize_query_params,
+    get_dependency_query_params,
+)
 
 
 def test_get_dependency_params():
@@ -65,3 +72,47 @@ def test_deserialize_query_params():
     )
     assert res == BidxParams(indexes=[1])
     assert not err
+
+
+@pytest.mark.parametrize(
+    "media,accept,expected",
+    [
+        ([MediaType.html], "text/html, application/json;q=0.8", MediaType.html),
+        (
+            [MediaType.html, MediaType.json],
+            "application/json, text/html;q=0.8",
+            MediaType.json,
+        ),
+        ([MediaType.xml], "application/json, text/html;q=0.8", None),
+        ([MediaType.json], "", None),
+        (
+            [MediaType.json, MediaType.html],
+            "application/json;q=1.0, text/html;q=0.8",
+            MediaType.json,
+        ),
+        (
+            [MediaType.json, MediaType.html],
+            "application/json;q=1.0, text/html;q=1.0",
+            MediaType.json,
+        ),
+        (
+            [MediaType.html, MediaType.json],
+            "application/json;q=1.0, text/html;q=1.0",
+            MediaType.html,
+        ),
+        ([MediaType.html, MediaType.json], "*;q=1.0", MediaType.html),
+        (
+            [MediaType.json, MediaType.html],
+            "application/json;q=aaa, text/html",
+            MediaType.html,
+        ),
+        (
+            [MediaType.json, MediaType.html],
+            "application/json;q=0.0, text/html",
+            MediaType.html,
+        ),
+    ],
+)
+def test_accept_media_type(media, accept, expected):
+    """test MetadataOutputType dependency."""
+    assert accept_media_type(accept, media) == expected
