@@ -90,7 +90,27 @@
 
 ### titiler.xarray
 
-* change `get_variable.drop_dim` parameter type from `str` to `List[str]` **breaking change**
+* update `rio-tiler` requirement to `>=7.6.1`
+* add `sel` and `method` options to select dimension
+
+    ```
+    # before
+    https://.../0/0/0.png?url=dataset.zarr&drop_dim=time=2023-01-01
+
+    # now
+    https://.../0/0/0.png?url=dataset.zarr&sel=time=2023-01-01
+
+    # method
+    https://.../0/0/0.png?url=dataset.zarr&sel=time=2023-01-02&method=nearest
+
+    # Can use `slice` when providing 2 values
+    https://.../0/0/0.png?url=dataset.zarr&sel=time=2023-01-01,2023-01-31
+    ```
+* add support for `bidx` parameter
+* remove `first` **time** dim selection **breaking change**
+* add support for 3D dataset
+* remove `drop_dim` option **breaking change**
+* remove `datetime` option **breaking change**
 * deprecate `VariablesExtension` extension
 * add `DatasetMetadataExtension` extension (`/dataset/keys`, `/dataset/` and `/dataset/dict` endpoints)
 

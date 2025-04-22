@@ -343,7 +343,7 @@ class: `titiler.xarray.factory.TilerFactory`
 - **reader**: Dataset Reader **required**.
 - **path_dependency**: Dependency to use to define the dataset url. Defaults to `titiler.core.dependencies.DatasetPathParams`.
 - **reader_dependency**: Dependency to control options passed to the reader instance init. Defaults to `titiler.xarray.dependencies.XarrayParams`
-- **layer_dependency**: Dependency to define band indexes or expression. Defaults to `titiler.core.dependencies.DefaultDependency`.
+- **layer_dependency**: Dependency to define band indexes or expression. Defaults to `titiler.core.dependencies.BidxParams`.
 - **dataset_dependency**: Dependency to overwrite `nodata` value and change the `Warp` resamplings. Defaults to `titiler.xarray.dependencies.DatasetParams`.
 - **tile_dependency**: Dependency for tile creation options. Defaults to `titiler.core.dependencies.DefaultDependency`.
 - **stats_dependency**: Dependency to define options for *rio-tiler*'s statistics method used in `/statistics` endpoints. Defaults to `titiler.core.dependencies.StatisticsParams`.

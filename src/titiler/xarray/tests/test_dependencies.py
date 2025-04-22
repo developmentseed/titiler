@@ -46,23 +46,23 @@ def test_xarray_tile():
         params = response.json()
         assert params == {"variable": "yo"}
 
-        response = client.get("/tiles/1/2/3", params={"drop_dim": "yo=yo"})
+        response = client.get("/tiles/1/2/3", params={"sel": "yo=yo"})
         params = response.json()
-        assert params == {"drop_dim": ["yo=yo"]}
+        assert params == {"sel": ["yo=yo"]}
 
-        response = client.get("/tiles/1/2/3", params={"drop_dim": "yo=1.0"})
+        response = client.get("/tiles/1/2/3", params={"sel": "yo=1.0"})
         params = response.json()
-        assert params == {"drop_dim": ["yo=1.0"]}
+        assert params == {"sel": ["yo=1.0"]}
 
-        response = client.get("/tiles/1/2/3", params={"drop_dim": ["yo=yo", "ye=ye"]})
+        response = client.get("/tiles/1/2/3", params={"sel": ["yo=yo", "ye=ye"]})
         params = response.json()
-        assert params == {"drop_dim": ["yo=yo", "ye=ye"]}
+        assert params == {"sel": ["yo=yo", "ye=ye"]}
 
-        response = client.get("/tiles/1/2/3", params={"drop_dim": "yo"})
+        response = client.get("/tiles/1/2/3", params={"sel": "yo"})
         assert response.status_code == 422
 
-        response = client.get("/tiles/1/2/3", params={"drop_dim": "=yo"})
+        response = client.get("/tiles/1/2/3", params={"sel": "=yo"})
         assert response.status_code == 422
 
-        response = client.get("/tiles/1/2/3", params={"drop_dim": "yo="})
+        response = client.get("/tiles/1/2/3", params={"sel": "yo="})
         assert response.status_code == 422
