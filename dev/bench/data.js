@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1744384162163,
+  "lastUpdate": 1745341214048,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -11607,6 +11607,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.27,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "vincent.sarago@gmail.com",
+            "name": "Vincent Sarago",
+            "username": "vincentsarago"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a15dc8ff0315ed38b8a5f338a56e1b2087c54752",
+          "message": "add xarray DatasetMetadataExtension (#1118)\n\n* add xarray DatasetMetadataExtension\n\n* add /dataset prefix and refactor\n\n* add tests and deprecate VariablesExtension\n\n* revert and follow xpublish",
+          "timestamp": "2025-04-22T18:58:39+02:00",
+          "tree_id": "6c478caef87fc20f8c41dd4d95542bc0c8a50a3f",
+          "url": "https://github.com/developmentseed/titiler/commit/a15dc8ff0315ed38b8a5f338a56e1b2087c54752"
+        },
+        "date": 1745341213457,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.15,
             "unit": "s"
           },
           {
