@@ -91,6 +91,8 @@
 ### titiler.xarray
 
 * change `get_variable.drop_dim` parameter type from `str` to `List[str]` **breaking change**
+* deprecate `VariablesExtension` extension
+* add `DatasetMetadataExtension` extension (`/dataset/keys`, `/dataset/` and `/dataset/dict` endpoints)
 
 ## 0.21.1 (2025-01-29)
 
