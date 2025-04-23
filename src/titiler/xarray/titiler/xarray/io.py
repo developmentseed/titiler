@@ -5,6 +5,7 @@ from urllib.parse import urlparse
 
 import attr
 import numpy
+import pandas
 import xarray
 from morecantile import TileMatrixSet
 from rio_tiler.constants import WEB_MERCATOR_TMS
@@ -135,6 +136,19 @@ def _arrange_dims(da: xarray.DataArray) -> xarray.DataArray:
     return da
 
 
+def _cast_to_type(value, dtype: Any) -> Any:
+    if "timedelta" in str(dtype):
+        value = pandas.to_timedelta(value)
+
+    elif numpy.issubdtype(dtype, numpy.integer):
+        value = int(value)
+
+    elif numpy.issubdtype(dtype, numpy.floating):
+        value = float(value)
+
+    return value
+
+
 def get_variable(
     ds: xarray.Dataset,
     variable: str,
@@ -156,19 +170,19 @@ def get_variable(
     da = ds[variable]
 
     if sel:
-        sel_idx = []
+        _idx: Dict[str, List] = {}
         for s in sel:
             val: Union[str, slice]
             dim, val = s.split("=")
-            dt = da[dim].dtype
-            if "," in val:
-                val = slice(*[numpy.array(v).astype(dt) for v in val.split(",")])
+            val = _cast_to_type(val, da[dim].dtype)
+
+            if dim in _idx:
+                _idx[dim].append(val)
             else:
-                val = numpy.array(val).astype(dt)
+                _idx[dim] = [val]
 
-            sel_idx.append((dim, val))
-
-        da = da.sel(dict(sel_idx), method=method)
+        sel_idx = {k: v[0] if len(v) < 2 else slice(*v) for k, v in _idx.items()}
+        da = da.sel(sel_idx, method=method)
 
     da = _arrange_dims(da)
 

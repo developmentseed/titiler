@@ -45,10 +45,15 @@ def test_get_variable():
     assert da["time"] == numpy.datetime64("2023-01-01")
 
     da = get_variable(
-        ds, "dataset", sel=["time=2022-12-01T00:00:00,2023-12-01T00:00:00"]
+        ds, "dataset", sel=["time=2022-12-01T00:00:00", "time=2023-12-01T00:00:00"]
     )
     assert da.rio.crs
     assert da.dims == ("time", "y", "x")
+    assert da["time"] == numpy.datetime64("2023-01-01")
+
+    da = get_variable(ds, "dataset", sel=["time=1st of January 2023"])
+    assert da.rio.crs
+    assert da.dims == ("y", "x")
     assert da["time"] == numpy.datetime64("2023-01-01")
 
     # Select the Nearest Time

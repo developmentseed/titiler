@@ -104,7 +104,7 @@
     https://.../0/0/0.png?url=dataset.zarr&sel=time=2023-01-02&method=nearest
 
     # Can use `slice` when providing 2 values
-    https://.../0/0/0.png?url=dataset.zarr&sel=time=2023-01-01,2023-01-31
+    https://.../0/0/0.png?url=dataset.zarr&sel=time=2023-01-01&time=2023-01-31
     ```
 * add support for `bidx` parameter
 * remove `first` **time** dim selection **breaking change**
