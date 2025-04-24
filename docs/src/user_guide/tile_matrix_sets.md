@@ -26,7 +26,7 @@ $ curl http://127.0.0.1:8000/tileMatrixSets | jq '.tileMatrixSets[] | .id'
 "WebMercatorQuad"
 ```
 
-You can easily add more TileMatrixSet support, see [custom tms](advanced/customization.md#custom-tms).
+You can easily add more TileMatrixSet support, see [custom tms](../advanced/customization.md#custom-tms).
 
 
-Notebook: [Working_with_nonWebMercatorTMS](examples/notebooks/Working_with_nonWebMercatorTMS.ipynb)
+Notebook: [Working_with_nonWebMercatorTMS](../examples/notebooks/Working_with_nonWebMercatorTMS.ipynb)

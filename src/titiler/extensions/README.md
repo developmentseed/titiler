@@ -58,9 +58,6 @@ tiler = TilerFactory(
 app.include_router(tiler.router, prefix="/cog")
 ```
 
-See [titiler.application](../application) for a full example.
-
-
 ## Create your own
 
 ```python

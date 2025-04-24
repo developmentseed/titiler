@@ -11,6 +11,7 @@ from rio_tiler.models import Info
 from typing_extensions import Annotated
 
 from titiler.core.dependencies import (
+    BidxParams,
     CoordCRSParams,
     CRSParams,
     DatasetPathParams,
@@ -37,8 +38,8 @@ class TilerFactory(BaseTilerFactory):
 
     reader_dependency: Type[DefaultDependency] = XarrayParams
 
-    # Indexes/Expression Dependencies (Not layer dependencies for Xarray)
-    layer_dependency: Type[DefaultDependency] = DefaultDependency
+    # Indexes Dependencies
+    layer_dependency: Type[DefaultDependency] = BidxParams
 
     # Dataset Options (nodata, reproject)
     dataset_dependency: Type[DefaultDependency] = DatasetParams

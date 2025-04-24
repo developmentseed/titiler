@@ -1,10 +1,11 @@
 """titiler.xarray.io"""
 
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Literal, Optional, Union
 from urllib.parse import urlparse
 
 import attr
 import numpy
+import pandas
 import xarray
 from morecantile import TileMatrixSet
 from rio_tiler.constants import WEB_MERCATOR_TMS
@@ -135,19 +136,32 @@ def _arrange_dims(da: xarray.DataArray) -> xarray.DataArray:
     return da
 
 
+def _cast_to_type(value, dtype: Any) -> Any:
+    if "timedelta" in str(dtype):
+        value = pandas.to_timedelta(value)
+
+    elif numpy.issubdtype(dtype, numpy.integer):
+        value = int(value)
+
+    elif numpy.issubdtype(dtype, numpy.floating):
+        value = float(value)
+
+    return value
+
+
 def get_variable(
     ds: xarray.Dataset,
     variable: str,
-    datetime: Optional[str] = None,
-    drop_dim: Optional[List[str]] = None,
+    sel: Optional[List[str]] = None,
+    method: Optional[Literal["nearest", "pad", "ffill", "backfill", "bfill"]] = None,
 ) -> xarray.DataArray:
     """Get Xarray variable as DataArray.
 
     Args:
         ds (xarray.Dataset): Xarray Dataset.
         variable (str): Variable to extract from the Dataset.
-        datetime (str, optional): datetime to select from the DataArray.
-        drop_dim (list of str, optional): DataArray dimension to drop in form of `[{dimension}={value}],`.
+        sel (list of str, optional): List of Xarray Indexes.
+        method (str): Xarray indexing method.
 
     Returns:
         xarray.DataArray: 2D or 3D DataArray.
@@ -155,10 +169,20 @@ def get_variable(
     """
     da = ds[variable]
 
-    if drop_dim:
-        for dim in drop_dim:
-            dim_to_drop, dim_val = dim.split("=")
-            da = da.sel({dim_to_drop: dim_val}).drop_vars(dim_to_drop)
+    if sel:
+        _idx: Dict[str, List] = {}
+        for s in sel:
+            val: Union[str, slice]
+            dim, val = s.split("=")
+            val = _cast_to_type(val, da[dim].dtype)
+
+            if dim in _idx:
+                _idx[dim].append(val)
+            else:
+                _idx[dim] = [val]
+
+        sel_idx = {k: v[0] if len(v) < 2 else v for k, v in _idx.items()}
+        da = da.sel(sel_idx, method=method)
 
     da = _arrange_dims(da)
 
@@ -172,20 +196,6 @@ def get_variable(
 
         # Sort the dataset by the updated longitude coordinates
         da = da.sortby(da.x)
-
-    # TODO: Technically we don't have to select the first time, rio-tiler should handle 3D dataset
-    if "time" in da.dims:
-        if datetime:
-            # TODO: handle time interval
-            time_as_str = datetime.split("T")[0]
-            if da["time"].dtype == "O":
-                da["time"] = da["time"].astype("datetime64[ns]")
-
-            da = da.sel(
-                time=numpy.array(time_as_str, dtype=numpy.datetime64), method="nearest"
-            )
-        else:
-            da = da.isel(time=0)
 
     assert len(da.dims) in [2, 3], "titiler.xarray can only work with 2D or 3D dataset"
 
@@ -206,8 +216,10 @@ class Reader(XarrayReader):
     decode_times: bool = attr.ib(default=True)
 
     # xarray.DataArray options
-    datetime: Optional[str] = attr.ib(default=None)
-    drop_dim: Optional[str] = attr.ib(default=None)
+    sel: Optional[List[str]] = attr.ib(default=None)
+    method: Optional[Literal["nearest", "pad", "ffill", "backfill", "bfill"]] = attr.ib(
+        default=None
+    )
 
     tms: TileMatrixSet = attr.ib(default=WEB_MERCATOR_TMS)
 
@@ -227,8 +239,8 @@ class Reader(XarrayReader):
         self.input = get_variable(
             self.ds,
             self.variable,
-            datetime=self.datetime,
-            drop_dim=self.drop_dim,
+            sel=self.sel,
+            method=self.method,
         )
         super().__attrs_post_init__()
 

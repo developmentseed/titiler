@@ -47,7 +47,7 @@ print(data.shape)
 data, mask = data[0:-1], data[-1]
 ```
 
-Notebook: [Working_with_NumpyTile](examples/notebooks/Working_with_NumpyTile.ipynb)
+Notebook: [Working_with_NumpyTile](../examples/notebooks/Working_with_NumpyTile.ipynb)
 
 ## JSONResponse
 

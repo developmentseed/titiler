@@ -135,22 +135,55 @@ def test_info_da_options(app):
     """Test /info endpoints with Dataarray options."""
     resp = app.get(
         "/md/info",
-        params={"url": dataset_4d_nc, "variable": "dataset", "drop_dims": "z=0"},
+        params={"url": dataset_4d_nc, "variable": "dataset", "sel": "time=2023-01-01"},
     )
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "application/json"
+    body = resp.json()
+    assert body["band_descriptions"] == [["b1", "0"]]
+
+    resp = app.get(
+        "/md/info",
+        params={"url": dataset_4d_nc, "variable": "dataset", "sel": "z=0"},
+    )
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "application/json"
+    body = resp.json()
+    assert body["band_descriptions"] == [
+        ["b1", "2022-01-01T00:00:00.000000000"],
+        ["b2", "2023-01-01T00:00:00.000000000"],
+    ]
+
+    resp = app.get(
+        "/md/info",
+        params={
+            "url": dataset_4d_nc,
+            "variable": "dataset",
+            "sel": "z=1",
+            "sel_method": "nearest",
+        },
+    )
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "application/json"
+    body = resp.json()
+    assert body["band_descriptions"] == [
+        ["b1", "2022-01-01T00:00:00.000000000"],
+        ["b2", "2023-01-01T00:00:00.000000000"],
+    ]
 
     resp = app.get(
         "/md/info",
         params={
             "url": dataset_3d_nc,
             "variable": "dataset",
-            "datetime": "2023-01-01",
+            "sel": "time=2023-01-01",
             "decode_times": True,
         },
     )
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "application/json"
+    body = resp.json()
+    assert body["band_descriptions"] == [["b1", "2023-01-01T00:00:00.000000000"]]
 
 
 @pytest.mark.parametrize(
@@ -165,21 +198,21 @@ def test_tiles(filename, app):
 
     resp = app.get(
         "/md/tiles/WebMercatorQuad/0/0/0",
-        params={"url": filename, "variable": "dataset", "rescale": "0,500"},
+        params={"url": filename, "variable": "dataset", "rescale": "0,500", "bidx": 1},
     )
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "image/png"
 
     resp = app.get(
         "/md/tiles/WebMercatorQuad/0/0/0.jpeg",
-        params={"url": filename, "variable": "dataset", "rescale": "0,500"},
+        params={"url": filename, "variable": "dataset", "rescale": "0,500", "bidx": 1},
     )
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "image/jpeg"
 
     resp = app.get(
         "/md/WebMercatorQuad/tilejson.json",
-        params={"url": filename, "variable": "dataset", "rescale": "0,500"},
+        params={"url": filename, "variable": "dataset", "rescale": "0,500", "bidx": 1},
     )
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "application/json"
@@ -284,7 +317,7 @@ def test_part(filename, app):
 
     resp = app.post(
         "/md/feature",
-        params={"url": filename, "variable": "dataset", "rescale": "0,500"},
+        params={"url": filename, "variable": "dataset", "rescale": "0,500", "bidx": 1},
         json=feat,
     )
     assert resp.status_code == 200
@@ -292,7 +325,7 @@ def test_part(filename, app):
 
     resp = app.post(
         "/md/feature.png",
-        params={"url": filename, "variable": "dataset", "rescale": "0,500"},
+        params={"url": filename, "variable": "dataset", "rescale": "0,500", "bidx": 1},
         json=feat,
     )
     assert resp.status_code == 200
@@ -300,7 +333,7 @@ def test_part(filename, app):
 
     resp = app.post(
         "/md/feature/100x100.png",
-        params={"url": filename, "variable": "dataset", "rescale": "0,500"},
+        params={"url": filename, "variable": "dataset", "rescale": "0,500", "bidx": 1},
         json=feat,
     )
     assert resp.status_code == 200
@@ -308,14 +341,14 @@ def test_part(filename, app):
 
     resp = app.get(
         "/md/bbox/-100,-25,40,60.jpeg",
-        params={"url": filename, "variable": "dataset", "rescale": "0,500"},
+        params={"url": filename, "variable": "dataset", "rescale": "0,500", "bidx": 1},
     )
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "image/jpeg"
 
     resp = app.get(
         "/md/bbox/-100,-25,40,60/100x100.png",
-        params={"url": filename, "variable": "dataset", "rescale": "0,500"},
+        params={"url": filename, "variable": "dataset", "rescale": "0,500", "bidx": 1},
     )
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "image/png"

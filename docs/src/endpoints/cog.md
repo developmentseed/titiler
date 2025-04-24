@@ -40,7 +40,7 @@ The `/cog` routes are based on `titiler.core.factory.TilerFactory` but with `cog
     - **x** (int): TMS tile's column.
     - **y** (int): TMS tile's row.
     - **scale** (int): Tile size scale, default is set to 1 (256x256). **Optional**
-    - **format** (str): Output [image format](../output_format.md), default is set to None and will be either JPEG or PNG depending on masked value. **Optional**
+    - **format** (str): Output [image format](../user_guide/output_format.md), default is set to None and will be either JPEG or PNG depending on masked value. **Optional**
 
 - QueryParams:
     - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
@@ -72,7 +72,7 @@ Example:
 `:endpoint:/cog/preview[.{format}]`
 
 - PathParams:
-    - **format** (str): Output [image format](../output_format.md), default is set to None and will be either JPEG or PNG depending on masked value. **Optional**
+    - **format** (str): Output [image format](../user_guide/output_format.md), default is set to None and will be either JPEG or PNG depending on masked value. **Optional**
 
 - QueryParams:
     - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
@@ -110,7 +110,7 @@ Example:
 
 - PathParams:
     - **minx,miny,maxx,maxy** (str): Comma (',') delimited bounding box in WGS84.
-    - **format** (str): Output [image format](../output_format.md).
+    - **format** (str): Output [image format](../user_guide/output_format.md).
     - **height** (int): Force output image height.
     - **width** (int): Force output image width.
 
@@ -150,7 +150,7 @@ Example:
 - PathParams:
     - **height** (int): Force output image height. **Optional**
     - **width** (int): Force output image width. **Optional**
-    - **format** (str): Output [image format](../output_format.md), default is set to None and will be either JPEG or PNG depending on masked value. **Optional**
+    - **format** (str): Output [image format](../user_guide/output_format.md), default is set to None and will be either JPEG or PNG depending on masked value. **Optional**
 
 - QueryParams:
     - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
@@ -213,7 +213,7 @@ Example:
 
 - QueryParams:
     - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
-    - **tile_format** (str): Output [image format](../output_format.md), default is set to None and will be either JPEG or PNG depending on masked value.
+    - **tile_format** (str): Output [image format](../user_guide/output_format.md), default is set to None and will be either JPEG or PNG depending on masked value.
     - **tile_scale** (int): Tile size scale, default is set to 1 (256x256).
     - **minzoom** (int): Overwrite default minzoom.
     - **maxzoom** (int): Overwrite default maxzoom.
@@ -249,7 +249,7 @@ Example:
 
 - QueryParams:
     - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
-    - **tile_format** (str): Output [image format](../output_format.md), default is set to None and will be either JPEG or PNG depending on masked value.
+    - **tile_format** (str): Output [image format](../user_guide/output_format.md), default is set to None and will be either JPEG or PNG depending on masked value.
     - **tile_scale** (int): Tile size scale, default is set to 1 (256x256).
     - **minzoom** (int): Overwrite default minzoom.
     - **maxzoom** (int): Overwrite default maxzoom.

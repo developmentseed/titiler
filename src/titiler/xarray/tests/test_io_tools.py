@@ -31,17 +31,49 @@ def test_get_variable():
     ds = data.to_dataset(name="dataset")
     da = get_variable(ds, "dataset")
     assert da.rio.crs
+    assert da.dims == ("time", "y", "x")
+    assert da["time"].shape == (2,)
+
+    da = get_variable(ds, "dataset", sel=["time=2022-01-01"])
+    assert da.rio.crs
     assert da.dims == ("y", "x")
-    # Default to the first Time value
     assert da["time"] == numpy.datetime64("2022-01-01")
 
-    da = get_variable(ds, "dataset", datetime="2023-01-01T01:00:00.000Z")
+    da = get_variable(ds, "dataset", sel=["time=2023-01-01T00:00:00"])
+    assert da.rio.crs
+    assert da.dims == ("y", "x")
+    assert da["time"] == numpy.datetime64("2023-01-01")
+
+    # no time for 2022-12-01T00:00:00
+    with pytest.raises(KeyError):
+        get_variable(ds, "dataset", sel=["time=2022-12-01", "time=2023-01-01"])
+
+    da = get_variable(
+        ds,
+        "dataset",
+        sel=["time=2022-12-01", "time=2023-01-01"],
+        method="nearest",
+    )
+    assert da.rio.crs
+    assert da.dims == ("time", "y", "x")
+    assert da["time"].shape == (2,)
+    assert da["time"][0] == numpy.datetime64("2023-01-01")
+    assert da["time"][1] == numpy.datetime64("2023-01-01")
+
+    da = get_variable(ds, "dataset", sel=["time=2022-01-01", "time=2023-01-01"])
+    assert da.rio.crs
+    assert da.dims == ("time", "y", "x")
+    assert da["time"].shape == (2,)
+    assert da["time"][0] == numpy.datetime64("2022-01-01")
+    assert da["time"][1] == numpy.datetime64("2023-01-01")
+
+    da = get_variable(ds, "dataset", sel=["time=1st of January 2023"])
     assert da.rio.crs
     assert da.dims == ("y", "x")
     assert da["time"] == numpy.datetime64("2023-01-01")
 
     # Select the Nearest Time
-    da = get_variable(ds, "dataset", datetime="2024-01-01T01:00:00.000Z")
+    da = get_variable(ds, "dataset", sel=["time=2024-01-01T01:00:00"], method="nearest")
     assert da.rio.crs
     assert da.dims == ("y", "x")
     assert da["time"] == numpy.datetime64("2023-01-01")
@@ -51,7 +83,7 @@ def test_get_variable():
     ds = data.to_dataset(name="dataset")
     da = get_variable(ds, "dataset")
     assert da.rio.crs
-    assert da.dims == ("y", "x")
+    assert da.dims == ("time", "y", "x")
 
     # 4D dataset
     arr = numpy.arange(0, 33 * 35 * 2).reshape(2, 1, 33, 35)
@@ -66,9 +98,15 @@ def test_get_variable():
         },
     )
     ds = data.to_dataset(name="dataset")
-    da = get_variable(ds, "dataset")
+
+    # We need to reduce the dim
+    with pytest.raises(AssertionError):
+        get_variable(ds, "dataset")
+
+    # Reduce on Z
+    da = get_variable(ds, "dataset", sel=["z=0"])
     assert da.rio.crs
-    assert da.dims == ("z", "y", "x")
+    assert da.dims == ("time", "y", "x")
 
     # 5D dataset
     arr = numpy.arange(0, 33 * 35 * 2).reshape(2, 1, 1, 33, 35)
@@ -87,11 +125,14 @@ def test_get_variable():
     with pytest.raises(AssertionError):
         get_variable(ds, "dataset")
 
-    da = get_variable(ds, "dataset", drop_dim=["universe=somewhere"])
+    with pytest.raises(AssertionError):
+        da = get_variable(ds, "dataset", sel=["universe=somewhere"])
+
+    da = get_variable(ds, "dataset", sel=["universe=somewhere", "time=2022-01-01"])
     assert da.rio.crs
     assert da.dims == ("z", "y", "x")
 
-    # 5D dataset - drop time dim
+    # 5D dataset
     arr = numpy.arange(0, 33 * 35 * 2).reshape(2, 1, 1, 33, 35)
     data = xarray.DataArray(
         arr,
@@ -106,7 +147,7 @@ def test_get_variable():
     )
 
     da = get_variable(
-        ds, "dataset", drop_dim=["universe=somewhere", "time=2022-01-01T00:00:00"]
+        ds, "dataset", sel=["universe=somewhere", "time=2022-01-01T00:00:00"]
     )
     assert da.rio.crs
     assert da.dims == ("z", "y", "x")

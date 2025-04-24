@@ -1,7 +1,7 @@
 """titiler.xarray dependencies."""
 
 from dataclasses import dataclass
-from typing import List, Optional, Union
+from typing import List, Literal, Optional, Union
 
 import numpy
 from fastapi import Query
@@ -31,27 +31,29 @@ class XarrayIOParams(DefaultDependency):
         ),
     ] = None
 
-    # cache_client
 
-
-DropDimStr = Annotated[str, StringConstraints(pattern=r"^[^=]+=[^=]+$")]
+SelDimStr = Annotated[str, StringConstraints(pattern=r"^[^=]+=[^=]+$")]
 
 
 @dataclass
 class XarrayDsParams(DefaultDependency):
     """Xarray Dataset Options."""
 
-    variable: Annotated[str, Query(description="Xarray Variable name")]
+    variable: Annotated[str, Query(description="Xarray Variable name.")]
 
-    drop_dim: Annotated[
-        Optional[List[DropDimStr]],
+    sel: Annotated[
+        Optional[List[SelDimStr]],
         Query(
-            description="Dimensions to drop in form of `{dimension}={value}`",
+            description="Xarray Indexing using dimension names `{dimension}={value}`.",
         ),
     ] = None
 
-    datetime: Annotated[
-        Optional[str], Query(description="Slice of time to read (if available)")
+    method: Annotated[
+        Optional[Literal["nearest", "pad", "ffill", "backfill", "bfill"]],
+        Query(
+            alias="sel_method",
+            description="Xarray indexing method to use for inexact matches.",
+        ),
     ] = None
 
 
@@ -71,17 +73,23 @@ class CompatXarrayParams(XarrayIOParams):
     it would fail without the variable query-parameter set.
     """
 
-    variable: Annotated[Optional[str], Query(description="Xarray Variable name")] = None
+    variable: Annotated[Optional[str], Query(description="Xarray Variable name.")] = (
+        None
+    )
 
-    drop_dim: Annotated[
-        Optional[List[DropDimStr]],
+    sel: Annotated[
+        Optional[List[SelDimStr]],
         Query(
-            description="Dimensions to drop in form of `{dimension}={value}`",
+            description="Xarray Indexing using dimension names `{dimension}={value}`.",
         ),
     ] = None
 
-    datetime: Annotated[
-        Optional[str], Query(description="Slice of time to read (if available)")
+    method: Annotated[
+        Optional[Literal["nearest", "pad", "ffill", "backfill", "bfill"]],
+        Query(
+            alias="sel_method",
+            description="Xarray indexing method to use for inexact matches.",
+        ),
     ] = None
 
 
