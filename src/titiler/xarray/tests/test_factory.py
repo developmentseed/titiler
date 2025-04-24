@@ -140,7 +140,6 @@ def test_info_da_options(app):
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "application/json"
     body = resp.json()
-    print(body)
     assert body["band_descriptions"] == [["b1", "0"]]
 
     resp = app.get(
