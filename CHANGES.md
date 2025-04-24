@@ -12,6 +12,8 @@
 
 ### titiler.core
 
+* add `min`, `max`, `mean`, `median`, `std` and `var` algorithms
+
 * Fix TerrainRGB algorithm and param user-controlled nodata-height (@jo-chemla, https://github.com/developmentseed/titiler/pull/1116)
 
 * add `output_min` and `output_max` metadata attributes to `slope` algorithm (@tayden, https://github.com/developmentseed/titiler/pull/1089)
