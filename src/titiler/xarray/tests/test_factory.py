@@ -135,22 +135,39 @@ def test_info_da_options(app):
     """Test /info endpoints with Dataarray options."""
     resp = app.get(
         "/md/info",
+        params={"url": dataset_4d_nc, "variable": "dataset", "sel": "time=2023-01-01"},
+    )
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "application/json"
+    body = resp.json()
+    print(body)
+    assert body["band_descriptions"] == [["b1", "0"]]
+
+    resp = app.get(
+        "/md/info",
         params={"url": dataset_4d_nc, "variable": "dataset", "sel": "z=0"},
     )
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "application/json"
+    body = resp.json()
+    assert body["band_descriptions"] == [
+        ["b1", "2022-01-01T00:00:00.000000000"],
+        ["b2", "2023-01-01T00:00:00.000000000"],
+    ]
 
     resp = app.get(
         "/md/info",
         params={
             "url": dataset_3d_nc,
             "variable": "dataset",
-            "datetime": "2023-01-01",
+            "sel": "time=2023-01-01",
             "decode_times": True,
         },
     )
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "application/json"
+    body = resp.json()
+    assert body["band_descriptions"] == [["b1", "2023-01-01T00:00:00.000000000"]]
 
 
 @pytest.mark.parametrize(

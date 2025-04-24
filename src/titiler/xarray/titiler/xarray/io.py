@@ -181,7 +181,7 @@ def get_variable(
             else:
                 _idx[dim] = [val]
 
-        sel_idx = {k: v[0] if len(v) < 2 else slice(*v) for k, v in _idx.items()}
+        sel_idx = {k: v[0] if len(v) < 2 else v for k, v in _idx.items()}
         da = da.sel(sel_idx, method=method)
 
     da = _arrange_dims(da)

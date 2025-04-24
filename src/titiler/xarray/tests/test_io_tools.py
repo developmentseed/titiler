@@ -44,12 +44,28 @@ def test_get_variable():
     assert da.dims == ("y", "x")
     assert da["time"] == numpy.datetime64("2023-01-01")
 
+    # no time for 2022-12-01T00:00:00
+    with pytest.raises(KeyError):
+        get_variable(ds, "dataset", sel=["time=2022-12-01", "time=2023-01-01"])
+
     da = get_variable(
-        ds, "dataset", sel=["time=2022-12-01T00:00:00", "time=2023-12-01T00:00:00"]
+        ds,
+        "dataset",
+        sel=["time=2022-12-01", "time=2023-01-01"],
+        method="nearest",
     )
     assert da.rio.crs
     assert da.dims == ("time", "y", "x")
-    assert da["time"] == numpy.datetime64("2023-01-01")
+    assert da["time"].shape == (2,)
+    assert da["time"][0] == numpy.datetime64("2023-01-01")
+    assert da["time"][1] == numpy.datetime64("2023-01-01")
+
+    da = get_variable(ds, "dataset", sel=["time=2022-01-01", "time=2023-01-01"])
+    assert da.rio.crs
+    assert da.dims == ("time", "y", "x")
+    assert da["time"].shape == (2,)
+    assert da["time"][0] == numpy.datetime64("2022-01-01")
+    assert da["time"][1] == numpy.datetime64("2023-01-01")
 
     da = get_variable(ds, "dataset", sel=["time=1st of January 2023"])
     assert da.rio.crs
