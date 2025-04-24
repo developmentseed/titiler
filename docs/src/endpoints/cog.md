@@ -17,7 +17,7 @@ The `/cog` routes are based on `titiler.core.factory.TilerFactory` but with `cog
 | `GET`  | `/cog/tiles`                                                        | JSON      | List of OGC Tilesets available
 | `GET`  | `/cog/tiles/{tileMatrixSetId}`                                      | JSON      | OGC Tileset metadata
 | `GET`  | `/cog/tiles/{tileMatrixSetId}/{z}/{x}/{y}[@{scale}x][.{format}]`    | image/bin | create a web map tile image from a dataset
-| `GET`  | `/cog/{tileMatrixSetId}/map`                                        | HTML      | simple map viewer
+| `GET`  | `/cog/{tileMatrixSetId}/map.html`                                   | HTML      | simple map viewer
 | `GET`  | `/cog/{tileMatrixSetId}/tilejson.json`                              | JSON      | return a Mapbox TileJSON document
 | `GET`  | `/cog/{tileMatrixSetId}/WMTSCapabilities.xml`                       | XML       | return OGC WMTS Get Capabilities
 | `GET`  | `/cog/point/{lon},{lat}`                                            | JSON      | return pixel values from a dataset
@@ -242,7 +242,7 @@ Example:
 
 ### Map
 
-`:endpoint:/cog/{tileMatrixSetId}/map` Simple viewer
+`:endpoint:/cog/{tileMatrixSetId}/map.html` Simple viewer
 
 - PathParams:
     - **tileMatrixSetId** (str): TileMatrixSet name (e.g `WebMercatorQuad`)
@@ -271,9 +271,9 @@ Example:
 
 Example:
 
-- `https://myendpoint/cog/WebMercatorQuad/map?url=https://somewhere.com/mycog.tif`
-- `https://myendpoint/cog/WebMercatorQuad/map?url=https://somewhere.com/mycog.tif&tile_format=png`
-- `https://myendpoint/cog/WorldCRS84Quad/map?url=https://somewhere.com/mycog.tif&tile_scale=2&bidx=1,2,3`
+- `https://myendpoint/cog/WebMercatorQuad/map.html?url=https://somewhere.com/mycog.tif`
+- `https://myendpoint/cog/WebMercatorQuad/map.html?url=https://somewhere.com/mycog.tif&tile_format=png`
+- `https://myendpoint/cog/WorldCRS84Quad/map.html?url=https://somewhere.com/mycog.tif&tile_scale=2&bidx=1,2,3`
 
 
 ### Bounds

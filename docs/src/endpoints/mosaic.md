@@ -16,7 +16,7 @@ Read Mosaic Info/Metadata and create Web map Tiles from a multiple COG. The `mos
 | `GET`  | `/mosaicjson/tiles`                                                        | JSON      | List of OGC Tilesets available
 | `GET`  | `/mosaicjson/tiles/{tileMatrixSetId}`                                      | JSON      | OGC Tileset metadata
 | `GET`  | `/mosaicjson/tiles/{tileMatrixSetId}/{z}/{x}/{y}[@{scale}x][.{format}]`    | image/bin | create a web map tile image from mosaic assets
-| `GET`  | `/mosaicjson/{tileMatrixSetId}/map`                                        | HTML      | simple map viewer
+| `GET`  | `/mosaicjson/{tileMatrixSetId}/map.html`                                   | HTML      | simple map viewer
 | `GET`  | `/mosaicjson/{tileMatrixSetId}/tilejson.json`                              | JSON      | return a Mapbox TileJSON document
 | `GET`  | `/mosaicjson/{tileMatrixSetId}/WMTSCapabilities.xml`                       | XML       | return OGC WMTS Get Capabilities
 | `GET`  | `/mosaicjson/point/{lon},{lat}`                                            | JSON      | return pixel value from a mosaic assets

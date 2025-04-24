@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Misc
+
+* rename `/map` endpoint to `/map.html` **breaking change**
+
 ### titiler.application
 
 * fix Landing page links when app is behind proxy
