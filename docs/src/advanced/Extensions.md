@@ -33,31 +33,35 @@ class FactoryExtension(metaclass=abc.ABCMeta):
 
 ## Available extensions
 
-#### cogValidateExtension
+#### titiler.extensions.cogValidateExtension
 
 - Goal: adds a `/validate` endpoint which return the content of rio-cogeo `info` method
 - Additional requirements: `titiler.extensions["cogeo"]` (installs `rio-cogeo`)
 
-#### cogViewerExtension
+#### titiler.extensions.cogViewerExtension
 
 - Goal: adds a `/viewer` endpoint which return an HTML viewer for simple COGs
 
-#### stacViewerExtension
+#### titiler.extensions.stacViewerExtension
 
 - Goal: adds a `/viewer` endpoint which return an HTML viewer for STAC item
 
-#### stacExtension
+#### titiler.extensions.stacExtension
 
 - Goal: adds a `/stac` endpoint which return an HTML viewer for STAC item
 - Additional requirements: `titiler.extensions["stac"]` (installs `rio-stac`)
 
-#### wmsExtension
+#### titiler.extensions.wmsExtension
 
 - Goal: adds a `/wms` endpoint to support OGC WMS specification (`GetCapabilities` and `GetMap`)
 
-#### stacRenderExtenstion
+#### titiler.extensions.stacRenderExtenstion
 
 - Goal: adds `/render` and `/render/{render_id}` endpoints which return the contents of [STAC render extension](https://github.com/stac-extensions/render) and links to tileset.json and WMTS service
+
+#### titiler.xarray.DatasetMetadataExtension
+
+- Goal: adds `/dataset/`, `/dataset/keys` and `/datasets/dict` endpoints which return metadata about a multidimensional Dataset (not a DataArray)
 
 ## How To
 

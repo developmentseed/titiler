@@ -31,8 +31,6 @@ class XarrayIOParams(DefaultDependency):
         ),
     ] = None
 
-    # cache_client
-
 
 SelDimStr = Annotated[str, StringConstraints(pattern=r"^[^=]+=[^=]+$")]
 
