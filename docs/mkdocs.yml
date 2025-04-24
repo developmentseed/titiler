@@ -37,20 +37,19 @@ extra:
 nav:
   - TiTiler: "index.md"
   - User Guide:
-    - Intro: "intro.md"
-    - Dynamic Tiling: "dynamic_tiling.md"
-    - TileMatrixSets: "tile_matrix_sets.md"
-    - Output data format: "output_format.md"
-    - Getting Started with TiTiler: "getting_started_with_titiler.md"
+    - Getting Started: "user_guide/getting_started.md"
+    - Dynamic Tiling: "user_guide/dynamic_tiling.md"
+    - TileMatrixSets: "user_guide/tile_matrix_sets.md"
+    - Output data format: "user_guide/output_format.md"
+    - Algorithm: "user_guide/algorithms.md"
+    - Rendering: "user_guide/rendering.md"
 
   - Advanced User Guide:
       - Endpoints Factories: "advanced/endpoints_factories.md"
       - Dependencies: "advanced/dependencies.md"
       - Customization: "advanced/customization.md"
       - Performance Tuning: "advanced/performance_tuning.md"
-      - Custom Algorithm: "advanced/Algorithms.md"
       - Extensions: "advanced/Extensions.md"
-      - Rendering: "advanced/rendering.md"
       # - APIRoute and environment variables: "advanced/APIRoute_and_environment_variables.md"
 
   - Packages:
