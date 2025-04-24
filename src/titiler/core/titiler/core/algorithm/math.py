@@ -14,6 +14,8 @@ class _Min(BaseAlgorithm):
     title: str = "Min"
     description: str = "Return Min values along the `bands` axis."
 
+    output_nbands: int = 1
+
     def __call__(self, img: ImageData) -> ImageData:
         """Return Min."""
         return ImageData(
@@ -32,6 +34,8 @@ class _Max(BaseAlgorithm):
 
     title: str = "Max"
     description: str = "Return Max values along the `bands` axis."
+
+    output_nbands: int = 1
 
     def __call__(self, img: ImageData) -> ImageData:
         """Return Max."""
@@ -52,6 +56,9 @@ class _Median(BaseAlgorithm):
     title: str = "Median"
     description: str = "Return Median values along the `bands` axis."
 
+    output_nbands: int = 1
+    output_dtype: str = "float64"
+
     def __call__(self, img: ImageData) -> ImageData:
         """Return Median."""
         return ImageData(
@@ -70,6 +77,9 @@ class _Mean(BaseAlgorithm):
 
     title: str = "Mean"
     description: str = "Return Mean values."
+
+    output_nbands: int = 1
+    output_dtype: str = "float64"
 
     def __call__(self, img: ImageData) -> ImageData:
         """Return Mean."""
@@ -90,6 +100,9 @@ class _Std(BaseAlgorithm):
     title: str = "Standard deviation"
     description: str = "Return the Standard Deviation along the `bands` axis."
 
+    output_nbands: int = 1
+    output_dtype: str = "float64"
+
     def __call__(self, img: ImageData) -> ImageData:
         """Return Stddev."""
         return ImageData(
@@ -108,6 +121,9 @@ class _Var(BaseAlgorithm):
 
     title: str = "Variance"
     description: str = "Return Variance along the `bands` axis."
+
+    output_nbands: int = 1
+    output_dtype: str = "float64"
 
     def __call__(self, img: ImageData) -> ImageData:
         """Return Variance."""
