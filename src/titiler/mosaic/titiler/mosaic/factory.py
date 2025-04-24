@@ -715,9 +715,9 @@ class MosaicTilerFactory(BaseFactory):
                     }
 
     def map_viewer(self):  # noqa: C901
-        """Register /map endpoint."""
+        """Register /map.html endpoint."""
 
-        @self.router.get("/{tileMatrixSetId}/map", response_class=HTMLResponse)
+        @self.router.get("/{tileMatrixSetId}/map.html", response_class=HTMLResponse)
         def map_viewer(
             request: Request,
             tileMatrixSetId: Annotated[

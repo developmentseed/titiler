@@ -10,6 +10,8 @@ Static tiles are like pre-printed map pieces stored in folders. Once created, th
 
 TiTiler's dynamic tiles work like a chef cooking to order. When someone views your map, TiTiler grabs just the data needed and creates tiles on the spot. This lets you instantly change colors, adjust contrast, or highlight different features. Your map becomes flexible and responsive, adapting to what users need right now rather than being stuck with choices made earlier.
 
+More on [Dynamic Tiling](dynamic_tiling.md)
+
 ## Let's Get TiTiler Up and Running!
 
 Now that we understand the advantage of TiTiler's dynamic approach, let's get it running on your local machine. Follow these steps:
@@ -102,7 +104,7 @@ uvicorn main:app --reload
 ```
 You should see output similar to this:
 
-![server logs](img/server_logs.png)
+![server logs](../img/server_logs.png)
 
 > 💡 **The `--reload` flag** automatically restarts the server whenever you change your code - perfect for development!
 
@@ -112,11 +114,11 @@ Open your browser and go to:
 
 ``` http://127.0.0.1:8000/ ``` - See your welcome message
 
-![browser](img/browser.png)
+![browser](../img/browser.png)
 
 ```  http://127.0.0.1:8000/docs ``` - Explore the interactive API documentation. The `/docs` page is your mission control center. It shows all the endpoints TiTiler created for you and lets you test them directly in your browser:
 
-![api docs](img/api_docs.png)
+![api docs](../img/api_docs.png)
 
 ## Visualizing Your Geospatial Data
 
@@ -181,6 +183,8 @@ URL components explained:
 - **`{z}/{x}/{y}`**: Your tile coordinates
 - **`.png`**: Output format (alternatives: `.jpg`, `.webp`, `.tif`)
 - **`?url=raster.tif`**: Source raster file
+
+More on [Tiling Schemes](tile_matrix_sets.md)
 
 ### **Creating a Web Map with Leaflet**
 
@@ -280,3 +284,97 @@ If your map loads but your tiles don't appear:
 
 ---
 *Created by [Dimple Jain](https://jaiindimple.github.io)*
+
+
+## Default Application
+
+`TiTiler` comes with a default (complete) application with support for COG, STAC, and MosaicJSON. You can install and start the application locally by doing:
+
+```bash
+# Update pip
+python -m pip install -U pip
+
+# Install titiler packages
+python -m pip install uvicorn titiler.application
+
+# Start application using uvicorn
+uvicorn titiler.application.main:app
+
+> INFO: Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+```
+
+See default endpoints documentation pages:
+
+* [`/cog` - Cloud Optimized GeoTIFF](../endpoints/cog.md)
+* [`/mosaicjson` - MosaicJSON](../endpoints/mosaic.md)
+* [`/stac` - Spatio Temporal Asset Catalog](../endpoints/stac.md)
+* [`/tileMatrixSets` - Tiling Schemes](../endpoints/tms.md)
+* [`/algorithms` - Algorithms](../endpoints/algorithms.md)
+* [`/colorMaps` - ColorMaps](../endpoints/colormaps.md)
+
+#### Settings
+
+The default application can be customized using environment variables defined in `titiler.application.settings.ApiSettings` class. Each variable needs to be prefixed with `TITILER_API_`.
+
+- `NAME` (str): name of the application. Defaults to `titiler`.
+- `CORS_ORIGINS` (str, `,` delimited origins): allowed CORS origin. Defaults to `*`.
+- `CORS_ALLOW_METHODS` (str, `,` delimited methods): allowed CORS methods. Defaults to `GET`.
+- `CACHECONTROL` (str): Cache control header to add to responses. Defaults to `"public, max-age=3600"`.
+- `ROOT_PATH` (str): path behind proxy.
+- `DEBUG` (str): adds `LoggerMiddleware` and `TotalTimeMiddleware` in the middleware stack.
+- `DISABLE_COG` (bool): disable `/cog` endpoints.
+- `DISABLE_STAC` (bool): disable `/stac` endpoints.
+- `DISABLE_MOSAIC` (bool): disable `/mosaic` endpoints.
+- `LOWER_CASE_QUERY_PARAMETERS` (bool): transform all query-parameters to lower case (see https://github.com/developmentseed/titiler/pull/321).
+- `GLOBAL_ACCESS_TOKEN` (str | None): a string which is required in the `?access_token=` query param with every request.
+
+
+#### Extending TiTiler's app
+
+If you want to include all of Titiler's built-in endpoints, but also include
+customized endpoints, you can import and extend the app directly.
+
+```bash
+python -m pip install titiler.application uvicorn # also installs titiler.core and titiler.mosaic
+```
+
+These can then be used like:
+
+
+```py
+# Add private COG endpoints requiring token validation
+from fastapi import APIRouter, Depends, HTTPException, Security
+from fastapi.security.api_key import APIKeyQuery
+
+from titiler.application.main import app
+from titiler.core.factory import TilerFactory
+
+import uvicorn
+
+api_key_query = APIKeyQuery(name="access_token", auto_error=False)
+
+
+def token_validation(access_token: str = Security(api_key_query)):
+    """stupid token validation."""
+    if not access_token:
+        raise HTTPException(status_code=401, detail="Missing `access_token`")
+
+    # if access_token == `token` then OK
+    if not access_token == "token":
+        raise HTTPException(status_code=401, detail="Invalid `access_token`")
+
+    return True
+
+
+# Custom router with token dependency
+router = APIRouter(dependencies=[Depends(token_validation)])
+tiler = TilerFactory(router_prefix="private/cog", router=router)
+
+app.include_router(tiler.router, prefix="/private/cog", tags=["Private"])
+
+
+if __name__ == '__main__':
+    uvicorn.run(app=app, host="127.0.0.1", port=8080, log_level="info")
+```
+
+More on [customization](../advanced/customization.md)

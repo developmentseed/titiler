@@ -241,7 +241,7 @@ class TilerFactory(BaseFactory):
         templates (Jinja2Templates): Jinja2 templates.
         add_preview (bool): add `/preview` endpoints. Defaults to True.
         add_part (bool): add `/bbox` and `/feature` endpoints. Defaults to True.
-        add_viewer (bool): add `/map` endpoints. Defaults to True.
+        add_viewer (bool): add `/map.html` endpoints. Defaults to True.
 
     """
 
@@ -925,9 +925,9 @@ class TilerFactory(BaseFactory):
                     }
 
     def map_viewer(self):  # noqa: C901
-        """Register /map endpoint."""
+        """Register /map.html endpoint."""
 
-        @self.router.get("/{tileMatrixSetId}/map", response_class=HTMLResponse)
+        @self.router.get("/{tileMatrixSetId}/map.html", response_class=HTMLResponse)
         def map_viewer(
             request: Request,
             tileMatrixSetId: Annotated[

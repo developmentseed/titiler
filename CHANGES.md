@@ -2,11 +2,17 @@
 
 ## Unreleased
 
+### Misc
+
+* rename `/map` endpoint to `/map.html` **breaking change**
+
 ### titiler.application
 
 * fix Landing page links when app is behind proxy
 
 ### titiler.core
+
+* add `min`, `max`, `mean`, `median`, `std` and `var` algorithms
 
 * Fix TerrainRGB algorithm and param user-controlled nodata-height (@jo-chemla, https://github.com/developmentseed/titiler/pull/1116)
 

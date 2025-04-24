@@ -19,7 +19,7 @@ The `/stac` routes are based on `titiler.core.factory.MultiBaseTilerFactory` but
 | `GET`  | `/stac/tiles`                                                        | JSON      | List of OGC Tilesets available
 | `GET`  | `/stac/tiles/{tileMatrixSetId}`                                      | JSON      | OGC Tileset metadata
 | `GET`  | `/stac/tiles/{tileMatrixSetId}/{z}/{x}/{y}[@{scale}x][.{format}]`    | image/bin | create a web map tile image from assets
-| `GET`  | `/stac/{tileMatrixSetId}/map`                                        | HTML      | simple map viewer
+| `GET`  | `/stac/{tileMatrixSetId}/map.html`                                        | HTML      | simple map viewer
 | `GET`  | `/stac/{tileMatrixSetId}/tilejson.json`                              | JSON      | return a Mapbox TileJSON document
 | `GET`  | `/stac/{tileMatrixSetId}/WMTSCapabilities.xml`                       | XML       | return OGC WMTS Get Capabilities
 | `GET`  | `/stac/point/{lon},{lat}`                                            | JSON      | return pixel value from assets
@@ -264,7 +264,7 @@ Example:
 
 ### Map
 
-`:endpoint:/stac/{tileMatrixSetId}/map`  Simple viewer
+`:endpoint:/stac/{tileMatrixSetId}/map.html`  Simple viewer
 
 - PathParams:
     - **tileMatrixSetId** (str): TileMatrixSet name (e.g `WebMercatorQuad`)
