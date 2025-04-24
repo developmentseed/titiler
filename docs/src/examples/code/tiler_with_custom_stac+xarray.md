@@ -206,6 +206,7 @@ class SingleAssetsParams(DefaultDependency):
             alias="bidx",
             description="Dataset band indexes",
             openapi_examples={
+                "user-provided": {"value": None},
                 "one-band": {"value": [1]},
                 "multi-bands": {"value": [1, 2, 3]},
             },

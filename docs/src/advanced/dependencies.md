@@ -60,6 +60,7 @@ class AssetsParams(DefaultDependency):
         title="Asset names",
         description="Asset's names.",
         openapi_examples={
+            "user-provided": {"value": None},
             "one-asset": {
                 "description": "Return results for asset `data`.",
                 "value": ["data"],
@@ -99,6 +100,7 @@ class AssetsBidxParams(AssetsParams):
             description="Per asset band indexes",
             alias="asset_bidx",
             openapi_examples={
+                "user-provided": {"value": None},
                 "one-asset": {
                     "description": "Return indexes 1,2,3 of asset `data`.",
                     "value": ["data|1;2;3"],
@@ -117,6 +119,7 @@ class AssetsBidxParams(AssetsParams):
             title="Per asset band expression",
             description="Per asset band expression",
             openapi_examples={
+                "user-provided": {"value": None},
                 "one-asset": {
                     "description": "Return results for expression `b1*b2+b3` of asset `data`.",
                     "value": ["data|b1*b2+b3"],
@@ -171,6 +174,7 @@ class AssetsBidxExprParams(AssetsParams):
             title="Band Math expression",
             description="Band math expression between assets",
             openapi_examples={
+                "user-provided": {"value": None},
                 "simple": {
                     "description": "Return results of expression between assets.",
                     "value": "asset1_b1 + asset2_b1 / asset3_b1",
@@ -186,6 +190,7 @@ class AssetsBidxExprParams(AssetsParams):
             description="Per asset band indexes (coma separated indexes)",
             alias="asset_bidx",
             openapi_examples={
+                "user-provided": {"value": None},
                 "one-asset": {
                     "description": "Return indexes 1,2,3 of asset `data`.",
                     "value": ["data|1,2,3"],
@@ -272,6 +277,7 @@ class BandsParams(DefaultDependency):
         title="Band names",
         description="Band's names.",
         openapi_examples={
+            "user-provided": {"value": None},
             "one-band": {
                 "description": "Return results for band `B01`.",
                 "value": ["B01"],
@@ -352,7 +358,11 @@ class BidxParams(DefaultDependency):
             title="Band indexes",
             alias="bidx",
             description="Dataset band indexes",
-            openapi_examples={"one-band": {"value": [1]}, "multi-bands": {"value": [1, 2, 3]}},
+            openapi_examples={
+                "user-provided": {"value": None},
+                "one-band": {"value": [1]},
+                "multi-bands": {"value": [1, 2, 3]},
+            },
         ),
     ] = None
 ```
@@ -381,6 +391,7 @@ class ExpressionParams(DefaultDependency):
             title="Band Math expression",
             description="rio-tiler's band math expression",
             openapi_examples={
+                "user-provided": {"value": None},
                 "simple": {"description": "Simple band math.", "value": "b1/b2"},
                 "multi-bands": {
                     "description": "Semicolon (;) delimited expressions (band1: b1/b2, band2: b2+b3).",
@@ -633,6 +644,7 @@ If bins is a sequence (comma `,` delimited values), it defines a monotonically i
 link: https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
             """,
             openapi_examples={
+                "user-provided": {"value": None},
                 "simple": {
                     "description": "Defines the number of equal-width bins",
                     "value": 8,
