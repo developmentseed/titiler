@@ -161,7 +161,7 @@ plugins:
             signature_crossrefs: true
             extensions:
               - griffe_inherited_docstrings
-          import:
+          inventories:
             - https://docs.python.org/3/objects.inv
             - https://numpy.org/doc/stable/objects.inv
             - https://rasterio.readthedocs.io/en/stable/objects.inv

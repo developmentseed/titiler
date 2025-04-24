@@ -33,8 +33,6 @@ cog = TilerFactory()
 app.include_router(cog.router, tags=["Cloud Optimized GeoTIFF"])
 ```
 
-See [titiler.application](../application) for a full example.
-
 ## Package structure
 
 ```

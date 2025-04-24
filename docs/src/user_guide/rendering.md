@@ -61,7 +61,7 @@ Titiler supports colormaps that are both discrete (where pixels will be one of t
 
 For more information, please check out [rio-tiler's docs](https://cogeotiff.github.io/rio-tiler/colormap/).
 
-It is also possible to add a [colormap dependency](../../examples/code/tiler_with_custom_colormap) to automatically apply
+It is also possible to add a [colormap dependency](../examples/code/tiler_with_custom_colormap) to automatically apply
 a default colormap.
 
 ## Color Formula
@@ -130,5 +130,5 @@ giving a possible range of 0 to 255 or 0 to 65,536, so Titiler will use these ra
 For certain datasets (e.g. DEMs) this default behaviour can make the image seem washed out (or even entirely one color),
 so if you see this happen look into rescaling your images to something that makes sense for your data.
 
-It is also possible to add a [rescaling dependency](../../api/titiler/core/dependencies/#rescalingparams) to automatically apply
+It is also possible to add a [rescaling dependency](../api/titiler/core/dependencies/#rescalingparams) to automatically apply
 a default rescale.
