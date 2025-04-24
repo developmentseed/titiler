@@ -58,6 +58,10 @@ def test_xarray_tile():
         params = response.json()
         assert params == {"sel": ["yo=yo", "ye=ye"]}
 
+        response = client.get("/tiles/1/2/3?sel=yo=yo&sel=ye=ye")
+        params = response.json()
+        assert params == {"sel": ["yo=yo", "ye=ye"]}
+
         response = client.get("/tiles/1/2/3", params={"sel": "yo"})
         assert response.status_code == 422
 
@@ -66,3 +70,7 @@ def test_xarray_tile():
 
         response = client.get("/tiles/1/2/3", params={"sel": "yo="})
         assert response.status_code == 422
+
+        response = client.get("/tiles/1/2/3", params={"sel_method": "nearest"})
+        params = response.json()
+        assert params == {"method": "nearest"}

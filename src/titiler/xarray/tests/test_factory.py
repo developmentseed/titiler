@@ -157,6 +157,23 @@ def test_info_da_options(app):
     resp = app.get(
         "/md/info",
         params={
+            "url": dataset_4d_nc,
+            "variable": "dataset",
+            "sel": "z=1",
+            "sel_method": "nearest",
+        },
+    )
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "application/json"
+    body = resp.json()
+    assert body["band_descriptions"] == [
+        ["b1", "2022-01-01T00:00:00.000000000"],
+        ["b2", "2023-01-01T00:00:00.000000000"],
+    ]
+
+    resp = app.get(
+        "/md/info",
+        params={
             "url": dataset_3d_nc,
             "variable": "dataset",
             "sel": "time=2023-01-01",

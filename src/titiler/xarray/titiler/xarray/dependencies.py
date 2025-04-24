@@ -53,6 +53,7 @@ class XarrayDsParams(DefaultDependency):
     method: Annotated[
         Optional[Literal["nearest", "pad", "ffill", "backfill", "bfill"]],
         Query(
+            alias="sel_method",
             description="Xarray indexing method to use for inexact matches.",
         ),
     ] = None
@@ -88,6 +89,7 @@ class CompatXarrayParams(XarrayIOParams):
     method: Annotated[
         Optional[Literal["nearest", "pad", "ffill", "backfill", "bfill"]],
         Query(
+            alias="sel_method",
             description="Xarray indexing method to use for inexact matches.",
         ),
     ] = None

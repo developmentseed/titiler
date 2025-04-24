@@ -97,7 +97,7 @@
 ### titiler.xarray
 
 * update `rio-tiler` requirement to `>=7.6.1`
-* add `sel` and `method` options to select dimension
+* add `sel` and `sel_method` options to select dimension
 
     ```
     # before
@@ -107,7 +107,7 @@
     https://.../0/0/0.png?url=dataset.zarr&sel=time=2023-01-01
 
     # method
-    https://.../0/0/0.png?url=dataset.zarr&sel=time=2023-01-02&method=nearest
+    https://.../0/0/0.png?url=dataset.zarr&sel=time=2023-01-02&sel_method=nearest
 
     # Can use `slice` when providing 2 values
     https://.../0/0/0.png?url=dataset.zarr&sel=time=2023-01-01&time=2023-01-31
