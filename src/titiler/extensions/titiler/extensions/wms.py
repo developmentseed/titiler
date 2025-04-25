@@ -19,7 +19,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 from starlette.templating import Jinja2Templates
 
-from titiler.core.dependencies import ColorFormulaParams, RescalingParams
+from titiler.core.dependencies import RenderingParams
 from titiler.core.factory import FactoryExtension, TilerFactory
 from titiler.core.resources.enums import ImageType, MediaType
 
@@ -287,9 +287,8 @@ class wmsExtension(FactoryExtension):
             layer_params=Depends(factory.layer_dependency),
             dataset_params=Depends(factory.dataset_dependency),
             post_process=Depends(factory.process_dependency),
-            rescale=Depends(RescalingParams),
-            color_formula=Depends(ColorFormulaParams),
             colormap=Depends(factory.colormap_dependency),
+            render_params=Depends(RenderingParams),
             env=Depends(factory.environment_dependency),
         ):
             """Return a WMS query for a single COG.
@@ -547,8 +546,7 @@ class wmsExtension(FactoryExtension):
                     output_format=format,
                     colormap=colormap,
                     add_mask=transparent,
-                    rescale=rescale,
-                    color_formula=color_formula,
+                    **render_params.as_dict(),
                 )
                 return Response(content, media_type=media_type)
 

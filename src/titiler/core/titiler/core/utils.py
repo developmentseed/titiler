@@ -144,7 +144,7 @@ Errors = List[Any]
 
 def get_dependency_query_params(
     dependency: Callable,
-    params: Dict,
+    params: Union[QueryParams, Dict],
 ) -> Tuple[ValidParams, Errors]:
     """Check QueryParams for Query dependency.
 
@@ -155,13 +155,17 @@ def get_dependency_query_params(
     Important: We assume the `callable` in not a co-routine.
     """
     dep = get_dependant(path="", call=dependency)
-    return request_params_to_args(
-        dep.query_params, QueryParams(urlencode(params, doseq=True))
+
+    qp = (
+        QueryParams(urlencode(params, doseq=True))
+        if isinstance(params, Dict)
+        else params
     )
+    return request_params_to_args(dep.query_params, qp)
 
 
 def deserialize_query_params(
-    dependency: Callable[..., T], params: Dict
+    dependency: Callable[..., T], params: Union[QueryParams, Dict]
 ) -> Tuple[T, Errors]:
     """Deserialize QueryParams for given dependency.
 
@@ -173,16 +177,34 @@ def deserialize_query_params(
     return dependency(**values), errors
 
 
-def extract_query_params(dependencies, params) -> Tuple[ValidParams, Errors]:
+def extract_query_params(
+    dependencies: List[Callable],
+    params: Union[QueryParams, Dict],
+) -> Tuple[ValidParams, Errors]:
     """Extract query params given list of dependencies."""
     values = {}
     errors = []
     for dep in dependencies:
-        dep_values, dep_errors = deserialize_query_params(dep, params)
-        if dep_values:
-            values.update(dep_values)
+        query_params, dep_errors = get_dependency_query_params(dep, params)
+        if query_params:
+            values.update(query_params)
         errors += dep_errors
     return values, errors
+
+
+def check_query_params(
+    dependencies: List[Callable],
+    params: Union[QueryParams, Dict],
+) -> bool:
+    """Check QueryParams for a list of Dependencies."""
+    for dependency in dependencies:
+        try:
+            _, errors = deserialize_query_params(dependency, params)
+            if errors:
+                return False
+        except Exception:
+            return False
+    return True
 
 
 def accept_media_type(accept: str, mediatypes: List[MediaType]) -> Optional[MediaType]:

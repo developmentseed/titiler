@@ -12,6 +12,10 @@
 
 ### titiler.core
 
+* remove deprecated `ColorFormulaParams` and `RescalingParams` dependencies **breaking change**
+
+* remove deprecated `DefaultDependency` dict-unpacking feature **breaking change**
+
 * add `min`, `max`, `mean`, `median`, `std` and `var` algorithms
 
 * Fix TerrainRGB algorithm and param user-controlled nodata-height (@jo-chemla, https://github.com/developmentseed/titiler/pull/1116)
@@ -93,6 +97,11 @@
         }
     )
     ```
+
+### titiler.extensions
+
+* update `wms` extension to remove usage of `ColorFormulaParams` and `RescalingParams` dependencies
+* update `render` extension to better validate query-parameters from render expression
 
 ### titiler.xarray
 
