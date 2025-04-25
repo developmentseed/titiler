@@ -14,7 +14,7 @@ from typing_extensions import Annotated
 
 from titiler.core.factory import FactoryExtension, MultiBaseTilerFactory
 from titiler.core.models.OGC import Link
-from titiler.core.utils import extract_query_params
+from titiler.core.utils import check_query_params
 
 
 class RenderItem(BaseModel, extra="allow"):
@@ -53,25 +53,6 @@ class stacRenderExtension(FactoryExtension):
     def register(self, factory: MultiBaseTilerFactory):
         """Register endpoint to the tiler factory."""
 
-        def _validate_params(render: Dict) -> bool:
-            """Validate render related query params."""
-            # List of dependencies a `/tile` URL should validate
-            # Note: Those dependencies should only require Query() inputs
-            tile_dependencies = [
-                factory.reader_dependency,
-                factory.tile_dependency,
-                factory.layer_dependency,
-                factory.dataset_dependency,
-                factory.process_dependency,
-                # Image rendering Dependencies
-                factory.colormap_dependency,
-                factory.render_dependency,
-            ]
-
-            _values, errors = extract_query_params(tile_dependencies, render)
-
-            return errors
-
         def _prepare_render_item(
             render_id: str,
             render: Dict,
@@ -94,7 +75,19 @@ class stacRenderExtension(FactoryExtension):
                 }
             ]
 
-            if not _validate_params(render):
+            # List of dependencies a `/tile` URL should validate
+            # Note: Those dependencies should only require Query() inputs
+            tile_dependencies = [
+                factory.reader_dependency,
+                factory.tile_dependency,
+                factory.layer_dependency,
+                factory.dataset_dependency,
+                factory.process_dependency,
+                # Image rendering Dependencies
+                factory.colormap_dependency,
+                factory.render_dependency,
+            ]
+            if check_query_params(tile_dependencies, render):
                 query_string = urlencode({"url": src_path, **render}, doseq=True)
 
                 links += [

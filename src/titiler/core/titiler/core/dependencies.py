@@ -67,19 +67,6 @@ def DatasetPathParams(url: Annotated[str, Query(description="Dataset URL")]) -> 
 class DefaultDependency:
     """Dataclass with dict unpacking"""
 
-    def keys(self):
-        """Return Keys."""
-        warnings.warn(
-            "Dict unpacking will be removed for `DefaultDependency` in titiler 0.19.0",
-            DeprecationWarning,
-            stacklevel=1,
-        )
-        return self.__dict__.keys()
-
-    def __getitem__(self, key):
-        """Return value."""
-        return self.__dict__[key]
-
     def as_dict(self, exclude_none: bool = True) -> Dict:
         """Transform dataclass to dict."""
         if exclude_none:
@@ -437,7 +424,7 @@ RescaleType = List[Tuple[float, float]]
 
 
 @dataclass
-class ImageRenderingParams(DefaultDependency):
+class RenderingParams(DefaultDependency):
     """Image Rendering options."""
 
     rescale: Annotated[
@@ -454,14 +441,6 @@ class ImageRenderingParams(DefaultDependency):
         Query(
             title="Color Formula",
             description="rio-color formula (info: https://github.com/mapbox/rio-color)",
-        ),
-    ] = None
-
-    add_mask: Annotated[
-        Optional[bool],
-        Query(
-            alias="return_mask",
-            description="Add mask to the output data. Defaults to `True`",
         ),
     ] = None
 
@@ -484,40 +463,17 @@ class ImageRenderingParams(DefaultDependency):
             self.rescale: RescaleType = rescale_array
 
 
-def RescalingParams(
-    rescale: Annotated[
-        Optional[List[str]],
+@dataclass
+class ImageRenderingParams(RenderingParams):
+    """Image Rendering options."""
+
+    add_mask: Annotated[
+        Optional[bool],
         Query(
-            title="Min/Max data Rescaling",
-            description="comma (',') delimited Min,Max range. Can set multiple time for multiple bands.",
-            examples=["0,2000", "0,1000", "0,10000"],  # band 1  # band 2  # band 3
+            alias="return_mask",
+            description="Add mask to the output data. Defaults to `True`",
         ),
-    ] = None,
-) -> Optional[RescaleType]:
-    """Min/Max data Rescaling"""
-    warnings.warn(
-        "RescalingParams is deprecated and set to be removed in 0.20",
-        DeprecationWarning,
-        stacklevel=1,
-    )
-    if rescale:
-        rescale_array = []
-        for r in rescale:
-            parsed = tuple(
-                map(
-                    float,
-                    r.replace(" ", "").replace("[", "").replace("]", "").split(","),
-                )
-            )
-            assert (
-                len(parsed) == 2
-            ), f"Invalid rescale values: {rescale}, should be of form ['min,max', 'min,max'] or [[min,max], [min, max]]"
-
-            rescale_array.append(parsed)
-
-        return rescale_array
-
-    return None
+    ] = None
 
 
 @dataclass
@@ -683,24 +639,6 @@ def BufferParams(
 ) -> Optional[float]:
     """Tile buffer Parameter."""
     return buffer
-
-
-def ColorFormulaParams(
-    color_formula: Annotated[
-        Optional[str],
-        Query(
-            title="Color Formula",
-            description="rio-color formula (info: https://github.com/mapbox/rio-color)",
-        ),
-    ] = None,
-) -> Optional[str]:
-    """ColorFormula Parameter."""
-    warnings.warn(
-        "ColorFormulaParams is deprecated and set to be removed in 0.20",
-        DeprecationWarning,
-        stacklevel=1,
-    )
-    return color_formula
 
 
 @dataclass

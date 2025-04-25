@@ -1197,7 +1197,7 @@ class TilerFactory(BaseFactory):
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     image = src_dst.preview(
                         **layer_params.as_dict(),
-                        **image_params.as_dict(),
+                        **image_params.as_dict(exclude_none=False),
                         **dataset_params.as_dict(),
                         dst_crs=dst_crs,
                     )
@@ -1461,7 +1461,7 @@ class MultiBaseTilerFactory(TilerFactory):
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     return src_dst.statistics(
                         **asset_params.as_dict(),
-                        **image_params.as_dict(),
+                        **image_params.as_dict(exclude_none=False),
                         **dataset_params.as_dict(),
                         **stats_params.as_dict(),
                         hist_options=histogram_params.as_dict(),

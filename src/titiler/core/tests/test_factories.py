@@ -23,7 +23,7 @@ from morecantile.defaults import TileMatrixSets
 from rasterio.crs import CRS
 from rasterio.io import MemoryFile
 from rio_tiler.colormap import cmap as default_cmap
-from rio_tiler.errors import NoOverviewWarning
+from rio_tiler.errors import InvalidDatatypeWarning, NoOverviewWarning
 from rio_tiler.io import BaseReader, MultiBandReader, Reader, STACReader
 from starlette.requests import Request
 from starlette.testclient import TestClient
@@ -279,7 +279,7 @@ def test_TilerFactory():
     assert meta["driver"] == "WMTS"
     assert meta["crs"] == "EPSG:3857"
     root = ET.fromstring(response.content)
-    assert root
+    assert root is not None
 
     response = client.get(
         f"/WebMercatorQuad/WMTSCapabilities.xml?url={DATA_DIR}/cog.tif&bdix=1&rescale=0,1000"
@@ -290,7 +290,7 @@ def test_TilerFactory():
     assert meta["driver"] == "WMTS"
     assert meta["crs"] == "EPSG:3857"
     root = ET.fromstring(response.content)
-    assert root
+    assert root is not None
 
     response = client.get(
         f"/WorldCRS84Quad/WMTSCapabilities.xml?url={DATA_DIR}/cog.tif&minzoom=5&maxzoom=12"
@@ -301,7 +301,7 @@ def test_TilerFactory():
     assert meta["driver"] == "WMTS"
     assert str(meta["crs"]) == "OGC:CRS84"
     root = ET.fromstring(response.content)
-    assert root
+    assert root is not None
 
     response = client.get(f"/bounds?url={DATA_DIR}/cog.tif")
     assert response.status_code == 200
@@ -321,7 +321,9 @@ def test_TilerFactory():
     assert "bbox" in response.json()
     assert response.json()["geometry"]["type"] == "Polygon"
 
-    response = client.get(f"/info.geojson?url={DATA_DIR}/cog_dateline.tif")
+    # BBOX crossing the Antimeridian
+    with pytest.warns(UserWarning):
+        response = client.get(f"/info.geojson?url={DATA_DIR}/cog_dateline.tif")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/geo+json"
     assert response.json()["type"] == "Feature"
@@ -415,9 +417,10 @@ def test_TilerFactory():
     assert meta["dtype"] == "uint16"
     assert meta["count"] == 2
 
-    response = client.post(
-        f"/feature/100x100.jpeg?url={DATA_DIR}/cog.tif", json=feature
-    )
+    with pytest.warns(InvalidDatatypeWarning):
+        response = client.post(
+            f"/feature/100x100.jpeg?url={DATA_DIR}/cog.tif", json=feature
+        )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/jpeg"
     meta = parse_img(response.content)
@@ -785,9 +788,11 @@ def test_MultiBaseTilerFactory(rio):
     assert len(response.json()["bounds"]) == 4
     assert response.json()["crs"]
 
-    response = client.get(f"/info?url={DATA_DIR}/item.json")
-    assert response.status_code == 200
-    assert len(response.json()) == 2
+    # no assets
+    with pytest.warns(UserWarning):
+        response = client.get(f"/info?url={DATA_DIR}/item.json")
+        assert response.status_code == 200
+        assert len(response.json()) == 2
 
     response = client.get(f"/info?url={DATA_DIR}/item.json&assets=B01&assets=B09")
     assert response.status_code == 200
@@ -1169,7 +1174,9 @@ def test_MultiBandTilerFactory():
     assert response.json() == ["B01", "B09"]
 
     # default bands
-    response = client.get(f"/info?directory={DATA_DIR}")
+    # no bands
+    with pytest.warns(UserWarning):
+        response = client.get(f"/info?directory={DATA_DIR}")
     assert response.json()["band_metadata"] == [["B01", {}], ["B09", {}]]
 
     response = client.get(f"/info?directory={DATA_DIR}&bands=B01")
@@ -1626,7 +1633,8 @@ def test_TilerFactory_WithGdalEnv():
     app.include_router(router)
     client = TestClient(app)
 
-    response = client.get(f"/info?url={DATA_DIR}/non_cog.tif")
+    with pytest.warns(NoOverviewWarning):
+        response = client.get(f"/info?url={DATA_DIR}/non_cog.tif")
     assert not response.json()["overviews"]
 
     router = TilerFactory(

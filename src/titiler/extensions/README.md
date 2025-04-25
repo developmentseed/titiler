@@ -67,7 +67,7 @@ from typing import Tuple, List, Optional
 from starlette.responses import Response
 from fastapi import Depends, FastAPI, Query
 from titiler.core.factory import BaseTilerFactory, FactoryExtension, TilerFactory
-from titiler.core.dependencies import RescalingParams
+from titiler.core.dependencies import ImageRenderingParams
 from titiler.core.factory import TilerFactory
 from titiler.core.resources.enums import ImageType
 
@@ -100,47 +100,37 @@ class thumbnailExtension(FactoryExtension):
         def thumbnail(
             # we can reuse the factory dependency
             src_path: str = Depends(factory.path_dependency),
+            reader_params=Depends(factory.reader_dependency),
             layer_params=Depends(factory.layer_dependency),
             dataset_params=Depends(factory.dataset_dependency),
             post_process=Depends(factory.process_dependency),
-            rescale: Optional[List[Tuple[float, ...]]] = Depends(RescalingParams),
-            color_formula: Optional[str] = Query(
-                None,
-                title="Color Formula",
-                description="rio-color formula (info: https://github.com/mapbox/rio-color)",
-            ),
             colormap=Depends(factory.colormap_dependency),
             render_params=Depends(factory.render_dependency),
-            reader_params=Depends(factory.reader_dependency),
             env=Depends(factory.environment_dependency),
         ):
             with rasterio.Env(**env):
-                with factory.reader(src_path, **reader_params) as src:
+                with factory.reader(src_path, **reader_params.as_dict()) as src:
                     image = src.preview(
                         max_size=self.max_size,
-                        **layer_params,
-                        **dataset_params,
+                        **layer_params.as_dict(),
+                        **dataset_params.as_dict(),
                     )
 
             if post_process:
                 image = post_process(image)
 
-            if rescale:
-                image.rescale(rescale)
-
-            if color_formula:
-                image.apply_color_formula(color_formula)
-
             format = ImageType.jpeg if image.mask.all() else ImageType.png
 
-            content = image.render(
-                img_format=format.driver,
+            if post_process:
+                image = post_process(image)
+
+            content, media_type = self.render_func(
+                image,
                 colormap=colormap,
-                **format.profile,
-                **render_params,
+                **render_params.as_dict(),
             )
 
-            return Response(content, media_type=format.mediatype)
+            return Response(content, media_type=media_type)
 
 # Use it
 app = FastAPI()

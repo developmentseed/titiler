@@ -130,5 +130,5 @@ giving a possible range of 0 to 255 or 0 to 65,536, so Titiler will use these ra
 For certain datasets (e.g. DEMs) this default behaviour can make the image seem washed out (or even entirely one color),
 so if you see this happen look into rescaling your images to something that makes sense for your data.
 
-It is also possible to add a [rescaling dependency](../api/titiler/core/dependencies/#rescalingparams) to automatically apply
+It is also possible to add a [rescaling dependency](../api/titiler/core/dependencies/#ImageRenderingParams) to automatically apply
 a default rescale.

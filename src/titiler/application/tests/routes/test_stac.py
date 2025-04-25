@@ -3,6 +3,7 @@
 from typing import Dict
 from unittest.mock import patch
 
+import pytest
 from rasterio.io import MemoryFile
 
 from ..conftest import mock_rasterio_open, mock_RequestGet
@@ -36,7 +37,9 @@ def test_info(httpx, rio, app):
     body = response.json()
     assert body["B01"]
 
-    response = app.get("/stac/info?url=https://myurl.com/item.json")
+    # no assets
+    with pytest.warns(UserWarning):
+        response = app.get("/stac/info?url=https://myurl.com/item.json")
     assert response.status_code == 200
     body = response.json()
     assert body["B01"]

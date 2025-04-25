@@ -43,7 +43,7 @@ app/models.py
 
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 
 from jose import jwt
@@ -67,7 +67,7 @@ class AccessToken(BaseModel):
     @validator("iat", pre=True, always=True)
     def set_creation_time(cls, v) -> datetime:
         """Set token creation time (iat)."""
-        return datetime.utcnow()
+        return datetime.now(timezone.UTC)
 
     @validator("exp", always=True)
     def set_expiration_time(cls, v, values) -> datetime:
