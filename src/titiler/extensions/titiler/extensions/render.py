@@ -124,7 +124,7 @@ class stacRenderExtension(FactoryExtension):
             response_model=RenderItemList,
             response_model_exclude_none=True,
             name="List STAC Renders metadata",
-            operation_id=f"{factory.name}getRenderList",
+            operation_id=f"{factory.operation_prefix}getRenderList",
         )
         def render_list(request: Request, src_path=Depends(factory.path_dependency)):
             with factory.reader(src_path) as src:
@@ -151,7 +151,7 @@ class stacRenderExtension(FactoryExtension):
             response_model=RenderItemWithLinks,
             response_model_exclude_none=True,
             name="STAC Renders metadata",
-            operation_id=f"{factory.name}getRender",
+            operation_id=f"{factory.operation_prefix}getRender",
         )
         def render(
             request: Request,

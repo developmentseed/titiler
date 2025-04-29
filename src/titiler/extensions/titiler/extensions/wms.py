@@ -95,7 +95,7 @@ class wmsExtension(FactoryExtension):
                     },
                 },
             },
-            operation_id=f"{factory.name}getWMS",
+            operation_id=f"{factory.operation_prefix}getWMS",
             openapi_extra={
                 "parameters": [
                     {

@@ -26,7 +26,7 @@ class cogViewerExtension(FactoryExtension):
         @factory.router.get(
             "/viewer",
             response_class=HTMLResponse,
-            operation_id=f"{factory.name}getViewer",
+            operation_id=f"{factory.operation_prefix}getViewer",
         )
         def cog_viewer(request: Request):
             """COG Viewer."""
@@ -57,7 +57,7 @@ class stacViewerExtension(FactoryExtension):
         @factory.router.get(
             "/viewer",
             response_class=HTMLResponse,
-            operation_id=f"{factory.name}getViewer",
+            operation_id=f"{factory.operation_prefix}getViewer",
         )
         def stac_viewer(request: Request):
             """STAC Viewer."""

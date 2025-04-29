@@ -51,7 +51,7 @@ class stacExtension(FactoryExtension):
             "/stac",
             response_model=Item,
             name="Create STAC Item",
-            operation_id=f"{factory.name}createSTAC",
+            operation_id=f"{factory.operation_prefix}createSTAC",
         )
         def create_stac(
             src_path=Depends(factory.path_dependency),

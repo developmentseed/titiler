@@ -30,7 +30,7 @@ class cogValidateExtension(FactoryExtension):
             "/validate",
             response_model=Info,
             response_class=JSONResponse,
-            operation_id=f"{factory.name}validate",
+            operation_id=f"{factory.operation_prefix}validate",
         )
         def validate(
             src_path=Depends(factory.path_dependency),
