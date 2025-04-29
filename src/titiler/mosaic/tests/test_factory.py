@@ -207,7 +207,7 @@ def test_MosaicTilerFactory():
         assert response.status_code == 200
 
         response = client.get(
-            "/mosaic/WebMercatorQuad/7/36/45/assets",
+            "/mosaic/tiles/WebMercatorQuad/7/36/45/assets",
             params={"url": mosaic_file},
         )
         assert response.status_code == 200
@@ -216,34 +216,7 @@ def test_MosaicTilerFactory():
         )
 
         response = client.get(
-            "/mosaic/WGS1984Quad/8/148/61/assets",
-            params={"url": mosaic_file},
-        )
-        assert response.status_code == 200
-        assert all(
-            filepath.split("/")[-1] in ["cog1.tif", "cog2.tif"]
-            for filepath in response.json()
-        )
-
-        response = client.get("/mosaic/-71,46/assets", params={"url": mosaic_file})
-        assert response.status_code == 200
-        assert all(
-            filepath.split("/")[-1] in ["cog1.tif", "cog2.tif"]
-            for filepath in response.json()
-        )
-
-        response = client.get(
-            "/mosaic/-7903683.846322423,5780349.220256353/assets",
-            params={"url": mosaic_file, "coord_crs": "epsg:3857"},
-        )
-        assert response.status_code == 200
-        assert all(
-            filepath.split("/")[-1] in ["cog1.tif", "cog2.tif"]
-            for filepath in response.json()
-        )
-
-        response = client.get(
-            "/mosaic/-75.9375,43.06888777416962,-73.125,45.089035564831015/assets",
+            "/mosaic/tiles/WGS1984Quad/8/148/61/assets",
             params={"url": mosaic_file},
         )
         assert response.status_code == 200
@@ -253,7 +226,16 @@ def test_MosaicTilerFactory():
         )
 
         response = client.get(
-            "/mosaic/-8453323.83211421,5322463.153553393,-8140237.76425813,5635549.221409473/assets",
+            "/mosaic/point/-71,46/assets", params={"url": mosaic_file}
+        )
+        assert response.status_code == 200
+        assert all(
+            filepath.split("/")[-1] in ["cog1.tif", "cog2.tif"]
+            for filepath in response.json()
+        )
+
+        response = client.get(
+            "/mosaic/point/-7903683.846322423,5780349.220256353/assets",
             params={"url": mosaic_file, "coord_crs": "epsg:3857"},
         )
         assert response.status_code == 200
@@ -263,7 +245,27 @@ def test_MosaicTilerFactory():
         )
 
         response = client.get(
-            "/mosaic/10,10,11,11/assets",
+            "/mosaic/bbox/-75.9375,43.06888777416962,-73.125,45.089035564831015/assets",
+            params={"url": mosaic_file},
+        )
+        assert response.status_code == 200
+        assert all(
+            filepath.split("/")[-1] in ["cog1.tif", "cog2.tif"]
+            for filepath in response.json()
+        )
+
+        response = client.get(
+            "/mosaic/bbox/-8453323.83211421,5322463.153553393,-8140237.76425813,5635549.221409473/assets",
+            params={"url": mosaic_file, "coord_crs": "epsg:3857"},
+        )
+        assert response.status_code == 200
+        assert all(
+            filepath.split("/")[-1] in ["cog1.tif", "cog2.tif"]
+            for filepath in response.json()
+        )
+
+        response = client.get(
+            "/mosaic/bbox/10,10,11,11/assets",
             params={"url": mosaic_file},
         )
         assert response.status_code == 200

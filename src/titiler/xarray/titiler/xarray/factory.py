@@ -70,6 +70,7 @@ class TilerFactory(BaseTilerFactory):
             response_model_exclude_none=True,
             response_class=JSONResponse,
             responses={200: {"description": "Return dataset's basic info."}},
+            operation_id=f"{self.operation_prefix}getInfo",
         )
         def info_endpoint(
             src_path=Depends(self.path_dependency),
@@ -102,6 +103,7 @@ class TilerFactory(BaseTilerFactory):
                     "description": "Return dataset's basic info as a GeoJSON feature.",
                 }
             },
+            operation_id=f"{self.operation_prefix}getInfoGeoJSON",
         )
         def info_geojson(
             src_path=Depends(self.path_dependency),
@@ -147,6 +149,7 @@ class TilerFactory(BaseTilerFactory):
                     "description": "Return dataset's statistics from feature or featureCollection.",
                 }
             },
+            operation_id=f"{self.operation_prefix}postStatisticsForGeoJSON",
         )
         def geojson_statistics(
             geojson: Annotated[

@@ -151,6 +151,7 @@ class MosaicTilerFactory(BaseFactory):
             response_model=MosaicJSON,
             response_model_exclude_none=True,
             responses={200: {"description": "Return MosaicJSON definition"}},
+            operation_id=f"{self.operation_prefix}getMosaicJSON",
         )
         def read(
             src_path=Depends(self.path_dependency),
@@ -178,6 +179,7 @@ class MosaicTilerFactory(BaseFactory):
             "/bounds",
             response_model=Bounds,
             responses={200: {"description": "Return the bounds of the MosaicJSON"}},
+            operation_id=f"{self.operation_prefix}getBounds",
         )
         def bounds(
             src_path=Depends(self.path_dependency),
@@ -210,6 +212,7 @@ class MosaicTilerFactory(BaseFactory):
             "/info",
             response_model=mosaicInfo,
             responses={200: {"description": "Return info about the MosaicJSON"}},
+            operation_id=f"{self.operation_prefix}getInfo",
         )
         def info(
             src_path=Depends(self.path_dependency),
@@ -238,6 +241,7 @@ class MosaicTilerFactory(BaseFactory):
                     "description": "Return mosaic's basic info as a GeoJSON feature.",
                 }
             },
+            operation_id=f"{self.operation_prefix}getInfoGeoJSON",
         )
         def info_geojson(
             src_path=Depends(self.path_dependency),
@@ -283,6 +287,7 @@ class MosaicTilerFactory(BaseFactory):
                 }
             },
             summary="Retrieve a list of available raster tilesets for the specified dataset.",
+            operation_id=f"{self.operation_prefix}getTileSetList",
         )
         async def tileset_list(
             request: Request,
@@ -374,6 +379,7 @@ class MosaicTilerFactory(BaseFactory):
             response_model_exclude_none=True,
             responses={200: {"content": {"application/json": {}}}},
             summary="Retrieve the raster tileset metadata for the specified dataset and tiling scheme (tile matrix set).",
+            operation_id=f"{self.operation_prefix}getTileSet",
         )
         async def tileset(
             request: Request,
@@ -507,15 +513,24 @@ class MosaicTilerFactory(BaseFactory):
     def tile(self):  # noqa: C901
         """Register /tiles endpoints."""
 
-        @self.router.get("/tiles/{tileMatrixSetId}/{z}/{x}/{y}", **img_endpoint_params)
         @self.router.get(
-            "/tiles/{tileMatrixSetId}/{z}/{x}/{y}.{format}", **img_endpoint_params
+            "/tiles/{tileMatrixSetId}/{z}/{x}/{y}",
+            operation_id=f"{self.operation_prefix}getTile",
+            **img_endpoint_params,
         )
         @self.router.get(
-            "/tiles/{tileMatrixSetId}/{z}/{x}/{y}@{scale}x", **img_endpoint_params
+            "/tiles/{tileMatrixSetId}/{z}/{x}/{y}.{format}",
+            operation_id=f"{self.operation_prefix}getTileWithFormat",
+            **img_endpoint_params,
+        )
+        @self.router.get(
+            "/tiles/{tileMatrixSetId}/{z}/{x}/{y}@{scale}x",
+            operation_id=f"{self.operation_prefix}getTileWithScale",
+            **img_endpoint_params,
         )
         @self.router.get(
             "/tiles/{tileMatrixSetId}/{z}/{x}/{y}@{scale}x.{format}",
+            operation_id=f"{self.operation_prefix}getTileWithFormatAndScale",
             **img_endpoint_params,
         )
         def tile(
@@ -625,6 +640,7 @@ class MosaicTilerFactory(BaseFactory):
             response_model=TileJSON,
             responses={200: {"description": "Return a tilejson"}},
             response_model_exclude_none=True,
+            operation_id=f"{self.operation_prefix}getTileJSON",
         )
         def tilejson(
             request: Request,
@@ -717,7 +733,11 @@ class MosaicTilerFactory(BaseFactory):
     def map_viewer(self):  # noqa: C901
         """Register /map.html endpoint."""
 
-        @self.router.get("/{tileMatrixSetId}/map.html", response_class=HTMLResponse)
+        @self.router.get(
+            "/{tileMatrixSetId}/map.html",
+            response_class=HTMLResponse,
+            operation_id=f"{self.operation_prefix}getMapViewer",
+        )
         def map_viewer(
             request: Request,
             tileMatrixSetId: Annotated[
@@ -783,7 +803,9 @@ class MosaicTilerFactory(BaseFactory):
         """Add wmts endpoint."""
 
         @self.router.get(
-            "/{tileMatrixSetId}/WMTSCapabilities.xml", response_class=XMLResponse
+            "/{tileMatrixSetId}/WMTSCapabilities.xml",
+            response_class=XMLResponse,
+            operation_id=f"{self.operation_prefix}getWMTS",
         )
         def wmts(
             request: Request,
@@ -937,6 +959,7 @@ class MosaicTilerFactory(BaseFactory):
             response_model=Point,
             response_class=JSONResponse,
             responses={200: {"description": "Return a value for a point"}},
+            operation_id=f"{self.operation_prefix}getDataForPoint",
         )
         def point(
             response: Response,
@@ -977,7 +1000,10 @@ class MosaicTilerFactory(BaseFactory):
     def validate(self):
         """Register /validate endpoint."""
 
-        @self.router.post("/validate")
+        @self.router.post(
+            "/validate",
+            operation_id=f"{self.operation_prefix}validate",
+        )
         def validate(body: MosaicJSON):
             """Validate a MosaicJSON"""
             return True
@@ -986,8 +1012,9 @@ class MosaicTilerFactory(BaseFactory):
         """Register /assets endpoint."""
 
         @self.router.get(
-            "/{minx},{miny},{maxx},{maxy}/assets",
+            "/bbox/{minx},{miny},{maxx},{maxy}/assets",
             responses={200: {"description": "Return list of COGs in bounding box"}},
+            operation_id=f"{self.operation_prefix}getAssetsForBoundingBox",
         )
         def assets_for_bbox(
             minx: Annotated[float, Path(description="Bounding box min X")],
@@ -1017,8 +1044,9 @@ class MosaicTilerFactory(BaseFactory):
                     )
 
         @self.router.get(
-            "/{lon},{lat}/assets",
+            "/point/{lon},{lat}/assets",
             responses={200: {"description": "Return list of COGs"}},
+            operation_id=f"{self.operation_prefix}getAssetsForPoint",
         )
         def assets_for_lon_lat(
             lon: Annotated[float, Path(description="Longitude")],
@@ -1044,8 +1072,9 @@ class MosaicTilerFactory(BaseFactory):
                     )
 
         @self.router.get(
-            "/{tileMatrixSetId}/{z}/{x}/{y}/assets",
+            "/tiles/{tileMatrixSetId}/{z}/{x}/{y}/assets",
             responses={200: {"description": "Return list of COGs"}},
+            operation_id=f"{self.operation_prefix}getAssetsForTile",
         )
         def assets_for_tile(
             tileMatrixSetId: Annotated[

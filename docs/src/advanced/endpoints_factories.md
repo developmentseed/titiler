@@ -21,6 +21,8 @@ Most **Factories** are built from this [abstract based class](https://docs.pytho
 - **router_prefix**: Set prefix to all factory's endpoint. Defaults to `""`.
 - **route_dependencies**: Additional routes dependencies to add after routes creations. Defaults to `[]`.
 - **extension**: TiTiler extensions to register after endpoints creations. Defaults to `[]`.
+- **name**: Name of the Endpoints group. Defaults to `None`.
+- **operation_prefix** (*private*): Endpoint's `operationId` prefix. Defined by `self.name` or `self.router_prefix.replace("/", ".")`.
 
 #### Methods
 

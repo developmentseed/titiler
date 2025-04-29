@@ -146,8 +146,15 @@ class BaseFactory(metaclass=abc.ABCMeta):
 
     extensions: List[FactoryExtension] = field(factory=list)
 
+    name: Optional[str] = field(default=None)
+    operation_prefix: str = field(init=False, default="")
+
     def __attrs_post_init__(self):
         """Post Init: register route and configure specific options."""
+        # prefix for endpoint's operationId
+        name = self.name or self.router_prefix.replace("/", ".")
+        self.operation_prefix = f"{name}." if name else ""
+
         # Register endpoints
         self.register_routes()
 
@@ -334,6 +341,7 @@ class TilerFactory(BaseFactory):
             "/bounds",
             response_model=Bounds,
             responses={200: {"description": "Return dataset's bounds."}},
+            operation_id=f"{self.operation_prefix}getBounds",
         )
         def bounds(
             src_path=Depends(self.path_dependency),
@@ -362,6 +370,7 @@ class TilerFactory(BaseFactory):
             response_model_exclude_none=True,
             response_class=JSONResponse,
             responses={200: {"description": "Return dataset's basic info."}},
+            operation_id=f"{self.operation_prefix}getInfo",
         )
         def info(
             src_path=Depends(self.path_dependency),
@@ -384,6 +393,7 @@ class TilerFactory(BaseFactory):
                     "description": "Return dataset's basic info as a GeoJSON feature.",
                 }
             },
+            operation_id=f"{self.operation_prefix}getInfoGeoJSON",
         )
         def info_geojson(
             src_path=Depends(self.path_dependency),
@@ -421,6 +431,7 @@ class TilerFactory(BaseFactory):
                     "description": "Return dataset's statistics.",
                 }
             },
+            operation_id=f"{self.operation_prefix}getStatistics",
         )
         def statistics(
             src_path=Depends(self.path_dependency),
@@ -462,6 +473,7 @@ class TilerFactory(BaseFactory):
                     "description": "Return dataset's statistics from feature or featureCollection.",
                 }
             },
+            operation_id=f"{self.operation_prefix}postStatisticsForGeoJSON",
         )
         def geojson_statistics(
             geojson: Annotated[
@@ -538,6 +550,7 @@ class TilerFactory(BaseFactory):
                 }
             },
             summary="Retrieve a list of available raster tilesets for the specified dataset.",
+            operation_id=f"{self.operation_prefix}getTileSetList",
         )
         async def tileset_list(
             request: Request,
@@ -623,6 +636,7 @@ class TilerFactory(BaseFactory):
             response_model_exclude_none=True,
             responses={200: {"content": {"application/json": {}}}},
             summary="Retrieve the raster tileset metadata for the specified dataset and tiling scheme (tile matrix set).",
+            operation_id=f"{self.operation_prefix}getTileSet",
         )
         async def tileset(
             request: Request,
@@ -751,15 +765,24 @@ class TilerFactory(BaseFactory):
     def tile(self):  # noqa: C901
         """Register /tiles endpoint."""
 
-        @self.router.get(r"/tiles/{tileMatrixSetId}/{z}/{x}/{y}", **img_endpoint_params)
         @self.router.get(
-            r"/tiles/{tileMatrixSetId}/{z}/{x}/{y}.{format}", **img_endpoint_params
+            "/tiles/{tileMatrixSetId}/{z}/{x}/{y}",
+            operation_id=f"{self.operation_prefix}getTile",
+            **img_endpoint_params,
         )
         @self.router.get(
-            r"/tiles/{tileMatrixSetId}/{z}/{x}/{y}@{scale}x", **img_endpoint_params
+            "/tiles/{tileMatrixSetId}/{z}/{x}/{y}.{format}",
+            operation_id=f"{self.operation_prefix}getTileWithFormat",
+            **img_endpoint_params,
         )
         @self.router.get(
-            r"/tiles/{tileMatrixSetId}/{z}/{x}/{y}@{scale}x.{format}",
+            "/tiles/{tileMatrixSetId}/{z}/{x}/{y}@{scale}x",
+            operation_id=f"{self.operation_prefix}getTileWithScale",
+            **img_endpoint_params,
+        )
+        @self.router.get(
+            "/tiles/{tileMatrixSetId}/{z}/{x}/{y}@{scale}x.{format}",
+            operation_id=f"{self.operation_prefix}getTileWithFormatAndScale",
             **img_endpoint_params,
         )
         def tile(
@@ -844,6 +867,7 @@ class TilerFactory(BaseFactory):
             response_model=TileJSON,
             responses={200: {"description": "Return a tilejson"}},
             response_model_exclude_none=True,
+            operation_id=f"{self.operation_prefix}getTileJSON",
         )
         def tilejson(
             request: Request,
@@ -927,7 +951,11 @@ class TilerFactory(BaseFactory):
     def map_viewer(self):  # noqa: C901
         """Register /map.html endpoint."""
 
-        @self.router.get("/{tileMatrixSetId}/map.html", response_class=HTMLResponse)
+        @self.router.get(
+            "/{tileMatrixSetId}/map.html",
+            response_class=HTMLResponse,
+            operation_id=f"{self.operation_prefix}getMapViewer",
+        )
         def map_viewer(
             request: Request,
             tileMatrixSetId: Annotated[
@@ -993,7 +1021,9 @@ class TilerFactory(BaseFactory):
         """Register /wmts endpoint."""
 
         @self.router.get(
-            "/{tileMatrixSetId}/WMTSCapabilities.xml", response_class=XMLResponse
+            "/{tileMatrixSetId}/WMTSCapabilities.xml",
+            response_class=XMLResponse,
+            operation_id=f"{self.operation_prefix}getWMTS",
         )
         def wmts(
             request: Request,
@@ -1135,10 +1165,11 @@ class TilerFactory(BaseFactory):
         """Register /point endpoints."""
 
         @self.router.get(
-            r"/point/{lon},{lat}",
+            "/point/{lon},{lat}",
             response_model=Point,
             response_class=JSONResponse,
             responses={200: {"description": "Return a value for a point"}},
+            operation_id=f"{self.operation_prefix}getDataForPoint",
         )
         def point(
             lon: Annotated[float, Path(description="Longitude")],
@@ -1151,7 +1182,6 @@ class TilerFactory(BaseFactory):
             env=Depends(self.environment_dependency),
         ):
             """Get Point value for a dataset."""
-
             with rasterio.Env(**env):
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     pts = src_dst.point(
@@ -1174,8 +1204,16 @@ class TilerFactory(BaseFactory):
     def preview(self):
         """Register /preview endpoint."""
 
-        @self.router.get(r"/preview", **img_endpoint_params)
-        @self.router.get(r"/preview.{format}", **img_endpoint_params)
+        @self.router.get(
+            "/preview",
+            operation_id=f"{self.operation_prefix}getPreview",
+            **img_endpoint_params,
+        )
+        @self.router.get(
+            "/preview.{format}",
+            operation_id=f"{self.operation_prefix}getPreviewWithFormat",
+            **img_endpoint_params,
+        )
         def preview(
             format: Annotated[
                 ImageType,
@@ -1224,10 +1262,12 @@ class TilerFactory(BaseFactory):
         # GET endpoints
         @self.router.get(
             "/bbox/{minx},{miny},{maxx},{maxy}.{format}",
+            operation_id=f"{self.operation_prefix}getDataForBoundingBox",
             **img_endpoint_params,
         )
         @self.router.get(
             "/bbox/{minx},{miny},{maxx},{maxy}/{width}x{height}.{format}",
+            operation_id=f"{self.operation_prefix}getDataForBoundingBoxWithSizesAndFormat",
             **img_endpoint_params,
         )
         def bbox_image(
@@ -1279,14 +1319,17 @@ class TilerFactory(BaseFactory):
         # POST endpoints
         @self.router.post(
             "/feature",
+            operation_id=f"{self.operation_prefix}postDataForGeoJSON",
             **img_endpoint_params,
         )
         @self.router.post(
             "/feature.{format}",
+            operation_id=f"{self.operation_prefix}postDataForGeoJSONWithFormat",
             **img_endpoint_params,
         )
         @self.router.post(
             "/feature/{width}x{height}.{format}",
+            operation_id=f"{self.operation_prefix}postDataForGeoJSONWithSizesAndFormat",
             **img_endpoint_params,
         )
         def feature_image(
@@ -1370,6 +1413,7 @@ class MultiBaseTilerFactory(TilerFactory):
                     "description": "Return dataset's basic info or the list of available assets."
                 }
             },
+            operation_id=f"{self.operation_prefix}getInfo",
         )
         def info(
             src_path=Depends(self.path_dependency),
@@ -1393,6 +1437,7 @@ class MultiBaseTilerFactory(TilerFactory):
                     "description": "Return dataset's basic info as a GeoJSON feature.",
                 }
             },
+            operation_id=f"{self.operation_prefix}getInfoGeoJSON",
         )
         def info_geojson(
             src_path=Depends(self.path_dependency),
@@ -1418,6 +1463,7 @@ class MultiBaseTilerFactory(TilerFactory):
             "/assets",
             response_model=List[str],
             responses={200: {"description": "Return a list of supported assets."}},
+            operation_id=f"{self.operation_prefix}getAssets",
         )
         def available_assets(
             src_path=Depends(self.path_dependency),
@@ -1445,6 +1491,7 @@ class MultiBaseTilerFactory(TilerFactory):
                     "description": "Return dataset's statistics.",
                 }
             },
+            operation_id=f"{self.operation_prefix}getAssetsStatistics",
         )
         def asset_statistics(
             src_path=Depends(self.path_dependency),
@@ -1480,6 +1527,7 @@ class MultiBaseTilerFactory(TilerFactory):
                     "description": "Return dataset's statistics.",
                 }
             },
+            operation_id=f"{self.operation_prefix}getStatistics",
         )
         def statistics(
             src_path=Depends(self.path_dependency),
@@ -1525,6 +1573,7 @@ class MultiBaseTilerFactory(TilerFactory):
                     "description": "Return dataset's statistics from feature or featureCollection.",
                 }
             },
+            operation_id=f"{self.operation_prefix}postStatisticsForGeoJSON",
         )
         def geojson_statistics(
             geojson: Annotated[
@@ -1615,6 +1664,7 @@ class MultiBandTilerFactory(TilerFactory):
             response_model_exclude_none=True,
             response_class=JSONResponse,
             responses={200: {"description": "Return dataset's basic info."}},
+            operation_id=f"{self.operation_prefix}getInfo",
         )
         def info(
             src_path=Depends(self.path_dependency),
@@ -1638,6 +1688,7 @@ class MultiBandTilerFactory(TilerFactory):
                     "description": "Return dataset's basic info as a GeoJSON feature.",
                 }
             },
+            operation_id=f"{self.operation_prefix}getInfoGeoJSON",
         )
         def info_geojson(
             src_path=Depends(self.path_dependency),
@@ -1663,6 +1714,7 @@ class MultiBandTilerFactory(TilerFactory):
             "/bands",
             response_model=List[str],
             responses={200: {"description": "Return a list of supported bands."}},
+            operation_id=f"{self.operation_prefix}getBands",
         )
         def available_bands(
             src_path=Depends(self.path_dependency),
@@ -1689,6 +1741,7 @@ class MultiBandTilerFactory(TilerFactory):
                     "description": "Return dataset's statistics.",
                 }
             },
+            operation_id=f"{self.operation_prefix}getStatistics",
         )
         def statistics(
             src_path=Depends(self.path_dependency),
@@ -1734,6 +1787,7 @@ class MultiBandTilerFactory(TilerFactory):
                     "description": "Return dataset's statistics from feature or featureCollection.",
                 }
             },
+            operation_id=f"{self.operation_prefix}postStatisticsForGeoJSON",
         )
         def geojson_statistics(
             geojson: Annotated[
@@ -1798,11 +1852,11 @@ class TMSFactory(BaseFactory):
         """Register TMS endpoint routes."""
 
         @self.router.get(
-            r"/tileMatrixSets",
+            "/tileMatrixSets",
             response_model=TileMatrixSetList,
             response_model_exclude_none=True,
             summary="Retrieve the list of available tiling schemes (tile matrix sets).",
-            operation_id="getTileMatrixSetsList",
+            operation_id=f"{self.operation_prefix}getTileMatrixSetsList",
             responses={
                 200: {
                     "content": {
@@ -1843,7 +1897,7 @@ class TMSFactory(BaseFactory):
             response_model=TileMatrixSet,
             response_model_exclude_none=True,
             summary="Retrieve the definition of the specified tiling scheme (tile matrix set).",
-            operation_id="getTileMatrixSet",
+            operation_id=f"{self.operation_prefix}getTileMatrixSet",
             responses={
                 200: {
                     "content": {
@@ -1923,7 +1977,7 @@ class AlgorithmFactory(BaseFactory):
             "/algorithms",
             response_model=Dict[str, AlgorithmMetadata],
             summary="Retrieve the list of available Algorithms.",
-            operation_id="getAlgorithms",
+            operation_id=f"{self.operation_prefix}getAlgorithmList",
         )
         def available_algorithms(request: Request):
             """Retrieve the list of available Algorithms."""
@@ -1933,7 +1987,7 @@ class AlgorithmFactory(BaseFactory):
             "/algorithms/{algorithmId}",
             response_model=AlgorithmMetadata,
             summary="Retrieve the metadata of the specified algorithm.",
-            operation_id="getAlgorithm",
+            operation_id=f"{self.operation_prefix}getAlgorithm",
         )
         def algorithm_metadata(
             algorithm: Annotated[
@@ -1960,7 +2014,7 @@ class ColorMapFactory(BaseFactory):
             response_model=ColorMapsList,
             response_model_exclude_none=True,
             summary="Retrieve the list of available colormaps.",
-            operation_id="getColorMaps",
+            operation_id=f"{self.operation_prefix}getColorMapList",
         )
         def available_colormaps(request: Request):
             """Retrieve the list of available colormaps."""
@@ -2002,7 +2056,7 @@ class ColorMapFactory(BaseFactory):
             "/colorMaps/{colorMapId}",
             response_model=ColorMapType,
             summary="Retrieve the colorMap metadata or image.",
-            operation_id="getColorMap",
+            operation_id=f"{self.operation_prefix}getColorMap",
             responses={
                 200: {
                     "content": {
