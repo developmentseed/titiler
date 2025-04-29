@@ -23,7 +23,11 @@ class cogViewerExtension(FactoryExtension):
     def register(self, factory: TilerFactory):
         """Register endpoint to the tiler factory."""
 
-        @factory.router.get("/viewer", response_class=HTMLResponse)
+        @factory.router.get(
+            "/viewer",
+            response_class=HTMLResponse,
+            operation_id=f"{factory.name}getViewer",
+        )
         def cog_viewer(request: Request):
             """COG Viewer."""
             return self.templates.TemplateResponse(
@@ -50,7 +54,11 @@ class stacViewerExtension(FactoryExtension):
     def register(self, factory: TilerFactory):
         """Register endpoint to the tiler factory."""
 
-        @factory.router.get("/viewer", response_class=HTMLResponse)
+        @factory.router.get(
+            "/viewer",
+            response_class=HTMLResponse,
+            operation_id=f"{factory.name}getViewer",
+        )
         def stac_viewer(request: Request):
             """STAC Viewer."""
             return self.templates.TemplateResponse(

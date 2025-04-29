@@ -5,6 +5,8 @@
 ### Misc
 
 * rename `/map` endpoint to `/map.html` **breaking change**
+* add `name` attribute to `BaseFactory` to define endpoint's `operationId`
+* add `operationId` on all endpoints
 
 ### titiler.application
 
@@ -128,6 +130,13 @@
 * remove `datetime` option **breaking change**
 * deprecate `VariablesExtension` extension
 * add `DatasetMetadataExtension` extension (`/dataset/keys`, `/dataset/` and `/dataset/dict` endpoints)
+
+### titiler.mosaic
+
+* add `/bbox` prefix to `/{minx},{miny},{maxx},{maxy}/assets` endpoint -> `/bbox/{minx},{miny},{maxx},{maxy}/assets` **breaking change**
+* add `/point` prefix to `{lon},{lat}/assets` endpoint -> `/point/{lon},{lat}/assets` **breaking change**
+* add `/tiles` prefix to `/{tileMatrixSetId}/{z}/{x}/{y}/assets` endpoint -> `/tiles/{tileMatrixSetId}/{z}/{x}/{y}/assets` **breaking change**
+
 
 ## 0.21.1 (2025-01-29)
 

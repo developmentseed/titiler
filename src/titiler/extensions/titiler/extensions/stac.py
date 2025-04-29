@@ -47,7 +47,12 @@ class stacExtension(FactoryExtension):
 
         media = [m.value for m in pystac.MediaType] + ["auto"]
 
-        @factory.router.get("/stac", response_model=Item, name="Create STAC Item")
+        @factory.router.get(
+            "/stac",
+            response_model=Item,
+            name="Create STAC Item",
+            operation_id=f"{factory.name}createSTAC",
+        )
         def create_stac(
             src_path=Depends(factory.path_dependency),
             datetime: Annotated[
