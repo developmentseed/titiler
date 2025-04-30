@@ -1,7 +1,7 @@
 """TiTiler.mosaic Router factories."""
 
 import os
-from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Type, Union
+from typing import Any, Callable, Dict, List, Literal, Optional, Set, Tuple, Type, Union
 from urllib.parse import urlencode
 
 import rasterio
@@ -123,6 +123,20 @@ class MosaicTilerFactory(BaseFactory):
 
     # Add/Remove some endpoints
     add_viewer: bool = True
+
+    conforms_to: Set[str] = field(
+        factory=lambda: {
+            # https://docs.ogc.org/is/20-057/20-057.html#toc30
+            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/req/tileset",
+            # https://docs.ogc.org/is/20-057/20-057.html#toc34
+            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/req/tilesets-list",
+            # https://docs.ogc.org/is/20-057/20-057.html#toc65
+            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/req/core",
+            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/req/png",
+            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/req/jpeg",
+            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/req/tiff",
+        }
+    )
 
     def register_routes(self):
         """This Method register routes to the router."""

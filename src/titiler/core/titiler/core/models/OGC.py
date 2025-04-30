@@ -730,3 +730,25 @@ class TileSetList(BaseModel):
     """
 
     tilesets: List[TileSet]
+
+
+class Conformance(BaseModel):
+    """Conformance model.
+
+    Ref: http://schemas.opengis.net/ogcapi/features/part1/1.0/openapi/schemas/confClasses.yaml
+
+    """
+
+    conformsTo: List[str]
+
+
+class Landing(BaseModel):
+    """Landing page model.
+
+    Ref: http://schemas.opengis.net/ogcapi/features/part1/1.0/openapi/schemas/landingPage.yaml
+
+    """
+
+    title: Optional[str] = None
+    description: Optional[str] = None
+    links: List[Link]

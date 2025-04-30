@@ -11,8 +11,13 @@
 ### titiler.application
 
 * fix Landing page links when app is behind proxy
+* use `titiler.core` templates for Landing page
+* enable JSON and HTML rendering of the `/` landing page
+* add OGC Common `/conformance` endpoint
 
 ### titiler.core
+
+* add `conforms_to` attribute to `BaseFactory` to indicate which conformance the TileFactory implement
 
 * remove deprecated `ColorFormulaParams` and `RescalingParams` dependencies **breaking change**
 

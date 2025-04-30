@@ -9,6 +9,7 @@ from typing import (
     Literal,
     Optional,
     Sequence,
+    Set,
     Tuple,
     Type,
     Union,
@@ -148,6 +149,8 @@ class BaseFactory(metaclass=abc.ABCMeta):
 
     name: Optional[str] = field(default=None)
     operation_prefix: str = field(init=False, default="")
+
+    conforms_to: Set[str] = field(factory=set)
 
     def __attrs_post_init__(self):
         """Post Init: register route and configure specific options."""
@@ -301,6 +304,20 @@ class TilerFactory(BaseFactory):
     add_preview: bool = True
     add_part: bool = True
     add_viewer: bool = True
+
+    conforms_to: Set[str] = field(
+        factory=lambda: {
+            # https://docs.ogc.org/is/20-057/20-057.html#toc30
+            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/req/tileset",
+            # https://docs.ogc.org/is/20-057/20-057.html#toc34
+            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/req/tilesets-list",
+            # https://docs.ogc.org/is/20-057/20-057.html#toc65
+            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/req/core",
+            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/req/png",
+            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/req/jpeg",
+            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/req/tiff",
+        }
+    )
 
     def register_routes(self):
         """
