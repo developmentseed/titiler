@@ -3,15 +3,15 @@
 import json
 import logging
 from logging import config as log_config
+from typing import Annotated, Literal, Optional
 
 import jinja2
 import rasterio
-from fastapi import Depends, FastAPI, HTTPException, Security
+from fastapi import Depends, FastAPI, HTTPException, Query, Security
 from fastapi.security.api_key import APIKeyQuery
 from rio_tiler.io import Reader, STACReader
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
-from starlette.responses import HTMLResponse
 from starlette.templating import Jinja2Templates
 from starlette_cramjam.middleware import CompressionMiddleware
 
@@ -31,6 +31,10 @@ from titiler.core.middleware import (
     LowerCaseQueryStringMiddleware,
     TotalTimeMiddleware,
 )
+from titiler.core.models.OGC import Conformance, Landing
+from titiler.core.resources.enums import MediaType
+from titiler.core.templating import create_html_response
+from titiler.core.utils import accept_media_type, update_openapi
 from titiler.extensions import (
     cogValidateExtension,
     cogViewerExtension,
@@ -97,6 +101,18 @@ app = FastAPI(
     dependencies=app_dependencies,
 )
 
+# Fix OpenAPI response header for OGC Common compatibility
+update_openapi(app)
+
+TITILER_CONFORMS_TO = {
+    "http://www.opengis.net/spec/ogcapi-common-1/1.0/req/core",
+    "http://www.opengis.net/spec/ogcapi-common-1/1.0/req/landing-page",
+    "http://www.opengis.net/spec/ogcapi-common-1/1.0/req/oas30",
+    "http://www.opengis.net/spec/ogcapi-common-1/1.0/req/html",
+    "http://www.opengis.net/spec/ogcapi-common-1/1.0/req/json",
+}
+
+
 ###############################################################################
 # Simple Dataset endpoints (e.g Cloud Optimized GeoTIFF)
 if not api_settings.disable_cog:
@@ -116,6 +132,7 @@ if not api_settings.disable_cog:
         tags=["Cloud Optimized GeoTIFF"],
     )
 
+    TITILER_CONFORMS_TO.update(cog.conforms_to)
 
 ###############################################################################
 # STAC endpoints
@@ -135,6 +152,8 @@ if not api_settings.disable_stac:
         tags=["SpatioTemporal Asset Catalog"],
     )
 
+    TITILER_CONFORMS_TO.update(stac.conforms_to)
+
 ###############################################################################
 # Mosaic endpoints
 if not api_settings.disable_mosaic:
@@ -145,6 +164,8 @@ if not api_settings.disable_mosaic:
         tags=["MosaicJSON"],
     )
 
+    TITILER_CONFORMS_TO.update(mosaic.conforms_to)
+
 ###############################################################################
 # TileMatrixSets endpoints
 tms = TMSFactory()
@@ -152,6 +173,7 @@ app.include_router(
     tms.router,
     tags=["Tiling Schemes"],
 )
+TITILER_CONFORMS_TO.update(tms.conforms_to)
 
 ###############################################################################
 # Algorithms endpoints
@@ -160,6 +182,7 @@ app.include_router(
     algorithms.router,
     tags=["Algorithms"],
 )
+TITILER_CONFORMS_TO.update(algorithms.conforms_to)
 
 ###############################################################################
 # Colormaps endpoints
@@ -168,6 +191,7 @@ app.include_router(
     cmaps.router,
     tags=["ColorMaps"],
 )
+TITILER_CONFORMS_TO.update(cmaps.conforms_to)
 
 
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
@@ -289,30 +313,33 @@ def application_health_check():
     }
 
 
-@app.get("/", response_class=HTMLResponse, include_in_schema=False)
-def landing(request: Request):
+@app.get(
+    "/",
+    response_model=Landing,
+    response_model_exclude_none=True,
+    responses={
+        200: {
+            "content": {
+                "text/html": {},
+                "application/json": {},
+            }
+        },
+    },
+    tags=["OGC Common"],
+)
+def landing(
+    request: Request,
+    f: Annotated[
+        Optional[Literal["html", "json"]],
+        Query(
+            description="Response MediaType. Defaults to endpoint's default or value defined in `accept` header."
+        ),
+    ] = None,
+):
     """TiTiler landing page."""
-    urlpath = request.url.path
-    if root_path := request.scope.get("root_path"):
-        urlpath = urlpath.removeprefix(root_path)
-
-    crumbs = []
-    baseurl = str(request.base_url).rstrip("/")
-
-    crumbpath = str(baseurl)
-    if urlpath == "/":
-        urlpath = ""
-
-    for crumb in urlpath.split("/"):
-        crumbpath = crumbpath.rstrip("/")
-        part = crumb
-        if part is None or part == "":
-            part = "Home"
-        crumbpath += f"/{crumb}"
-        crumbs.append({"url": crumbpath.rstrip("/"), "part": part.capitalize()})
-
     data = {
-        "title": "titiler",
+        "title": "TiTiler",
+        "description": "A modern dynamic tile server built on top of FastAPI and Rasterio/GDAL.",
         "links": [
             {
                 "title": "Landing page",
@@ -321,16 +348,22 @@ def landing(request: Request):
                 "rel": "self",
             },
             {
-                "title": "the API definition (JSON)",
+                "title": "The API definition (JSON)",
                 "href": str(request.url_for("openapi")),
                 "type": "application/vnd.oai.openapi+json;version=3.0",
                 "rel": "service-desc",
             },
             {
-                "title": "the API documentation",
+                "title": "The API documentation",
                 "href": str(request.url_for("swagger_ui_html")),
                 "type": "text/html",
                 "rel": "service-doc",
+            },
+            {
+                "title": "Conformance Declaration",
+                "href": str(request.url_for("conformance")),
+                "type": "text/html",
+                "rel": "http://www.opengis.net/def/rel/ogc/1.0/conformance",
             },
             {
                 "title": "TiTiler Documentation (external link)",
@@ -347,16 +380,74 @@ def landing(request: Request):
         ],
     }
 
-    return templates.TemplateResponse(
-        "index.html",
-        {
-            "request": request,
-            "response": data,
-            "template": {
-                "api_root": baseurl,
-                "params": request.query_params,
-                "title": "TiTiler",
-            },
-            "crumbs": crumbs,
+    output_type: Optional[MediaType]
+    if f:
+        output_type = MediaType[f]
+    else:
+        accepted_media = [MediaType.html, MediaType.json]
+        output_type = accept_media_type(
+            request.headers.get("accept", ""), accepted_media
+        )
+
+    if output_type == MediaType.html:
+        return create_html_response(
+            request,
+            data,
+            title="TiTiler",
+            template_name="landing",
+        )
+
+    return data
+
+
+@app.get(
+    "/conformance",
+    response_model=Conformance,
+    response_model_exclude_none=True,
+    responses={
+        200: {
+            "content": {
+                "text/html": {},
+                "application/json": {},
+            }
         },
-    )
+    },
+    tags=["OGC Common"],
+)
+def conformance(
+    request: Request,
+    f: Annotated[
+        Optional[Literal["html", "json"]],
+        Query(
+            description="Response MediaType. Defaults to endpoint's default or value defined in `accept` header."
+        ),
+    ] = None,
+):
+    """Conformance classes.
+
+    Called with `GET /conformance`.
+
+    Returns:
+        Conformance classes which the server conforms to.
+
+    """
+    data = {"conformsTo": sorted(TITILER_CONFORMS_TO)}
+
+    output_type: Optional[MediaType]
+    if f:
+        output_type = MediaType[f]
+    else:
+        accepted_media = [MediaType.html, MediaType.json]
+        output_type = accept_media_type(
+            request.headers.get("accept", ""), accepted_media
+        )
+
+    if output_type == MediaType.html:
+        return create_html_response(
+            request,
+            data,
+            title="Conformance",
+            template_name="conformance",
+        )
+
+    return data

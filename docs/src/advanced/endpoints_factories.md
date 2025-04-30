@@ -23,6 +23,7 @@ Most **Factories** are built from this [abstract based class](https://docs.pytho
 - **extension**: TiTiler extensions to register after endpoints creations. Defaults to `[]`.
 - **name**: Name of the Endpoints group. Defaults to `None`.
 - **operation_prefix** (*private*): Endpoint's `operationId` prefix. Defined by `self.name` or `self.router_prefix.replace("/", ".")`.
+- **conforms_to**: Set of conformance classes the Factory implement
 
 #### Methods
 

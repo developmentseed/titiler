@@ -444,7 +444,7 @@ class RenderingParams(DefaultDependency):
         ),
     ] = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Post Init."""
         if self.rescale:
             rescale_array = []
@@ -460,7 +460,7 @@ class RenderingParams(DefaultDependency):
                 ), f"Invalid rescale values: {self.rescale}, should be of form ['min,max', 'min,max'] or [[min,max], [min, max]]"
                 rescale_array.append(parsed)
 
-            self.rescale: RescaleType = rescale_array
+            self.rescale: RescaleType = rescale_array  # type: ignore
 
 
 @dataclass
