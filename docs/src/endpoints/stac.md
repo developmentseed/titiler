@@ -19,13 +19,13 @@ The `/stac` routes are based on `titiler.core.factory.MultiBaseTilerFactory` but
 | `GET`  | `/stac/tiles`                                                        | JSON      | List of OGC Tilesets available
 | `GET`  | `/stac/tiles/{tileMatrixSetId}`                                      | JSON      | OGC Tileset metadata
 | `GET`  | `/stac/tiles/{tileMatrixSetId}/{z}/{x}/{y}[@{scale}x][.{format}]`    | image/bin | create a web map tile image from assets
-| `GET`  | `/stac/{tileMatrixSetId}/map.html`                                        | HTML      | simple map viewer
+| `GET`  | `/stac/{tileMatrixSetId}/map.html`                                   | HTML      | simple map viewer
 | `GET`  | `/stac/{tileMatrixSetId}/tilejson.json`                              | JSON      | return a Mapbox TileJSON document
 | `GET`  | `/stac/{tileMatrixSetId}/WMTSCapabilities.xml`                       | XML       | return OGC WMTS Get Capabilities
 | `GET`  | `/stac/point/{lon},{lat}`                                            | JSON      | return pixel value from assets
-| `GET`  | `/stac/preview[.{format}]`                                           | image/bin | create a preview image from assets
 | `GET`  | `/stac/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin | create an image from part of assets
-| `POST` | `/stac/feature[/{width}x{height}][].{format}]`                       | image/bin | create an image from a geojson covering the assets
+| `POST` | `/stac/feature[/{width}x{height}][.{format}]`                        | image/bin | create an image from a geojson covering the assets
+| `GET`  | `/stac/preview[/{width}x{height}][.{format}]`                        | image/bin | create a preview image from assets
 | `GET`  | `/stac/viewer`                                                       | HTML      | demo webpage (from `titiler.extensions.stacViewerExtension`)
 
 ## Description
@@ -74,10 +74,16 @@ Example:
 
 ### Preview
 
-`:endpoint:/stac/preview[.{format}]`
+`:endpoint:/stac/preview`
+
+`:endpoint:/stac/preview/.{format}`
+
+`:endpoint:/stac/preview/{width}x{height}.{format}`
 
 - PathParams:
-    - **format**: Output [image format](../user_guide/output_format.md), default is set to None and will be either JPEG or PNG depending on masked value. **Optional**
+    - **format** (str, optional): Output [image format](../user_guide/output_format.md), default is set to None and will be either JPEG or PNG depending on masked value. **Also a QueryParam**
+    - **height** (int, optional): Force output image height. **Also a QueryParam**
+    - **width** (int, optional): Force output image width. **Also a QueryParam**
 
 - QueryParams:
     - **url** (str): STAC Item URL. **Required**
@@ -86,8 +92,6 @@ Example:
     - **asset_as_band** (bool): tell rio-tiler that each asset is a 1 band dataset, so expression `Asset1/Asset2` can be passed.
     - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1,2,3`).
     - **max_size** (int): Max image size, default is 1024.
-    - **height** (int): Force output image height.
-    - **width** (int): Force output image width.
     - **dst_crs** (str): Output Coordinate Reference System. Default to dataset's CRS.
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
@@ -104,15 +108,17 @@ Example:
 !!! important
     - **assets** OR **expression** is required
 
-    - if **height** and **width** are provided **max_size** will be ignored.
+    - if **height** or **width** is provided **max_size** will be ignored.
 
 Example:
 
 - `https://myendpoint/stac/preview?url=https://somewhere.com/item.json&assets=B01`
 - `https://myendpoint/stac/preview.jpg?url=https://somewhere.com/item.json&assets=B01`
+- `https://myendpoint/stac/preview/100x100.jpg?url=https://somewhere.com/item.json&assets=B01`
 - `https://myendpoint/stac/preview?url=https://somewhere.com/item.json&assets=B01&rescale=0,1000&colormap_name=cfastie`
 
-### BBOX/Feature
+### Bbox
+
 
 `:endpoint:/stac/bbox/{minx},{miny},{maxx},{maxy}.{format}`
 
@@ -120,9 +126,9 @@ Example:
 
 - PathParams:
     - **minx,miny,maxx,maxy** (str): Comma (',') delimited bounding box in WGS84.
-    - **height** (int): Force output image height. **Optional**
-    - **width** (int): Force output image width. **Optional**
-    - **format** (str): Output [image format](../user_guide/output_format.md), default is set to None and will be either JPEG or PNG depending on masked value. **Optional**
+    - **format** (str): Output [image format](../user_guide/output_format.md).
+    - **height** (int, optional): Force output image height. **Also a QueryParam**
+    - **width** (int, optional): Force output image width. **Also a QueryParam**
 
 - QueryParams:
     - **url** (str): STAC Item URL. **Required**
@@ -148,22 +154,29 @@ Example:
 !!! important
     - **assets** OR **expression** is required
 
-    - if **height** and **width** are provided **max_size** will be ignored.
+    - if **height** or **width** is provided **max_size** will be ignored.
 
 Example:
 
 - `https://myendpoint/stac/bbox/0,0,10,10.png?url=https://somewhere.com/item.json&assets=B01`
+- `https://myendpoint/stac/bbox/0,0,10,10/100x100.png?url=https://somewhere.com/item.json&assets=B01`
 - `https://myendpoint/stac/bbox/0,0,10,10.png?url=https://somewhere.com/item.json&assets=B01&rescale=0,1000&colormap_name=cfastie`
 
-`:endpoint:/stac/feature[/{width}x{height}][].{format}] - [POST]`
+### Feature
+
+`:endpoint:/stac/feature - [POST]`
+
+`:endpoint:/stac/feature.{format} - [POST]`
+
+`:endpoint:/stac/feature/{width}x{height}.{format} - [POST]`
 
 - Body:
     - **feature** (JSON): A valid GeoJSON feature (Polygon or MultiPolygon)
 
 - PathParams:
-    - **height** (int): Force output image height. **Optional**
-    - **width** (int): Force output image width. **Optional**
-    - **format** (str): Output [image format](../user_guide/output_format.md), default is set to None and will be either JPEG or PNG depending on masked value. **Optional**
+    - **format** (str, optional): Output [image format](../user_guide/output_format.md). **Also a QueryParam**
+    - **height** (int, optional): Force output image height. **Also a QueryParam**
+    - **width** (int, optional): Force output image width. **Also a QueryParam**
 
 - QueryParams:
     - **url** (str): STAC Item URL. **Required**
@@ -189,7 +202,7 @@ Example:
 !!! important
     - **assets** OR **expression** is required
 
-    - if **height** and **width** are provided **max_size** will be ignored.
+    - if **height** or **width** is provided **max_size** will be ignored.
 
 Example:
 

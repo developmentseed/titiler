@@ -7,6 +7,9 @@
 * rename `/map` endpoint to `/map.html` **breaking change**
 * add `name` attribute to `BaseFactory` to define endpoint's `operationId`
 * add `operationId` on all endpoints
+* add `/preview/{width}x{height}.{format}` endpoints
+* update rio-tiler requirement to `>=7.7,<8.0`
+* allow users to pass only one of `width` or `heigh` size parameters for `preview`, `part` and `feature` requests
 
 ### titiler.application
 

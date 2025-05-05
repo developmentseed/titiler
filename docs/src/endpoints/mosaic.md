@@ -20,9 +20,9 @@ Read Mosaic Info/Metadata and create Web map Tiles from a multiple COG. The `mos
 | `GET`  | `/mosaicjson/{tileMatrixSetId}/tilejson.json`                              | JSON      | return a Mapbox TileJSON document
 | `GET`  | `/mosaicjson/{tileMatrixSetId}/WMTSCapabilities.xml`                       | XML       | return OGC WMTS Get Capabilities
 | `GET`  | `/mosaicjson/point/{lon},{lat}`                                            | JSON      | return pixel value from a mosaic assets
-| `GET`  | `/mosaicjson/{z}/{x}/{y}/assets`                                           | JSON      | return list of assets intersecting a XYZ tile
-| `GET`  | `/mosaicjson/{lon},{lat}/assets`                                           | JSON      | return list of assets intersecting a point
-| `GET`  | `/mosaicjson/{minx},{miny},{maxx},{maxy}/assets`                           | JSON      | return list of assets intersecting a bounding box
+| `GET`  | `/mosaicjson/tiles/{tileMatrixSetId}/{z}/{x}/{y}/assets`                   | JSON      | return list of assets intersecting a XYZ tile
+| `GET`  | `/mosaicjson/point/{lon},{lat}/assets`                                     | JSON      | return list of assets intersecting a point
+| `GET`  | `/mosaicjson/bbox/{minx},{miny},{maxx},{maxy}/assets`                      | JSON      | return list of assets intersecting a bounding box
 
 ## Description
 

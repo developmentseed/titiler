@@ -21,9 +21,9 @@ The `/cog` routes are based on `titiler.core.factory.TilerFactory` but with `cog
 | `GET`  | `/cog/{tileMatrixSetId}/tilejson.json`                              | JSON      | return a Mapbox TileJSON document
 | `GET`  | `/cog/{tileMatrixSetId}/WMTSCapabilities.xml`                       | XML       | return OGC WMTS Get Capabilities
 | `GET`  | `/cog/point/{lon},{lat}`                                            | JSON      | return pixel values from a dataset
-| `GET`  | `/cog/preview[.{format}]`                                           | image/bin | create a preview image from a dataset
 | `GET`  | `/cog/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin | create an image from part of a dataset
-| `POST` | `/cog/feature[/{width}x{height}][].{format}]`                       | image/bin | create an image from a GeoJSON feature
+| `POST` | `/cog/feature[/{width}x{height}][.{format}]`                        | image/bin | create an image from a GeoJSON feature
+| `GET`  | `/cog/preview[/{width}x{height}][.{format}]`                        | image/bin | create a preview image from a dataset
 | `GET`  | `/cog/validate`                                                     | JSON      | validate a COG and return dataset info (from `titiler.extensions.cogValidateExtension`)
 | `GET`  | `/cog/viewer`                                                       | HTML      | demo webpage (from `titiler.extensions.cogViewerExtension`)
 | `GET`  | `/cog/stac`                                                         | GeoJSON   | create STAC Items from a dataset (from `titiler.extensions.stacExtension`)
@@ -69,18 +69,23 @@ Example:
 
 ### Preview
 
-`:endpoint:/cog/preview[.{format}]`
+`:endpoint:/cog/preview`
+
+`:endpoint:/cog/preview.{format}`
+
+`:endpoint:/cog/preview/{width}x{height}.{format}`
 
 - PathParams:
-    - **format** (str): Output [image format](../user_guide/output_format.md), default is set to None and will be either JPEG or PNG depending on masked value. **Optional**
+    - **format** (str, optional): Output [image format](../user_guide/output_format.md), default is set to None and will be either JPEG or PNG depending on masked value. **Also a QueryParam**
+    - **height** (int, optional): Force output image height. **Also a QueryParam**
+    - **width** (int, optional): Force output image width. **Also a QueryParam**
 
 - QueryParams:
     - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
     - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
     - **expression** (str): rio-tiler's band math expression (e.g `expression=b1/b2`).
     - **max_size** (int): Max image size, default is 1024.
-    - **height** (int): Force output image height.
-    - **width** (int): Force output image width.
+
     - **nodata** (str, int, float): Overwrite internal Nodata value.
     - **unscale** (bool): Apply dataset internal Scale/Offset.
     - **resampling** (str): RasterIO resampling algorithm. Defaults to `nearest`.
@@ -94,15 +99,16 @@ Example:
     - **algorithm_params** (str): JSON encoded algorithm parameters.
 
 !!! important
-    if **height** and **width** are provided **max_size** will be ignored.
+    if **height** or **width** is provided **max_size** will be ignored.
 
 Example:
 
 - `https://myendpoint/cog/preview?url=https://somewhere.com/mycog.tif`
 - `https://myendpoint/cog/preview.jpg?url=https://somewhere.com/mycog.tif&bidx=3&bidx=1&bidx2`
+- `https://myendpoint/cog/preview/100x100.jpg?url=https://somewhere.com/mycog.tif&bidx=3&bidx=1&bidx2`
 - `https://myendpoint/cog/preview?url=https://somewhere.com/mycog.tif&bidx=1&rescale=0,1000&colormap_name=cfastie`
 
-### BBOX/Feature
+### Bbox
 
 `:endpoint:/cog/bbox/{minx},{miny},{maxx},{maxy}.{format}`
 
@@ -110,9 +116,9 @@ Example:
 
 - PathParams:
     - **minx,miny,maxx,maxy** (str): Comma (',') delimited bounding box in WGS84.
-    - **format** (str): Output [image format](../user_guide/output_format.md).
-    - **height** (int): Force output image height.
-    - **width** (int): Force output image width.
+    - **format** (str): Output [image format](../user_guide/output_format.md)
+    - **height** (int, optional): Force output image height. **Also a QueryParam**
+    - **width** (int, optional): Force output image width. **Also a QueryParam**
 
 - QueryParams:
     - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
@@ -134,23 +140,28 @@ Example:
     - **algorithm_params** (str): JSON encoded algorithm parameters.
 
 !!! important
-    if **height** and **width** are provided **max_size** will be ignored.
+    if **height** or **width** is provided **max_size** will be ignored.
 
 Example:
 
-- `https://myendpoint/cog/bbox/0,0,10,10.png?url=https://somewhere.com/mycog.tif`
 - `https://myendpoint/cog/bbox/0,0,10,10.png?url=https://somewhere.com/mycog.tif&bidx=1&rescale=0,1000&colormap_name=cfastie`
+- `https://myendpoint/cog/bbox/0,0,10,10/100x100.png?url=https://somewhere.com/mycog.tif`
 
+### Feature
 
-`:endpoint:/cog/feature[/{width}x{height}][].{format}] - [POST]`
+`:endpoint:/cog/feature - [POST]`
+
+`:endpoint:/cog/feature.{format} - [POST]`
+
+`:endpoint:/cog/feature/{width}x{height}.{format} - [POST]`
 
 - Body:
     - **feature** (JSON): A valid GeoJSON feature (Polygon or MultiPolygon)
 
 - PathParams:
-    - **height** (int): Force output image height. **Optional**
-    - **width** (int): Force output image width. **Optional**
-    - **format** (str): Output [image format](../user_guide/output_format.md), default is set to None and will be either JPEG or PNG depending on masked value. **Optional**
+    - **height** (int, optional): Force output image height. **Also a QueryParam**
+    - **width** (int, optional): Force output image width. **Also a QueryParam**
+    - **format** (str, optional): Output [image format](../user_guide/output_format.md), default is set to None and will be either JPEG or PNG depending on masked value. **Also a QueryParam**
 
 - QueryParams:
     - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
@@ -172,15 +183,13 @@ Example:
     - **algorithm_params** (str): JSON encoded algorithm parameters.
 
 !!! important
-    if **height** and **width** are provided **max_size** will be ignored.
+    if **height** or **width** is provided **max_size** will be ignored.
 
 Example:
 
 - `https://myendpoint/cog/feature?url=https://somewhere.com/mycog.tif`
 - `https://myendpoint/cog/feature.png?url=https://somewhere.com/mycog.tif`
 - `https://myendpoint/cog/feature/100x100.png?url=https://somewhere.com/mycog.tif&bidx=1&rescale=0,1000&colormap_name=cfastie`
-
-Note: if `height` and `width` are provided `max_size` will be ignored.
 
 ### Point
 

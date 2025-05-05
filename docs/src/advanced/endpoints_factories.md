@@ -95,9 +95,9 @@ app.include_router(cog.router)
 | `GET`  | `/{tileMatrixSetId}/tilejson.json`                              | JSON ([TileJSON][tilejson_model])           | return a Mapbox TileJSON document
 | `GET`  | `/{tileMatrixSetId}/WMTSCapabilities.xml`                       | XML                                         | return OGC WMTS Get Capabilities
 | `GET`  | `/point/{lon},{lat}`                                            | JSON ([Point][point_model])                 | return pixel values from a dataset
-| `GET`  | `/preview[.{format}]`                                           | image/bin                                   | create a preview image from a dataset **Optional**
 | `GET`  | `/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                   | create an image from part of a dataset **Optional**
 | `POST` | `/feature[/{width}x{height}][.{format}]`                        | image/bin                                   | create an image from a GeoJSON feature **Optional**
+| `GET`  | `/preview[/{width}x{height}][.{format}]`                        | image/bin                                   | create a preview image from a dataset **Optional**
 
 
 ### MultiBaseTilerFactory
@@ -142,9 +142,9 @@ app.include_router(stac.router)
 | `GET`  | `/{tileMatrixSetId}/tilejson.json`                              | JSON ([TileJSON][tilejson_model])                | return a Mapbox TileJSON document
 | `GET`  | `/{tileMatrixSetId}/WMTSCapabilities.xml`                       | XML                                              | return OGC WMTS Get Capabilities
 | `GET`  | `/point/{lon},{lat}`                                            | JSON ([Point][multipoint_model])                 | return pixel values from assets
-| `GET`  | `/preview[.{format}]`                                           | image/bin                                        | create a preview image from assets **Optional**
 | `GET`  | `/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                        | create an image from part of assets **Optional**
 | `POST` | `/feature[/{width}x{height}][.{format}]`                        | image/bin                                        | create an image from a geojson feature intersecting assets **Optional**
+| `GET`  | `/preview[/{width}x{height}][.{format}]`                        | image/bin                                        | create a preview image from assets **Optional**
 
 ### MultiBandTilerFactory
 
@@ -198,9 +198,9 @@ app.include_router(landsat.router)
 | `GET`  | `/{tileMatrixSetId}/tilejson.json`                              | JSON ([TileJSON][tilejson_model])            | return a Mapbox TileJSON document
 | `GET`  | `/{tileMatrixSetId}/WMTSCapabilities.xml`                       | XML                                          | return OGC WMTS Get Capabilities
 | `GET`  | `/point/{lon},{lat}`                                            | JSON ([Point][point_model])                  | return pixel value from a dataset
-| `GET`  | `/preview[.{format}]`                                           | image/bin                                    | create a preview image from a dataset **Optional**
 | `GET`  | `/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                    | create an image from part of a dataset **Optional**
 | `POST` | `/feature[/{width}x{height}][.{format}]`                        | image/bin                                    | create an image from a geojson feature **Optional**
+| `GET`  | `/preview[/{width}x{height}][.{format}]`                                           | image/bin                                    | create a preview image from a dataset **Optional**
 
 
 ### TMSFactory
@@ -327,13 +327,13 @@ Endpoints factory for mosaics, built on top of [MosaicJSON](https://github.com/d
 | `GET`  | `/tiles`                                                        | JSON                                               | List of OGC Tilesets available
 | `GET`  | `/tiles/{tileMatrixSetId}`                                      | JSON                                               | OGC Tileset metadata
 | `GET`  | `/tiles/{tileMatrixSetId}/{z}/{x}/{y}[@{scale}x][.{format}]`    | image/bin                                          | create a web map tile image from a MosaicJSON
+| `GET`  | `/tiles/{tileMatrixSetId}/{z}/{x}/{y}/assets`                   | JSON                                               | return list of assets intersecting a XYZ tile
 | `GET`  | `/{tileMatrixSetId}/map.html`                                   | HTML                                               | return a simple map viewer **Optional**
 | `GET`  | `/{tileMatrixSetId}/tilejson.json`                              | JSON ([TileJSON][tilejson_model])                  | return a Mapbox TileJSON document
 | `GET`  | `/{tileMatrixSetId}/WMTSCapabilities.xml`                       | XML                                                | return OGC WMTS Get Capabilities
 | `GET`  | `/point/{lon},{lat}`                                            | JSON ([Point][mosaic_point])                       | return pixel value from a MosaicJSON dataset
-| `GET`  | `/{z}/{x}/{y}/assets`                                           | JSON                                               | return list of assets intersecting a XYZ tile
-| `GET`  | `/{lon},{lat}/assets`                                           | JSON                                               | return list of assets intersecting a point
-| `GET`  | `/{minx},{miny},{maxx},{maxy}/assets`                           | JSON                                               | return list of assets intersecting a bounding box
+| `GET`  | `/point/{lon},{lat}/assets`                                     | JSON                                               | return list of assets intersecting a point
+| `GET`  | `/bbox/{minx},{miny},{maxx},{maxy}/assets`                      | JSON                                               | return list of assets intersecting a bounding box
 
 ## titiler.xarray
 

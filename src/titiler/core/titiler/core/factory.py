@@ -835,7 +835,9 @@ class TilerFactory(BaseFactory):
             ] = 1,
             format: Annotated[
                 ImageType,
-                "Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
+                Field(
+                    description="Default will be automatically defined if the output image needs a mask (png) or not (jpeg)."
+                ),
             ] = None,
             src_path=Depends(self.path_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -1231,10 +1233,17 @@ class TilerFactory(BaseFactory):
             operation_id=f"{self.operation_prefix}getPreviewWithFormat",
             **img_endpoint_params,
         )
+        @self.router.get(
+            "/preview/{width}x{height}.{format}",
+            operation_id=f"{self.operation_prefix}getPreviewWithSizeAndFormat",
+            **img_endpoint_params,
+        )
         def preview(
             format: Annotated[
                 ImageType,
-                "Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
+                Field(
+                    description="Default will be automatically defined if the output image needs a mask (png) or not (jpeg)."
+                ),
             ] = None,
             src_path=Depends(self.path_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -1279,7 +1288,7 @@ class TilerFactory(BaseFactory):
         # GET endpoints
         @self.router.get(
             "/bbox/{minx},{miny},{maxx},{maxy}.{format}",
-            operation_id=f"{self.operation_prefix}getDataForBoundingBox",
+            operation_id=f"{self.operation_prefix}getDataForBoundingBoxWithFormat",
             **img_endpoint_params,
         )
         @self.router.get(
@@ -1294,7 +1303,9 @@ class TilerFactory(BaseFactory):
             maxy: Annotated[float, Path(description="Bounding box max Y")],
             format: Annotated[
                 ImageType,
-                "Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
+                Field(
+                    description="Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
+                ),
             ] = None,
             src_path=Depends(self.path_dependency),
             reader_params=Depends(self.reader_dependency),
