@@ -51,7 +51,7 @@ WEB_TMS = TileMatrixSets({"WebMercatorQuad": morecantile.tms.get("WebMercatorQua
 def test_TilerFactory():
     """Test TilerFactory class."""
     cog = TilerFactory()
-    assert len(cog.router.routes) == 22
+    assert len(cog.router.routes) == 23
     assert len(cog.supported_tms.list()) == NB_DEFAULT_TMS
 
     cog = TilerFactory(router_prefix="something", supported_tms=WEB_TMS)
@@ -212,6 +212,17 @@ def test_TilerFactory():
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
 
+    response = client.get(
+        f"/bbox/-56.228,72.715,-54.547,73.188/100x100.png?url={DATA_DIR}/cog.tif&rescale=0,1000"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/png"
+    meta = parse_img(response.content)
+    assert meta["driver"] == "PNG"
+    assert meta["count"] == 2
+    assert meta["width"] == 100
+    assert meta["height"] == 100
+
     response = client.get(f"/point/-56.228,72.715?url={DATA_DIR}/cog.tif")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
@@ -347,14 +358,12 @@ def test_TilerFactory():
     assert meta["width"] == 512
     assert meta["height"] == 512
 
-    response = client.get(
-        f"/preview.png?url={DATA_DIR}/cog.tif&rescale=0,1000&max_size=0&nodata=0"
-    )
+    response = client.get(f"/preview/512x512.png?url={DATA_DIR}/cog.tif&rescale=0,1000")
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
     meta = parse_img(response.content)
-    assert meta["width"] == 2658
-    assert meta["height"] == 2667
+    assert meta["width"] == 512
+    assert meta["height"] == 512
 
     response = client.get(
         f"/preview.png?url={DATA_DIR}/cog.tif&rescale=0,1000&max_size=0&nodata=0"
@@ -409,6 +418,16 @@ def test_TilerFactory():
     response = client.post(f"/feature?url={DATA_DIR}/cog.tif", json=feature)
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
+
+    response = client.post(
+        f"/feature/100x100.png?url={DATA_DIR}/cog.tif&rescale=0,1000", json=feature
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/png"
+    meta = parse_img(response.content)
+    assert meta["driver"] == "PNG"
+    assert meta["width"] == 100
+    assert meta["height"] == 100
 
     response = client.post(f"/feature.tif?url={DATA_DIR}/cog.tif", json=feature)
     assert response.status_code == 200
@@ -764,7 +783,7 @@ def test_MultiBaseTilerFactory(rio):
     rio.open = mock_rasterio_open
 
     stac = MultiBaseTilerFactory(reader=STACReader)
-    assert len(stac.router.routes) == 24
+    assert len(stac.router.routes) == 25
 
     app = FastAPI()
     app.include_router(stac.router)
@@ -1154,7 +1173,7 @@ def test_MultiBandTilerFactory():
     bands = MultiBandTilerFactory(
         reader=BandFileReader, path_dependency=CustomPathParams
     )
-    assert len(bands.router.routes) == 23
+    assert len(bands.router.routes) == 24
 
     app = FastAPI()
     app.include_router(bands.router)
@@ -1547,7 +1566,7 @@ def test_TilerFactory_WithDependencies():
         ],
         router_prefix="something",
     )
-    assert len(cog.router.routes) == 22
+    assert len(cog.router.routes) == 23
 
     app = FastAPI()
     app.include_router(cog.router, prefix="/something")

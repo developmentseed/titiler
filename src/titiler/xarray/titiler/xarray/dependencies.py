@@ -5,6 +5,7 @@ from typing import List, Literal, Optional, Union
 
 import numpy
 from fastapi import Query
+from pydantic import Field
 from pydantic.types import StringConstraints
 from rio_tiler.types import RIOResampling, WarpResampling
 from typing_extensions import Annotated
@@ -123,9 +124,15 @@ class DatasetParams(DefaultDependency):
 class PartFeatureParams(DefaultDependency):
     """Common parameters for bbox and feature."""
 
-    max_size: Annotated[Optional[int], "Maximum image size to read onto."] = None
-    height: Annotated[Optional[int], "Force output image height."] = None
-    width: Annotated[Optional[int], "Force output image width."] = None
+    max_size: Annotated[
+        Optional[int], Field(description="Maximum image size to read onto.")
+    ] = None
+    height: Annotated[
+        Optional[int], Field(description="Force output image height.")
+    ] = None
+    width: Annotated[Optional[int], Field(description="Force output image width.")] = (
+        None
+    )
     resampling_method: Annotated[
         Optional[RIOResampling],
         Query(
@@ -136,5 +143,5 @@ class PartFeatureParams(DefaultDependency):
 
     def __post_init__(self):
         """Post Init."""
-        if self.width and self.height:
+        if self.width or self.height:
             self.max_size = None

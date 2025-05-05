@@ -351,11 +351,13 @@ def test_preview_part_params():
     app = FastAPI()
 
     @app.get("/preview")
+    @app.get("/preview/{width}x{height}")
     def _endpoint(params=Depends(dependencies.PreviewParams)):
         """return params."""
         return params
 
     @app.get("/part")
+    @app.get("/part/{width}x{height}")
     def _endpoint(params=Depends(dependencies.PartFeatureParams)):
         """return params."""
         return params
@@ -372,8 +374,13 @@ def test_preview_part_params():
     assert not response.json()["width"]
 
     response = client.get("/preview?width=128")
-    assert response.json()["max_size"] == 1024
+    assert not response.json()["max_size"]
     assert not response.json()["height"]
+    assert response.json()["width"] == 128
+
+    response = client.get("/preview/128x128")
+    assert not response.json()["max_size"]
+    assert response.json()["height"] == 128
     assert response.json()["width"] == 128
 
     response = client.get("/preview?width=128&height=128")
@@ -397,6 +404,11 @@ def test_preview_part_params():
     assert response.json()["width"] == 128
 
     response = client.get("/part?width=128&height=128")
+    assert not response.json()["max_size"]
+    assert response.json()["height"] == 128
+    assert response.json()["width"] == 128
+
+    response = client.get("/part/128x128")
     assert not response.json()["max_size"]
     assert response.json()["height"] == 128
     assert response.json()["width"] == 128
