@@ -90,6 +90,9 @@ class MosaicTilerFactory(BaseFactory):
     # Path Dependency
     path_dependency: Callable[..., Any] = DatasetPathParams
 
+    # Backend.get_assets() Options
+    assets_accessor_dependency: Type[DefaultDependency] = DefaultDependency
+
     # Indexes/Expression Dependencies
     layer_dependency: Type[DefaultDependency] = BidxExprParams
 
@@ -585,6 +588,7 @@ class MosaicTilerFactory(BaseFactory):
             src_path=Depends(self.path_dependency),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
+            assets_accessor_params=Depends(self.assets_accessor_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             pixel_selection=Depends(self.pixel_selection_dependency),
@@ -628,6 +632,7 @@ class MosaicTilerFactory(BaseFactory):
                         **tile_params.as_dict(),
                         **layer_params.as_dict(),
                         **dataset_params.as_dict(),
+                        **assets_accessor_params.as_dict(),
                     )
 
             if post_process:
@@ -687,6 +692,7 @@ class MosaicTilerFactory(BaseFactory):
             src_path=Depends(self.path_dependency),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
+            assets_accessor_params=Depends(self.assets_accessor_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             pixel_selection=Depends(self.pixel_selection_dependency),
@@ -783,6 +789,7 @@ class MosaicTilerFactory(BaseFactory):
             src_path=Depends(self.path_dependency),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
+            assets_accessor_params=Depends(self.assets_accessor_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             pixel_selection=Depends(self.pixel_selection_dependency),
@@ -856,6 +863,7 @@ class MosaicTilerFactory(BaseFactory):
             src_path=Depends(self.path_dependency),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
+            assets_accessor_params=Depends(self.assets_accessor_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             pixel_selection=Depends(self.pixel_selection_dependency),
@@ -982,6 +990,7 @@ class MosaicTilerFactory(BaseFactory):
             src_path=Depends(self.path_dependency),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
+            assets_accessor_params=Depends(self.assets_accessor_dependency),
             coord_crs=Depends(CoordCRSParams),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
@@ -1002,6 +1011,7 @@ class MosaicTilerFactory(BaseFactory):
                         threads=MOSAIC_THREADS,
                         **layer_params.as_dict(),
                         **dataset_params.as_dict(),
+                        **assets_accessor_params.as_dict(),
                     )
 
             return {
@@ -1038,6 +1048,7 @@ class MosaicTilerFactory(BaseFactory):
             src_path=Depends(self.path_dependency),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
+            assets_accessor_params=Depends(self.assets_accessor_dependency),
             coord_crs=Depends(CoordCRSParams),
             env=Depends(self.environment_dependency),
         ):
@@ -1055,6 +1066,7 @@ class MosaicTilerFactory(BaseFactory):
                         maxx,
                         maxy,
                         coord_crs=coord_crs or WGS84_CRS,
+                        **assets_accessor_params.as_dict(),
                     )
 
         @self.router.get(
@@ -1069,6 +1081,7 @@ class MosaicTilerFactory(BaseFactory):
             coord_crs=Depends(CoordCRSParams),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
+            assets_accessor_params=Depends(self.assets_accessor_dependency),
             env=Depends(self.environment_dependency),
         ):
             """Return a list of assets which overlap a point"""
@@ -1083,6 +1096,7 @@ class MosaicTilerFactory(BaseFactory):
                         lon,
                         lat,
                         coord_crs=coord_crs or WGS84_CRS,
+                        **assets_accessor_params.as_dict(),
                     )
 
         @self.router.get(
@@ -1118,6 +1132,7 @@ class MosaicTilerFactory(BaseFactory):
             src_path=Depends(self.path_dependency),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
+            assets_accessor_params=Depends(self.assets_accessor_dependency),
             env=Depends(self.environment_dependency),
         ):
             """Return a list of assets which overlap a given tile"""
@@ -1130,4 +1145,9 @@ class MosaicTilerFactory(BaseFactory):
                     reader_options=reader_params.as_dict(),
                     **backend_params.as_dict(),
                 ) as src_dst:
-                    return src_dst.assets_for_tile(x, y, z)
+                    return src_dst.assets_for_tile(
+                        x,
+                        y,
+                        z,
+                        **assets_accessor_params.as_dict(),
+                    )

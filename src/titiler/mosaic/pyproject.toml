@@ -41,6 +41,7 @@ test = [
     "pytest-cov",
     "pytest-asyncio",
     "httpx",
+    "cogeo-mosaic>=8.2,<9.0",
 ]
 
 [project.urls]
