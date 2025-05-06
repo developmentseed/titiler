@@ -206,7 +206,7 @@
           const tileLayer = L.tileLayer(
             data.tiles[0], {
               maxNativeZoom: data.maxzoom,
-              minNativeZoom: data.minzoom,
+              minZoom: data.minzoom,
               bounds: L.latLngBounds([bottom, left], [top, right]),
             }
           );
@@ -221,7 +221,7 @@
         .catch(err => {
           console.warn(err);
         });
-      
+
       // run point query on right-click
       map.on('contextmenu', function(e) {
         const lat = e.latlng.lat.toFixed(3);
@@ -285,7 +285,6 @@
           }
         });
       });
-
     </script>
   </body>
 </html>
