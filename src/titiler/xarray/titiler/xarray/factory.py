@@ -175,7 +175,7 @@ class TilerFactory(BaseTilerFactory):
 
             with rasterio.Env(**env):
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
-                    for feature in fc:
+                    for feature in fc.features:
                         shape = feature.model_dump(exclude_none=True)
                         image = src_dst.feature(
                             shape,

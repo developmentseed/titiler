@@ -516,7 +516,7 @@ class TilerFactory(BaseFactory):
 
             with rasterio.Env(**env):
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
-                    for feature in fc:
+                    for feature in fc.features:
                         shape = feature.model_dump(exclude_none=True)
                         image = src_dst.feature(
                             shape,
@@ -1631,7 +1631,7 @@ class MultiBaseTilerFactory(TilerFactory):
                     if not layer_params.assets and not layer_params.expression:
                         layer_params.assets = src_dst.assets
 
-                    for feature in fc:
+                    for feature in fc.features:
                         image = src_dst.feature(
                             feature.model_dump(exclude_none=True),
                             shape_crs=coord_crs or WGS84_CRS,
@@ -1845,7 +1845,7 @@ class MultiBandTilerFactory(TilerFactory):
                     if not bands_params.bands and not bands_params.expression:
                         bands_params.bands = src_dst.bands
 
-                    for feature in fc:
+                    for feature in fc.features:
                         image = src_dst.feature(
                             feature.model_dump(exclude_none=True),
                             shape_crs=coord_crs or WGS84_CRS,
