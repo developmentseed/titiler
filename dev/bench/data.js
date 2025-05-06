@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1746535156541,
+  "lastUpdate": 1746540372357,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -12315,6 +12315,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.34,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "henry.rodman@gmail.com",
+            "name": "Henry Rodman",
+            "username": "hrodmn"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "592a8eadbf818380d6be4393ad4849b8158e32e8",
+          "message": "fix: use minZoom instead of minNativeZoom (#1150)\n\n* fix: use minZoom instead of minNativeZoom\n\nBy setting `minNativeZoom` we were constructing low zoom tiles from\nmany higher-zoom tile requests! This is not the intended effect of the\nminzoom setting. We can still overzoom by using maxNativeZoom.\n\n* update changelog",
+          "timestamp": "2025-05-06T16:04:35+02:00",
+          "tree_id": "3baac260d60712b312dd48a04a6cc6ba7654d95b",
+          "url": "https://github.com/developmentseed/titiler/commit/592a8eadbf818380d6be4393ad4849b8158e32e8"
+        },
+        "date": 1746540371774,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.13,
             "unit": "s"
           },
           {
