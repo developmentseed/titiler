@@ -302,6 +302,7 @@ Endpoints factory for mosaics, built on top of [MosaicJSON](https://github.com/d
 - **dataset_reader**: Dataset Reader. Defaults to `rio_tiler.io.Reader`
 - **reader_dependency**: Dependency to control options passed to the reader instance init. Defaults to `titiler.core.dependencies.DefaultDependency`
 - **path_dependency**: Dependency to use to define the dataset url. Defaults to `titiler.mosaic.factory.DatasetPathParams`.
+- **assets_accessor_dependency**: Dependency to define options to be forwarded to the backend `get_assets` method. Defaults to `titiler.core.dependencies.DefaultDependency`.
 - **layer_dependency**: Dependency to define band indexes or expression. Defaults to `titiler.core.dependencies.BidxExprParams`.
 - **dataset_dependency**: Dependency to overwrite `nodata` value, apply `rescaling` and change the `I/O` or `Warp` resamplings. Defaults to `titiler.core.dependencies.DatasetParams`.
 - **tile_dependency**: Dependency to define `buffer` and `padding` to apply at tile creation. Defaults to `titiler.core.dependencies.TileParams`.
