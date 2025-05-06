@@ -11,6 +11,7 @@
 * update rio-tiler requirement to `>=7.7,<8.0`
 * allow users to pass only one of `width` or `heigh` size parameters for `preview`, `part` and `feature` requests
 * use `minZoom` instead of `minNativeZoom` in the `/map.html` html template
+* update geojson-pydantic requirement to `>=1.1.2,<3.0` and change featureCollection iteration
 
 ### titiler.application
 
