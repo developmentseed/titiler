@@ -144,7 +144,7 @@
 * add `/bbox` prefix to `/{minx},{miny},{maxx},{maxy}/assets` endpoint -> `/bbox/{minx},{miny},{maxx},{maxy}/assets` **breaking change**
 * add `/point` prefix to `{lon},{lat}/assets` endpoint -> `/point/{lon},{lat}/assets` **breaking change**
 * add `/tiles` prefix to `/{tileMatrixSetId}/{z}/{x}/{y}/assets` endpoint -> `/tiles/{tileMatrixSetId}/{z}/{x}/{y}/assets` **breaking change**
-
+* add `assets_accessor_dependency` dependency to the MosaicTileFactory to pass options to the backend's `get_assets` method.
 
 ## 0.21.1 (2025-01-29)
 
