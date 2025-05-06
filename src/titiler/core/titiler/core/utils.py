@@ -197,17 +197,37 @@ def extract_query_params(
 
 
 def check_query_params(
-    dependencies: List[Callable],
-    params: Union[QueryParams, Dict],
+    dependencies: List[Callable], params: Union[QueryParams, Dict]
 ) -> bool:
-    """Check QueryParams for a list of Dependencies."""
+    """Check QueryParams for Query dependency.
+
+    1. `get_dependant` is used to get the query-parameters required by the `callable`
+    2. we use `request_params_to_args` to construct arguments needed to call the `callable`
+    3. we call the `callable` and catch any errors
+
+    Important: We assume the `callable` in not a co-routine
+
+    """
+    qp = (
+        QueryParams(urlencode(params, doseq=True))
+        if isinstance(params, Dict)
+        else params
+    )
+
     for dependency in dependencies:
         try:
-            _, errors = deserialize_query_params(dependency, params)
-            if errors:
-                return False
+            dep = get_dependant(path="", call=dependency)
+            if dep.query_params:
+                # call the dependency with the query-parameters values
+                query_values, errors = request_params_to_args(dep.query_params, qp)
+                if errors:
+                    return False
+
+                _ = dependency(**query_values)
+
         except Exception:
             return False
+
     return True
 
 
