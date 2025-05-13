@@ -1,12 +1,13 @@
 """TiTiler.xarray factory."""
 
-from typing import Callable, Optional, Type, Union
+from typing import Any, Callable, Optional, Type, Union
 
 import rasterio
 from attrs import define, field
 from fastapi import Body, Depends, Query
 from geojson_pydantic.features import Feature, FeatureCollection
 from rio_tiler.constants import WGS84_CRS
+from rio_tiler.io import XarrayReader
 from rio_tiler.models import Info
 from typing_extensions import Annotated
 
@@ -32,9 +33,9 @@ from titiler.xarray.io import Reader
 class TilerFactory(BaseTilerFactory):
     """Xarray Tiler Factory."""
 
-    reader: Type[Reader] = Reader
+    reader: Type[XarrayReader] = Reader
 
-    path_dependency: Callable[..., str] = DatasetPathParams
+    path_dependency: Callable[..., Any] = DatasetPathParams
 
     reader_dependency: Type[DefaultDependency] = XarrayParams
 
