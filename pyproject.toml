@@ -29,13 +29,13 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering :: GIS",
 ]
-version="0.22.0"
+version="0.22.1"
 dependencies = [
-    "titiler.core==0.22.0",
-    "titiler.xarray==0.22.0",
-    "titiler.extensions==0.22.0",
-    "titiler.mosaic==0.22.0",
-    "titiler.application==0.22.0",
+    "titiler.core==0.22.1",
+    "titiler.xarray==0.22.1",
+    "titiler.extensions==0.22.1",
+    "titiler.mosaic==0.22.1",
+    "titiler.application==0.22.1",
 ]
 
 [project.urls]
@@ -128,11 +128,12 @@ filterwarnings = [
 
 
 
+
 [tool.hatch.build.targets.wheel]
 bypass-selection = true
 
 [tool.bumpversion]
-current_version = "0.22.0"
+current_version = "0.22.1"
 parse = """(?x)
     (?P<major>\\d+)\\.
     (?P<minor>\\d+)\\.
