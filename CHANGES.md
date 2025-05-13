@@ -1,5 +1,11 @@
 # Release Notes
 
+## 0.22.1 (2025-05-13)
+
+### titiler.xarray
+
+* update `reader` and `path_dependency` type informations
+
 ## 0.22.0 (2025-05-06)
 
 ### Misc
