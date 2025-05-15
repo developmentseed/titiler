@@ -1,0 +1,17 @@
+#! /usr/bin/env bash
+
+SUBPACKAGE_DIRS=(
+    "core"
+    "xarray"
+    "mosaic"
+    "application"
+    "extensions"
+)
+
+for PACKAGE_DIR in "${SUBPACKAGE_DIRS[@]}"
+do
+    echo "Running tests for titiler-${PACKAGE_DIR}"
+    pushd ./src/titiler/${PACKAGE_DIR}
+    python -m pytest -s
+    popd
+done

@@ -1364,7 +1364,9 @@ class TilerFactory(BaseFactory):
             geojson: Annotated[Feature, Body(description="GeoJSON Feature.")],
             format: Annotated[
                 ImageType,
-                "Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
+                Field(
+                    description="Default will be automatically defined if the output image needs a mask (png) or not (jpeg)."
+                ),
             ] = None,
             src_path=Depends(self.path_dependency),
             reader_params=Depends(self.reader_dependency),
