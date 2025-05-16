@@ -583,7 +583,9 @@ class MosaicTilerFactory(BaseFactory):
             ] = 1,
             format: Annotated[
                 ImageType,
-                "Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
+                Field(
+                    description="Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
+                ),
             ] = None,
             src_path=Depends(self.path_dependency),
             backend_params=Depends(self.backend_dependency),
