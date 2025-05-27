@@ -5,14 +5,12 @@ import logging
 from logging import config as log_config
 from typing import Annotated, Literal, Optional
 
-import jinja2
 import rasterio
 from fastapi import Depends, FastAPI, HTTPException, Query, Security
 from fastapi.security.api_key import APIKeyQuery
 from rio_tiler.io import Reader, STACReader
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
-from starlette.templating import Jinja2Templates
 from starlette_cramjam.middleware import CompressionMiddleware
 
 from titiler.application import __version__ as titiler_version
@@ -48,11 +46,6 @@ from titiler.mosaic.factory import MosaicTilerFactory
 logging.getLogger("botocore.credentials").disabled = True
 logging.getLogger("botocore.utils").disabled = True
 logging.getLogger("rio-tiler").setLevel(logging.ERROR)
-
-jinja2_env = jinja2.Environment(
-    loader=jinja2.ChoiceLoader([jinja2.PackageLoader(__package__, "templates")])
-)
-templates = Jinja2Templates(env=jinja2_env)
 
 
 api_settings = ApiSettings()

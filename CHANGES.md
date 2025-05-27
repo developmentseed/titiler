@@ -1,5 +1,12 @@
 # Release Notes
 
+## Unreleased
+
+
+### titiler.application
+
+* remove unused templates
+
 ## 0.22.1 (2025-05-13)
 
 ### titiler.xarray
