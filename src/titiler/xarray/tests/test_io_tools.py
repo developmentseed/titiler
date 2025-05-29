@@ -7,7 +7,7 @@ import numpy
 import pytest
 import xarray
 
-from titiler.xarray.io import Reader, get_variable
+from titiler.xarray.io import Reader, get_variable, xarray_open_dataset
 
 prefix = os.path.join(os.path.dirname(__file__), "fixtures")
 
@@ -200,3 +200,17 @@ def test_zarr_group(group):
         assert src.info()
         assert src.tile(0, 0, 0)
         assert src.point(0, 0).data[0] == group * 2 + 1
+
+
+@pytest.mark.parametrize(
+    "src_path",
+    [
+        "s3://mur-sst/zarr-v1",
+        "https://nasa-power.s3.amazonaws.com/syn1deg/temporal/power_syn1deg_monthly_temporal_lst.zarr",
+        os.path.join(prefix, "dataset_3d.zarr"),
+    ],
+)
+def test_io_xarray_open_dataset(src_path):
+    """test xarray_open_dataset with cloud hosted files."""
+    with xarray_open_dataset(src_path) as ds:
+        assert list(ds.data_vars)

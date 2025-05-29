@@ -67,6 +67,9 @@ test = [
     "zarr",
     "h5netcdf",
     "fsspec",
+    "s3fs",
+    "aiohttp",
+    "requests",
 ]
 
 [project.urls]
