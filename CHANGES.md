@@ -7,6 +7,10 @@
 
 * remove unused templates
 
+### titiler.xarray
+
+* fix `xarray_open_dataset` for cloud hosted files
+
 ## 0.22.1 (2025-05-13)
 
 ### titiler.xarray
