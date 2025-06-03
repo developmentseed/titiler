@@ -132,7 +132,7 @@ class _Var(BaseAlgorithm):
             assets=img.assets,
             crs=img.crs,
             bounds=img.bounds,
-            band_names=["std"],
+            band_names=["var"],
             metadata=img.metadata,
             cutline_mask=img.cutline_mask,
         )
