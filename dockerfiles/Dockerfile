@@ -17,7 +17,7 @@ RUN python -m pip install -U pip
 RUN python -m pip install uvicorn uvicorn-worker gunicorn
 
 COPY src/titiler/ /tmp/titiler/
-RUN python -m pip install /tmp/titiler/core /tmp/titiler/extensions["cogeo,stac"] /tmp/titiler/mosaic /tmp/titiler/application --no-cache-dir --upgrade
+RUN python -m pip install /tmp/titiler/core["telemetry"] /tmp/titiler/extensions["cogeo,stac"] /tmp/titiler/mosaic /tmp/titiler/application --no-cache-dir --upgrade
 RUN rm -rf /tmp/titiler
 
 ###################################################
