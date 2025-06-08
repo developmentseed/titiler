@@ -2,6 +2,7 @@
 
 import json
 import logging
+import os
 from logging import config as log_config
 from typing import Annotated, Literal, Optional
 
@@ -450,3 +451,31 @@ def conformance(
         )
 
     return data
+
+
+if os.getenv("TITILER_TELEMETRY_ENABLED"):
+    from opentelemetry import trace
+    from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+    from opentelemetry.sdk.resources import Resource
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
+    from titiler.core.telemetry import init_telemetry
+
+    resource = Resource.create(
+        {
+            "service.name": "titiler",
+            "service.version": titiler_version,
+        }
+    )
+
+    provider = TracerProvider(resource=resource)
+
+    # uses the OTEL_EXPORTER_OTLP_ENDPOINT env var
+    processor = BatchSpanProcessor(OTLPSpanExporter())
+    provider.add_span_processor(processor)
+
+    trace.set_tracer_provider(provider)
+
+    # Initialize titiler telemetry
+    init_telemetry("titiler.application")

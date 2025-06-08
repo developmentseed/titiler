@@ -37,6 +37,11 @@ services:
       # - MOSAIC_CONCURRENCY= # will default to `RIO_TILER_MAX_THREADS`
       # rio-tiler config
       # - RIO_TILER_MAX_THREADS=
+      # telemetry config
+      - TITILER_TELEMETRY_ENABLED=True
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+    depends_on:
+      - otel-collector
     volumes:
       - ./:/data
 
@@ -78,3 +83,23 @@ services:
     ports:
       - "8082:8082"
     command: ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8082", "--workers", "1"]
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4318:4318"   # OTLP HTTP receiver
+      - "13133:13133" # Health check extension
+    depends_on:
+      - jaeger
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686" # UI
+      - "14250:14250" # OTLP gRPC (Jaeger receiver)
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+
