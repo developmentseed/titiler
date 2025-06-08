@@ -83,6 +83,7 @@ from titiler.core.models.responses import (
 from titiler.core.resources.enums import ImageType
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
 from titiler.core.routing import EndpointScope
+from titiler.core.telemetry import trace_factory_method, trace_operation
 from titiler.core.utils import bounds_to_geometry, render_image
 
 jinja2_env = jinja2.Environment(
@@ -388,6 +389,12 @@ class TilerFactory(BaseFactory):
             response_class=JSONResponse,
             responses={200: {"description": "Return dataset's basic info."}},
             operation_id=f"{self.operation_prefix}getInfo",
+        )
+        @trace_factory_method(
+            "info",
+            extract_attributes=lambda *args, **kwargs: {
+                "info.src_path": kwargs.get("src_path"),
+            },
         )
         def info(
             src_path=Depends(self.path_dependency),
@@ -802,6 +809,16 @@ class TilerFactory(BaseFactory):
             operation_id=f"{self.operation_prefix}getTileWithFormatAndScale",
             **img_endpoint_params,
         )
+        @trace_factory_method(
+            "tile",
+            extract_attributes=lambda *args, **kwargs: {
+                "tile.z": kwargs.get("z"),
+                "tile.x": kwargs.get("x"),
+                "tile.y": kwargs.get("y"),
+                "tile.format": kwargs.get("format", "png"),
+                "tile.scale": kwargs.get("scale", 1),
+            },
+        )
         def tile(
             z: Annotated[
                 int,
@@ -851,20 +868,47 @@ class TilerFactory(BaseFactory):
         ):
             """Create map tile from a dataset."""
             tms = self.supported_tms.get(tileMatrixSetId)
-            with rasterio.Env(**env):
-                with self.reader(
-                    src_path, tms=tms, **reader_params.as_dict()
-                ) as src_dst:
-                    image = src_dst.tile(
-                        x,
-                        y,
-                        z,
-                        tilesize=scale * 256,
-                        **tile_params.as_dict(),
-                        **layer_params.as_dict(),
-                        **dataset_params.as_dict(),
-                    )
-                    dst_colormap = getattr(src_dst, "colormap", None)
+            with trace_operation(
+                "open_dataset",
+                {
+                    "dataset.path": src_path,
+                    "dataset.tms": tileMatrixSetId,
+                },
+            ) as span:
+                with rasterio.Env(**env):
+                    with self.reader(
+                        src_path, tms=tms, **reader_params.as_dict()
+                    ) as src_dst:
+                        if span:
+                            span.set_attributes(
+                                {
+                                    "dataset.crs": str(src_dst.crs),
+                                    "dataset.bounds": str(src_dst.bounds),
+                                    "dataset.dtype": str(src_dst.dataset.dtypes[0]),
+                                }
+                            )
+                        with trace_operation(
+                            "read_tile",
+                        ) as read_span:
+                            image = src_dst.tile(
+                                x,
+                                y,
+                                z,
+                                tilesize=scale * 256,
+                                **tile_params.as_dict(),
+                                **layer_params.as_dict(),
+                                **dataset_params.as_dict(),
+                            )
+                            if read_span:
+                                read_span.set_attributes(
+                                    {
+                                        "image.width": image.width,
+                                        "image.height": image.height,
+                                        "image.bands": image.count,
+                                        "image.has_mask": bool(image.mask.any()),
+                                    }
+                                )
+                            dst_colormap = getattr(src_dst, "colormap", None)
 
             if post_process:
                 image = post_process(image)

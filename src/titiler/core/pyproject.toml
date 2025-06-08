@@ -50,6 +50,13 @@ test = [
     "pytest-asyncio",
     "httpx",
 ]
+telemetry = [
+    "opentelemetry-api",
+    "opentelemetry-sdk",
+    "opentelemetry-instrumentation-fastapi",
+    "opentelemetry-instrumentation-requests",
+    "opentelemetry-exporter-otlp",
+]
 
 [project.urls]
 Homepage = "https://developmentseed.org/titiler/"
