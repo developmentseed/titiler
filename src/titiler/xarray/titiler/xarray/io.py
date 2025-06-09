@@ -139,7 +139,7 @@ def _cast_to_type(value, dtype: Any) -> Any:
 
     if "datetime" in str(dtype):
         value = pandas.to_datetime(value)
-        
+
     elif numpy.issubdtype(dtype, numpy.integer):
         value = int(value)
 
