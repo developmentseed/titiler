@@ -134,11 +134,22 @@ def _arrange_dims(da: xarray.DataArray) -> xarray.DataArray:
 
 
 def _cast_to_type(value, dtype: Any) -> Any:
-    if "timedelta" in str(dtype):
-        value = pandas.to_timedelta(value)
+    # Convert dtype to numpy dtype for consistent handling
+    if hasattr(dtype, "type"):
+        np_dtype = dtype
+    else:
+        np_dtype = numpy.dtype(dtype)
 
-    if "datetime" in str(dtype):
-        value = pandas.to_datetime(value)
+    # Explicit datetime64 handling
+    if np_dtype.kind == "M":  # 'M' is numpy's datetime kind
+        # Always parse as UTC first, then remove timezone - Handles "Z" suffix correctly
+        parsed_value = pandas.to_datetime(value, utc=True)
+        # .tz_localize(None) - Removes timezone information, making the datetime "naive"
+        return parsed_value.tz_localize(None)
+
+    # Explicit timedelta64 handling
+    elif np_dtype.kind == "m":  # 'm' is numpy's timedelta kind
+        return pandas.to_timedelta(value)
 
     elif numpy.issubdtype(dtype, numpy.integer):
         value = int(value)
