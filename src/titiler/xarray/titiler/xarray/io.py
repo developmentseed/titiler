@@ -5,7 +5,6 @@ from urllib.parse import urlparse
 
 import attr
 import numpy
-import pandas
 import xarray
 from morecantile import TileMatrixSet
 from rio_tiler.constants import WEB_MERCATOR_TMS
@@ -134,22 +133,13 @@ def _arrange_dims(da: xarray.DataArray) -> xarray.DataArray:
 
 
 def _cast_to_type(value, dtype: Any) -> Any:
-    # Convert dtype to numpy dtype for consistent handling
-    if hasattr(dtype, "type"):
-        np_dtype = dtype
-    else:
-        np_dtype = numpy.dtype(dtype)
-
     # Explicit datetime64 handling
-    if np_dtype.kind == "M":  # 'M' is numpy's datetime kind
-        # Always parse as UTC first, then remove timezone - Handles "Z" suffix correctly
-        parsed_value = pandas.to_datetime(value, utc=True)
-        # .tz_localize(None) - Removes timezone information, making the datetime "naive"
-        return parsed_value.tz_localize(None)
+    if dtype == numpy.datetime64:
+        return numpy.datetime64(value)
 
     # Explicit timedelta64 handling
-    elif np_dtype.kind == "m":  # 'm' is numpy's timedelta kind
-        return pandas.to_timedelta(value)
+    elif dtype == numpy.timedelta64:
+        return numpy.timedelta64(value)
 
     elif numpy.issubdtype(dtype, numpy.integer):
         value = int(value)
