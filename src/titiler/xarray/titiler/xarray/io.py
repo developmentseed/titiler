@@ -4,7 +4,6 @@ from typing import Any, Callable, Dict, List, Literal, Optional, Union
 from urllib.parse import urlparse
 
 import attr
-import numpy
 import xarray
 from morecantile import TileMatrixSet
 from rio_tiler.constants import WEB_MERCATOR_TMS
@@ -132,24 +131,6 @@ def _arrange_dims(da: xarray.DataArray) -> xarray.DataArray:
     return da
 
 
-def _cast_to_type(value, dtype: Any) -> Any:
-    # Explicit datetime64 handling
-    if dtype == numpy.datetime64:
-        return numpy.datetime64(value)
-
-    # Explicit timedelta64 handling
-    elif dtype == numpy.timedelta64:
-        return numpy.timedelta64(value)
-
-    elif numpy.issubdtype(dtype, numpy.integer):
-        value = int(value)
-
-    elif numpy.issubdtype(dtype, numpy.floating):
-        value = float(value)
-
-    return value
-
-
 def get_variable(
     ds: xarray.Dataset,
     variable: str,
@@ -175,7 +156,8 @@ def get_variable(
         for s in sel:
             val: Union[str, slice]
             dim, val = s.split("=")
-            val = _cast_to_type(val, da[dim].dtype)
+            # cast string to dtype of the dimension
+            val = da[dim].dtype.type(val)
 
             if dim in _idx:
                 _idx[dim].append(val)
@@ -210,7 +192,7 @@ class Reader(XarrayReader):
     src_path: str = attr.ib()
     variable: str = attr.ib()
 
-    # xarray.Dataset options
+    # xarray.Dataset optionsf
     opener: Callable[..., xarray.Dataset] = attr.ib(default=xarray_open_dataset)
 
     group: Optional[str] = attr.ib(default=None)
