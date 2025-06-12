@@ -888,7 +888,9 @@ class TilerFactory(BaseFactory):
                             {
                                 "dataset.crs": str(src_dst.crs),
                                 "dataset.bounds": str(src_dst.bounds),
-                                "dataset.dtype": str(src_dst.dataset.dtypes[0]),
+                                "dataset.dtype": str(src_dst.dataset.dtypes[0])
+                                if getattr(src_dst, "dataset", None)
+                                else "",
                             }
                         )
                         with trace_operation(
