@@ -460,8 +460,6 @@ if os.getenv("TITILER_TELEMETRY_ENABLED"):
     from opentelemetry.sdk.trace import TracerProvider
     from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
-    from titiler.core.telemetry import init_telemetry
-
     resource = Resource.create(
         {
             "service.name": "titiler",
@@ -476,6 +474,3 @@ if os.getenv("TITILER_TELEMETRY_ENABLED"):
     provider.add_span_processor(processor)
 
     trace.set_tracer_provider(provider)
-
-    # Initialize titiler telemetry
-    init_telemetry("titiler.application")
