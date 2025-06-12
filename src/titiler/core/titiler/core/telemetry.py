@@ -1,9 +1,10 @@
 """OpenTelemetry instrumentation for titiler.core."""
 
 import functools
-import sys  # <--- Import the sys module
+import inspect
+import sys
 from contextlib import contextmanager
-from typing import Any, Callable, Dict, Iterator, Optional, TypeVar
+from typing import Any, Callable, Dict, Iterator, Optional, TypeVar, overload
 
 if sys.version_info >= (3, 10):
     from typing import ParamSpec
@@ -28,6 +29,24 @@ except ImportError:  # pragma: nocover
 
 P = ParamSpec("P")
 R = TypeVar("R")
+
+
+class SpanWrapper:
+    """A wrapper class to safely handle an optional OpenTelemetry Span."""
+
+    def __init__(self, span: Optional[Span]):
+        """Set the span"""
+        self._span = span
+
+    def set_attributes(self, attributes: Dict[str, Any]) -> None:
+        """Safely set attributes on the wrapped span if it exists."""
+        if self._span:
+            self._span.set_attributes(attributes)
+
+    def record_exception(self, exception: Exception) -> None:
+        """Safely record an exception on the wrapped span if it exists."""
+        if self._span:
+            self._span.record_exception(exception)
 
 
 def trace_method(
@@ -62,31 +81,86 @@ def trace_method(
     return decorator
 
 
-def trace_factory_method(
-    operation_type: str,
+def _get_span_name(op_name: str, *args: Any) -> str:
+    """Determine the span name based on the instance's prefix."""
+    if not args:
+        return op_name
+
+    instance = args[0]
+    prefix = getattr(instance, "operation_prefix", "factory")
+    return f"{prefix}.{op_name}"
+
+
+def _extract_span_attributes(
+    sig: inspect.Signature,
+    custom_extractor: Optional[Callable[..., Dict[str, Any]]],
+    *args: Any,
+    **kwargs: Any,
+) -> Dict[str, Any]:
+    """Extract span attributes using either a custom or automatic method."""
+    if custom_extractor:
+        try:
+            return custom_extractor(*args, **kwargs)
+        except Exception:
+            return {}
+
+    # Default to automatic extraction
+    try:
+        bound_args = sig.bind(*args, **kwargs)
+        bound_args.apply_defaults()
+        auto_attrs = {}
+        for key, value in bound_args.arguments.items():
+            if key in ("self", "request") or value is None:
+                continue
+            if hasattr(value, "value"):
+                value = value.value
+            if isinstance(value, (str, bool, int, float)):
+                auto_attrs[f"titiler.path_param.{key}"] = value
+        return auto_attrs
+    except Exception:
+        return {}
+
+
+@overload
+def factory_trace(
+    *,
+    operation_name: Optional[str] = None,
     extract_attributes: Optional[Callable[P, Dict[str, Any]]] = None,
-) -> Callable[[Callable[P, R]], Callable[P, R]]:
-    """Specialized decorator for factory methods."""
+) -> Callable[[Callable[P, R]], Callable[P, R]]: ...
+
+
+@overload
+def factory_trace(_func: Callable[P, R]) -> Callable[P, R]: ...
+
+
+def factory_trace(
+    _func: Optional[Callable[P, R]] = None,
+    *,
+    operation_name: Optional[str] = None,
+    extract_attributes: Optional[Callable[P, Dict[str, Any]]] = None,
+) -> Any:
+    """
+    A decorator for Factory methods that automatically constructs span names
+    and introspects function arguments to add them as trace attributes.
+    """
 
     def decorator(func: Callable[P, R]) -> Callable[P, R]:
         if not tracer:
             return func
 
+        op_name = operation_name or func.__name__
+        sig = inspect.signature(func)
+
         @functools.wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
-            span_name = f"titiler.{operation_type}"
+            span_name = _get_span_name(op_name, *args)
 
             with tracer.start_as_current_span(span_name) as span:
-                span.set_attribute("titiler.operation", operation_type)
-
-                if extract_attributes:
-                    try:
-                        attrs = extract_attributes(*args, **kwargs)
-                        span.set_attributes(attrs)
-                    except Exception:
-                        # Silently passing is reasonable here if attribute
-                        # extraction is non-critical.
-                        pass
+                attributes = _extract_span_attributes(
+                    sig, extract_attributes, *args, **kwargs
+                )
+                if attributes:
+                    span.set_attributes(attributes)
 
                 try:
                     result = func(*args, **kwargs)
@@ -99,25 +173,32 @@ def trace_factory_method(
 
         return wrapper
 
-    return decorator
+    if _func is None:
+        return decorator
+    else:
+        return decorator(_func)
+
+
+factory_trace.decorator_enabled = bool(tracer)  # type: ignore [attr-defined]
 
 
 @contextmanager
 def trace_operation(
     operation_name: str,
     attributes: Optional[Dict[str, Any]] = None,
-) -> Iterator[Optional[Span]]:
+) -> Iterator[SpanWrapper]:
     """Context manager for tracing operations."""
     if not tracer:
-        yield None
+        yield SpanWrapper(None)
         return
 
     with tracer.start_as_current_span(operation_name) as span:
+        wrapped_span = SpanWrapper(span)
         if attributes:
-            span.set_attributes(attributes)
+            wrapped_span.set_attributes(attributes)
 
         try:
-            yield span
+            yield wrapped_span
             span.set_status(Status(StatusCode.OK))
         except Exception as e:
             span.record_exception(e)

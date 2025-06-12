@@ -38,7 +38,9 @@ from rio_tiler.types import ColorMapType
 from rio_tiler.utils import CRS_to_uri, CRS_to_urn
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, Response
-from starlette.routing import Match, NoMatchFound, compile_path, replace_params
+from starlette.routing import Match, NoMatchFound
+from starlette.routing import Route as APIRoute
+from starlette.routing import compile_path, replace_params
 from starlette.templating import Jinja2Templates
 from typing_extensions import Annotated
 
@@ -83,7 +85,7 @@ from titiler.core.models.responses import (
 from titiler.core.resources.enums import ImageType
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
 from titiler.core.routing import EndpointScope
-from titiler.core.telemetry import trace_factory_method, trace_operation
+from titiler.core.telemetry import factory_trace, trace_operation
 from titiler.core.utils import bounds_to_geometry, render_image
 
 jinja2_env = jinja2.Environment(
@@ -170,6 +172,8 @@ class BaseFactory(metaclass=abc.ABCMeta):
         for scopes, dependencies in self.route_dependencies:
             self.add_route_dependencies(scopes=scopes, dependencies=dependencies)
 
+        self._apply_telemetry()
+
     @abc.abstractmethod
     def register_routes(self):
         """Register Routes."""
@@ -225,6 +229,23 @@ class BaseFactory(metaclass=abc.ABCMeta):
                 # https://github.com/tiangolo/fastapi/blob/58ab733f19846b4875c5b79bfb1f4d1cb7f4823f/fastapi/applications.py#L337-L360
                 # https://github.com/tiangolo/fastapi/blob/58ab733f19846b4875c5b79bfb1f4d1cb7f4823f/fastapi/routing.py#L677-L678
                 route.dependencies.extend(dependencies)  # type: ignore
+
+    def _apply_telemetry(self):
+        """
+        Applies the factory_trace decorator to all registered API routes.
+
+        This method iterates through the router's routes and wraps the endpoint
+        of each APIRoute to ensure consistent OpenTelemetry tracing.
+        """
+        # If tracing is disabled, do nothing.
+        if not factory_trace.decorator_enabled:  # Assumes you add this check
+            return
+
+        for route in self.router.routes:
+            if isinstance(route, APIRoute):
+                # The factory_trace decorator is a factory itself,
+                # so we call it to get the actual decorator, then apply it.
+                route.endpoint = factory_trace()(route.endpoint)
 
 
 @define(kw_only=True)
@@ -389,12 +410,6 @@ class TilerFactory(BaseFactory):
             response_class=JSONResponse,
             responses={200: {"description": "Return dataset's basic info."}},
             operation_id=f"{self.operation_prefix}getInfo",
-        )
-        @trace_factory_method(
-            "info",
-            extract_attributes=lambda *args, **kwargs: {
-                "info.src_path": kwargs.get("src_path"),
-            },
         )
         def info(
             src_path=Depends(self.path_dependency),
@@ -809,16 +824,6 @@ class TilerFactory(BaseFactory):
             operation_id=f"{self.operation_prefix}getTileWithFormatAndScale",
             **img_endpoint_params,
         )
-        @trace_factory_method(
-            "tile",
-            extract_attributes=lambda *args, **kwargs: {
-                "tile.z": kwargs.get("z"),
-                "tile.x": kwargs.get("x"),
-                "tile.y": kwargs.get("y"),
-                "tile.format": kwargs.get("format", "png"),
-                "tile.scale": kwargs.get("scale", 1),
-            },
-        )
         def tile(
             z: Annotated[
                 int,
@@ -879,14 +884,13 @@ class TilerFactory(BaseFactory):
                     with self.reader(
                         src_path, tms=tms, **reader_params.as_dict()
                     ) as src_dst:
-                        if span:
-                            span.set_attributes(
-                                {
-                                    "dataset.crs": str(src_dst.crs),
-                                    "dataset.bounds": str(src_dst.bounds),
-                                    "dataset.dtype": str(src_dst.dataset.dtypes[0]),
-                                }
-                            )
+                        span.set_attributes(
+                            {
+                                "dataset.crs": str(src_dst.crs),
+                                "dataset.bounds": str(src_dst.bounds),
+                                "dataset.dtype": str(src_dst.dataset.dtypes[0]),
+                            }
+                        )
                         with trace_operation(
                             "read_tile",
                         ) as read_span:
@@ -899,15 +903,14 @@ class TilerFactory(BaseFactory):
                                 **layer_params.as_dict(),
                                 **dataset_params.as_dict(),
                             )
-                            if read_span:
-                                read_span.set_attributes(
-                                    {
-                                        "image.width": image.width,
-                                        "image.height": image.height,
-                                        "image.bands": image.count,
-                                        "image.has_mask": bool(image.mask.any()),
-                                    }
-                                )
+                            read_span.set_attributes(
+                                {
+                                    "image.width": image.width,
+                                    "image.height": image.height,
+                                    "image.bands": image.count,
+                                    "image.has_mask": bool(image.mask.any()),
+                                }
+                            )
                             dst_colormap = getattr(src_dst, "colormap", None)
 
             if post_process:
