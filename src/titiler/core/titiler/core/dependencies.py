@@ -16,8 +16,6 @@ from rio_tiler.errors import MissingAssets, MissingBands
 from rio_tiler.types import RIOResampling, WarpResampling
 from typing_extensions import Annotated
 
-from titiler.core.telemetry import trace_method
-
 
 def create_colormap_dependency(cmap: ColorMaps) -> Callable:
     """Create Colormap Dependency."""
@@ -428,9 +426,6 @@ class DatasetParams(DefaultDependency):
         ),
     ] = None
 
-    @trace_method(
-        name="titiler.dataset_params.validate", attributes={"component": "dependencies"}
-    )
     def __post_init__(self):
         """Post Init."""
         if self.nodata is not None:
