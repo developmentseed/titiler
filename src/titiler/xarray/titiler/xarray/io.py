@@ -192,7 +192,7 @@ class Reader(XarrayReader):
     src_path: str = attr.ib()
     variable: str = attr.ib()
 
-    # xarray.Dataset optionsf
+    # xarray.Dataset options
     opener: Callable[..., xarray.Dataset] = attr.ib(default=xarray_open_dataset)
 
     group: Optional[str] = attr.ib(default=None)
