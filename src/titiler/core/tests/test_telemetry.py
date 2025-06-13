@@ -1,6 +1,5 @@
 """telemetry tests"""
 
-import importlib
 import os
 
 import pytest
@@ -12,23 +11,21 @@ from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanE
 from opentelemetry.trace import StatusCode
 from starlette.testclient import TestClient
 
-from titiler.core import dependencies, factory, telemetry
+from titiler.core import telemetry
 from titiler.core.factory import TilerFactory
 
 TEST_URL = f"file://{os.path.join(os.path.dirname(__file__), 'fixtures', 'cog.tif')}"
 TEST_Z, TEST_X, TEST_Y = 8, 84, 47
 
 
-@pytest.fixture(autouse=True)
-def module_reloader():
-    """Fixture to automatically reload modules after each test."""
-    yield
-    importlib.reload(telemetry)
-    importlib.reload(dependencies)
-    importlib.reload(factory)
+@pytest.fixture
+def telemetry_disabled(monkeypatch):
+    """Fixture to simulate OTel being disabled by monkeypatching the tracer."""
+    monkeypatch.setattr("titiler.core.telemetry.tracer", None)
+    monkeypatch.setattr("titiler.core.telemetry.factory_trace.decorator_enabled", False)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def memory_exporter():
     """Fixture to configure an in-memory exporter for capturing spans."""
     tracer_provider = TracerProvider()
@@ -45,13 +42,8 @@ def memory_exporter():
     trace.set_tracer_provider(original_provider)
 
 
-def test_tracing_disabled_noop(mocker):
+def test_tracing_disabled_noop(telemetry_disabled):
     """Test that the application works correctly when OTel is not installed."""
-    mocker.patch.dict("sys.modules", {"opentelemetry": None})
-
-    importlib.reload(telemetry)
-    importlib.reload(factory)
-
     assert not telemetry.tracer
     assert not telemetry.factory_trace.decorator_enabled
 
