@@ -85,7 +85,7 @@ from titiler.core.models.responses import (
 from titiler.core.resources.enums import ImageType
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
 from titiler.core.routing import EndpointScope
-from titiler.core.telemetry import factory_trace, trace_operation
+from titiler.core.telemetry import factory_trace, operation_tracer
 from titiler.core.utils import bounds_to_geometry, render_image
 
 jinja2_env = jinja2.Environment(
@@ -172,7 +172,7 @@ class BaseFactory(metaclass=abc.ABCMeta):
         for scopes, dependencies in self.route_dependencies:
             self.add_route_dependencies(scopes=scopes, dependencies=dependencies)
 
-        self._apply_telemetry()
+        self.add_telemetry()
 
     @abc.abstractmethod
     def register_routes(self):
@@ -230,21 +230,18 @@ class BaseFactory(metaclass=abc.ABCMeta):
                 # https://github.com/tiangolo/fastapi/blob/58ab733f19846b4875c5b79bfb1f4d1cb7f4823f/fastapi/routing.py#L677-L678
                 route.dependencies.extend(dependencies)  # type: ignore
 
-    def _apply_telemetry(self):
+    def add_telemetry(self):
         """
         Applies the factory_trace decorator to all registered API routes.
 
         This method iterates through the router's routes and wraps the endpoint
         of each APIRoute to ensure consistent OpenTelemetry tracing.
         """
-        # If tracing is disabled, do nothing.
-        if not factory_trace.decorator_enabled:  # Assumes you add this check
+        if not factory_trace.decorator_enabled:
             return
 
         for route in self.router.routes:
             if isinstance(route, APIRoute):
-                # The factory_trace decorator is a factory itself,
-                # so we call it to get the actual decorator, then apply it.
                 route.endpoint = factory_trace()(route.endpoint)
 
 
@@ -873,18 +870,18 @@ class TilerFactory(BaseFactory):
         ):
             """Create map tile from a dataset."""
             tms = self.supported_tms.get(tileMatrixSetId)
-            with trace_operation(
+            with operation_tracer(
                 "open_dataset",
                 {
                     "dataset.path": src_path,
                     "dataset.tms": tileMatrixSetId,
                 },
-            ) as span:
+            ) as io_span:
                 with rasterio.Env(**env):
                     with self.reader(
                         src_path, tms=tms, **reader_params.as_dict()
                     ) as src_dst:
-                        span.set_attributes(
+                        io_span.set_attributes(
                             {
                                 "dataset.crs": str(src_dst.crs),
                                 "dataset.bounds": str(src_dst.bounds),
@@ -893,7 +890,7 @@ class TilerFactory(BaseFactory):
                                 else "",
                             }
                         )
-                        with trace_operation(
+                        with operation_tracer(
                             "read_tile",
                         ) as read_span:
                             image = src_dst.tile(
