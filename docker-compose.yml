@@ -82,8 +82,6 @@ services:
       dockerfile: dockerfiles/Dockerfile.xarray
     ports:
       - "8082:8082"
-    volumes:
-      - /tmp:/tmp
     command: ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8082", "--workers", "1"]
 
   otel-collector:
