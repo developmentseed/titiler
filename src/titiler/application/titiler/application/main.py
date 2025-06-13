@@ -444,3 +444,29 @@ def conformance(
         )
 
     return data
+
+
+if api_settings.telemetry_enabled:
+    from opentelemetry import trace
+    from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+    from opentelemetry.sdk.resources import Resource
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
+    FastAPIInstrumentor.instrument_app(app)
+
+    resource = Resource.create(
+        {
+            "service.name": "titiler",
+            "service.version": titiler_version,
+        }
+    )
+
+    provider = TracerProvider(resource=resource)
+
+    # uses the OTEL_EXPORTER_OTLP_ENDPOINT env var
+    processor = BatchSpanProcessor(OTLPSpanExporter())
+    provider.add_span_processor(processor)
+
+    trace.set_tracer_provider(provider)
