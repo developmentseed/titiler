@@ -870,29 +870,14 @@ class TilerFactory(BaseFactory):
         ):
             """Create map tile from a dataset."""
             tms = self.supported_tms.get(tileMatrixSetId)
-            with operation_tracer(
-                "open_dataset",
-                {
-                    "dataset.path": src_path,
-                    "dataset.tms": tileMatrixSetId,
-                },
-            ) as io_span:
+            with operation_tracer("open_dataset"):
                 with rasterio.Env(**env):
                     with self.reader(
                         src_path, tms=tms, **reader_params.as_dict()
                     ) as src_dst:
-                        io_span.set_attributes(
-                            {
-                                "dataset.crs": str(src_dst.crs),
-                                "dataset.bounds": str(src_dst.bounds),
-                                "dataset.dtype": str(src_dst.dataset.dtypes[0])
-                                if getattr(src_dst, "dataset", None)
-                                else "",
-                            }
-                        )
                         with operation_tracer(
                             "read_tile",
-                        ) as read_span:
+                        ):
                             image = src_dst.tile(
                                 x,
                                 y,
@@ -901,14 +886,6 @@ class TilerFactory(BaseFactory):
                                 **tile_params.as_dict(),
                                 **layer_params.as_dict(),
                                 **dataset_params.as_dict(),
-                            )
-                            read_span.set_attributes(
-                                {
-                                    "image.width": image.width,
-                                    "image.height": image.height,
-                                    "image.bands": image.count,
-                                    "image.has_mask": bool(image.mask.any()),
-                                }
                             )
                             dst_colormap = getattr(src_dst, "colormap", None)
 
