@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### titiler.xarray
+
+* add support for timezone aware time selection (e.g `sel="time=2023-01-01T00:00:00+03:00"`)
+
 ## 0.22.2 (2025-06-02)
 
 ### titiler.application

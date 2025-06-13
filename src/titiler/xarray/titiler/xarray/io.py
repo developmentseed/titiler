@@ -8,6 +8,7 @@ import numpy
 import pandas
 import xarray
 from morecantile import TileMatrixSet
+from pandas._libs.tslibs.parsing import DateParseError
 from rio_tiler.constants import WEB_MERCATOR_TMS
 from rio_tiler.io.xarray import XarrayReader
 from xarray.namedarray.utils import module_available
@@ -142,6 +143,12 @@ def _cast_to_type(value, dtype: Any) -> Any:
 
     elif numpy.issubdtype(dtype, numpy.floating):
         value = float(value)
+
+    elif numpy.issubdtype(dtype, numpy.datetime64) or dtype == "O":
+        try:
+            value = pandas.Timestamp(value).to_datetime64()
+        except DateParseError:
+            pass
 
     return value
 
