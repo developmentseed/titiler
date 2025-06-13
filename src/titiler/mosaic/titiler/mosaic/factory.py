@@ -46,6 +46,7 @@ from titiler.core.models.mapbox import TileJSON
 from titiler.core.models.OGC import TileSet, TileSetList
 from titiler.core.resources.enums import ImageType, OptionalHeader
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
+from titiler.core.telemetry import operation_tracer
 from titiler.core.utils import bounds_to_geometry, render_image
 from titiler.mosaic.models.responses import Point
 
@@ -608,37 +609,40 @@ class MosaicTilerFactory(BaseFactory):
                 )
 
             tms = self.supported_tms.get(tileMatrixSetId)
-            with rasterio.Env(**env):
-                with self.backend(
-                    src_path,
-                    tms=tms,
-                    reader=self.dataset_reader,
-                    reader_options=reader_params.as_dict(),
-                    **backend_params.as_dict(),
-                ) as src_dst:
-                    if MOSAIC_STRICT_ZOOM and (
-                        z < src_dst.minzoom or z > src_dst.maxzoom
-                    ):
-                        raise HTTPException(
-                            400,
-                            f"Invalid ZOOM level {z}. Should be between {src_dst.minzoom} and {src_dst.maxzoom}",
-                        )
+            with operation_tracer("open_dataset"):
+                with rasterio.Env(**env):
+                    with self.backend(
+                        src_path,
+                        tms=tms,
+                        reader=self.dataset_reader,
+                        reader_options=reader_params.as_dict(),
+                        **backend_params.as_dict(),
+                    ) as src_dst:
+                        if MOSAIC_STRICT_ZOOM and (
+                            z < src_dst.minzoom or z > src_dst.maxzoom
+                        ):
+                            raise HTTPException(
+                                400,
+                                f"Invalid ZOOM level {z}. Should be between {src_dst.minzoom} and {src_dst.maxzoom}",
+                            )
 
-                    image, assets = src_dst.tile(
-                        x,
-                        y,
-                        z,
-                        pixel_selection=pixel_selection,
-                        tilesize=scale * 256,
-                        threads=MOSAIC_THREADS,
-                        **tile_params.as_dict(),
-                        **layer_params.as_dict(),
-                        **dataset_params.as_dict(),
-                        **assets_accessor_params.as_dict(),
-                    )
+                        with operation_tracer("read_data"):
+                            image, assets = src_dst.tile(
+                                x,
+                                y,
+                                z,
+                                pixel_selection=pixel_selection,
+                                tilesize=scale * 256,
+                                threads=MOSAIC_THREADS,
+                                **tile_params.as_dict(),
+                                **layer_params.as_dict(),
+                                **dataset_params.as_dict(),
+                                **assets_accessor_params.as_dict(),
+                            )
 
             if post_process:
-                image = post_process(image)
+                with operation_tracer("post_process"):
+                    image = post_process(image)
 
             content, media_type = self.render_func(
                 image,
@@ -999,22 +1003,24 @@ class MosaicTilerFactory(BaseFactory):
             env=Depends(self.environment_dependency),
         ):
             """Get Point value for a Mosaic."""
-            with rasterio.Env(**env):
-                with self.backend(
-                    src_path,
-                    reader=self.dataset_reader,
-                    reader_options=reader_params.as_dict(),
-                    **backend_params.as_dict(),
-                ) as src_dst:
-                    values = src_dst.point(
-                        lon,
-                        lat,
-                        coord_crs=coord_crs or WGS84_CRS,
-                        threads=MOSAIC_THREADS,
-                        **layer_params.as_dict(),
-                        **dataset_params.as_dict(),
-                        **assets_accessor_params.as_dict(),
-                    )
+            with operation_tracer("open_dataset"):
+                with rasterio.Env(**env):
+                    with self.backend(
+                        src_path,
+                        reader=self.dataset_reader,
+                        reader_options=reader_params.as_dict(),
+                        **backend_params.as_dict(),
+                    ) as src_dst:
+                        with operation_tracer("read_data"):
+                            values = src_dst.point(
+                                lon,
+                                lat,
+                                coord_crs=coord_crs or WGS84_CRS,
+                                threads=MOSAIC_THREADS,
+                                **layer_params.as_dict(),
+                                **dataset_params.as_dict(),
+                                **assets_accessor_params.as_dict(),
+                            )
 
             return {
                 "coordinates": [lon, lat],

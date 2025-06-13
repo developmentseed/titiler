@@ -30,7 +30,6 @@ R = TypeVar("R")
 class SpanWrapper:
     """A wrapper class to safely handle an optional OpenTelemetry Span."""
 
-    # ... (this class remains unchanged) ...
     def __init__(self, span: Optional[Span]):
         """Set the span"""
         self._span = span
@@ -48,7 +47,6 @@ class SpanWrapper:
 
 def _get_span_name(op_name: str, *args: Any) -> str:
     """Determine the span name based on the instance's prefix."""
-    # ... (this function remains unchanged) ...
     if not args:
         return op_name
 
@@ -64,14 +62,12 @@ def _extract_span_attributes(
     **kwargs: Any,
 ) -> Dict[str, Any]:
     """Extract span attributes using either a custom or automatic method."""
-    # ... (this function remains unchanged) ...
     if custom_extractor:
         try:
             return custom_extractor(*args, **kwargs)
         except Exception:
             return {}
 
-    # Default to automatic extraction
     try:
         bound_args = sig.bind(*args, **kwargs)
         bound_args.apply_defaults()
@@ -94,7 +90,6 @@ def operation_tracer(
     attributes: Optional[Dict[str, Any]] = None,
 ) -> Iterator[SpanWrapper]:
     """Context manager for tracing operations."""
-    # ... (this function remains unchanged) ...
     if not tracer:
         yield SpanWrapper(None)
         return
