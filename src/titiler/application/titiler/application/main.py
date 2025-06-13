@@ -2,7 +2,6 @@
 
 import json
 import logging
-import os
 from logging import config as log_config
 from typing import Annotated, Literal, Optional
 
@@ -447,7 +446,7 @@ def conformance(
     return data
 
 
-if os.getenv("TITILER_TELEMETRY_ENABLED"):
+if api_settings.telemetry_enabled:
     from opentelemetry import trace
     from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
     from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor

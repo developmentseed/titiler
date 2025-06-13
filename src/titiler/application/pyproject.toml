@@ -31,7 +31,7 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-    "titiler.core==0.22.2",
+    "titiler.core[telemetry]==0.22.2",
     "titiler.extensions[cogeo,stac]==0.22.2",
     "titiler.mosaic==0.22.2",
     "starlette-cramjam>=0.4,<0.5",
@@ -49,10 +49,6 @@ test = [
 ]
 server = [
     "uvicorn[standard]>=0.12.0",
-]
-telemetry = [
-    "titiler.core[telemetry]==0.22.2",
-    "opentelemetry-instrumentation-fastapi",
 ]
 
 [project.urls]

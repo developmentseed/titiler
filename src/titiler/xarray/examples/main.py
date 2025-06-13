@@ -82,7 +82,7 @@ app.add_middleware(
     exclude_path={r"/healthz"},
 )
 
-if os.getenv("TITILER_TELEMETRY_ENABLED"):
+if os.getenv("TITILER_API_TELEMETRY_ENABLED"):
     from opentelemetry import trace
     from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
     from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
