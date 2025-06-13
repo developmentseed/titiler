@@ -22,6 +22,8 @@ class ApiSettings(BaseSettings):
 
     lower_case_query_parameters: bool = False
 
+    telemetry_enabled: bool = True
+
     # an API key required to access any endpoint, passed via the ?access_token= query parameter
     global_access_token: Optional[str] = None
 

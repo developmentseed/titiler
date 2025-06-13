@@ -183,7 +183,7 @@ factory_trace.decorator_enabled = bool(tracer)  # type: ignore [attr-defined]
 
 
 @contextmanager
-def trace_operation(
+def operation_tracer(
     operation_name: str,
     attributes: Optional[Dict[str, Any]] = None,
 ) -> Iterator[SpanWrapper]:

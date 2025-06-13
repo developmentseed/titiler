@@ -38,7 +38,7 @@ services:
       # rio-tiler config
       # - RIO_TILER_MAX_THREADS=
       # telemetry config
-      - TITILER_TELEMETRY_ENABLED=True
+      - TITILER_API_TELEMETRY_ENABLED=True
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
     depends_on:
       - otel-collector
@@ -90,7 +90,7 @@ services:
     image: otel/opentelemetry-collector-contrib:latest
     command: ["--config=/etc/otel-collector-config.yaml"]
     volumes:
-      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+      - ./dockerfiles/otel-collector-config.yaml:/etc/otel-collector-config.yaml
     ports:
       - "4318:4318"   # OTLP HTTP receiver
       - "13133:13133" # Health check extension
