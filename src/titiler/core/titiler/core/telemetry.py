@@ -2,14 +2,10 @@
 
 import functools
 import inspect
-import sys
 from contextlib import contextmanager
 from typing import Any, Awaitable, Callable, Dict, Iterator, Optional, TypeVar, overload
 
-if sys.version_info >= (3, 10):
-    from typing import ParamSpec
-else:
-    from typing_extensions import ParamSpec
+from typing_extensions import ParamSpec
 
 from titiler.core import __version__
 
