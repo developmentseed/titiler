@@ -169,6 +169,46 @@ def test_get_variable():
         da = get_variable(ds, "dataset")
 
 
+def test_get_variable_datetime_tz():
+    """test io.get_variable with datetime and timezones."""
+    arr = numpy.arange(0, 33 * 35 * 2).reshape(2, 33, 35)
+    data = xarray.DataArray(
+        arr,
+        dims=("time", "y", "x"),
+        coords={
+            "x": numpy.arange(-170, 180, 10),
+            "y": numpy.arange(-80, 85, 5),
+            "time": [
+                datetime(2022, 1, 1),
+                datetime(2023, 1, 1),
+            ],
+        },
+    )
+    data.attrs.update({"valid_min": arr.min(), "valid_max": arr.max()})
+    assert not data.rio.crs
+    assert data.dims == ("time", "y", "x")
+    ds = data.to_dataset(name="dataset")
+
+    da = get_variable(ds, "dataset", sel=["time=2023-01-01T00:00:00"], method="nearest")
+    assert da.rio.crs
+    assert da.dims == ("y", "x")
+    assert da["time"] == numpy.datetime64("2023-01-01")
+
+    da = get_variable(
+        ds, "dataset", sel=["time=2023-01-01T00:00:00Z"], method="nearest"
+    )
+    assert da.rio.crs
+    assert da.dims == ("y", "x")
+    assert da["time"] == numpy.datetime64("2023-01-01")
+
+    da = get_variable(
+        ds, "dataset", sel=["time=2023-01-01T00:00:00+03:00"], method="nearest"
+    )
+    assert da.rio.crs
+    assert da.dims == ("y", "x")
+    assert da["time"] == numpy.datetime64("2023-01-01")
+
+
 @pytest.mark.parametrize(
     "protocol,filename",
     [
