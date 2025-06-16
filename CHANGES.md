@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+### titiler.core
+
+* add OpenTelemetry instrumentation to the tiler factory classes
+* add traces to critical operations within the tiler factory methods
+
+### titiler.application
+
+* add OpenTelemetry tracing to the FastAPI application
+
+### Misc
+
+* Add otel-collector and jaeger to the docker network 
+
 ## 0.22.2 (2025-06-02)
 
 ### titiler.application
