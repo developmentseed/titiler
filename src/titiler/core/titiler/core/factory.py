@@ -1,6 +1,7 @@
 """TiTiler Router factories."""
 
 import abc
+import logging
 from typing import (
     Any,
     Callable,
@@ -38,7 +39,9 @@ from rio_tiler.types import ColorMapType
 from rio_tiler.utils import CRS_to_uri, CRS_to_urn
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, Response
-from starlette.routing import Match, NoMatchFound, compile_path, replace_params
+from starlette.routing import Match, NoMatchFound
+from starlette.routing import Route as APIRoute
+from starlette.routing import compile_path, replace_params
 from starlette.templating import Jinja2Templates
 from typing_extensions import Annotated
 
@@ -83,6 +86,7 @@ from titiler.core.models.responses import (
 from titiler.core.resources.enums import ImageType
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
 from titiler.core.routing import EndpointScope
+from titiler.core.telemetry import factory_trace
 from titiler.core.utils import bounds_to_geometry, render_image
 
 jinja2_env = jinja2.Environment(
@@ -107,6 +111,8 @@ img_endpoint_params: Dict[str, Any] = {
     },
     "response_class": Response,
 }
+
+logger = logging.getLogger(__name__)
 
 
 @define
@@ -169,6 +175,8 @@ class BaseFactory(metaclass=abc.ABCMeta):
         for scopes, dependencies in self.route_dependencies:
             self.add_route_dependencies(scopes=scopes, dependencies=dependencies)
 
+        self.add_telemetry()
+
     @abc.abstractmethod
     def register_routes(self):
         """Register Routes."""
@@ -224,6 +232,20 @@ class BaseFactory(metaclass=abc.ABCMeta):
                 # https://github.com/tiangolo/fastapi/blob/58ab733f19846b4875c5b79bfb1f4d1cb7f4823f/fastapi/applications.py#L337-L360
                 # https://github.com/tiangolo/fastapi/blob/58ab733f19846b4875c5b79bfb1f4d1cb7f4823f/fastapi/routing.py#L677-L678
                 route.dependencies.extend(dependencies)  # type: ignore
+
+    def add_telemetry(self):
+        """
+        Applies the factory_trace decorator to all registered API routes.
+
+        This method iterates through the router's routes and wraps the endpoint
+        of each APIRoute to ensure consistent OpenTelemetry tracing.
+        """
+        if not factory_trace.decorator_enabled:
+            return
+
+        for route in self.router.routes:
+            if isinstance(route, APIRoute):
+                route.endpoint = factory_trace(route.endpoint, factory_instance=self)
 
 
 @define(kw_only=True)
@@ -677,28 +699,28 @@ class TilerFactory(BaseFactory):
                     minzoom = src_dst.minzoom
                     maxzoom = src_dst.maxzoom
 
-                    collection_bbox = {
-                        "lowerLeft": [bounds[0], bounds[1]],
-                        "upperRight": [bounds[2], bounds[3]],
-                        "crs": CRS_to_uri(tms.rasterio_geographic_crs),
-                    }
+                collection_bbox = {
+                    "lowerLeft": [bounds[0], bounds[1]],
+                    "upperRight": [bounds[2], bounds[3]],
+                    "crs": CRS_to_uri(tms.rasterio_geographic_crs),
+                }
 
-                    tilematrix_limit = []
-                    for zoom in range(minzoom, maxzoom + 1, 1):
-                        matrix = tms.matrix(zoom)
-                        ulTile = tms.tile(bounds[0], bounds[3], int(matrix.id))
-                        lrTile = tms.tile(bounds[2], bounds[1], int(matrix.id))
-                        minx, maxx = (min(ulTile.x, lrTile.x), max(ulTile.x, lrTile.x))
-                        miny, maxy = (min(ulTile.y, lrTile.y), max(ulTile.y, lrTile.y))
-                        tilematrix_limit.append(
-                            {
-                                "tileMatrix": matrix.id,
-                                "minTileRow": max(miny, 0),
-                                "maxTileRow": min(maxy, matrix.matrixHeight),
-                                "minTileCol": max(minx, 0),
-                                "maxTileCol": min(maxx, matrix.matrixWidth),
-                            }
-                        )
+                tilematrix_limit = []
+                for zoom in range(minzoom, maxzoom + 1, 1):
+                    matrix = tms.matrix(zoom)
+                    ulTile = tms.tile(bounds[0], bounds[3], int(matrix.id))
+                    lrTile = tms.tile(bounds[2], bounds[1], int(matrix.id))
+                    minx, maxx = (min(ulTile.x, lrTile.x), max(ulTile.x, lrTile.x))
+                    miny, maxy = (min(ulTile.y, lrTile.y), max(ulTile.y, lrTile.y))
+                    tilematrix_limit.append(
+                        {
+                            "tileMatrix": matrix.id,
+                            "minTileRow": max(miny, 0),
+                            "maxTileRow": min(maxy, matrix.matrixHeight),
+                            "minTileCol": max(minx, 0),
+                            "maxTileCol": min(maxx, matrix.matrixWidth),
+                        }
+                    )
 
             query_string = (
                 f"?{urlencode(request.query_params._list)}"
@@ -851,10 +873,12 @@ class TilerFactory(BaseFactory):
         ):
             """Create map tile from a dataset."""
             tms = self.supported_tms.get(tileMatrixSetId)
+            logger.info("opening dataset")
             with rasterio.Env(**env):
                 with self.reader(
                     src_path, tms=tms, **reader_params.as_dict()
                 ) as src_dst:
+                    logger.info("reading data")
                     image = src_dst.tile(
                         x,
                         y,
@@ -864,6 +888,7 @@ class TilerFactory(BaseFactory):
                         **layer_params.as_dict(),
                         **dataset_params.as_dict(),
                     )
+                    logger.info("reading data complete")
                     dst_colormap = getattr(src_dst, "colormap", None)
 
             if post_process:
@@ -1652,10 +1677,10 @@ class MultiBaseTilerFactory(TilerFactory):
                             hist_options=histogram_params.as_dict(),
                         )
 
-                    feature.properties = feature.properties or {}
-                    # NOTE: because we use `src_dst.feature` the statistics will be in form of
-                    # `Dict[str, BandStatistics]` and not `Dict[str, Dict[str, BandStatistics]]`
-                    feature.properties.update({"statistics": stats})
+                        feature.properties = feature.properties or {}
+                        # NOTE: because we use `src_dst.feature` the statistics will be in form of
+                        # `Dict[str, BandStatistics]` and not `Dict[str, Dict[str, BandStatistics]]`
+                        feature.properties.update({"statistics": stats})
 
             return fc.features[0] if isinstance(geojson, Feature) else fc
 
