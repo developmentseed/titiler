@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1748896766685,
+  "lastUpdate": 1750066446272,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -12964,6 +12964,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.15,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "45328741+Skaidus@users.noreply.github.com",
+            "name": "Skaidus",
+            "username": "Skaidus"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c01062f3bf613d9f750d9e0a5297179bcd4bb536",
+          "message": "fix: rename variance algorithm (#1165)",
+          "timestamp": "2025-06-16T11:32:12+02:00",
+          "tree_id": "43ff37a495a672acdf3e3e44ea6260bc6ea61bc7",
+          "url": "https://github.com/developmentseed/titiler/commit/c01062f3bf613d9f750d9e0a5297179bcd4bb536"
+        },
+        "date": 1750066444822,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.31,
             "unit": "s"
           },
           {
