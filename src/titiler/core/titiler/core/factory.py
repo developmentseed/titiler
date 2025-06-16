@@ -532,10 +532,9 @@ class TilerFactory(BaseFactory):
             env=Depends(self.environment_dependency),
         ):
             """Get Statistics from a geojson feature or featureCollection."""
-            with operation_tracer("load_features"):
-                fc = geojson
-                if isinstance(fc, Feature):
-                    fc = FeatureCollection(type="FeatureCollection", features=[geojson])
+            fc = geojson
+            if isinstance(fc, Feature):
+                fc = FeatureCollection(type="FeatureCollection", features=[geojson])
 
             with operation_tracer("open_dataset"):
                 with rasterio.Env(**env):
@@ -1671,10 +1670,9 @@ class MultiBaseTilerFactory(TilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Get Statistics from a geojson feature or featureCollection."""
-            with operation_tracer("load_features"):
-                fc = geojson
-                if isinstance(fc, Feature):
-                    fc = FeatureCollection(type="FeatureCollection", features=[geojson])
+            fc = geojson
+            if isinstance(fc, Feature):
+                fc = FeatureCollection(type="FeatureCollection", features=[geojson])
 
             with operation_tracer("open_dataset"):
                 with rasterio.Env(**env):
@@ -1892,10 +1890,9 @@ class MultiBandTilerFactory(TilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Get Statistics from a geojson feature or featureCollection."""
-            with operation_tracer("load_features"):
-                fc = geojson
-                if isinstance(fc, Feature):
-                    fc = FeatureCollection(type="FeatureCollection", features=[geojson])
+            fc = geojson
+            if isinstance(fc, Feature):
+                fc = FeatureCollection(type="FeatureCollection", features=[geojson])
 
             with operation_tracer("open_dataset"):
                 with rasterio.Env(**env):
