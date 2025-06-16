@@ -156,8 +156,10 @@ def get_variable(
         for s in sel:
             val: Union[str, slice]
             dim, val = s.split("=")
+
             # cast string to dtype of the dimension
-            val = da[dim].dtype.type(val)
+            if da[dim].dtype != "O":
+                val = da[dim].dtype.type(val)
 
             if dim in _idx:
                 _idx[dim].append(val)
