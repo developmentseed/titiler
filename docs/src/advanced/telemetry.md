@@ -34,6 +34,7 @@ from fastapi import FastAPI
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from opentelemetry.sdk.resources import SERVICE_NAME, SERVICE_VERSION, Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
@@ -76,6 +77,9 @@ app = FastAPI(title="My TiTiler App")
 # This adds middleware to trace requests, responses, and exceptions,
 # complementing TiTiler's internal endpoint tracing.
 FastAPIInstrumentor.instrument_app(app)
+
+# Add trace/span info to logging messages for trace correlation
+LoggingInstrumentor().instrument(set_logging_format=True)
 
 # Add your TiTiler endpoints
 cog = TilerFactory()

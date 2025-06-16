@@ -80,9 +80,9 @@ def test_tracing_enabled_success_path(memory_exporter):
     assert response.status_code == 200
 
     finished_spans = memory_exporter.get_finished_spans()
-    assert len(finished_spans) > 1
+    assert len(finished_spans) == 1
 
-    span = next(filter(lambda x: x.name == "tile", finished_spans), None)
+    span = next(filter(lambda x: x.name == "TilerFactory.tile", finished_spans), None)
     assert span
     assert span.status.status_code == StatusCode.OK
     assert span.attributes["titiler.path_param.tileMatrixSetId"] == "WebMercatorQuad"
