@@ -3,7 +3,7 @@
 import functools
 import inspect
 from contextlib import contextmanager
-from typing import Any, Awaitable, Callable, Dict, Iterator, Optional, TypeVar, overload
+from typing import Any, Callable, Dict, Iterator, Optional, TypeVar
 
 from typing_extensions import ParamSpec
 
@@ -14,9 +14,7 @@ try:
     from opentelemetry.trace import Span, Status, StatusCode
 
     tracer = trace.get_tracer("titiler.core", __version__)
-
-except ImportError:  # pragma: nocover
-    # Create no-op versions of everything if OTel is not installed.
+except ImportError:
     trace = None
     Span = None
     Status = None
@@ -25,6 +23,29 @@ except ImportError:  # pragma: nocover
 
 P = ParamSpec("P")
 R = TypeVar("R")
+
+
+def add_span_attributes(attributes: Dict[str, Any]) -> None:
+    """Adds attributes to the current active span."""
+    if not tracer:
+        return
+    span = trace.get_current_span()
+    if span and span.is_recording():
+        span.set_attributes(attributes)
+
+
+def flatten_dict(d: dict, parent_key: str = "", sep: str = ".") -> dict:
+    """Flattens a nested dictionary."""
+    items = {}
+    for k, v in d.items():
+        new_key = parent_key + sep + k if parent_key else k
+        if isinstance(v, dict):
+            items.update(flatten_dict(v, new_key, sep=sep))
+        else:
+            if not isinstance(v, (str, bool, int, float)):
+                v = str(v)
+            items[new_key] = v
+    return items
 
 
 class SpanWrapper:
@@ -45,29 +66,40 @@ class SpanWrapper:
             self._span.record_exception(exception)
 
 
-def _get_span_name(op_name: str, *args: Any) -> str:
-    """Determine the span name based on the instance's prefix."""
-    if not args:
-        return op_name
+@contextmanager
+def operation_tracer(
+    operation_name: str,
+    attributes: Optional[Dict[str, Any]] = None,
+) -> Iterator[SpanWrapper]:
+    """Context manager for creating granular child spans."""
+    if not tracer:
+        yield SpanWrapper(None)
+        return
 
-    instance = args[0]
-    prefix = getattr(instance, "operation_prefix", "factory")
-    return f"{prefix}.{op_name}"
+    with tracer.start_as_current_span(operation_name) as span:
+        wrapped_span = SpanWrapper(span)
+        if attributes:
+            wrapped_span.set_attributes(attributes)
+        try:
+            yield wrapped_span
+            span.set_status(Status(StatusCode.OK))
+        except Exception as e:
+            span.set_status(Status(StatusCode.ERROR, str(e)))
+            raise
+
+
+def _get_span_name(op_name: str, factory_instance: Any) -> str:
+    """Determine the span name using the factory class name."""
+    if not factory_instance:
+        return op_name
+    class_name = factory_instance.__class__.__name__
+    return f"{class_name}.{op_name}"
 
 
 def _extract_span_attributes(
-    sig: inspect.Signature,
-    custom_extractor: Optional[Callable[..., Dict[str, Any]]],
-    *args: Any,
-    **kwargs: Any,
+    sig: inspect.Signature, *args: Any, **kwargs: Any
 ) -> Dict[str, Any]:
-    """Extract span attributes using either a custom or automatic method."""
-    if custom_extractor:
-        try:
-            return custom_extractor(*args, **kwargs)
-        except Exception:
-            return {}
-
+    """Automatically extract primitive types from endpoint signature."""
     try:
         bound_args = sig.bind(*args, **kwargs)
         bound_args.apply_defaults()
@@ -84,58 +116,10 @@ def _extract_span_attributes(
         return {}
 
 
-@contextmanager
-def operation_tracer(
-    operation_name: str,
-    attributes: Optional[Dict[str, Any]] = None,
-) -> Iterator[SpanWrapper]:
-    """Context manager for tracing operations."""
-    if not tracer:
-        yield SpanWrapper(None)
-        return
-
-    with tracer.start_as_current_span(operation_name) as span:
-        wrapped_span = SpanWrapper(span)
-        if attributes:
-            wrapped_span.set_attributes(attributes)
-
-        try:
-            yield wrapped_span
-            span.set_status(Status(StatusCode.OK))
-        except Exception as e:
-            span.record_exception(e)
-            span.set_status(Status(StatusCode.ERROR, str(e)))
-            raise
-
-
-F = TypeVar("F", bound=Callable[..., Any])
-
-
-@overload
-def factory_trace(
-    _func: Callable[P, Awaitable[R]],
-) -> Callable[P, Awaitable[R]]: ...
-
-
-@overload
-def factory_trace(
-    _func: Callable[P, R],
-) -> Callable[P, R]: ...
-
-
-@overload
-def factory_trace(
-    *,
-    operation_name: Optional[str] = None,
-    extract_attributes: Optional[Callable[..., Dict[str, Any]]] = None,
-) -> Callable[[F], F]: ...
-
-
 def factory_trace(
     _func: Optional[Callable[P, Any]] = None,
     *,
-    operation_name: Optional[str] = None,
-    extract_attributes: Optional[Callable[..., Dict[str, Any]]] = None,
+    factory_instance: Optional[Any] = None,
 ) -> Any:
     """A decorator for Factory methods that automatically handles tracing."""
 
@@ -143,17 +127,15 @@ def factory_trace(
         if not tracer:
             return func
 
-        op_name = operation_name or func.__name__
+        op_name = func.__name__
         sig = inspect.signature(func)
 
         if inspect.iscoroutinefunction(func):
 
             @functools.wraps(func)
             async def async_wrapper(*args: P.args, **kwargs: P.kwargs) -> Any:
-                span_name = _get_span_name(op_name, *args)
-                attributes = _extract_span_attributes(
-                    sig, extract_attributes, *args, **kwargs
-                )
+                span_name = _get_span_name(op_name, factory_instance)
+                attributes = _extract_span_attributes(sig, *args, **kwargs)
                 with operation_tracer(span_name, attributes=attributes):
                     return await func(*args, **kwargs)
 
@@ -162,19 +144,14 @@ def factory_trace(
 
             @functools.wraps(func)
             def sync_wrapper(*args: P.args, **kwargs: P.kwargs) -> Any:
-                span_name = _get_span_name(op_name, *args)
-                attributes = _extract_span_attributes(
-                    sig, extract_attributes, *args, **kwargs
-                )
+                span_name = _get_span_name(op_name, factory_instance)
+                attributes = _extract_span_attributes(sig, *args, **kwargs)
                 with operation_tracer(span_name, attributes=attributes):
                     return func(*args, **kwargs)
 
             return sync_wrapper
 
-    if _func is None:
-        return decorator
-    else:
-        return decorator(_func)
+    return decorator if _func is None else decorator(_func)
 
 
 factory_trace.decorator_enabled = bool(tracer)  # type: ignore [attr-defined]
