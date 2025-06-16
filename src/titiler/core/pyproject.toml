@@ -54,7 +54,7 @@ telemetry = [
     "opentelemetry-api",
     "opentelemetry-sdk",
     "opentelemetry-instrumentation-fastapi",
-    "opentelemetry-instrumentation-requests",
+    "opentelemetry-instrumentation-logging",
     "opentelemetry-exporter-otlp",
 ]
 

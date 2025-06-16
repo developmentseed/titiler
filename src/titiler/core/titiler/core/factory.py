@@ -1,6 +1,7 @@
 """TiTiler Router factories."""
 
 import abc
+import logging
 from typing import (
     Any,
     Callable,
@@ -85,7 +86,7 @@ from titiler.core.models.responses import (
 from titiler.core.resources.enums import ImageType
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
 from titiler.core.routing import EndpointScope
-from titiler.core.telemetry import factory_trace, operation_tracer
+from titiler.core.telemetry import factory_trace
 from titiler.core.utils import bounds_to_geometry, render_image
 
 jinja2_env = jinja2.Environment(
@@ -110,6 +111,8 @@ img_endpoint_params: Dict[str, Any] = {
     },
     "response_class": Response,
 }
+
+logger = logging.getLogger(__name__)
 
 
 @define
@@ -242,7 +245,7 @@ class BaseFactory(metaclass=abc.ABCMeta):
 
         for route in self.router.routes:
             if isinstance(route, APIRoute):
-                route.endpoint = factory_trace()(route.endpoint)
+                route.endpoint = factory_trace(route.endpoint, factory_instance=self)
 
 
 @define(kw_only=True)
@@ -481,24 +484,21 @@ class TilerFactory(BaseFactory):
             env=Depends(self.environment_dependency),
         ):
             """Get Dataset statistics."""
-            with operation_tracer("open_dataset"):
-                with rasterio.Env(**env):
-                    with self.reader(src_path, **reader_params.as_dict()) as src_dst:
-                        with operation_tracer("read_data"):
-                            image = src_dst.preview(
-                                **layer_params.as_dict(),
-                                **image_params.as_dict(),
-                                **dataset_params.as_dict(),
-                            )
+            with rasterio.Env(**env):
+                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
+                    image = src_dst.preview(
+                        **layer_params.as_dict(),
+                        **image_params.as_dict(),
+                        **dataset_params.as_dict(),
+                    )
 
-                        if post_process:
-                            with operation_tracer("post_process"):
-                                image = post_process(image)
+                    if post_process:
+                        image = post_process(image)
 
-                        return image.statistics(
-                            **stats_params.as_dict(),
-                            hist_options=histogram_params.as_dict(),
-                        )
+                    return image.statistics(
+                        **stats_params.as_dict(),
+                        hist_options=histogram_params.as_dict(),
+                    )
 
         # POST endpoint
         @self.router.post(
@@ -536,43 +536,37 @@ class TilerFactory(BaseFactory):
             if isinstance(fc, Feature):
                 fc = FeatureCollection(type="FeatureCollection", features=[geojson])
 
-            with operation_tracer("open_dataset"):
-                with rasterio.Env(**env):
-                    with operation_tracer("read_data"):
-                        with self.reader(
-                            src_path, **reader_params.as_dict()
-                        ) as src_dst:
-                            for feature in fc.features:
-                                shape = feature.model_dump(exclude_none=True)
-                                image = src_dst.feature(
-                                    shape,
-                                    shape_crs=coord_crs or WGS84_CRS,
-                                    dst_crs=dst_crs,
-                                    align_bounds_with_dataset=True,
-                                    **layer_params.as_dict(),
-                                    **image_params.as_dict(),
-                                    **dataset_params.as_dict(),
-                                )
+            with rasterio.Env(**env):
+                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
+                    for feature in fc.features:
+                        shape = feature.model_dump(exclude_none=True)
+                        image = src_dst.feature(
+                            shape,
+                            shape_crs=coord_crs or WGS84_CRS,
+                            dst_crs=dst_crs,
+                            align_bounds_with_dataset=True,
+                            **layer_params.as_dict(),
+                            **image_params.as_dict(),
+                            **dataset_params.as_dict(),
+                        )
 
-                                # Get the coverage % array
-                                coverage_array = image.get_coverage_array(
-                                    shape,
-                                    shape_crs=coord_crs or WGS84_CRS,
-                                )
+                        # Get the coverage % array
+                        coverage_array = image.get_coverage_array(
+                            shape,
+                            shape_crs=coord_crs or WGS84_CRS,
+                        )
 
-                                if post_process:
-                                    with operation_tracer("post_process"):
-                                        image = post_process(image)
+                        if post_process:
+                            image = post_process(image)
 
-                                with operation_tracer("calculate_statistics"):
-                                    stats = image.statistics(
-                                        **stats_params.as_dict(),
-                                        hist_options=histogram_params.as_dict(),
-                                        coverage=coverage_array,
-                                    )
+                        stats = image.statistics(
+                            **stats_params.as_dict(),
+                            hist_options=histogram_params.as_dict(),
+                            coverage=coverage_array,
+                        )
 
-                                feature.properties = feature.properties or {}
-                                feature.properties.update({"statistics": stats})
+                        feature.properties = feature.properties or {}
+                        feature.properties.update({"statistics": stats})
 
             return fc.features[0] if isinstance(geojson, Feature) else fc
 
@@ -879,26 +873,26 @@ class TilerFactory(BaseFactory):
         ):
             """Create map tile from a dataset."""
             tms = self.supported_tms.get(tileMatrixSetId)
-            with operation_tracer("open_dataset"):
-                with rasterio.Env(**env):
-                    with self.reader(
-                        src_path, tms=tms, **reader_params.as_dict()
-                    ) as src_dst:
-                        with operation_tracer("read_data"):
-                            image = src_dst.tile(
-                                x,
-                                y,
-                                z,
-                                tilesize=scale * 256,
-                                **tile_params.as_dict(),
-                                **layer_params.as_dict(),
-                                **dataset_params.as_dict(),
-                            )
-                            dst_colormap = getattr(src_dst, "colormap", None)
+            logger.info("opening dataset")
+            with rasterio.Env(**env):
+                with self.reader(
+                    src_path, tms=tms, **reader_params.as_dict()
+                ) as src_dst:
+                    logger.info("reading data")
+                    image = src_dst.tile(
+                        x,
+                        y,
+                        z,
+                        tilesize=scale * 256,
+                        **tile_params.as_dict(),
+                        **layer_params.as_dict(),
+                        **dataset_params.as_dict(),
+                    )
+                    logger.info("reading data complete")
+                    dst_colormap = getattr(src_dst, "colormap", None)
 
             if post_process:
-                with operation_tracer("post_process"):
-                    image = post_process(image)
+                image = post_process(image)
 
             content, media_type = self.render_func(
                 image,
@@ -1232,17 +1226,15 @@ class TilerFactory(BaseFactory):
             env=Depends(self.environment_dependency),
         ):
             """Get Point value for a dataset."""
-            with operation_tracer("open_dataset"):
-                with rasterio.Env(**env):
-                    with self.reader(src_path, **reader_params.as_dict()) as src_dst:
-                        with operation_tracer("read_data"):
-                            pts = src_dst.point(
-                                lon,
-                                lat,
-                                coord_crs=coord_crs or WGS84_CRS,
-                                **layer_params.as_dict(),
-                                **dataset_params.as_dict(),
-                            )
+            with rasterio.Env(**env):
+                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
+                    pts = src_dst.point(
+                        lon,
+                        lat,
+                        coord_crs=coord_crs or WGS84_CRS,
+                        **layer_params.as_dict(),
+                        **dataset_params.as_dict(),
+                    )
 
             return {
                 "coordinates": [lon, lat],
@@ -1290,21 +1282,18 @@ class TilerFactory(BaseFactory):
             env=Depends(self.environment_dependency),
         ):
             """Create preview of a dataset."""
-            with operation_tracer("open_dataset"):
-                with rasterio.Env(**env):
-                    with self.reader(src_path, **reader_params.as_dict()) as src_dst:
-                        with operation_tracer("read_data"):
-                            image = src_dst.preview(
-                                **layer_params.as_dict(),
-                                **image_params.as_dict(exclude_none=False),
-                                **dataset_params.as_dict(),
-                                dst_crs=dst_crs,
-                            )
-                            dst_colormap = getattr(src_dst, "colormap", None)
+            with rasterio.Env(**env):
+                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
+                    image = src_dst.preview(
+                        **layer_params.as_dict(),
+                        **image_params.as_dict(exclude_none=False),
+                        **dataset_params.as_dict(),
+                        dst_crs=dst_crs,
+                    )
+                    dst_colormap = getattr(src_dst, "colormap", None)
 
             if post_process:
-                with operation_tracer("post_process"):
-                    image = post_process(image)
+                image = post_process(image)
 
             content, media_type = self.render_func(
                 image,
@@ -1356,23 +1345,20 @@ class TilerFactory(BaseFactory):
             env=Depends(self.environment_dependency),
         ):
             """Create image from a bbox."""
-            with operation_tracer("open_dataset"):
-                with rasterio.Env(**env):
-                    with self.reader(src_path, **reader_params.as_dict()) as src_dst:
-                        with operation_tracer("read_data"):
-                            image = src_dst.part(
-                                [minx, miny, maxx, maxy],
-                                dst_crs=dst_crs,
-                                bounds_crs=coord_crs or WGS84_CRS,
-                                **layer_params.as_dict(),
-                                **image_params.as_dict(),
-                                **dataset_params.as_dict(),
-                            )
-                            dst_colormap = getattr(src_dst, "colormap", None)
+            with rasterio.Env(**env):
+                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
+                    image = src_dst.part(
+                        [minx, miny, maxx, maxy],
+                        dst_crs=dst_crs,
+                        bounds_crs=coord_crs or WGS84_CRS,
+                        **layer_params.as_dict(),
+                        **image_params.as_dict(),
+                        **dataset_params.as_dict(),
+                    )
+                    dst_colormap = getattr(src_dst, "colormap", None)
 
             if post_process:
-                with operation_tracer("post_process"):
-                    image = post_process(image)
+                image = post_process(image)
 
             content, media_type = self.render_func(
                 image,
@@ -1420,23 +1406,20 @@ class TilerFactory(BaseFactory):
             env=Depends(self.environment_dependency),
         ):
             """Create image from a geojson feature."""
-            with operation_tracer("open_dataset"):
-                with rasterio.Env(**env):
-                    with self.reader(src_path, **reader_params.as_dict()) as src_dst:
-                        with operation_tracer("read_data"):
-                            image = src_dst.feature(
-                                geojson.model_dump(exclude_none=True),
-                                shape_crs=coord_crs or WGS84_CRS,
-                                dst_crs=dst_crs,
-                                **layer_params.as_dict(),
-                                **image_params.as_dict(),
-                                **dataset_params.as_dict(),
-                            )
-                            dst_colormap = getattr(src_dst, "colormap", None)
+            with rasterio.Env(**env):
+                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
+                    image = src_dst.feature(
+                        geojson.model_dump(exclude_none=True),
+                        shape_crs=coord_crs or WGS84_CRS,
+                        dst_crs=dst_crs,
+                        **layer_params.as_dict(),
+                        **image_params.as_dict(),
+                        **dataset_params.as_dict(),
+                    )
+                    dst_colormap = getattr(src_dst, "colormap", None)
 
             if post_process:
-                with operation_tracer("post_process"):
-                    image = post_process(image)
+                image = post_process(image)
 
             content, media_type = self.render_func(
                 image,
@@ -1576,17 +1559,15 @@ class MultiBaseTilerFactory(TilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Per Asset statistics"""
-            with operation_tracer("open_dataset"):
-                with rasterio.Env(**env):
-                    with self.reader(src_path, **reader_params.as_dict()) as src_dst:
-                        with operation_tracer("read_data"):
-                            return src_dst.statistics(
-                                **asset_params.as_dict(),
-                                **image_params.as_dict(exclude_none=False),
-                                **dataset_params.as_dict(),
-                                **stats_params.as_dict(),
-                                hist_options=histogram_params.as_dict(),
-                            )
+            with rasterio.Env(**env):
+                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
+                    return src_dst.statistics(
+                        **asset_params.as_dict(),
+                        **image_params.as_dict(exclude_none=False),
+                        **dataset_params.as_dict(),
+                        **stats_params.as_dict(),
+                        hist_options=histogram_params.as_dict(),
+                    )
 
         # MultiBaseReader merged statistics
         # https://github.com/cogeotiff/rio-tiler/blob/main/rio_tiler/io/base.py#L455-L468
@@ -1615,28 +1596,25 @@ class MultiBaseTilerFactory(TilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Merged assets statistics."""
-            with operation_tracer("open_dataset"):
-                with rasterio.Env(**env):
-                    with self.reader(src_path, **reader_params.as_dict()) as src_dst:
-                        # Default to all available assets
-                        if not layer_params.assets and not layer_params.expression:
-                            layer_params.assets = src_dst.assets
+            with rasterio.Env(**env):
+                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
+                    # Default to all available assets
+                    if not layer_params.assets and not layer_params.expression:
+                        layer_params.assets = src_dst.assets
 
-                        with operation_tracer("read_data"):
-                            image = src_dst.preview(
-                                **layer_params.as_dict(),
-                                **image_params.as_dict(),
-                                **dataset_params.as_dict(),
-                            )
+                    image = src_dst.preview(
+                        **layer_params.as_dict(),
+                        **image_params.as_dict(),
+                        **dataset_params.as_dict(),
+                    )
 
-                        if post_process:
-                            with operation_tracer("post_process"):
-                                image = post_process(image)
+                    if post_process:
+                        image = post_process(image)
 
-                        return image.statistics(
-                            **stats_params.as_dict(),
-                            hist_options=histogram_params.as_dict(),
-                        )
+                    return image.statistics(
+                        **stats_params.as_dict(),
+                        hist_options=histogram_params.as_dict(),
+                    )
 
         # POST endpoint
         @self.router.post(
@@ -1674,38 +1652,35 @@ class MultiBaseTilerFactory(TilerFactory):
             if isinstance(fc, Feature):
                 fc = FeatureCollection(type="FeatureCollection", features=[geojson])
 
-            with operation_tracer("open_dataset"):
-                with rasterio.Env(**env):
-                    with self.reader(src_path, **reader_params.as_dict()) as src_dst:
-                        # Default to all available assets
-                        if not layer_params.assets and not layer_params.expression:
-                            layer_params.assets = src_dst.assets
+            with rasterio.Env(**env):
+                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
+                    # Default to all available assets
+                    if not layer_params.assets and not layer_params.expression:
+                        layer_params.assets = src_dst.assets
 
-                        with operation_tracer("read_data"):
-                            for feature in fc.features:
-                                image = src_dst.feature(
-                                    feature.model_dump(exclude_none=True),
-                                    shape_crs=coord_crs or WGS84_CRS,
-                                    dst_crs=dst_crs,
-                                    align_bounds_with_dataset=True,
-                                    **layer_params.as_dict(),
-                                    **image_params.as_dict(),
-                                    **dataset_params.as_dict(),
-                                )
+                    for feature in fc.features:
+                        image = src_dst.feature(
+                            feature.model_dump(exclude_none=True),
+                            shape_crs=coord_crs or WGS84_CRS,
+                            dst_crs=dst_crs,
+                            align_bounds_with_dataset=True,
+                            **layer_params.as_dict(),
+                            **image_params.as_dict(),
+                            **dataset_params.as_dict(),
+                        )
 
-                                if post_process:
-                                    with operation_tracer("post_process"):
-                                        image = post_process(image)
+                        if post_process:
+                            image = post_process(image)
 
-                                stats = image.statistics(
-                                    **stats_params.as_dict(),
-                                    hist_options=histogram_params.as_dict(),
-                                )
+                        stats = image.statistics(
+                            **stats_params.as_dict(),
+                            hist_options=histogram_params.as_dict(),
+                        )
 
-                                feature.properties = feature.properties or {}
-                                # NOTE: because we use `src_dst.feature` the statistics will be in form of
-                                # `Dict[str, BandStatistics]` and not `Dict[str, Dict[str, BandStatistics]]`
-                                feature.properties.update({"statistics": stats})
+                        feature.properties = feature.properties or {}
+                        # NOTE: because we use `src_dst.feature` the statistics will be in form of
+                        # `Dict[str, BandStatistics]` and not `Dict[str, Dict[str, BandStatistics]]`
+                        feature.properties.update({"statistics": stats})
 
             return fc.features[0] if isinstance(geojson, Feature) else fc
 
@@ -1835,28 +1810,25 @@ class MultiBandTilerFactory(TilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Get Dataset statistics."""
-            with operation_tracer("open_dataset"):
-                with rasterio.Env(**env):
-                    with self.reader(src_path, **reader_params.as_dict()) as src_dst:
-                        # Default to all available bands
-                        if not bands_params.bands and not bands_params.expression:
-                            bands_params.bands = src_dst.bands
+            with rasterio.Env(**env):
+                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
+                    # Default to all available bands
+                    if not bands_params.bands and not bands_params.expression:
+                        bands_params.bands = src_dst.bands
 
-                        with operation_tracer("read_data"):
-                            image = src_dst.preview(
-                                **bands_params.as_dict(),
-                                **image_params.as_dict(),
-                                **dataset_params.as_dict(),
-                            )
+                    image = src_dst.preview(
+                        **bands_params.as_dict(),
+                        **image_params.as_dict(),
+                        **dataset_params.as_dict(),
+                    )
 
-                        if post_process:
-                            with operation_tracer("post_process"):
-                                image = post_process(image)
+                    if post_process:
+                        image = post_process(image)
 
-                        return image.statistics(
-                            **stats_params.as_dict(),
-                            hist_options=histogram_params.as_dict(),
-                        )
+                    return image.statistics(
+                        **stats_params.as_dict(),
+                        hist_options=histogram_params.as_dict(),
+                    )
 
         # POST endpoint
         @self.router.post(
@@ -1894,36 +1866,33 @@ class MultiBandTilerFactory(TilerFactory):
             if isinstance(fc, Feature):
                 fc = FeatureCollection(type="FeatureCollection", features=[geojson])
 
-            with operation_tracer("open_dataset"):
-                with rasterio.Env(**env):
-                    with self.reader(src_path, **reader_params.as_dict()) as src_dst:
-                        # Default to all available bands
-                        if not bands_params.bands and not bands_params.expression:
-                            bands_params.bands = src_dst.bands
+            with rasterio.Env(**env):
+                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
+                    # Default to all available bands
+                    if not bands_params.bands and not bands_params.expression:
+                        bands_params.bands = src_dst.bands
 
-                        with operation_tracer("read_data"):
-                            for feature in fc.features:
-                                image = src_dst.feature(
-                                    feature.model_dump(exclude_none=True),
-                                    shape_crs=coord_crs or WGS84_CRS,
-                                    dst_crs=dst_crs,
-                                    align_bounds_with_dataset=True,
-                                    **bands_params.as_dict(),
-                                    **image_params.as_dict(),
-                                    **dataset_params.as_dict(),
-                                )
+                    for feature in fc.features:
+                        image = src_dst.feature(
+                            feature.model_dump(exclude_none=True),
+                            shape_crs=coord_crs or WGS84_CRS,
+                            dst_crs=dst_crs,
+                            align_bounds_with_dataset=True,
+                            **bands_params.as_dict(),
+                            **image_params.as_dict(),
+                            **dataset_params.as_dict(),
+                        )
 
-                                if post_process:
-                                    with operation_tracer("post_process"):
-                                        image = post_process(image)
+                        if post_process:
+                            image = post_process(image)
 
-                                stats = image.statistics(
-                                    **stats_params.as_dict(),
-                                    hist_options=histogram_params.as_dict(),
-                                )
+                        stats = image.statistics(
+                            **stats_params.as_dict(),
+                            hist_options=histogram_params.as_dict(),
+                        )
 
-                                feature.properties = feature.properties or {}
-                                feature.properties.update({"statistics": stats})
+                        feature.properties = feature.properties or {}
+                        feature.properties.update({"statistics": stats})
 
             return fc.features[0] if isinstance(geojson, Feature) else fc
 

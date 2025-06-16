@@ -24,7 +24,6 @@ from titiler.core.dependencies import (
 from titiler.core.factory import TilerFactory as BaseTilerFactory
 from titiler.core.models.responses import InfoGeoJSON, StatisticsGeoJSON
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse
-from titiler.core.telemetry import operation_tracer
 from titiler.core.utils import bounds_to_geometry
 from titiler.xarray.dependencies import DatasetParams, PartFeatureParams, XarrayParams
 from titiler.xarray.io import Reader
@@ -175,40 +174,35 @@ class TilerFactory(BaseTilerFactory):
             if isinstance(fc, Feature):
                 fc = FeatureCollection(type="FeatureCollection", features=[geojson])
 
-            with operation_tracer("open_dataset"):
-                with rasterio.Env(**env):
-                    with self.reader(src_path, **reader_params.as_dict()) as src_dst:
-                        with operation_tracer("read_data"):
-                            for feature in fc.features:
-                                shape = feature.model_dump(exclude_none=True)
-                                image = src_dst.feature(
-                                    shape,
-                                    shape_crs=coord_crs or WGS84_CRS,
-                                    dst_crs=dst_crs,
-                                    **layer_params.as_dict(),
-                                    **image_params.as_dict(),
-                                    **dataset_params.as_dict(),
-                                )
+            with rasterio.Env(**env):
+                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
+                    for feature in fc.features:
+                        shape = feature.model_dump(exclude_none=True)
+                        image = src_dst.feature(
+                            shape,
+                            shape_crs=coord_crs or WGS84_CRS,
+                            dst_crs=dst_crs,
+                            **layer_params.as_dict(),
+                            **image_params.as_dict(),
+                            **dataset_params.as_dict(),
+                        )
 
-                                # Get the coverage % array
-                                with operation_tracer("get_coverage_array"):
-                                    coverage_array = image.get_coverage_array(
-                                        shape,
-                                        shape_crs=coord_crs or WGS84_CRS,
-                                    )
+                        # Get the coverage % array
+                        coverage_array = image.get_coverage_array(
+                            shape,
+                            shape_crs=coord_crs or WGS84_CRS,
+                        )
 
-                                if post_process:
-                                    with operation_tracer("post_process"):
-                                        image = post_process(image)
+                        if post_process:
+                            image = post_process(image)
 
-                                with operation_tracer("calculate_stats"):
-                                    stats = image.statistics(
-                                        **stats_params.as_dict(),
-                                        hist_options=histogram_params.as_dict(),
-                                        coverage=coverage_array,
-                                    )
+                        stats = image.statistics(
+                            **stats_params.as_dict(),
+                            hist_options=histogram_params.as_dict(),
+                            coverage=coverage_array,
+                        )
 
-                                feature.properties = feature.properties or {}
-                                feature.properties.update({"statistics": stats})
+                        feature.properties = feature.properties or {}
+                        feature.properties.update({"statistics": stats})
 
             return fc.features[0] if isinstance(geojson, Feature) else fc
