@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.22.3 (2025-06-17)
+
 ### titiler.xarray
 
 * use dimension's `dtype` to cast user *selection*
