@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1750066446272,
+  "lastUpdate": 1750136001897,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -13038,6 +13038,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad longest_transaction",
             "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "aimee@developmentseed.org",
+            "name": "Aimee Barciauskas",
+            "username": "abarciauskas-bgse"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a5f2a3a2d1d3cb9470e7cb556c483d421f4847eb",
+          "message": "Merge pull request #1168 from developmentseed/ab/add-sel-by-datetime-to-xarray\n\nAdd datetime to _cast_to_type",
+          "timestamp": "2025-06-16T21:51:08-07:00",
+          "tree_id": "d29d88c45682922c8369eac652e86e5f20b6e780",
+          "url": "https://github.com/developmentseed/titiler/commit/a5f2a3a2d1d3cb9470e7cb556c483d421f4847eb"
+        },
+        "date": 1750136000570,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.07,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.28,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.06,
             "unit": "s"
           }
         ]
