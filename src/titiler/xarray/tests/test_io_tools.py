@@ -67,11 +67,6 @@ def test_get_variable():
     assert da["time"][0] == numpy.datetime64("2022-01-01")
     assert da["time"][1] == numpy.datetime64("2023-01-01")
 
-    da = get_variable(ds, "dataset", sel=["time=1st of January 2023"])
-    assert da.rio.crs
-    assert da.dims == ("y", "x")
-    assert da["time"] == numpy.datetime64("2023-01-01")
-
     # Select the Nearest Time
     da = get_variable(ds, "dataset", sel=["time=2024-01-01T01:00:00"], method="nearest")
     assert da.rio.crs
@@ -167,6 +162,46 @@ def test_get_variable():
     ds = data.to_dataset(name="dataset")
     with pytest.raises(ValueError):
         da = get_variable(ds, "dataset")
+
+
+def test_get_variable_datetime_tz():
+    """test io.get_variable with datetime and timezones."""
+    arr = numpy.arange(0, 33 * 35 * 2).reshape(2, 33, 35)
+    data = xarray.DataArray(
+        arr,
+        dims=("time", "y", "x"),
+        coords={
+            "x": numpy.arange(-170, 180, 10),
+            "y": numpy.arange(-80, 85, 5),
+            "time": [
+                datetime(2022, 1, 1),
+                datetime(2023, 1, 1),
+            ],
+        },
+    )
+    data.attrs.update({"valid_min": arr.min(), "valid_max": arr.max()})
+    assert not data.rio.crs
+    assert data.dims == ("time", "y", "x")
+    ds = data.to_dataset(name="dataset")
+
+    da = get_variable(ds, "dataset", sel=["time=2023-01-01T00:00:00"], method="nearest")
+    assert da.rio.crs
+    assert da.dims == ("y", "x")
+    assert da["time"] == numpy.datetime64("2023-01-01")
+
+    da = get_variable(
+        ds, "dataset", sel=["time=2023-01-01T00:00:00Z"], method="nearest"
+    )
+    assert da.rio.crs
+    assert da.dims == ("y", "x")
+    assert da["time"] == numpy.datetime64("2023-01-01")
+
+    da = get_variable(
+        ds, "dataset", sel=["time=2023-01-01T00:00:00+03:00"], method="nearest"
+    )
+    assert da.rio.crs
+    assert da.dims == ("y", "x")
+    assert da["time"] == numpy.datetime64("2023-01-01")
 
 
 @pytest.mark.parametrize(
