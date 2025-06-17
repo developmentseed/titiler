@@ -4,14 +4,14 @@ import os
 from typing import Any, Dict, List, Optional, Union
 
 from aws_cdk import App, CfnOutput, Duration, Stack, Tags
-from aws_cdk import aws_apigatewayv2_alpha as apigw
+from aws_cdk import aws_apigatewayv2 as apigw
 from aws_cdk import aws_ec2 as ec2
 from aws_cdk import aws_ecs as ecs
 from aws_cdk import aws_ecs_patterns as ecs_patterns
 from aws_cdk import aws_iam as iam
 from aws_cdk import aws_lambda
 from aws_cdk import aws_logs as logs
-from aws_cdk.aws_apigatewayv2_integrations_alpha import HttpLambdaIntegration
+from aws_cdk.aws_apigatewayv2_integrations import HttpLambdaIntegration
 from config import StackSettings
 from constructs import Construct
 
@@ -34,7 +34,7 @@ class titilerLambdaStack(Stack):
         id: str,
         memory: int = 1024,
         timeout: int = 30,
-        runtime: aws_lambda.Runtime = aws_lambda.Runtime.PYTHON_3_11,
+        runtime: aws_lambda.Runtime = aws_lambda.Runtime.PYTHON_3_12,
         concurrent: Optional[int] = None,
         permissions: Optional[List[iam.PolicyStatement]] = None,
         environment: Optional[Dict] = None,
@@ -54,6 +54,10 @@ class titilerLambdaStack(Stack):
             code=aws_lambda.Code.from_docker_build(
                 path=os.path.abspath(code_dir),
                 file="lambda/Dockerfile",
+                platform="linux/amd64",
+                build_args={
+                    "PYTHON_VERSION": "3.12",
+                },
             ),
             handler="handler.handler",
             memory_size=memory,
