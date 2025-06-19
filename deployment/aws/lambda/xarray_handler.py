@@ -4,6 +4,8 @@ import logging
 from typing import Annotated, Literal, Optional
 
 import rasterio
+import xarray
+import zarr
 from fastapi import FastAPI, Query
 from mangum import Mangum
 from starlette.middleware.cors import CORSMiddleware
@@ -130,6 +132,8 @@ def application_health_check():
             "gdal": rasterio.__gdal_version__,
             "proj": rasterio.__proj_version__,
             "geos": rasterio.__geos_version__,
+            "xarray": xarray.__version__,
+            "zarr": zarr.__version__,
         }
     }
 
