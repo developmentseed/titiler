@@ -13,6 +13,8 @@ from starlette.datastructures import MutableHeaders
 from starlette.requests import Request
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
+from titiler.core import telemetry
+
 
 @dataclass(frozen=True)
 class CacheControlMiddleware:
@@ -107,29 +109,31 @@ class LoggerMiddleware:
         if scope["type"] != "http":
             return await self.app(scope, receive, send)
 
+        request = Request(scope, receive=receive)
+
+        data = {
+            "http.method": request.method,
+            "http.referer": next(
+                (request.headers.get(attr) for attr in ["referer", "referrer"]),
+                None,
+            ),
+            "http.origin": request.headers.get("origin"),
+            "http.path": request.url.path,
+            "http.path_params": request.path_params,
+            "http.query_params": dict(request.query_params),
+            "http.headers": dict(request.headers),
+        }
+
+        if route := scope.get("route"):
+            data["http.route"] = route.path
+
+        telemetry.add_span_attributes(telemetry.flatten_dict(data))
+
         exception: Exception | None = None
         try:
             await self.app(scope, receive, send)
         except Exception as e:
             exception = e
-
-        request = Request(scope, receive=receive)
-
-        data = {
-            "method": request.method,
-            "referer": next(
-                (request.headers.get(attr) for attr in ["referer", "referrer"]),
-                None,
-            ),
-            "origin": request.headers.get("origin"),
-            "path": request.url.path,
-            "path_params": request.path_params,
-            "query_params": dict(request.query_params),
-            "headers": dict(request.headers),
-        }
-
-        if route := scope.get("route"):
-            data["route"] = route.path
 
         self.logger.info(
             f"Request received: {request.url.path} {request.method}",
