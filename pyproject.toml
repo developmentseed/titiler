@@ -276,6 +276,11 @@ search = 'titiler.application=={current_version}'
 replace = 'titiler.application=={new_version}'
 
 [[tool.bumpversion.files]]
+filename = "deployment/aws/lambda/Dockerfile.xarray"
+search = 'titiler.xarray=={current_version}'
+replace = 'titiler.xarray=={new_version}'
+
+[[tool.bumpversion.files]]
 filename = "deployment/k8s/charts/Chart.yaml"
 search = 'appVersion: {current_version}'
 replace = 'appVersion: {new_version}'

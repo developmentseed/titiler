@@ -125,7 +125,6 @@ nav:
   - Deployment:
     - Amazon Web Services:
       - Intro: "deployment/aws/intro.md"
-      - ECS: "deployment/aws/ecs.md"
       - Lambda: "deployment/aws/lambda.md"
       - SAM: "deployment/aws/sam.md"
     - k8s / Helm Deployment: "deployment/k8s.md"
