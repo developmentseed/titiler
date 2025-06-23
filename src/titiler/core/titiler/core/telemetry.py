@@ -96,26 +96,6 @@ def _get_span_name(op_name: str, factory_instance: Any) -> str:
     return f"{class_name}.{op_name}"
 
 
-def _extract_span_attributes(
-    sig: inspect.Signature, *args: Any, **kwargs: Any
-) -> Dict[str, Any]:
-    """Automatically extract primitive types from endpoint signature."""
-    try:
-        bound_args = sig.bind(*args, **kwargs)
-        bound_args.apply_defaults()
-        auto_attrs = {}
-        for key, value in bound_args.arguments.items():
-            if key in ("self", "request") or value is None:
-                continue
-            if hasattr(value, "value"):
-                value = value.value
-            if isinstance(value, (str, bool, int, float)):
-                auto_attrs[f"titiler.path_param.{key}"] = value
-        return auto_attrs
-    except Exception:
-        return {}
-
-
 def factory_trace(
     _func: Optional[Callable[P, Any]] = None,
     *,
@@ -128,15 +108,13 @@ def factory_trace(
             return func
 
         op_name = func.__name__
-        sig = inspect.signature(func)
 
         if inspect.iscoroutinefunction(func):
 
             @functools.wraps(func)
             async def async_wrapper(*args: P.args, **kwargs: P.kwargs) -> Any:
                 span_name = _get_span_name(op_name, factory_instance)
-                attributes = _extract_span_attributes(sig, *args, **kwargs)
-                with operation_tracer(span_name, attributes=attributes):
+                with operation_tracer(span_name):
                     return await func(*args, **kwargs)
 
             return async_wrapper
@@ -145,8 +123,7 @@ def factory_trace(
             @functools.wraps(func)
             def sync_wrapper(*args: P.args, **kwargs: P.kwargs) -> Any:
                 span_name = _get_span_name(op_name, factory_instance)
-                attributes = _extract_span_attributes(sig, *args, **kwargs)
-                with operation_tracer(span_name, attributes=attributes):
+                with operation_tracer(span_name):
                     return func(*args, **kwargs)
 
             return sync_wrapper

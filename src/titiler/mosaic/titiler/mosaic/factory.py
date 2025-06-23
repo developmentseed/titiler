@@ -1,5 +1,6 @@
 """TiTiler.mosaic Router factories."""
 
+import logging
 import os
 from typing import Any, Callable, Dict, List, Literal, Optional, Set, Tuple, Type, Union
 from urllib.parse import urlencode
@@ -54,6 +55,8 @@ MOSAIC_STRICT_ZOOM = str(os.getenv("MOSAIC_STRICT_ZOOM", False)).lower() in [
     "true",
     "yes",
 ]
+
+logger = logging.getLogger(__name__)
 
 
 def PixelSelectionParams(
