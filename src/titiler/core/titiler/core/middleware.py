@@ -112,20 +112,17 @@ class LoggerMiddleware:
         request = Request(scope, receive=receive)
 
         data = {
-            "http.request.method": request.method,
-            "http.request.referer": next(
+            "http.method": request.method,
+            "http.referer": next(
                 (request.headers.get(attr) for attr in ["referer", "referrer"]),
                 None,
             ),
-            "http.request.origin": request.headers.get("origin"),
-            "http.request.path": request.url.path,
-            "http.request.path_params": request.path_params,
-            "http.request.query_params": dict(request.query_params),
-            "http.request.headers": dict(request.headers),
+            "http.origin": request.headers.get("origin"),
+            "http.path": request.url.path,
+            "http.headers": dict(request.headers),
+            "path_params": request.path_params,
+            "query_params": dict(request.query_params),
         }
-
-        if route := scope.get("route"):
-            data["http.request.route"] = route.path
 
         telemetry.add_span_attributes(telemetry.flatten_dict(data))
 
@@ -134,6 +131,9 @@ class LoggerMiddleware:
             await self.app(scope, receive, send)
         except Exception as e:
             exception = e
+
+        if route := scope.get("route"):
+            data["route"] = route.path
 
         self.logger.info(
             f"Request received: {request.url.path} {request.method}",
