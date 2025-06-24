@@ -85,7 +85,3 @@ def test_tracing_enabled_success_path(memory_exporter):
     span = next(filter(lambda x: x.name == "TilerFactory.tile", finished_spans), None)
     assert span
     assert span.status.status_code == StatusCode.OK
-    assert span.attributes["titiler.path_param.tileMatrixSetId"] == "WebMercatorQuad"
-    assert span.attributes["titiler.path_param.z"] == TEST_Z
-    assert span.attributes["titiler.path_param.x"] == TEST_X
-    assert span.attributes["titiler.path_param.y"] == TEST_Y

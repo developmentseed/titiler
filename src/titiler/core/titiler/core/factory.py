@@ -699,28 +699,28 @@ class TilerFactory(BaseFactory):
                     minzoom = src_dst.minzoom
                     maxzoom = src_dst.maxzoom
 
-                collection_bbox = {
-                    "lowerLeft": [bounds[0], bounds[1]],
-                    "upperRight": [bounds[2], bounds[3]],
-                    "crs": CRS_to_uri(tms.rasterio_geographic_crs),
-                }
+                    collection_bbox = {
+                        "lowerLeft": [bounds[0], bounds[1]],
+                        "upperRight": [bounds[2], bounds[3]],
+                        "crs": CRS_to_uri(tms.rasterio_geographic_crs),
+                    }
 
-                tilematrix_limit = []
-                for zoom in range(minzoom, maxzoom + 1, 1):
-                    matrix = tms.matrix(zoom)
-                    ulTile = tms.tile(bounds[0], bounds[3], int(matrix.id))
-                    lrTile = tms.tile(bounds[2], bounds[1], int(matrix.id))
-                    minx, maxx = (min(ulTile.x, lrTile.x), max(ulTile.x, lrTile.x))
-                    miny, maxy = (min(ulTile.y, lrTile.y), max(ulTile.y, lrTile.y))
-                    tilematrix_limit.append(
-                        {
-                            "tileMatrix": matrix.id,
-                            "minTileRow": max(miny, 0),
-                            "maxTileRow": min(maxy, matrix.matrixHeight),
-                            "minTileCol": max(minx, 0),
-                            "maxTileCol": min(maxx, matrix.matrixWidth),
-                        }
-                    )
+                    tilematrix_limit = []
+                    for zoom in range(minzoom, maxzoom + 1, 1):
+                        matrix = tms.matrix(zoom)
+                        ulTile = tms.tile(bounds[0], bounds[3], int(matrix.id))
+                        lrTile = tms.tile(bounds[2], bounds[1], int(matrix.id))
+                        minx, maxx = (min(ulTile.x, lrTile.x), max(ulTile.x, lrTile.x))
+                        miny, maxy = (min(ulTile.y, lrTile.y), max(ulTile.y, lrTile.y))
+                        tilematrix_limit.append(
+                            {
+                                "tileMatrix": matrix.id,
+                                "minTileRow": max(miny, 0),
+                                "maxTileRow": min(maxy, matrix.matrixHeight),
+                                "minTileCol": max(minx, 0),
+                                "maxTileCol": min(maxx, matrix.matrixWidth),
+                            }
+                        )
 
             query_string = (
                 f"?{urlencode(request.query_params._list)}"

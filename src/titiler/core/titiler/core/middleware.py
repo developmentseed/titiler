@@ -110,18 +110,26 @@ class LoggerMiddleware:
             return await self.app(scope, receive, send)
 
         request = Request(scope, receive=receive)
-
         data = {
             "http.method": request.method,
+            "http.url": str(request.url),
+            "http.scheme": request.url.scheme,
+            "http.host": request.headers.get("host", request.url.hostname or "unknown"),
+            "http.target": request.url.path
+            + (f"?{request.url.query}" if request.url.query else ""),
+            "http.user_agent": request.headers.get("user-agent"),
             "http.referer": next(
                 (request.headers.get(attr) for attr in ["referer", "referrer"]),
                 None,
             ),
-            "http.origin": request.headers.get("origin"),
-            "http.path": request.url.path,
-            "http.headers": dict(request.headers),
-            "path_params": request.path_params,
-            "query_params": dict(request.query_params),
+            "http.request_content_length": request.headers.get("content-length"),
+            "http.request.header.accept-encoding": request.headers.get(
+                "accept-encoding"
+            ),
+            "http.request.header.origin": request.headers.get("origin"),
+            "net.host.name": request.url.hostname,
+            "net.host.port": request.url.port,
+            "titiler.query_params": dict(request.query_params),
         }
 
         telemetry.add_span_attributes(telemetry.flatten_dict(data))
@@ -133,7 +141,9 @@ class LoggerMiddleware:
             exception = e
 
         if route := scope.get("route"):
-            data["route"] = route.path
+            data["http.route"] = route.path
+
+        data["titiler.path_params"] = request.path_params
 
         self.logger.info(
             f"Request received: {request.url.path} {request.method}",
