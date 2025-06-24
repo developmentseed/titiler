@@ -122,7 +122,7 @@ class LoggerMiddleware:
                 (request.headers.get(attr) for attr in ["referer", "referrer"]),
                 None,
             ),
-            "http.request_content_length": request.headers.get("content-length"),
+            "http.request.header.content-length": request.headers.get("content-length"),
             "http.request.header.accept-encoding": request.headers.get(
                 "accept-encoding"
             ),

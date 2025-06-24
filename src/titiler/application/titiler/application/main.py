@@ -241,10 +241,12 @@ if api_settings.debug:
                                 for k in [
                                     "http.method",
                                     "http.referer",
-                                    "http.origin",
+                                    "http.request.header.origin",
                                     "http.route",
-                                    "http.path",
-                                    "http.request.header",
+                                    "http.target",
+                                    "http.request.header.content-length",
+                                    "http.request.header.accept-encoding",
+                                    "http.request.header.origin",
                                     "titiler.path_params",
                                     "titiler.query_params",
                                 ]
