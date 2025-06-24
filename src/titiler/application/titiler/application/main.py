@@ -45,6 +45,7 @@ from titiler.mosaic.factory import MosaicTilerFactory
 
 logging.getLogger("botocore.credentials").disabled = True
 logging.getLogger("botocore.utils").disabled = True
+logging.getLogger("rasterio.session").setLevel(logging.ERROR)
 logging.getLogger("rio-tiler").setLevel(logging.ERROR)
 
 
@@ -238,14 +239,14 @@ if api_settings.debug:
                             {
                                 k: f"%({k})s"
                                 for k in [
-                                    "method",
-                                    "referer",
-                                    "origin",
-                                    "route",
-                                    "path",
-                                    "path_params",
-                                    "query_params",
-                                    "headers",
+                                    "http.method",
+                                    "http.referer",
+                                    "http.origin",
+                                    "http.route",
+                                    "http.path",
+                                    "http.request.header",
+                                    "titiler.path_params",
+                                    "titiler.query_params",
                                 ]
                             }
                         )
@@ -267,12 +268,12 @@ if api_settings.debug:
                 },
             },
             "loggers": {
-                "titlier": {
-                    "level": "WARNING",
+                "titiler": {
+                    "level": "INFO",
                     "handlers": ["console_detailed"],
                     "propagate": False,
                 },
-                "titiler-requests": {
+                "titiler.requests": {
                     "level": "INFO",
                     "handlers": ["console_request"],
                     "propagate": False,
