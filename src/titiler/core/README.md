@@ -59,5 +59,6 @@ titiler/
         ├── middleware.py        - Starlette middlewares
         ├── factory.py           - Dynamic tiler endpoints factories
         ├── routing.py           - Custom APIRoute class
+        ├── telemetry.py         - OpenTelemetry tracing functions
         └── utils.py             - Titiler utility functions
 ```
