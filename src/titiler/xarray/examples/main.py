@@ -18,7 +18,6 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette_cramjam.middleware import CompressionMiddleware
 
-from titiler.core import __version__ as titiler_version
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 from titiler.core.factory import AlgorithmFactory, ColorMapFactory, TMSFactory
 from titiler.core.middleware import CacheControlMiddleware
