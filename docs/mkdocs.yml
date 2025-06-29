@@ -81,6 +81,7 @@ nav:
       - Add custom algorithms: "examples/code/tiler_with_custom_algorithm.md"
       - GDAL WMTS Extension: "examples/code/create_gdal_wmts_extension.md"
       - STAC + Xarray: "examples/code/tiler_with_custom_stac+xarray.md"
+      - Custom Layers: "examples/code/tiler_with_layers.md"
 
     - Use TiTiler endpoints:
       - COG: "examples/notebooks/Working_with_CloudOptimizedGeoTIFF_simple.ipynb"
