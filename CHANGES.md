@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+### titiler.core
+
+* add OpenTelemetry instrumentation to the tiler factory classes
+* add traces to critical operations within the tiler factory methods
+
+### titiler.application
+
+* add OpenTelemetry tracing to the FastAPI application
+
+### Misc
+
+* Add otel-collector and jaeger to the docker network 
+
+## 0.22.3 (2025-06-17)
+
+### titiler.xarray
+
+* use dimension's `dtype` to cast user *selection*
+
 ## 0.22.3 (2025-06-17)
 
 ### titiler.xarray

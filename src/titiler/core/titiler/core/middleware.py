@@ -13,6 +13,8 @@ from starlette.datastructures import MutableHeaders
 from starlette.requests import Request
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
+from titiler.core import telemetry
+
 
 @dataclass(frozen=True)
 class CacheControlMiddleware:
@@ -107,29 +109,41 @@ class LoggerMiddleware:
         if scope["type"] != "http":
             return await self.app(scope, receive, send)
 
+        request = Request(scope, receive=receive)
+        data = {
+            "http.method": request.method,
+            "http.url": str(request.url),
+            "http.scheme": request.url.scheme,
+            "http.host": request.headers.get("host", request.url.hostname or "unknown"),
+            "http.target": request.url.path
+            + (f"?{request.url.query}" if request.url.query else ""),
+            "http.user_agent": request.headers.get("user-agent"),
+            "http.referer": next(
+                (request.headers.get(attr) for attr in ["referer", "referrer"]),
+                None,
+            ),
+            "http.request.header.content-length": request.headers.get("content-length"),
+            "http.request.header.accept-encoding": request.headers.get(
+                "accept-encoding"
+            ),
+            "http.request.header.origin": request.headers.get("origin"),
+            "net.host.name": request.url.hostname,
+            "net.host.port": request.url.port,
+            "titiler.query_params": dict(request.query_params),
+        }
+
+        telemetry.add_span_attributes(telemetry.flatten_dict(data))
+
         exception: Exception | None = None
         try:
             await self.app(scope, receive, send)
         except Exception as e:
             exception = e
 
-        request = Request(scope, receive=receive)
-
-        data = {
-            "method": request.method,
-            "referer": next(
-                (request.headers.get(attr) for attr in ["referer", "referrer"]),
-                None,
-            ),
-            "origin": request.headers.get("origin"),
-            "path": request.url.path,
-            "path_params": request.path_params,
-            "query_params": dict(request.query_params),
-            "headers": dict(request.headers),
-        }
-
         if route := scope.get("route"):
-            data["route"] = route.path
+            data["http.route"] = route.path
+
+        data["titiler.path_params"] = request.path_params
 
         self.logger.info(
             f"Request received: {request.url.path} {request.method}",
