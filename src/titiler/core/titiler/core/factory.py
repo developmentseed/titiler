@@ -890,7 +890,6 @@ class TilerFactory(BaseFactory):
                     dst_colormap = getattr(src_dst, "colormap", None)
 
             if post_process:
-                logger.info("post-processing image")
                 image = post_process(image)
 
             content, media_type = self.render_func(
