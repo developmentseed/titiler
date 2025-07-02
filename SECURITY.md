@@ -31,6 +31,43 @@ There is a known security vulnerability with the VRT Driver:
 
 see https://gdal.org/en/stable/user/security.html#gdal-vrt-driver
 
-Thus we recommend to deployed titiler is a controlled infrastructure and we chmod limiting its access. Users can also `disable` the VRT driver completely by using `GDAL_SKIP=VRT` environment variable.
+Thus we recommend to deployed titiler is a controlled infrastructure with limited access to the filesystem. Users can also `disable` the VRT driver completely by using `GDAL_SKIP=VRT` environment variable.
 
 In GDAL 3.12, new environment variables might be introduced to enable more control over the VRT driver: https://github.com/OSGeo/gdal/pull/12669
+
+#### Limit source's host
+
+If users want to limit the sources available, they can also create custom `path_dependency` such as:
+
+```python
+from urllib.parse import urlparse
+
+from typing import Annotated
+from titiler.core.factory import TilerFactory
+from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
+
+from fastapi import FastAPI, Query, HTTPException
+
+# List of known host where dataset can be read from
+kwown_host = [
+   "devseed.org",
+]
+
+def DatasetPathParams(url: Annotated[str, Query(description="Dataset URL")]) -> str:
+   """Create dataset path from args"""
+   # validate Dataset host
+   parsed = urlparse(url)
+   if parsed.netloc not in kwown_host:
+      raise HTTPException(
+         status_code=400,
+         detail="Nope, this is not a valid File - Please Try Again",
+      )
+
+   return url
+
+
+app = FastAPI(title="My simple app")
+app.include_router(TilerFactory(path_dependency=DatasetPathParams).router)
+
+add_exception_handlers(app, DEFAULT_STATUS_CODES)
+```
