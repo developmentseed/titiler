@@ -238,6 +238,6 @@ uvicorn.run(app=app, host="127.0.0.1", port=8080, log_level="info")
 ![](img/example_custom_layers_docs.png)
 
 
-`http://127.0.0.1:8080/layers/ndvi/preview`
+`http://127.0.0.1:8080/layers/true_color/preview`
 
 ![](img/example_custom_layers_preview.png)
