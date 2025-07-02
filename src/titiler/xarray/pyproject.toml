@@ -2,7 +2,7 @@
 name = "titiler-xarray"
 description = "Xarray plugin for TiTiler."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 authors = [
     {name = "Vincent Sarago", email = "vincent@developmentseed.com"},
     {name = "Aimee Barciauskas", email = "aimee@developmentseed.com"},
