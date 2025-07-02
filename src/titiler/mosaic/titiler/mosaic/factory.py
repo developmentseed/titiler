@@ -376,7 +376,7 @@ class MosaicTilerFactory(BaseFactory):
                             "href": str(
                                 request.url_for("tilematrixset", tileMatrixSetId=tms)
                             ),
-                            "rel": "http://www.opengis.net/def/rel/ogc/1.0/tiling-schemes",
+                            "rel": "http://www.opengis.net/def/rel/ogc/1.0/tiling-scheme",
                             "type": "application/json",
                             "title": f"Definition of '{tms}' tileMatrixSet",
                         }
@@ -488,7 +488,7 @@ class MosaicTilerFactory(BaseFactory):
                                 "tilematrixset", tileMatrixSetId=tileMatrixSetId
                             )
                         ),
-                        "rel": "http://www.opengis.net/def/rel/ogc/1.0/tiling-schemes",
+                        "rel": "http://www.opengis.net/def/rel/ogc/1.0/tiling-scheme",
                         "type": "application/json",
                         "title": f"Definition of '{tileMatrixSetId}' tileMatrixSet",
                     }
