@@ -38,7 +38,7 @@ dependencies = [
 
 [project.optional-dependencies]
 full = [
-    "zarr!=3.0.9",
+    "zarr @ git+https://github.com/maxrjones/zarr-python@remove-check",
     "h5netcdf",
     "fsspec",
     "s3fs",
