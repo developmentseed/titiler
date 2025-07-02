@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.22.4 (2025-07-02)
+
+* fix `rel` values for tiling scheme link (OGC Tiles specification)
+
 ## 0.22.3 (2025-06-17)
 
 ### titiler.xarray

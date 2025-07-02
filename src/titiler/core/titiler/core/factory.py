@@ -633,7 +633,7 @@ class TilerFactory(BaseFactory):
                             "href": str(
                                 request.url_for("tilematrixset", tileMatrixSetId=tms)
                             ),
-                            "rel": "http://www.opengis.net/def/rel/ogc/1.0/tiling-schemes",
+                            "rel": "http://www.opengis.net/def/rel/ogc/1.0/tiling-scheme",
                             "type": "application/json",
                             "title": f"Definition of '{tms}' tileMatrixSet",
                         }
@@ -740,7 +740,7 @@ class TilerFactory(BaseFactory):
                                 "tilematrixset", tileMatrixSetId=tileMatrixSetId
                             )
                         ),
-                        "rel": "http://www.opengis.net/def/rel/ogc/1.0/tiling-schemes",
+                        "rel": "http://www.opengis.net/def/rel/ogc/1.0/tiling-scheme",
                         "type": "application/json",
                         "title": f"Definition of '{tileMatrixSetId}' tileMatrixSet",
                     }
@@ -1910,7 +1910,7 @@ class TMSFactory(BaseFactory):
                                     "tilematrixset",
                                     tileMatrixSetId=tms_id,
                                 ),
-                                "rel": "http://www.opengis.net/def/rel/ogc/1.0/tiling-schemes",
+                                "rel": "http://www.opengis.net/def/rel/ogc/1.0/tiling-scheme",
                                 "type": "application/json",
                                 "title": f"Definition of {tms_id} tileMatrixSet",
                             }

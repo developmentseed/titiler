@@ -359,6 +359,12 @@ def landing(
                 "rel": "http://www.opengis.net/def/rel/ogc/1.0/conformance",
             },
             {
+                "title": "List of Available TileMatrixSets",
+                "href": str(request.url_for("tilematrixsets")),
+                "type": "application/json",
+                "rel": "http://www.opengis.net/def/rel/ogc/1.0/tiling-schemes",
+            },
+            {
                 "title": "TiTiler Documentation (external link)",
                 "href": "https://developmentseed.org/titiler/",
                 "type": "text/html",
