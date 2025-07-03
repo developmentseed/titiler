@@ -31,13 +31,13 @@ There is a known security vulnerability with the VRT Driver:
 
 see https://gdal.org/en/stable/user/security.html#gdal-vrt-driver
 
-Thus we recommend to deployed titiler in a controlled infrastructure with limited access to the filesystem. Users can also `disable` the VRT driver completely by using `GDAL_SKIP=VRT` environment variable.
+Thus we recommend deploying titiler in infrastructure with limited access to the filesystem. Users can also `disable` the VRT driver completely by using `GDAL_SKIP=VRT` environment variable.
 
 In GDAL 3.12, new environment variables might be introduced to enable more control over the VRT driver: https://github.com/OSGeo/gdal/pull/12669
 
 #### Limit source's host
 
-If users want to limit the sources available, they can also create custom `path_dependency` such as:
+If users want to limit the sources that the application can access, they can also create custom `path_dependency` such as this one which limits valid sources to a list of known hosts:
 
 ```python
 from urllib.parse import urlparse
@@ -49,7 +49,7 @@ from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 from fastapi import FastAPI, Query, HTTPException
 
 # List of known host where dataset can be read from
-kwown_host = [
+known_host = [
    "devseed.org",
 ]
 
@@ -57,7 +57,7 @@ def DatasetPathParams(url: Annotated[str, Query(description="Dataset URL")]) -> 
    """Create dataset path from args"""
    # validate Dataset host
    parsed = urlparse(url)
-   if parsed.netloc not in kwown_host:
+   if parsed.netloc not in known_host:
       raise HTTPException(
          status_code=400,
          detail="Nope, this is not a valid File - Please Try Again",
