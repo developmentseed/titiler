@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1751471759474,
+  "lastUpdate": 1751574404174,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -13672,6 +13672,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.21,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "vincent.sarago@gmail.com",
+            "name": "Vincent Sarago",
+            "username": "vincentsarago"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "61549f2de07b20cca8fb991cfcdc89b23e18ad05",
+          "message": "add security doc (#1187)\n\n* add security doc\n\n* more\n\n* Update SECURITY.md\n\nCo-authored-by: Jeff Albrecht <jeff@arturo.ai>\n\n* Apply suggestions from code review\n\nCo-authored-by: Henry Rodman <henry.rodman@gmail.com>\nCo-authored-by: Chris Holden <ceholden@users.noreply.github.com>\n\n---------\n\nCo-authored-by: Jeff Albrecht <jeff@arturo.ai>\nCo-authored-by: Henry Rodman <henry.rodman@gmail.com>\nCo-authored-by: Chris Holden <ceholden@users.noreply.github.com>",
+          "timestamp": "2025-07-03T22:24:01+02:00",
+          "tree_id": "c2c1291335b923afc49a22ac7b0c937991c1c3f5",
+          "url": "https://github.com/developmentseed/titiler/commit/61549f2de07b20cca8fb991cfcdc89b23e18ad05"
+        },
+        "date": 1751574403256,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.38,
             "unit": "s"
           },
           {
