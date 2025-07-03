@@ -31,7 +31,7 @@ There is a known security vulnerability with the VRT Driver:
 
 see https://gdal.org/en/stable/user/security.html#gdal-vrt-driver
 
-Thus we recommend to deployed titiler is a controlled infrastructure with limited access to the filesystem. Users can also `disable` the VRT driver completely by using `GDAL_SKIP=VRT` environment variable.
+Thus we recommend to deployed titiler in a controlled infrastructure with limited access to the filesystem. Users can also `disable` the VRT driver completely by using `GDAL_SKIP=VRT` environment variable.
 
 In GDAL 3.12, new environment variables might be introduced to enable more control over the VRT driver: https://github.com/OSGeo/gdal/pull/12669
 
