@@ -61,13 +61,22 @@ def test_tracing_disabled_noop(telemetry_disabled):
     assert response.status_code == 200
 
 
+def test_tracing_enabled_but_not_available_warning(telemetry_disabled):
+    """Test that enabling telemetry without the decorator enabled emits a warning."""
+    assert not telemetry.tracer
+    assert not telemetry.factory_trace.decorator_enabled
+
+    with pytest.warns(match="tracing is not available"):
+        _ = TilerFactory(router_prefix="cog", enable_telemetry=True)
+
+
 def test_tracing_enabled_success_path(memory_exporter):
     """Test that spans are correctly created on a successful request."""
     assert telemetry.tracer
     assert telemetry.factory_trace.decorator_enabled
 
     app = FastAPI()
-    tiler = TilerFactory(router_prefix="cog")
+    tiler = TilerFactory(router_prefix="cog", enable_telemetry=True)
     app.include_router(tiler.router, prefix="/cog")
     client = TestClient(app)
 

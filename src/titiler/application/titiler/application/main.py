@@ -118,7 +118,7 @@ if not api_settings.disable_cog:
             cogViewerExtension(),
             stacExtension(),
         ],
-        enable_telemtry=api_settings.telemetry_enabled,
+        enable_telemetry=api_settings.telemetry_enabled,
     )
 
     app.include_router(
@@ -139,7 +139,7 @@ if not api_settings.disable_stac:
             stacViewerExtension(),
             stacRenderExtension(),
         ],
-        enable_telemtry=api_settings.telemetry_enabled,
+        enable_telemetry=api_settings.telemetry_enabled,
     )
 
     app.include_router(
@@ -155,7 +155,7 @@ if not api_settings.disable_stac:
 if not api_settings.disable_mosaic:
     mosaic = MosaicTilerFactory(
         router_prefix="/mosaicjson",
-        enable_telemtry=api_settings.telemetry_enabled,
+        enable_telemetry=api_settings.telemetry_enabled,
     )
     app.include_router(
         mosaic.router,

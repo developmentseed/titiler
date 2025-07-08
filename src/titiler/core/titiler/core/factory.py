@@ -2,6 +2,7 @@
 
 import abc
 import logging
+import warnings
 from typing import (
     Any,
     Callable,
@@ -158,7 +159,7 @@ class BaseFactory(metaclass=abc.ABCMeta):
 
     conforms_to: Set[str] = field(factory=set)
 
-    enable_telemtry: bool = field(default=False)
+    enable_telemetry: bool = field(default=False)
 
     def __attrs_post_init__(self):
         """Post Init: register route and configure specific options."""
@@ -177,7 +178,7 @@ class BaseFactory(metaclass=abc.ABCMeta):
         for scopes, dependencies in self.route_dependencies:
             self.add_route_dependencies(scopes=scopes, dependencies=dependencies)
 
-        if self.enable_telemtry:
+        if self.enable_telemetry:
             self.add_telemetry()
 
     @abc.abstractmethod
@@ -244,8 +245,10 @@ class BaseFactory(metaclass=abc.ABCMeta):
         of each APIRoute to ensure consistent OpenTelemetry tracing.
         """
         if not factory_trace.decorator_enabled:
-            logger.warning(
-                "telemetry enabled for the factory class but tracing is not available"
+            warnings.warn(
+                "telemetry enabled for the factory class but tracing is not available",
+                RuntimeWarning,
+                stacklevel=2,
             )
             return
 
