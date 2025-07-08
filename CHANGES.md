@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### titiler.core
+
+* add OpenTelemetry instrumentation to the tiler factory classes
+
+### titiler.application
+
+* add OpenTelemetry tracing to the FastAPI application
+
+### Misc
+
+* Add otel-collector and jaeger to the docker network 
+
 ## 0.22.4 (2025-07-02)
 
 * fix `rel` values for tiling scheme link (OGC Tiles specification)
