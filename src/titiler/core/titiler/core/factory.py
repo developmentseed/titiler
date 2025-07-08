@@ -158,6 +158,8 @@ class BaseFactory(metaclass=abc.ABCMeta):
 
     conforms_to: Set[str] = field(factory=set)
 
+    enable_telemtry: bool = field(default=False)
+
     def __attrs_post_init__(self):
         """Post Init: register route and configure specific options."""
         # prefix for endpoint's operationId
@@ -175,7 +177,8 @@ class BaseFactory(metaclass=abc.ABCMeta):
         for scopes, dependencies in self.route_dependencies:
             self.add_route_dependencies(scopes=scopes, dependencies=dependencies)
 
-        self.add_telemetry()
+        if self.enable_telemtry:
+            self.add_telemetry()
 
     @abc.abstractmethod
     def register_routes(self):
@@ -241,6 +244,9 @@ class BaseFactory(metaclass=abc.ABCMeta):
         of each APIRoute to ensure consistent OpenTelemetry tracing.
         """
         if not factory_trace.decorator_enabled:
+            logger.warning(
+                "telemetry enabled for the factory class but tracing is not available"
+            )
             return
 
         for route in self.router.routes:

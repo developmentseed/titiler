@@ -35,7 +35,7 @@ def add_span_attributes(attributes: Dict[str, Any]) -> None:
 
 
 def flatten_dict(d: dict, parent_key: str = "", sep: str = ".") -> dict:
-    """Flattens a nested dictionary."""
+    """Flattens a nested dictionary for adding span attributes."""
     items = {}
     for k, v in d.items():
         new_key = parent_key + sep + k if parent_key else k
@@ -101,7 +101,7 @@ def factory_trace(
     *,
     factory_instance: Optional[Any] = None,
 ) -> Any:
-    """A decorator for Factory methods that automatically handles tracing."""
+    """A decorator for Factory methods that automatically handles tracing for factory methods"""
 
     def decorator(func: Callable[P, Any]) -> Callable[P, Any]:
         if not tracer:
@@ -109,12 +109,19 @@ def factory_trace(
 
         op_name = func.__name__
 
+        attributes = {}
+        if factory_instance:
+            if hasattr(factory_instance, "reader"):
+                attributes["reader"] = str(factory_instance.reader)
+            if hasattr(factory_instance, "backend"):
+                attributes["backend"] = str(factory_instance.backend)
+
         if inspect.iscoroutinefunction(func):
 
             @functools.wraps(func)
             async def async_wrapper(*args: P.args, **kwargs: P.kwargs) -> Any:
                 span_name = _get_span_name(op_name, factory_instance)
-                with operation_tracer(span_name):
+                with operation_tracer(span_name, attributes=attributes):
                     return await func(*args, **kwargs)
 
             return async_wrapper
@@ -123,7 +130,7 @@ def factory_trace(
             @functools.wraps(func)
             def sync_wrapper(*args: P.args, **kwargs: P.kwargs) -> Any:
                 span_name = _get_span_name(op_name, factory_instance)
-                with operation_tracer(span_name):
+                with operation_tracer(span_name, attributes=attributes):
                     return func(*args, **kwargs)
 
             return sync_wrapper
