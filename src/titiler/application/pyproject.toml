@@ -31,7 +31,7 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-    "titiler.core==0.22.4",
+    "titiler.core[telemetry]==0.22.4",
     "titiler.extensions[cogeo,stac]==0.22.4",
     "titiler.mosaic==0.22.4",
     "starlette-cramjam>=0.4,<0.5",
