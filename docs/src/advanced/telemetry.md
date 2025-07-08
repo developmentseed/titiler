@@ -81,7 +81,7 @@ FastAPIInstrumentor.instrument_app(app)
 # Add trace/span info to logging messages for trace correlation
 LoggingInstrumentor().instrument(set_logging_format=True)
 
-# Add your TiTiler endpoints
-cog = TilerFactory()
+# Add your TiTiler endpoints with the enable_telemetry flag set to True
+cog = TilerFactory(enable_telemetry=True)
 app.include_router(cog.router)
 ```
