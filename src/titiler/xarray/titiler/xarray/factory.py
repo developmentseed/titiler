@@ -1,5 +1,6 @@
 """TiTiler.xarray factory."""
 
+import logging
 from typing import Any, Callable, Optional, Type, Union
 
 import rasterio
@@ -27,6 +28,8 @@ from titiler.core.resources.responses import GeoJSONResponse, JSONResponse
 from titiler.core.utils import bounds_to_geometry
 from titiler.xarray.dependencies import DatasetParams, PartFeatureParams, XarrayParams
 from titiler.xarray.io import Reader
+
+logger = logging.getLogger(__name__)
 
 
 @define(kw_only=True)
@@ -84,6 +87,7 @@ class TilerFactory(BaseTilerFactory):
         ) -> Info:
             """Return dataset's basic info."""
             with rasterio.Env(**env):
+                logger.info(f"opening data with reader: {self.reader}")
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     info = src_dst.info().model_dump()
                     if show_times and "time" in src_dst.input.dims:
@@ -118,6 +122,7 @@ class TilerFactory(BaseTilerFactory):
         ):
             """Return dataset's basic info as a GeoJSON feature."""
             with rasterio.Env(**env):
+                logger.info(f"opening data with reader: {self.reader}")
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     bounds = src_dst.get_geographic_bounds(crs or WGS84_CRS)
                     geometry = bounds_to_geometry(bounds)
@@ -175,6 +180,7 @@ class TilerFactory(BaseTilerFactory):
                 fc = FeatureCollection(type="FeatureCollection", features=[geojson])
 
             with rasterio.Env(**env):
+                logger.info(f"opening data with reader: {self.reader}")
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     for feature in fc.features:
                         shape = feature.model_dump(exclude_none=True)

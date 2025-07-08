@@ -7,6 +7,7 @@
 # ///
 """Example of Application."""
 
+import os
 from typing import Annotated, Literal, Optional
 
 import rasterio
@@ -116,6 +117,31 @@ app.add_middleware(
     cachecontrol="public, max-age=3600",
     exclude_path={r"/healthz"},
 )
+
+if os.getenv("TITILER_API_TELEMETRY_ENABLED"):
+    from opentelemetry import trace
+    from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+    from opentelemetry.sdk.resources import Resource
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
+    FastAPIInstrumentor.instrument_app(app)
+
+    resource = Resource.create(
+        {
+            "service.name": "titiler-xarray",
+            "service.version": titiler_version,
+        }
+    )
+
+    provider = TracerProvider(resource=resource)
+
+    # uses the OTEL_EXPORTER_OTLP_ENDPOINT env var
+    processor = BatchSpanProcessor(OTLPSpanExporter())
+    provider.add_span_processor(processor)
+
+    trace.set_tracer_provider(provider)
 
 
 @app.get(

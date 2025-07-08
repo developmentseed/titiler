@@ -1,6 +1,8 @@
 """TiTiler Router factories."""
 
 import abc
+import logging
+import warnings
 from typing import (
     Any,
     Callable,
@@ -38,7 +40,9 @@ from rio_tiler.types import ColorMapType
 from rio_tiler.utils import CRS_to_uri, CRS_to_urn
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, Response
-from starlette.routing import Match, NoMatchFound, compile_path, replace_params
+from starlette.routing import Match, NoMatchFound
+from starlette.routing import Route as APIRoute
+from starlette.routing import compile_path, replace_params
 from starlette.templating import Jinja2Templates
 from typing_extensions import Annotated
 
@@ -83,6 +87,7 @@ from titiler.core.models.responses import (
 from titiler.core.resources.enums import ImageType
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
 from titiler.core.routing import EndpointScope
+from titiler.core.telemetry import factory_trace
 from titiler.core.utils import bounds_to_geometry, render_image
 
 jinja2_env = jinja2.Environment(
@@ -107,6 +112,8 @@ img_endpoint_params: Dict[str, Any] = {
     },
     "response_class": Response,
 }
+
+logger = logging.getLogger(__name__)
 
 
 @define
@@ -152,6 +159,8 @@ class BaseFactory(metaclass=abc.ABCMeta):
 
     conforms_to: Set[str] = field(factory=set)
 
+    enable_telemetry: bool = field(default=False)
+
     def __attrs_post_init__(self):
         """Post Init: register route and configure specific options."""
         # prefix for endpoint's operationId
@@ -168,6 +177,9 @@ class BaseFactory(metaclass=abc.ABCMeta):
         # Update endpoints dependencies
         for scopes, dependencies in self.route_dependencies:
             self.add_route_dependencies(scopes=scopes, dependencies=dependencies)
+
+        if self.enable_telemetry:
+            self.add_telemetry()
 
     @abc.abstractmethod
     def register_routes(self):
@@ -224,6 +236,25 @@ class BaseFactory(metaclass=abc.ABCMeta):
                 # https://github.com/tiangolo/fastapi/blob/58ab733f19846b4875c5b79bfb1f4d1cb7f4823f/fastapi/applications.py#L337-L360
                 # https://github.com/tiangolo/fastapi/blob/58ab733f19846b4875c5b79bfb1f4d1cb7f4823f/fastapi/routing.py#L677-L678
                 route.dependencies.extend(dependencies)  # type: ignore
+
+    def add_telemetry(self):
+        """
+        Applies the factory_trace decorator to all registered API routes.
+
+        This method iterates through the router's routes and wraps the endpoint
+        of each APIRoute to ensure consistent OpenTelemetry tracing.
+        """
+        if not factory_trace.decorator_enabled:
+            warnings.warn(
+                "telemetry enabled for the factory class but tracing is not available",
+                RuntimeWarning,
+                stacklevel=2,
+            )
+            return
+
+        for route in self.router.routes:
+            if isinstance(route, APIRoute):
+                route.endpoint = factory_trace(route.endpoint, factory_instance=self)
 
 
 @define(kw_only=True)
@@ -852,6 +883,7 @@ class TilerFactory(BaseFactory):
             """Create map tile from a dataset."""
             tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
+                logger.info(f"opening data with reader: {self.reader}")
                 with self.reader(
                     src_path, tms=tms, **reader_params.as_dict()
                 ) as src_dst:
@@ -955,6 +987,7 @@ class TilerFactory(BaseFactory):
 
             tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
+                logger.info(f"opening data with reader: {self.reader}")
                 with self.reader(
                     src_path, tms=tms, **reader_params.as_dict()
                 ) as src_dst:
@@ -1115,6 +1148,7 @@ class TilerFactory(BaseFactory):
 
             tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
+                logger.info(f"opening data with reader: {self.reader}")
                 with self.reader(
                     src_path, tms=tms, **reader_params.as_dict()
                 ) as src_dst:
@@ -1202,6 +1236,7 @@ class TilerFactory(BaseFactory):
         ):
             """Get Point value for a dataset."""
             with rasterio.Env(**env):
+                logger.info(f"opening data with reader: {self.reader}")
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     pts = src_dst.point(
                         lon,
@@ -1258,6 +1293,7 @@ class TilerFactory(BaseFactory):
         ):
             """Create preview of a dataset."""
             with rasterio.Env(**env):
+                logger.info(f"opening data with reader: {self.reader}")
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     image = src_dst.preview(
                         **layer_params.as_dict(),
@@ -1321,6 +1357,7 @@ class TilerFactory(BaseFactory):
         ):
             """Create image from a bbox."""
             with rasterio.Env(**env):
+                logger.info(f"opening data with reader: {self.reader}")
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     image = src_dst.part(
                         [minx, miny, maxx, maxy],
@@ -1382,6 +1419,7 @@ class TilerFactory(BaseFactory):
         ):
             """Create image from a geojson feature."""
             with rasterio.Env(**env):
+                logger.info(f"opening data with reader: {self.reader}")
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     image = src_dst.feature(
                         geojson.model_dump(exclude_none=True),
@@ -1453,6 +1491,7 @@ class MultiBaseTilerFactory(TilerFactory):
         ):
             """Return dataset's basic info or the list of available assets."""
             with rasterio.Env(**env):
+                logger.info(f"opening data with reader: {self.reader}")
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     return src_dst.info(**asset_params.as_dict())
 
@@ -1478,6 +1517,7 @@ class MultiBaseTilerFactory(TilerFactory):
         ):
             """Return dataset's basic info as a GeoJSON feature."""
             with rasterio.Env(**env):
+                logger.info(f"opening data with reader: {self.reader}")
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     bounds = src_dst.get_geographic_bounds(crs or WGS84_CRS)
                     geometry = bounds_to_geometry(bounds)
@@ -1502,6 +1542,7 @@ class MultiBaseTilerFactory(TilerFactory):
         ):
             """Return a list of supported assets."""
             with rasterio.Env(**env):
+                logger.info(f"opening data with reader: {self.reader}")
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     return src_dst.assets
 
@@ -1535,6 +1576,7 @@ class MultiBaseTilerFactory(TilerFactory):
         ):
             """Per Asset statistics"""
             with rasterio.Env(**env):
+                logger.info(f"opening data with reader: {self.reader}")
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     return src_dst.statistics(
                         **asset_params.as_dict(),
@@ -1572,6 +1614,7 @@ class MultiBaseTilerFactory(TilerFactory):
         ):
             """Merged assets statistics."""
             with rasterio.Env(**env):
+                logger.info(f"opening data with reader: {self.reader}")
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     # Default to all available assets
                     if not layer_params.assets and not layer_params.expression:
@@ -1628,6 +1671,7 @@ class MultiBaseTilerFactory(TilerFactory):
                 fc = FeatureCollection(type="FeatureCollection", features=[geojson])
 
             with rasterio.Env(**env):
+                logger.info(f"opening data with reader: {self.reader}")
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     # Default to all available assets
                     if not layer_params.assets and not layer_params.expression:
@@ -1652,10 +1696,10 @@ class MultiBaseTilerFactory(TilerFactory):
                             hist_options=histogram_params.as_dict(),
                         )
 
-                    feature.properties = feature.properties or {}
-                    # NOTE: because we use `src_dst.feature` the statistics will be in form of
-                    # `Dict[str, BandStatistics]` and not `Dict[str, Dict[str, BandStatistics]]`
-                    feature.properties.update({"statistics": stats})
+                        feature.properties = feature.properties or {}
+                        # NOTE: because we use `src_dst.feature` the statistics will be in form of
+                        # `Dict[str, BandStatistics]` and not `Dict[str, Dict[str, BandStatistics]]`
+                        feature.properties.update({"statistics": stats})
 
             return fc.features[0] if isinstance(geojson, Feature) else fc
 
@@ -1704,6 +1748,7 @@ class MultiBandTilerFactory(TilerFactory):
         ):
             """Return dataset's basic info."""
             with rasterio.Env(**env):
+                logger.info(f"opening data with reader: {self.reader}")
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     return src_dst.info(**bands_params.as_dict())
 
@@ -1729,6 +1774,7 @@ class MultiBandTilerFactory(TilerFactory):
         ):
             """Return dataset's basic info as a GeoJSON feature."""
             with rasterio.Env(**env):
+                logger.info(f"opening data with reader: {self.reader}")
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     bounds = src_dst.get_geographic_bounds(crs or WGS84_CRS)
                     geometry = bounds_to_geometry(bounds)
@@ -1753,6 +1799,7 @@ class MultiBandTilerFactory(TilerFactory):
         ):
             """Return a list of supported bands."""
             with rasterio.Env(**env):
+                logger.info(f"opening data with reader: {self.reader}")
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     return src_dst.bands
 
@@ -1786,6 +1833,7 @@ class MultiBandTilerFactory(TilerFactory):
         ):
             """Get Dataset statistics."""
             with rasterio.Env(**env):
+                logger.info(f"opening data with reader: {self.reader}")
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     # Default to all available bands
                     if not bands_params.bands and not bands_params.expression:
@@ -1842,6 +1890,7 @@ class MultiBandTilerFactory(TilerFactory):
                 fc = FeatureCollection(type="FeatureCollection", features=[geojson])
 
             with rasterio.Env(**env):
+                logger.info(f"opening data with reader: {self.reader}")
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     # Default to all available bands
                     if not bands_params.bands and not bands_params.expression:

@@ -1,4 +1,4 @@
-"""Test titiler.core.middleware.TotalTimeMiddleware."""
+"""Test titiler.core.middleware.LoggerMiddleware."""
 
 import json
 import logging
@@ -11,7 +11,7 @@ from starlette.testclient import TestClient
 from titiler.core.middleware import LoggerMiddleware
 
 
-def test_timing_middleware(caplog):
+def test_logger_middleware(caplog):
     """Create App."""
     app = FastAPI()
 
@@ -44,14 +44,14 @@ def test_timing_middleware(caplog):
                             {
                                 k: f"%({k})s"
                                 for k in [
-                                    "method",
-                                    "referer",
-                                    "origin",
-                                    "route",
-                                    "path",
-                                    "path_params",
-                                    "query_params",
-                                    "headers",
+                                    "http.method",
+                                    "http.referer",
+                                    "http.origin",
+                                    "http.route",
+                                    "http.path",
+                                    "titiler.path_params",
+                                    "titiler.query_params",
+                                    "http.request.header.",
                                 ]
                             }
                         )
@@ -84,14 +84,14 @@ def test_timing_middleware(caplog):
             assert log.name == "titiler.requests"
             assert log.levelname == "INFO"
             assert log.message == "Request received: /route1 GET"
-            assert hasattr(log, "query_params")
-            assert log.route == "/route1"
+            assert hasattr(log, "titiler.query_params")
+            assert getattr(log, "http.route") == "/route1"
 
             caplog.clear()
             client.get("/route1", params={"hey": "yo"})
             log = caplog.records[0]
             assert log.message == "Request received: /route1 GET"
-            assert log.query_params == {"hey": "yo"}
+            assert getattr(log, "titiler.query_params") == {"hey": "yo"}
 
             caplog.clear()
             client.get(
@@ -99,8 +99,8 @@ def test_timing_middleware(caplog):
             )
             log = caplog.records[0]
             assert log.message == "Request received: /route1 GET"
-            assert log.query_params == {"hey": "yo"}
-            assert log.headers["accept-encoding"] == "gzip"
+            assert getattr(log, "titiler.query_params") == {"hey": "yo"}
+            assert getattr(log, "http.request.header.accept-encoding") == "gzip"
 
             caplog.clear()
             client.get("/route2/val")
@@ -108,8 +108,8 @@ def test_timing_middleware(caplog):
             assert log.name == "titiler.requests"
             assert log.levelname == "INFO"
             assert log.message == "Request received: /route2/val GET"
-            assert hasattr(log, "query_params")
-            assert log.route == "/route2/{value}"
+            assert hasattr(log, "titiler.query_params")
+            assert getattr(log, "http.route") == "/route2/{value}"
 
             caplog.clear()
             with pytest.raises(Exception):  # noqa: B017
@@ -118,5 +118,5 @@ def test_timing_middleware(caplog):
                 assert log.name == "titiler.requests"
                 assert log.levelname == "INFO"
                 assert log.message == "Request received: /route3/val GET"
-                assert hasattr(log, "query_params")
+                assert hasattr(log, "titiler.query_params")
                 assert log.route == "/route3/{value}"

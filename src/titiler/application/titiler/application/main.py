@@ -45,6 +45,7 @@ from titiler.mosaic.factory import MosaicTilerFactory
 
 logging.getLogger("botocore.credentials").disabled = True
 logging.getLogger("botocore.utils").disabled = True
+logging.getLogger("rasterio.session").setLevel(logging.ERROR)
 logging.getLogger("rio-tiler").setLevel(logging.ERROR)
 
 
@@ -117,6 +118,7 @@ if not api_settings.disable_cog:
             cogViewerExtension(),
             stacExtension(),
         ],
+        enable_telemetry=api_settings.telemetry_enabled,
     )
 
     app.include_router(
@@ -137,6 +139,7 @@ if not api_settings.disable_stac:
             stacViewerExtension(),
             stacRenderExtension(),
         ],
+        enable_telemetry=api_settings.telemetry_enabled,
     )
 
     app.include_router(
@@ -150,7 +153,10 @@ if not api_settings.disable_stac:
 ###############################################################################
 # Mosaic endpoints
 if not api_settings.disable_mosaic:
-    mosaic = MosaicTilerFactory(router_prefix="/mosaicjson")
+    mosaic = MosaicTilerFactory(
+        router_prefix="/mosaicjson",
+        enable_telemetry=api_settings.telemetry_enabled,
+    )
     app.include_router(
         mosaic.router,
         prefix="/mosaicjson",
@@ -238,14 +244,16 @@ if api_settings.debug:
                             {
                                 k: f"%({k})s"
                                 for k in [
-                                    "method",
-                                    "referer",
-                                    "origin",
-                                    "route",
-                                    "path",
-                                    "path_params",
-                                    "query_params",
-                                    "headers",
+                                    "http.method",
+                                    "http.referer",
+                                    "http.request.header.origin",
+                                    "http.route",
+                                    "http.target",
+                                    "http.request.header.content-length",
+                                    "http.request.header.accept-encoding",
+                                    "http.request.header.origin",
+                                    "titiler.path_params",
+                                    "titiler.query_params",
                                 ]
                             }
                         )
@@ -267,12 +275,12 @@ if api_settings.debug:
                 },
             },
             "loggers": {
-                "titlier": {
-                    "level": "WARNING",
+                "titiler": {
+                    "level": "INFO",
                     "handlers": ["console_detailed"],
                     "propagate": False,
                 },
-                "titiler-requests": {
+                "titiler.requests": {
                     "level": "INFO",
                     "handlers": ["console_request"],
                     "propagate": False,
@@ -450,3 +458,31 @@ def conformance(
         )
 
     return data
+
+
+if api_settings.telemetry_enabled:
+    from opentelemetry import trace
+    from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+    from opentelemetry.instrumentation.logging import LoggingInstrumentor
+    from opentelemetry.sdk.resources import SERVICE_NAME, SERVICE_VERSION, Resource
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
+    LoggingInstrumentor().instrument(set_logging_format=True)
+    FastAPIInstrumentor.instrument_app(app)
+
+    resource = Resource.create(
+        {
+            SERVICE_NAME: "titiler",
+            SERVICE_VERSION: titiler_version,
+        }
+    )
+
+    provider = TracerProvider(resource=resource)
+
+    # uses the OTEL_EXPORTER_OTLP_ENDPOINT env var
+    processor = BatchSpanProcessor(OTLPSpanExporter())
+    provider.add_span_processor(processor)
+
+    trace.set_tracer_provider(provider)
