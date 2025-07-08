@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1751574404174,
+  "lastUpdate": 1751986235905,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -13731,6 +13731,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.38,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "henry.rodman@gmail.com",
+            "name": "Henry Rodman",
+            "username": "hrodmn"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "bb4de6b71ea062a9ce11c58299317c91cef4f711",
+          "message": "add OpenTelemetry instrumentation to titiler.core (#1171)\n\n* automatically add traces to all endpoints in tiler factory classes\n\n* update LoggerMiddleware to work with telemetry\n\n* use semantic conventions for http* log extras\n\n* add reader logging statements to mosaic factory\n\n* add enable_telemetry setting to the BaseFactory\n\n* add OpenTelemetry to titiler.application\n\n\n---------\n\nCo-authored-by: vincentsarago <vincent.sarago@gmail.com>",
+          "timestamp": "2025-07-08T09:48:42-05:00",
+          "tree_id": "66fa040184611f3ddf453b603a96df25fc108d71",
+          "url": "https://github.com/developmentseed/titiler/commit/bb4de6b71ea062a9ce11c58299317c91cef4f711"
+        },
+        "date": 1751986235169,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.07,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.29,
             "unit": "s"
           },
           {
