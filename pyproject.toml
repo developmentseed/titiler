@@ -2,7 +2,7 @@
 name = "titiler"
 description = "A modern dynamic tile server built on top of FastAPI and Rasterio/GDAL."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 license = {file = "LICENSE"}
 authors = [
     {name = "Vincent Sarago", email = "vincent@developmentseed.com"},
@@ -285,3 +285,6 @@ replace = 'titiler.xarray=={new_version}'
 filename = "deployment/k8s/charts/Chart.yaml"
 search = 'appVersion: {current_version}'
 replace = 'appVersion: {new_version}'
+
+[tool.uv.sources]
+titiler-xarray = { path = "src/titiler/xarray", editable = true }
