@@ -5,6 +5,7 @@
 ### titiler.core
 
 * add OpenTelemetry instrumentation to the tiler factory classes
+* add `OGC Maps API` support (`/map` endpoint)
 
 ### titiler.application
 
@@ -12,7 +13,7 @@
 
 ### Misc
 
-* Add otel-collector and jaeger to the docker network 
+* Add otel-collector and jaeger to the docker network
 
 ## 0.22.4 (2025-07-02)
 

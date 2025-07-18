@@ -119,7 +119,6 @@ Example:
 
 ### Bbox
 
-
 `:endpoint:/stac/bbox/{minx},{miny},{maxx},{maxy}.{format}`
 
 `:endpoint:/stac/bbox/{minx},{miny},{maxx},{maxy}/{width}x{height}.{format}`
@@ -161,6 +160,37 @@ Example:
 - `https://myendpoint/stac/bbox/0,0,10,10.png?url=https://somewhere.com/item.json&assets=B01`
 - `https://myendpoint/stac/bbox/0,0,10,10/100x100.png?url=https://somewhere.com/item.json&assets=B01`
 - `https://myendpoint/stac/bbox/0,0,10,10.png?url=https://somewhere.com/item.json&assets=B01&rescale=0,1000&colormap_name=cfastie`
+
+### OGC Maps API - GetMap
+
+`:endpoint:/stac/map`
+
+- QueryParams:
+    - **url** (str): STAC Item URL. **Required**
+    - **assets** (array[str]): asset names.
+    - **expression** (str): rio-tiler's math expression with asset names (e.g `Asset1_b1/Asset2_b1`).
+    - **asset_as_band** (bool): tell rio-tiler that each asset is a 1 band dataset, so expression `Asset1/Asset2` can be passed.
+    - **asset_bidx** (array[str]): Per asset band math expression (e.g `Asset1|1,2,3`).
+    - **nodata** (str, int, float): Overwrite internal Nodata value.
+    - **unscale** (bool): Apply dataset internal Scale/Offset.
+    - **resampling** (str): RasterIO resampling algorithm. Defaults to `nearest`.
+    - **reproject** (str): WarpKernel resampling algorithm (only used when doing re-projection). Defaults to `nearest`.
+    - **rescale** (array[str]): Comma (',') delimited Min,Max range (e.g `rescale=0,1000`, `rescale=0,1000&rescale=0,3000&rescale=0,2000`).
+    - **color_formula** (str): rio-color formula.
+    - **colormap** (str): JSON encoded custom Colormap.
+    - **colormap_name** (str): rio-tiler color map name.
+    - **return_mask** (bool): Add mask to the output data. Default is True.
+    - **algorithm** (str): Custom algorithm name (e.g `hillshade`).
+    - **algorithm_params** (str): JSON encoded algorithm parameters.
+    - **bbox** (str): Comma (',') delimited bounding box.
+    - **bbox-crs** (str, optional): Coordinate Reference System of the input coordinates. Default to `epsg:4326`.
+    - **crs** (str, optional): Output Coordinate Reference System. Default to dataset'crs.
+    - **height** (int, optional): Force output image height. **Also a QueryParam**
+    - **width** (int, optional): Force output image width. **Also a QueryParam**
+    - **f** (str): Output [image format](../user_guide/output_format.md)
+
+!!! important
+    - **assets** OR **expression** is require
 
 ### Feature
 

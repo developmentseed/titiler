@@ -63,6 +63,7 @@ class TilerFactory(BaseTilerFactory):
     # remove some attribute from init
     img_preview_dependency: Type[DefaultDependency] = field(init=False)
     add_preview: bool = field(init=False, default=False)
+    add_ogc_maps: bool = field(init=False, default=False)
 
     # Custom /info endpoints (adds `show_times` options)
     def info(self):
