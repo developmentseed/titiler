@@ -675,8 +675,10 @@ class MosaicTilerFactory(BaseFactory):
             if OptionalHeader.x_assets in self.optional_headers:
                 headers["X-Assets"] = ",".join(assets)
 
-            headers["Content-Bbox"] = ",".join(image.bounds)
-            headers["Content-Crs"] = CRS_to_uri(image.crs)
+            if image.bounds is not None:
+                headers["Content-Bbox"] = ",".join(map(str, image.bounds))
+            if uri := CRS_to_uri(image.crs):
+                headers["Content-Crs"] = f"<{uri}>"
 
             return Response(content, media_type=media_type, headers=headers)
 
