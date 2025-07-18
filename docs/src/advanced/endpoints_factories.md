@@ -154,7 +154,7 @@ app.include_router(stac.router)
 | `GET`  | `/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                        | create an image from part of assets **Optional**
 | `POST` | `/feature[/{width}x{height}][.{format}]`                        | image/bin                                        | create an image from a geojson feature intersecting assets **Optional**
 | `GET`  | `/preview[/{width}x{height}][.{format}]`                        | image/bin                                        | create a preview image from assets **Optional**
-| `GET`  | `/maps`                                                         | image/bin                                        | create maps from a dataset **Optional**
+| `GET`  | `/map`                                                         | image/bin                                        | create maps from a dataset **Optional**
 
 ### MultiBandTilerFactory
 
@@ -211,7 +211,7 @@ app.include_router(landsat.router)
 | `GET`  | `/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                    | create an image from part of a dataset **Optional**
 | `POST` | `/feature[/{width}x{height}][.{format}]`                        | image/bin                                    | create an image from a geojson feature **Optional**
 | `GET`  | `/preview[/{width}x{height}][.{format}]`                        | image/bin                                    | create a preview image from a dataset **Optional**
-| `GET`  | `/maps`                                                         | image/bin                                    | create maps from a dataset **Optional**
+| `GET`  | `/map`                                                         | image/bin                                    | create maps from a dataset **Optional**
 
 
 ### TMSFactory
@@ -326,7 +326,7 @@ Endpoints factory for mosaics, built on top of [MosaicJSON](https://github.com/d
 - **supported_tms**: List of available TileMatrixSets. Defaults to `morecantile.tms`.
 - **templates**: *Jinja2* templates to use in endpoints. Defaults to `titiler.core.factory.DEFAULT_TEMPLATES`.
 - **optional_headers**: List of OptionalHeader which endpoints could add (if implemented). Defaults to `[]`.
-- **add_viewer**: Add `/map.html` endpoints to the router. Defaults to `True`.
+- **add_viewer**: Add `/{TileMatrixSetId}/map.html` endpoints to the router. Defaults to `True`.
 
 #### Endpoints
 
@@ -371,7 +371,7 @@ class: `titiler.xarray.factory.TilerFactory`
 - **supported_tms**: List of available TileMatrixSets. Defaults to `morecantile.tms`.
 - **templates**: *Jinja2* templates to use in endpoints. Defaults to `titiler.core.factory.DEFAULT_TEMPLATES`.
 - **add_part**: Add `/bbox` and `/feature` endpoints to the router. Defaults to `True`.
-- **add_viewer**: Add `/map.html` endpoints to the router. Defaults to `True`.
+- **add_viewer**: Add `/{TileMatrixSetId}/map.html` endpoints to the router. Defaults to `True`.
 
 
 ```python
