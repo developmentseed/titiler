@@ -133,14 +133,14 @@ class MosaicTilerFactory(BaseFactory):
     conforms_to: Set[str] = field(
         factory=lambda: {
             # https://docs.ogc.org/is/20-057/20-057.html#toc30
-            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/req/tileset",
+            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/conf/tileset",
             # https://docs.ogc.org/is/20-057/20-057.html#toc34
-            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/req/tilesets-list",
+            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/conf/tilesets-list",
             # https://docs.ogc.org/is/20-057/20-057.html#toc65
-            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/req/core",
-            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/req/png",
-            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/req/jpeg",
-            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/req/tiff",
+            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/conf/core",
+            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/conf/png",
+            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/conf/jpeg",
+            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/conf/tiff",
         }
     )
 
@@ -674,6 +674,9 @@ class MosaicTilerFactory(BaseFactory):
             headers: Dict[str, str] = {}
             if OptionalHeader.x_assets in self.optional_headers:
                 headers["X-Assets"] = ",".join(assets)
+
+            headers["Content-Bbox"] = ",".join(image.bounds)
+            headers["Content-Crs"] = CRS_to_uri(image.crs)
 
             return Response(content, media_type=media_type, headers=headers)
 

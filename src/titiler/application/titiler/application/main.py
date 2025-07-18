@@ -99,11 +99,11 @@ app = FastAPI(
 update_openapi(app)
 
 TITILER_CONFORMS_TO = {
-    "http://www.opengis.net/spec/ogcapi-common-1/1.0/req/core",
-    "http://www.opengis.net/spec/ogcapi-common-1/1.0/req/landing-page",
-    "http://www.opengis.net/spec/ogcapi-common-1/1.0/req/oas30",
-    "http://www.opengis.net/spec/ogcapi-common-1/1.0/req/html",
-    "http://www.opengis.net/spec/ogcapi-common-1/1.0/req/json",
+    "http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/core",
+    "http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/landing-page",
+    "http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/oas30",
+    "http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/html",
+    "http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/json",
 }
 
 
@@ -113,6 +113,7 @@ if not api_settings.disable_cog:
     cog = TilerFactory(
         reader=Reader,
         router_prefix="/cog",
+        add_ogc_maps=True,
         extensions=[
             cogValidateExtension(),
             cogViewerExtension(),
@@ -135,6 +136,7 @@ if not api_settings.disable_stac:
     stac = MultiBaseTilerFactory(
         reader=STACReader,
         router_prefix="/stac",
+        add_ogc_maps=True,
         extensions=[
             stacViewerExtension(),
             stacRenderExtension(),

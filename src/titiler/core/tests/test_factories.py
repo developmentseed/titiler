@@ -2055,3 +2055,166 @@ def test_colormap_factory():
     assert meta["count"] == 4
     assert meta["width"] == 20
     assert meta["height"] == 256
+
+
+def test_ogc_maps_cog():
+    """Test TilerFactory class."""
+    cog_path = f"{DATA_DIR}/cog.tif"
+
+    cog = TilerFactory(add_ogc_maps=True)
+    assert len(cog.router.routes) == 24
+
+    assert "https://www.opengis.net/spec/ogcapi-maps-1/1.0/conf/core" in cog.conforms_to
+
+    app = FastAPI()
+    app.include_router(cog.router)
+    with TestClient(app) as client:
+        # Conformance Class “Core”
+        response = client.get(
+            "/map",
+            params={
+                "url": cog_path,
+            },
+        )
+        assert response.status_code == 200
+        headers = response.headers
+        assert (
+            headers["Content-Bbox"]
+            == "373185.0,8019284.949381611,639014.9492102272,8286015.0"
+        )
+        assert headers["Content-Crs"] == "<http://www.opengis.net/def/crs/EPSG/0/32621>"
+        assert headers["content-type"] == "image/png"
+        meta = parse_img(response.content)
+        assert meta["width"] == 1021
+        assert meta["height"] == 1024  # default max size
+
+        response = client.get(
+            "/map",
+            params={
+                "url": cog_path,
+            },
+            headers={"Accept": "image/jpeg"},
+        )
+        assert response.status_code == 200
+        headers = response.headers
+        assert "Content-Bbox" in headers
+        assert "Content-Crs" in headers
+        assert headers["content-type"] == "image/jpeg"
+
+        response = client.get("/map", params={"url": cog_path, "f": "tiff"})
+        assert response.status_code == 200
+        headers = response.headers
+        assert "Content-Bbox" in headers
+        assert "Content-Crs" in headers
+        assert headers["content-type"] == "image/tiff; application=geotiff"
+
+        # Conformance Class “Scaling”
+        # /req/scaling/width-definition
+        response = client.get(
+            "/map",
+            params={
+                "url": cog_path,
+                "width": 256,
+            },
+        )
+        assert response.status_code == 200
+        meta = parse_img(response.content)
+        assert meta["width"] == 256
+        assert meta["height"] == 257
+
+        response = client.get(
+            "/map",
+            params={
+                "url": cog_path,
+                "width": -256,
+            },
+        )
+        assert response.status_code == 422
+
+        # /req/scaling/height-definition
+        response = client.get(
+            "/map",
+            params={
+                "url": cog_path,
+                "height": 256,
+            },
+        )
+        assert response.status_code == 200
+        meta = parse_img(response.content)
+        assert meta["height"] == 256
+
+        response = client.get(
+            "/map",
+            params={
+                "url": cog_path,
+                "height": -256,
+            },
+        )
+        assert response.status_code == 422
+
+        # Conformance Class “Spatial Subsetting”
+        # /conf/spatial-subsetting/bbox-crs
+        response = client.get(
+            "/map",
+            params={
+                "url": cog_path,
+                "bbox": "-56.228,72.715,-54.547,73.188",
+            },
+        )
+        headers = response.headers
+        assert headers["Content-Crs"] == "<http://www.opengis.net/def/crs/EPSG/0/32621>"
+        assert (
+            headers["Content-Bbox"]
+            == "524922.2217886819,8068852.367048624,581330.6416587981,8123074.564952523"
+        )
+        assert headers["content-type"] == "image/png"
+        meta = parse_img(response.content)
+
+        response = client.get(
+            "/map",
+            params={
+                "url": cog_path,
+                "bbox": "-56.228,72.715,-54.547,73.188",
+                "bbox-crs": "http://www.opengis.net/def/crs/OGC/0/CRS84",
+            },
+        )
+        headers = response.headers
+        assert headers["Content-Crs"] == "<http://www.opengis.net/def/crs/EPSG/0/32621>"
+        assert (
+            headers["Content-Bbox"]
+            == "524922.2217886819,8068852.367048624,581330.6416587981,8123074.564952523"
+        )
+        assert headers["content-type"] == "image/png"
+
+        response = client.get(
+            "/map",
+            params={
+                "url": cog_path,
+                "bbox": "-6259272.328324187,12015838.020930404,-6072144.264300693,12195445.265479913",
+                "bbox-crs": "[EPSG:3857]",
+            },
+        )
+        assert response.status_code == 200
+        headers = response.headers
+        assert headers["Content-Crs"] == "<http://www.opengis.net/def/crs/EPSG/0/32621>"
+        assert (
+            headers["Content-Bbox"]
+            == "524922.2217886819,8068852.367048624,581330.6416587983,8123074.564952523"
+        )
+        assert headers["content-type"] == "image/png"
+
+        # Abstract Test for Requirement crs parameter definition
+        response = client.get(
+            "/map",
+            params={
+                "url": cog_path,
+                "bbox": "-6259272.328324187,12015838.020930404,-6072144.264300693,12195445.265479913",
+                "bbox-crs": "[EPSG:3857]",
+                "crs": "[EPSG:4326]",
+            },
+        )
+        assert response.status_code == 200
+        headers = response.headers
+        assert headers["Content-Crs"] == "<http://www.opengis.net/def/crs/EPSG/0/4326>"
+        assert headers["Content-Bbox"] == "-56.228,72.715,-54.54699999999999,73.188"
+        assert headers["content-type"] == "image/png"

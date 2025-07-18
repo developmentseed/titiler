@@ -2,7 +2,7 @@
 
 import json
 import warnings
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Callable, Dict, List, Literal, Optional, Sequence, Tuple, Union
 
 import numpy
@@ -14,7 +14,11 @@ from rio_tiler.colormap import cmap as default_cmap
 from rio_tiler.colormap import parse_color
 from rio_tiler.errors import MissingAssets, MissingBands
 from rio_tiler.types import RIOResampling, WarpResampling
+from starlette.requests import Request
 from typing_extensions import Annotated
+
+from titiler.core.resources.enums import ImageType, MediaType
+from titiler.core.utils import accept_media_type
 
 
 def create_colormap_dependency(cmap: ColorMaps) -> Callable:
@@ -677,3 +681,89 @@ class TileParams(DefaultDependency):
             description="Padding to apply to each tile edge. Helps reduce resampling artefacts along edges. Defaults to `0`.",
         ),
     ] = None
+
+
+@dataclass
+class OGCMapsParams(DefaultDependency):
+    """OGC Maps options."""
+
+    request: Request
+
+    bbox: Annotated[
+        Optional[str],
+        Query(
+            description="Bounding box of the rendered map. The bounding box is provided as four or six coordinates.",
+        ),
+    ] = None
+
+    crs: Annotated[
+        Optional[str],
+        Query(
+            description="Reproject the output to the given crs.",
+        ),
+    ] = None
+
+    bbox_crs: Annotated[
+        Optional[str],
+        Query(
+            description="crs for the specified bbox.",
+            alias="bbox-crs",
+        ),
+    ] = None
+
+    height: Annotated[
+        Optional[int],
+        Query(
+            description="Height of the map in pixels. If omitted and `width` is specified, defaults to the `height` maintaining a 1:1 aspect ratio. If both `width` and `height` are omitted, the server will select default dimensions.",
+            gt=0,
+        ),
+    ] = None
+
+    width: Annotated[
+        Optional[int],
+        Query(
+            description="Width of the map in pixels. If omitted and `height` is specified, defaults to the `width` maintaining a 1:1 aspect ratio. If both `width` and `height` are omitted, the server will select default dimensions.",
+            gt=0,
+        ),
+    ] = None
+
+    f: Annotated[
+        Optional[ImageType],
+        Query(description="The format of the map response (e.g. png)."),
+    ] = None
+
+    max_size: Optional[int] = field(init=False, default=None)
+
+    format: Optional[ImageType] = field(init=False, default=ImageType.png)
+
+    def __post_init__(self):  # noqa: C901
+        """Parse and validate."""
+        if self.crs:
+            if self.crs.startswith("[") and self.crs.endswith("]"):
+                self.crs = self.crs[1:-1]
+            self.crs = CRS.from_user_input(self.crs)  # type: ignore
+
+        if self.bbox_crs:
+            if self.bbox_crs.startswith("[") and self.bbox_crs.endswith("]"):
+                self.bbox_crs = self.bbox_crs[1:-1]
+            self.bbox_crs = CRS.from_user_input(self.bbox_crs)  # type: ignore
+
+        if not self.height and not self.width:
+            self.max_size = 1024
+
+        if self.bbox:
+            bounds = list(map(float, self.bbox.split(",")))
+            if len(bounds) == 6:
+                bounds = [bounds[0], bounds[1], bounds[3], bounds[4]]
+
+            self.bbox = bounds  # type: ignore
+
+        if self.f:
+            self.format = ImageType[self.f]
+
+        else:
+            if media := accept_media_type(
+                self.request.headers.get("accept", ""),
+                [MediaType[e] for e in ImageType],
+            ):
+                self.format = ImageType[media.name]
