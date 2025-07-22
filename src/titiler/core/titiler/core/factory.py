@@ -66,6 +66,7 @@ from titiler.core.dependencies import (
     DstCRSParams,
     HistogramParams,
     ImageRenderingParams,
+    OGCMapsParams,
     PartFeatureParams,
     PreviewParams,
     StatisticsParams,
@@ -335,18 +336,19 @@ class TilerFactory(BaseFactory):
     add_preview: bool = True
     add_part: bool = True
     add_viewer: bool = True
+    add_ogc_maps: bool = False
 
     conforms_to: Set[str] = field(
         factory=lambda: {
             # https://docs.ogc.org/is/20-057/20-057.html#toc30
-            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/req/tileset",
+            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/conf/tileset",
             # https://docs.ogc.org/is/20-057/20-057.html#toc34
-            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/req/tilesets-list",
+            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/conf/tilesets-list",
             # https://docs.ogc.org/is/20-057/20-057.html#toc65
-            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/req/core",
-            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/req/png",
-            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/req/jpeg",
-            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/req/tiff",
+            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/conf/core",
+            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/conf/png",
+            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/conf/jpeg",
+            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/conf/tiff",
         }
     )
 
@@ -378,6 +380,9 @@ class TilerFactory(BaseFactory):
 
         if self.add_part:
             self.part()
+
+        if self.add_ogc_maps:
+            self.ogc_maps()
 
     ############################################################################
     # /bounds
@@ -908,7 +913,13 @@ class TilerFactory(BaseFactory):
                 **render_params.as_dict(),
             )
 
-            return Response(content, media_type=media_type)
+            headers: Dict[str, str] = {}
+            if image.bounds is not None:
+                headers["Content-Bbox"] = ",".join(map(str, image.bounds))
+            if uri := CRS_to_uri(image.crs):
+                headers["Content-Crs"] = f"<{uri}>"
+
+            return Response(content, media_type=media_type, headers=headers)
 
     def tilejson(self):  # noqa: C901
         """Register /tilejson.json endpoint."""
@@ -1313,7 +1324,13 @@ class TilerFactory(BaseFactory):
                 **render_params.as_dict(),
             )
 
-            return Response(content, media_type=media_type)
+            headers: Dict[str, str] = {}
+            if image.bounds is not None:
+                headers["Content-Bbox"] = ",".join(map(str, image.bounds))
+            if uri := CRS_to_uri(image.crs):
+                headers["Content-Crs"] = f"<{uri}>"
+
+            return Response(content, media_type=media_type, headers=headers)
 
     ############################################################################
     # /bbox and /feature (Optional)
@@ -1379,7 +1396,13 @@ class TilerFactory(BaseFactory):
                 **render_params.as_dict(),
             )
 
-            return Response(content, media_type=media_type)
+            headers: Dict[str, str] = {}
+            if image.bounds is not None:
+                headers["Content-Bbox"] = ",".join(map(str, image.bounds))
+            if uri := CRS_to_uri(image.crs):
+                headers["Content-Crs"] = f"<{uri}>"
+
+            return Response(content, media_type=media_type, headers=headers)
 
         # POST endpoints
         @self.router.post(
@@ -1441,7 +1464,99 @@ class TilerFactory(BaseFactory):
                 **render_params.as_dict(),
             )
 
-            return Response(content, media_type=media_type)
+            headers: Dict[str, str] = {}
+            if image.bounds is not None:
+                headers["Content-Bbox"] = ",".join(map(str, image.bounds))
+            if uri := CRS_to_uri(image.crs):
+                headers["Content-Crs"] = f"<{uri}>"
+
+            return Response(content, media_type=media_type, headers=headers)
+
+    ############################################################################
+    # OGC Maps (Optional)
+    ############################################################################
+    def ogc_maps(self):  # noqa: C901
+        """Register OGC Maps /map` endpoint."""
+
+        self.conforms_to.update(
+            {
+                "https://www.opengis.net/spec/ogcapi-maps-1/1.0/conf/core",
+                "https://www.opengis.net/spec/ogcapi-maps-1/1.0/conf/crs",
+                "https://www.opengis.net/spec/ogcapi-maps-1/1.0/conf/scaling",
+                "https://www.opengis.net/spec/ogcapi-maps-1/1.0/conf/scaling/width-definition",
+                "https://www.opengis.net/spec/ogcapi-maps-1/1.0/conf/scaling/height-definition",
+                "https://www.opengis.net/spec/ogcapi-maps-1/1.0/conf/spatial-subsetting",
+                "https://www.opengis.net/spec/ogcapi-maps-1/1.0/conf/spatial-subsetting/bbox-definition",
+                "https://www.opengis.net/spec/ogcapi-maps-1/1.0/conf/spatial-subsetting/bbox-crs",
+                "https://www.opengis.net/spec/ogcapi-maps-1/1.0/conf/spatial-subsetting/crs-curie",
+                "https://www.opengis.net/spec/ogcapi-maps-1/1.0/conf/png",
+                "https://www.opengis.net/spec/ogcapi-maps-1/1.0/conf/jpeg",
+                "https://www.opengis.net/spec/ogcapi-maps-1/1.0/conf/tiff",
+            }
+        )
+
+        # GET endpoints
+        @self.router.get(
+            "/map",
+            operation_id=f"{self.operation_prefix}getMap",
+            **img_endpoint_params,
+        )
+        def get_map(
+            src_path=Depends(self.path_dependency),
+            ogc_params=Depends(OGCMapsParams),
+            reader_params=Depends(self.reader_dependency),
+            layer_params=Depends(self.layer_dependency),
+            dataset_params=Depends(self.dataset_dependency),
+            post_process=Depends(self.process_dependency),
+            colormap=Depends(self.colormap_dependency),
+            render_params=Depends(self.render_dependency),
+            env=Depends(self.environment_dependency),
+        ):
+            """OGC Maps API."""
+            with rasterio.Env(**env):
+                logger.info(f"opening data with reader: {self.reader}")
+                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
+                    if ogc_params.bbox is not None:
+                        image = src_dst.part(
+                            ogc_params.bbox,
+                            dst_crs=ogc_params.crs or src_dst.crs,
+                            bounds_crs=ogc_params.bbox_crs or WGS84_CRS,
+                            width=ogc_params.width,
+                            height=ogc_params.height,
+                            max_size=ogc_params.max_size,
+                            **layer_params.as_dict(),
+                            **dataset_params.as_dict(),
+                        )
+
+                    else:
+                        image = src_dst.preview(
+                            width=ogc_params.width,
+                            height=ogc_params.height,
+                            max_size=ogc_params.max_size,
+                            dst_crs=ogc_params.crs or src_dst.crs,
+                            **layer_params.as_dict(),
+                            **dataset_params.as_dict(),
+                        )
+
+                    dst_colormap = getattr(src_dst, "colormap", None)
+
+            if post_process:
+                image = post_process(image)
+
+            content, media_type = self.render_func(
+                image,
+                output_format=ogc_params.format,
+                colormap=colormap or dst_colormap,
+                **render_params.as_dict(),
+            )
+
+            headers: Dict[str, str] = {}
+            if image.bounds is not None:
+                headers["Content-Bbox"] = ",".join(map(str, image.bounds))
+            if uri := CRS_to_uri(image.crs):
+                headers["Content-Crs"] = f"<{uri}>"
+
+            return Response(content, media_type=media_type, headers=headers)
 
 
 @define(kw_only=True)

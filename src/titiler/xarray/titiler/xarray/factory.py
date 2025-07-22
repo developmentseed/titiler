@@ -67,6 +67,9 @@ class TilerFactory(BaseTilerFactory):
     add_viewer: bool = True
     add_part: bool = True
 
+    # /map endpoints disabled by default
+    add_ogc_maps: bool = False
+
     # /preview endpoints disabled by default
     add_preview: bool = False
 

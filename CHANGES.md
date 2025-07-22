@@ -5,6 +5,7 @@
 ### titiler.core
 
 * add OpenTelemetry instrumentation to the tiler factory classes
+* add `OGC Maps API` support (`/map` endpoint)
 
 ### titiler.application
 

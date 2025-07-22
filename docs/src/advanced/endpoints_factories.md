@@ -56,9 +56,10 @@ Factory meant to create endpoints for single dataset using [*rio-tiler*'s `Reade
 - **supported_tms**: List of available TileMatrixSets. Defaults to `morecantile.tms`.
 - **templates**: *Jinja2* templates to use in endpoints. Defaults to `titiler.core.factory.DEFAULT_TEMPLATES`.
 - **render_func**: Image rendering method. Defaults to `titiler.core.utils.render_image`.
-- **add_preview**: . Add `/preview` endpoint to the router. Defaults to `True`.
-- **add_part**: . Add `/bbox` and `/feature` endpoints to the router. Defaults to `True`.
-- **add_viewer**: . Add `/map.html` endpoints to the router. Defaults to `True`.
+- **add_preview**: Add `/preview` endpoint to the router. Defaults to `True`.
+- **add_part**: Add `/bbox` and `/feature` endpoints to the router. Defaults to `True`.
+- **add_viewer**: Add `/{TileMatrixSetId}/map.html` endpoints to the router. Defaults to `True`.
+- **add_ogc_maps**: Add `/map` endoint (OGC Maps API) to the router. Defaults to `False`.
 
 #### Endpoints
 
@@ -75,6 +76,7 @@ cog = TilerFactory(
     add_preview=True,
     add_part=True,
     add_viewer=True,
+    add_ogc_maps=True,
 )
 
 # add router endpoint to the main application
@@ -98,6 +100,7 @@ app.include_router(cog.router)
 | `GET`  | `/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                   | create an image from part of a dataset **Optional**
 | `POST` | `/feature[/{width}x{height}][.{format}]`                        | image/bin                                   | create an image from a GeoJSON feature **Optional**
 | `GET`  | `/preview[/{width}x{height}][.{format}]`                        | image/bin                                   | create a preview image from a dataset **Optional**
+| `GET`  | `/maps`                                                         | image/bin                                   | create maps from a dataset **Optional**
 
 
 ### MultiBaseTilerFactory
@@ -122,7 +125,13 @@ from rio_tiler.io import STACReader  # STACReader is a MultiBaseReader
 from titiler.core.factory import MultiBaseTilerFactory
 
 app = FastAPI()
-stac = MultiBaseTilerFactory(reader=STACReader)
+stac = MultiBaseTilerFactory(
+    reader=STACReader,
+    add_preview=True,
+    add_part=True,
+    add_viewer=True,
+    add_ogc_maps=True,
+)
 app.include_router(stac.router)
 ```
 
@@ -145,6 +154,7 @@ app.include_router(stac.router)
 | `GET`  | `/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                        | create an image from part of assets **Optional**
 | `POST` | `/feature[/{width}x{height}][.{format}]`                        | image/bin                                        | create an image from a geojson feature intersecting assets **Optional**
 | `GET`  | `/preview[/{width}x{height}][.{format}]`                        | image/bin                                        | create a preview image from assets **Optional**
+| `GET`  | `/map`                                                         | image/bin                                        | create maps from a dataset **Optional**
 
 ### MultiBandTilerFactory
 
@@ -200,7 +210,8 @@ app.include_router(landsat.router)
 | `GET`  | `/point/{lon},{lat}`                                            | JSON ([Point][point_model])                  | return pixel value from a dataset
 | `GET`  | `/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                    | create an image from part of a dataset **Optional**
 | `POST` | `/feature[/{width}x{height}][.{format}]`                        | image/bin                                    | create an image from a geojson feature **Optional**
-| `GET`  | `/preview[/{width}x{height}][.{format}]`                                           | image/bin                                    | create a preview image from a dataset **Optional**
+| `GET`  | `/preview[/{width}x{height}][.{format}]`                        | image/bin                                    | create a preview image from a dataset **Optional**
+| `GET`  | `/map`                                                         | image/bin                                    | create maps from a dataset **Optional**
 
 
 ### TMSFactory
@@ -315,7 +326,7 @@ Endpoints factory for mosaics, built on top of [MosaicJSON](https://github.com/d
 - **supported_tms**: List of available TileMatrixSets. Defaults to `morecantile.tms`.
 - **templates**: *Jinja2* templates to use in endpoints. Defaults to `titiler.core.factory.DEFAULT_TEMPLATES`.
 - **optional_headers**: List of OptionalHeader which endpoints could add (if implemented). Defaults to `[]`.
-- **add_viewer**: . Add `/map.html` endpoints to the router. Defaults to `True`.
+- **add_viewer**: Add `/{TileMatrixSetId}/map.html` endpoints to the router. Defaults to `True`.
 
 #### Endpoints
 
@@ -360,7 +371,8 @@ class: `titiler.xarray.factory.TilerFactory`
 - **supported_tms**: List of available TileMatrixSets. Defaults to `morecantile.tms`.
 - **templates**: *Jinja2* templates to use in endpoints. Defaults to `titiler.core.factory.DEFAULT_TEMPLATES`.
 - **add_part**: Add `/bbox` and `/feature` endpoints to the router. Defaults to `True`.
-- **add_viewer**: Add `/map.html` endpoints to the router. Defaults to `True`.
+- **add_viewer**: Add `/{TileMatrixSetId}/map.html` endpoints to the router. Defaults to `True`.
+- **add_ogc_maps**: Add `/map` endpoints to the router. Default to `False`.
 - **add_preview**: Add `/preview` endpoints to the router. Default to `False`.
 
 ```python
