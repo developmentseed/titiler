@@ -372,7 +372,8 @@ class: `titiler.xarray.factory.TilerFactory`
 - **templates**: *Jinja2* templates to use in endpoints. Defaults to `titiler.core.factory.DEFAULT_TEMPLATES`.
 - **add_part**: Add `/bbox` and `/feature` endpoints to the router. Defaults to `True`.
 - **add_viewer**: Add `/{TileMatrixSetId}/map.html` endpoints to the router. Defaults to `True`.
-
+- **add_ogc_maps**: Add `/map` endpoints to the router. Default to `False`.
+- **add_preview**: Add `/preview` endpoints to the router. Default to `False`.
 
 ```python
 from fastapi import FastAPI
@@ -384,8 +385,9 @@ app = FastAPI()
 
 # Create router and register set of endpoints
 md = TilerFactory(
-    add_part=True,
-    add_viewer=True,
+    add_part=True,     # default to True
+    add_viewer=True,   # default to True
+    add_preview=True,  # default to False
 )
 
 # add router endpoint to the main application
@@ -409,6 +411,7 @@ app.include_router(md.router)
 | `GET`  | `/point/{lon},{lat}`                                            | JSON ([Point][point_model])                 | return pixel values from a dataset
 | `GET`  | `/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                   | create an image from part of a dataset **Optional**
 | `POST` | `/feature[/{width}x{height}][.{format}]`                        | image/bin                                   | create an image from a GeoJSON feature **Optional**
+| `GET`  | `/preview[/{width}x{height}][.{format}]`                        | image/bin                                   | create a preview image from a dataset **Optional**
 
 
 [bounds_model]: https://github.com/cogeotiff/rio-tiler/blob/9aaa88000399ee8d36e71d176f67b6ea3ec53f2d/rio_tiler/models.py#L43-L46

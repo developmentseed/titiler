@@ -145,3 +145,37 @@ class PartFeatureParams(DefaultDependency):
         """Post Init."""
         if self.width or self.height:
             self.max_size = None
+
+
+# Custom PreviewParams which add `resampling`
+@dataclass
+class PreviewParams(DefaultDependency):
+    """Common Preview parameters."""
+
+    max_size: Annotated[
+        Optional[int], Field(description="Maximum image size to read onto.")
+    ] = 1024
+    height: Annotated[
+        Optional[int], Field(description="Force output image height.")
+    ] = None
+    width: Annotated[Optional[int], Field(description="Force output image width.")] = (
+        None
+    )
+    resampling_method: Annotated[
+        Optional[RIOResampling],
+        Query(
+            alias="resampling",
+            description="RasterIO resampling algorithm. Defaults to `nearest`.",
+        ),
+    ] = None
+
+    def __post_init__(self):
+        """Post Init."""
+        if self.width or self.height:
+            self.max_size = None
+
+        # NOTE: By default we don't exclude None when we forward the parameter to the preview() method
+        # because we need to be able to pass max_size=None
+        # So we need to set the `resampling_method` to a default = 'nearest'
+        # https://github.com/developmentseed/titiler/blob/b8cc304382d0cb3b4f16cea9dbb0cfba35517085/src/titiler/core/titiler/core/factory.py#L1300
+        self.resampling_method = self.resampling_method or "nearest"

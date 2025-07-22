@@ -11,6 +11,10 @@
 
 * add OpenTelemetry tracing to the FastAPI application
 
+### titiler.xarray
+
+* add `add_preview` in factory attribute (default to `False`)
+
 ### Misc
 
 * Add otel-collector and jaeger to the docker network
