@@ -1,10 +1,11 @@
 """TiTiler.xarray factory."""
 
 import logging
+import warnings
 from typing import Any, Callable, Optional, Type, Union
 
 import rasterio
-from attrs import define, field
+from attrs import define
 from fastapi import Body, Depends, Query
 from geojson_pydantic.features import Feature, FeatureCollection
 from rio_tiler.constants import WGS84_CRS
@@ -26,7 +27,12 @@ from titiler.core.factory import TilerFactory as BaseTilerFactory
 from titiler.core.models.responses import InfoGeoJSON, StatisticsGeoJSON
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse
 from titiler.core.utils import bounds_to_geometry
-from titiler.xarray.dependencies import DatasetParams, PartFeatureParams, XarrayParams
+from titiler.xarray.dependencies import (
+    DatasetParams,
+    PartFeatureParams,
+    PreviewParams,
+    XarrayParams,
+)
 from titiler.xarray.io import Reader
 
 logger = logging.getLogger(__name__)
@@ -55,14 +61,25 @@ class TilerFactory(BaseTilerFactory):
     stats_dependency: Type[DefaultDependency] = StatisticsParams
     histogram_dependency: Type[DefaultDependency] = HistogramParams
 
+    img_preview_dependency: Type[DefaultDependency] = PreviewParams
     img_part_dependency: Type[DefaultDependency] = PartFeatureParams
 
     add_viewer: bool = True
     add_part: bool = True
 
-    # remove some attribute from init
-    img_preview_dependency: Type[DefaultDependency] = field(init=False)
-    add_preview: bool = field(init=False, default=False)
+    # /preview endpoints disabled by default
+    add_preview: bool = False
+
+    def __attrs_post_init__(self):
+        """Raise warning if preview is enabled."""
+        if self.add_preview:
+            warnings.warn(
+                "`preview` endpoints enabled Xarray based TilerFactory. MultiDim dataset might not be suitable for preview.",
+                UserWarning,
+                stacklevel=1,
+            )
+
+        super().__attrs_post_init__()
 
     # Custom /info endpoints (adds `show_times` options)
     def info(self):
