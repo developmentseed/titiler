@@ -1,6 +1,6 @@
 ## k8s / Helm Deployment
 
-Try locally
+Try locally:
 
 ```
 minikube start
@@ -11,4 +11,4 @@ helm init --wait
 helm install -f titiler/Chart.yaml titiler
 ```
 
-For more info about K8S cluster and node configuration please see: https://github.com/developmentseed/titiler/issues/212
+For more info about K8S cluster and node configuration, please see: https://github.com/developmentseed/titiler/issues/212

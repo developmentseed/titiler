@@ -1,5 +1,5 @@
 
-`TiTiler` is designed to help user customize input/output for each endpoint. This section goes over some simple customization examples.
+`TiTiler` is designed to help users customize input/output for each endpoint. This section goes over some simple customization examples.
 
 ### Custom Colormap
 

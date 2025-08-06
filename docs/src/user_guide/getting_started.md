@@ -6,9 +6,9 @@ In the past, putting maps on websites was a real pain. Developers had to use bul
 
 ## Dynamic vs. Static Tiles: What's the Difference?
 
-Static tiles are like pre-printed map pieces stored in folders. Once created, they're locked—changing anything means starting over. They use lots of storage but load quickly.
+Static tiles are like pre-printed map pieces stored in folders. Once created, they're locked—changing anything means starting over. They use lots of storage, but load quickly.
 
-TiTiler's dynamic tiles work like a chef cooking to order. When someone views your map, TiTiler grabs just the data needed and creates tiles on the spot. This lets you instantly change colors, adjust contrast, or highlight different features. Your map becomes flexible and responsive, adapting to what users need right now rather than being stuck with choices made earlier.
+TiTiler's dynamic tiles work like a chef cooking to order. When someone views your map, TiTiler grabs just the data needed and creates tiles on the spot. This lets you instantly change colors, adjust contrast, or highlight different features. Your map becomes flexible and responsive, adapting to what users need right now, rather than being stuck with choices made earlier.
 
 More on [Dynamic Tiling](dynamic_tiling.md)
 
@@ -102,7 +102,7 @@ Run the following command to start the server:
 ```bash
 uvicorn main:app --reload
 ```
-You should see output similar to this:
+You should see an output similar to this:
 
 ![server logs](../img/server_logs.png)
 
@@ -303,7 +303,7 @@ uvicorn titiler.application.main:app
 > INFO: Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
 ```
 
-See default endpoints documentation pages:
+See the default endpoints documentation pages:
 
 * [`/cog` - Cloud Optimized GeoTIFF](../endpoints/cog.md)
 * [`/mosaicjson` - MosaicJSON](../endpoints/mosaic.md)
@@ -339,7 +339,6 @@ python -m pip install titiler.application uvicorn # also installs titiler.core a
 ```
 
 These can then be used like:
-
 
 ```py
 # Add private COG endpoints requiring token validation
