@@ -1,6 +1,6 @@
 ## Overview
 
-Titiler makes use of several great underlying libraries, including [GDAL][gdal]
+TiTiler makes use of several great underlying libraries, including [GDAL][gdal]
 and [Python bindings to GDAL][rasterio]. An effective deployment of titiler
 generally requires tweaking GDAL configuration settings. This document provides
 an overview of relevant settings. Full documentation from GDAL is available
@@ -15,7 +15,7 @@ an overview of relevant settings. Full documentation from GDAL is available
 ### Setting a config variable
 
 GDAL configuration is modified using environment variables. Thus in order to
-change a setting you'll need to set environment variables through your
+change a setting, you'll need to set environment variables through your
 deployment mechanism. For example, in order to test locally you'd set an
 environment variable in bash:
 
@@ -66,10 +66,10 @@ files, so if you wished to read this data, you'd want
 
 #### `GDAL_INGESTED_BYTES_AT_OPEN`
 
-Gives the number of initial bytes GDAL should read when opening a file and
+Defines the number of initial bytes GDAL should read when opening a file and
 inspecting its metadata.
 
-Titiler works best with Cloud-Optimized GeoTIFFs (COGs) because they have a
+TiTiler works best with Cloud-Optimized GeoTIFFs (COGs) because they have a
 tiled internal structure that supports efficient random reads. These files have
 an initial metadata section that describes the location (byte range) within the
 file of each internal tile. The more internal tiles the COG has, the more data

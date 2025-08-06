@@ -2,9 +2,9 @@
 
 ## Reporting a Vulnerability
 
-If there are any vulnerabilities in `titiler`, don't hesitate to _report them_.
+If you find any vulnerabilities in `titiler`, don't hesitate to _report them_.
 
-1. Use Github's security reporting tools.
+1. Use GitHub's security reporting tools.
 
 see https://docs.github.com/en/code-security/security-advisories/guidance-on-reporting-and-writing-information-about-vulnerabilities/privately-reporting-a-security-vulnerability#privately-reporting-a-security-vulnerability
 
