@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1754493191305,
+  "lastUpdate": 1754493241519,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -14085,6 +14085,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.34,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "46659839+pablo-padua@users.noreply.github.com",
+            "name": "Pablo Padua",
+            "username": "pablo-padua"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e4ca43483666628e49d48ccdafd42a93ffa74ba1",
+          "message": "fix: azure deployment compatibility v0.22.4 (#1202)",
+          "timestamp": "2025-08-06T17:10:40+02:00",
+          "tree_id": "df4d0c6dbf609f82c2df1be55f9595ea04884d81",
+          "url": "https://github.com/developmentseed/titiler/commit/e4ca43483666628e49d48ccdafd42a93ffa74ba1"
+        },
+        "date": 1754493240642,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.19,
             "unit": "s"
           },
           {
