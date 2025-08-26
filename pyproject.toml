@@ -126,13 +126,6 @@ filterwarnings = [
     "ignore::rasterio.errors.NotGeoreferencedWarning",
 ]
 
-
-
-
-
-
-
-
 [tool.hatch.build.targets.wheel]
 bypass-selection = true
 
@@ -257,8 +250,8 @@ replace = 'titiler.core=={new_version}'
 # titiler.application
 [[tool.bumpversion.files]]
 filename = "src/titiler/application/pyproject.toml"
-search = 'titiler.core=={current_version}'
-replace = 'titiler.core=={new_version}'
+search = 'titiler.core[telemetry]=={current_version}'
+replace = 'titiler.core[telemetry]=={new_version}'
 
 [[tool.bumpversion.files]]
 filename = "src/titiler/application/pyproject.toml"
