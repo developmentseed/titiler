@@ -18,6 +18,7 @@
 ### Misc
 
 * Add otel-collector and jaeger to the docker network
+* fix layer's bounds for non-wgs84 CRS in WMTS document
 
 ## 0.22.4 (2025-07-02)
 
