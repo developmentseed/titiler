@@ -1,6 +1,7 @@
 """Microsoft Azure Function."""
 
 import azure.functions as func
+
 from titiler.application.main import app
 
 
