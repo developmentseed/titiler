@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1756199631359,
+  "lastUpdate": 1756207524916,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -14419,6 +14419,65 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/developmentseed/titiler/commit/a616620e81e13651580ae88ff331e570eb4c8cd9"
         },
         "date": 1756199630631,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.07,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.15,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "vincent.sarago@gmail.com",
+            "name": "Vincent Sarago",
+            "username": "vincentsarago"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3253b189f51ee8861999b3a05a1fff492aea2baa",
+          "message": "Release/v0.23.0 (#1211)\n\n* 0.22.4 -> 0.23.0\n\n* typo\n\n* fix version",
+          "timestamp": "2025-08-26T13:22:34+02:00",
+          "tree_id": "b37bea4329db63ee6a31e8f911bfe0313ede5d0b",
+          "url": "https://github.com/developmentseed/titiler/commit/3253b189f51ee8861999b3a05a1fff492aea2baa"
+        },
+        "date": 1756207524213,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
