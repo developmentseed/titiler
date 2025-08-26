@@ -1,6 +1,6 @@
 ARG PYTHON_VERSION=3.12
 
-FROM bitnami/python:${PYTHON_VERSION}
+FROM python:${PYTHON_VERSION}
 RUN apt update && apt upgrade -y \
   && apt install curl -y \
   && rm -rf /var/lib/apt/lists/*

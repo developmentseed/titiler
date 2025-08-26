@@ -22,6 +22,7 @@
 
 * Add otel-collector and jaeger to the docker network
 * fix layer's bounds for non-wgs84 CRS in WMTS document
+* switch from bitnami to official python:3.12 docker image
 
 ## 0.22.4 (2025-07-02)
 
