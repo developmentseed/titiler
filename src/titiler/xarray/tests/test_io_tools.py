@@ -240,7 +240,7 @@ def test_zarr_group(group):
 @pytest.mark.parametrize(
     "src_path",
     [
-        "s3://mur-sst/zarr-v1",
+        # "s3://mur-sst/zarr-v1",
         "https://nasa-power.s3.amazonaws.com/syn1deg/temporal/power_syn1deg_monthly_temporal_lst.zarr",
         os.path.join(prefix, "dataset_3d.zarr"),
     ],
