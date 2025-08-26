@@ -22,6 +22,6 @@ This is a checklist for releasing a new version of **titiler**.
    Name the tag `X.Y.Z`, and include `vX.Y.Z` as its annotation message
 
 8. Push your tag to Github, which will kick off the publishing workflow
-9. Create a [new release](https://github.com/stac-utils/stac-fastapi/releases/new) targeting the new tag, and use the "Generate release notes" feature to populate the description.
+9. Create a [new release](https://github.com/developmentseed/titiler/releases/new) targeting the new tag, and use the "Generate release notes" feature to populate the description.
 
    Publish the release and mark it as the latest.
