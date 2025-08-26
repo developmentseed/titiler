@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.23.0 (2025-08-26)
+
 ### titiler.core
 
 * add OpenTelemetry instrumentation to the tiler factory classes
@@ -10,6 +12,7 @@
 ### titiler.application
 
 * add OpenTelemetry tracing to the FastAPI application
+* update `starlette-cramjam` requirement to `>=0.4,<0.6`
 
 ### titiler.xarray
 
