@@ -1,6 +1,6 @@
 """titiler.core"""
 
-__version__ = "0.22.4"
+__version__ = "0.23.0"
 
 from . import dependencies, errors, factory, routing  # noqa
 from .factory import (  # noqa
