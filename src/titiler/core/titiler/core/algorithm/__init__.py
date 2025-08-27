@@ -13,7 +13,7 @@ from titiler.core.algorithm.base import AlgorithmMetadata  # noqa
 from titiler.core.algorithm.base import BaseAlgorithm
 from titiler.core.algorithm.dem import Contours, HillShade, Slope, TerrainRGB, Terrarium
 from titiler.core.algorithm.index import NormalizedIndex
-from titiler.core.algorithm.math import _Max, _Mean, _Median, _Min, _Std, _Var
+from titiler.core.algorithm.math import _Max, _Mean, _Median, _Min, _Std, _Sum, _Var
 from titiler.core.algorithm.ops import CastToInt, Ceil, Floor
 
 default_algorithms: Dict[str, Type[BaseAlgorithm]] = {
@@ -32,6 +32,7 @@ default_algorithms: Dict[str, Type[BaseAlgorithm]] = {
     "mean": _Mean,
     "std": _Std,
     "var": _Var,
+    "sum": _Sum,
 }
 
 
