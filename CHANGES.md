@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.23.1 (2025-08-27)
+
+### titiler.core
+
+* add `sum` algorithm
+
 ## 0.23.0 (2025-08-26)
 
 ### titiler.core

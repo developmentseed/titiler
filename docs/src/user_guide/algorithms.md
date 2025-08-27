@@ -22,6 +22,7 @@ We added a set of custom algorithms:
 - `mean`: Return **Mean** values along the `bands` axis.
 - `std`: Return the **Standard Deviation** along the `bands` axis.
 - `var`: Return **Variance** along the `bands` axis.
+- `sum`: Return **Sum** along the `bands` axis.
 
 
 ### Usage

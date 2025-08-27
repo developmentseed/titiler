@@ -328,6 +328,7 @@ def test_ops():
         ("mean", numpy.ma.mean, {}),
         ("std", numpy.ma.std, {"ddof": 1}),
         ("var", numpy.ma.var, {"ddof": 1}),
+        ("sum", numpy.ma.sum, {}),
     ],
 )
 def test_math_algorithm(name, numpy_method, options):
