@@ -40,6 +40,7 @@ dependencies = [
     "rio-tiler>=7.7,<8.0",
     "morecantile",
     "simplejson",
+    "structlog",
     "typing_extensions>=4.6.1",
 ]
 

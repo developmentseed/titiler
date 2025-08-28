@@ -1,11 +1,11 @@
 """TiTiler.mosaic Router factories."""
 
-import logging
 import os
 from typing import Any, Callable, Dict, List, Literal, Optional, Set, Tuple, Type, Union
 from urllib.parse import urlencode
 
 import rasterio
+import structlog
 from attrs import define, field
 from cogeo_mosaic.backends import BaseBackend, MosaicBackend
 from cogeo_mosaic.models import Info as mosaicInfo
@@ -56,7 +56,7 @@ MOSAIC_STRICT_ZOOM = str(os.getenv("MOSAIC_STRICT_ZOOM", False)).lower() in [
     "yes",
 ]
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 def PixelSelectionParams(
@@ -182,7 +182,7 @@ class MosaicTilerFactory(BaseFactory):
             """Read a MosaicJSON"""
             with rasterio.Env(**env):
                 logger.info(
-                    f"opening data with backend: {self.backend} and reader {self.dataset_reader}"
+                    "opening dataset", backend=self.backend, reader=self.dataset_reader
                 )
                 with self.backend(
                     src_path,
@@ -214,7 +214,7 @@ class MosaicTilerFactory(BaseFactory):
             """Return the bounds of the MosaicJSON."""
             with rasterio.Env(**env):
                 logger.info(
-                    f"opening data with backend: {self.backend} and reader {self.dataset_reader}"
+                    "opening dataset", backend=self.backend, reader=self.dataset_reader
                 )
                 with self.backend(
                     src_path,
@@ -249,7 +249,7 @@ class MosaicTilerFactory(BaseFactory):
             """Return basic info."""
             with rasterio.Env(**env):
                 logger.info(
-                    f"opening data with backend: {self.backend} and reader {self.dataset_reader}"
+                    "opening dataset", backend=self.backend, reader=self.dataset_reader
                 )
                 with self.backend(
                     src_path,
@@ -282,7 +282,7 @@ class MosaicTilerFactory(BaseFactory):
             """Return mosaic's basic info as a GeoJSON feature."""
             with rasterio.Env(**env):
                 logger.info(
-                    f"opening data with backend: {self.backend} and reader {self.dataset_reader}"
+                    "opening dataset", backend=self.backend, reader=self.dataset_reader
                 )
                 with self.backend(
                     src_path,
@@ -332,7 +332,7 @@ class MosaicTilerFactory(BaseFactory):
             """Retrieve a list of available raster tilesets for the specified dataset."""
             with rasterio.Env(**env):
                 logger.info(
-                    f"opening data with backend: {self.backend} and reader {self.dataset_reader}"
+                    "opening dataset", backend=self.backend, reader=self.dataset_reader
                 )
                 with self.backend(
                     src_path,
@@ -433,7 +433,7 @@ class MosaicTilerFactory(BaseFactory):
             tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
                 logger.info(
-                    f"opening data with backend: {self.backend} and reader {self.dataset_reader}"
+                    "opening dataset", backend=self.backend, reader=self.dataset_reader
                 )
                 with self.backend(
                     src_path,
@@ -631,7 +631,7 @@ class MosaicTilerFactory(BaseFactory):
             tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
                 logger.info(
-                    f"opening data with backend: {self.backend} and reader {self.dataset_reader}"
+                    "opening dataset", backend=self.backend, reader=self.dataset_reader
                 )
                 with self.backend(
                     src_path,
@@ -763,7 +763,7 @@ class MosaicTilerFactory(BaseFactory):
             tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
                 logger.info(
-                    f"opening data with backend: {self.backend} and reader {self.dataset_reader}"
+                    "opening dataset", backend=self.backend, reader=self.dataset_reader
                 )
                 with self.backend(
                     src_path,
@@ -937,7 +937,7 @@ class MosaicTilerFactory(BaseFactory):
             tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
                 logger.info(
-                    f"opening data with backend: {self.backend} and reader {self.dataset_reader}"
+                    "opening dataset", backend=self.backend, reader=self.dataset_reader
                 )
                 with self.backend(
                     src_path,
@@ -1036,7 +1036,7 @@ class MosaicTilerFactory(BaseFactory):
             """Get Point value for a Mosaic."""
             with rasterio.Env(**env):
                 logger.info(
-                    f"opening data with backend: {self.backend} and reader {self.dataset_reader}"
+                    "opening dataset", backend=self.backend, reader=self.dataset_reader
                 )
                 with self.backend(
                     src_path,
@@ -1095,7 +1095,7 @@ class MosaicTilerFactory(BaseFactory):
             """Return a list of assets which overlap a bounding box"""
             with rasterio.Env(**env):
                 logger.info(
-                    f"opening data with backend: {self.backend} and reader {self.dataset_reader}"
+                    "opening dataset", backend=self.backend, reader=self.dataset_reader
                 )
                 with self.backend(
                     src_path,
@@ -1130,7 +1130,7 @@ class MosaicTilerFactory(BaseFactory):
             """Return a list of assets which overlap a point"""
             with rasterio.Env(**env):
                 logger.info(
-                    f"opening data with backend: {self.backend} and reader {self.dataset_reader}"
+                    "opening dataset", backend=self.backend, reader=self.dataset_reader
                 )
                 with self.backend(
                     src_path,
@@ -1185,7 +1185,7 @@ class MosaicTilerFactory(BaseFactory):
             tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
                 logger.info(
-                    f"opening data with backend: {self.backend} and reader {self.dataset_reader}"
+                    "opening dataset", backend=self.backend, reader=self.dataset_reader
                 )
                 with self.backend(
                     src_path,
