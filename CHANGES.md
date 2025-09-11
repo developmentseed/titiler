@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Misc
+
+* add attribution in `/tilejson.json` response. Controled with `TITILER_DEFAULT_ATTRIBUTION` environment variable.
+
 ## 0.23.1 (2025-08-27)
 
 ### titiler.core

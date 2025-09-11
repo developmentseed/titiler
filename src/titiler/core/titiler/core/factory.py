@@ -2,6 +2,7 @@
 
 import abc
 import logging
+import os
 import warnings
 from typing import (
     Any,
@@ -630,10 +631,13 @@ class TilerFactory(BaseFactory):
             ]
             query_string = f"?{urlencode(qs)}" if qs else ""
 
+            attribution = os.environ.get("TITILER_DEFAULT_ATTRIBUTION")
+
             tilesets = []
             for tms in self.supported_tms.list():
                 tileset = {
                     "title": f"tileset tiled using {tms} TileMatrixSet",
+                    "attribution": attribution,
                     "dataType": "map",
                     "crs": self.supported_tms.get(tms).crs,
                     "boundingBox": collection_bbox,
@@ -807,6 +811,7 @@ class TilerFactory(BaseFactory):
                     "boundingBox": collection_bbox,
                     "links": links,
                     "tileMatrixSetLimits": tilematrix_limit,
+                    "attribution": os.environ.get("TITILER_DEFAULT_ATTRIBUTION"),
                 }
             )
 
@@ -1009,6 +1014,7 @@ class TilerFactory(BaseFactory):
                         "minzoom": minzoom if minzoom is not None else src_dst.minzoom,
                         "maxzoom": maxzoom if maxzoom is not None else src_dst.maxzoom,
                         "tiles": [tiles_url],
+                        "attribution": os.environ.get("TITILER_DEFAULT_ATTRIBUTION"),
                     }
 
     def map_viewer(self):  # noqa: C901

@@ -782,6 +782,7 @@ class MosaicTilerFactory(BaseFactory):
                         "minzoom": minzoom if minzoom is not None else src_dst.minzoom,
                         "maxzoom": maxzoom if maxzoom is not None else src_dst.maxzoom,
                         "tiles": [tiles_url],
+                        "attribution": os.environ.get("TITILER_DEFAULT_ATTRIBUTION"),
                     }
 
     def map_viewer(self):  # noqa: C901
