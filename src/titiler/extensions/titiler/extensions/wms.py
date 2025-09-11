@@ -24,7 +24,8 @@ from titiler.core.factory import FactoryExtension, TilerFactory
 from titiler.core.resources.enums import ImageType, MediaType
 
 jinja2_env = jinja2.Environment(
-    loader=jinja2.ChoiceLoader([jinja2.PackageLoader(__package__, "templates")])
+    autoescape=jinja2.select_autoescape(["xml"]),
+    loader=jinja2.ChoiceLoader([jinja2.PackageLoader(__package__, "templates")]),
 )
 DEFAULT_TEMPLATES = Jinja2Templates(env=jinja2_env)
 

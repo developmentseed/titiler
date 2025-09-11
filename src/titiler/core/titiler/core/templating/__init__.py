@@ -16,7 +16,8 @@ if TYPE_CHECKING:
 
 
 jinja2_env = jinja2.Environment(
-    loader=jinja2.ChoiceLoader([jinja2.PackageLoader(__package__, "html")])
+    autoescape=jinja2.select_autoescape(["html"]),
+    loader=jinja2.ChoiceLoader([jinja2.PackageLoader(__package__, "html")]),
 )
 DEFAULT_TEMPLATES = Jinja2Templates(env=jinja2_env)
 
