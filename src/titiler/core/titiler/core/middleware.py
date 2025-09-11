@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-import logging
 import re
 import time
 from dataclasses import dataclass, field
 from typing import Set
 from urllib.parse import urlencode
 
+import structlog
 from starlette.datastructures import MutableHeaders
 from starlette.requests import Request
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
@@ -95,14 +95,48 @@ class TotalTimeMiddleware:
         await self.app(scope, receive, send_wrapper)
 
 
-@dataclass(frozen=True)
+@dataclass
 class LoggerMiddleware:
-    """MiddleWare to add logging."""
+    """MiddleWare to add structured logging."""
 
     app: ASGIApp
-    logger: logging.Logger = field(
-        default_factory=lambda: logging.getLogger("titiler.requests")
+    logger: structlog.stdlib.BoundLogger = field(
+        default_factory=lambda: structlog.get_logger("titiler.requests")
     )
+
+    def _extract_request_data(self, request: Request) -> dict:
+        """Extract and organize request data into nested structure."""
+        return {
+            "http": {
+                "method": request.method,
+                "url": str(request.url),
+                "scheme": request.url.scheme,
+                "host": request.headers.get("host", request.url.hostname or "unknown"),
+                "target": request.url.path
+                + (f"?{request.url.query}" if request.url.query else ""),
+                "user_agent": request.headers.get("user-agent"),
+                "referer": next(
+                    (request.headers.get(attr) for attr in ["referer", "referrer"]),
+                    None,
+                ),
+                "request": {
+                    "headers": {
+                        "content_length": request.headers.get("content-length"),
+                        "accept_encoding": request.headers.get("accept-encoding"),
+                        "origin": request.headers.get("origin"),
+                    }
+                },
+            },
+            "net": {
+                "host": {
+                    "name": request.url.hostname,
+                    "port": request.url.port,
+                }
+            },
+            "titiler": {
+                "query_params": dict(request.query_params),
+            },
+        }
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send):
         """Handle call."""
@@ -110,47 +144,86 @@ class LoggerMiddleware:
             return await self.app(scope, receive, send)
 
         request = Request(scope, receive=receive)
-        data = {
-            "http.method": request.method,
-            "http.url": str(request.url),
-            "http.scheme": request.url.scheme,
-            "http.host": request.headers.get("host", request.url.hostname or "unknown"),
-            "http.target": request.url.path
-            + (f"?{request.url.query}" if request.url.query else ""),
-            "http.user_agent": request.headers.get("user-agent"),
-            "http.referer": next(
-                (request.headers.get(attr) for attr in ["referer", "referrer"]),
-                None,
-            ),
-            "http.request.header.content-length": request.headers.get("content-length"),
-            "http.request.header.accept-encoding": request.headers.get(
-                "accept-encoding"
-            ),
-            "http.request.header.origin": request.headers.get("origin"),
-            "net.host.name": request.url.hostname,
-            "net.host.port": request.url.port,
-            "titiler.query_params": dict(request.query_params),
+        start_time = time.time()
+
+        request_data = self._extract_request_data(request)
+
+        telemetry_data = self._flatten_for_telemetry(request_data)
+        clean_telemetry_data = {
+            k: v
+            for k, v in telemetry_data.items()
+            if v is not None and not isinstance(v, dict)
         }
 
-        telemetry.add_span_attributes(telemetry.flatten_dict(data))
+        for k, v in list(clean_telemetry_data.items()):
+            if not isinstance(v, (str, int, float, bool)):
+                clean_telemetry_data[k] = str(v)
+
+        telemetry.add_span_attributes(clean_telemetry_data)
 
         exception: Exception | None = None
+        response_started = False
+
+        async def send_wrapper(message: Message):
+            nonlocal response_started
+            if message["type"] == "http.response.start":
+                response_started = True
+                request_logger = self.logger.bind(**request_data)
+                request_logger.info("Request started")
+
+            await send(message)
+
         try:
-            await self.app(scope, receive, send)
+            await self.app(scope, receive, send_wrapper)
         except Exception as e:
             exception = e
+        finally:
+            duration = time.time() - start_time
 
-        if route := scope.get("route"):
-            data["http.route"] = route.path
+            completion_data = {
+                "request": {
+                    "duration_seconds": duration,
+                },
+                "titiler": {
+                    "path_params": request.path_params,
+                },
+            }
 
-        data["titiler.path_params"] = request.path_params
+            if route := scope.get("route"):
+                completion_data["http"] = {"route": route.path}
 
-        self.logger.info(
-            f"Request received: {request.url.path} {request.method}",
-            extra=data,
-        )
+            final_logger = self.logger.bind(**{**request_data, **completion_data})
+
+            if exception:
+                final_logger.error(
+                    "Request completed with exception",
+                    error={
+                        "type": type(exception).__name__,
+                        "message": str(exception),
+                        "occurred": True,
+                    },
+                    exc_info=True,
+                )
+            else:
+                final_logger.info("Request completed successfully")
+
         if exception:
             raise exception
+
+    def _flatten_for_telemetry(self, nested_data: dict) -> dict:
+        """Flatten nested data for telemetry compatibility."""
+        flattened = {}
+
+        def _flatten(obj, prefix=""):
+            for key, value in obj.items():
+                new_key = f"{prefix}.{key}" if prefix else key
+                if isinstance(value, dict) and value:  # Only flatten non-empty dicts
+                    _flatten(value, new_key)
+                else:
+                    flattened[new_key] = value
+
+        _flatten(nested_data)
+        return flattened
 
 
 @dataclass(frozen=True)

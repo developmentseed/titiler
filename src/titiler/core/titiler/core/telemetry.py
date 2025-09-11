@@ -34,20 +34,6 @@ def add_span_attributes(attributes: Dict[str, Any]) -> None:
         span.set_attributes(attributes)
 
 
-def flatten_dict(d: dict, parent_key: str = "", sep: str = ".") -> dict:
-    """Flattens a nested dictionary for adding span attributes."""
-    items = {}
-    for k, v in d.items():
-        new_key = parent_key + sep + k if parent_key else k
-        if isinstance(v, dict):
-            items.update(flatten_dict(v, new_key, sep=sep))
-        else:
-            if not isinstance(v, (str, bool, int, float)):
-                v = str(v)
-            items[new_key] = v
-    return items
-
-
 class SpanWrapper:
     """A wrapper class to safely handle an optional OpenTelemetry Span."""
 

@@ -1,10 +1,10 @@
 """TiTiler.xarray factory."""
 
-import logging
 import warnings
 from typing import Any, Callable, Optional, Type, Union
 
 import rasterio
+import structlog
 from attrs import define
 from fastapi import Body, Depends, Query
 from geojson_pydantic.features import Feature, FeatureCollection
@@ -35,7 +35,7 @@ from titiler.xarray.dependencies import (
 )
 from titiler.xarray.io import Reader
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 @define(kw_only=True)
@@ -107,7 +107,7 @@ class TilerFactory(BaseTilerFactory):
         ) -> Info:
             """Return dataset's basic info."""
             with rasterio.Env(**env):
-                logger.info(f"opening data with reader: {self.reader}")
+                logger.info("opening dataset", reader=self.reader)
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     info = src_dst.info().model_dump()
                     if show_times and "time" in src_dst.input.dims:
@@ -142,7 +142,7 @@ class TilerFactory(BaseTilerFactory):
         ):
             """Return dataset's basic info as a GeoJSON feature."""
             with rasterio.Env(**env):
-                logger.info(f"opening data with reader: {self.reader}")
+                logger.info("opening dataset", reader=self.reader)
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     bounds = src_dst.get_geographic_bounds(crs or WGS84_CRS)
                     geometry = bounds_to_geometry(bounds)
@@ -200,7 +200,7 @@ class TilerFactory(BaseTilerFactory):
                 fc = FeatureCollection(type="FeatureCollection", features=[geojson])
 
             with rasterio.Env(**env):
-                logger.info(f"opening data with reader: {self.reader}")
+                logger.info("opening dataset", reader=self.reader)
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     for feature in fc.features:
                         shape = feature.model_dump(exclude_none=True)

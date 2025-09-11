@@ -1,11 +1,10 @@
 """titiler app."""
 
-import json
 import logging
-from logging import config as log_config
 from typing import Annotated, Literal, Optional
 
 import rasterio
+import structlog
 from fastapi import Depends, FastAPI, HTTPException, Query, Security
 from fastapi.security.api_key import APIKeyQuery
 from rio_tiler.io import Reader, STACReader
@@ -43,13 +42,65 @@ from titiler.extensions import (
 from titiler.mosaic.errors import MOSAIC_STATUS_CODES
 from titiler.mosaic.factory import MosaicTilerFactory
 
-logging.getLogger("botocore.credentials").disabled = True
-logging.getLogger("botocore.utils").disabled = True
-logging.getLogger("rasterio.session").setLevel(logging.ERROR)
-logging.getLogger("rio-tiler").setLevel(logging.ERROR)
-
-
 api_settings = ApiSettings()
+
+
+def configure_structlog(telemetry_enabled: bool = api_settings.telemetry_enabled):
+    """Configure structlog for the application."""
+
+    logging.basicConfig(
+        format="%(message)s",
+        level=logging.INFO,
+    )
+    logging.getLogger("botocore.credentials").disabled = True
+    logging.getLogger("botocore.utils").disabled = True
+    logging.getLogger("rasterio.session").setLevel(logging.ERROR)
+    logging.getLogger("rio-tiler").setLevel(logging.ERROR)
+
+    processors = [
+        structlog.contextvars.merge_contextvars,
+        structlog.stdlib.add_log_level,
+        structlog.stdlib.add_logger_name,
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.processors.CallsiteParameterAdder(
+            parameters=[
+                structlog.processors.CallsiteParameter.FILENAME,
+                structlog.processors.CallsiteParameter.LINENO,
+            ]
+        ),
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.format_exc_info,
+        structlog.processors.JSONRenderer(),
+    ]
+    if telemetry_enabled:
+        from opentelemetry import trace
+
+        def add_open_telemetry_context(logger, method_name, event_dict):
+            """
+            A structlog processor to inject OpenTelemetry trace and span IDs.
+            """
+            span = trace.get_current_span()
+            if span and span.is_recording():
+                span_context = span.get_span_context()
+                if span_context.is_valid:
+                    event_dict["trace_id"] = format(span_context.trace_id, "032x")
+                    event_dict["span_id"] = format(span_context.span_id, "016x")
+                    parent = getattr(span, "parent", None)
+                    if parent:
+                        event_dict["parent_span_id"] = format(parent.span_id, "016x")
+            return event_dict
+
+        processors.insert(3, add_open_telemetry_context)
+
+    structlog.configure(
+        processors=processors,
+        wrapper_class=structlog.stdlib.BoundLogger,
+        logger_factory=structlog.stdlib.LoggerFactory(),
+        cache_logger_on_first_use=True,
+    )
+
+
+configure_structlog()
 
 app_dependencies = []
 if api_settings.global_access_token:
@@ -230,67 +281,6 @@ app.add_middleware(
 if api_settings.debug:
     app.add_middleware(LoggerMiddleware)
     app.add_middleware(TotalTimeMiddleware)
-
-    log_config.dictConfig(
-        {
-            "version": 1,
-            "disable_existing_loggers": False,
-            "formatters": {
-                "detailed": {
-                    "format": "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
-                },
-                "request": {
-                    "format": (
-                        "%(asctime)s - %(levelname)s - %(name)s - %(message)s "
-                        + json.dumps(
-                            {
-                                k: f"%({k})s"
-                                for k in [
-                                    "http.method",
-                                    "http.referer",
-                                    "http.request.header.origin",
-                                    "http.route",
-                                    "http.target",
-                                    "http.request.header.content-length",
-                                    "http.request.header.accept-encoding",
-                                    "http.request.header.origin",
-                                    "titiler.path_params",
-                                    "titiler.query_params",
-                                ]
-                            }
-                        )
-                    ),
-                },
-            },
-            "handlers": {
-                "console_detailed": {
-                    "class": "logging.StreamHandler",
-                    "level": "WARNING",
-                    "formatter": "detailed",
-                    "stream": "ext://sys.stdout",
-                },
-                "console_request": {
-                    "class": "logging.StreamHandler",
-                    "level": "DEBUG",
-                    "formatter": "request",
-                    "stream": "ext://sys.stdout",
-                },
-            },
-            "loggers": {
-                "titiler": {
-                    "level": "INFO",
-                    "handlers": ["console_detailed"],
-                    "propagate": False,
-                },
-                "titiler.requests": {
-                    "level": "INFO",
-                    "handlers": ["console_request"],
-                    "propagate": False,
-                },
-            },
-        }
-    )
-
 
 if api_settings.lower_case_query_parameters:
     app.add_middleware(LowerCaseQueryStringMiddleware)
