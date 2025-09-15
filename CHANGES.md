@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Misc
+
+* remove python 3.9 support
+
 ## 0.23.1 (2025-08-27)
 
 ### titiler.core
