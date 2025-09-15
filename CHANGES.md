@@ -2,11 +2,11 @@
 
 ## Unreleased
 
-## Misc
+### Misc
 
+* add attribution in `/tilejson.json` response. Controled with `TITILER_DEFAULT_ATTRIBUTION` environment variable.
 * enable `jinja2.autoescape` for HTML/XML templates (ref: https://jinja.palletsprojects.com/en/stable/api/#autoescaping)
 * remove python 3.9 support
-
 
 ## 0.23.1 (2025-08-27)
 
