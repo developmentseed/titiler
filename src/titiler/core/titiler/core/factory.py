@@ -92,7 +92,8 @@ from titiler.core.telemetry import factory_trace
 from titiler.core.utils import bounds_to_geometry, render_image
 
 jinja2_env = jinja2.Environment(
-    loader=jinja2.ChoiceLoader([jinja2.PackageLoader(__package__, "templates")])
+    autoescape=jinja2.select_autoescape(["html", "xml"]),
+    loader=jinja2.ChoiceLoader([jinja2.PackageLoader(__package__, "templates")]),
 )
 DEFAULT_TEMPLATES = Jinja2Templates(env=jinja2_env)
 
