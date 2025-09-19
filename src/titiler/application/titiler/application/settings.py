@@ -10,6 +10,17 @@ class ApiSettings(BaseSettings):
     """FASTAPI application settings."""
 
     name: str = "TiTiler"
+    description: str = """A modern dynamic tile server built on top of FastAPI and Rasterio/GDAL.
+
+---
+
+**Documentation**: <a href="https://developmentseed.org/titiler/" target="_blank">https://developmentseed.org/titiler/</a>
+
+**Source Code**: <a href="https://github.com/developmentseed/titiler" target="_blank">https://github.com/developmentseed/titiler</a>
+
+---
+    """
+
     cors_origins: str = "*"
     cors_allow_methods: str = "GET"
     cachecontrol: str = "public, max-age=3600"
