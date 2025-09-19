@@ -8,6 +8,15 @@
 * enable `jinja2.autoescape` for HTML/XML templates (ref: https://jinja.palletsprojects.com/en/stable/api/#autoescaping)
 * remove python 3.9 support
 
+### titiler.extension 
+
+* update rio-stac requirement
+
+### titiler.application
+
+* add `description` in `ApiSettings`
+
+
 ## 0.23.1 (2025-08-27)
 
 ### titiler.core

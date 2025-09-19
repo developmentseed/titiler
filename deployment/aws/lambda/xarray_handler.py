@@ -46,11 +46,11 @@ app = FastAPI(
 update_openapi(app)
 
 TITILER_CONFORMS_TO = {
-    "http://www.opengis.net/spec/ogcapi-common-1/1.0/req/core",
-    "http://www.opengis.net/spec/ogcapi-common-1/1.0/req/landing-page",
-    "http://www.opengis.net/spec/ogcapi-common-1/1.0/req/oas30",
-    "http://www.opengis.net/spec/ogcapi-common-1/1.0/req/html",
-    "http://www.opengis.net/spec/ogcapi-common-1/1.0/req/json",
+    "http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/core",
+    "http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/landing-page",
+    "http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/oas30",
+    "http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/html",
+    "http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/json",
 }
 
 

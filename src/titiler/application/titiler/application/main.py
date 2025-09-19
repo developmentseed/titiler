@@ -80,16 +80,7 @@ app = FastAPI(
     title=api_settings.name,
     openapi_url="/api",
     docs_url="/api.html",
-    description="""A modern dynamic tile server built on top of FastAPI and Rasterio/GDAL.
-
----
-
-**Documentation**: <a href="https://developmentseed.org/titiler/" target="_blank">https://developmentseed.org/titiler/</a>
-
-**Source Code**: <a href="https://github.com/developmentseed/titiler" target="_blank">https://github.com/developmentseed/titiler</a>
-
----
-    """,
+    description=api_settings.description,
     version=titiler_version,
     root_path=api_settings.root_path,
     dependencies=app_dependencies,
