@@ -872,8 +872,8 @@ class TilerFactory(BaseFactory):
                 return create_html_response(
                     request,
                     data,
-                    title="Tilesets",
-                    template_name="tilesets",
+                    title=tileMatrixSetId,
+                    template_name="tileset",
                     templates=self.templates,
                 )
 

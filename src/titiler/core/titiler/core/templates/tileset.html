@@ -9,7 +9,7 @@
   <ol class="breadcrumb bg-light">
     {% for crumb in crumbs %}
       {% if not loop.last %}
-    <li class="breadcrumb-item"><a href="{{ crumb.url }}/">{{ crumb.part }}</a></li>
+    <li class="breadcrumb-item"><a href="{{ crumb.url }}/?{{ params }}">{{ crumb.part }}</a></li>
       {% else %}<li class="breadcrumb-item active" aria-current="page">{{ crumb.part }}</li>
       {% endif %}
     {% endfor %}
