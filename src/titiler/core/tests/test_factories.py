@@ -1706,10 +1706,27 @@ def test_algorithm():
 
     response = client.get("/algorithms")
     assert response.status_code == 200
-    assert "hillshade" in response.json()
+    algo_ids = [algo["id"] for algo in response.json()["algorithms"]]
+    assert "hillshade" in algo_ids
+
+    response = client.get("/algorithms", params={"f": "html"})
+    assert response.status_code == 200
+    assert "text/html" in response.headers["content-type"]
+
+    response = client.get("/algorithms", headers={"Accept": "text/html"})
+    assert response.status_code == 200
+    assert "text/html" in response.headers["content-type"]
 
     response = client.get("/algorithms/hillshade")
     assert response.status_code == 200
+
+    response = client.get("/algorithms/hillshade", params={"f": "html"})
+    assert response.status_code == 200
+    assert "text/html" in response.headers["content-type"]
+
+    response = client.get("/algorithms/hillshade", headers={"Accept": "text/html"})
+    assert response.status_code == 200
+    assert "text/html" in response.headers["content-type"]
 
 
 def test_path_param_in_prefix():
@@ -1954,13 +1971,22 @@ def test_colormap_factory():
 
     response = client.get("/colorMaps")
     assert response.status_code == 200
-    assert "cust" in response.json()["colorMaps"]
-    assert "negative" in response.json()["colorMaps"]
-    assert "seq" in response.json()["colorMaps"]
-    assert "viridis" in response.json()["colorMaps"]
+    cmap_ids = [cm["id"] for cm in response.json()["colormaps"]]
+    assert "cust" in cmap_ids
+    assert "negative" in cmap_ids
+    assert "seq" in cmap_ids
+    assert "viridis" in cmap_ids
+
+    response = client.get("/colorMaps", headers={"Accept": "text/html"})
+    assert response.status_code == 200
+    assert "text/html" in response.headers["content-type"]
 
     response = client.get("/colorMaps/viridis")
     assert response.status_code == 200
+
+    response = client.get("/colorMaps/viridis", headers={"Accept": "text/html"})
+    assert response.status_code == 200
+    assert "text/html" in response.headers["content-type"]
 
     response = client.get("/colorMaps/cust")
     assert response.status_code == 200
@@ -1974,7 +2000,7 @@ def test_colormap_factory():
     response = client.get("/colorMaps/yo")
     assert response.status_code == 422
 
-    response = client.get("/colorMaps/viridis", params={"format": "png"})
+    response = client.get("/colorMaps/viridis", params={"f": "png"})
     assert response.status_code == 200
     meta = parse_img(response.content)
     assert meta["dtype"] == "uint8"
@@ -1983,7 +2009,7 @@ def test_colormap_factory():
     assert meta["height"] == 20
 
     response = client.get(
-        "/colorMaps/viridis", params={"format": "png", "orientation": "vertical"}
+        "/colorMaps/viridis", params={"f": "png", "orientation": "vertical"}
     )
     assert response.status_code == 200
     meta = parse_img(response.content)
@@ -1993,7 +2019,7 @@ def test_colormap_factory():
     assert meta["height"] == 256
 
     response = client.get(
-        "/colorMaps/viridis", params={"format": "png", "width": 1000, "height": 100}
+        "/colorMaps/viridis", params={"f": "png", "width": 1000, "height": 100}
     )
     assert response.status_code == 200
     meta = parse_img(response.content)
@@ -2002,7 +2028,7 @@ def test_colormap_factory():
     assert meta["width"] == 1000
     assert meta["height"] == 100
 
-    response = client.get("/colorMaps/cust", params={"format": "png"})
+    response = client.get("/colorMaps/cust", params={"f": "png"})
     assert response.status_code == 200
     meta = parse_img(response.content)
     assert meta["dtype"] == "uint8"
@@ -2011,7 +2037,7 @@ def test_colormap_factory():
     assert meta["height"] == 20
 
     response = client.get(
-        "/colorMaps/cust", params={"format": "png", "orientation": "vertical"}
+        "/colorMaps/cust", params={"f": "png", "orientation": "vertical"}
     )
     assert response.status_code == 200
     meta = parse_img(response.content)
@@ -2020,7 +2046,7 @@ def test_colormap_factory():
     assert meta["width"] == 20
     assert meta["height"] == 256
 
-    response = client.get("/colorMaps/negative", params={"format": "png"})
+    response = client.get("/colorMaps/negative", params={"f": "png"})
     assert response.status_code == 200
     meta = parse_img(response.content)
     assert meta["dtype"] == "uint8"
@@ -2029,7 +2055,7 @@ def test_colormap_factory():
     assert meta["height"] == 20
 
     response = client.get(
-        "/colorMaps/negative", params={"format": "png", "orientation": "vertical"}
+        "/colorMaps/negative", params={"f": "png", "orientation": "vertical"}
     )
     assert response.status_code == 200
     meta = parse_img(response.content)
@@ -2038,7 +2064,7 @@ def test_colormap_factory():
     assert meta["width"] == 20
     assert meta["height"] == 256
 
-    response = client.get("/colorMaps/seq", params={"format": "png"})
+    response = client.get("/colorMaps/seq", params={"f": "png"})
     assert response.status_code == 200
     meta = parse_img(response.content)
     assert meta["dtype"] == "uint8"
@@ -2047,7 +2073,7 @@ def test_colormap_factory():
     assert meta["height"] == 20
 
     response = client.get(
-        "/colorMaps/seq", params={"format": "png", "orientation": "vertical"}
+        "/colorMaps/seq", params={"f": "png", "orientation": "vertical"}
     )
     assert response.status_code == 200
     meta = parse_img(response.content)

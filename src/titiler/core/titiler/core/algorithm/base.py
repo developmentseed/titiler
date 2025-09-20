@@ -1,10 +1,12 @@
 """Algorithm base class."""
 
 import abc
-from typing import Dict, Optional, Sequence
+from typing import Dict, List, Optional, Sequence
 
 from pydantic import BaseModel
 from rio_tiler.models import ImageData
+
+from titiler.core.models.common import Link
 
 
 class BaseAlgorithm(BaseModel, metaclass=abc.ABCMeta):
@@ -38,3 +40,17 @@ class AlgorithmMetadata(BaseModel):
     inputs: Dict
     outputs: Dict
     parameters: Dict
+
+
+class AlgorithmRef(BaseModel):
+    """AlgorithmRef model."""
+
+    id: str
+    title: Optional[str] = None
+    links: List[Link]
+
+
+class AlgorithmtList(BaseModel):
+    """AlgorithmList model."""
+
+    algorithms: List[AlgorithmRef]

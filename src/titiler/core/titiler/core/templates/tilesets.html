@@ -1,0 +1,31 @@
+{% include "header.html" %}
+{% if params %}
+  {% set urlq = url + '?' + params + '&' %}
+  {% else %}
+  {% set urlq = url + '?' %}
+{% endif %}
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb bg-light">
+    {% for crumb in crumbs %}
+      {% if not loop.last %}
+    <li class="breadcrumb-item"><a href="{{ crumb.url }}/">{{ crumb.part }}</a></li>
+      {% else %}<li class="breadcrumb-item active" aria-current="page">{{ crumb.part }}</li>
+      {% endif %}
+    {% endfor %}
+
+    <li class="ml-auto json-link"><a target="_blank" href="{{ urlq }}f=json">JSON</a></li>
+  </ol>
+</nav>
+
+<h1>{{ template.title }} TileSet list</h1>
+
+<h2>Links</h2>
+<ul>
+{% for tileset in response.tilesets %}
+  <li> <a href="{{ tileset.links[0].href }}">{{ tileset.title }}</a></li>
+{% endfor %}
+</ul>
+
+
+{% include "footer.html" %}

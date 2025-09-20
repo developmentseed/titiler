@@ -7,7 +7,7 @@ from geojson_pydantic.geometries import Geometry, MultiPolygon, Polygon
 from pydantic import BaseModel
 from rio_tiler.models import BandStatistics, Info
 
-from titiler.core.models.OGC import Link
+from titiler.core.models.common import Link
 
 
 class Point(BaseModel):
@@ -48,8 +48,15 @@ MultiBaseStatistics = Dict[str, Statistics]
 MultiBaseStatisticsGeoJSON = StatisticsGeoJSON
 
 
-class ColorMapsList(BaseModel):
+class ColorMapRef(BaseModel):
+    """ColorMapRef model."""
+
+    id: str
+    title: Optional[str] = None
+    links: List[Link]
+
+
+class ColorMapList(BaseModel):
     """Model for colormap list."""
 
-    colorMaps: List[str]
-    links: List[Link]
+    colormaps: List[ColorMapRef]
