@@ -1,6 +1,7 @@
 """TiTiler Router factories."""
 
 import abc
+import base64
 import logging
 import os
 import warnings
@@ -2415,6 +2416,57 @@ class ColorMapFactory(BaseFactory):
     # Supported colormaps
     supported_colormaps: ColorMaps = default_cmap
 
+    def _image_from_colormap(
+        self,
+        cmap,
+        orientation: Optional[Literal["vertical", "horizontal"]] = None,
+        width: Optional[int] = None,
+        height: Optional[int] = None,
+    ) -> ImageData:
+        """Create an image from a colormap."""
+        orientation = orientation or "horizontal"
+
+        if isinstance(cmap, Sequence):
+            values = [minv for ((minv, _), _) in cmap]
+            arr = numpy.array([values] * 20)
+
+            if orientation == "vertical":
+                height = height or 256 if len(values) < 256 else len(values)
+            else:
+                width = width or 256 if len(values) < 256 else len(values)
+
+        ###############################################################
+        # DISCRETE CMAP
+        elif len(cmap) != 256 or max(cmap) >= 256 or min(cmap) < 0:
+            values = list(cmap)
+            arr = numpy.array([values] * 20)
+
+            if orientation == "vertical":
+                height = height or 256 if len(values) < 256 else len(values)
+            else:
+                width = width or 256 if len(values) < 256 else len(values)
+
+        ###############################################################
+        # LINEAR CMAP
+        else:
+            cmin, cmax = min(cmap), max(cmap)
+            arr = numpy.array(
+                [numpy.round(numpy.linspace(cmin, cmax, num=256)).astype(numpy.uint8)]
+                * 20
+            )
+
+        if orientation == "vertical":
+            arr = arr.transpose([1, 0])
+
+        img = ImageData(arr)
+
+        width = width or img.width
+        height = height or img.height
+        if width != img.width or height != img.height:
+            img = img.resize(height, width)
+
+        return img
+
     def register_routes(self):  # noqa: C901
         """Register ColorMap routes."""
 
@@ -2563,50 +2615,12 @@ class ColorMapFactory(BaseFactory):
                 )
 
             if output_type.name in [im.name for im in ImageType]:
-                ###############################################################
-                # SEQUENCE CMAP
-                if isinstance(cmap, Sequence):
-                    values = [minv for ((minv, _), _) in cmap]
-                    arr = numpy.array([values] * 20)
-
-                    if orientation == "vertical":
-                        height = height or 256 if len(values) < 256 else len(values)
-                    else:
-                        width = width or 256 if len(values) < 256 else len(values)
-
-                ###############################################################
-                # DISCRETE CMAP
-                elif len(cmap) != 256 or max(cmap) >= 256 or min(cmap) < 0:
-                    values = list(cmap)
-                    arr = numpy.array([values] * 20)
-
-                    if orientation == "vertical":
-                        height = height or 256 if len(values) < 256 else len(values)
-                    else:
-                        width = width or 256 if len(values) < 256 else len(values)
-
-                ###############################################################
-                # LINEAR CMAP
-                else:
-                    cmin, cmax = min(cmap), max(cmap)
-                    arr = numpy.array(
-                        [
-                            numpy.round(numpy.linspace(cmin, cmax, num=256)).astype(
-                                numpy.uint8
-                            )
-                        ]
-                        * 20
-                    )
-
-                if orientation == "vertical":
-                    arr = arr.transpose([1, 0])
-
-                img = ImageData(arr)
-
-                width = width or img.width
-                height = height or img.height
-                if width != img.width or height != img.height:
-                    img = img.resize(height, width)
+                img = self._image_from_colormap(
+                    cmap,
+                    orientation,
+                    width=width,
+                    height=height,
+                )
 
                 format = ImageType[output_type.name]
                 return Response(
@@ -2614,19 +2628,23 @@ class ColorMapFactory(BaseFactory):
                     media_type=format.mediatype,
                 )
 
+            elif output_type == MediaType.html:
+                img = self._image_from_colormap(cmap, orientation="vertical").render(
+                    img_format="PNG", colormap=cmap
+                )
+
+                return create_html_response(
+                    request,
+                    base64.b64encode(img).decode(),
+                    title=colorMapId,
+                    template_name="colormap",
+                    templates=self.templates,
+                )
+
             data: ColorMapType
             if isinstance(cmap, Sequence):
                 data = [(k, numpy.array(v).tolist()) for (k, v) in cmap]
             else:
                 data = {k: numpy.array(v).tolist() for k, v in cmap.items()}
-
-            if output_type == MediaType.html:
-                return create_html_response(
-                    request,
-                    data,
-                    title=colorMapId,
-                    template_name="colormap",
-                    templates=self.templates,
-                )
 
             return data

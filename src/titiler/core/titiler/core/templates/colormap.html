@@ -28,13 +28,10 @@
   </ol>
 </nav>
 
-<h1>{{ template.title}}</h1>
+<h1>{{ template.title }}</h1>
 
+<img height=600 src="data:image/png;base64,{{ response }}" alt="{{ template.title }}">
 <div class="row" style="margin-top: 30px;">
-  <div class="col-sm">
-  </code>{{ response }}</code>
-  </div>
 </div>
-
 
 {% include "footer.html" %}
