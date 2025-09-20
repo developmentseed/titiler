@@ -5,12 +5,14 @@ import logging
 from logging import config as log_config
 from typing import Annotated, Literal, Optional
 
+import jinja2
 import rasterio
 from fastapi import Depends, FastAPI, HTTPException, Query, Security
 from fastapi.security.api_key import APIKeyQuery
 from rio_tiler.io import Reader, STACReader
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
+from starlette.templating import Jinja2Templates
 from starlette_cramjam.middleware import CompressionMiddleware
 
 from titiler.application import __version__ as titiler_version
@@ -31,8 +33,7 @@ from titiler.core.middleware import (
 )
 from titiler.core.models.OGC import Conformance, Landing
 from titiler.core.resources.enums import MediaType
-from titiler.core.templating import create_html_response
-from titiler.core.utils import accept_media_type, update_openapi
+from titiler.core.utils import accept_media_type, create_html_response, update_openapi
 from titiler.extensions import (
     cogValidateExtension,
     cogViewerExtension,
@@ -48,8 +49,23 @@ logging.getLogger("botocore.utils").disabled = True
 logging.getLogger("rasterio.session").setLevel(logging.ERROR)
 logging.getLogger("rio-tiler").setLevel(logging.ERROR)
 
-
 api_settings = ApiSettings()
+
+# custom template directory
+templates_location = (
+    [jinja2.FileSystemLoader(api_settings.template_directory)]
+    if api_settings.template_directory
+    else []
+)
+# default template directory
+templates_location.append(jinja2.PackageLoader("titiler.core", "templates"))
+
+jinja2_env = jinja2.Environment(
+    autoescape=jinja2.select_autoescape(["html", "xml"]),
+    loader=jinja2.ChoiceLoader(templates_location),
+)
+titiler_templates = Jinja2Templates(env=jinja2_env)
+
 
 app_dependencies = []
 if api_settings.global_access_token:
@@ -111,6 +127,7 @@ if not api_settings.disable_cog:
             stacExtension(),
         ],
         enable_telemetry=api_settings.telemetry_enabled,
+        templates=titiler_templates,
     )
 
     app.include_router(
@@ -133,6 +150,7 @@ if not api_settings.disable_stac:
             stacRenderExtension(),
         ],
         enable_telemetry=api_settings.telemetry_enabled,
+        templates=titiler_templates,
     )
 
     app.include_router(
@@ -149,6 +167,7 @@ if not api_settings.disable_mosaic:
     mosaic = MosaicTilerFactory(
         router_prefix="/mosaicjson",
         enable_telemetry=api_settings.telemetry_enabled,
+        templates=titiler_templates,
     )
     app.include_router(
         mosaic.router,
@@ -160,7 +179,7 @@ if not api_settings.disable_mosaic:
 
 ###############################################################################
 # TileMatrixSets endpoints
-tms = TMSFactory()
+tms = TMSFactory(templates=titiler_templates)
 app.include_router(
     tms.router,
     tags=["Tiling Schemes"],
@@ -169,7 +188,7 @@ TITILER_CONFORMS_TO.update(tms.conforms_to)
 
 ###############################################################################
 # Algorithms endpoints
-algorithms = AlgorithmFactory()
+algorithms = AlgorithmFactory(templates=titiler_templates)
 app.include_router(
     algorithms.router,
     tags=["Algorithms"],
@@ -178,7 +197,7 @@ TITILER_CONFORMS_TO.update(algorithms.conforms_to)
 
 ###############################################################################
 # Colormaps endpoints
-cmaps = ColorMapFactory()
+cmaps = ColorMapFactory(templates=titiler_templates)
 app.include_router(
     cmaps.router,
     tags=["ColorMaps"],
@@ -366,6 +385,18 @@ def landing(
                 "rel": "http://www.opengis.net/def/rel/ogc/1.0/tiling-schemes",
             },
             {
+                "title": "List of Available Algorithms",
+                "href": str(request.url_for("available_algorithms")),
+                "type": "application/json",
+                "rel": "data",
+            },
+            {
+                "title": "List of Available ColorMaps",
+                "href": str(request.url_for("available_colormaps")),
+                "type": "application/json",
+                "rel": "data",
+            },
+            {
                 "title": "TiTiler Documentation (external link)",
                 "href": "https://developmentseed.org/titiler/",
                 "type": "text/html",
@@ -380,13 +411,13 @@ def landing(
         ],
     }
 
-    output_type: Optional[MediaType]
     if f:
         output_type = MediaType[f]
     else:
         accepted_media = [MediaType.html, MediaType.json]
-        output_type = accept_media_type(
-            request.headers.get("accept", ""), accepted_media
+        output_type = (
+            accept_media_type(request.headers.get("accept", ""), accepted_media)
+            or MediaType.json
         )
 
     if output_type == MediaType.html:
@@ -395,6 +426,7 @@ def landing(
             data,
             title="TiTiler",
             template_name="landing",
+            templates=titiler_templates,
         )
 
     return data
@@ -433,13 +465,13 @@ def conformance(
     """
     data = {"conformsTo": sorted(TITILER_CONFORMS_TO)}
 
-    output_type: Optional[MediaType]
     if f:
         output_type = MediaType[f]
     else:
         accepted_media = [MediaType.html, MediaType.json]
-        output_type = accept_media_type(
-            request.headers.get("accept", ""), accepted_media
+        output_type = (
+            accept_media_type(request.headers.get("accept", ""), accepted_media)
+            or MediaType.json
         )
 
     if output_type == MediaType.html:
@@ -448,6 +480,7 @@ def conformance(
             data,
             title="Conformance",
             template_name="conformance",
+            templates=titiler_templates,
         )
 
     return data

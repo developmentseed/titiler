@@ -10,12 +10,14 @@
 import os
 from typing import Annotated, Literal, Optional
 
+import jinja2
 import rasterio
 import xarray
 import zarr
 from fastapi import FastAPI, Query
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
+from starlette.templating import Jinja2Templates
 from starlette_cramjam.middleware import CompressionMiddleware
 
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
@@ -23,11 +25,17 @@ from titiler.core.factory import AlgorithmFactory, ColorMapFactory, TMSFactory
 from titiler.core.middleware import CacheControlMiddleware
 from titiler.core.models.OGC import Conformance, Landing
 from titiler.core.resources.enums import MediaType
-from titiler.core.templating import create_html_response
-from titiler.core.utils import accept_media_type, update_openapi
+from titiler.core.utils import accept_media_type, create_html_response, update_openapi
 from titiler.xarray import __version__ as titiler_version
 from titiler.xarray.extensions import DatasetMetadataExtension
 from titiler.xarray.factory import TilerFactory
+
+jinja2_env = jinja2.Environment(
+    autoescape=jinja2.select_autoescape(["html", "xml"]),
+    loader=jinja2.ChoiceLoader([jinja2.PackageLoader("titiler.core", "templates")]),
+)
+templates = Jinja2Templates(env=jinja2_env)
+
 
 app = FastAPI(
     title="TiTiler with support of Multidimensional dataset",
@@ -248,6 +256,7 @@ def landing(
             data,
             title="TiTiler",
             template_name="landing",
+            templates=templates,
         )
 
     return data
@@ -301,6 +310,7 @@ def conformance(
             data,
             title="Conformance",
             template_name="conformance",
+            templates=templates,
         )
 
     return data

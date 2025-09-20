@@ -1,0 +1,66 @@
+{% include "header.html" %}
+{% if params %}
+  {% set urlq = url + '?' + params + '&' %}
+  {% else %}
+  {% set urlq = url + '?' %}
+{% endif %}
+
+<style>
+  table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+  }
+  th, td {
+    padding: 5px;
+  }
+</style>  
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb bg-light">
+    {% for crumb in crumbs %}
+      {% if not loop.last %}
+    <li class="breadcrumb-item"><a href="{{ crumb.url }}/">{{ crumb.part }}</a></li>
+      {% else %}<li class="breadcrumb-item active" aria-current="page">{{ crumb.part }}</li>
+      {% endif %}
+    {% endfor %}
+
+    <li class="ml-auto json-link"><a target="_blank" href="{{ urlq }}f=json">JSON</a></li>
+  </ol>
+</nav>
+
+<h1>{{ response.title}}</h1>
+<p>{{ response.description}}</p>
+
+<div class="row" style="margin-top: 30px;">
+  <div class="col-sm">
+    <h2>Inputs</h2>
+    {% for k, v in response.inputs.items() %}
+    <li><strong>{{ k }}:</strong> {{ v }}</li>
+    {% endfor %}
+    
+    <h2>Outputs</h2>
+    {% for k, v in response.outputs.items() %}
+    <li><strong>{{ k }}:</strong> {{ v }}</li>
+    {% endfor %}
+
+    <h2>Parameters</h2>
+    {% for k, v in response.parameters.items() %}
+    <li><strong>{{ k }}:</strong></li>
+    <table>
+      <tr>
+        <th style="padding: 5px;">Type</th>
+        <th style="padding: 5px;">Default</th>
+        <th style="padding: 5px;">Min</th>
+        <th style="padding: 5px;">Max</th>
+      </tr>
+      <tr>
+          <td style="text-align: right;">{{ v.type }}</td>
+          <td style="text-align: right;">{{ v.default }}</td>
+          <td style="text-align: right;">{{ v.minimum }}</td>
+          <td style="text-align: right;">{{ v.maximum }}</td>
+      </tr>
+    </table>
+    {% endfor %}
+  </div>
+</div>
+{% include "footer.html" %}

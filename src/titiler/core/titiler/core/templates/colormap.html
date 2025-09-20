@@ -1,0 +1,37 @@
+{% include "header.html" %}
+{% if params %}
+  {% set urlq = url + '?' + params + '&' %}
+  {% else %}
+  {% set urlq = url + '?' %}
+{% endif %}
+
+<style>
+  table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+  }
+  th, td {
+    padding: 5px;
+  }
+</style>  
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb bg-light">
+    {% for crumb in crumbs %}
+      {% if not loop.last %}
+    <li class="breadcrumb-item"><a href="{{ crumb.url }}/">{{ crumb.part }}</a></li>
+      {% else %}<li class="breadcrumb-item active" aria-current="page">{{ crumb.part }}</li>
+      {% endif %}
+    {% endfor %}
+
+    <li class="ml-auto json-link"><a target="_blank" href="{{ urlq }}f=json">JSON</a></li>
+  </ol>
+</nav>
+
+<h1>{{ template.title }}</h1>
+
+<img height=600 src="data:image/png;base64,{{ response }}" alt="{{ template.title }}">
+<div class="row" style="margin-top: 30px;">
+</div>
+
+{% include "footer.html" %}
