@@ -27,7 +27,6 @@ from rio_tiler.utils import CRS_to_uri, CRS_to_urn
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, Response
 from starlette.routing import NoMatchFound
-from starlette.templating import Jinja2Templates
 from typing_extensions import Annotated
 
 from titiler.core.algorithm import BaseAlgorithm
@@ -42,7 +41,7 @@ from titiler.core.dependencies import (
     ImageRenderingParams,
     TileParams,
 )
-from titiler.core.factory import DEFAULT_TEMPLATES, BaseFactory, img_endpoint_params
+from titiler.core.factory import BaseFactory, img_endpoint_params
 from titiler.core.models.mapbox import TileJSON
 from titiler.core.models.OGC import TileSet, TileSetList
 from titiler.core.resources.enums import ImageType, OptionalHeader
@@ -120,8 +119,6 @@ class MosaicTilerFactory(BaseFactory):
     environment_dependency: Callable[..., Dict] = field(default=lambda: {})
 
     supported_tms: TileMatrixSets = morecantile_tms
-
-    templates: Jinja2Templates = DEFAULT_TEMPLATES
 
     render_func: Callable[..., Tuple[bytes, str]] = render_image
 

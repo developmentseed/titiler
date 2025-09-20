@@ -1,0 +1,126 @@
+{% include "header.html" %}
+{% if params %}
+  {% set urlq = url + '?' + params + '&' %}
+  {% else %}
+  {% set urlq = url + '?' %}
+{% endif %}
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb bg-light">
+    {% for crumb in crumbs %}
+      {% if not loop.last %}
+    <li class="breadcrumb-item"><a href="{{ crumb.url }}/">{{ crumb.part }}</a></li>
+      {% else %}<li class="breadcrumb-item active" aria-current="page">{{ crumb.part }}</li>
+      {% endif %}
+    {% endfor %}
+
+    <li class="ml-auto json-link"><a target="_blank" href="{{ urlq }}f=json">JSON</a></li>
+  </ol>
+</nav>
+
+<h1>{{ response.title}}</h1>
+
+<div class="row" style="margin-top: 30px;">
+  <div class="col-sm">
+
+    <h2>Properties</h2>
+    <li><strong>DataType:</strong> {{ response.dataType }}</li>
+    <li><strong>CRS:</strong> {{ response.crs }}</li>
+
+    <h2 style="margin-top: 10px;">TileMatrixSet Limits</h2>
+
+    <table>
+      <tr>
+        <th style="padding: 5px;">Level</th>
+        <th style="padding: 5px;">minTileRow</th>
+        <th style="padding: 5px;">maxTileRow</th>
+        <th style="padding: 5px;">minTileCol</th>
+        <th style="padding: 5px;">maxTileCol</th>
+     </tr>
+      {% for tms in response.tileMatrixSetLimits %}
+      <tr>
+         <td style="text-align: right;">{{ tms.tileMatrix }}</td>
+         <td style="text-align: right;">{{ tms.minTileRow }}</td>
+         <td style="text-align: right;">{{ tms.maxTileRow }}</td>
+         <td style="text-align: right;">{{ tms.minTileCol }}</td>
+         <td style="text-align: right;">{{ tms.maxTileCol }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+
+    <h2 style="margin-top: 10px;">Links</h2>
+    <ul>
+    {% for link in response.links %}
+      {% if link.rel != 'self' %}
+        <li> <a href="{{ link.href }}">{{ link.title }}</a></li>
+      {% endif %}
+    {% endfor %}
+    </ul>
+
+  </div>
+  <div class="col-sm">
+    <div id="map" class="rounded" style="width: 100%; height: 400px">
+      Loading...
+    </div>
+  </div>
+</div>
+
+<script>
+  $(function() {
+    var map = L.map('map').setView([0, 0], 1);
+    map.addLayer(new L.TileLayer(
+      'https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+        attribution: 'Map data &copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+      }
+    ));
+
+    var bbox;
+    {% if response.boundingBox %}
+    bbox = [
+        {{ response.boundingBox.lowerLeft[0] }},
+        {{ response.boundingBox.lowerLeft[1] }},
+        {{ response.boundingBox.upperRight[0] }},
+        {{ response.boundingBox.upperRight[1] }},
+      ]
+    {% else %}
+      bbox = [-180,-90,180,90]
+    {% endif %};
+
+    const bboxPolygon = (bounds) => {
+      return {
+        'type': 'Feature',
+        'geometry': {
+            'type': 'Polygon',
+            'coordinates': [[
+                [bounds[0], bounds[1]],
+                [bounds[2], bounds[1]],
+                [bounds[2], bounds[3]],
+                [bounds[0], bounds[3]],
+                [bounds[0], bounds[1]]
+            ]]
+        },
+        'properties': {}
+      }
+    }
+
+    if (bbox[0] > bbox[2]) {
+      geo = {
+        "type": "FeatureCollection",
+        "features": [
+          bboxPolygon([-180, bbox[1], bbox[2], bbox[3]]),
+          bboxPolygon([bbox[0], bbox[1], 180, bbox[3]]),
+        ]
+      }
+    } else {
+      geo = {
+        "type": "FeatureCollection",
+        "features": [bboxPolygon(bbox)]
+      }
+    }
+
+    var aoi = L.geoJSON(geo).addTo(map);
+    map.fitBounds(aoi.getBounds());
+  });
+</script>
+{% include "footer.html" %}

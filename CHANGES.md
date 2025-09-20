@@ -16,6 +16,14 @@
 
 * add `description` in `ApiSettings`
 
+### titiler.core
+
+* delete `titiler.core.templating` submodule **breaking change**
+* move `create_html_response` function to `titiler.core.utils` submodule
+* move all HTML templates in `titiler/core/templates` directory  **breaking change**
+* add HTML responses for tilesets, tilematrixsets, algorithms and colormaps endpoints
+* rename response model `ColorMapsList` -> `ColorMapList` and change it's attibutes to `colormaps` **breaking change**
+* add `templates` in the `BaseFactory` class definition
 
 ## 0.23.1 (2025-08-27)
 
