@@ -1,5 +1,8 @@
 """titiler.core utilities."""
 
+from __future__ import annotations
+
+import re
 import warnings
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, TypeVar, Union
 from urllib.parse import urlencode
@@ -18,6 +21,7 @@ from rio_tiler.utils import linear_rescale, render
 from starlette.requests import Request
 from starlette.responses import Response
 from starlette.routing import Route, request_response
+from starlette.templating import Jinja2Templates, _TemplateResponse
 
 from titiler.core.resources.enums import ImageType, MediaType
 
@@ -333,3 +337,56 @@ def update_openapi(app: FastAPI) -> FastAPI:
 
     # return the patched app
     return app
+
+
+def create_html_response(
+    request: Request,
+    data: Any,
+    template_name: str,
+    templates: Jinja2Templates,
+    title: str | None = None,
+    router_prefix: str | None = None,
+    **kwargs: Any,
+) -> _TemplateResponse:
+    """Create Template response."""
+    urlpath = request.url.path
+    if root_path := request.scope.get("root_path"):
+        urlpath = re.sub(r"^" + root_path, "", urlpath)
+
+    if router_prefix:
+        urlpath = re.sub(r"^" + router_prefix, "", urlpath)
+
+    crumbs = []
+    baseurl = str(request.base_url).rstrip("/")
+
+    if router_prefix:
+        baseurl += router_prefix
+
+    crumbpath = str(baseurl)
+    if urlpath == "/":
+        urlpath = ""
+
+    for crumb in urlpath.split("/"):
+        crumbpath = crumbpath.rstrip("/")
+        part = crumb
+        if part is None or part == "":
+            part = "Home"
+        crumbpath += f"/{crumb}"
+        crumbs.append({"url": crumbpath.rstrip("/"), "part": part.capitalize()})
+
+    return templates.TemplateResponse(
+        request,
+        name=f"{template_name}.html",
+        context={
+            "response": data,
+            "template": {
+                "api_root": baseurl,
+                "params": request.query_params,
+                "title": title or template_name,
+            },
+            "crumbs": crumbs,
+            "url": baseurl + urlpath,
+            "params": str(request.url.query),
+            **kwargs,
+        },
+    )

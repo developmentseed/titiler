@@ -47,7 +47,12 @@ from starlette.routing import compile_path, replace_params
 from starlette.templating import Jinja2Templates
 from typing_extensions import Annotated
 
-from titiler.core.algorithm import AlgorithmMetadata, Algorithms, BaseAlgorithm
+from titiler.core.algorithm import (
+    AlgorithmMetadata,
+    Algorithms,
+    AlgorithmtList,
+    BaseAlgorithm,
+)
 from titiler.core.algorithm import algorithms as available_algorithms
 from titiler.core.dependencies import (
     AssetsBidxExprParams,
@@ -76,7 +81,7 @@ from titiler.core.dependencies import (
 from titiler.core.models.mapbox import TileJSON
 from titiler.core.models.OGC import TileMatrixSetList, TileSet, TileSetList
 from titiler.core.models.responses import (
-    ColorMapsList,
+    ColorMapList,
     InfoGeoJSON,
     MultiBaseInfo,
     MultiBaseInfoGeoJSON,
@@ -86,11 +91,16 @@ from titiler.core.models.responses import (
     Statistics,
     StatisticsGeoJSON,
 )
-from titiler.core.resources.enums import ImageType
+from titiler.core.resources.enums import ImageType, MediaType
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
 from titiler.core.routing import EndpointScope
 from titiler.core.telemetry import factory_trace
-from titiler.core.utils import bounds_to_geometry, render_image
+from titiler.core.utils import (
+    accept_media_type,
+    bounds_to_geometry,
+    create_html_response,
+    render_image,
+)
 
 jinja2_env = jinja2.Environment(
     autoescape=jinja2.select_autoescape(["html", "xml"]),
@@ -163,6 +173,8 @@ class BaseFactory(metaclass=abc.ABCMeta):
     conforms_to: Set[str] = field(factory=set)
 
     enable_telemetry: bool = field(default=False)
+
+    templates: Jinja2Templates = DEFAULT_TEMPLATES
 
     def __attrs_post_init__(self):
         """Post Init: register route and configure specific options."""
@@ -329,8 +341,6 @@ class TilerFactory(BaseFactory):
 
     # TileMatrixSet dependency
     supported_tms: TileMatrixSets = morecantile_tms
-
-    templates: Jinja2Templates = DEFAULT_TEMPLATES
 
     render_func: Callable[..., Tuple[bytes, str]] = render_image
 
@@ -589,7 +599,7 @@ class TilerFactory(BaseFactory):
     ############################################################################
     # /tileset
     ############################################################################
-    def tilesets(self):
+    def tilesets(self):  # noqa: C901
         """Register OGC tilesets endpoints."""
 
         @self.router.get(
@@ -601,6 +611,7 @@ class TilerFactory(BaseFactory):
                 200: {
                     "content": {
                         "application/json": {},
+                        "text/html": {},
                     }
                 }
             },
@@ -613,6 +624,12 @@ class TilerFactory(BaseFactory):
             reader_params=Depends(self.reader_dependency),
             crs=Depends(CRSParams),
             env=Depends(self.environment_dependency),
+            f: Annotated[
+                Optional[Literal["html", "json"]],
+                Query(
+                    description="Response MediaType. Defaults to endpoint's default or value defined in `accept` header."
+                ),
+            ] = None,
         ):
             """Retrieve a list of available raster tilesets for the specified dataset."""
             with rasterio.Env(**env):
@@ -685,6 +702,25 @@ class TilerFactory(BaseFactory):
                 tilesets.append(tileset)
 
             data = TileSetList.model_validate({"tilesets": tilesets})
+
+            if f:
+                output_type = MediaType[f]
+            else:
+                accepted_media = [MediaType.html, MediaType.json]
+                output_type = (
+                    accept_media_type(request.headers.get("accept", ""), accepted_media)
+                    or MediaType.json
+                )
+
+            if output_type == MediaType.html:
+                return create_html_response(
+                    request,
+                    data.model_dump(exclude_none=True, mode="json"),
+                    title="Tilesets",
+                    template_name="tilesets",
+                    templates=self.templates,
+                )
+
             return data
 
         @self.router.get(
@@ -707,6 +743,12 @@ class TilerFactory(BaseFactory):
             src_path=Depends(self.path_dependency),
             reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
+            f: Annotated[
+                Optional[Literal["html", "json"]],
+                Query(
+                    description="Response MediaType. Defaults to endpoint's default or value defined in `accept` header."
+                ),
+            ] = None,
         ):
             """Retrieve the raster tileset metadata for the specified dataset and tiling scheme (tile matrix set)."""
             tms = self.supported_tms.get(tileMatrixSetId)
@@ -815,6 +857,24 @@ class TilerFactory(BaseFactory):
                     "attribution": os.environ.get("TITILER_DEFAULT_ATTRIBUTION"),
                 }
             )
+
+            if f:
+                output_type = MediaType[f]
+            else:
+                accepted_media = [MediaType.html, MediaType.json]
+                output_type = (
+                    accept_media_type(request.headers.get("accept", ""), accepted_media)
+                    or MediaType.json
+                )
+
+            if output_type == MediaType.html:
+                return create_html_response(
+                    request,
+                    data,
+                    title="Tilesets",
+                    template_name="tilesets",
+                    templates=self.templates,
+                )
 
             return data
 
@@ -2062,11 +2122,20 @@ class TMSFactory(BaseFactory):
                 200: {
                     "content": {
                         "application/json": {},
+                        "text/html": {},
                     },
                 },
             },
         )
-        async def tilematrixsets(request: Request):
+        async def tilematrixsets(
+            request: Request,
+            f: Annotated[
+                Optional[Literal["html", "json"]],
+                Query(
+                    description="Response MediaType. Defaults to endpoint's default or value defined in `accept` header."
+                ),
+            ] = None,
+        ):
             """
             OGC Specification: http://docs.opengeospatial.org/per/19-069.html#_tilematrixsets
             """
@@ -2091,6 +2160,24 @@ class TMSFactory(BaseFactory):
                 ]
             )
 
+            if f:
+                output_type = MediaType[f]
+            else:
+                accepted_media = [MediaType.html, MediaType.json]
+                output_type = (
+                    accept_media_type(request.headers.get("accept", ""), accepted_media)
+                    or MediaType.json
+                )
+
+            if output_type == MediaType.html:
+                return create_html_response(
+                    request,
+                    data.model_dump(exclude_none=True, mode="json"),
+                    title="TileMatrixSets",
+                    template_name="tilematrixsets",
+                    templates=self.templates,
+                )
+
             return data
 
         @self.router.get(
@@ -2103,6 +2190,7 @@ class TMSFactory(BaseFactory):
                 200: {
                     "content": {
                         "application/json": {},
+                        "text/html": {},
                     },
                 },
             },
@@ -2113,11 +2201,41 @@ class TMSFactory(BaseFactory):
                 Literal[tuple(self.supported_tms.list())],
                 Path(description="Identifier for a supported TileMatrixSet."),
             ],
+            f: Annotated[
+                Optional[Literal["html", "json"]],
+                Query(
+                    description="Response MediaType. Defaults to endpoint's default or value defined in `accept` header."
+                ),
+            ] = None,
         ):
             """
             OGC Specification: http://docs.opengeospatial.org/per/19-069.html#_tilematrixset
             """
-            return self.supported_tms.get(tileMatrixSetId)
+            tms = self.supported_tms.get(tileMatrixSetId)
+
+            if f:
+                output_type = MediaType[f]
+            else:
+                accepted_media = [MediaType.html, MediaType.json]
+                output_type = (
+                    accept_media_type(request.headers.get("accept", ""), accepted_media)
+                    or MediaType.json
+                )
+
+            if output_type == MediaType.html:
+                return create_html_response(
+                    request,
+                    {
+                        **tms.model_dump(exclude_none=True, mode="json"),
+                        # For visualization purpose we add the tms bbox
+                        "bbox": list(tms.bbox),
+                    },
+                    title=f"{tileMatrixSetId} TileMatrixSet",
+                    template_name="tilematrixset",
+                    templates=self.templates,
+                )
+
+            return tms
 
 
 @define(kw_only=True)
@@ -2127,77 +2245,167 @@ class AlgorithmFactory(BaseFactory):
     # Supported algorithm
     supported_algorithm: Algorithms = available_algorithms
 
+    def _get_algo_metadata(self, algorithm: BaseAlgorithm) -> AlgorithmMetadata:
+        """Algorithm Metadata"""
+        props = algorithm.model_json_schema()["properties"]
+
+        # title and description
+        info = {
+            k: v["default"]
+            for k, v in props.items()
+            if k == "title" or k == "description"
+        }
+        title = info.get("title", None)
+        description = info.get("description", None)
+
+        # Inputs Metadata
+        ins = {
+            k.replace("input_", ""): v["default"]
+            for k, v in props.items()
+            if k.startswith("input_") and "default" in v
+        }
+
+        # Output Metadata
+        outs = {
+            k.replace("output_", ""): v["default"]
+            for k, v in props.items()
+            if k.startswith("output_") and "default" in v
+        }
+
+        # Algorithm Parameters
+        params = {
+            k: v
+            for k, v in props.items()
+            if not k.startswith("input_")
+            and not k.startswith("output_")
+            and k != "title"
+            and k != "description"
+        }
+        return AlgorithmMetadata(
+            title=title,
+            description=description,
+            inputs=ins,
+            outputs=outs,
+            parameters=params,
+        )
+
     def register_routes(self):
         """Register Algorithm routes."""
 
-        def metadata(algorithm: BaseAlgorithm) -> AlgorithmMetadata:
-            """Algorithm Metadata"""
-            props = algorithm.model_json_schema()["properties"]
-
-            # title and description
-            info = {
-                k: v["default"]
-                for k, v in props.items()
-                if k == "title" or k == "description"
-            }
-            title = info.get("title", None)
-            description = info.get("description", None)
-
-            # Inputs Metadata
-            ins = {
-                k.replace("input_", ""): v["default"]
-                for k, v in props.items()
-                if k.startswith("input_") and "default" in v
-            }
-
-            # Output Metadata
-            outs = {
-                k.replace("output_", ""): v["default"]
-                for k, v in props.items()
-                if k.startswith("output_") and "default" in v
-            }
-
-            # Algorithm Parameters
-            params = {
-                k: v
-                for k, v in props.items()
-                if not k.startswith("input_")
-                and not k.startswith("output_")
-                and k != "title"
-                and k != "description"
-            }
-            return AlgorithmMetadata(
-                title=title,
-                description=description,
-                inputs=ins,
-                outputs=outs,
-                parameters=params,
-            )
-
         @self.router.get(
             "/algorithms",
-            response_model=Dict[str, AlgorithmMetadata],
+            response_model=AlgorithmtList,
             summary="Retrieve the list of available Algorithms.",
             operation_id=f"{self.operation_prefix}getAlgorithmList",
+            responses={
+                200: {
+                    "content": {
+                        "application/json": {},
+                        "text/html": {},
+                    },
+                },
+            },
         )
-        def available_algorithms(request: Request):
+        def available_algorithms(
+            request: Request,
+            f: Annotated[
+                Optional[Literal["html", "json"]],
+                Query(
+                    description="Response MediaType. Defaults to endpoint's default or value defined in `accept` header."
+                ),
+            ] = None,
+        ):
             """Retrieve the list of available Algorithms."""
-            return {k: metadata(v) for k, v in self.supported_algorithm.data.items()}
+            data = AlgorithmtList(
+                algorithms=[
+                    {
+                        "id": algo_id,
+                        "links": [
+                            {
+                                "href": self.url_for(
+                                    request,
+                                    "algorithm_metadata",
+                                    algorithmId=algo_id,
+                                ),
+                                "rel": "item",
+                                "type": "application/json",
+                                "title": f"Definition of {algo_id} Algorithm",
+                            }
+                        ],
+                    }
+                    for algo_id, _ in self.supported_algorithm.data.items()
+                ],
+            )
+
+            if f:
+                output_type = MediaType[f]
+            else:
+                accepted_media = [MediaType.html, MediaType.json]
+                output_type = (
+                    accept_media_type(request.headers.get("accept", ""), accepted_media)
+                    or MediaType.json
+                )
+
+            if output_type == MediaType.html:
+                return create_html_response(
+                    request,
+                    data.model_dump(exclude_none=True, mode="json"),
+                    title="Algorithms",
+                    template_name="algorithms",
+                    templates=self.templates,
+                )
+
+            return data
 
         @self.router.get(
             "/algorithms/{algorithmId}",
             response_model=AlgorithmMetadata,
             summary="Retrieve the metadata of the specified algorithm.",
             operation_id=f"{self.operation_prefix}getAlgorithm",
+            responses={
+                200: {
+                    "content": {
+                        "application/json": {},
+                        "text/html": {},
+                    },
+                },
+            },
         )
         def algorithm_metadata(
-            algorithm: Annotated[
+            request: Request,
+            algorithmId: Annotated[
                 Literal[tuple(self.supported_algorithm.list())],
-                Path(description="Algorithm name", alias="algorithmId"),
+                Path(description="Algorithm name"),
             ],
+            f: Annotated[
+                Optional[Literal["html", "json"]],
+                Query(
+                    description="Response MediaType. Defaults to endpoint's default or value defined in `accept` header."
+                ),
+            ] = None,
         ):
             """Retrieve the metadata of the specified algorithm."""
-            return metadata(self.supported_algorithm.get(algorithm))
+            data = self._get_algo_metadata(self.supported_algorithm.get(algorithmId))
+
+            if f:
+                output_type = MediaType[f]
+            else:
+                accepted_media = [MediaType.html, MediaType.json]
+                output_type = (
+                    accept_media_type(request.headers.get("accept", ""), accepted_media)
+                    or MediaType.json
+                )
+
+            if output_type == MediaType.html:
+                return create_html_response(
+                    request,
+                    data.model_dump(exclude_none=True, mode="json"),
+                    title=f"{algorithmId} Algorithm",
+                    template_name="algorithm",
+                    templates=self.templates,
+                )
+
+            return data
 
 
 @define(kw_only=True)
@@ -2212,46 +2420,69 @@ class ColorMapFactory(BaseFactory):
 
         @self.router.get(
             "/colorMaps",
-            response_model=ColorMapsList,
+            response_model=ColorMapList,
             response_model_exclude_none=True,
             summary="Retrieve the list of available colormaps.",
             operation_id=f"{self.operation_prefix}getColorMapList",
+            responses={
+                200: {
+                    "content": {
+                        "application/json": {},
+                        "text/html": {},
+                    },
+                },
+            },
         )
-        def available_colormaps(request: Request):
+        def available_colormaps(
+            request: Request,
+            f: Annotated[
+                Optional[Literal["html", "json"]],
+                Query(
+                    description="Response MediaType. Defaults to endpoint's default or value defined in `accept` header."
+                ),
+            ] = None,
+        ):
             """Retrieve the list of available colormaps."""
-            return {
-                "colorMaps": self.supported_colormaps.list(),
-                "links": [
+            data = ColorMapList(
+                colormaps=[
                     {
-                        "title": "List of available colormaps",
-                        "href": self.url_for(
-                            request,
-                            "available_colormaps",
-                        ),
-                        "type": "application/json",
-                        "rel": "self",
-                    },
-                    {
-                        "title": "Retrieve colorMap metadata",
-                        "href": self.url_for(
-                            request, "colormap_metadata", colorMapId="{colorMapId}"
-                        ),
-                        "type": "application/json",
-                        "rel": "data",
-                        "templated": True,
-                    },
-                    {
-                        "title": "Retrieve colorMap as image",
-                        "href": self.url_for(
-                            request, "colormap_metadata", colorMapId="{colorMapId}"
-                        )
-                        + "?format=png",
-                        "type": "image/png",
-                        "rel": "data",
-                        "templated": True,
-                    },
+                        "id": cmap_name,
+                        "links": [
+                            {
+                                "href": self.url_for(
+                                    request,
+                                    "colormap_metadata",
+                                    colorMapId=cmap_name,
+                                ),
+                                "rel": "item",
+                                "type": "application/json",
+                                "title": f"Definition of {cmap_name} ColorMap",
+                            }
+                        ],
+                    }
+                    for cmap_name in self.supported_colormaps.list()
                 ],
-            }
+            )
+
+            if f:
+                output_type = MediaType[f]
+            else:
+                accepted_media = [MediaType.html, MediaType.json]
+                output_type = (
+                    accept_media_type(request.headers.get("accept", ""), accepted_media)
+                    or MediaType.json
+                )
+
+            if output_type == MediaType.html:
+                return create_html_response(
+                    request,
+                    data.model_dump(exclude_none=True, mode="json"),
+                    title="ColorMaps",
+                    template_name="colormaps",
+                    templates=self.templates,
+                )
+
+            return data
 
         @self.router.get(
             "/colorMaps/{colorMapId}",
@@ -2269,20 +2500,35 @@ class ColorMapFactory(BaseFactory):
                         "image/jp2": {},
                         "image/tiff; application=geotiff": {},
                         "application/x-binary": {},
+                        "text/html": {},
                     }
                 },
             },
         )
-        def colormap_metadata(
-            colormap: Annotated[
+        def colormap_metadata(  # noqa: C901
+            request: Request,
+            colorMapId: Annotated[
                 Literal[tuple(self.supported_colormaps.list())],
-                Path(description="ColorMap name", alias="colorMapId"),
+                Path(description="ColorMap name"),
             ],
-            # Image Output Options
-            format: Annotated[
-                Optional[ImageType],
+            f: Annotated[
+                Optional[
+                    Literal[
+                        "html",
+                        "json",
+                        "png",
+                        "npy",
+                        "tif",
+                        "tiff",
+                        "jpeg",
+                        "jpg",
+                        "jp2",
+                        "webp",
+                        "pngraw",
+                    ]
+                ],
                 Query(
-                    description="Return colorMap as Image.",
+                    description="Response MediaType. Defaults to endpoint's default or value defined in `accept` header."
                 ),
             ] = None,
             orientation: Annotated[
@@ -2305,9 +2551,18 @@ class ColorMapFactory(BaseFactory):
             ] = None,
         ):
             """Retrieve the metadata of the specified colormap."""
-            cmap = self.supported_colormaps.get(colormap)
+            cmap = self.supported_colormaps.get(colorMapId)
 
-            if format:
+            if f:
+                output_type = MediaType[f]
+            else:
+                accepted_media = [MediaType.html, MediaType.json]
+                output_type = (
+                    accept_media_type(request.headers.get("accept", ""), accepted_media)
+                    or MediaType.json
+                )
+
+            if output_type.name in [im.name for im in ImageType]:
                 ###############################################################
                 # SEQUENCE CMAP
                 if isinstance(cmap, Sequence):
@@ -2353,12 +2608,25 @@ class ColorMapFactory(BaseFactory):
                 if width != img.width or height != img.height:
                     img = img.resize(height, width)
 
+                format = ImageType[output_type.name]
                 return Response(
                     img.render(img_format=format.driver, colormap=cmap),
                     media_type=format.mediatype,
                 )
 
+            data: ColorMapType
             if isinstance(cmap, Sequence):
-                return [(k, numpy.array(v).tolist()) for (k, v) in cmap]
+                data = [(k, numpy.array(v).tolist()) for (k, v) in cmap]
             else:
-                return {k: numpy.array(v).tolist() for k, v in cmap.items()}
+                data = {k: numpy.array(v).tolist() for k, v in cmap.items()}
+
+            if output_type == MediaType.html:
+                return create_html_response(
+                    request,
+                    data,
+                    title=colorMapId,
+                    template_name="colormap",
+                    templates=self.templates,
+                )
+
+            return data

@@ -27,6 +27,8 @@ class ApiSettings(BaseSettings):
     root_path: str = ""
     debug: bool = False
 
+    template_directory: Optional[str] = None
+
     disable_cog: bool = False
     disable_stac: bool = False
     disable_mosaic: bool = False
