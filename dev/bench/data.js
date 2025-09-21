@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1758410195065,
+  "lastUpdate": 1758495585379,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -15029,6 +15029,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.09,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "vincent.sarago@gmail.com",
+            "name": "Vincent Sarago",
+            "username": "vincentsarago"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "42a89adafa5b6435e058816f14220496f24b5264",
+          "message": "move aws deploy in its own workflow (#1229)",
+          "timestamp": "2025-09-21T16:56:55-06:00",
+          "tree_id": "445241a6aaf6fa8bb56d1576d5c5df953b9f431e",
+          "url": "https://github.com/developmentseed/titiler/commit/42a89adafa5b6435e058816f14220496f24b5264"
+        },
+        "date": 1758495584706,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.06,
             "unit": "s"
           },
           {
