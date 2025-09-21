@@ -58,7 +58,12 @@ templates_location = (
     else []
 )
 # default template directory
-templates_location.append(jinja2.PackageLoader("titiler.core", "templates"))
+templates_location.extend(
+    [
+        jinja2.PackageLoader("titiler.application", "templates"),
+        jinja2.PackageLoader("titiler.core", "templates"),
+    ]
+)
 
 jinja2_env = jinja2.Environment(
     autoescape=jinja2.select_autoescape(["html", "xml"]),
