@@ -7,7 +7,7 @@ on:
     - '*'
   workflow_dispatch:
   workflow_run:
-    workflows: ["ci"]   # Name of the workflow to listen for
+    workflows: ["CI"]   # Name of the workflow to listen for
     types:
       - completed
 
