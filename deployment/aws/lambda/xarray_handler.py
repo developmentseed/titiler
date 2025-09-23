@@ -3,6 +3,7 @@
 import logging
 from typing import Annotated, Literal, Optional
 
+import jinja2
 import rasterio
 import xarray
 import zarr
@@ -10,6 +11,7 @@ from fastapi import FastAPI, Query
 from mangum import Mangum
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
+from starlette.templating import Jinja2Templates
 from starlette_cramjam.middleware import CompressionMiddleware
 
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
@@ -17,14 +19,27 @@ from titiler.core.factory import AlgorithmFactory, ColorMapFactory, TMSFactory
 from titiler.core.middleware import CacheControlMiddleware
 from titiler.core.models.OGC import Conformance, Landing
 from titiler.core.resources.enums import MediaType
-from titiler.core.templating import create_html_response
-from titiler.core.utils import accept_media_type, update_openapi
+from titiler.core.utils import accept_media_type, create_html_response, update_openapi
 from titiler.xarray import __version__ as titiler_version
 from titiler.xarray.extensions import DatasetMetadataExtension
 from titiler.xarray.factory import TilerFactory
 
 logging.getLogger("mangum.lifespan").setLevel(logging.ERROR)
 logging.getLogger("mangum.http").setLevel(logging.ERROR)
+
+
+# default template directory
+templates_location = [
+    jinja2.FileSystemLoader("templates"),
+    jinja2.PackageLoader("titiler.core", "templates"),
+]
+
+jinja2_env = jinja2.Environment(
+    autoescape=jinja2.select_autoescape(["html", "xml"]),
+    loader=jinja2.ChoiceLoader(templates_location),
+)
+titiler_templates = Jinja2Templates(env=jinja2_env)
+
 
 app = FastAPI(
     title="TiTiler with support of Multidimensional dataset",
@@ -58,19 +73,20 @@ md = TilerFactory(
     extensions=[
         DatasetMetadataExtension(),
     ],
+    templates=titiler_templates,
 )
 app.include_router(md.router, tags=["Multi Dimensional"])
 
 TITILER_CONFORMS_TO.update(md.conforms_to)
 
 # TileMatrixSets endpoints
-tms = TMSFactory()
+tms = TMSFactory(templates=titiler_templates)
 app.include_router(tms.router, tags=["Tiling Schemes"])
 TITILER_CONFORMS_TO.update(tms.conforms_to)
 
 ###############################################################################
 # Algorithms endpoints
-algorithms = AlgorithmFactory()
+algorithms = AlgorithmFactory(templates=titiler_templates)
 app.include_router(
     algorithms.router,
     tags=["Algorithms"],
@@ -78,7 +94,7 @@ app.include_router(
 TITILER_CONFORMS_TO.update(algorithms.conforms_to)
 
 # Colormaps endpoints
-cmaps = ColorMapFactory()
+cmaps = ColorMapFactory(templates=titiler_templates)
 app.include_router(
     cmaps.router,
     tags=["ColorMaps"],
@@ -191,6 +207,24 @@ def landing(
                 "rel": "http://www.opengis.net/def/rel/ogc/1.0/conformance",
             },
             {
+                "title": "List of Available TileMatrixSets",
+                "href": str(request.url_for("tilematrixsets")),
+                "type": "application/json",
+                "rel": "http://www.opengis.net/def/rel/ogc/1.0/tiling-schemes",
+            },
+            {
+                "title": "List of Available Algorithms",
+                "href": str(request.url_for("available_algorithms")),
+                "type": "application/json",
+                "rel": "data",
+            },
+            {
+                "title": "List of Available ColorMaps",
+                "href": str(request.url_for("available_colormaps")),
+                "type": "application/json",
+                "rel": "data",
+            },
+            {
                 "title": "TiTiler Documentation (external link)",
                 "href": "https://developmentseed.org/titiler/",
                 "type": "text/html",
@@ -205,21 +239,22 @@ def landing(
         ],
     }
 
-    output_type: Optional[MediaType]
     if f:
         output_type = MediaType[f]
     else:
         accepted_media = [MediaType.html, MediaType.json]
-        output_type = accept_media_type(
-            request.headers.get("accept", ""), accepted_media
+        output_type = (
+            accept_media_type(request.headers.get("accept", ""), accepted_media)
+            or MediaType.json
         )
 
     if output_type == MediaType.html:
         return create_html_response(
             request,
             data,
-            title="TiTiler",
+            title="TiTiler Xarray",
             template_name="landing",
+            templates=titiler_templates,
         )
 
     return data
@@ -258,13 +293,13 @@ def conformance(
     """
     data = {"conformsTo": sorted(TITILER_CONFORMS_TO)}
 
-    output_type: Optional[MediaType]
     if f:
         output_type = MediaType[f]
     else:
         accepted_media = [MediaType.html, MediaType.json]
-        output_type = accept_media_type(
-            request.headers.get("accept", ""), accepted_media
+        output_type = (
+            accept_media_type(request.headers.get("accept", ""), accepted_media)
+            or MediaType.json
         )
 
     if output_type == MediaType.html:
@@ -273,6 +308,7 @@ def conformance(
             data,
             title="Conformance",
             template_name="conformance",
+            templates=titiler_templates,
         )
 
     return data

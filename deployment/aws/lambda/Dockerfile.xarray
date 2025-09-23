@@ -8,7 +8,7 @@ WORKDIR /tmp
 RUN dnf install -y gcc-c++ && dnf clean all
 
 RUN python -m pip install pip -U
-RUN python -m pip install "titiler.xarray==0.23.1" "mangum>=0.10.0" "aiobotocore==2.17.0" "zarr" "s3fs" "aiohttp" "h5netcdf" "starlette-cramjam" "cftime" -t /asset --no-binary pydantic,xarray,numpy,pandas
+RUN python -m pip install "titiler.xarray==0.23.1" "mangum>=0.10.0" "aiobotocore==2.17.0" "zarr" "s3fs" "aiohttp" "h5netcdf" "starlette-cramjam" "pydantic-settings" "cftime" -t /asset --no-binary pydantic,xarray,numpy,pandas
 
 # Reduce package size and remove useless files
 RUN cd /asset && find . -type f -name '*.pyc' | while read f; do n=$(echo $f | sed 's/__pycache__\///' | sed 's/.cpython-[0-9]*//'); cp $f $n; done;
@@ -18,11 +18,13 @@ RUN find /asset -type d -a -name 'tests' -print0 | xargs -0 rm -rf
 RUN rm -rdf /asset/numpy/doc/ /asset/boto3* /asset/botocore* /asset/bin /asset/geos_license /asset/Misc
 
 COPY lambda/xarray_handler.py /asset/handler.py
+COPY templates /asset/templates
 
 # Ref: https://github.com/developmentseed/titiler/discussions/1108#discussioncomment-13045681
 RUN cp /usr/lib64/libexpat.so.1 /asset/
 
 WORKDIR /asset
+
 RUN python -c "from handler import handler; print('All Good')"
 
 CMD ["echo", "hello world"]
