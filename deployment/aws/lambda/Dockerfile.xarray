@@ -18,7 +18,7 @@ RUN find /asset -type d -a -name 'tests' -print0 | xargs -0 rm -rf
 RUN rm -rdf /asset/numpy/doc/ /asset/boto3* /asset/botocore* /asset/bin /asset/geos_license /asset/Misc
 
 COPY lambda/xarray_handler.py /asset/handler.py
-COPY templates /asset/templates
+COPY lambda/templates/ /asset/templates
 
 # Ref: https://github.com/developmentseed/titiler/discussions/1108#discussioncomment-13045681
 RUN cp /usr/lib64/libexpat.so.1 /asset/
