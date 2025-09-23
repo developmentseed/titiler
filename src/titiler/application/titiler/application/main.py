@@ -71,7 +71,6 @@ jinja2_env = jinja2.Environment(
 )
 titiler_templates = Jinja2Templates(env=jinja2_env)
 
-
 app_dependencies = []
 if api_settings.global_access_token:
     ###############################################################################
