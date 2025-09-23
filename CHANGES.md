@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.24.0 (2025-09-23)
+
 ### Misc
 
 * add attribution in `/tilejson.json` response. Controled with `TITILER_DEFAULT_ATTRIBUTION` environment variable.
