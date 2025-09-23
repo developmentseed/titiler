@@ -134,20 +134,13 @@ if api_settings.global_access_token:
 
 
 app = FastAPI(
-    title="TiTiler with support of Multidimensional dataset",
-    description="""A modern dynamic tile server built on top of FastAPI and Rasterio/GDAL/Xarray for Zarr/NetCDF dataset.
-
----
-
-**Documentation**: <a href="https://developmentseed.org/titiler/" target="_blank">https://developmentseed.org/titiler/</a>
-
-**Source Code**: <a href="https://github.com/developmentseed/titiler" target="_blank">https://github.com/developmentseed/titiler</a>
-
----
-    """,
+    title=api_settings.name,
     openapi_url="/api",
     docs_url="/api.html",
+    description=api_settings.description,
     version=titiler_version,
+    root_path=api_settings.root_path,
+    dependencies=app_dependencies,
 )
 
 update_openapi(app)
@@ -471,6 +464,34 @@ def conformance(
         )
 
     return data
+
+
+if api_settings.telemetry_enabled:
+    from opentelemetry import trace
+    from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+    from opentelemetry.instrumentation.logging import LoggingInstrumentor
+    from opentelemetry.sdk.resources import SERVICE_NAME, SERVICE_VERSION, Resource
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
+    LoggingInstrumentor().instrument(set_logging_format=True)
+    FastAPIInstrumentor.instrument_app(app)
+
+    resource = Resource.create(
+        {
+            SERVICE_NAME: "titiler",
+            SERVICE_VERSION: titiler_version,
+        }
+    )
+
+    provider = TracerProvider(resource=resource)
+
+    # uses the OTEL_EXPORTER_OTLP_ENDPOINT env var
+    processor = BatchSpanProcessor(OTLPSpanExporter())
+    provider.add_span_processor(processor)
+
+    trace.set_tracer_provider(provider)
 
 
 if __name__ == "__main__":
