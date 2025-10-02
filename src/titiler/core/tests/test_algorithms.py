@@ -350,3 +350,71 @@ def test_math_algorithm(name, numpy_method, options):
         out.array, numpy_method(img.array, axis=0, keepdims=True, **options)
     )
     assert out.array[0, 1, 1] is numpy.ma.masked
+
+
+def test_bitonal_algorithm():
+    """Test bitonal algorithm."""
+    algo = default_algorithms.get("bitonal")()
+
+    arr = numpy.ma.MaskedArray(
+        numpy.zeros((1, 256, 256), dtype="uint8"),
+        mask=numpy.zeros((1, 256, 256), dtype="bool"),
+    )
+    arr.data[0, 100:200, 100:200] = 200
+    arr.mask[0, 120:130, 120:130] = True
+    img = ImageData(arr)
+    out = algo(img)
+    assert out.array.shape == (1, 256, 256)
+    assert out.array.dtype == "uint8"
+    assert out.array[0, 125, 125] is numpy.ma.masked
+    assert out.array[0, 150, 150] == 255
+    assert out.array[0, 50, 50] == 0
+
+    arr = numpy.ma.MaskedArray(
+        numpy.zeros((3, 256, 256), dtype="uint8"),
+        mask=numpy.zeros((3, 256, 256), dtype="bool"),
+    )
+    arr.data[:, 100:200, 100:200] = 200
+    arr.mask[0, 120:130, 120:130] = True
+    img = ImageData(arr)
+    out = algo(img)
+    assert out.array.shape == (1, 256, 256)
+    assert out.array.dtype == "uint8"
+    assert out.array[0, 125, 125] is numpy.ma.masked
+    assert out.array[0, 150, 150] == 255
+    assert out.array[0, 50, 50] == 0
+
+    arr = numpy.ma.MaskedArray(
+        numpy.zeros((4, 256, 256), dtype="uint8"),
+        mask=numpy.zeros((4, 256, 256), dtype="bool"),
+    )
+    img = ImageData(arr)
+    with pytest.raises(ValueError):
+        out = algo(img)
+
+
+def test_grayscale_algorithm():
+    """Test grayscale algorithm."""
+    algo = default_algorithms.get("grayscale")()
+
+    arr = numpy.ma.MaskedArray(
+        numpy.zeros((3, 256, 256), dtype="uint8"),
+        mask=numpy.zeros((3, 256, 256), dtype="bool"),
+    )
+    arr.data[:, 100:200, 100:200] = 200
+    arr.mask[0, 120:130, 120:130] = True
+    img = ImageData(arr)
+    out = algo(img)
+    assert out.array.shape == (1, 256, 256)
+    assert out.array.dtype == "uint8"
+    assert out.array[0, 125, 125] is numpy.ma.masked
+    assert out.array[0, 150, 150] != 0
+    assert out.array[0, 50, 50] == 0
+
+    arr = numpy.ma.MaskedArray(
+        numpy.zeros((2, 256, 256), dtype="uint8"),
+        mask=numpy.zeros((2, 256, 256), dtype="bool"),
+    )
+    img = ImageData(arr)
+    with pytest.raises(ValueError):
+        out = algo(img)

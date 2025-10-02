@@ -23,7 +23,8 @@ We added a set of custom algorithms:
 - `std`: Return the **Standard Deviation** along the `bands` axis.
 - `var`: Return **Variance** along the `bands` axis.
 - `sum`: Return **Sum** along the `bands` axis.
-
+- `grayscale`: Return a **grayscale** version of an image using ITU-R 601-2 luma transformation.
+- `bitonal`: All values larger than 127 are set to 255 (white), all other values to 0 (black).
 
 ### Usage
 

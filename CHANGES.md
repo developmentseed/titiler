@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* add `grayscale` and `bitonal` algorithms
+
 ## 0.24.0 (2025-09-23)
 
 ### Misc
