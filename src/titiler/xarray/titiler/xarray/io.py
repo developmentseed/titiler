@@ -39,6 +39,12 @@ def xarray_open_dataset(  # noqa: C901
     except ImportError:  # pragma: nocover
         zarr = None  # type: ignore
 
+    try:
+        import icechunk
+    except ImportError:  # pragma: nocover
+        icechunk = None  # type: ignore
+
+
     parsed = urlparse(src_path)
     protocol = parsed.scheme or "file"
 
@@ -77,12 +83,22 @@ def xarray_open_dataset(  # noqa: C901
 
     # Fallback to Zarr
     else:
-        if module_available("zarr", minversion="3.0"):
-            store = zarr.storage.FsspecStore.from_url(
-                src_path, storage_options={"asynchronous": True}
-            )
-        else:
-            store = fsspec.filesystem(protocol).get_mapper(src_path)
+        # try icechunk first
+        try:
+            assert icechunk is not None, "'icechunk' must be installed to read icechunk dataset"
+            storage = icechunk.local_filesystem_storage(src_path)
+            repo = icechunk.Repository.open(storage=storage)
+            session = repo.readonly_session('main')
+            store = session.store
+            xr_open_args['consolidated'] = False
+        except icechunk.IcechunkError:
+            # try fsspec and zarr python
+            if module_available("zarr", minversion="3.0"):
+                store = zarr.storage.FsspecStore.from_url(
+                    src_path, storage_options={"asynchronous": True}
+                )
+            else:
+                store = fsspec.filesystem(protocol).get_mapper(src_path)
 
         ds = xarray.open_zarr(store, **xr_open_args)
     return ds
