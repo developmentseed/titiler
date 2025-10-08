@@ -86,7 +86,16 @@ def xarray_open_dataset(  # noqa: C901
         # try icechunk first
         try:
             assert icechunk is not None, "'icechunk' must be installed to read icechunk dataset"
-            storage = icechunk.local_filesystem_storage(src_path)
+            if protocol == "file":
+                storage = icechunk.local_filesystem_storage(src_path)
+            elif protocol == "s3":
+                storage = icechunk.s3_storage(
+                    bucket=parsed.netloc,
+                    prefix=parsed.path.lstrip('/'),  # remove leading slash, this is an annoying mismatch between icechunk and urlparse
+                    from_env=True,
+                )
+            else:
+                raise ValueError(f"Unsupported storage protocol {protocol} for icechunk in titiler.xarray")
             repo = icechunk.Repository.open(storage=storage)
             session = repo.readonly_session('main')
             store = session.store
