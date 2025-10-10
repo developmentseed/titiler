@@ -112,7 +112,7 @@ def xarray_open_dataset(  # noqa: C901
             # container_credentials = icechunk.containers_credentials(
             #     {k: icechunk.s3_credentials(from_env=True) for k in vchunk_containers}
             # )
-            vchunk_creds = icechunk.virtual_chunk_credentials(
+            vchunk_creds = icechunk.containers_credentials(
                 {prefix: icechunk.s3_credentials(**auth_kwargs) for prefix, auth_kwargs in settings['authorized_chunk_access'].items()}
             )
 
