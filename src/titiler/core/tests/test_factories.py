@@ -2126,6 +2126,17 @@ def test_ogc_maps_cog():
         assert "Content-Bbox" in headers
         assert "Content-Crs" in headers
         assert headers["content-type"] == "image/jpeg"
+        meta = parse_img(response.content)
+        assert not meta["crs"]
+
+        response = client.get("/map", params={"url": cog_path, "f": "tif"})
+        assert response.status_code == 200
+        headers = response.headers
+        assert "Content-Bbox" in headers
+        assert "Content-Crs" in headers
+        assert headers["content-type"] == "image/tiff; application=geotiff"
+        meta = parse_img(response.content)
+        assert meta["crs"]
 
         response = client.get("/map", params={"url": cog_path, "f": "tiff"})
         assert response.status_code == 200
@@ -2133,6 +2144,8 @@ def test_ogc_maps_cog():
         assert "Content-Bbox" in headers
         assert "Content-Crs" in headers
         assert headers["content-type"] == "image/tiff; application=geotiff"
+        meta = parse_img(response.content)
+        assert meta["crs"]
 
         # Conformance Class “Scaling”
         # /req/scaling/width-definition
