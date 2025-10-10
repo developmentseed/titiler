@@ -108,7 +108,7 @@ def render_image(  # noqa: C901
         data = rescale_array(data, mask, in_range=datatype_range)
 
     creation_options = {**kwargs, **output_format.profile}
-    if output_format == ImageType.tif:
+    if output_format.driver == "GTiff":
         if "transform" not in creation_options:
             creation_options.update({"transform": image.transform})
         if "crs" not in creation_options and image.crs:

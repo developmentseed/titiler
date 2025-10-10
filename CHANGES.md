@@ -3,6 +3,7 @@
 ## Unreleased
 
 * add `grayscale` and `bitonal` algorithms
+* add `transform` and `crs` for `tiff` outputs
 
 ## 0.24.0 (2025-09-23)
 
