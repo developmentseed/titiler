@@ -85,78 +85,17 @@ def xarray_open_dataset(  # noqa: C901
     # Fallback to Zarr
     else:
         # try icechunk first
-        auth_list = [{'from_env': True}, {'anonymous': True}]
         try:
             assert icechunk is not None, "'icechunk' must be installed to read icechunk dataset"
 
-            # if protocol == "file":
-            #     storage = icechunk.local_filesystem_storage(src_path)
-            # elif protocol == "s3":
-            #     # Test and create storage with different authentication methods
-            #     for auth in auth_list:
-            #         try:
-            #             storage = icechunk.s3_storage(
-            #                 bucket=parsed.netloc,
-            #                 prefix=parsed.path.lstrip('/'),  # remove leading slash, this is an annoying mismatch between icechunk and urlparse
-            #                 **auth,
-            #             )
-            #             # validate storage
-            #             assert icechunk.Repository.exists(storage) is True
-            #             break
-            #         except icechunk.IcechunkError:
-            #             continue
-            #         # todo catch other execption and raise
-            #         except Exception as e:
-            #             print(f"DEBUG:Failed icechunk storage with {auth=}: {e}")
-            #             raise
+            print("DEBUG: MOCK UP Settings for now")
+            settings = {
+                "authorized_chunk_access": {
+                    's3://nasa-waterinsight/NLDAS3/forcing/daily/': {'anonymous': True},
+                    's3://podaac-ops-cumulus-protected/MUR-JPL-L4-GLOB-v4.1/': {'from_env': True},
+                    },
+            }
 
-            #     if storage is None:
-            #         raise ValueError("Could not access S3 bucket with any of the available authentication methods")
-
-            # else:
-            #     raise ValueError(f"Unsupported storage protocol {protocol} for icechunk in titiler.xarray")
-
-            # # Test and create virtual container credentials
-            # # TODO: This is crude, but IIUC there is no way to validate the container creds individually yet
-            # # We know that the storage is valid if we get here, so any error would be due to invalid container creds
-            # print("DEBUG:Fetching icechunk repository config")
-            # config = icechunk.Repository.fetch_config(storage=storage)
-            # try:
-            #     vchunk_containers = config.virtual_chunk_containers.keys()
-            # except AttributeError:
-            #     vchunk_containers = []
-
-            # if len(vchunk_containers) == 0:
-            #     container_credentials = None
-            # else:
-            #     container_credentials = None  # Initialize to None
-            #     for auth in auth_list:
-            #         try:
-            #             print(f"DEBUG:Testing icechunk container credentials with {auth=}")
-            #             test_container_credentials = icechunk.containers_credentials(
-            #                 {k: icechunk.s3_credentials(**auth) for k in vchunk_containers}
-            #             )
-            #             repo = icechunk.Repository.open(
-            #                 storage=storage,
-            #                 authorize_virtual_chunk_access=test_container_credentials
-            #             )
-            #             # This is really bad, but we have to validate the container credentials somehow
-            #             session = repo.readonly_session('main')
-            #             ds = xarray.open_zarr(session.store, **xr_open_args)
-            #             # compute the smallest amount of virtual data possible
-            #             ds.isel({d: 0 for d in ds.dims}).load()
-
-            #             container_credentials = test_container_credentials
-            #             print(f"DEBUG:Successfully validated credentials with {auth=}")
-            #             break
-            #         except Exception as e:
-            #             print(f"DEBUG:Failed icechunk container credentials with {auth=}: {e}")
-            #             continue
-
-            #     if container_credentials is None:
-            #         raise ValueError("Could not access icechunk virtual chunk containers with any of the available authentication methods")
-
-            # Just a test version to compare performance in the deployment
             print("DEBUG:SIMPLIFIED icechunk access without auth testing")
             if protocol == "file":
                 storage = icechunk.local_filesystem_storage(src_path)
@@ -164,20 +103,27 @@ def xarray_open_dataset(  # noqa: C901
                 storage = icechunk.s3_storage(
                     bucket=parsed.netloc,
                     prefix=parsed.path.lstrip('/'),  # remove leading slash, this is an annoying mismatch between icechunk and urlparse
-                    from_env=True,
+                    from_env=True, # we always assume that we can get credentials from env vars or IAM role for the store itself?
                 )
-            config = icechunk.Repository.fetch_config(storage=storage)
-            vchunk_containers = config.virtual_chunk_containers.keys()
-            container_credentials = icechunk.containers_credentials(
-                {k: icechunk.s3_credentials(from_env=True) for k in vchunk_containers}
+            # # I think it would be more elegant to get the virtual chunk containers and compare against authorized
+            # # containers from settings but that might be slow?
+            # config = icechunk.Repository.fetch_config(storage=storage)
+            # vchunk_containers = config.virtual_chunk_containers.keys()
+            # container_credentials = icechunk.containers_credentials(
+            #     {k: icechunk.s3_credentials(from_env=True) for k in vchunk_containers}
+            # )
+            vchunk_creds = icechunk.virtual_chunk_credentials(
+                {prefix: icechunk.s3_credentials(**auth_kwargs) for prefix, auth_kwargs in settings['authorized_chunk_access'].items()}
             )
+
             repo = icechunk.Repository.open(
                 storage=storage,
-                authorize_virtual_chunk_access=container_credentials
+                authorize_virtual_chunk_access=vchunk_creds
             )
             session = repo.readonly_session('main')
             store = session.store
             xr_open_args['consolidated'] = False
+            xr_open_args['zarr_format'] = 3
 
         except icechunk.IcechunkError:
             # try fsspec and zarr python
