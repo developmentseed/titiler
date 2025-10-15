@@ -6,6 +6,8 @@
 
 * add `grayscale` and `bitonal` algorithms
 * add `transform` and `crs` for `tiff` outputs
+* fix OpenAPI spec for `histogram_range` examples (@guillemc23, https://github.com/developmentseed/titiler/pull/1239)
+
 
 ## 0.24.0 (2025-09-23)
 
