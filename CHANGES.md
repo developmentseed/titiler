@@ -5,12 +5,12 @@
 ### titiler.core
 
 * update `TileJSON` spec from 2.2.0 to 3.0.0
+* fix OpenAPI spec for `histogram_range` examples (@guillemc23, https://github.com/developmentseed/titiler/pull/1239)
 
 ## 0.24.1 (2025-10-10)
 
 * add `grayscale` and `bitonal` algorithms
 * add `transform` and `crs` for `tiff` outputs
-* fix OpenAPI spec for `histogram_range` examples (@guillemc23, https://github.com/developmentseed/titiler/pull/1239)
 
 
 ## 0.24.0 (2025-09-23)
