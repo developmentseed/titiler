@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### titiler.core
+
+* update `TileJSON` spec from 2.2.0 to 3.0.0
+
 ## 0.24.1 (2025-10-10)
 
 * add `grayscale` and `bitonal` algorithms
