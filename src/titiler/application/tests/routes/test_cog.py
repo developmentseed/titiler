@@ -260,7 +260,7 @@ def test_tilejson(rio, app):
     )
     assert response.status_code == 200
     body = response.json()
-    assert body["tilejson"] == "2.2.0"
+    assert body["tilejson"] == "3.0.0"
     assert body["version"] == "1.0.0"
     assert body["scheme"] == "xyz"
     assert len(body["tiles"]) == 1
