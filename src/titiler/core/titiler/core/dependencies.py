@@ -575,7 +575,13 @@ range affects the automatic bin computation as well.
 
 link: https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
             """,
-            examples="0,1000",
+            openapi_examples={
+                "user-provided": {"value": None},
+                "array": {
+                    "description": "Defines custom histogram range (comma `,` delimited values)",
+                    "value": "0,1000",
+                },
+            },
         ),
     ] = None
 
