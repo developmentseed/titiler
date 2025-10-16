@@ -24,3 +24,7 @@ def test_tilejson_model():
 
     with pytest.raises(ValidationError):
         TileJSON(tiles=["https://something.xyz/{x}/{y}/{z}"], scheme="abc")
+
+    # Check extra fields are allowed
+    tj = TileJSON(tiles=["https://something.xyz/{x}/{y}/{z}"], dtype="uint8")
+    assert tj.dtype == "uint8"

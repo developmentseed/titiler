@@ -17,7 +17,7 @@ class LayerJSON(BaseModel):
     maxzoom: Optional[int] = None
 
 
-class TileJSON(BaseModel):
+class TileJSON(BaseModel, extra="allow"):
     """
     TileJSON model.
 
