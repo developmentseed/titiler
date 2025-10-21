@@ -11,7 +11,5 @@ SUBPACKAGE_DIRS=(
 for PACKAGE_DIR in "${SUBPACKAGE_DIRS[@]}"
 do
     echo "Running tests for titiler-${PACKAGE_DIR}"
-    pushd ./src/titiler/${PACKAGE_DIR}
-    python -m pytest -s
-    popd
+    uv run pytest src/titiler/${PACKAGE_DIR}
 done

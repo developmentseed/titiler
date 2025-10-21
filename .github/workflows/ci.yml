@@ -26,49 +26,48 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.10', '3.11', '3.12', '3.13']
+        python-version: ['3.11', '3.12', '3.13']
 
     steps:
       - uses: actions/checkout@v5
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v6
+     
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
         with:
-          python-version: ${{ matrix.python-version }}
+          version: "0.9.*" 
+          enable-cache: true
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
+          uv sync
 
       - name: Test titiler.core
         run: |
-          python -m pip install -e src/titiler/core["test","telemetry"]
-          python -m pytest src/titiler/core --cov=titiler.core --cov-report=xml --cov-append --cov-report=term-missing
+          uv run pytest src/titiler/core --cov=titiler.core --cov-report=xml --cov-append --cov-report=term-missing
 
       - name: Test titiler.extensions
         run: |
-          python -m pip install -e src/titiler/extensions["test,cogeo,stac"]
-          python -m pytest src/titiler/extensions --cov=titiler.extensions --cov-report=xml --cov-append --cov-report=term-missing
+          uv run pytest src/titiler/extensions --cov=titiler.extensions --cov-report=xml --cov-append --cov-report=term-missing
 
       - name: Test titiler.xarray
         run: |
-          python -m pip install -e src/titiler/xarray["test"]
-          python -m pytest src/titiler/xarray --cov=titiler.xarray --cov-report=xml --cov-append --cov-report=term-missing
+          uv run pytest src/titiler/xarray --cov=titiler.xarray --cov-report=xml --cov-append --cov-report=term-missing
 
       - name: Test titiler.mosaic
         run: |
-          python -m pip install -e src/titiler/mosaic["test"]
-          python -m pytest src/titiler/mosaic --cov=titiler.mosaic --cov-report=xml --cov-append --cov-report=term-missing
+          uv run pytest src/titiler/mosaic --cov=titiler.mosaic --cov-report=xml --cov-append --cov-report=term-missing
 
       - name: Test titiler.application
         run: |
-          python -m pip install -e src/titiler/application["test"]
-          python -m pytest src/titiler/application --cov=titiler.application --cov-report=xml --cov-append --cov-report=term-missing
+          uv run pytest src/titiler/application --cov=titiler.application --cov-report=xml --cov-append --cov-report=term-missing
 
       - name: run pre-commit
         if: ${{ matrix.python-version == env.LATEST_PY_VERSION }}
         run: |
-          python -m pip install pre-commit
-          pre-commit run --all-files
+          uv run pre-commit run --all-files
 
       - name: Upload Results
         if: ${{ matrix.python-version == env.LATEST_PY_VERSION }}
@@ -85,15 +84,19 @@ jobs:
     if: startsWith(github.event.ref, 'refs/tags') || github.event_name == 'release'
     steps:
       - uses: actions/checkout@v5
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
         with:
-          python-version: ${{ env.LATEST_PY_VERSION }}
+          version: "0.9.*" 
+          enable-cache: true
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install twine build hatch
+          uv sync
 
       - name: Set tag version
         id: tag
@@ -103,13 +106,13 @@ jobs:
       - name: Set module version
         id: module
         run: |
-          echo "version=$(hatch --quiet version)" >> $GITHUB_OUTPUT
+          echo "version=$(uv version --short)" >> $GITHUB_OUTPUT
 
       - name: Build and publish titiler packages
         if: ${{ steps.tag.outputs.version }} == ${{ steps.module.outputs.version}}
         env:
-          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+          UV_PUBLISH_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          UV_PUBLISH_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
         run: |
           scripts/publish
 
