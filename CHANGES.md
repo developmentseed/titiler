@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Misc 
+
+* update docker image to python:3.13
+* switch to `uv` for development
+* switch to `hatch` for python package build-system
+* remove `titiler` metapackage **breaking change**
+
 ## 0.24.2 (2025-10-16)
 
 ### titiler.core
