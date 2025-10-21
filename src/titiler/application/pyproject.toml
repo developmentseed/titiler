@@ -40,7 +40,7 @@ dependencies = [
     "pydantic-settings~=2.0",
 ]
 
-[dependency-groups]
+[project.optional-dependencies]
 test = [
     "pytest",
     "pytest-cov",

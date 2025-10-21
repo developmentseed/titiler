@@ -45,7 +45,7 @@ dependencies = [
     "typing_extensions>=4.6.1",
 ]
 
-[dependency-groups]
+[project.optional-dependencies]
 test = [
     "pytest",
     "pytest-cov",

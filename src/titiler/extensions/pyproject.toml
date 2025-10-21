@@ -36,7 +36,7 @@ dependencies = [
     "titiler-core==0.24.2"
 ]
 
-[dependency-groups]
+[project.optional-dependencies]
 test = [
     "pytest",
     "pytest-cov",

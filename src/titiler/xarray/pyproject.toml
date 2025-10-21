@@ -39,7 +39,7 @@ dependencies = [
     "rioxarray",
 ]
 
-[dependency-groups]
+[project.optional-dependencies]
 full = [
     "zarr!=3.0.9",
     "h5netcdf",

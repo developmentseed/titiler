@@ -56,6 +56,13 @@ dev = [
     "pre-commit",
     "bump-my-version",
 ]
+telemetry = [
+    "opentelemetry-api",
+    "opentelemetry-sdk",
+    "opentelemetry-instrumentation-fastapi",
+    "opentelemetry-instrumentation-logging",
+    "opentelemetry-exporter-otlp",
+]
 docs = [
     "black>=23.10.1",
     "mkdocs>=1.4.3",
