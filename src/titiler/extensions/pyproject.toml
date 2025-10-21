@@ -29,11 +29,14 @@ classifiers = [
     "Topic :: Scientific/Engineering :: GIS",
 ]
 dynamic = ["version"]
+packages = [
+  { include = "titiler.*" },
+]
 dependencies = [
-    "titiler.core==0.24.2"
+    "titiler-core==0.24.2"
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 test = [
     "pytest",
     "pytest-cov",
@@ -55,14 +58,15 @@ Issues = "https://github.com/developmentseed/titiler/issues"
 Source = "https://github.com/developmentseed/titiler"
 Changelog = "https://developmentseed.org/titiler/release-notes/"
 
-[build-system]
-requires = ["pdm-backend"]
-build-backend = "pdm.backend"
-
-[tool.pdm.version]
-source = "file"
+[tool.hatch.version]
 path = "titiler/extensions/__init__.py"
 
-[tool.pdm.build]
-includes = ["titiler/extensions"]
-excludes = ["tests/", "**/.mypy_cache", "**/.DS_Store"]
+[tool.hatch.build.targets.sdist]
+exclude = ["tests/"]
+
+[tool.hatch.build.targets.wheel]
+only-include = ["titiler"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
