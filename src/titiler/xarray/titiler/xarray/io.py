@@ -120,6 +120,7 @@ def xarray_open_dataset(  # noqa: C901
                 storage=storage,
                 authorize_virtual_chunk_access=vchunk_creds
             )
+            print("DEBUG: opened icechunk repo")
             session = repo.readonly_session('main')
             store = session.store
             xr_open_args['consolidated'] = False
@@ -133,8 +134,9 @@ def xarray_open_dataset(  # noqa: C901
                 )
             else:
                 store = fsspec.filesystem(protocol).get_mapper(src_path)
-
+        print("DEBUG: opening zarr dataset")
         ds = xarray.open_zarr(store, **xr_open_args)
+        print("DEBUG: Xarray opening done")
     return ds
 
 
