@@ -35,4 +35,4 @@ jobs:
       - name: Test titiler.xarray
         working-directory: src/titiler/xarray
         run: |
-          uv run --group test --group upstream pytest --cov-report=xml --cov-append --cov-report=term-missing
+          uv run --group test --group upstream pytest
