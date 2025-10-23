@@ -91,11 +91,9 @@ To install from sources and run for development:
 git clone https://github.com/developmentseed/titiler.git
 cd titiler
 
-python -m pip install -U pip
-python -m pip install -e src/titiler/core -e src/titiler/xarray -e src/titiler/extensions -e src/titiler/mosaic -e src/titiler/application
-python -m pip install uvicorn
-
-uvicorn titiler.application.main:app --reload
+uv sync
+uv run pip install uvicorn
+uv run uvicorn titiler.application.main:app --reload
 ```
 
 ## Docker

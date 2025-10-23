@@ -29,6 +29,9 @@ classifiers = [
     "Topic :: Scientific/Engineering :: GIS",
 ]
 dynamic = ["version"]
+packages = [
+  { include = "titiler.*" },
+]
 dependencies = [
     "fastapi>=0.108.0",
     "geojson-pydantic>=1.1.2,<3.0",
@@ -64,14 +67,15 @@ Issues = "https://github.com/developmentseed/titiler/issues"
 Source = "https://github.com/developmentseed/titiler"
 Changelog = "https://developmentseed.org/titiler/release-notes/"
 
-[build-system]
-requires = ["pdm-backend"]
-build-backend = "pdm.backend"
-
-[tool.pdm.version]
-source = "file"
+[tool.hatch.version]
 path = "titiler/core/__init__.py"
 
-[tool.pdm.build]
-includes = ["titiler/core"]
-excludes = ["tests/", "**/.mypy_cache", "**/.DS_Store"]
+[tool.hatch.build.targets.sdist]
+exclude = ["tests/"]
+
+[tool.hatch.build.targets.wheel]
+only-include = ["titiler"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-SUBPACKAGE_DIRS=(
+SUBPACKAGES=(
     "core"
     "xarray"
     "mosaic"
@@ -8,16 +8,10 @@ SUBPACKAGE_DIRS=(
     "extensions"
 )
 
-for PACKAGE_DIR in "${SUBPACKAGE_DIRS[@]}"
+for PACKAGE in "${SUBPACKAGES[@]}"
 do
-    echo "publishing titiler-${PACKAGE_DIR}"
-    pushd ./src/titiler/${PACKAGE_DIR}
+    echo "publishing titiler-${PACKAGE}"
     rm -rf dist
-    python -m build
-    twine upload dist/*
-    popd
+    uv build --package titiler-${PACKAGE}
+    uv publish
 done
-
-rm -rf dist
-python -m build
-twine upload dist/*
