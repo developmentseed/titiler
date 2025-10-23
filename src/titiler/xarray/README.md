@@ -27,6 +27,10 @@ Here is the list of available options:
 - **s3**: `s3fs`
 - **http**: `aiohttp`
 
+#### Dependencies
+
+Titiler.xarray follows [SPEC 0](https://scientific-python.org/specs/spec-0000/), similar to [xarray](https://docs.xarray.dev/en/v2025.09.0/getting-started-guide/installing.html#minimum-dependency-versions).
+
 ## How To
 
 ```python

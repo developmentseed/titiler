@@ -1,0 +1,38 @@
+name: Upstream
+
+# Only on pushes to main, tags, or workflow dispatches
+on:
+  push:
+    branches:
+    - main
+    tags:
+    - '*'
+    paths:
+      # Only run test and docker publish if some code have changed
+      - 'setup.py'
+      - 'setup.cfg'
+      - 'src/titiler/**'
+      - '.pre-commit-config.yaml'
+      - '.github/codecov.yml'
+      - 'dockerfiles/**'
+  workflow_dispatch:
+
+jobs:
+  test-upstream:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.13']
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Test titiler.xarray
+        working-directory: src/titiler/xarray
+        run: |
+          uv run --group test --group upstream pytest --cov-report=xml --cov-append --cov-report=term-missing
