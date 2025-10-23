@@ -196,6 +196,7 @@ class Reader(XarrayReader):
 
     # xarray.Dataset options
     opener: Callable[..., xarray.Dataset] = attr.ib(default=xarray_open_dataset)
+    opener_options: Dict = attr.ib(factory=dict)
 
     group: Optional[str] = attr.ib(default=None)
     decode_times: bool = attr.ib(default=True)
@@ -219,6 +220,7 @@ class Reader(XarrayReader):
             self.src_path,
             group=self.group,
             decode_times=self.decode_times,
+            **self.opener_options,
         )
 
         self.input = get_variable(
