@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### titiler.xarray
+* add `opener_options` arg to `titiler.xarray.io.Reader` to allow users to pass args through to a custom opener function ([#1248(https://github.com/developmentseed/titiler/pull/1248)])
+
 ### Misc 
 
 * update docker image to python:3.13

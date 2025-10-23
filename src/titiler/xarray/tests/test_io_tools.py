@@ -2,6 +2,8 @@
 
 import os
 from datetime import datetime
+from typing import Any, Dict, Optional
+from urllib.parse import urlparse
 
 import numpy
 import pytest
@@ -221,6 +223,69 @@ def test_reader(protocol, filename):
     with Reader(src_path, variable="dataset") as src:
         assert src.info()
         assert src.tile(0, 0, 0)
+
+
+def test_opener():
+    """test custom opener"""
+    src_path = "file://" + os.path.join("file://", prefix, "dataset_2d.nc")
+
+    def custom_netcdf_opener(  # noqa: C901
+        src_path: str,
+        special_arg: bool,
+        group: Optional[str] = None,
+        decode_times: bool = True,
+    ) -> xarray.Dataset:
+        """Open Xarray dataset with fsspec.
+
+        Args:
+            src_path (str): dataset path.
+            group (Optional, str): path to the netCDF/Zarr group in the given file to open given as a str.
+            decode_times (bool):  If True, decode times encoded in the standard NetCDF datetime format into datetime objects. Otherwise, leave them encoded as numbers.
+
+        Returns:
+            xarray.Dataset
+
+        """
+        import fsspec  # noqa
+
+        parsed = urlparse(src_path)
+        protocol = parsed.scheme or "file"
+
+        if not special_arg:
+            raise ValueError("you forgot the special_arg :(")
+
+        xr_open_args: Dict[str, Any] = {
+            "decode_coords": "all",
+            "decode_times": decode_times,
+            "engine": "h5netcdf",
+            "lock": False,
+        }
+
+        # Argument if we're opening a datatree
+        if group is not None:
+            xr_open_args["group"] = group
+
+        fs = fsspec.filesystem(protocol)
+        ds = xarray.open_dataset(fs.open(src_path), **xr_open_args)
+
+        return ds
+
+    with Reader(
+        src_path=src_path,
+        opener=custom_netcdf_opener,
+        opener_options={"special_arg": True},
+        variable="dataset",
+    ) as src:
+        assert src.info()
+
+    with pytest.raises(ValueError):
+        with Reader(
+            src_path=src_path,
+            opener=custom_netcdf_opener,
+            opener_options={"special_arg": False},
+            variable="dataset",
+        ) as src:
+            pass
 
 
 @pytest.mark.parametrize(
