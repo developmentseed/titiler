@@ -9,12 +9,7 @@ on:
     - '*'
     paths:
       # Only run test and docker publish if some code have changed
-      - 'setup.py'
-      - 'setup.cfg'
-      - 'src/titiler/**'
-      - '.pre-commit-config.yaml'
-      - '.github/codecov.yml'
-      - 'dockerfiles/**'
+      - 'src/titiler/xarray/**'
   workflow_dispatch:
 
 jobs:
