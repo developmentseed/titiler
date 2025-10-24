@@ -41,6 +41,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+server = [
+    "uvicorn[standard]>=0.12.0",
+]
+
+[dependency-groups]
 test = [
     "pytest",
     "pytest-cov",
@@ -48,9 +53,6 @@ test = [
     "httpx",
     "brotlipy",
     "boto3",
-]
-server = [
-    "uvicorn[standard]>=0.12.0",
 ]
 
 [project.urls]

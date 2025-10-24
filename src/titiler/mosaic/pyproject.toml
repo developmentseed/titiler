@@ -37,7 +37,7 @@ dependencies = [
     "cogeo-mosaic>=8.0,<9.0",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 test = [
     "pytest",
     "pytest-cov",
