@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1761238741750,
+  "lastUpdate": 1761282585468,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -15914,6 +15914,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.16,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "14077947+maxrjones@users.noreply.github.com",
+            "name": "Max Jones",
+            "username": "maxrjones"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e6389e6e9636e262b41b0e2b0d6db0fdd5e81e7e",
+          "message": "Add a upstream workflow with a dispatch trigger; follow SPEC0 (#1245)\n\n* switch to uv\n\n* switch to hatch\n\n* switch to hatch\n\n* update changelog\n\n* Add a upstream workflow with a dispatch trigger; follow SPEC0\n\n* Update .github/workflows/upstream.yml\n\nCo-authored-by: Vincent Sarago <vincent.sarago@gmail.com>\n\n* Only run on commits to main that change xarray extension\n\n* Don't bother on tags\n\n* Run on multiple python versions\n\n---------\n\nCo-authored-by: vincentsarago <vincent.sarago@gmail.com>",
+          "timestamp": "2025-10-24T07:07:25+02:00",
+          "tree_id": "37817373e2ec35551f2fdd9fdb6d5d837df78922",
+          "url": "https://github.com/developmentseed/titiler/commit/e6389e6e9636e262b41b0e2b0d6db0fdd5e81e7e"
+        },
+        "date": 1761282583929,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.08,
             "unit": "s"
           },
           {
