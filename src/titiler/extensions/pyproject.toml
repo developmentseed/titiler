@@ -37,18 +37,20 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+cogeo = [
+    "rio-cogeo>=5.0,<6.0",
+]
+stac = [
+    "rio-stac>=0.12,<0.13",
+]
+
+[dependency-groups]
 test = [
     "pytest",
     "pytest-cov",
     "pytest-asyncio",
     "httpx",
     "pystac[validation]>=1.0.0,<2.0.0",
-]
-cogeo = [
-    "rio-cogeo>=5.0,<6.0",
-]
-stac = [
-    "rio-stac>=0.12,<0.13",
 ]
 
 [project.urls]

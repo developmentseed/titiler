@@ -46,18 +46,20 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-test = [
-    "pytest",
-    "pytest-cov",
-    "pytest-asyncio",
-    "httpx",
-]
 telemetry = [
     "opentelemetry-api",
     "opentelemetry-sdk",
     "opentelemetry-instrumentation-fastapi",
     "opentelemetry-instrumentation-logging",
     "opentelemetry-exporter-otlp",
+]
+
+[dependency-groups]
+test = [
+    "pytest",
+    "pytest-cov",
+    "pytest-asyncio",
+    "httpx",
 ]
 
 [project.urls]
