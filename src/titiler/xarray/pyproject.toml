@@ -2,7 +2,7 @@
 name = "titiler-xarray"
 description = "Xarray plugin for TiTiler."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 authors = [
     {name = "Vincent Sarago", email = "vincent@developmentseed.com"},
     {name = "Aimee Barciauskas", email = "aimee@developmentseed.com"},
@@ -21,7 +21,6 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -62,6 +61,7 @@ s3 = [
 http = [
     "aiohttp",
 ]
+[dependency-groups]
 test = [
     "pytest",
     "pytest-cov",
@@ -73,6 +73,13 @@ test = [
     "s3fs",
     "aiohttp",
     "requests",
+]
+upstream = [
+    'xarray @ git+https://github.com/pydata/xarray',
+    'universal_pathlib @ git+https://github.com/fsspec/universal_pathlib',
+    'numcodecs @ git+https://github.com/zarr-developers/numcodecs',
+    'ujson @ git+https://github.com/ultrajson/ultrajson',
+    'zarr @ git+https://github.com/zarr-developers/zarr-python',
 ]
 
 [project.urls]
