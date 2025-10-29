@@ -36,38 +36,26 @@ dependencies = [
     "rio-tiler>=7.6.1,<8.0",
     "xarray",
     "rioxarray",
+    "obstore",
+    "zarr>=3.0,<4.0",
 ]
 
 [project.optional-dependencies]
-full = [
-    "zarr!=3.0.9",
+fs = [
     "h5netcdf",
     "fsspec",
     "s3fs",
     "aiohttp",
     "gcsfs",
+    "requests",
 ]
-minimal = [
-    "zarr!=3.0.9",
-    "h5netcdf",
-    "fsspec",
-]
-gcs = [
-    "gcsfs",
-]
-s3 = [
-    "s3fs",
-]
-http = [
-    "aiohttp",
-]
+
 [dependency-groups]
 test = [
     "pytest",
     "pytest-cov",
     "pytest-asyncio",
     "httpx",
-    "zarr!=3.0.9",
     "h5netcdf",
     "fsspec",
     "s3fs",

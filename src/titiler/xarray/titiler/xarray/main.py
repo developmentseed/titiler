@@ -48,8 +48,8 @@ logging.getLogger("rio-tiler").setLevel(logging.ERROR)
 class ApiSettings(BaseSettings):
     """FASTAPI application settings."""
 
-    name: str = "TiTiler with support of Multidimensional dataset"
-    description: str = """A modern dynamic tile server built on top of FastAPI and Rasterio/GDAL/Xarray for Zarr/NetCDF dataset.
+    name: str = "TiTiler with support of Zarr dataset"
+    description: str = """A modern dynamic tile server built on top of FastAPI and Rasterio/GDAL/Xarray for Zarr dataset.
 
 ---
 
@@ -332,7 +332,7 @@ def landing(
     """TiTiler landing page."""
     data = {
         "title": "TiTiler + Xarray",
-        "description": "A modern dynamic tile server built on top of FastAPI and Rasterio/GDAL/Xarray for Zarr/NetCDF dataset.",
+        "description": "A modern dynamic tile server built on top of FastAPI and Rasterio/GDAL/Xarray for Zarr dataset.",
         "links": [
             {
                 "title": "Landing page",
@@ -492,9 +492,3 @@ if api_settings.telemetry_enabled:
     provider.add_span_processor(processor)
 
     trace.set_tracer_provider(provider)
-
-
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run(app=app, host="127.0.0.1", port=8080, log_level="info")
