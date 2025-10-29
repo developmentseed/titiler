@@ -11,6 +11,7 @@
 * switch to `uv` for development
 * switch to `hatch` for python package build-system
 * remove `titiler` metapackage **breaking change**
+* bump minimum python version to 3.11
 
 ## 0.24.2 (2025-10-16)
 
