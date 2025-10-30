@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import re
 from functools import cache
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Literal, Optional, Union
@@ -71,20 +72,33 @@ def open_zarr(  # noqa: C901
 
     config = {**kwargs}
     # We can't expect the users to pass a REGION so we guess it
-    if parsed.scheme == "s3":
-        if "region" not in kwargs and infer_region:
-            # infer region or fallback to env variables
+    if parsed.scheme == "s3" or "amazonaws.com" in parsed.netloc:
+        if "region" not in config and infer_region:
             region_name_env = (
                 os.environ.get("AWS_REGION", os.environ.get("AWS_DEFAULT_REGION"))
                 or None
             )
-            config["region"] = _find_bucket_region(parsed.netloc) or region_name_env
 
-    store = obstore.store.from_url(
-        src_path,
-        config=config,
-    )
+            # s3:// urls
+            if parsed.scheme == "s3":
+                config["region"] = _find_bucket_region(parsed.netloc) or region_name_env
 
+            # https://{bucket}.s3.{region}?.amazonaws.com urls
+            else:
+                if expr := re.compile(
+                    r"(?P<bucket>[a-z0-9\.\-_]+)\.s3"
+                    r"(\.dualstack)?"
+                    r"(\.(?P<region>[a-z0-9\-_]+))?"
+                    r"\.amazonaws\.(com|cn)",
+                    re.IGNORECASE,
+                ).match(parsed.netloc):
+                    bucket = expr.groupdict()["bucket"]
+                    if not expr.groupdict().get("region"):
+                        config["region"] = (
+                            _find_bucket_region(bucket) or region_name_env
+                        )
+
+    store = obstore.store.from_url(src_path, config=config)
     zarr_store = ObjectStore(store=store, read_only=True)
     ds = xarray.open_dataset(zarr_store, **xr_open_args)
 

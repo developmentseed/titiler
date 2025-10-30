@@ -327,8 +327,15 @@ def test_io_fs_open_dataset(src_path, options):
     [
         ("s3://mur-sst/zarr-v1", {"skip_signature": True}),
         ("s3://mur-sst/zarr-v1", {"skip_signature": True, "region": "us-west-2"}),
-        # obstore.exceptions.GenericError: Generic S3 error: URL did not match any known pattern for scheme: https://nasa-power.s3.amazonaws.com/syn1deg/temporal/power_syn1deg_monthly_temporal_lst.zarr
-        # ("https://nasa-power.s3.amazonaws.com/syn1deg/temporal/power_syn1deg_monthly_temporal_lst.zarr", {}),
+        # https://github.com/developmentseed/obstore/pull/590
+        # (
+        #     "https://nasa-power.s3.amazonaws.com/syn1deg/temporal/power_syn1deg_monthly_temporal_lst.zarr",
+        #     {"skip_signature": True},
+        # ),
+        (
+            "https://nasa-power.s3.us-west-2.amazonaws.com/syn1deg/temporal/power_syn1deg_monthly_temporal_lst.zarr",
+            {"skip_signature": True},
+        ),
         (os.path.join(prefix, "dataset_3d.zarr"), {}),
     ],
 )
