@@ -55,6 +55,8 @@ def open_zarr(  # noqa: C901
     # Arguments for xarray.open_dataset
     # Default args
     xr_open_args: Dict[str, Any] = {
+        "engine": "zarr",
+        "consolidated": consolidated,
         "decode_coords": decode_coords,
         "decode_times": decode_times,
     }
@@ -62,13 +64,6 @@ def open_zarr(  # noqa: C901
     # Argument if we're opening a datatree
     if group is not None:
         xr_open_args["group"] = group
-
-    xr_open_args.update(
-        {
-            "engine": "zarr",
-            "consolidated": consolidated,
-        }
-    )
 
     config = {**kwargs}
     # We can't expect the users to pass a REGION so we guess it
