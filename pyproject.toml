@@ -46,7 +46,7 @@ dev = [
     "zarr>=3,<4.0",
     "h5netcdf",
     "fsspec",
-    "s3fs",
+    "s3fs>=2025.2.0",
     "aiohttp",
     "requests",
     "cogeo-mosaic>=8.2,<9.0",

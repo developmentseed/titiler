@@ -44,7 +44,7 @@ dependencies = [
 fs = [
     "h5netcdf",
     "fsspec",
-    "s3fs",
+    "s3fs>=2025.2.0",
     "aiohttp",
     "gcsfs",
     "requests",
