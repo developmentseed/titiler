@@ -4371,7 +4371,7 @@ requires-dist = [
     { name = "requests", marker = "extra == 'fs'" },
     { name = "rio-tiler", specifier = ">=7.6.1,<8.0" },
     { name = "rioxarray" },
-    { name = "s3fs", marker = "extra == 'fs'" },
+    { name = "s3fs", marker = "extra == 'fs'", specifier = ">=2025.2.0" },
     { name = "titiler-core", editable = "src/titiler/core" },
     { name = "xarray" },
     { name = "zarr", specifier = ">=3.0,<4.0" },

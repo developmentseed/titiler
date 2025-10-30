@@ -80,6 +80,10 @@ def open_zarr(  # noqa: C901
 
             # https://{bucket}.s3.{region}?.amazonaws.com urls
             else:
+                # We assume that https:// url are public object
+                config["skip_signature"] = True
+
+                # Get Region from URL or guess if needed
                 if expr := re.compile(
                     r"(?P<bucket>[a-z0-9\.\-_]+)\.s3"
                     r"(\.dualstack)?"

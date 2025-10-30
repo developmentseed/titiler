@@ -325,16 +325,19 @@ def test_io_fs_open_dataset(src_path, options):
 @pytest.mark.parametrize(
     "src_path,options",
     [
+        # Let's assume we don't have S3 Credentials
         ("s3://mur-sst/zarr-v1", {"skip_signature": True}),
         ("s3://mur-sst/zarr-v1", {"skip_signature": True, "region": "us-west-2"}),
-        # https://github.com/developmentseed/obstore/pull/590
+        # HTTS url are considered public
+        ("https://mur-sst.s3.us-west-2.amazonaws.com/zarr-v1", {}),
+        # NOTE: https://github.com/developmentseed/obstore/pull/590
         # (
         #     "https://nasa-power.s3.amazonaws.com/syn1deg/temporal/power_syn1deg_monthly_temporal_lst.zarr",
-        #     {"skip_signature": True},
+        #     {},
         # ),
         (
             "https://nasa-power.s3.us-west-2.amazonaws.com/syn1deg/temporal/power_syn1deg_monthly_temporal_lst.zarr",
-            {"skip_signature": True},
+            {},
         ),
         (os.path.join(prefix, "dataset_3d.zarr"), {}),
     ],
