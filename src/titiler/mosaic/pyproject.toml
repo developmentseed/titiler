@@ -28,9 +28,6 @@ classifiers = [
     "Topic :: Scientific/Engineering :: GIS",
 ]
 dynamic = ["version"]
-packages = [
-  { include = "titiler.*" },
-]
 dependencies = [
     "titiler-core==0.24.2",
     "cogeo-mosaic>=8.0,<9.0",
@@ -56,7 +53,7 @@ Changelog = "https://developmentseed.org/titiler/release-notes/"
 path = "titiler/mosaic/__init__.py"
 
 [tool.hatch.build.targets.sdist]
-exclude = ["tests/"]
+only-include = ["titiler"]
 
 [tool.hatch.build.targets.wheel]
 only-include = ["titiler"]

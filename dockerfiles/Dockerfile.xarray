@@ -17,15 +17,12 @@ RUN python -m pip install -U pip
 RUN python -m pip install uvicorn uvicorn-worker gunicorn
 
 COPY src/titiler/ /tmp/titiler/
-RUN python -m pip install /tmp/titiler/core["telemetry"] "/tmp/titiler/xarray[full]" starlette-cramjam pydantic-settings --no-cache-dir --upgrade
+RUN python -m pip install /tmp/titiler/core["telemetry"] /tmp/titiler/xarray starlette-cramjam pydantic-settings --no-cache-dir --upgrade
 RUN rm -rf /tmp/titiler
-
-COPY src/titiler/xarray/examples/main.py app.py
-COPY src/titiler/xarray/examples/templates templates/
 
 ###################################################
 # For compatibility (might be removed at one point)
-ENV MODULE_NAME=app
+ENV MODULE_NAME=titiler.xarray.main
 ENV VARIABLE_NAME=app
 ENV HOST=0.0.0.0
 ENV PORT=80

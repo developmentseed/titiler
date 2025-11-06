@@ -4152,6 +4152,13 @@ dependencies = [
 server = [
     { name = "uvicorn", extra = ["standard"] },
 ]
+telemetry = [
+    { name = "opentelemetry-api" },
+    { name = "opentelemetry-exporter-otlp" },
+    { name = "opentelemetry-instrumentation-fastapi" },
+    { name = "opentelemetry-instrumentation-logging" },
+    { name = "opentelemetry-sdk" },
+]
 
 [package.dev-dependencies]
 test = [
@@ -4165,6 +4172,11 @@ test = [
 
 [package.metadata]
 requires-dist = [
+    { name = "opentelemetry-api", marker = "extra == 'telemetry'" },
+    { name = "opentelemetry-exporter-otlp", marker = "extra == 'telemetry'" },
+    { name = "opentelemetry-instrumentation-fastapi", marker = "extra == 'telemetry'" },
+    { name = "opentelemetry-instrumentation-logging", marker = "extra == 'telemetry'" },
+    { name = "opentelemetry-sdk", marker = "extra == 'telemetry'" },
     { name = "pydantic-settings", specifier = "~=2.0" },
     { name = "starlette-cramjam", specifier = ">=0.4,<0.6" },
     { name = "titiler-core", extras = ["telemetry"], editable = "src/titiler/core" },
@@ -4172,7 +4184,7 @@ requires-dist = [
     { name = "titiler-mosaic", editable = "src/titiler/mosaic" },
     { name = "uvicorn", extras = ["standard"], marker = "extra == 'server'", specifier = ">=0.12.0" },
 ]
-provides-extras = ["server"]
+provides-extras = ["server", "telemetry"]
 
 [package.metadata.requires-dev]
 test = [
@@ -4340,6 +4352,13 @@ fs = [
     { name = "requests" },
     { name = "s3fs" },
 ]
+telemetry = [
+    { name = "opentelemetry-api" },
+    { name = "opentelemetry-exporter-otlp" },
+    { name = "opentelemetry-instrumentation-fastapi" },
+    { name = "opentelemetry-instrumentation-logging" },
+    { name = "opentelemetry-sdk" },
+]
 
 [package.dev-dependencies]
 test = [
@@ -4368,6 +4387,11 @@ requires-dist = [
     { name = "gcsfs", marker = "extra == 'fs'" },
     { name = "h5netcdf", marker = "extra == 'fs'" },
     { name = "obstore" },
+    { name = "opentelemetry-api", marker = "extra == 'telemetry'" },
+    { name = "opentelemetry-exporter-otlp", marker = "extra == 'telemetry'" },
+    { name = "opentelemetry-instrumentation-fastapi", marker = "extra == 'telemetry'" },
+    { name = "opentelemetry-instrumentation-logging", marker = "extra == 'telemetry'" },
+    { name = "opentelemetry-sdk", marker = "extra == 'telemetry'" },
     { name = "requests", marker = "extra == 'fs'" },
     { name = "rio-tiler", specifier = ">=7.6.1,<8.0" },
     { name = "rioxarray" },
@@ -4376,7 +4400,7 @@ requires-dist = [
     { name = "xarray" },
     { name = "zarr", specifier = ">=3.1,<4.0" },
 ]
-provides-extras = ["fs"]
+provides-extras = ["fs", "telemetry"]
 
 [package.metadata.requires-dev]
 test = [

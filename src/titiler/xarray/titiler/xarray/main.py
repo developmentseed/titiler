@@ -1,12 +1,4 @@
-# /// script
-# dependencies = [
-#   "titiler.xarray[full]",
-#   "starlette_cramjam",
-#   "pydantic-settings",
-#   "uvicorn",
-# ]
-# ///
-"""Example of Application."""
+"""titiler.xarray application."""
 
 import json
 import logging

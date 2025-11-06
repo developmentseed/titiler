@@ -28,9 +28,6 @@ classifiers = [
     "Topic :: Scientific/Engineering :: GIS",
 ]
 dynamic = ["version"]
-packages = [
-  { include = "titiler.*" },
-]
 dependencies = [
     "fastapi>=0.108.0",
     "geojson-pydantic>=1.1.2,<3.0",
@@ -72,7 +69,7 @@ Changelog = "https://developmentseed.org/titiler/release-notes/"
 path = "titiler/core/__init__.py"
 
 [tool.hatch.build.targets.sdist]
-exclude = ["tests/"]
+only-include = ["titiler"]
 
 [tool.hatch.build.targets.wheel]
 only-include = ["titiler"]

@@ -3,7 +3,13 @@
 ## Unreleased
 
 ### titiler.xarray
+
 * add `opener_options` arg to `titiler.xarray.io.Reader` to allow users to pass args through to a custom opener function ([#1248(https://github.com/developmentseed/titiler/pull/1248)])
+* add `obstore` and `zarr-python` as dependency and add `open_zarr` dataset opener
+* default to `titiler.xarray.io.open_zarr` for `titiler.xarray.io.Reader.dataset_opener` attribute
+* rename `titiler.xarray.io.xarray_open_dataset` to `fs_open_dataset`
+* add `FsReader` which use `fs_open_dataset` as `dataset_opener`
+* create offical application `titiler.xarray.main:app`
 
 ### Misc 
 
