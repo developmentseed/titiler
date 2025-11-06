@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1762416845083,
+  "lastUpdate": 1762451980821,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -16327,6 +16327,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.23,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "vincent.sarago@gmail.com",
+            "name": "Vincent Sarago",
+            "username": "vincentsarago"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "affb458dccb944f25820ffc1531fc5bc8760c084",
+          "message": "switch titiler.xarray to obstore+zarr and add default application (#1253)\n\n* switch titiler.xarray to obstore+zarr and add default application\n\n* remove python 3.10 and recreate uv.lock\n\n* better handle aws s3 http urls\n\n* update from comment\n\n* lower bounds for s3fs\n\n* assume https s3 object are public\n\n* update dependencies and remove consolidated",
+          "timestamp": "2025-11-06T18:57:48+01:00",
+          "tree_id": "5a70bf815b55eb2751c9cb050f5e52e7234257da",
+          "url": "https://github.com/developmentseed/titiler/commit/affb458dccb944f25820ffc1531fc5bc8760c084"
+        },
+        "date": 1762451979659,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.11,
             "unit": "s"
           },
           {
