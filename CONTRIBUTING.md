@@ -39,6 +39,9 @@ uv run pytest src/titiler/extensions --cov=titiler.extensions --cov-report=xml -
 # titiler.mosaic
 uv run pytest src/titiler/mosaic --cov=titiler.mosaic --cov-report=xml --cov-append --cov-report=term-missing
 
+# titiler.xarray
+uv run pytest src/titiler/xarray --cov=titiler.xarray --cov-report=xml --cov-append --cov-report=term-missing
+
 # titiler.application
 uv run pytest src/titiler/application --cov=titiler.application --cov-report=xml --cov-append --cov-report=term-missing
 ```

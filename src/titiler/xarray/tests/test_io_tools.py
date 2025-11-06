@@ -9,7 +9,7 @@ import numpy
 import pytest
 import xarray
 
-from titiler.xarray.io import Reader, get_variable, xarray_open_dataset
+from titiler.xarray.io import Reader, fs_open_dataset, get_variable, open_zarr
 
 prefix = os.path.join(os.path.dirname(__file__), "fixtures")
 
@@ -220,7 +220,11 @@ def test_get_variable_datetime_tz():
 def test_reader(protocol, filename):
     """test reader."""
     src_path = protocol + os.path.join(protocol, prefix, filename)
-    with Reader(src_path, variable="dataset") as src:
+    with Reader(src_path, variable="dataset", opener=fs_open_dataset) as src:
+        assert src.info()
+        assert src.tile(0, 0, 0)
+
+    with Reader(src_path, variable="dataset", group="/", opener=fs_open_dataset) as src:
         assert src.info()
         assert src.tile(0, 0, 0)
 
@@ -267,7 +271,6 @@ def test_opener():
 
         fs = fsspec.filesystem(protocol)
         ds = xarray.open_dataset(fs.open(src_path), **xr_open_args)
-
         return ds
 
     with Reader(
@@ -303,14 +306,43 @@ def test_zarr_group(group):
 
 
 @pytest.mark.parametrize(
-    "src_path",
+    "src_path,options",
     [
-        # "s3://mur-sst/zarr-v1",
-        "https://nasa-power.s3.amazonaws.com/syn1deg/temporal/power_syn1deg_monthly_temporal_lst.zarr",
-        os.path.join(prefix, "dataset_3d.zarr"),
+        ("s3://mur-sst/zarr-v1", {"anon": True}),
+        (
+            "https://nasa-power.s3.amazonaws.com/syn1deg/temporal/power_syn1deg_monthly_temporal_lst.zarr",
+            {},
+        ),
+        (os.path.join(prefix, "dataset_3d.zarr"), {}),
     ],
 )
-def test_io_xarray_open_dataset(src_path):
-    """test xarray_open_dataset with cloud hosted files."""
-    with xarray_open_dataset(src_path) as ds:
+def test_io_fs_open_dataset(src_path, options):
+    """test fs_open_dataset with cloud hosted files."""
+    with fs_open_dataset(src_path, **options) as ds:
+        assert list(ds.data_vars)
+
+
+@pytest.mark.parametrize(
+    "src_path,options",
+    [
+        # Let's assume we don't have S3 Credentials
+        ("s3://mur-sst/zarr-v1", {"skip_signature": True}),
+        ("s3://mur-sst/zarr-v1", {"skip_signature": True, "region": "us-west-2"}),
+        # HTTS url are considered public
+        ("https://mur-sst.s3.us-west-2.amazonaws.com/zarr-v1", {}),
+        # NOTE: https://github.com/developmentseed/obstore/pull/590
+        # (
+        #     "https://nasa-power.s3.amazonaws.com/syn1deg/temporal/power_syn1deg_monthly_temporal_lst.zarr",
+        #     {},
+        # ),
+        (
+            "https://nasa-power.s3.us-west-2.amazonaws.com/syn1deg/temporal/power_syn1deg_monthly_temporal_lst.zarr",
+            {},
+        ),
+        (os.path.join(prefix, "dataset_3d.zarr"), {}),
+    ],
+)
+def test_io_open_zarr(src_path, options):
+    """test open_zarr with cloud hosted files."""
+    with open_zarr(src_path, **options) as ds:
         assert list(ds.data_vars)

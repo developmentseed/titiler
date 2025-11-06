@@ -1,20 +1,39 @@
 """titiler.xarray.io"""
 
+from __future__ import annotations
+
+import os
+import re
+from functools import cache
+from pathlib import Path
 from typing import Any, Callable, Dict, List, Literal, Optional, Union
 from urllib.parse import urlparse
 
 import attr
+import httpx
+import obstore
 import xarray
+import zarr
 from morecantile import TileMatrixSet
 from rio_tiler.constants import WEB_MERCATOR_TMS
 from rio_tiler.io.xarray import XarrayReader
-from xarray.namedarray.utils import module_available
+from zarr.storage import ObjectStore
 
 
-def xarray_open_dataset(  # noqa: C901
+def _find_bucket_region(bucket: str, use_https: bool = True) -> str | None:
+    prefix = "https" if use_https else "http"
+    response = httpx.get(f"{prefix}://{bucket}.s3.amazonaws.com")
+    return response.headers.get("x-amz-bucket-region")
+
+
+@cache
+def open_zarr(  # noqa: C901
     src_path: str,
     group: Optional[str] = None,
     decode_times: bool = True,
+    decode_coords: str = "all",
+    infer_region: bool = True,
+    **kwargs: Any,
 ) -> xarray.Dataset:
     """Open Xarray dataset with fsspec.
 
@@ -27,36 +46,16 @@ def xarray_open_dataset(  # noqa: C901
         xarray.Dataset
 
     """
-    import fsspec  # noqa
-
-    try:
-        import h5netcdf
-    except ImportError:  # pragma: nocover
-        h5netcdf = None  # type: ignore
-
-    try:
-        import zarr
-    except ImportError:  # pragma: nocover
-        zarr = None  # type: ignore
-
     parsed = urlparse(src_path)
-    protocol = parsed.scheme or "file"
-
-    if any(src_path.lower().endswith(ext) for ext in [".nc", ".nc4"]):
-        assert (
-            h5netcdf is not None
-        ), "'h5netcdf' must be installed to read NetCDF dataset"
-
-        xr_engine = "h5netcdf"
-
-    else:
-        assert zarr is not None, "'zarr' must be installed to read Zarr dataset"
-        xr_engine = "zarr"
+    if not parsed.scheme:
+        src_path = str(Path(src_path).resolve())
+        src_path = "file://" + src_path
 
     # Arguments for xarray.open_dataset
     # Default args
     xr_open_args: Dict[str, Any] = {
-        "decode_coords": "all",
+        "engine": "zarr",
+        "decode_coords": decode_coords,
         "decode_times": decode_times,
     }
 
@@ -64,27 +63,42 @@ def xarray_open_dataset(  # noqa: C901
     if group is not None:
         xr_open_args["group"] = group
 
-    # NetCDF arguments
-    if xr_engine == "h5netcdf":
-        xr_open_args.update(
-            {
-                "engine": "h5netcdf",
-                "lock": False,
-            }
-        )
-        fs = fsspec.filesystem(protocol)
-        ds = xarray.open_dataset(fs.open(src_path), **xr_open_args)
-
-    # Fallback to Zarr
-    else:
-        if module_available("zarr", minversion="3.0"):
-            store = zarr.storage.FsspecStore.from_url(
-                src_path, storage_options={"asynchronous": True}
+    config = {**kwargs}
+    # We can't expect the users to pass a REGION so we guess it
+    if parsed.scheme == "s3" or "amazonaws.com" in parsed.netloc:
+        if "region" not in config and infer_region:
+            region_name_env = (
+                os.environ.get("AWS_REGION", os.environ.get("AWS_DEFAULT_REGION"))
+                or None
             )
-        else:
-            store = fsspec.filesystem(protocol).get_mapper(src_path)
 
-        ds = xarray.open_zarr(store, **xr_open_args)
+            # s3:// urls
+            if parsed.scheme == "s3":
+                config["region"] = _find_bucket_region(parsed.netloc) or region_name_env
+
+            # https://{bucket}.s3.{region}?.amazonaws.com urls
+            else:
+                # We assume that https:// url are public object
+                config["skip_signature"] = True
+
+                # Get Region from URL or guess if needed
+                if expr := re.compile(
+                    r"(?P<bucket>[a-z0-9\.\-_]+)\.s3"
+                    r"(\.dualstack)?"
+                    r"(\.(?P<region>[a-z0-9\-_]+))?"
+                    r"\.amazonaws\.(com|cn)",
+                    re.IGNORECASE,
+                ).match(parsed.netloc):
+                    bucket = expr.groupdict()["bucket"]
+                    if not expr.groupdict().get("region"):
+                        config["region"] = (
+                            _find_bucket_region(bucket) or region_name_env
+                        )
+
+    store = obstore.store.from_url(src_path, config=config)
+    zarr_store = ObjectStore(store=store, read_only=True)
+    ds = xarray.open_dataset(zarr_store, **xr_open_args)
+
     return ds
 
 
@@ -195,7 +209,7 @@ class Reader(XarrayReader):
     variable: str = attr.ib()
 
     # xarray.Dataset options
-    opener: Callable[..., xarray.Dataset] = attr.ib(default=xarray_open_dataset)
+    opener: Callable[..., xarray.Dataset] = attr.ib(default=open_zarr)
     opener_options: Dict = attr.ib(factory=dict)
 
     group: Optional[str] = attr.ib(default=None)
@@ -216,13 +230,13 @@ class Reader(XarrayReader):
 
     def __attrs_post_init__(self):
         """Set bounds and CRS."""
-        self.ds = self.opener(
-            self.src_path,
-            group=self.group,
-            decode_times=self.decode_times,
+        opener_options = {
+            "group": self.group,
+            "decode_times": self.decode_times,
             **self.opener_options,
-        )
+        }
 
+        self.ds = self.opener(self.src_path, **opener_options)
         self.input = get_variable(
             self.ds,
             self.variable,
@@ -238,3 +252,78 @@ class Reader(XarrayReader):
     def __exit__(self, exc_type, exc_value, traceback):
         """Support using with Context Managers."""
         self.close()
+
+
+def fs_open_dataset(  # noqa: C901
+    src_path: str,
+    group: Optional[str] = None,
+    decode_times: bool = True,
+    decode_coords: str = "all",
+    **kwargs,
+) -> xarray.Dataset:
+    """Open Xarray dataset with fsspec.
+
+    Args:
+        src_path (str): dataset path.
+        group (Optional, str): path to the netCDF/Zarr group in the given file to open given as a str.
+        decode_times (bool):  If True, decode times encoded in the standard NetCDF datetime format into datetime objects. Otherwise, leave them encoded as numbers.
+
+    Returns:
+        xarray.Dataset
+
+    """
+    import fsspec  # noqa
+
+    try:
+        import h5netcdf
+    except ImportError:  # pragma: nocover
+        h5netcdf = None  # type: ignore
+
+    parsed = urlparse(src_path)
+    protocol = parsed.scheme or "file"
+
+    # Arguments for xarray.open_dataset
+    # Default args
+    xr_open_args: Dict[str, Any] = {
+        "decode_coords": decode_coords,
+        "decode_times": decode_times,
+    }
+
+    # Argument if we're opening a datatree
+    if group is not None:
+        xr_open_args["group"] = group
+
+    # NetCDF arguments
+    if any(src_path.lower().endswith(ext) for ext in [".nc", ".nc4"]):
+        assert (
+            h5netcdf is not None
+        ), "'h5netcdf' must be installed to read NetCDF dataset"
+
+        xr_open_args.update(
+            {
+                "engine": "h5netcdf",
+                "lock": False,
+            }
+        )
+        fs = fsspec.filesystem(protocol, **kwargs)
+        ds = xarray.open_dataset(fs.open(src_path), **xr_open_args)
+
+    # Fallback to Zarr
+    else:
+        store = zarr.storage.FsspecStore.from_url(
+            src_path, storage_options={"asynchronous": True, **kwargs}
+        )
+        ds = xarray.open_zarr(store, **xr_open_args)
+
+    return ds
+
+
+# Compat
+xarray_open_dataset = fs_open_dataset
+
+
+@attr.s
+class FsReader(Reader):
+    """Reader with fs_open_dataset opener"""
+
+    opener: Callable[..., xarray.Dataset] = attr.ib(default=fs_open_dataset)
