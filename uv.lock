@@ -4374,7 +4374,7 @@ requires-dist = [
     { name = "s3fs", marker = "extra == 'fs'", specifier = ">=2025.2.0" },
     { name = "titiler-core", editable = "src/titiler/core" },
     { name = "xarray" },
-    { name = "zarr", specifier = ">=3.0,<4.0" },
+    { name = "zarr", specifier = ">=3.1,<4.0" },
 ]
 provides-extras = ["fs"]
 

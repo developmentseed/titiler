@@ -32,7 +32,6 @@ def open_zarr(  # noqa: C901
     group: Optional[str] = None,
     decode_times: bool = True,
     decode_coords: str = "all",
-    consolidated: bool = True,
     infer_region: bool = True,
     **kwargs: Any,
 ) -> xarray.Dataset:
@@ -56,7 +55,6 @@ def open_zarr(  # noqa: C901
     # Default args
     xr_open_args: Dict[str, Any] = {
         "engine": "zarr",
-        "consolidated": consolidated,
         "decode_coords": decode_coords,
         "decode_times": decode_times,
     }
