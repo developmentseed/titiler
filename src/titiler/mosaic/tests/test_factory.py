@@ -20,6 +20,7 @@ from typing_extensions import Annotated
 
 from titiler.core.dependencies import DefaultDependency
 from titiler.core.resources.enums import OptionalHeader
+from titiler.mosaic.extensions import MosaicJSONExtension
 from titiler.mosaic.factory import MosaicTilerFactory
 
 from .conftest import DATA_DIR
@@ -48,6 +49,15 @@ def test_MosaicTilerFactory():
     """Test MosaicTilerFactory class."""
     mosaic = MosaicTilerFactory(
         optional_headers=[OptionalHeader.x_assets],
+        router_prefix="mosaic",
+    )
+    assert len(mosaic.router.routes) == 15
+
+    mosaic = MosaicTilerFactory(
+        optional_headers=[OptionalHeader.x_assets],
+        extensions=[
+            MosaicJSONExtension(),
+        ],
         router_prefix="mosaic",
     )
     assert len(mosaic.router.routes) == 17
