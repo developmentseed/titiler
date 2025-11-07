@@ -20,6 +20,10 @@
 * add `FsReader` which use `fs_open_dataset` as `dataset_opener`
 * create offical application `titiler.xarray.main:app`
 
+### titiler.mosaic
+
+* move `/` and `/validate`  to a `MosaicJSONExtension`
+
 ## 0.24.2 (2025-10-16)
 
 ### titiler.core

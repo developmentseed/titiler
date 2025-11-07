@@ -71,6 +71,9 @@ docs = [
     "griffe-inherited-docstrings>=1.0.0",
     "mkdocstrings[python]>=0.25.1",
 ]
+server = [
+    "uvicorn",
+]
 
 [project.urls]
 Homepage = 'https://developmentseed.org/titiler/'

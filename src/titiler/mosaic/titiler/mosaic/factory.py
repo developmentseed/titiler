@@ -9,7 +9,6 @@ import rasterio
 from attrs import define, field
 from cogeo_mosaic.backends import BaseBackend, MosaicBackend
 from cogeo_mosaic.models import Info as mosaicInfo
-from cogeo_mosaic.mosaic import MosaicJSON
 from fastapi import Depends, HTTPException, Path, Query
 from geojson_pydantic.features import Feature
 from geojson_pydantic.geometries import Polygon
@@ -143,7 +142,6 @@ class MosaicTilerFactory(BaseFactory):
     def register_routes(self):
         """This Method register routes to the router."""
 
-        self.read()
         self.info()
         self.tilesets()
         self.tile()
@@ -152,40 +150,7 @@ class MosaicTilerFactory(BaseFactory):
         self.tilejson()
         self.wmts()
         self.point()
-        self.validate()
         self.assets()
-
-    ############################################################################
-    # /read
-    ############################################################################
-    def read(self):
-        """Register / (Get) Read endpoint."""
-
-        @self.router.get(
-            "/",
-            response_model=MosaicJSON,
-            response_model_exclude_none=True,
-            responses={200: {"description": "Return MosaicJSON definition"}},
-            operation_id=f"{self.operation_prefix}getMosaicJSON",
-        )
-        def read(
-            src_path=Depends(self.path_dependency),
-            backend_params=Depends(self.backend_dependency),
-            reader_params=Depends(self.reader_dependency),
-            env=Depends(self.environment_dependency),
-        ):
-            """Read a MosaicJSON"""
-            with rasterio.Env(**env):
-                logger.info(
-                    f"opening data with backend: {self.backend} and reader {self.dataset_reader}"
-                )
-                with self.backend(
-                    src_path,
-                    reader=self.dataset_reader,
-                    reader_options=reader_params.as_dict(),
-                    **backend_params.as_dict(),
-                ) as src_dst:
-                    return src_dst.mosaic_def
 
     ############################################################################
     # /info
@@ -1020,17 +985,6 @@ class MosaicTilerFactory(BaseFactory):
                     (src, pts.array.tolist(), pts.band_names) for src, pts in values
                 ],
             }
-
-    def validate(self):
-        """Register /validate endpoint."""
-
-        @self.router.post(
-            "/validate",
-            operation_id=f"{self.operation_prefix}validate",
-        )
-        def validate(body: MosaicJSON):
-            """Validate a MosaicJSON"""
-            return True
 
     def assets(self):
         """Register /assets endpoint."""

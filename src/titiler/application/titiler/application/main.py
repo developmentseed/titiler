@@ -42,6 +42,7 @@ from titiler.extensions import (
     stacViewerExtension,
 )
 from titiler.mosaic.errors import MOSAIC_STATUS_CODES
+from titiler.mosaic.extensions import MosaicJSONExtension
 from titiler.mosaic.factory import MosaicTilerFactory
 
 logging.getLogger("botocore.credentials").disabled = True
@@ -170,6 +171,9 @@ if not api_settings.disable_stac:
 if not api_settings.disable_mosaic:
     mosaic = MosaicTilerFactory(
         router_prefix="/mosaicjson",
+        extensions=[
+            MosaicJSONExtension(),
+        ],
         enable_telemetry=api_settings.telemetry_enabled,
         templates=titiler_templates,
     )
