@@ -25,28 +25,28 @@ def test_deprecated_extension():
     """Test TilerFactory class."""
     with pytest.warns(DeprecationWarning):
         md = TilerFactory(extensions=[VariablesExtension()])
-    assert len(md.router.routes) == 20
+    assert len(md.router.routes) == 19
 
 
 def test_tiler_factory():
     """Test factory with options."""
     """Test TilerFactory class."""
     md = TilerFactory()
-    assert len(md.router.routes) == 19
+    assert len(md.router.routes) == 18
 
     with pytest.warns(UserWarning):
         md = TilerFactory(
             # /preview, /preview.{format}, /preview/{width}x{height}.{format}
             add_preview=True,
         )
-        assert len(md.router.routes) == 22
+        assert len(md.router.routes) == 21
 
     md = TilerFactory(
         router_prefix="/md",
         # /dataset, /dataset/dict, /dataset/keys
         extensions=[DatasetMetadataExtension()],
     )
-    assert len(md.router.routes) == 22
+    assert len(md.router.routes) == 21
 
     app = FastAPI()
     app.include_router(md.router, prefix="/md")
@@ -69,7 +69,7 @@ def app():
         ],
         reader=FsReader,
     )
-    assert len(md.router.routes) == 22
+    assert len(md.router.routes) == 21
 
     app = FastAPI()
     app.include_router(md.router, prefix="/md")
@@ -86,7 +86,7 @@ def app_zarr():
             DatasetMetadataExtension(),
         ],
     )
-    assert len(md.router.routes) == 22
+    assert len(md.router.routes) == 21
 
     app = FastAPI()
     app.include_router(md.router, prefix="/md")
@@ -113,21 +113,6 @@ def test_dataset_extension(filename, app):
     resp = app.get("/md/dataset/", params={"url": filename})
     assert resp.status_code == 200
     assert "text/html" in resp.headers["content-type"]
-
-
-@pytest.mark.parametrize(
-    "filename",
-    [dataset_2d_nc, dataset_3d_nc, dataset_3d_zarr],
-)
-def test_bounds(filename, app):
-    """Test /bounds endpoint."""
-    # missing variable parameter
-    resp = app.get("/md/bounds", params={"url": filename})
-    assert resp.status_code == 422
-
-    resp = app.get("/md/bounds", params={"url": filename, "variable": "dataset"})
-    assert resp.status_code == 200
-    assert resp.headers["content-type"] == "application/json"
 
 
 @pytest.mark.parametrize(
@@ -482,10 +467,6 @@ def test_app_zarr(filename, app_zarr):
     resp = app_zarr.get("/md/dataset/", params={"url": filename})
     assert resp.status_code == 200
     assert "text/html" in resp.headers["content-type"]
-
-    resp = app_zarr.get("/md/bounds", params={"url": filename, "variable": "dataset"})
-    assert resp.status_code == 200
-    assert resp.headers["content-type"] == "application/json"
 
     resp = app_zarr.get("/md/info", params={"url": filename, "variable": "dataset"})
     assert resp.status_code == 200

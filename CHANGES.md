@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Misc 
+
+* remove `/bounds` endpoints **breaking change**
+* update docker image to python:3.13
+* switch to `uv` for development
+* switch to `hatch` for python package build-system
+* remove `titiler` metapackage **breaking change**
+* bump minimum python version to 3.11
+
 ### titiler.xarray
 
 * add `opener_options` arg to `titiler.xarray.io.Reader` to allow users to pass args through to a custom opener function ([#1248(https://github.com/developmentseed/titiler/pull/1248)])
@@ -10,14 +19,6 @@
 * rename `titiler.xarray.io.xarray_open_dataset` to `fs_open_dataset`
 * add `FsReader` which use `fs_open_dataset` as `dataset_opener`
 * create offical application `titiler.xarray.main:app`
-
-### Misc 
-
-* update docker image to python:3.13
-* switch to `uv` for development
-* switch to `hatch` for python package build-system
-* remove `titiler` metapackage **breaking change**
-* bump minimum python version to 3.11
 
 ## 0.24.2 (2025-10-16)
 

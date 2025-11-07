@@ -37,7 +37,7 @@ from rio_tiler.colormap import ColorMaps
 from rio_tiler.colormap import cmap as default_cmap
 from rio_tiler.constants import WGS84_CRS
 from rio_tiler.io import BaseReader, MultiBandReader, MultiBaseReader, Reader
-from rio_tiler.models import Bounds, ImageData, Info
+from rio_tiler.models import ImageData, Info
 from rio_tiler.types import ColorMapType
 from rio_tiler.utils import CRS_to_uri, CRS_to_urn
 from starlette.requests import Request
@@ -375,8 +375,7 @@ class TilerFactory(BaseFactory):
 
         """
         # Default Routes
-        # (/bounds, /info, /statistics, /tile, /tilejson.json, /WMTSCapabilities.xml and /point)
-        self.bounds()
+        # (/info, /statistics, /tile, /tilejson.json, /WMTSCapabilities.xml and /point)
         self.info()
         self.statistics()
         self.tilesets()
@@ -396,33 +395,6 @@ class TilerFactory(BaseFactory):
 
         if self.add_ogc_maps:
             self.ogc_maps()
-
-    ############################################################################
-    # /bounds
-    ############################################################################
-    def bounds(self):
-        """Register /bounds endpoint."""
-
-        @self.router.get(
-            "/bounds",
-            response_model=Bounds,
-            responses={200: {"description": "Return dataset's bounds."}},
-            operation_id=f"{self.operation_prefix}getBounds",
-        )
-        def bounds(
-            src_path=Depends(self.path_dependency),
-            reader_params=Depends(self.reader_dependency),
-            crs=Depends(CRSParams),
-            env=Depends(self.environment_dependency),
-        ):
-            """Return the bounds of the COG."""
-            with rasterio.Env(**env):
-                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
-                    crs = crs or WGS84_CRS
-                    return {
-                        "bounds": src_dst.get_geographic_bounds(crs),
-                        "crs": CRS_to_uri(crs) or crs.to_wkt(),
-                    }
 
     ############################################################################
     # /info

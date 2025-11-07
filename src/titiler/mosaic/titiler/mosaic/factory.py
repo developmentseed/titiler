@@ -19,7 +19,6 @@ from morecantile.models import crs_axis_inverted
 from pydantic import Field
 from rio_tiler.constants import MAX_THREADS, WGS84_CRS
 from rio_tiler.io import BaseReader, MultiBandReader, MultiBaseReader, Reader
-from rio_tiler.models import Bounds
 from rio_tiler.mosaic.methods import PixelSelectionMethod
 from rio_tiler.mosaic.methods.base import MosaicMethodBase
 from rio_tiler.types import ColorMapType
@@ -145,7 +144,6 @@ class MosaicTilerFactory(BaseFactory):
         """This Method register routes to the router."""
 
         self.read()
-        self.bounds()
         self.info()
         self.tilesets()
         self.tile()
@@ -188,42 +186,6 @@ class MosaicTilerFactory(BaseFactory):
                     **backend_params.as_dict(),
                 ) as src_dst:
                     return src_dst.mosaic_def
-
-    ############################################################################
-    # /bounds
-    ############################################################################
-    def bounds(self):
-        """Register /bounds endpoint."""
-
-        @self.router.get(
-            "/bounds",
-            response_model=Bounds,
-            responses={200: {"description": "Return the bounds of the MosaicJSON"}},
-            operation_id=f"{self.operation_prefix}getBounds",
-        )
-        def bounds(
-            src_path=Depends(self.path_dependency),
-            backend_params=Depends(self.backend_dependency),
-            reader_params=Depends(self.reader_dependency),
-            crs=Depends(CRSParams),
-            env=Depends(self.environment_dependency),
-        ):
-            """Return the bounds of the MosaicJSON."""
-            with rasterio.Env(**env):
-                logger.info(
-                    f"opening data with backend: {self.backend} and reader {self.dataset_reader}"
-                )
-                with self.backend(
-                    src_path,
-                    reader=self.dataset_reader,
-                    reader_options=reader_params.as_dict(),
-                    **backend_params.as_dict(),
-                ) as src_dst:
-                    crs = crs or WGS84_CRS
-                    return {
-                        "bounds": src_dst.get_geographic_bounds(crs or WGS84_CRS),
-                        "crs": CRS_to_uri(crs) or crs.to_wkt(),
-                    }
 
     ############################################################################
     # /info

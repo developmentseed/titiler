@@ -10,7 +10,6 @@ Read Mosaic Info/Metadata and create Web map Tiles from a multiple COG. The `mos
 | Method | URL                                                                        | Output    | Description
 | ------ | -------------------------------------------------------------------------- |---------- |--------------
 | `GET`  | `/mosaicjson/`                                                             | JSON      | return a MosaicJSON document
-| `GET`  | `/mosaicjson/bounds`                                                       | JSON      | return mosaic's bounds
 | `GET`  | `/mosaicjson/info`                                                         | JSON      | return mosaic's basic info
 | `GET`  | `/mosaicjson/info.geojson`                                                 | GeoJSON   | return mosaic's basic info as a GeoJSON feature
 | `GET`  | `/mosaicjson/tiles`                                                        | JSON      | List of OGC Tilesets available

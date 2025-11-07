@@ -9,7 +9,6 @@ The `/cog` routes are based on `titiler.core.factory.TilerFactory` but with `cog
 
 | Method | URL                                                                 | Output    | Description
 | ------ | ------------------------------------------------------------------- |---------- |--------------
-| `GET`  | `/cog/bounds`                                                       | JSON      | return dataset's bounds
 | `GET`  | `/cog/info`                                                         | JSON      | return dataset's basic info
 | `GET`  | `/cog/info.geojson`                                                 | GeoJSON   | return dataset's basic info as a GeoJSON feature
 | `GET`  | `/cog/statistics`                                                   | JSON      | return dataset's statistics
@@ -312,18 +311,6 @@ Example:
 - `https://myendpoint/cog/WebMercatorQuad/map.html?url=https://somewhere.com/mycog.tif&tile_format=png`
 - `https://myendpoint/cog/WorldCRS84Quad/map.html?url=https://somewhere.com/mycog.tif&tile_scale=2&bidx=1,2,3`
 
-
-### Bounds
-
-`:endpoint:/cog/bounds` general image bounds
-
-- QueryParams:
-    - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
-    - **crs** (str): Geographic Coordinate Reference System. Default to `epsg:4326`.
-
-Example:
-
-- `https://myendpoint/cog/bounds?url=https://somewhere.com/mycog.tif`
 
 ### Info
 

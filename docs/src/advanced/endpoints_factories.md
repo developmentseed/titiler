@@ -85,7 +85,6 @@ app.include_router(cog.router)
 
 | Method | URL                                                             | Output                                      | Description
 | ------ | --------------------------------------------------------------- |-------------------------------------------- |--------------
-| `GET`  | `/bounds`                                                       | JSON ([Bounds][bounds_model])               | return dataset's bounds
 | `GET`  | `/info`                                                         | JSON ([Info][info_model])                   | return dataset's basic info
 | `GET`  | `/info.geojson`                                                 | GeoJSON ([InfoGeoJSON][info_geojson_model]) | return dataset's basic info as a GeoJSON feature
 | `GET`  | `/statistics`                                                   | JSON ([Statistics][stats_model])            | return dataset's statistics
@@ -137,7 +136,6 @@ app.include_router(stac.router)
 
 | Method | URL                                                             | Output                                           | Description
 | ------ | --------------------------------------------------------------- |------------------------------------------------- |--------------
-| `GET`  | `/bounds`                                                       | JSON ([Bounds][bounds_model])                    | return dataset's bounds
 | `GET`  | `/assets`                                                       | JSON                                             | return the list of available assets
 | `GET`  | `/info`                                                         | JSON ([Info][multiinfo_model])                   | return assets basic info
 | `GET`  | `/info.geojson`                                                 | GeoJSON ([InfoGeoJSON][multiinfo_geojson_model]) | return assets basic info as a GeoJSON feature
@@ -195,7 +193,6 @@ app.include_router(landsat.router)
 
 | Method | URL                                                             | Output                                       | Description
 | ------ | --------------------------------------------------------------- |--------------------------------------------- |--------------
-| `GET`  | `/bounds`                                                       | JSON ([Bounds][bounds_model])                | return dataset's bounds
 | `GET`  | `/bands`                                                        | JSON                                         | return the list of available bands
 | `GET`  | `/info`                                                         | JSON ([Info][info_model])                    | return basic info for a dataset
 | `GET`  | `/info.geojson`                                                 | GeoJSON ([InfoGeoJSON][info_geojson_model])  | return basic info for a dataset as a GeoJSON feature
@@ -333,7 +330,6 @@ Endpoints factory for mosaics, built on top of [MosaicJSON](https://github.com/d
 | Method | URL                                                             | Output                                             | Description
 | ------ | --------------------------------------------------------------- |--------------------------------------------------- |--------------
 | `GET`  | `/`                                                             | JSON [MosaicJSON][mosaic_model]                    | return a MosaicJSON document
-| `GET`  | `/bounds`                                                       | JSON ([Bounds][bounds_model])                      | return mosaic's bounds
 | `GET`  | `/info`                                                         | JSON ([Info][mosaic_info_model])                   | return mosaic's basic info
 | `GET`  | `/info.geojson`                                                 | GeoJSON ([InfoGeoJSON][mosaic_geojson_info_model]) | return mosaic's basic info  as a GeoJSON feature
 | `GET`  | `/tiles`                                                        | JSON                                               | List of OGC Tilesets available
@@ -398,7 +394,6 @@ app.include_router(md.router)
 
 | Method | URL                                                             | Output                                      | Description
 | ------ | --------------------------------------------------------------- |-------------------------------------------- |--------------
-| `GET`  | `/bounds`                                                       | JSON ([Bounds][bounds_model])               | return dataset's bounds
 | `GET`  | `/info`                                                         | JSON ([Info][info_model])                   | return dataset's basic info
 | `GET`  | `/info.geojson`                                                 | GeoJSON ([InfoGeoJSON][info_geojson_model]) | return dataset's basic info as a GeoJSON feature
 | `POST` | `/statistics`                                                   | GeoJSON ([Statistics][stats_geojson_model]) | return dataset's statistics for a GeoJSON
