@@ -1,7 +1,0 @@
-# aws cdk
-aws-cdk-lib==2.201.0
-constructs>=10.0.0
-
-# pydantic settings
-pydantic~=2.0
-pydantic-settings~=2.0
