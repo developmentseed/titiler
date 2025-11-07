@@ -4050,7 +4050,7 @@ wheels = [
 
 [[package]]
 name = "titiler"
-version = "0.24.2"
+version = "0.25.0"
 source = { virtual = "." }
 dependencies = [
     { name = "titiler-application" },
@@ -4160,13 +4160,6 @@ dependencies = [
 server = [
     { name = "uvicorn", extra = ["standard"] },
 ]
-telemetry = [
-    { name = "opentelemetry-api" },
-    { name = "opentelemetry-exporter-otlp" },
-    { name = "opentelemetry-instrumentation-fastapi" },
-    { name = "opentelemetry-instrumentation-logging" },
-    { name = "opentelemetry-sdk" },
-]
 
 [package.dev-dependencies]
 test = [
@@ -4180,11 +4173,6 @@ test = [
 
 [package.metadata]
 requires-dist = [
-    { name = "opentelemetry-api", marker = "extra == 'telemetry'" },
-    { name = "opentelemetry-exporter-otlp", marker = "extra == 'telemetry'" },
-    { name = "opentelemetry-instrumentation-fastapi", marker = "extra == 'telemetry'" },
-    { name = "opentelemetry-instrumentation-logging", marker = "extra == 'telemetry'" },
-    { name = "opentelemetry-sdk", marker = "extra == 'telemetry'" },
     { name = "pydantic-settings", specifier = "~=2.0" },
     { name = "starlette-cramjam", specifier = ">=0.4,<0.6" },
     { name = "titiler-core", extras = ["telemetry"], editable = "src/titiler/core" },
@@ -4192,7 +4180,7 @@ requires-dist = [
     { name = "titiler-mosaic", editable = "src/titiler/mosaic" },
     { name = "uvicorn", extras = ["standard"], marker = "extra == 'server'", specifier = ">=0.12.0" },
 ]
-provides-extras = ["server", "telemetry"]
+provides-extras = ["server"]
 
 [package.metadata.requires-dev]
 test = [

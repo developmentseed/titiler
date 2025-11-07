@@ -29,9 +29,9 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-    "titiler-core[telemetry]==0.24.2",
-    "titiler-extensions[cogeo,stac]==0.24.2",
-    "titiler-mosaic==0.24.2",
+    "titiler-core[telemetry]==0.25.0",
+    "titiler-extensions[cogeo,stac]==0.25.0",
+    "titiler-mosaic==0.25.0",
     "starlette-cramjam>=0.4,<0.6",
     "pydantic-settings~=2.0",
 ]
@@ -39,13 +39,6 @@ dependencies = [
 [project.optional-dependencies]
 server = [
     "uvicorn[standard]>=0.12.0",
-]
-telemetry = [
-    "opentelemetry-api",
-    "opentelemetry-sdk",
-    "opentelemetry-instrumentation-fastapi",
-    "opentelemetry-instrumentation-logging",
-    "opentelemetry-exporter-otlp",
 ]
 
 [dependency-groups]
