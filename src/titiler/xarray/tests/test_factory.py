@@ -119,21 +119,6 @@ def test_dataset_extension(filename, app):
     "filename",
     [dataset_2d_nc, dataset_3d_nc, dataset_3d_zarr],
 )
-def test_bounds(filename, app):
-    """Test /bounds endpoint."""
-    # missing variable parameter
-    resp = app.get("/md/bounds", params={"url": filename})
-    assert resp.status_code == 422
-
-    resp = app.get("/md/bounds", params={"url": filename, "variable": "dataset"})
-    assert resp.status_code == 200
-    assert resp.headers["content-type"] == "application/json"
-
-
-@pytest.mark.parametrize(
-    "filename",
-    [dataset_2d_nc, dataset_3d_nc, dataset_3d_zarr],
-)
 def test_info(filename, app):
     """Test /info endpoints."""
     # missing variable parameter
@@ -482,10 +467,6 @@ def test_app_zarr(filename, app_zarr):
     resp = app_zarr.get("/md/dataset/", params={"url": filename})
     assert resp.status_code == 200
     assert "text/html" in resp.headers["content-type"]
-
-    resp = app_zarr.get("/md/bounds", params={"url": filename, "variable": "dataset"})
-    assert resp.status_code == 200
-    assert resp.headers["content-type"] == "application/json"
 
     resp = app_zarr.get("/md/info", params={"url": filename, "variable": "dataset"})
     assert resp.status_code == 200

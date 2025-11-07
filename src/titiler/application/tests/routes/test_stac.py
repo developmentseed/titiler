@@ -9,17 +9,6 @@ from rasterio.io import MemoryFile
 from ..conftest import mock_rasterio_open, mock_RequestGet
 
 
-@patch("rio_tiler.io.stac.httpx")
-def test_bounds(httpx, app):
-    """test /bounds endpoint."""
-    httpx.get = mock_RequestGet
-
-    response = app.get("/stac/bounds?url=https://myurl.com/item.json")
-    assert response.status_code == 200
-    body = response.json()
-    assert len(body["bounds"]) == 4
-
-
 @patch("rio_tiler.io.rasterio.rasterio")
 @patch("rio_tiler.io.stac.httpx")
 def test_info(httpx, rio, app):

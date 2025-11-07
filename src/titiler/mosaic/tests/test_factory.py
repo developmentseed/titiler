@@ -50,7 +50,7 @@ def test_MosaicTilerFactory():
         optional_headers=[OptionalHeader.x_assets],
         router_prefix="mosaic",
     )
-    assert len(mosaic.router.routes) == 18
+    assert len(mosaic.router.routes) == 17
 
     app = FastAPI()
     app.include_router(mosaic.router, prefix="/mosaic")
@@ -76,14 +76,6 @@ def test_MosaicTilerFactory():
         )
         assert response.status_code == 200
         assert response.json()["mosaicjson"]
-
-        response = client.get(
-            "/mosaic/bounds",
-            params={"url": mosaic_file},
-        )
-        assert response.status_code == 200
-        assert len(response.json()["bounds"]) == 4
-        assert response.json()["crs"]
 
         response = client.get(
             "/mosaic/info",

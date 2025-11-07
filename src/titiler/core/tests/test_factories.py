@@ -51,7 +51,7 @@ WEB_TMS = TileMatrixSets({"WebMercatorQuad": morecantile.tms.get("WebMercatorQua
 def test_TilerFactory():
     """Test TilerFactory class."""
     cog = TilerFactory()
-    assert len(cog.router.routes) == 23
+    assert len(cog.router.routes) == 22
     assert len(cog.supported_tms.list()) == NB_DEFAULT_TMS
 
     cog = TilerFactory(router_prefix="something", supported_tms=WEB_TMS)
@@ -78,7 +78,7 @@ def test_TilerFactory():
     assert response.status_code == 422
 
     cog = TilerFactory(add_preview=False, add_part=False, add_viewer=False)
-    assert len(cog.router.routes) == 14
+    assert len(cog.router.routes) == 13
 
     app = FastAPI()
     cog = TilerFactory()
@@ -313,12 +313,6 @@ def test_TilerFactory():
     assert str(meta["crs"]) == "OGC:CRS84"
     root = ET.fromstring(response.content)
     assert root is not None
-
-    response = client.get(f"/bounds?url={DATA_DIR}/cog.tif")
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "application/json"
-    assert len(response.json()["bounds"]) == 4
-    assert response.json()["crs"]
 
     response = client.get(f"/info?url={DATA_DIR}/cog.tif")
     assert response.status_code == 200
@@ -783,7 +777,7 @@ def test_MultiBaseTilerFactory(rio):
     rio.open = mock_rasterio_open
 
     stac = MultiBaseTilerFactory(reader=STACReader)
-    assert len(stac.router.routes) == 25
+    assert len(stac.router.routes) == 24
 
     app = FastAPI()
     app.include_router(stac.router)
@@ -801,11 +795,6 @@ def test_MultiBaseTilerFactory(rio):
     response = client.get(f"/assets?url={DATA_DIR}/item.json")
     assert response.status_code == 200
     assert len(response.json()) == 2
-
-    response = client.get(f"/bounds?url={DATA_DIR}/item.json")
-    assert response.status_code == 200
-    assert len(response.json()["bounds"]) == 4
-    assert response.json()["crs"]
 
     # no assets
     with pytest.warns(UserWarning):
@@ -1173,7 +1162,7 @@ def test_MultiBandTilerFactory():
     bands = MultiBandTilerFactory(
         reader=BandFileReader, path_dependency=CustomPathParams
     )
-    assert len(bands.router.routes) == 24
+    assert len(bands.router.routes) == 23
 
     app = FastAPI()
     app.include_router(bands.router)
@@ -1558,7 +1547,7 @@ def test_TilerFactory_WithDependencies():
         route_dependencies=[
             (
                 [
-                    {"path": "/bounds", "method": "GET"},
+                    {"path": "/info", "method": "GET"},
                     {"path": "/tiles/{tileMatrixSetId}/{z}/{x}/{y}", "method": "GET"},
                 ],
                 [Depends(must_be_bob)],
@@ -1566,7 +1555,7 @@ def test_TilerFactory_WithDependencies():
         ],
         router_prefix="something",
     )
-    assert len(cog.router.routes) == 23
+    assert len(cog.router.routes) == 22
 
     app = FastAPI()
     app.include_router(cog.router, prefix="/something")
@@ -1582,14 +1571,10 @@ def test_TilerFactory_WithDependencies():
     assert response.headers["content-type"] == "application/json"
     assert response.json()["tilejson"]
 
-    response = client.get(
-        f"/something/bounds?url={DATA_DIR}/cog.tif&rescale=0,1000", auth=auth_bob
-    )
+    response = client.get(f"/something/info?url={DATA_DIR}/cog.tif", auth=auth_bob)
     assert response.status_code == 200
 
-    response = client.get(
-        f"/something/bounds?url={DATA_DIR}/cog.tif&rescale=0,1000", auth=auth_notbob
-    )
+    response = client.get(f"/something/info?url={DATA_DIR}/cog.tif", auth=auth_notbob)
     assert response.status_code == 401
     assert response.json()["detail"] == "You're not Bob"
 
@@ -1615,7 +1600,7 @@ def test_TilerFactory_WithDependencies():
 
     cog = TilerFactory(router_prefix="something")
     cog.add_route_dependencies(
-        scopes=[{"path": "/bounds", "method": "GET"}],
+        scopes=[{"path": "/info", "method": "GET"}],
         dependencies=[Depends(must_be_bob)],
     )
 
@@ -1630,14 +1615,10 @@ def test_TilerFactory_WithDependencies():
     assert response.headers["content-type"] == "application/json"
     assert response.json()["tilejson"]
 
-    response = client.get(
-        f"/something/bounds?url={DATA_DIR}/cog.tif&rescale=0,1000", auth=auth_bob
-    )
+    response = client.get(f"/something/info?url={DATA_DIR}/cog.tif", auth=auth_bob)
     assert response.status_code == 200
 
-    response = client.get(
-        f"/something/bounds?url={DATA_DIR}/cog.tif&rescale=0,1000", auth=auth_notbob
-    )
+    response = client.get(f"/something/info?url={DATA_DIR}/cog.tif", auth=auth_notbob)
     assert response.status_code == 401
     assert response.json()["detail"] == "You're not Bob"
 
@@ -2088,7 +2069,7 @@ def test_ogc_maps_cog():
     cog_path = f"{DATA_DIR}/cog.tif"
 
     cog = TilerFactory(add_ogc_maps=True)
-    assert len(cog.router.routes) == 24
+    assert len(cog.router.routes) == 23
 
     assert "https://www.opengis.net/spec/ogcapi-maps-1/1.0/conf/core" in cog.conforms_to
 

@@ -220,28 +220,28 @@ The following code (in **map.html**) loads a base map, adds your TiTiler raster 
     /// Define the local raster path and TiTiler endpoint
     // Replace with your own full GeoTIFF path - use the appropriate format for your OS.
     var rasterPath = 'file:///path_to_your_raster.tif';
-    var titilerUrl = 'http://127.0.0.1:8000/tiles/WebMercatorQuad/{z}/{x}/{y}.png?url=' + encodeURIComponent(rasterPath);
-
-    // Add the TiTiler raster overlay with some transparency
-    L.tileLayer(titilerUrl, {
-      tileSize: 256,
-      opacity: 0.7,
-      maxZoom: 22
-    }).addTo(map);
 
     // Fetch the raster's bounding box from TiTiler and adjust the map view accordingly
-    var boundsUrl = 'http://127.0.0.1:8000/bounds?url=' + encodeURIComponent(rasterPath);
-    console.log(boundsUrl)
-    fetch(boundsUrl)
+    var tileJSONUrl = 'http://127.0.0.1:8000/WebMercatorQuad/tilejson.json?url=' + encodeURIComponent(rasterPath);
+    console.log(tileJSONUrl)
+    fetch(tileJSONUrl)
       .then(response => response.json())
       .then(data => {
-        console.log("Bounds data:", data);
+        console.log("Bounds data:", data.bounds);
         if (data && data.bounds) {
           // data.bounds is [minX, minY, maxX, maxY]
           var b = data.bounds;
           // Convert to Leaflet bounds: [[southWest_lat, southWest_lng], [northEast_lat, northEast_lng]]
           var leafletBounds = [[b[1], b[0]], [b[3], b[2]]];
           map.fitBounds(leafletBounds);
+
+          // Add the TiTiler raster overlay with some transparency
+          L.tileLayer(data.tiles[0], {
+            tileSize: 256,
+            opacity: 0.7,
+            maxZoom: data.maxzoom
+          }).addTo(map);
+
         } else {
           console.error("No bounds returned from TiTiler.");
         }

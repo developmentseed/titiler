@@ -10,7 +10,6 @@ The `/stac` routes are based on `titiler.core.factory.MultiBaseTilerFactory` but
 | Method | URL                                                                  | Output    | Description
 | ------ | -------------------------------------------------------------------- |---------- |--------------
 | `GET`  | `/stac/assets`                                                       | JSON      | return available assets within the STAC item
-| `GET`  | `/stac/bounds`                                                       | JSON      | return STAC item bounds
 | `GET`  | `/stac/info`                                                         | JSON      | return asset's basic info
 | `GET`  | `/stac/info.geojson`                                                 | GeoJSON   | return asset's basic info as a GeoJSON feature
 | `GET`  | `/stac/asset_statistics`                                             | JSON      | return per asset statistics
@@ -344,19 +343,6 @@ Example:
 - `https://myendpoint/stac/WebMercatorQuad/tilejson.json?url=https://somewhere.com/item.json&assets=B01`
 - `https://myendpoint/stac/WebMercatorQuad/tilejson.json?url=https://somewhere.com/item.json&assets=B01&tile_format=png`
 - `https://myendpoint/stac/WorldCRS84Quad/tilejson.json?url=https://somewhere.com/item.json&tile_scale=2&expression=B01/B02`
-
-
-### Bounds
-
-`:endpoint:/stac/bounds` - Return the bounds of the STAC item.
-
-- QueryParams:
-    - **url** (str): STAC Item URL. **Required**
-    - **crs** (str): Geographic Coordinate Reference System. Default to `epsg:4326`.
-
-Example:
-
-- `https://myendpoint/stac/bounds?url=https://somewhere.com/item.json`
 
 
 ### Info
