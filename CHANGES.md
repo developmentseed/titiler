@@ -1,5 +1,11 @@
 # Release Notes
 
+## Unreleased
+
+### titiler.xarray
+
+* add `/validate` endpoint via `ValidateExtension` extension
+
 ## 0.25.0 (2025-11-07)
 
 ### Misc 
