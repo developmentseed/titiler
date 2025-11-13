@@ -1,7 +1,7 @@
 """titiler.xarray Extensions."""
 
 import warnings
-from typing import Callable, List, Optional, Type
+from typing import Callable, Dict, List, Optional, Type, TypedDict
 
 import xarray
 from attrs import define
@@ -113,6 +113,14 @@ class DatasetMetadataExtension(FactoryExtension):
                 return list(ds.data_vars)
 
 
+class ValidationInfo(TypedDict):
+    """Variable Validation model."""
+
+    compatible_with_titiler: bool
+    errors: List[str]
+    warnings: List[str]
+
+
 @define
 class ValidateExtension(FactoryExtension):
     """Add /validate endpoints to a Xarray TilerFactory."""
@@ -120,7 +128,7 @@ class ValidateExtension(FactoryExtension):
     io_dependency: Type[DefaultDependency] = XarrayIOParams
     dataset_opener: Callable[..., xarray.Dataset] = open_zarr
 
-    def _validate_variable(self, da: xarray.DataArray):  # noqa: C901
+    def _validate_variable(self, da: xarray.DataArray) -> ValidationInfo:  # noqa: C901
         errors: List[str] = []
         warnings: List[str] = []
 
@@ -203,6 +211,7 @@ class ValidateExtension(FactoryExtension):
                     },
                 },
             },
+            response_model=Dict[str, ValidationInfo],
         )
         def validate_dataset(
             src_path=Depends(factory.path_dependency),
