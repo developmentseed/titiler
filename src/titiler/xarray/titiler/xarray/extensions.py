@@ -132,66 +132,77 @@ class ValidateExtension(FactoryExtension):
         errors: List[str] = []
         warnings: List[str] = []
 
-        if "x" not in da.dims and "y" not in da.dims:
+        if len(da.dims) not in [2, 3]:
+            warnings.append(
+                f"DataArray has too many dimension ({len(da.dims)}) for titiler.xarray, dimensions reduction (sel) will be required.",
+            )
+
+        if "y" not in da.dims:
             try:
                 latitude_var_name = next(
                     name
                     for name in ["lat", "latitude", "LAT", "LATITUDE", "Lat"]
                     if name in da.dims
                 )
+                da = da.rename({latitude_var_name: "y"})
+
+            except StopIteration:
+                errors.append(
+                    "Dataset does not have compatible `Y` spatial coordinates"
+                )
+
+        if "x" not in da.dims:
+            try:
                 longitude_var_name = next(
                     name
                     for name in ["lon", "longitude", "LON", "LONGITUDE", "Lon"]
                     if name in da.dims
                 )
 
-                da = da.rename({latitude_var_name: "y", longitude_var_name: "x"})
-
-                if extra_dims := [d for d in da.dims if d not in ["x", "y"]]:
-                    da = da.transpose(*extra_dims, "y", "x")
-                else:
-                    da = da.transpose("y", "x")
-
+                da = da.rename({longitude_var_name: "x"})
             except StopIteration:
-                errors.append("Dataset does not have compatible spatial coordinates")
-
-        bounds = da.rio.bounds()
-        if not bounds:
-            errors.append("Dataset does not have rioxarray bounds")
-
-        res = da.rio.resolution()
-        if not res:
-            errors.append("Dataset does not have rioxarray resolution")
-
-        if res and bounds:
-            crs = da.rio.crs or "epsg:4326"
-            xres, yres = map(abs, res)
-
-            # Adjust the longitude coordinates to the -180 to 180 range
-            if crs == "epsg:4326" and (da.x > 180 + xres / 2).any():
-                da = da.assign_coords(x=(da.x + 180) % 360 - 180)
-
-                # Sort the dataset by the updated longitude coordinates
-                da = da.sortby(da.x)
-
-            bounds = tuple(da.rio.bounds())
-            if crs == WGS84_CRS and (
-                bounds[0] + xres / 2 < -180
-                or bounds[1] + yres / 2 < -90
-                or bounds[2] - xres / 2 > 180
-                or bounds[3] - yres / 2 > 90
-            ):
                 errors.append(
-                    "Dataset bounds are not valid, must be in [-180, 180] and [-90, 90]"
+                    "Dataset does not have compatible `X` spatial coordinates"
                 )
 
-        if not da.rio.transform():
-            errors.append("Dataset does not have rioxarray transform")
+        if {"x", "y"}.issubset(set(da.dims)):
+            if extra_dims := [d for d in da.dims if d not in ["x", "y"]]:
+                da = da.transpose(*extra_dims, "y", "x")
+            else:
+                da = da.transpose("y", "x")
 
-        if len(da.dims) not in [2, 3]:
-            warnings.append(
-                f"DataArray has too many dimension ({len(da.dims)}) for titiler.xarray, dimensions reduction (sel) will be required.",
-            )
+            bounds = da.rio.bounds()
+            if not bounds:
+                errors.append("Dataset does not have rioxarray bounds")
+
+            res = da.rio.resolution()
+            if not res:
+                errors.append("Dataset does not have rioxarray resolution")
+
+            if res and bounds:
+                crs = da.rio.crs or "epsg:4326"
+                xres, yres = map(abs, res)
+
+                # Adjust the longitude coordinates to the -180 to 180 range
+                if crs == "epsg:4326" and (da.x > 180 + xres / 2).any():
+                    da = da.assign_coords(x=(da.x + 180) % 360 - 180)
+
+                    # Sort the dataset by the updated longitude coordinates
+                    da = da.sortby(da.x)
+
+                bounds = tuple(da.rio.bounds())
+                if crs == WGS84_CRS and (
+                    bounds[0] + xres / 2 < -180
+                    or bounds[1] + yres / 2 < -90
+                    or bounds[2] - xres / 2 > 180
+                    or bounds[3] - yres / 2 > 90
+                ):
+                    errors.append(
+                        "Dataset bounds are not valid, must be in [-180, 180] and [-90, 90]"
+                    )
+
+            if not da.rio.transform():
+                errors.append("Dataset does not have rioxarray transform")
 
         return {
             "compatible_with_titiler": True if not errors else False,
