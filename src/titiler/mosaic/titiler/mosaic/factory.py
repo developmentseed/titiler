@@ -1,5 +1,6 @@
 """TiTiler.mosaic Router factories."""
 
+import logging
 import os
 from typing import Any, Callable, Dict, List, Literal, Optional, Set, Tuple, Type, Union
 from urllib.parse import urlencode
@@ -8,7 +9,6 @@ import rasterio
 from attrs import define, field
 from cogeo_mosaic.backends import BaseBackend, MosaicBackend
 from cogeo_mosaic.models import Info as mosaicInfo
-from cogeo_mosaic.mosaic import MosaicJSON
 from fastapi import Depends, HTTPException, Path, Query
 from geojson_pydantic.features import Feature
 from geojson_pydantic.geometries import Polygon
@@ -18,7 +18,6 @@ from morecantile.models import crs_axis_inverted
 from pydantic import Field
 from rio_tiler.constants import MAX_THREADS, WGS84_CRS
 from rio_tiler.io import BaseReader, MultiBandReader, MultiBaseReader, Reader
-from rio_tiler.models import Bounds
 from rio_tiler.mosaic.methods import PixelSelectionMethod
 from rio_tiler.mosaic.methods.base import MosaicMethodBase
 from rio_tiler.types import ColorMapType
@@ -26,7 +25,6 @@ from rio_tiler.utils import CRS_to_uri, CRS_to_urn
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, Response
 from starlette.routing import NoMatchFound
-from starlette.templating import Jinja2Templates
 from typing_extensions import Annotated
 
 from titiler.core.algorithm import BaseAlgorithm
@@ -41,7 +39,7 @@ from titiler.core.dependencies import (
     ImageRenderingParams,
     TileParams,
 )
-from titiler.core.factory import DEFAULT_TEMPLATES, BaseFactory, img_endpoint_params
+from titiler.core.factory import BaseFactory, img_endpoint_params
 from titiler.core.models.mapbox import TileJSON
 from titiler.core.models.OGC import TileSet, TileSetList
 from titiler.core.resources.enums import ImageType, OptionalHeader
@@ -54,6 +52,8 @@ MOSAIC_STRICT_ZOOM = str(os.getenv("MOSAIC_STRICT_ZOOM", False)).lower() in [
     "true",
     "yes",
 ]
+
+logger = logging.getLogger(__name__)
 
 
 def PixelSelectionParams(
@@ -90,6 +90,9 @@ class MosaicTilerFactory(BaseFactory):
     # Path Dependency
     path_dependency: Callable[..., Any] = DatasetPathParams
 
+    # Backend.get_assets() Options
+    assets_accessor_dependency: Type[DefaultDependency] = DefaultDependency
+
     # Indexes/Expression Dependencies
     layer_dependency: Type[DefaultDependency] = BidxExprParams
 
@@ -115,8 +118,6 @@ class MosaicTilerFactory(BaseFactory):
 
     supported_tms: TileMatrixSets = morecantile_tms
 
-    templates: Jinja2Templates = DEFAULT_TEMPLATES
-
     render_func: Callable[..., Tuple[bytes, str]] = render_image
 
     optional_headers: List[OptionalHeader] = field(factory=list)
@@ -127,22 +128,20 @@ class MosaicTilerFactory(BaseFactory):
     conforms_to: Set[str] = field(
         factory=lambda: {
             # https://docs.ogc.org/is/20-057/20-057.html#toc30
-            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/req/tileset",
+            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/conf/tileset",
             # https://docs.ogc.org/is/20-057/20-057.html#toc34
-            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/req/tilesets-list",
+            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/conf/tilesets-list",
             # https://docs.ogc.org/is/20-057/20-057.html#toc65
-            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/req/core",
-            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/req/png",
-            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/req/jpeg",
-            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/req/tiff",
+            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/conf/core",
+            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/conf/png",
+            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/conf/jpeg",
+            "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/conf/tiff",
         }
     )
 
     def register_routes(self):
         """This Method register routes to the router."""
 
-        self.read()
-        self.bounds()
         self.info()
         self.tilesets()
         self.tile()
@@ -151,70 +150,7 @@ class MosaicTilerFactory(BaseFactory):
         self.tilejson()
         self.wmts()
         self.point()
-        self.validate()
         self.assets()
-
-    ############################################################################
-    # /read
-    ############################################################################
-    def read(self):
-        """Register / (Get) Read endpoint."""
-
-        @self.router.get(
-            "/",
-            response_model=MosaicJSON,
-            response_model_exclude_none=True,
-            responses={200: {"description": "Return MosaicJSON definition"}},
-            operation_id=f"{self.operation_prefix}getMosaicJSON",
-        )
-        def read(
-            src_path=Depends(self.path_dependency),
-            backend_params=Depends(self.backend_dependency),
-            reader_params=Depends(self.reader_dependency),
-            env=Depends(self.environment_dependency),
-        ):
-            """Read a MosaicJSON"""
-            with rasterio.Env(**env):
-                with self.backend(
-                    src_path,
-                    reader=self.dataset_reader,
-                    reader_options=reader_params.as_dict(),
-                    **backend_params.as_dict(),
-                ) as src_dst:
-                    return src_dst.mosaic_def
-
-    ############################################################################
-    # /bounds
-    ############################################################################
-    def bounds(self):
-        """Register /bounds endpoint."""
-
-        @self.router.get(
-            "/bounds",
-            response_model=Bounds,
-            responses={200: {"description": "Return the bounds of the MosaicJSON"}},
-            operation_id=f"{self.operation_prefix}getBounds",
-        )
-        def bounds(
-            src_path=Depends(self.path_dependency),
-            backend_params=Depends(self.backend_dependency),
-            reader_params=Depends(self.reader_dependency),
-            crs=Depends(CRSParams),
-            env=Depends(self.environment_dependency),
-        ):
-            """Return the bounds of the MosaicJSON."""
-            with rasterio.Env(**env):
-                with self.backend(
-                    src_path,
-                    reader=self.dataset_reader,
-                    reader_options=reader_params.as_dict(),
-                    **backend_params.as_dict(),
-                ) as src_dst:
-                    crs = crs or WGS84_CRS
-                    return {
-                        "bounds": src_dst.get_geographic_bounds(crs or WGS84_CRS),
-                        "crs": CRS_to_uri(crs) or crs.to_wkt(),
-                    }
 
     ############################################################################
     # /info
@@ -236,6 +172,9 @@ class MosaicTilerFactory(BaseFactory):
         ):
             """Return basic info."""
             with rasterio.Env(**env):
+                logger.info(
+                    f"opening data with backend: {self.backend} and reader {self.dataset_reader}"
+                )
                 with self.backend(
                     src_path,
                     reader=self.dataset_reader,
@@ -266,6 +205,9 @@ class MosaicTilerFactory(BaseFactory):
         ):
             """Return mosaic's basic info as a GeoJSON feature."""
             with rasterio.Env(**env):
+                logger.info(
+                    f"opening data with backend: {self.backend} and reader {self.dataset_reader}"
+                )
                 with self.backend(
                     src_path,
                     reader=self.dataset_reader,
@@ -313,6 +255,9 @@ class MosaicTilerFactory(BaseFactory):
         ):
             """Retrieve a list of available raster tilesets for the specified dataset."""
             with rasterio.Env(**env):
+                logger.info(
+                    f"opening data with backend: {self.backend} and reader {self.dataset_reader}"
+                )
                 with self.backend(
                     src_path,
                     reader=self.dataset_reader,
@@ -373,7 +318,7 @@ class MosaicTilerFactory(BaseFactory):
                             "href": str(
                                 request.url_for("tilematrixset", tileMatrixSetId=tms)
                             ),
-                            "rel": "http://www.opengis.net/def/rel/ogc/1.0/tiling-schemes",
+                            "rel": "http://www.opengis.net/def/rel/ogc/1.0/tiling-scheme",
                             "type": "application/json",
                             "title": f"Definition of '{tms}' tileMatrixSet",
                         }
@@ -411,6 +356,9 @@ class MosaicTilerFactory(BaseFactory):
             """Retrieve the raster tileset metadata for the specified dataset and tiling scheme (tile matrix set)."""
             tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
+                logger.info(
+                    f"opening data with backend: {self.backend} and reader {self.dataset_reader}"
+                )
                 with self.backend(
                     src_path,
                     tms=tms,
@@ -485,7 +433,7 @@ class MosaicTilerFactory(BaseFactory):
                                 "tilematrixset", tileMatrixSetId=tileMatrixSetId
                             )
                         ),
-                        "rel": "http://www.opengis.net/def/rel/ogc/1.0/tiling-schemes",
+                        "rel": "http://www.opengis.net/def/rel/ogc/1.0/tiling-scheme",
                         "type": "application/json",
                         "title": f"Definition of '{tileMatrixSetId}' tileMatrixSet",
                     }
@@ -580,11 +528,14 @@ class MosaicTilerFactory(BaseFactory):
             ] = 1,
             format: Annotated[
                 ImageType,
-                "Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
+                Field(
+                    description="Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
+                ),
             ] = None,
             src_path=Depends(self.path_dependency),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
+            assets_accessor_params=Depends(self.assets_accessor_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             pixel_selection=Depends(self.pixel_selection_dependency),
@@ -603,6 +554,9 @@ class MosaicTilerFactory(BaseFactory):
 
             tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
+                logger.info(
+                    f"opening data with backend: {self.backend} and reader {self.dataset_reader}"
+                )
                 with self.backend(
                     src_path,
                     tms=tms,
@@ -628,6 +582,7 @@ class MosaicTilerFactory(BaseFactory):
                         **tile_params.as_dict(),
                         **layer_params.as_dict(),
                         **dataset_params.as_dict(),
+                        **assets_accessor_params.as_dict(),
                     )
 
             if post_process:
@@ -643,6 +598,11 @@ class MosaicTilerFactory(BaseFactory):
             headers: Dict[str, str] = {}
             if OptionalHeader.x_assets in self.optional_headers:
                 headers["X-Assets"] = ",".join(assets)
+
+            if image.bounds is not None:
+                headers["Content-Bbox"] = ",".join(map(str, image.bounds))
+            if uri := CRS_to_uri(image.crs):
+                headers["Content-Crs"] = f"<{uri}>"
 
             return Response(content, media_type=media_type, headers=headers)
 
@@ -687,6 +647,7 @@ class MosaicTilerFactory(BaseFactory):
             src_path=Depends(self.path_dependency),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
+            assets_accessor_params=Depends(self.assets_accessor_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             pixel_selection=Depends(self.pixel_selection_dependency),
@@ -725,6 +686,9 @@ class MosaicTilerFactory(BaseFactory):
 
             tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
+                logger.info(
+                    f"opening data with backend: {self.backend} and reader {self.dataset_reader}"
+                )
                 with self.backend(
                     src_path,
                     tms=tms,
@@ -742,6 +706,7 @@ class MosaicTilerFactory(BaseFactory):
                         "minzoom": minzoom if minzoom is not None else src_dst.minzoom,
                         "maxzoom": maxzoom if maxzoom is not None else src_dst.maxzoom,
                         "tiles": [tiles_url],
+                        "attribution": os.environ.get("TITILER_DEFAULT_ATTRIBUTION"),
                     }
 
     def map_viewer(self):  # noqa: C901
@@ -783,6 +748,7 @@ class MosaicTilerFactory(BaseFactory):
             src_path=Depends(self.path_dependency),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
+            assets_accessor_params=Depends(self.assets_accessor_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             pixel_selection=Depends(self.pixel_selection_dependency),
@@ -856,6 +822,7 @@ class MosaicTilerFactory(BaseFactory):
             src_path=Depends(self.path_dependency),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
+            assets_accessor_params=Depends(self.assets_accessor_dependency),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             pixel_selection=Depends(self.pixel_selection_dependency),
@@ -894,6 +861,9 @@ class MosaicTilerFactory(BaseFactory):
 
             tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
+                logger.info(
+                    f"opening data with backend: {self.backend} and reader {self.dataset_reader}"
+                )
                 with self.backend(
                     src_path,
                     tms=tms,
@@ -925,6 +895,16 @@ class MosaicTilerFactory(BaseFactory):
             else:
                 supported_crs = tms.crs.srs
 
+            bbox_crs_type = "WGS84BoundingBox"
+            bbox_crs_uri = "urn:ogc:def:crs:OGC:2:84"
+            if tms.rasterio_geographic_crs != WGS84_CRS:
+                bbox_crs_type = "BoundingBox"
+                bbox_crs_uri = CRS_to_urn(tms.rasterio_geographic_crs)
+                # WGS88BoundingBox is always xy ordered, but BoundingBox must match the CRS order
+                if crs_axis_inverted(tms.geographic_crs):
+                    # match the bounding box coordinate order to the CRS
+                    bounds = [bounds[1], bounds[0], bounds[3], bounds[2]]
+
             layers = [
                 {
                     "title": (
@@ -936,16 +916,6 @@ class MosaicTilerFactory(BaseFactory):
                     "bounds": bounds,
                 },
             ]
-
-            bbox_crs_type = "WGS84BoundingBox"
-            bbox_crs_uri = "urn:ogc:def:crs:OGC:2:84"
-            if tms.rasterio_geographic_crs != WGS84_CRS:
-                bbox_crs_type = "BoundingBox"
-                bbox_crs_uri = CRS_to_urn(tms.rasterio_geographic_crs)
-                # WGS88BoundingBox is always xy ordered, but BoundingBox must match the CRS order
-                if crs_axis_inverted(tms.geographic_crs):
-                    # match the bounding box coordinate order to the CRS
-                    bounds = [bounds[1], bounds[0], bounds[3], bounds[2]]
 
             return self.templates.TemplateResponse(
                 request,
@@ -982,6 +952,7 @@ class MosaicTilerFactory(BaseFactory):
             src_path=Depends(self.path_dependency),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
+            assets_accessor_params=Depends(self.assets_accessor_dependency),
             coord_crs=Depends(CoordCRSParams),
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
@@ -989,6 +960,9 @@ class MosaicTilerFactory(BaseFactory):
         ):
             """Get Point value for a Mosaic."""
             with rasterio.Env(**env):
+                logger.info(
+                    f"opening data with backend: {self.backend} and reader {self.dataset_reader}"
+                )
                 with self.backend(
                     src_path,
                     reader=self.dataset_reader,
@@ -1002,6 +976,7 @@ class MosaicTilerFactory(BaseFactory):
                         threads=MOSAIC_THREADS,
                         **layer_params.as_dict(),
                         **dataset_params.as_dict(),
+                        **assets_accessor_params.as_dict(),
                     )
 
             return {
@@ -1010,17 +985,6 @@ class MosaicTilerFactory(BaseFactory):
                     (src, pts.array.tolist(), pts.band_names) for src, pts in values
                 ],
             }
-
-    def validate(self):
-        """Register /validate endpoint."""
-
-        @self.router.post(
-            "/validate",
-            operation_id=f"{self.operation_prefix}validate",
-        )
-        def validate(body: MosaicJSON):
-            """Validate a MosaicJSON"""
-            return True
 
     def assets(self):
         """Register /assets endpoint."""
@@ -1038,11 +1002,15 @@ class MosaicTilerFactory(BaseFactory):
             src_path=Depends(self.path_dependency),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
+            assets_accessor_params=Depends(self.assets_accessor_dependency),
             coord_crs=Depends(CoordCRSParams),
             env=Depends(self.environment_dependency),
         ):
             """Return a list of assets which overlap a bounding box"""
             with rasterio.Env(**env):
+                logger.info(
+                    f"opening data with backend: {self.backend} and reader {self.dataset_reader}"
+                )
                 with self.backend(
                     src_path,
                     reader=self.dataset_reader,
@@ -1055,6 +1023,7 @@ class MosaicTilerFactory(BaseFactory):
                         maxx,
                         maxy,
                         coord_crs=coord_crs or WGS84_CRS,
+                        **assets_accessor_params.as_dict(),
                     )
 
         @self.router.get(
@@ -1069,10 +1038,14 @@ class MosaicTilerFactory(BaseFactory):
             coord_crs=Depends(CoordCRSParams),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
+            assets_accessor_params=Depends(self.assets_accessor_dependency),
             env=Depends(self.environment_dependency),
         ):
             """Return a list of assets which overlap a point"""
             with rasterio.Env(**env):
+                logger.info(
+                    f"opening data with backend: {self.backend} and reader {self.dataset_reader}"
+                )
                 with self.backend(
                     src_path,
                     reader=self.dataset_reader,
@@ -1083,6 +1056,7 @@ class MosaicTilerFactory(BaseFactory):
                         lon,
                         lat,
                         coord_crs=coord_crs or WGS84_CRS,
+                        **assets_accessor_params.as_dict(),
                     )
 
         @self.router.get(
@@ -1118,11 +1092,15 @@ class MosaicTilerFactory(BaseFactory):
             src_path=Depends(self.path_dependency),
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
+            assets_accessor_params=Depends(self.assets_accessor_dependency),
             env=Depends(self.environment_dependency),
         ):
             """Return a list of assets which overlap a given tile"""
             tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
+                logger.info(
+                    f"opening data with backend: {self.backend} and reader {self.dataset_reader}"
+                )
                 with self.backend(
                     src_path,
                     tms=tms,
@@ -1130,4 +1108,9 @@ class MosaicTilerFactory(BaseFactory):
                     reader_options=reader_params.as_dict(),
                     **backend_params.as_dict(),
                 ) as src_dst:
-                    return src_dst.assets_for_tile(x, y, z)
+                    return src_dst.assets_for_tile(
+                        x,
+                        y,
+                        z,
+                        **assets_accessor_params.as_dict(),
+                    )

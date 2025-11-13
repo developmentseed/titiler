@@ -56,9 +56,10 @@ Factory meant to create endpoints for single dataset using [*rio-tiler*'s `Reade
 - **supported_tms**: List of available TileMatrixSets. Defaults to `morecantile.tms`.
 - **templates**: *Jinja2* templates to use in endpoints. Defaults to `titiler.core.factory.DEFAULT_TEMPLATES`.
 - **render_func**: Image rendering method. Defaults to `titiler.core.utils.render_image`.
-- **add_preview**: . Add `/preview` endpoint to the router. Defaults to `True`.
-- **add_part**: . Add `/bbox` and `/feature` endpoints to the router. Defaults to `True`.
-- **add_viewer**: . Add `/map.html` endpoints to the router. Defaults to `True`.
+- **add_preview**: Add `/preview` endpoint to the router. Defaults to `True`.
+- **add_part**: Add `/bbox` and `/feature` endpoints to the router. Defaults to `True`.
+- **add_viewer**: Add `/{TileMatrixSetId}/map.html` endpoints to the router. Defaults to `True`.
+- **add_ogc_maps**: Add `/map` endoint (OGC Maps API) to the router. Defaults to `False`.
 
 #### Endpoints
 
@@ -75,6 +76,7 @@ cog = TilerFactory(
     add_preview=True,
     add_part=True,
     add_viewer=True,
+    add_ogc_maps=True,
 )
 
 # add router endpoint to the main application
@@ -83,7 +85,6 @@ app.include_router(cog.router)
 
 | Method | URL                                                             | Output                                      | Description
 | ------ | --------------------------------------------------------------- |-------------------------------------------- |--------------
-| `GET`  | `/bounds`                                                       | JSON ([Bounds][bounds_model])               | return dataset's bounds
 | `GET`  | `/info`                                                         | JSON ([Info][info_model])                   | return dataset's basic info
 | `GET`  | `/info.geojson`                                                 | GeoJSON ([InfoGeoJSON][info_geojson_model]) | return dataset's basic info as a GeoJSON feature
 | `GET`  | `/statistics`                                                   | JSON ([Statistics][stats_model])            | return dataset's statistics
@@ -95,9 +96,10 @@ app.include_router(cog.router)
 | `GET`  | `/{tileMatrixSetId}/tilejson.json`                              | JSON ([TileJSON][tilejson_model])           | return a Mapbox TileJSON document
 | `GET`  | `/{tileMatrixSetId}/WMTSCapabilities.xml`                       | XML                                         | return OGC WMTS Get Capabilities
 | `GET`  | `/point/{lon},{lat}`                                            | JSON ([Point][point_model])                 | return pixel values from a dataset
-| `GET`  | `/preview[.{format}]`                                           | image/bin                                   | create a preview image from a dataset **Optional**
 | `GET`  | `/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                   | create an image from part of a dataset **Optional**
 | `POST` | `/feature[/{width}x{height}][.{format}]`                        | image/bin                                   | create an image from a GeoJSON feature **Optional**
+| `GET`  | `/preview[/{width}x{height}][.{format}]`                        | image/bin                                   | create a preview image from a dataset **Optional**
+| `GET`  | `/maps`                                                         | image/bin                                   | create maps from a dataset **Optional**
 
 
 ### MultiBaseTilerFactory
@@ -122,13 +124,18 @@ from rio_tiler.io import STACReader  # STACReader is a MultiBaseReader
 from titiler.core.factory import MultiBaseTilerFactory
 
 app = FastAPI()
-stac = MultiBaseTilerFactory(reader=STACReader)
+stac = MultiBaseTilerFactory(
+    reader=STACReader,
+    add_preview=True,
+    add_part=True,
+    add_viewer=True,
+    add_ogc_maps=True,
+)
 app.include_router(stac.router)
 ```
 
 | Method | URL                                                             | Output                                           | Description
 | ------ | --------------------------------------------------------------- |------------------------------------------------- |--------------
-| `GET`  | `/bounds`                                                       | JSON ([Bounds][bounds_model])                    | return dataset's bounds
 | `GET`  | `/assets`                                                       | JSON                                             | return the list of available assets
 | `GET`  | `/info`                                                         | JSON ([Info][multiinfo_model])                   | return assets basic info
 | `GET`  | `/info.geojson`                                                 | GeoJSON ([InfoGeoJSON][multiinfo_geojson_model]) | return assets basic info as a GeoJSON feature
@@ -142,9 +149,10 @@ app.include_router(stac.router)
 | `GET`  | `/{tileMatrixSetId}/tilejson.json`                              | JSON ([TileJSON][tilejson_model])                | return a Mapbox TileJSON document
 | `GET`  | `/{tileMatrixSetId}/WMTSCapabilities.xml`                       | XML                                              | return OGC WMTS Get Capabilities
 | `GET`  | `/point/{lon},{lat}`                                            | JSON ([Point][multipoint_model])                 | return pixel values from assets
-| `GET`  | `/preview[.{format}]`                                           | image/bin                                        | create a preview image from assets **Optional**
 | `GET`  | `/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                        | create an image from part of assets **Optional**
 | `POST` | `/feature[/{width}x{height}][.{format}]`                        | image/bin                                        | create an image from a geojson feature intersecting assets **Optional**
+| `GET`  | `/preview[/{width}x{height}][.{format}]`                        | image/bin                                        | create a preview image from assets **Optional**
+| `GET`  | `/map`                                                         | image/bin                                        | create maps from a dataset **Optional**
 
 ### MultiBandTilerFactory
 
@@ -185,7 +193,6 @@ app.include_router(landsat.router)
 
 | Method | URL                                                             | Output                                       | Description
 | ------ | --------------------------------------------------------------- |--------------------------------------------- |--------------
-| `GET`  | `/bounds`                                                       | JSON ([Bounds][bounds_model])                | return dataset's bounds
 | `GET`  | `/bands`                                                        | JSON                                         | return the list of available bands
 | `GET`  | `/info`                                                         | JSON ([Info][info_model])                    | return basic info for a dataset
 | `GET`  | `/info.geojson`                                                 | GeoJSON ([InfoGeoJSON][info_geojson_model])  | return basic info for a dataset as a GeoJSON feature
@@ -198,9 +205,10 @@ app.include_router(landsat.router)
 | `GET`  | `/{tileMatrixSetId}/tilejson.json`                              | JSON ([TileJSON][tilejson_model])            | return a Mapbox TileJSON document
 | `GET`  | `/{tileMatrixSetId}/WMTSCapabilities.xml`                       | XML                                          | return OGC WMTS Get Capabilities
 | `GET`  | `/point/{lon},{lat}`                                            | JSON ([Point][point_model])                  | return pixel value from a dataset
-| `GET`  | `/preview[.{format}]`                                           | image/bin                                    | create a preview image from a dataset **Optional**
 | `GET`  | `/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                    | create an image from part of a dataset **Optional**
 | `POST` | `/feature[/{width}x{height}][.{format}]`                        | image/bin                                    | create an image from a geojson feature **Optional**
+| `GET`  | `/preview[/{width}x{height}][.{format}]`                        | image/bin                                    | create a preview image from a dataset **Optional**
+| `GET`  | `/map`                                                         | image/bin                                    | create maps from a dataset **Optional**
 
 
 ### TMSFactory
@@ -302,6 +310,7 @@ Endpoints factory for mosaics, built on top of [MosaicJSON](https://github.com/d
 - **dataset_reader**: Dataset Reader. Defaults to `rio_tiler.io.Reader`
 - **reader_dependency**: Dependency to control options passed to the reader instance init. Defaults to `titiler.core.dependencies.DefaultDependency`
 - **path_dependency**: Dependency to use to define the dataset url. Defaults to `titiler.mosaic.factory.DatasetPathParams`.
+- **assets_accessor_dependency**: Dependency to define options to be forwarded to the backend `get_assets` method. Defaults to `titiler.core.dependencies.DefaultDependency`.
 - **layer_dependency**: Dependency to define band indexes or expression. Defaults to `titiler.core.dependencies.BidxExprParams`.
 - **dataset_dependency**: Dependency to overwrite `nodata` value, apply `rescaling` and change the `I/O` or `Warp` resamplings. Defaults to `titiler.core.dependencies.DatasetParams`.
 - **tile_dependency**: Dependency to define `buffer` and `padding` to apply at tile creation. Defaults to `titiler.core.dependencies.TileParams`.
@@ -314,26 +323,25 @@ Endpoints factory for mosaics, built on top of [MosaicJSON](https://github.com/d
 - **supported_tms**: List of available TileMatrixSets. Defaults to `morecantile.tms`.
 - **templates**: *Jinja2* templates to use in endpoints. Defaults to `titiler.core.factory.DEFAULT_TEMPLATES`.
 - **optional_headers**: List of OptionalHeader which endpoints could add (if implemented). Defaults to `[]`.
-- **add_viewer**: . Add `/map.html` endpoints to the router. Defaults to `True`.
+- **add_viewer**: Add `/{TileMatrixSetId}/map.html` endpoints to the router. Defaults to `True`.
 
 #### Endpoints
 
 | Method | URL                                                             | Output                                             | Description
 | ------ | --------------------------------------------------------------- |--------------------------------------------------- |--------------
 | `GET`  | `/`                                                             | JSON [MosaicJSON][mosaic_model]                    | return a MosaicJSON document
-| `GET`  | `/bounds`                                                       | JSON ([Bounds][bounds_model])                      | return mosaic's bounds
 | `GET`  | `/info`                                                         | JSON ([Info][mosaic_info_model])                   | return mosaic's basic info
 | `GET`  | `/info.geojson`                                                 | GeoJSON ([InfoGeoJSON][mosaic_geojson_info_model]) | return mosaic's basic info  as a GeoJSON feature
 | `GET`  | `/tiles`                                                        | JSON                                               | List of OGC Tilesets available
 | `GET`  | `/tiles/{tileMatrixSetId}`                                      | JSON                                               | OGC Tileset metadata
 | `GET`  | `/tiles/{tileMatrixSetId}/{z}/{x}/{y}[@{scale}x][.{format}]`    | image/bin                                          | create a web map tile image from a MosaicJSON
+| `GET`  | `/tiles/{tileMatrixSetId}/{z}/{x}/{y}/assets`                   | JSON                                               | return list of assets intersecting a XYZ tile
 | `GET`  | `/{tileMatrixSetId}/map.html`                                   | HTML                                               | return a simple map viewer **Optional**
 | `GET`  | `/{tileMatrixSetId}/tilejson.json`                              | JSON ([TileJSON][tilejson_model])                  | return a Mapbox TileJSON document
 | `GET`  | `/{tileMatrixSetId}/WMTSCapabilities.xml`                       | XML                                                | return OGC WMTS Get Capabilities
 | `GET`  | `/point/{lon},{lat}`                                            | JSON ([Point][mosaic_point])                       | return pixel value from a MosaicJSON dataset
-| `GET`  | `/{z}/{x}/{y}/assets`                                           | JSON                                               | return list of assets intersecting a XYZ tile
-| `GET`  | `/{lon},{lat}/assets`                                           | JSON                                               | return list of assets intersecting a point
-| `GET`  | `/{minx},{miny},{maxx},{maxy}/assets`                           | JSON                                               | return list of assets intersecting a bounding box
+| `GET`  | `/point/{lon},{lat}/assets`                                     | JSON                                               | return list of assets intersecting a point
+| `GET`  | `/bbox/{minx},{miny},{maxx},{maxy}/assets`                      | JSON                                               | return list of assets intersecting a bounding box
 
 ## titiler.xarray
 
@@ -358,9 +366,10 @@ class: `titiler.xarray.factory.TilerFactory`
 - **environment_dependency**: Dependency to define GDAL environment at runtime. Default to `lambda: {}`.
 - **supported_tms**: List of available TileMatrixSets. Defaults to `morecantile.tms`.
 - **templates**: *Jinja2* templates to use in endpoints. Defaults to `titiler.core.factory.DEFAULT_TEMPLATES`.
-- **add_part**: . Add `/bbox` and `/feature` endpoints to the router. Defaults to `True`.
-- **add_viewer**: . Add `/map.html` endpoints to the router. Defaults to `True`.
-
+- **add_part**: Add `/bbox` and `/feature` endpoints to the router. Defaults to `True`.
+- **add_viewer**: Add `/{TileMatrixSetId}/map.html` endpoints to the router. Defaults to `True`.
+- **add_ogc_maps**: Add `/map` endpoints to the router. Default to `False`.
+- **add_preview**: Add `/preview` endpoints to the router. Default to `False`.
 
 ```python
 from fastapi import FastAPI
@@ -372,8 +381,9 @@ app = FastAPI()
 
 # Create router and register set of endpoints
 md = TilerFactory(
-    add_part=True,
-    add_viewer=True,
+    add_part=True,     # default to True
+    add_viewer=True,   # default to True
+    add_preview=True,  # default to False
 )
 
 # add router endpoint to the main application
@@ -384,7 +394,6 @@ app.include_router(md.router)
 
 | Method | URL                                                             | Output                                      | Description
 | ------ | --------------------------------------------------------------- |-------------------------------------------- |--------------
-| `GET`  | `/bounds`                                                       | JSON ([Bounds][bounds_model])               | return dataset's bounds
 | `GET`  | `/info`                                                         | JSON ([Info][info_model])                   | return dataset's basic info
 | `GET`  | `/info.geojson`                                                 | GeoJSON ([InfoGeoJSON][info_geojson_model]) | return dataset's basic info as a GeoJSON feature
 | `POST` | `/statistics`                                                   | GeoJSON ([Statistics][stats_geojson_model]) | return dataset's statistics for a GeoJSON
@@ -397,6 +406,7 @@ app.include_router(md.router)
 | `GET`  | `/point/{lon},{lat}`                                            | JSON ([Point][point_model])                 | return pixel values from a dataset
 | `GET`  | `/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                   | create an image from part of a dataset **Optional**
 | `POST` | `/feature[/{width}x{height}][.{format}]`                        | image/bin                                   | create an image from a GeoJSON feature **Optional**
+| `GET`  | `/preview[/{width}x{height}][.{format}]`                        | image/bin                                   | create a preview image from a dataset **Optional**
 
 
 [bounds_model]: https://github.com/cogeotiff/rio-tiler/blob/9aaa88000399ee8d36e71d176f67b6ea3ec53f2d/rio_tiler/models.py#L43-L46

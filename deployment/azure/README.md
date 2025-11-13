@@ -2,7 +2,7 @@
 
 TiTiler is built on top of [FastAPI](https://github.com/tiangolo/fastapi), a modern, fast, Python web framework for building APIs. We can make our FastAPI application work as an Azure Function by wrapping it within the [Azure Function Python worker](https://github.com/Azure/azure-functions-python-worker).
 
-If you are not familiar with **Azure functions** we recommend checking https://docs.microsoft.com/en-us/azure/azure-functions/ first.
+If you are not familiar with **Azure functions**, we recommend checking https://docs.microsoft.com/en-us/azure/azure-functions/ first.
 
 Minimal TiTiler Azure function code:
 ```python

@@ -22,7 +22,9 @@ We added a set of custom algorithms:
 - `mean`: Return **Mean** values along the `bands` axis.
 - `std`: Return the **Standard Deviation** along the `bands` axis.
 - `var`: Return **Variance** along the `bands` axis.
-
+- `sum`: Return **Sum** along the `bands` axis.
+- `grayscale`: Return a **grayscale** version of an image using ITU-R 601-2 luma transformation.
+- `bitonal`: All values larger than 127 are set to 255 (white), all other values to 0 (black).
 
 ### Usage
 
@@ -90,7 +92,7 @@ This base class defines that algorithm:
 
 - can have`parameters` (enabled by `extra = "allow"` pydantic config)
 
-Here is a simple example of a custom Algorithm:
+Here is a simple example of a custom algorithm:
 
 ```python
 from titiler.core.algorithm import BaseAlgorithm
@@ -121,7 +123,7 @@ class Multiply(BaseAlgorithm):
 
 Using a Pydantic's `BaseModel` class to construct the custom algorithm enables two things **parametrization** and **type casting/validation**.
 
-If we look at the `Multiply` algorithm, we can see it needs a `factor` parameter. In Titiler (in the post_process dependency) we will pass this parameter via query string (e.g `/preview.png?algo=multiply&algo_parameter={"factor":3}`) and pydantic will make sure we use the right types/values.
+If we look at the `Multiply` algorithm, we can see it needs a `factor` parameter. In TiTiler (in the post_process dependency) we will pass this parameter via query string (e.g `/preview.png?algo=multiply&algo_parameter={"factor":3}`) and pydantic will make sure we use the right types/values.
 
 ```python
 # Available algorithm
@@ -143,7 +145,7 @@ def post_process_dependency(
 
 ## Dependency
 
-To be able to use your own algorithm in titiler's endpoint you need to create a `Dependency` to tell the application what algorithm are available.
+To be able to use your own algorithm in TiTiler's endpoint, you need to create a `Dependency` to tell the application which algorithms are available.
 
 To ease the dependency creation, we added a `dependency` property in the `titiler.core.algorithm.Algorithms` class, which will return a FastAPI dependency to be added to the endpoints.
 
@@ -166,7 +168,7 @@ endpoints = TilerFactory(process_dependency=PostProcessParams)
 
 ### Order of operation
 
-When creating a map tile (or other images), we will fist apply the `algorithm` then the `rescaling` and finally the `color_formula`.
+When creating a map tile (or other images), we will first apply the `algorithm`, then the `rescaling`, and finally the `color_formula`.
 
 ```python
 with reader(url as src_dst:

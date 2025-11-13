@@ -37,6 +37,11 @@ services:
       # - MOSAIC_CONCURRENCY= # will default to `RIO_TILER_MAX_THREADS`
       # rio-tiler config
       # - RIO_TILER_MAX_THREADS=
+      # telemetry config
+      - TITILER_API_TELEMETRY_ENABLED=True
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+    depends_on:
+      - otel-collector
     volumes:
       - ./:/data
 
@@ -50,6 +55,18 @@ services:
   benchmark:
     extends:
       service: titiler
+    environment:
+      - CPL_TMPDIR=/tmp
+      - GDAL_CACHEMAX=75%
+      - GDAL_INGESTED_BYTES_AT_OPEN=32768
+      - GDAL_DISABLE_READDIR_ON_OPEN=EMPTY_DIR
+      - GDAL_HTTP_MERGE_CONSECUTIVE_RANGES=YES
+      - GDAL_HTTP_MULTIPLEX=YES
+      - GDAL_HTTP_VERSION=2
+      - PYTHONWARNINGS=ignore
+      - VSI_CACHE=TRUE
+      - VSI_CACHE_SIZE=536870912
+      - TITILER_API_TELEMETRY_ENABLED=False
     volumes:
       - ./.github/data:/data
 
@@ -67,3 +84,34 @@ services:
     depends_on:
       - nginx-titiler
     command: ["nginx-debug", "-g", "daemon off;"]
+
+  titiler-xarray:
+    extends:
+      service: titiler
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.xarray
+    ports:
+      - "8082:8082"
+    command: ["uvicorn", "titiler.xarray.main:app", "--host", "0.0.0.0", "--port", "8082", "--workers", "1"]
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./dockerfiles/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4318:4318"   # OTLP HTTP receiver
+      - "13133:13133" # Health check extension
+    depends_on:
+      - jaeger
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686" # UI
+      - "14250:14250" # OTLP gRPC (Jaeger receiver)
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+

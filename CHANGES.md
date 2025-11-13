@@ -1,12 +1,133 @@
 # Release Notes
 
-## Unreleased
+## 0.25.0 (2025-11-07)
+
+### Misc 
+
+* remove `/bounds` endpoints **breaking change**
+* update docker image to python:3.13
+* switch to `uv` for development
+* switch to `hatch` for python package build-system
+* remove `titiler` metapackage **breaking change**
+* bump minimum python version to 3.11
+
+### titiler.xarray
+
+* add `opener_options` arg to `titiler.xarray.io.Reader` to allow users to pass args through to a custom opener function ([#1248(https://github.com/developmentseed/titiler/pull/1248)])
+* add `obstore` and `zarr-python` as dependency and add `open_zarr` dataset opener
+* default to `titiler.xarray.io.open_zarr` for `titiler.xarray.io.Reader.dataset_opener` attribute
+* rename `titiler.xarray.io.xarray_open_dataset` to `fs_open_dataset`
+* add `FsReader` which use `fs_open_dataset` as `dataset_opener`
+* create offical application `titiler.xarray.main:app`
+
+### titiler.mosaic
+
+* move `/` and `/validate`  to a `MosaicJSONExtension`
+
+## 0.24.2 (2025-10-16)
+
+### titiler.core
+
+* update `TileJSON` spec from 2.2.0 to 3.0.0
+* fix OpenAPI spec for `histogram_range` examples (@guillemc23, https://github.com/developmentseed/titiler/pull/1239)
+
+## 0.24.1 (2025-10-10)
+
+* add `grayscale` and `bitonal` algorithms
+* add `transform` and `crs` for `tiff` outputs
+
+
+## 0.24.0 (2025-09-23)
+
+### Misc
+
+* add attribution in `/tilejson.json` response. Controled with `TITILER_DEFAULT_ATTRIBUTION` environment variable.
+* enable `jinja2.autoescape` for HTML/XML templates (ref: https://jinja.palletsprojects.com/en/stable/api/#autoescaping)
+* remove python 3.9 support
+
+### titiler.extension 
+
+* update rio-stac requirement
+
+### titiler.application
+
+* add `description` in `ApiSettings`
+
+### titiler.core
+
+* delete `titiler.core.templating` submodule **breaking change**
+* move `create_html_response` function to `titiler.core.utils` submodule
+* move all HTML templates in `titiler/core/templates` directory  **breaking change**
+* add HTML responses for tilesets, tilematrixsets, algorithms and colormaps endpoints
+* rename response model `ColorMapsList` -> `ColorMapList` and change it's attibutes to `colormaps` **breaking change**
+* add `templates` in the `BaseFactory` class definition
+
+## 0.23.1 (2025-08-27)
+
+### titiler.core
+
+* add `sum` algorithm
+
+## 0.23.0 (2025-08-26)
+
+### titiler.core
+
+* add OpenTelemetry instrumentation to the tiler factory classes
+* add `OGC Maps API` support (`/map` endpoint)
+
+### titiler.application
+
+* add OpenTelemetry tracing to the FastAPI application
+* update `starlette-cramjam` requirement to `>=0.4,<0.6`
+
+### titiler.xarray
+
+* add `add_preview` in factory attribute (default to `False`)
+
+### Misc
+
+* Add otel-collector and jaeger to the docker network
+* fix layer's bounds for non-wgs84 CRS in WMTS document
+* switch from bitnami to official python:3.12 docker image
+
+## 0.22.4 (2025-07-02)
+
+* fix `rel` values for tiling scheme link (OGC Tiles specification)
+
+## 0.22.3 (2025-06-17)
+
+### titiler.xarray
+
+* use dimension's `dtype` to cast user *selection*
+
+## 0.22.2 (2025-06-02)
+
+### titiler.application
+
+* remove unused templates
+
+### titiler.xarray
+
+* fix `xarray_open_dataset` for cloud hosted files
+
+## 0.22.1 (2025-05-13)
+
+### titiler.xarray
+
+* update `reader` and `path_dependency` type informations
+
+## 0.22.0 (2025-05-06)
 
 ### Misc
 
 * rename `/map` endpoint to `/map.html` **breaking change**
 * add `name` attribute to `BaseFactory` to define endpoint's `operationId`
 * add `operationId` on all endpoints
+* add `/preview/{width}x{height}.{format}` endpoints
+* update rio-tiler requirement to `>=7.7,<8.0`
+* allow users to pass only one of `width` or `heigh` size parameters for `preview`, `part` and `feature` requests
+* use `minZoom` instead of `minNativeZoom` in the `/map.html` html template
+* update geojson-pydantic requirement to `>=1.1.2,<3.0` and change featureCollection iteration
 
 ### titiler.application
 
@@ -141,7 +262,7 @@
 * add `/bbox` prefix to `/{minx},{miny},{maxx},{maxy}/assets` endpoint -> `/bbox/{minx},{miny},{maxx},{maxy}/assets` **breaking change**
 * add `/point` prefix to `{lon},{lat}/assets` endpoint -> `/point/{lon},{lat}/assets` **breaking change**
 * add `/tiles` prefix to `/{tileMatrixSetId}/{z}/{x}/{y}/assets` endpoint -> `/tiles/{tileMatrixSetId}/{z}/{x}/{y}/assets` **breaking change**
-
+* add `assets_accessor_dependency` dependency to the MosaicTileFactory to pass options to the backend's `get_assets` method.
 
 ## 0.21.1 (2025-01-29)
 

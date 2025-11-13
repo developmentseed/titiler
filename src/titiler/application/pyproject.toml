@@ -2,7 +2,7 @@
 name = "titiler-application"
 description = "A modern dynamic tile server built on top of FastAPI and Rasterio/GDAL."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 authors = [
     {name = "Vincent Sarago", email = "vincent@developmentseed.com"},
 ]
@@ -22,8 +22,6 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -31,14 +29,19 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-    "titiler.core==0.21.1",
-    "titiler.extensions[cogeo,stac]==0.21.1",
-    "titiler.mosaic==0.21.1",
-    "starlette-cramjam>=0.4,<0.5",
+    "titiler-core[telemetry]==0.25.0",
+    "titiler-extensions[cogeo,stac]==0.25.0",
+    "titiler-mosaic==0.25.0",
+    "starlette-cramjam>=0.4,<0.6",
     "pydantic-settings~=2.0",
 ]
 
 [project.optional-dependencies]
+server = [
+    "uvicorn[standard]>=0.12.0",
+]
+
+[dependency-groups]
 test = [
     "pytest",
     "pytest-cov",
@@ -46,9 +49,6 @@ test = [
     "httpx",
     "brotlipy",
     "boto3",
-]
-server = [
-    "uvicorn[standard]>=0.12.0",
 ]
 
 [project.urls]
@@ -58,14 +58,15 @@ Issues = "https://github.com/developmentseed/titiler/issues"
 Source = "https://github.com/developmentseed/titiler"
 Changelog = "https://developmentseed.org/titiler/release-notes/"
 
-[build-system]
-requires = ["pdm-backend"]
-build-backend = "pdm.backend"
-
-[tool.pdm.version]
-source = "file"
+[tool.hatch.version]
 path = "titiler/application/__init__.py"
 
-[tool.pdm.build]
-includes = ["titiler/application"]
-excludes = ["tests/", "**/.mypy_cache", "**/.DS_Store"]
+[tool.hatch.build.targets.sdist]
+only-include = ["titiler"]
+
+[tool.hatch.build.targets.wheel]
+only-include = ["titiler"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

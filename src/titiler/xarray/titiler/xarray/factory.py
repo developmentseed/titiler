@@ -1,12 +1,15 @@
 """TiTiler.xarray factory."""
 
-from typing import Callable, Optional, Type, Union
+import logging
+import warnings
+from typing import Any, Callable, Optional, Type, Union
 
 import rasterio
-from attrs import define, field
+from attrs import define
 from fastapi import Body, Depends, Query
 from geojson_pydantic.features import Feature, FeatureCollection
 from rio_tiler.constants import WGS84_CRS
+from rio_tiler.io import XarrayReader
 from rio_tiler.models import Info
 from typing_extensions import Annotated
 
@@ -24,17 +27,24 @@ from titiler.core.factory import TilerFactory as BaseTilerFactory
 from titiler.core.models.responses import InfoGeoJSON, StatisticsGeoJSON
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse
 from titiler.core.utils import bounds_to_geometry
-from titiler.xarray.dependencies import DatasetParams, PartFeatureParams, XarrayParams
+from titiler.xarray.dependencies import (
+    DatasetParams,
+    PartFeatureParams,
+    PreviewParams,
+    XarrayParams,
+)
 from titiler.xarray.io import Reader
+
+logger = logging.getLogger(__name__)
 
 
 @define(kw_only=True)
 class TilerFactory(BaseTilerFactory):
     """Xarray Tiler Factory."""
 
-    reader: Type[Reader] = Reader
+    reader: Type[XarrayReader] = Reader
 
-    path_dependency: Callable[..., str] = DatasetPathParams
+    path_dependency: Callable[..., Any] = DatasetPathParams
 
     reader_dependency: Type[DefaultDependency] = XarrayParams
 
@@ -51,14 +61,28 @@ class TilerFactory(BaseTilerFactory):
     stats_dependency: Type[DefaultDependency] = StatisticsParams
     histogram_dependency: Type[DefaultDependency] = HistogramParams
 
+    img_preview_dependency: Type[DefaultDependency] = PreviewParams
     img_part_dependency: Type[DefaultDependency] = PartFeatureParams
 
     add_viewer: bool = True
     add_part: bool = True
 
-    # remove some attribute from init
-    img_preview_dependency: Type[DefaultDependency] = field(init=False)
-    add_preview: bool = field(init=False, default=False)
+    # /map endpoints disabled by default
+    add_ogc_maps: bool = False
+
+    # /preview endpoints disabled by default
+    add_preview: bool = False
+
+    def __attrs_post_init__(self):
+        """Raise warning if preview is enabled."""
+        if self.add_preview:
+            warnings.warn(
+                "`preview` endpoints enabled Xarray based TilerFactory. MultiDim dataset might not be suitable for preview.",
+                UserWarning,
+                stacklevel=1,
+            )
+
+        super().__attrs_post_init__()
 
     # Custom /info endpoints (adds `show_times` options)
     def info(self):
@@ -83,6 +107,7 @@ class TilerFactory(BaseTilerFactory):
         ) -> Info:
             """Return dataset's basic info."""
             with rasterio.Env(**env):
+                logger.info(f"opening data with reader: {self.reader}")
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     info = src_dst.info().model_dump()
                     if show_times and "time" in src_dst.input.dims:
@@ -117,6 +142,7 @@ class TilerFactory(BaseTilerFactory):
         ):
             """Return dataset's basic info as a GeoJSON feature."""
             with rasterio.Env(**env):
+                logger.info(f"opening data with reader: {self.reader}")
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
                     bounds = src_dst.get_geographic_bounds(crs or WGS84_CRS)
                     geometry = bounds_to_geometry(bounds)
@@ -174,8 +200,9 @@ class TilerFactory(BaseTilerFactory):
                 fc = FeatureCollection(type="FeatureCollection", features=[geojson])
 
             with rasterio.Env(**env):
+                logger.info(f"opening data with reader: {self.reader}")
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
-                    for feature in fc:
+                    for feature in fc.features:
                         shape = feature.model_dump(exclude_none=True)
                         image = src_dst.feature(
                             shape,

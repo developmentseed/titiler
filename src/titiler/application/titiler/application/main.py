@@ -33,8 +33,7 @@ from titiler.core.middleware import (
 )
 from titiler.core.models.OGC import Conformance, Landing
 from titiler.core.resources.enums import MediaType
-from titiler.core.templating import create_html_response
-from titiler.core.utils import accept_media_type, update_openapi
+from titiler.core.utils import accept_media_type, create_html_response, update_openapi
 from titiler.extensions import (
     cogValidateExtension,
     cogViewerExtension,
@@ -43,19 +42,35 @@ from titiler.extensions import (
     stacViewerExtension,
 )
 from titiler.mosaic.errors import MOSAIC_STATUS_CODES
+from titiler.mosaic.extensions import MosaicJSONExtension
 from titiler.mosaic.factory import MosaicTilerFactory
 
 logging.getLogger("botocore.credentials").disabled = True
 logging.getLogger("botocore.utils").disabled = True
+logging.getLogger("rasterio.session").setLevel(logging.ERROR)
 logging.getLogger("rio-tiler").setLevel(logging.ERROR)
 
-jinja2_env = jinja2.Environment(
-    loader=jinja2.ChoiceLoader([jinja2.PackageLoader(__package__, "templates")])
-)
-templates = Jinja2Templates(env=jinja2_env)
-
-
 api_settings = ApiSettings()
+
+# custom template directory
+templates_location = (
+    [jinja2.FileSystemLoader(api_settings.template_directory)]
+    if api_settings.template_directory
+    else []
+)
+# default template directory
+templates_location.extend(
+    [
+        jinja2.PackageLoader("titiler.application", "templates"),
+        jinja2.PackageLoader("titiler.core", "templates"),
+    ]
+)
+
+jinja2_env = jinja2.Environment(
+    autoescape=jinja2.select_autoescape(["html", "xml"]),
+    loader=jinja2.ChoiceLoader(templates_location),
+)
+titiler_templates = Jinja2Templates(env=jinja2_env)
 
 app_dependencies = []
 if api_settings.global_access_token:
@@ -86,16 +101,7 @@ app = FastAPI(
     title=api_settings.name,
     openapi_url="/api",
     docs_url="/api.html",
-    description="""A modern dynamic tile server built on top of FastAPI and Rasterio/GDAL.
-
----
-
-**Documentation**: <a href="https://developmentseed.org/titiler/" target="_blank">https://developmentseed.org/titiler/</a>
-
-**Source Code**: <a href="https://github.com/developmentseed/titiler" target="_blank">https://github.com/developmentseed/titiler</a>
-
----
-    """,
+    description=api_settings.description,
     version=titiler_version,
     root_path=api_settings.root_path,
     dependencies=app_dependencies,
@@ -105,11 +111,11 @@ app = FastAPI(
 update_openapi(app)
 
 TITILER_CONFORMS_TO = {
-    "http://www.opengis.net/spec/ogcapi-common-1/1.0/req/core",
-    "http://www.opengis.net/spec/ogcapi-common-1/1.0/req/landing-page",
-    "http://www.opengis.net/spec/ogcapi-common-1/1.0/req/oas30",
-    "http://www.opengis.net/spec/ogcapi-common-1/1.0/req/html",
-    "http://www.opengis.net/spec/ogcapi-common-1/1.0/req/json",
+    "http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/core",
+    "http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/landing-page",
+    "http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/oas30",
+    "http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/html",
+    "http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/json",
 }
 
 
@@ -119,11 +125,14 @@ if not api_settings.disable_cog:
     cog = TilerFactory(
         reader=Reader,
         router_prefix="/cog",
+        add_ogc_maps=True,
         extensions=[
             cogValidateExtension(),
             cogViewerExtension(),
             stacExtension(),
         ],
+        enable_telemetry=api_settings.telemetry_enabled,
+        templates=titiler_templates,
     )
 
     app.include_router(
@@ -140,10 +149,13 @@ if not api_settings.disable_stac:
     stac = MultiBaseTilerFactory(
         reader=STACReader,
         router_prefix="/stac",
+        add_ogc_maps=True,
         extensions=[
             stacViewerExtension(),
             stacRenderExtension(),
         ],
+        enable_telemetry=api_settings.telemetry_enabled,
+        templates=titiler_templates,
     )
 
     app.include_router(
@@ -157,7 +169,14 @@ if not api_settings.disable_stac:
 ###############################################################################
 # Mosaic endpoints
 if not api_settings.disable_mosaic:
-    mosaic = MosaicTilerFactory(router_prefix="/mosaicjson")
+    mosaic = MosaicTilerFactory(
+        router_prefix="/mosaicjson",
+        extensions=[
+            MosaicJSONExtension(),
+        ],
+        enable_telemetry=api_settings.telemetry_enabled,
+        templates=titiler_templates,
+    )
     app.include_router(
         mosaic.router,
         prefix="/mosaicjson",
@@ -168,7 +187,7 @@ if not api_settings.disable_mosaic:
 
 ###############################################################################
 # TileMatrixSets endpoints
-tms = TMSFactory()
+tms = TMSFactory(templates=titiler_templates)
 app.include_router(
     tms.router,
     tags=["Tiling Schemes"],
@@ -177,7 +196,7 @@ TITILER_CONFORMS_TO.update(tms.conforms_to)
 
 ###############################################################################
 # Algorithms endpoints
-algorithms = AlgorithmFactory()
+algorithms = AlgorithmFactory(templates=titiler_templates)
 app.include_router(
     algorithms.router,
     tags=["Algorithms"],
@@ -186,7 +205,7 @@ TITILER_CONFORMS_TO.update(algorithms.conforms_to)
 
 ###############################################################################
 # Colormaps endpoints
-cmaps = ColorMapFactory()
+cmaps = ColorMapFactory(templates=titiler_templates)
 app.include_router(
     cmaps.router,
     tags=["ColorMaps"],
@@ -245,14 +264,16 @@ if api_settings.debug:
                             {
                                 k: f"%({k})s"
                                 for k in [
-                                    "method",
-                                    "referer",
-                                    "origin",
-                                    "route",
-                                    "path",
-                                    "path_params",
-                                    "query_params",
-                                    "headers",
+                                    "http.method",
+                                    "http.referer",
+                                    "http.request.header.origin",
+                                    "http.route",
+                                    "http.target",
+                                    "http.request.header.content-length",
+                                    "http.request.header.accept-encoding",
+                                    "http.request.header.origin",
+                                    "titiler.path_params",
+                                    "titiler.query_params",
                                 ]
                             }
                         )
@@ -274,12 +295,12 @@ if api_settings.debug:
                 },
             },
             "loggers": {
-                "titlier": {
-                    "level": "WARNING",
+                "titiler": {
+                    "level": "INFO",
                     "handlers": ["console_detailed"],
                     "propagate": False,
                 },
-                "titiler-requests": {
+                "titiler.requests": {
                     "level": "INFO",
                     "handlers": ["console_request"],
                     "propagate": False,
@@ -366,6 +387,24 @@ def landing(
                 "rel": "http://www.opengis.net/def/rel/ogc/1.0/conformance",
             },
             {
+                "title": "List of Available TileMatrixSets",
+                "href": str(request.url_for("tilematrixsets")),
+                "type": "application/json",
+                "rel": "http://www.opengis.net/def/rel/ogc/1.0/tiling-schemes",
+            },
+            {
+                "title": "List of Available Algorithms",
+                "href": str(request.url_for("available_algorithms")),
+                "type": "application/json",
+                "rel": "data",
+            },
+            {
+                "title": "List of Available ColorMaps",
+                "href": str(request.url_for("available_colormaps")),
+                "type": "application/json",
+                "rel": "data",
+            },
+            {
                 "title": "TiTiler Documentation (external link)",
                 "href": "https://developmentseed.org/titiler/",
                 "type": "text/html",
@@ -380,13 +419,13 @@ def landing(
         ],
     }
 
-    output_type: Optional[MediaType]
     if f:
         output_type = MediaType[f]
     else:
         accepted_media = [MediaType.html, MediaType.json]
-        output_type = accept_media_type(
-            request.headers.get("accept", ""), accepted_media
+        output_type = (
+            accept_media_type(request.headers.get("accept", ""), accepted_media)
+            or MediaType.json
         )
 
     if output_type == MediaType.html:
@@ -395,6 +434,7 @@ def landing(
             data,
             title="TiTiler",
             template_name="landing",
+            templates=titiler_templates,
         )
 
     return data
@@ -433,13 +473,13 @@ def conformance(
     """
     data = {"conformsTo": sorted(TITILER_CONFORMS_TO)}
 
-    output_type: Optional[MediaType]
     if f:
         output_type = MediaType[f]
     else:
         accepted_media = [MediaType.html, MediaType.json]
-        output_type = accept_media_type(
-            request.headers.get("accept", ""), accepted_media
+        output_type = (
+            accept_media_type(request.headers.get("accept", ""), accepted_media)
+            or MediaType.json
         )
 
     if output_type == MediaType.html:
@@ -448,6 +488,35 @@ def conformance(
             data,
             title="Conformance",
             template_name="conformance",
+            templates=titiler_templates,
         )
 
     return data
+
+
+if api_settings.telemetry_enabled:
+    from opentelemetry import trace
+    from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+    from opentelemetry.instrumentation.logging import LoggingInstrumentor
+    from opentelemetry.sdk.resources import SERVICE_NAME, SERVICE_VERSION, Resource
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
+    LoggingInstrumentor().instrument(set_logging_format=True)
+    FastAPIInstrumentor.instrument_app(app)
+
+    resource = Resource.create(
+        {
+            SERVICE_NAME: "titiler",
+            SERVICE_VERSION: titiler_version,
+        }
+    )
+
+    provider = TracerProvider(resource=resource)
+
+    # uses the OTEL_EXPORTER_OTLP_ENDPOINT env var
+    processor = BatchSpanProcessor(OTLPSpanExporter())
+    provider.add_span_processor(processor)
+
+    trace.set_tracer_provider(provider)

@@ -1,0 +1,63 @@
+name: Deploy application
+
+# On every pull request, but only on push to main
+on:
+  # push:
+  #   tags:
+  #   - '*'
+  workflow_dispatch:
+  # workflow_run:
+  #   workflows: ["CI"]   # Name of the workflow to listen for
+  #   types:
+  #     - completed
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.repository == 'developmentseed/titiler' }}
+    # if: |
+    #   (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+    #   (github.event_name == 'workflow_run' &&
+    #     github.event.workflow_run.conclusion == 'success' &&
+    #     startsWith(github.event.workflow_run.head_branch, 'refs/tags') &&
+    #     github.repository == 'developmentseed/titiler')
+    defaults:
+      run:
+        working-directory: deployment/aws
+
+    steps:
+      - uses: actions/checkout@v5
+
+      # Let's wait a bit to make sure Pypi is up to date
+      - name: Sleep for 120 seconds
+        run: sleep 120s
+        shell: bash
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+      
+      - name: Install dependencies
+        run: uv sync --all-packages && npm install -g aws-cdk@^2
+
+      # Let's wait a bit to make sure package is available on pypi
+      - name: Sleep for 120 seconds
+        run: sleep 120s
+        shell: bash
+
+      # Build and Deploy CDK application
+      - name: Build & Deploy
+        run: uv run cdk deploy ${{ secrets.STACK_NAME }}-lambda-${{ secrets.STACK_STAGE }} --require-approval never
+        env:
+          TITILER_STACK_NAME: ${{ secrets.STACK_NAME }}
+          TITILER_STACK_STAGE: ${{ secrets.STACK_STAGE }}
+          TITILER_STACK_MEMORY: ${{ secrets.STACK_MEMORY }}
+          TITILER_STACK_OWNER: ${{ secrets.STACK_OWNER }}
+          TITILER_STACK_CLIENT: ${{ secrets.STACK_CLIENT }}
+          TITILER_STACK_BUCKETS: ${{ secrets.STACK_BUCKETS }}

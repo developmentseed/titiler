@@ -5,18 +5,22 @@ import tempfile
 from contextlib import contextmanager
 from dataclasses import dataclass
 from io import BytesIO
+from typing import List, Optional
 from unittest.mock import patch
 
+import attr
 import morecantile
 import numpy
 from cogeo_mosaic.backends import FileBackend
 from cogeo_mosaic.mosaic import MosaicJSON
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from rio_tiler.mosaic.methods import PixelSelectionMethod
 from starlette.testclient import TestClient
+from typing_extensions import Annotated
 
 from titiler.core.dependencies import DefaultDependency
 from titiler.core.resources.enums import OptionalHeader
+from titiler.mosaic.extensions import MosaicJSONExtension
 from titiler.mosaic.factory import MosaicTilerFactory
 
 from .conftest import DATA_DIR
@@ -47,7 +51,16 @@ def test_MosaicTilerFactory():
         optional_headers=[OptionalHeader.x_assets],
         router_prefix="mosaic",
     )
-    assert len(mosaic.router.routes) == 18
+    assert len(mosaic.router.routes) == 15
+
+    mosaic = MosaicTilerFactory(
+        optional_headers=[OptionalHeader.x_assets],
+        extensions=[
+            MosaicJSONExtension(),
+        ],
+        router_prefix="mosaic",
+    )
+    assert len(mosaic.router.routes) == 17
 
     app = FastAPI()
     app.include_router(mosaic.router, prefix="/mosaic")
@@ -73,14 +86,6 @@ def test_MosaicTilerFactory():
         )
         assert response.status_code == 200
         assert response.json()["mosaicjson"]
-
-        response = client.get(
-            "/mosaic/bounds",
-            params={"url": mosaic_file},
-        )
-        assert response.status_code == 200
-        assert len(response.json()["bounds"]) == 4
-        assert response.json()["crs"]
 
         response = client.get(
             "/mosaic/info",
@@ -384,3 +389,53 @@ def test_MosaicTilerFactory_strict_zoom():
             )
             assert response.status_code == 400
             assert "Invalid ZOOM level 11" in response.text
+
+
+@dataclass
+class AssetsAccessParams(DefaultDependency):
+    """Backend options to overwrite min/max zoom."""
+
+    limit: Annotated[int, Query()] = 10
+
+
+@attr.s
+class CustomBackend(FileBackend):
+    """Custom FileBackend."""
+
+    def get_assets(
+        self, x: int, y: int, z: int, limit: Optional[int] = None
+    ) -> List[str]:
+        """Find assets."""
+        assets = super().get_assets(x, y, z)
+
+        if limit and len(assets) > limit:
+            return assets[:limit]
+
+        return assets
+
+
+def test_MosaicTilerFactory_asset_accessor():
+    """Test MosaicTilerFactory factory with Backend dependency."""
+    mosaic = MosaicTilerFactory(
+        backend=CustomBackend,
+        router_prefix="/mosaic",
+        assets_accessor_dependency=AssetsAccessParams,
+    )
+    app = FastAPI()
+    app.include_router(mosaic.router, prefix="/mosaic")
+    client = TestClient(app)
+
+    with tmpmosaic() as mosaic_file:
+        response = client.get(
+            "/mosaic/tiles/WGS1984Quad/8/148/61/assets",
+            params={"url": mosaic_file},
+        )
+        assert response.status_code == 200
+        assert len(response.json()) == 2
+
+        response = client.get(
+            "/mosaic/tiles/WGS1984Quad/8/148/61/assets",
+            params={"url": mosaic_file, "limit": 1},
+        )
+        assert response.status_code == 200
+        assert len(response.json()) == 1

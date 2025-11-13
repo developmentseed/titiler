@@ -6,9 +6,9 @@ In the past, putting maps on websites was a real pain. Developers had to use bul
 
 ## Dynamic vs. Static Tiles: What's the Difference?
 
-Static tiles are like pre-printed map pieces stored in folders. Once created, they're locked—changing anything means starting over. They use lots of storage but load quickly.
+Static tiles are like pre-printed map pieces stored in folders. Once created, they're locked—changing anything means starting over. They use lots of storage, but load quickly.
 
-TiTiler's dynamic tiles work like a chef cooking to order. When someone views your map, TiTiler grabs just the data needed and creates tiles on the spot. This lets you instantly change colors, adjust contrast, or highlight different features. Your map becomes flexible and responsive, adapting to what users need right now rather than being stuck with choices made earlier.
+TiTiler's dynamic tiles work like a chef cooking to order. When someone views your map, TiTiler grabs just the data needed and creates tiles on the spot. This lets you instantly change colors, adjust contrast, or highlight different features. Your map becomes flexible and responsive, adapting to what users need right now, rather than being stuck with choices made earlier.
 
 More on [Dynamic Tiling](dynamic_tiling.md)
 
@@ -102,7 +102,7 @@ Run the following command to start the server:
 ```bash
 uvicorn main:app --reload
 ```
-You should see output similar to this:
+You should see an output similar to this:
 
 ![server logs](../img/server_logs.png)
 
@@ -220,28 +220,28 @@ The following code (in **map.html**) loads a base map, adds your TiTiler raster 
     /// Define the local raster path and TiTiler endpoint
     // Replace with your own full GeoTIFF path - use the appropriate format for your OS.
     var rasterPath = 'file:///path_to_your_raster.tif';
-    var titilerUrl = 'http://127.0.0.1:8000/tiles/WebMercatorQuad/{z}/{x}/{y}.png?url=' + encodeURIComponent(rasterPath);
-
-    // Add the TiTiler raster overlay with some transparency
-    L.tileLayer(titilerUrl, {
-      tileSize: 256,
-      opacity: 0.7,
-      maxZoom: 22
-    }).addTo(map);
 
     // Fetch the raster's bounding box from TiTiler and adjust the map view accordingly
-    var boundsUrl = 'http://127.0.0.1:8000/bounds?url=' + encodeURIComponent(rasterPath);
-    console.log(boundsUrl)
-    fetch(boundsUrl)
+    var tileJSONUrl = 'http://127.0.0.1:8000/WebMercatorQuad/tilejson.json?url=' + encodeURIComponent(rasterPath);
+    console.log(tileJSONUrl)
+    fetch(tileJSONUrl)
       .then(response => response.json())
       .then(data => {
-        console.log("Bounds data:", data);
+        console.log("Bounds data:", data.bounds);
         if (data && data.bounds) {
           // data.bounds is [minX, minY, maxX, maxY]
           var b = data.bounds;
           // Convert to Leaflet bounds: [[southWest_lat, southWest_lng], [northEast_lat, northEast_lng]]
           var leafletBounds = [[b[1], b[0]], [b[3], b[2]]];
           map.fitBounds(leafletBounds);
+
+          // Add the TiTiler raster overlay with some transparency
+          L.tileLayer(data.tiles[0], {
+            tileSize: 256,
+            opacity: 0.7,
+            maxZoom: data.maxzoom
+          }).addTo(map);
+
         } else {
           console.error("No bounds returned from TiTiler.");
         }
@@ -303,7 +303,7 @@ uvicorn titiler.application.main:app
 > INFO: Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
 ```
 
-See default endpoints documentation pages:
+See the default endpoints documentation pages:
 
 * [`/cog` - Cloud Optimized GeoTIFF](../endpoints/cog.md)
 * [`/mosaicjson` - MosaicJSON](../endpoints/mosaic.md)
@@ -339,7 +339,6 @@ python -m pip install titiler.application uvicorn # also installs titiler.core a
 ```
 
 These can then be used like:
-
 
 ```py
 # Add private COG endpoints requiring token validation

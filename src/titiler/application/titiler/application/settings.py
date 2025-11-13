@@ -10,17 +10,32 @@ class ApiSettings(BaseSettings):
     """FASTAPI application settings."""
 
     name: str = "TiTiler"
+    description: str = """A modern dynamic tile server built on top of FastAPI and Rasterio/GDAL.
+
+---
+
+**Documentation**: <a href="https://developmentseed.org/titiler/" target="_blank">https://developmentseed.org/titiler/</a>
+
+**Source Code**: <a href="https://github.com/developmentseed/titiler" target="_blank">https://github.com/developmentseed/titiler</a>
+
+---
+    """
+
     cors_origins: str = "*"
     cors_allow_methods: str = "GET"
     cachecontrol: str = "public, max-age=3600"
     root_path: str = ""
     debug: bool = False
 
+    template_directory: Optional[str] = None
+
     disable_cog: bool = False
     disable_stac: bool = False
     disable_mosaic: bool = False
 
     lower_case_query_parameters: bool = False
+
+    telemetry_enabled: bool = False
 
     # an API key required to access any endpoint, passed via the ?access_token= query parameter
     global_access_token: Optional[str] = None

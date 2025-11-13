@@ -7,15 +7,38 @@
 # ///
 """Example of Application."""
 
+from datetime import datetime
+
+import numpy
+import xarray
 from fastapi import FastAPI
+from rio_tiler.io.xarray import XarrayReader
 from starlette.middleware.cors import CORSMiddleware
 from starlette_cramjam.middleware import CompressionMiddleware
 
+from titiler.core.dependencies import DefaultDependency
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 from titiler.core.factory import AlgorithmFactory, ColorMapFactory, TMSFactory
 from titiler.core.middleware import CacheControlMiddleware
-from titiler.xarray.extensions import DatasetMetadataExtension
 from titiler.xarray.factory import TilerFactory
+
+
+def XarrayDataArray() -> xarray.DataArray:
+    """Custom Dependency which return a DataArray."""
+    arr = numpy.linspace(1, 1000, 1000 * 2000).reshape(1, 1000, 2000)
+    data = xarray.DataArray(
+        arr,
+        dims=("time", "y", "x"),
+        coords={
+            "x": numpy.arange(-170, 170, 0.17),
+            "y": numpy.arange(-80, 80, 0.16),
+            "time": [datetime(2022, 1, 1)],
+        },
+    )
+    data.attrs.update({"valid_min": arr.min(), "valid_max": arr.max(), "fill_value": 0})
+    data.rio.write_crs("epsg:4326", inplace=True)
+    return data
+
 
 app = FastAPI(
     title="TiTiler with support of Multidimensional dataset",
@@ -27,9 +50,12 @@ app = FastAPI(
 
 md = TilerFactory(
     router_prefix="/md",
-    extensions=[
-        DatasetMetadataExtension(),
-    ],
+    # Use rio-tiler XarrayReader which accept xarray.DataArray as input
+    reader=XarrayReader,
+    # Use our custom dependency which return a xarray.DataArray
+    path_dependency=XarrayDataArray,
+    # Set the reader_dependency to `empty`
+    reader_dependency=DefaultDependency,
 )
 app.include_router(md.router, prefix="/md", tags=["Multi Dimensional"])
 

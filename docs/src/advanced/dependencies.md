@@ -771,16 +771,23 @@ Same as `PreviewParams` but without default `max_size`.
 
 ```python
 @dataclass
-class PartFeatureParams(DefaultDependency):
-    """Common parameters for bbox and feature."""
+class PreviewParams(DefaultDependency):
+    """Common Preview parameters."""
 
-    max_size: Annotated[Optional[int], "Maximum image size to read onto."] = None
-    height: Annotated[Optional[int], "Force output image height."] = None
-    width: Annotated[Optional[int], "Force output image width."] = None
+    # NOTE: sizes dependency can either be a Query or a Path Parameter
+    max_size: Annotated[int, Field(description="Maximum image size to read onto.")] = (
+        1024
+    )
+    height: Annotated[
+        Optional[int], Field(description="Force output image height.")
+    ] = None
+    width: Annotated[Optional[int], Field(description="Force output image width.")] = (
+        None
+    )
 
     def __post_init__(self):
         """Post Init."""
-        if self.width and self.height:
+        if self.width or self.height:
             self.max_size = None
 ```
 
@@ -1130,7 +1137,7 @@ class DatasetParams(DefaultDependency):
 </details>
 
 
-#### DatasetParams
+#### PartFeatureParams
 
 Same as `titiler.core.dependencies.PartFeatureParams` but with `resampling` option
 
@@ -1149,9 +1156,16 @@ Same as `titiler.core.dependencies.PartFeatureParams` but with `resampling` opti
 class PartFeatureParams(DefaultDependency):
     """Common parameters for bbox and feature."""
 
-    max_size: Annotated[Optional[int], "Maximum image size to read onto."] = None
-    height: Annotated[Optional[int], "Force output image height."] = None
-    width: Annotated[Optional[int], "Force output image width."] = None
+    # NOTE: the part sizes dependency can either be a Query or a Path Parameter
+    max_size: Annotated[
+        Optional[int], Field(description="Maximum image size to read onto.")
+    ] = None
+    height: Annotated[
+        Optional[int], Field(description="Force output image height.")
+    ] = None
+    width: Annotated[Optional[int], Field(description="Force output image width.")] = (
+        None
+    )
     resampling_method: Annotated[
         Optional[RIOResampling],
         Query(
@@ -1162,9 +1176,8 @@ class PartFeatureParams(DefaultDependency):
 
     def __post_init__(self):
         """Post Init."""
-        if self.width and self.height:
+        if self.width or self.height:
             self.max_size = None
-
 ```
 
 </details>

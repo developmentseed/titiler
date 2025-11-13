@@ -5,9 +5,9 @@
 
 TiTiler's first goal is to create a lightweight but performant dynamic tile server... but what do we mean by this?
 
-When you zoom/pan on a web map, you are visualizing either vector or raster data that is loaded by your web client (e.g Chrome). Vector Tiles are rendered **On the Fly**, meaning the map library (e.g MapboxGL) will apply styling on the vector it receives to create a visual representation on the map. This is possible because vector data can be encoded and compressed very efficiently and result in each tile being only couple of kilo octets.
+When you zoom/pan on a web map, you are visualizing either vector or raster data that is loaded by your web client (e.g Chrome). Vector Tiles are rendered **On the Fly**, meaning the map library (e.g Mapbox GL-JS) will apply the styling on the vector it receives to create a visual representation on the map. This is possible because vector data can be encoded and compressed very efficiently and result in each tile being only a couple of kilo octets.
 
-On the other side, raster data is a really dense format, a `256 x 256 x 3` tile (True color image) needs to encode `196 608` values, and depending on the data type (Integer, Float, Complex), a raster tile can be really heavy. Depending on the dataset data type, some operations might be needed in order to obtain a visual representation (e.g. rescaling, colormap, ... ). Map library will almost only accept Uint8 RGB(A) tile encoded as PNG, JPEG or Webp.
+On the other side, raster data is a really dense format, a `256 x 256 x 3` tile (True color image) needs to encode `196 608` values, and depending on the data type (Integer, Float, Complex), a raster tile can be really heavy. Depending on the dataset data type, some operations might be needed in order to obtain a visual representation (e.g. rescaling, colormap, ... ). The map library will almost only accept Uint8 RGB(A) tile encoded as PNG, JPEG or Webp.
 
 ## **Static tiling**
 
@@ -68,9 +68,9 @@ The goal of the `Dynamic Tiling` process is to get rid of all the pre-processing
 
 ## Summary
 
-With `Static` tile generation you are often limited because you are visualizing data that is fixed and stored somewhere on a disk. With `Dynamic tiling`, users have the possibility to apply their own choice of processing (e.g rescaling, masking) before creating the `image`.
+With `Static` tile generation, you are often limited because you are visualizing data that is fixed and stored somewhere on a disk. With `Dynamic tiling`, users have the possibility to apply their own choice of processing (e.g rescaling, masking) before creating the `image`.
 
-Static tiling will always be faster than dynamic tiling, but a cache layer can be set up in front of the dynamic tiler, but using a dynamic tiler often means that same tile won't be serve twice (because users can set multiple options).
+Static tiling will always be faster to load than dynamic tiling, but a cache layer can be set up in front of the dynamic tiler. Using a dynamic tiler often means that the same tile won't be served twice (because users can set multiple options).
 
 ## Links
 [https://medium.com/devseed/cog-talk-part-1-whats-new-941facbcd3d1](https://medium.com/devseed/cog-talk-part-1-whats-new-941facbcd3d1)

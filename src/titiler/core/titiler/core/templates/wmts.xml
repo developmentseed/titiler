@@ -1,9 +1,14 @@
 <Capabilities xmlns="http://www.opengis.net/wmts/1.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:gml="http://www.opengis.net/gml" xsi:schemaLocation="http://www.opengis.net/wmts/1.0 http://schemas.opengis.net/wmts/1.0/wmtsGetCapabilities_response.xsd" version="1.0.0">
     <ows:ServiceIdentification>
-        <ows:Title>{{ title }}</ows:Title>
+        <ows:Title>Web Map Tile Service by TiTiler</ows:Title>
         <ows:ServiceType>OGC WMTS</ows:ServiceType>
         <ows:ServiceTypeVersion>1.0.0</ows:ServiceTypeVersion>
     </ows:ServiceIdentification>
+    <ows:ServiceProvider>
+        <ows:ProviderName>TiTiler</ows:ProviderName>
+        <ows:ProviderSite xlink:href="https://developmentseed.org/titiler/"/>
+        <ows:ServiceContact/>
+    </ows:ServiceProvider>
     <ows:OperationsMetadata>
         <ows:Operation name="GetCapabilities">
             <ows:DCP>

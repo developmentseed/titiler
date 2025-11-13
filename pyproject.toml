@@ -2,7 +2,7 @@
 name = "titiler"
 description = "A modern dynamic tile server built on top of FastAPI and Rasterio/GDAL."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 license = {file = "LICENSE"}
 authors = [
     {name = "Vincent Sarago", email = "vincent@developmentseed.com"},
@@ -22,20 +22,57 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering :: GIS",
 ]
-version="0.21.1"
+version="0.25.0"
 dependencies = [
-    "titiler.core==0.21.1",
-    "titiler.xarray==0.21.1",
-    "titiler.extensions==0.21.1",
-    "titiler.mosaic==0.21.1",
-    "titiler.application==0.21.1",
+    "titiler-core",
+    "titiler-xarray",
+    "titiler-extensions",
+    "titiler-mosaic",
+    "titiler-application",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "pytest-asyncio",
+    "httpx",
+    "obstore",
+    "zarr>=3,<4.0",
+    "h5netcdf",
+    "fsspec",
+    "s3fs>=2025.2.0",
+    "aiohttp",
+    "requests",
+    "cogeo-mosaic>=8.2,<9.0",
+    "pystac[validation]>=1.0.0,<2.0.0",
+    "brotlipy",
+    "boto3",
+    "pre-commit",
+    "bump-my-version",
+]
+telemetry = [
+    "opentelemetry-api",
+    "opentelemetry-sdk",
+    "opentelemetry-instrumentation-fastapi",
+    "opentelemetry-instrumentation-logging",
+    "opentelemetry-exporter-otlp",
+]
+docs = [
+    "black>=23.10.1",
+    "mkdocs>=1.4.3",
+    "mkdocs-jupyter>=0.24.5",
+    "mkdocs-material[imaging]>=9.5",
+    "griffe-inherited-docstrings>=1.0.0",
+    "mkdocstrings[python]>=0.25.1",
+]
+server = [
+    "uvicorn",
 ]
 
 [project.urls]
@@ -45,33 +82,20 @@ Issues = "https://github.com/developmentseed/titiler/issues"
 Source = "https://github.com/developmentseed/titiler"
 Changelog = "https://developmentseed.org/titiler/release-notes/"
 
-[tool.hatch.build.targets.sdist]
-exclude = [
-  ".binder",
-  ".pytest_cache",
-  ".ruff_cache",
-  ".vscode",
-  ".dockerignore",
-  "src/",
-  "deployment/",
-  "docs/",
-  "scripts/",
-  "dockerfiles/",
-  "docker-compose.yml",
-  ".github",
-  ".history",
-  ".bumpversion.cfg",
-  ".flake8",
-  ".gitignore",
-  ".pre-commit-config.yaml",
-  "AUTHORS.txt",
-  "CHANGES.md",
-  "CONTRIBUTING.md",
-]
+[tool.uv]
+package = false
 
-[build-system]
-requires = ["hatchling>=1.12.0"]
-build-backend = "hatchling.build"
+[tool.uv.sources]
+titiler-core = { workspace = true }
+titiler-extensions = { workspace = true }
+titiler-mosaic = { workspace = true }
+titiler-application = { workspace = true }
+titiler-xarray = { workspace = true }
+
+[tool.uv.workspace]
+members = [
+  "src/titiler/*"
+]
 
 [tool.coverage.run]
 branch = true
@@ -126,12 +150,8 @@ filterwarnings = [
     "ignore::rasterio.errors.NotGeoreferencedWarning",
 ]
 
-
-[tool.hatch.build.targets.wheel]
-bypass-selection = true
-
 [tool.bumpversion]
-current_version = "0.21.1"
+current_version = "0.25.0"
 parse = """(?x)
     (?P<major>\\d+)\\.
     (?P<minor>\\d+)\\.
@@ -165,36 +185,6 @@ tag_name = "{new_version}"
 filename = "pyproject.toml"
 search = 'version="{current_version}"'
 replace = 'version="{new_version}"'
-
-# core
-[[tool.bumpversion.files]]
-filename = "pyproject.toml"
-search = 'titiler.core=={current_version}'
-replace = 'titiler.core=={new_version}'
-
-# xarray
-[[tool.bumpversion.files]]
-filename = "pyproject.toml"
-search = 'titiler.xarray=={current_version}'
-replace = 'titiler.xarray=={new_version}'
-
-# extensions
-[[tool.bumpversion.files]]
-filename = "pyproject.toml"
-search = 'titiler.extensions=={current_version}'
-replace = 'titiler.extensions=={new_version}'
-
-# mosaic
-[[tool.bumpversion.files]]
-filename = "pyproject.toml"
-search = 'titiler.mosaic=={current_version}'
-replace = 'titiler.mosaic=={new_version}'
-
-# application
-[[tool.bumpversion.files]]
-filename = "pyproject.toml"
-search = 'titiler.application=={current_version}'
-replace = 'titiler.application=={new_version}'
 
 ###############################################################################
 # Update sub modules version
@@ -233,43 +223,48 @@ replace = '__version__ = "{new_version}"'
 # titiler.xarray
 [[tool.bumpversion.files]]
 filename = "src/titiler/xarray/pyproject.toml"
-search = 'titiler.core=={current_version}'
-replace = 'titiler.core=={new_version}'
+search = 'titiler-core=={current_version}'
+replace = 'titiler-core=={new_version}'
 
 # titiler.extensions
 [[tool.bumpversion.files]]
 filename = "src/titiler/extensions/pyproject.toml"
-search = 'titiler.core=={current_version}'
-replace = 'titiler.core=={new_version}'
+search = 'titiler-core=={current_version}'
+replace = 'titiler-core=={new_version}'
 
 # titiler.mosaic
 [[tool.bumpversion.files]]
 filename = "src/titiler/mosaic/pyproject.toml"
-search = 'titiler.core=={current_version}'
-replace = 'titiler.core=={new_version}'
+search = 'titiler-core=={current_version}'
+replace = 'titiler-core=={new_version}'
 
 # titiler.application
 [[tool.bumpversion.files]]
 filename = "src/titiler/application/pyproject.toml"
-search = 'titiler.core=={current_version}'
-replace = 'titiler.core=={new_version}'
+search = 'titiler-core[telemetry]=={current_version}'
+replace = 'titiler-core[telemetry]=={new_version}'
 
 [[tool.bumpversion.files]]
 filename = "src/titiler/application/pyproject.toml"
-search = 'titiler.extensions[cogeo,stac]=={current_version}'
-replace = 'titiler.extensions[cogeo,stac]=={new_version}'
+search = 'titiler-extensions[cogeo,stac]=={current_version}'
+replace = 'titiler-extensions[cogeo,stac]=={new_version}'
 
 [[tool.bumpversion.files]]
 filename = "src/titiler/application/pyproject.toml"
-search = 'titiler.mosaic=={current_version}'
-replace = 'titiler.mosaic=={new_version}'
+search = 'titiler-mosaic=={current_version}'
+replace = 'titiler-mosaic=={new_version}'
 
 ###############################################################################
 # Others
 [[tool.bumpversion.files]]
 filename = "deployment/aws/lambda/Dockerfile"
-search = 'titiler.application=={current_version}'
-replace = 'titiler.application=={new_version}'
+search = 'titiler-application=={current_version}'
+replace = 'titiler-application=={new_version}'
+
+[[tool.bumpversion.files]]
+filename = "deployment/aws/lambda/Dockerfile.xarray"
+search = 'titiler-xarray=={current_version}'
+replace = 'titiler-xarray=={new_version}'
 
 [[tool.bumpversion.files]]
 filename = "deployment/k8s/charts/Chart.yaml"

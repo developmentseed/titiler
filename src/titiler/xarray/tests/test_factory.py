@@ -9,6 +9,7 @@ from starlette.testclient import TestClient
 
 from titiler.xarray.extensions import DatasetMetadataExtension, VariablesExtension
 from titiler.xarray.factory import TilerFactory
+from titiler.xarray.io import FsReader, fs_open_dataset
 
 prefix = os.path.join(os.path.dirname(__file__), "fixtures")
 
@@ -24,21 +25,28 @@ def test_deprecated_extension():
     """Test TilerFactory class."""
     with pytest.warns(DeprecationWarning):
         md = TilerFactory(extensions=[VariablesExtension()])
-    assert len(md.router.routes) == 20
+    assert len(md.router.routes) == 19
 
 
 def test_tiler_factory():
     """Test factory with options."""
     """Test TilerFactory class."""
+    md = TilerFactory()
+    assert len(md.router.routes) == 18
+
+    with pytest.warns(UserWarning):
+        md = TilerFactory(
+            # /preview, /preview.{format}, /preview/{width}x{height}.{format}
+            add_preview=True,
+        )
+        assert len(md.router.routes) == 21
+
     md = TilerFactory(
-        add_viewer=False,
-        add_part=False,
+        router_prefix="/md",
+        # /dataset, /dataset/dict, /dataset/keys
         extensions=[DatasetMetadataExtension()],
     )
-    assert len(md.router.routes) == 16
-
-    md = TilerFactory(router_prefix="/md", extensions=[DatasetMetadataExtension()])
-    assert len(md.router.routes) == 22
+    assert len(md.router.routes) == 21
 
     app = FastAPI()
     app.include_router(md.router, prefix="/md")
@@ -54,8 +62,31 @@ def test_tiler_factory():
 @pytest.fixture
 def app():
     """App fixture."""
-    md = TilerFactory(router_prefix="/md", extensions=[DatasetMetadataExtension()])
-    assert len(md.router.routes) == 22
+    md = TilerFactory(
+        router_prefix="/md",
+        extensions=[
+            DatasetMetadataExtension(dataset_opener=fs_open_dataset),
+        ],
+        reader=FsReader,
+    )
+    assert len(md.router.routes) == 21
+
+    app = FastAPI()
+    app.include_router(md.router, prefix="/md")
+    with TestClient(app) as client:
+        yield client
+
+
+@pytest.fixture
+def app_zarr():
+    """App fixture."""
+    md = TilerFactory(
+        router_prefix="/md",
+        extensions=[
+            DatasetMetadataExtension(),
+        ],
+    )
+    assert len(md.router.routes) == 21
 
     app = FastAPI()
     app.include_router(md.router, prefix="/md")
@@ -82,21 +113,6 @@ def test_dataset_extension(filename, app):
     resp = app.get("/md/dataset/", params={"url": filename})
     assert resp.status_code == 200
     assert "text/html" in resp.headers["content-type"]
-
-
-@pytest.mark.parametrize(
-    "filename",
-    [dataset_2d_nc, dataset_3d_nc, dataset_3d_zarr],
-)
-def test_bounds(filename, app):
-    """Test /bounds endpoint."""
-    # missing variable parameter
-    resp = app.get("/md/bounds", params={"url": filename})
-    assert resp.status_code == 422
-
-    resp = app.get("/md/bounds", params={"url": filename, "variable": "dataset"})
-    assert resp.status_code == 200
-    assert resp.headers["content-type"] == "application/json"
 
 
 @pytest.mark.parametrize(
@@ -373,6 +389,177 @@ def test_zarr_group(group, app):
             assert arr.max() == group * 2 + 1
 
     resp = app.get(
+        "/md/point/0,0",
+        params={"url": zarr_pyramid, "variable": "dataset", "group": str(group)},
+    )
+    assert resp.json()["values"] == [group * 2 + 1]
+
+
+@pytest.mark.parametrize(
+    "filename",
+    [dataset_2d_nc, dataset_3d_nc, dataset_3d_zarr],
+)
+def test_preview(filename):
+    """App fixture."""
+    with pytest.warns(UserWarning):
+        md = TilerFactory(add_preview=True, reader=FsReader)
+
+    app = FastAPI()
+    app.include_router(md.router)
+    with TestClient(app) as client:
+        resp = client.get(
+            "/preview",
+            params={
+                "url": filename,
+                "variable": "dataset",
+                "rescale": "0,500",
+                "bidx": 1,
+            },
+        )
+        assert resp.status_code == 200
+        assert resp.headers["content-type"] == "image/jpeg"
+
+        resp = client.get(
+            "/preview.png",
+            params={
+                "url": filename,
+                "variable": "dataset",
+                "rescale": "0,500",
+                "bidx": 1,
+            },
+        )
+        assert resp.status_code == 200
+        assert resp.headers["content-type"] == "image/png"
+
+        resp = client.get(
+            "/preview/1024x1024.png",
+            params={
+                "url": filename,
+                "variable": "dataset",
+                "rescale": "0,500",
+                "bidx": 1,
+            },
+        )
+        assert resp.status_code == 200
+        assert resp.headers["content-type"] == "image/png"
+        with MemoryFile(resp.content) as mem:
+            with mem.open() as dst:
+                assert dst.width == 1024
+                assert dst.height == 1024
+
+
+@pytest.mark.parametrize(
+    "filename",
+    [dataset_3d_zarr],
+)
+def test_app_zarr(filename, app_zarr):
+    """Test endpoints with Zarr Reader."""
+    resp = app_zarr.get("/md/dataset/keys", params={"url": filename})
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "application/json"
+    assert resp.json() == ["dataset"]
+
+    resp = app_zarr.get("/md/dataset/dict", params={"url": filename})
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "application/json"
+    assert resp.json()["data_vars"]["dataset"]
+
+    resp = app_zarr.get("/md/dataset/", params={"url": filename})
+    assert resp.status_code == 200
+    assert "text/html" in resp.headers["content-type"]
+
+    resp = app_zarr.get("/md/info", params={"url": filename, "variable": "dataset"})
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "application/json"
+
+    resp = app_zarr.get(
+        "/md/tiles/WebMercatorQuad/0/0/0",
+        params={"url": filename, "variable": "dataset", "rescale": "0,500", "bidx": 1},
+    )
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "image/png"
+
+    resp = app_zarr.get(
+        "/md/WebMercatorQuad/tilejson.json",
+        params={"url": filename, "variable": "dataset", "rescale": "0,500", "bidx": 1},
+    )
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "application/json"
+
+    resp = app_zarr.get(
+        "/md/point/0,0", params={"url": filename, "variable": "dataset"}
+    )
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "application/json"
+
+    feat = {
+        "type": "Feature",
+        "properties": {},
+        "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    (-100.0, -25.0),
+                    (40.0, -25.0),
+                    (40.0, 60.0),
+                    (-100.0, 60.0),
+                    (-100.0, -25.0),
+                ]
+            ],
+        },
+    }
+
+    resp = app_zarr.post(
+        "/md/statistics", params={"url": filename, "variable": "dataset"}, json=feat
+    )
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "application/geo+json"
+
+    feat = {
+        "type": "Feature",
+        "properties": {},
+        "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    (-100.0, -25.0),
+                    (40.0, -25.0),
+                    (40.0, 60.0),
+                    (-100.0, 60.0),
+                    (-100.0, -25.0),
+                ]
+            ],
+        },
+    }
+
+    resp = app_zarr.post(
+        "/md/feature",
+        params={"url": filename, "variable": "dataset", "rescale": "0,500", "bidx": 1},
+        json=feat,
+    )
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "image/jpeg"
+
+
+@pytest.mark.parametrize(
+    "group",
+    [0, 1, 2],
+)
+def test_group_open_zarr(group, app_zarr):
+    """Test /tiles endpoints."""
+    resp = app_zarr.get(
+        f"/md/tiles/WebMercatorQuad/{group}/0/0.tif",
+        params={"url": zarr_pyramid, "variable": "dataset", "group": str(group)},
+    )
+    assert resp.status_code == 200
+    # see src/titiler/xarray/tests/fixtures/generate_fixtures.ipynb
+    # for structure of zarr pyramid
+    with MemoryFile(resp.content) as mem:
+        with mem.open() as dst:
+            arr = dst.read(1)
+            assert arr.max() == group * 2 + 1
+
+    resp = app_zarr.get(
         "/md/point/0,0",
         params={"url": zarr_pyramid, "variable": "dataset", "group": str(group)},
     )

@@ -15,7 +15,7 @@ from titiler.core.factory import FactoryExtension
 from titiler.core.resources.enums import MediaType
 from titiler.xarray.dependencies import XarrayIOParams
 from titiler.xarray.factory import TilerFactory
-from titiler.xarray.io import xarray_open_dataset
+from titiler.xarray.io import open_zarr
 
 
 @define
@@ -24,7 +24,7 @@ class VariablesExtension(FactoryExtension):
 
     # Custom dependency for /variables
     io_dependency: Type[DefaultDependency] = XarrayIOParams
-    dataset_opener: Callable[..., xarray.Dataset] = xarray_open_dataset
+    dataset_opener: Callable[..., xarray.Dataset] = open_zarr
 
     def __attrs_post_init__(self):
         """raise deprecation warning."""
@@ -56,7 +56,7 @@ class DatasetMetadataExtension(FactoryExtension):
     """Add dataset metadata endpoints to a Xarray TilerFactory."""
 
     io_dependency: Type[DefaultDependency] = XarrayIOParams
-    dataset_opener: Callable[..., xarray.Dataset] = xarray_open_dataset
+    dataset_opener: Callable[..., xarray.Dataset] = open_zarr
 
     def register(self, factory: TilerFactory):  # noqa: C901
         """Register endpoint to the tiler factory."""

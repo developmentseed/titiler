@@ -1,5 +1,8 @@
 """titiler.core utilities."""
 
+from __future__ import annotations
+
+import re
 import warnings
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, TypeVar, Union
 from urllib.parse import urlencode
@@ -18,6 +21,7 @@ from rio_tiler.utils import linear_rescale, render
 from starlette.requests import Request
 from starlette.responses import Response
 from starlette.routing import Route, request_response
+from starlette.templating import Jinja2Templates, _TemplateResponse
 
 from titiler.core.resources.enums import ImageType, MediaType
 
@@ -104,7 +108,7 @@ def render_image(  # noqa: C901
         data = rescale_array(data, mask, in_range=datatype_range)
 
     creation_options = {**kwargs, **output_format.profile}
-    if output_format == ImageType.tif:
+    if output_format.driver == "GTiff":
         if "transform" not in creation_options:
             creation_options.update({"transform": image.transform})
         if "crs" not in creation_options and image.crs:
@@ -197,17 +201,37 @@ def extract_query_params(
 
 
 def check_query_params(
-    dependencies: List[Callable],
-    params: Union[QueryParams, Dict],
+    dependencies: List[Callable], params: Union[QueryParams, Dict]
 ) -> bool:
-    """Check QueryParams for a list of Dependencies."""
+    """Check QueryParams for Query dependency.
+
+    1. `get_dependant` is used to get the query-parameters required by the `callable`
+    2. we use `request_params_to_args` to construct arguments needed to call the `callable`
+    3. we call the `callable` and catch any errors
+
+    Important: We assume the `callable` in not a co-routine
+
+    """
+    qp = (
+        QueryParams(urlencode(params, doseq=True))
+        if isinstance(params, Dict)
+        else params
+    )
+
     for dependency in dependencies:
         try:
-            _, errors = deserialize_query_params(dependency, params)
-            if errors:
-                return False
+            dep = get_dependant(path="", call=dependency)
+            if dep.query_params:
+                # call the dependency with the query-parameters values
+                query_values, errors = request_params_to_args(dep.query_params, qp)
+                if errors:
+                    return False
+
+                _ = dependency(**query_values)
+
         except Exception:
             return False
+
     return True
 
 
@@ -313,3 +337,56 @@ def update_openapi(app: FastAPI) -> FastAPI:
 
     # return the patched app
     return app
+
+
+def create_html_response(
+    request: Request,
+    data: Any,
+    template_name: str,
+    templates: Jinja2Templates,
+    title: str | None = None,
+    router_prefix: str | None = None,
+    **kwargs: Any,
+) -> _TemplateResponse:
+    """Create Template response."""
+    urlpath = request.url.path
+    if root_path := request.scope.get("root_path"):
+        urlpath = re.sub(r"^" + root_path, "", urlpath)
+
+    if router_prefix:
+        urlpath = re.sub(r"^" + router_prefix, "", urlpath)
+
+    crumbs = []
+    baseurl = str(request.base_url).rstrip("/")
+
+    if router_prefix:
+        baseurl += router_prefix
+
+    crumbpath = str(baseurl)
+    if urlpath == "/":
+        urlpath = ""
+
+    for crumb in urlpath.split("/"):
+        crumbpath = crumbpath.rstrip("/")
+        part = crumb
+        if part is None or part == "":
+            part = "Home"
+        crumbpath += f"/{crumb}"
+        crumbs.append({"url": crumbpath.rstrip("/"), "part": part.capitalize()})
+
+    return templates.TemplateResponse(
+        request,
+        name=f"{template_name}.html",
+        context={
+            "response": data,
+            "template": {
+                "api_root": baseurl,
+                "params": request.query_params,
+                "title": title or template_name,
+            },
+            "crumbs": crumbs,
+            "url": baseurl + urlpath,
+            "params": str(request.url.query),
+            **kwargs,
+        },
+    )

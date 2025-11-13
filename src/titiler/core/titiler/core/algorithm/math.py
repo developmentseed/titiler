@@ -5,7 +5,7 @@ from rio_tiler.models import ImageData
 
 from titiler.core.algorithm.base import BaseAlgorithm
 
-__all__ = ["_Min", "_Max", "_Median", "_Mean", "_Std", "_Var"]
+__all__ = ["_Min", "_Max", "_Median", "_Mean", "_Std", "_Var", "_Sum"]
 
 
 class _Min(BaseAlgorithm):
@@ -132,7 +132,28 @@ class _Var(BaseAlgorithm):
             assets=img.assets,
             crs=img.crs,
             bounds=img.bounds,
-            band_names=["std"],
+            band_names=["var"],
+            metadata=img.metadata,
+            cutline_mask=img.cutline_mask,
+        )
+
+
+class _Sum(BaseAlgorithm):
+    """Return Sum values along the `bands` axis."""
+
+    title: str = "Sum"
+    description: str = "Return Sum values along the `bands` axis."
+
+    output_nbands: int = 1
+
+    def __call__(self, img: ImageData) -> ImageData:
+        """Return Min."""
+        return ImageData(
+            numpy.ma.sum(img.array, axis=0, keepdims=True),
+            assets=img.assets,
+            crs=img.crs,
+            bounds=img.bounds,
+            band_names=["sum"],
             metadata=img.metadata,
             cutline_mask=img.cutline_mask,
         )

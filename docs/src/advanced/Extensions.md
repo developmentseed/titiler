@@ -94,12 +94,11 @@ app.include_router(tiler.router, prefix="/cog")
 ```python
 from dataclasses import dataclass, field
 from typing import Tuple, List, Optional
-
 import rasterio
 from starlette.responses import Response
 from fastapi import Depends, FastAPI, Query
-from titiler.core.factory import BaseTilerFactory, FactoryExtension, TilerFactory
-from titiler.core.dependencies import RescalingParams
+from titiler.core.factory import TilerFactory, FactoryExtension
+from titiler.core.dependencies import ImageRenderingParams
 from titiler.core.factory import TilerFactory
 from titiler.core.resources.enums import ImageType
 
@@ -111,8 +110,8 @@ class thumbnailExtension(FactoryExtension):
     # Set some options
     max_size: int = field(default=128)
 
-    # Register method is mandatory and must take a BaseTilerFactory object as input
-    def register(self, factory: BaseTilerFactory):
+    # Register method is mandatory and must take a TilerFactory object as input
+    def register(self, factory: TilerFactory):
         """Register endpoint to the tiler factory."""
 
         # register an endpoint to the factory's router
@@ -132,18 +131,12 @@ class thumbnailExtension(FactoryExtension):
         def thumbnail(
             # we can reuse the factory dependency
             src_path: str = Depends(factory.path_dependency),
+            reader_params=Depends(factory.reader_dependency),
             layer_params=Depends(factory.layer_dependency),
             dataset_params=Depends(factory.dataset_dependency),
             post_process=Depends(factory.process_dependency),
-            rescale: Optional[List[Tuple[float, ...]]] = Depends(RescalingParams),
-            color_formula: Optional[str] = Query(
-                None,
-                title="Color Formula",
-                description="rio-color formula (info: https://github.com/mapbox/rio-color)",
-            ),
             colormap=Depends(factory.colormap_dependency),
             render_params=Depends(factory.render_dependency),
-            reader_params=Depends(factory.reader_dependency),
             env=Depends(factory.environment_dependency),
         ):
             with rasterio.Env(**env):
@@ -157,22 +150,18 @@ class thumbnailExtension(FactoryExtension):
             if post_process:
                 image = post_process(image)
 
-            if rescale:
-                image.rescale(rescale)
-
-            if color_formula:
-                image.apply_color_formula(color_formula)
-
             format = ImageType.jpeg if image.mask.all() else ImageType.png
 
-            content = image.render(
-                img_format=format.driver,
+            if post_process:
+                image = post_process(image)
+
+            content, media_type = factory.render_func(
+                image,
                 colormap=colormap,
-                **format.profile,
                 **render_params.as_dict(),
             )
 
-            return Response(content, media_type=format.mediatype)
+            return Response(content, media_type=media_type)
 
 # Use it
 app = FastAPI()
