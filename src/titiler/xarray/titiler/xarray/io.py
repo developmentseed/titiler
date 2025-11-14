@@ -149,7 +149,7 @@ def get_variable(
     ds: xarray.Dataset,
     variable: str,
     sel: Optional[List[str]] = None,
-    method: Optional[Literal["nearest", "pad", "ffill", "backfill", "bfill"]] = None,
+    # method: Optional[Literal["nearest", "pad", "ffill", "backfill", "bfill"]] = None,
 ) -> xarray.DataArray:
     """Get Xarray variable as DataArray.
 
@@ -166,22 +166,43 @@ def get_variable(
     da = ds[variable]
 
     if sel:
+        # Handle mutiple `sel` with same dimension
+        # e.g sel=["time=2020-01-01", "time=2020-02-01", "band=1"]
         _idx: Dict[str, List] = {}
-        for s in sel:
+        for selector in sel:
             val: Union[str, slice]
-            dim, val = s.split("=")
-
-            # cast string to dtype of the dimension
-            if da[dim].dtype != "O":
-                val = da[dim].dtype.type(val)
+            dim, val = selector.split("=")
 
             if dim in _idx:
                 _idx[dim].append(val)
             else:
                 _idx[dim] = [val]
 
-        sel_idx = {k: v[0] if len(v) < 2 else v for k, v in _idx.items()}
-        da = da.sel(sel_idx, method=method)
+        # Loop through all dimension=values selectors
+        # - parse method::value if provided
+        # - check if multiple methods are provided for the same dimension
+        # - cast values to the dimension dtype
+        # - apply the selection
+        for dimension, values in _idx.items():
+            methods, values = zip(  # type: ignore
+                *[v.split("::", 1) if "::" in v else (None, v) for v in values]
+            )
+            method_sets = {m for m in methods if m is not None}
+            if len(method_sets) > 1:
+                raise ValueError(
+                    f"Multiple selection methods provided for dimension {dimension}: {methods}"
+                )
+            method = method_sets.pop() if method_sets else None
+
+            # TODO: add more casting
+            # cast string to dtype of the dimension
+            if da[dimension].dtype != "O":
+                values = [da[dimension].dtype.type(v) for v in values]
+
+            da = da.sel(
+                {dimension: values[0] if len(values) < 2 else values},
+                method=method,
+            )
 
     da = _arrange_dims(da)
 
@@ -241,7 +262,6 @@ class Reader(XarrayReader):
             self.ds,
             self.variable,
             sel=self.sel,
-            method=self.method,
         )
         super().__attrs_post_init__()
 
