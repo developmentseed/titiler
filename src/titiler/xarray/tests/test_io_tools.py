@@ -53,8 +53,7 @@ def test_get_variable():
     da = get_variable(
         ds,
         "dataset",
-        sel=["time=2022-12-01", "time=2023-01-01"],
-        method="nearest",
+        sel=["time=nearest::2022-12-01", "time=nearest::2023-01-01"],
     )
     assert da.rio.crs
     assert da.dims == ("time", "y", "x")
@@ -70,7 +69,7 @@ def test_get_variable():
     assert da["time"][1] == numpy.datetime64("2023-01-01")
 
     # Select the Nearest Time
-    da = get_variable(ds, "dataset", sel=["time=2024-01-01T01:00:00"], method="nearest")
+    da = get_variable(ds, "dataset", sel=["time=nearest::2024-01-01T01:00:00"])
     assert da.rio.crs
     assert da.dims == ("y", "x")
     assert da["time"] == numpy.datetime64("2023-01-01")
@@ -186,20 +185,20 @@ def test_get_variable_datetime_tz():
     assert data.dims == ("time", "y", "x")
     ds = data.to_dataset(name="dataset")
 
-    da = get_variable(ds, "dataset", sel=["time=2023-01-01T00:00:00"], method="nearest")
+    da = get_variable(ds, "dataset", sel=["time=nearest::2023-01-01T00:00:00"])
+    assert da.rio.crs
+    assert da.dims == ("y", "x")
+    assert da["time"] == numpy.datetime64("2023-01-01")
+
+    da = get_variable(ds, "dataset", sel=["time=nearest::2023-01-01T00:00:00Z"])
     assert da.rio.crs
     assert da.dims == ("y", "x")
     assert da["time"] == numpy.datetime64("2023-01-01")
 
     da = get_variable(
-        ds, "dataset", sel=["time=2023-01-01T00:00:00Z"], method="nearest"
-    )
-    assert da.rio.crs
-    assert da.dims == ("y", "x")
-    assert da["time"] == numpy.datetime64("2023-01-01")
-
-    da = get_variable(
-        ds, "dataset", sel=["time=2023-01-01T00:00:00+03:00"], method="nearest"
+        ds,
+        "dataset",
+        sel=["time=nearest::2023-01-01T00:00:00+03:00"],
     )
     assert da.rio.crs
     assert da.dims == ("y", "x")
