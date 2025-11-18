@@ -149,7 +149,6 @@ def get_variable(
     ds: xarray.Dataset,
     variable: str,
     sel: Optional[List[str]] = None,
-    # method: Optional[Literal["nearest", "pad", "ffill", "backfill", "bfill"]] = None,
 ) -> xarray.DataArray:
     """Get Xarray variable as DataArray.
 

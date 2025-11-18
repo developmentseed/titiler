@@ -1,5 +1,19 @@
 # Release Notes
 
+## Unreleased
+
+### titiler.xarray
+
+* use `sel={dim}={method}::{value}` notation  to specify selector method instead of `sel-method` query-parameter **breaking change** 
+
+    ```python
+    # before
+    .../info?tore.zarr?sel=time=2023-01-01&sel_method=nearest`
+
+    # now
+    .../info?tore.zarr?sel=time=nearest::2023-01-01`
+    ```
+
 ## 0.25.0 (2025-11-07)
 
 ### Misc 
