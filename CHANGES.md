@@ -5,6 +5,7 @@
 ### titiler.xarray
 
 * add `/validate` endpoint via `ValidateExtension` extension
+* add `Latitude` and `Longitude` as compatible spatial dimensions (@abarciauskas-bgse, https://github.com/developmentseed/titiler/pull/1268)
 
 ## 0.25.0 (2025-11-07)
 
