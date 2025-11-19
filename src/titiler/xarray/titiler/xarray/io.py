@@ -17,6 +17,7 @@ import zarr
 from morecantile import TileMatrixSet
 from rio_tiler.constants import WEB_MERCATOR_TMS
 from rio_tiler.io.xarray import XarrayReader
+from typing_extensions import TypedDict
 from zarr.storage import ObjectStore
 
 
@@ -145,6 +146,64 @@ def _arrange_dims(da: xarray.DataArray) -> xarray.DataArray:
     return da
 
 
+class selector(TypedDict):
+    """STAC Item."""
+
+    dimension: str
+    values: list[Any]
+    method: Literal["nearest", "pad", "ffill", "backfill", "bfill"] | None
+
+
+def _parse_dsl(sel: list[str] | None) -> list[selector]:
+    """Parse sel DSL into dictionary.
+
+    Args:
+        sel (list of str, optional): List of Xarray Indexes.
+
+    Returns:
+        list: list of dimension/values/method.
+
+    """
+    sel = sel or []
+
+    _idx: Dict[str, List] = {}
+    for s in sel:
+        val: Union[str, slice]
+        dim, val = s.split("=")
+
+        if dim in _idx:
+            _idx[dim].append(val)
+        else:
+            _idx[dim] = [val]
+
+    # Loop through all dimension=values selectors
+    # - parse method::value if provided
+    # - check if multiple methods are provided for the same dimension
+    # - cast values to the dimension dtype
+    # - apply the selection
+    selectors: list[selector] = []
+    for dimension, values in _idx.items():
+        methods, values = zip(  # type: ignore
+            *[v.split("::", 1) if "::" in v else (None, v) for v in values]
+        )
+        method_sets = {m for m in methods if m is not None}
+        if len(method_sets) > 1:
+            raise ValueError(
+                f"Multiple selection methods provided for dimension {dimension}: {methods}"
+            )
+        method = method_sets.pop() if method_sets else None
+
+        selectors.append(
+            {
+                "dimension": dimension,
+                "values": list(values),
+                "method": method,
+            }
+        )
+
+    return selectors
+
+
 def get_variable(
     ds: xarray.Dataset,
     variable: str,
@@ -164,44 +223,20 @@ def get_variable(
     """
     da = ds[variable]
 
-    if sel:
-        # Handle mutiple `sel` with same dimension
-        # e.g sel=["time=2020-01-01", "time=2020-02-01", "band=1"]
-        _idx: Dict[str, List] = {}
-        for selector in sel:
-            val: Union[str, slice]
-            dim, val = selector.split("=")
+    for selector in _parse_dsl(sel):
+        dimension = selector["dimension"]
+        values = selector["values"]
+        method = selector["method"]
 
-            if dim in _idx:
-                _idx[dim].append(val)
-            else:
-                _idx[dim] = [val]
+        # TODO: add more casting
+        # cast string to dtype of the dimension
+        if da[dimension].dtype != "O":
+            values = [da[dimension].dtype.type(v) for v in values]
 
-        # Loop through all dimension=values selectors
-        # - parse method::value if provided
-        # - check if multiple methods are provided for the same dimension
-        # - cast values to the dimension dtype
-        # - apply the selection
-        for dimension, values in _idx.items():
-            methods, values = zip(  # type: ignore
-                *[v.split("::", 1) if "::" in v else (None, v) for v in values]
-            )
-            method_sets = {m for m in methods if m is not None}
-            if len(method_sets) > 1:
-                raise ValueError(
-                    f"Multiple selection methods provided for dimension {dimension}: {methods}"
-                )
-            method = method_sets.pop() if method_sets else None
-
-            # TODO: add more casting
-            # cast string to dtype of the dimension
-            if da[dimension].dtype != "O":
-                values = [da[dimension].dtype.type(v) for v in values]
-
-            da = da.sel(
-                {dimension: values[0] if len(values) < 2 else values},
-                method=method,
-            )
+        da = da.sel(
+            {dimension: values[0] if len(values) < 2 else values},
+            method=method,
+        )
 
     da = _arrange_dims(da)
 
