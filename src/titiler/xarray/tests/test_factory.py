@@ -175,8 +175,7 @@ def test_info_da_options(app):
         params={
             "url": dataset_4d_nc,
             "variable": "dataset",
-            "sel": "z=1",
-            "sel_method": "nearest",
+            "sel": "z=nearest::1",
         },
     )
     assert resp.status_code == 200

@@ -9,7 +9,13 @@ import numpy
 import pytest
 import xarray
 
-from titiler.xarray.io import Reader, fs_open_dataset, get_variable, open_zarr
+from titiler.xarray.io import (
+    Reader,
+    _parse_dsl,
+    fs_open_dataset,
+    get_variable,
+    open_zarr,
+)
 
 prefix = os.path.join(os.path.dirname(__file__), "fixtures")
 
@@ -53,8 +59,7 @@ def test_get_variable():
     da = get_variable(
         ds,
         "dataset",
-        sel=["time=2022-12-01", "time=2023-01-01"],
-        method="nearest",
+        sel=["time=nearest::2022-12-01", "time=nearest::2023-01-01"],
     )
     assert da.rio.crs
     assert da.dims == ("time", "y", "x")
@@ -70,7 +75,7 @@ def test_get_variable():
     assert da["time"][1] == numpy.datetime64("2023-01-01")
 
     # Select the Nearest Time
-    da = get_variable(ds, "dataset", sel=["time=2024-01-01T01:00:00"], method="nearest")
+    da = get_variable(ds, "dataset", sel=["time=nearest::2024-01-01T01:00:00"])
     assert da.rio.crs
     assert da.dims == ("y", "x")
     assert da["time"] == numpy.datetime64("2023-01-01")
@@ -186,20 +191,20 @@ def test_get_variable_datetime_tz():
     assert data.dims == ("time", "y", "x")
     ds = data.to_dataset(name="dataset")
 
-    da = get_variable(ds, "dataset", sel=["time=2023-01-01T00:00:00"], method="nearest")
+    da = get_variable(ds, "dataset", sel=["time=nearest::2023-01-01T00:00:00"])
+    assert da.rio.crs
+    assert da.dims == ("y", "x")
+    assert da["time"] == numpy.datetime64("2023-01-01")
+
+    da = get_variable(ds, "dataset", sel=["time=nearest::2023-01-01T00:00:00Z"])
     assert da.rio.crs
     assert da.dims == ("y", "x")
     assert da["time"] == numpy.datetime64("2023-01-01")
 
     da = get_variable(
-        ds, "dataset", sel=["time=2023-01-01T00:00:00Z"], method="nearest"
-    )
-    assert da.rio.crs
-    assert da.dims == ("y", "x")
-    assert da["time"] == numpy.datetime64("2023-01-01")
-
-    da = get_variable(
-        ds, "dataset", sel=["time=2023-01-01T00:00:00+03:00"], method="nearest"
+        ds,
+        "dataset",
+        sel=["time=nearest::2023-01-01T00:00:00+03:00"],
     )
     assert da.rio.crs
     assert da.dims == ("y", "x")
@@ -346,3 +351,50 @@ def test_io_open_zarr(src_path, options):
     """test open_zarr with cloud hosted files."""
     with open_zarr(src_path, **options) as ds:
         assert list(ds.data_vars)
+
+
+@pytest.mark.parametrize(
+    "sel,expected",
+    [
+        (
+            ["time=2022-01-01", "level=10"],
+            [
+                {"dimension": "time", "values": ["2022-01-01"], "method": None},
+                {"dimension": "level", "values": ["10"], "method": None},
+            ],
+        ),
+        (
+            ["time=2022-01-01", "time=2022-01-02"],
+            [
+                {
+                    "dimension": "time",
+                    "values": ["2022-01-01", "2022-01-02"],
+                    "method": None,
+                },
+            ],
+        ),
+        (
+            ["time=pad::2022-01-01", "time=2022-01-02", "level=nearest::10"],
+            [
+                {
+                    "dimension": "time",
+                    "values": ["2022-01-01", "2022-01-02"],
+                    "method": "pad",
+                },
+                {"dimension": "level", "values": ["10"], "method": "nearest"},
+            ],
+        ),
+        ([], []),
+    ],
+)
+def test_parse_dsl(sel, expected):
+    """test _parse_dsl function."""
+    result = _parse_dsl(sel)
+    assert result == expected
+
+
+def test_parse_dsl_invalid():
+    """Should raise a ValueError when multiple methods are set for a dimension."""
+    sel = ["time=pad::2022-01-01", "time=nearest::2022-01-02"]
+    with pytest.raises(ValueError):
+        _parse_dsl(sel)
