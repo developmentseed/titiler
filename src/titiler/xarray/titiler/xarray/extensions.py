@@ -15,7 +15,7 @@ from titiler.core.factory import FactoryExtension
 from titiler.core.resources.enums import MediaType
 from titiler.xarray.dependencies import XarrayIOParams
 from titiler.xarray.factory import TilerFactory
-from titiler.xarray.io import open_zarr
+from titiler.xarray.io import X_DIM_NAMES, Y_DIM_NAMES, open_zarr
 
 
 @define
@@ -139,12 +139,8 @@ class ValidateExtension(FactoryExtension):
 
         if "y" not in da.dims:
             try:
-                latitude_var_name = next(
-                    name
-                    for name in ["lat", "latitude", "LAT", "LATITUDE", "Lat"]
-                    if name in da.dims
-                )
-                da = da.rename({latitude_var_name: "y"})
+                y_dim = next(name for name in Y_DIM_NAMES if name in da.dims)
+                da = da.rename({y_dim: "y"})
 
             except StopIteration:
                 errors.append(
@@ -153,13 +149,8 @@ class ValidateExtension(FactoryExtension):
 
         if "x" not in da.dims:
             try:
-                longitude_var_name = next(
-                    name
-                    for name in ["lon", "longitude", "LON", "LONGITUDE", "Lon"]
-                    if name in da.dims
-                )
-
-                da = da.rename({longitude_var_name: "x"})
+                x_dim = next(name for name in X_DIM_NAMES if name in da.dims)
+                da = da.rename({x_dim: "x"})
             except StopIteration:
                 errors.append(
                     "Dataset does not have compatible `X` spatial coordinates"
