@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1762945306822,
+  "lastUpdate": 1763539502382,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -16858,6 +16858,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.25,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "aimee@developmentseed.org",
+            "name": "Aimee Barciauskas",
+            "username": "abarciauskas-bgse"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b7f0e6137d4df2f63c215949b3688bb3464b64a5",
+          "message": "Latitude and Longitude should be an option for dim names (#1268)",
+          "timestamp": "2025-11-19T09:03:20+01:00",
+          "tree_id": "3adc2a818ac69a8e4436f88f56d25835e806adda",
+          "url": "https://github.com/developmentseed/titiler/commit/b7f0e6137d4df2f63c215949b3688bb3464b64a5"
+        },
+        "date": 1763539501439,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.21,
             "unit": "s"
           },
           {
