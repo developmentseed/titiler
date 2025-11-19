@@ -115,12 +115,12 @@ def _arrange_dims(da: xarray.DataArray) -> xarray.DataArray:
         try:
             latitude_var_name = next(
                 name
-                for name in ["lat", "latitude", "LAT", "LATITUDE", "Lat"]
+                for name in ["lat", "latitude", "LAT", "LATITUDE", "Latitude", "Lat"]
                 if name in da.dims
             )
             longitude_var_name = next(
                 name
-                for name in ["lon", "longitude", "LON", "LONGITUDE", "Lon"]
+                for name in ["lon", "longitude", "LON", "LONGITUDE", "Longitude", "Lon"]
                 if name in da.dims
             )
         except StopIteration as e:
