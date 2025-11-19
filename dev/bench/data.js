@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1763539502382,
+  "lastUpdate": 1763555430374,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -16917,6 +16917,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.21,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "vincent.sarago@gmail.com",
+            "name": "Vincent Sarago",
+            "username": "vincentsarago"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d1920a48f62000b647ca148460da156e0fee2047",
+          "message": "add `/validate` endpoint for md dataset (#1148)\n\n* add `/validate` endpoint for md dataset\n\n* update and add tests\n\n* add response model\n\n* more tests\n\n* update changelog\n\n* pydantic model needs TypedDict from typing-extensions for python <3.12\n\n* update from main",
+          "timestamp": "2025-11-19T13:28:47+01:00",
+          "tree_id": "079604a6a95acdf632b31eb181779d3d075f4549",
+          "url": "https://github.com/developmentseed/titiler/commit/d1920a48f62000b647ca148460da156e0fee2047"
+        },
+        "date": 1763555429174,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.24,
             "unit": "s"
           },
           {
