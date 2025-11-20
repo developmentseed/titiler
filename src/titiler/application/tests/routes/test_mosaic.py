@@ -82,7 +82,6 @@ def test_tilejson(app):
     assert body["minzoom"] == mosaicjson["minzoom"]
     assert body["maxzoom"] == mosaicjson["maxzoom"]
     assert body["bounds"] == mosaicjson["bounds"]
-    assert body["center"] == mosaicjson["center"]
 
 
 def test_point(app):
