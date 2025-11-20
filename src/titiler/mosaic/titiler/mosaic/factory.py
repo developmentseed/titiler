@@ -696,15 +696,19 @@ class MosaicTilerFactory(BaseFactory):
                     reader_options=reader_params.as_dict(),
                     **backend_params.as_dict(),
                 ) as src_dst:
-                    center = list(src_dst.mosaic_def.center)
-                    if minzoom is not None:
-                        center[-1] = minzoom
-
+                    bounds = src_dst.get_geographic_bounds(tms.rasterio_geographic_crs)
+                    minzoom = minzoom if minzoom is not None else src_dst.minzoom
+                    maxzoom = maxzoom if maxzoom is not None else src_dst.maxzoom
+                    center = (
+                        (bounds[0] + bounds[2]) / 2,
+                        (bounds[1] + bounds[3]) / 2,
+                        minzoom,
+                    )
                     return {
-                        "bounds": src_dst.bounds,
+                        "bounds": bounds,
                         "center": tuple(center),
-                        "minzoom": minzoom if minzoom is not None else src_dst.minzoom,
-                        "maxzoom": maxzoom if maxzoom is not None else src_dst.maxzoom,
+                        "minzoom": minzoom,
+                        "maxzoom": maxzoom,
                         "tiles": [tiles_url],
                         "attribution": os.environ.get("TITILER_DEFAULT_ATTRIBUTION"),
                     }
