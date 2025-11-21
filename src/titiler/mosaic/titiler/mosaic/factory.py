@@ -171,8 +171,12 @@ class MosaicTilerFactory(BaseFactory):
 
         @self.router.get(
             "/info",
-            response_model=MosaicInfo,
-            responses={200: {"description": "Return info about the MosaicJSON"}},
+            responses={
+                200: {
+                    "description": "Return info about the MosaicJSON",
+                    "model": MosaicInfo,
+                }
+            },
             operation_id=f"{self.operation_prefix}getInfo",
         )
         def info(
@@ -196,13 +200,14 @@ class MosaicTilerFactory(BaseFactory):
 
         @self.router.get(
             "/info.geojson",
-            response_model=Feature[Polygon, MosaicInfo],
+            response_model=Feature,
             response_model_exclude_none=True,
             response_class=GeoJSONResponse,
             responses={
                 200: {
                     "content": {"application/geo+json": {}},
                     "description": "Return mosaic's basic info as a GeoJSON feature.",
+                    "model": Feature[Polygon, MosaicInfo],
                 }
             },
             operation_id=f"{self.operation_prefix}getInfoGeoJSON",
