@@ -29,7 +29,6 @@ classifiers = [
 dynamic = ["version"]
 dependencies = [
     "titiler-core==0.25.0",
-    "rio-tiler>=8.0,<9.0",
     "xarray",
     "rioxarray",
     "obstore",
