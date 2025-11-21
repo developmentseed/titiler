@@ -30,7 +30,7 @@ classifiers = [
 dynamic = ["version"]
 dependencies = [
     "titiler-core==0.25.0",
-    "cogeo-mosaic>=8.0,<9.0",
+    "cogeo-mosaic>=9.0,<10.0",
 ]
 
 [dependency-groups]
@@ -39,7 +39,6 @@ test = [
     "pytest-cov",
     "pytest-asyncio",
     "httpx",
-    "cogeo-mosaic>=8.2,<9.0",
 ]
 
 [project.urls]

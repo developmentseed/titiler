@@ -49,7 +49,6 @@ dev = [
     "s3fs>=2025.2.0",
     "aiohttp",
     "requests",
-    "cogeo-mosaic>=8.2,<9.0",
     "pystac[validation]>=1.0.0,<2.0.0",
     "brotlipy",
     "boto3",
@@ -73,6 +72,12 @@ docs = [
 ]
 server = [
     "uvicorn",
+]
+notebook = [
+    "IPython",
+    "jupyter",
+    "matplotlib",
+    "folium",
 ]
 
 [project.urls]

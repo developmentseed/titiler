@@ -86,11 +86,17 @@ def test_rendering():
         500: (100, 100, 100, 50),
         1000: (255, 255, 255, 255),
     }
-    d = numpy.ma.zeros((1, 256, 256), dtype="float32") + 1
-    d[0, 0:10, 0:10] = 500
-    d[0, 10:20, 10:20] = 1000
+    data = numpy.ma.zeros((1, 256, 256), dtype="float32") + 1
+    data.mask = False
+
+    data[0, 0, 0] = 0
+    data.mask[0, 0, 0] = True
+    data[0, 1:, 1:] = 1
+    data[0, 2:, 2:] = 500
+    data[0, 3:, 3:] = 1000
+
     content, media = render_image(
-        ImageData(d),
+        ImageData(data),
         output_format=ImageType.png,
         colormap=cm,
     )
@@ -98,8 +104,14 @@ def test_rendering():
 
     with MemoryFile(content) as mem:
         with mem.open() as dst:
+            data_converted = dst.read()
             assert dst.count == 4
             assert dst.dtypes == ("uint8", "uint8", "uint8", "uint8")
-            assert dst.read()[:, 0, 0].tolist() == [100, 100, 100, 50]
-            assert dst.read()[:, 11, 11].tolist() == [255, 255, 255, 255]
-            assert dst.read()[:, 30, 30].tolist() == [0, 0, 0, 0]
+            # Masked from Original Mask | set to UINT8 (0)
+            assert data_converted[:, 0, 0].tolist() == [0, 0, 0, 0]
+            # masked from CMAP
+            assert data_converted[:, 1, 1].tolist() == [0, 0, 0, 0]
+            # Partially masked from CMAP
+            assert data_converted[:, 2, 2].tolist() == [100, 100, 100, 50]
+            # Non-masked from CMAP
+            assert data_converted[:, 3, 3].tolist() == [255, 255, 255, 255]
