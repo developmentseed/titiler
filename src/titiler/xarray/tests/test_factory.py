@@ -448,12 +448,10 @@ def test_preview(filename):
                 assert dst.height == 1024
 
 
-@pytest.mark.parametrize(
-    "filename",
-    [dataset_3d_zarr],
-)
-def test_app_zarr(filename, app_zarr):
+def test_app_zarr(app_zarr):
     """Test endpoints with Zarr Reader."""
+    filename = dataset_3d_zarr
+
     resp = app_zarr.get("/md/dataset/keys", params={"url": filename})
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "application/json"
@@ -491,6 +489,13 @@ def test_app_zarr(filename, app_zarr):
     )
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "application/json"
+    r = resp.json()
+    assert r["coordinates"] == [0, 0]
+    assert r["band_names"] == ["b1", "b2"]
+    assert r["band_descriptions"] == [
+        "2022-01-01T00:00:00.000000000",
+        "2023-01-01T00:00:00.000000000",
+    ]
 
     feat = {
         "type": "Feature",

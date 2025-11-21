@@ -1,8 +1,15 @@
 """TiTiler.mosaic response models."""
 
-from typing import List, Optional, Tuple
-
 from pydantic import BaseModel
+
+
+class AssetPoint(BaseModel):
+    """Model for Point value per asset"""
+
+    name: str
+    values: list[float | None]
+    band_names: list[str]
+    band_descriptions: list[str] | None = None
 
 
 class Point(BaseModel):
@@ -13,5 +20,5 @@ class Point(BaseModel):
 
     """
 
-    coordinates: List[float]
-    values: List[Tuple[str, List[Optional[float]], List[str]]]
+    coordinates: list[float]
+    assets: list[AssetPoint]

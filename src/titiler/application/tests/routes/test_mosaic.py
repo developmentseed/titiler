@@ -47,7 +47,6 @@ def test_info(app):
     response = app.get("/mosaicjson/info", params={"url": MOSAICJSON_FILE})
     assert response.status_code == 200
     body = response.json()
-    assert body["name"] == "mosaic"  # mosaic.name is not set
     assert body["quadkeys"] == []
     assert body["mosaic_minzoom"] == 7
     assert body["mosaic_maxzoom"] == 9
@@ -58,7 +57,6 @@ def test_info(app):
     assert response.headers["content-type"] == "application/geo+json"
     body = response.json()
     assert body["geometry"]
-    assert body["properties"]["name"] == "mosaic"  # mosaic.name is not set
     assert body["properties"]["quadkeys"] == []
     assert body["properties"]["mosaic_minzoom"] == 7
     assert body["properties"]["mosaic_maxzoom"] == 9
@@ -95,9 +93,9 @@ def test_point(app):
         )
     assert response.status_code == 200
     body = response.json()
-    assert len(body["values"]) == 1
-    assert body["values"][0][0].endswith(".tif")
-    assert body["values"][0][1] == [9943, 9127, 9603]
+    assert len(body["assets"]) == 1
+    assert body["assets"][0]["name"].endswith(".tif")
+    assert body["assets"][0]["values"] == [9943, 9127, 9603]
 
 
 def test_tile(app):

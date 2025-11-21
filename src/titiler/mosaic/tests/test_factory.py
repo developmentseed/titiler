@@ -53,7 +53,10 @@ def test_MosaicTilerFactory():
     assert len(mosaic.router.routes) == 15
 
     mosaic = MosaicTilerFactory(
-        optional_headers=[OptionalHeader.x_assets],
+        optional_headers=[
+            OptionalHeader.x_assets,
+            OptionalHeader.server_timing,
+        ],
         extensions=[
             MosaicJSONExtension(),
         ],
@@ -107,11 +110,15 @@ def test_MosaicTilerFactory():
         )
         assert response.status_code == 200
         assert response.json()["coordinates"]
-        v = response.json()["values"]
+        v = response.json()["assets"]
+
+        # one asset found
         assert len(v) == 1
-        values = v[0][1]
-        assert len(values) == 3
-        assert values[0]
+        assert v[0]["name"]
+        # 3 bands
+        assert len(v[0]["values"]) == 3
+        assert v[0]["band_names"] == ["b1", "b2", "b3"]
+        assert v[0]["band_descriptions"]
 
         # Masked values
         response = client.get(
@@ -120,11 +127,16 @@ def test_MosaicTilerFactory():
         )
         assert response.status_code == 200
         assert response.json()["coordinates"]
-        v = response.json()["values"]
+        v = response.json()["assets"]
+
+        # one asset found
         assert len(v) == 1
-        values = v[0][1]
-        assert len(values) == 3
-        assert values[0] is None
+        assert v[0]["name"]
+        # 3 bands
+        assert len(v[0]["values"]) == 3
+        assert v[0]["values"][0] is None
+        assert v[0]["band_names"] == ["b1", "b2", "b3"]
+        assert v[0]["band_descriptions"]
 
         response = client.get(
             "/mosaic/point/-7903683.846322423,5780349.220256353",
@@ -137,6 +149,9 @@ def test_MosaicTilerFactory():
         )
         assert response.status_code == 200
         assert response.headers["X-Assets"]
+        assert response.headers["Server-Timing"]
+        assert response.headers["Content-Crs"]
+        assert response.headers["Content-Bbox"]
 
         response = client.get(
             "/mosaic/tiles/WGS1984Quad/8/148/61", params={"url": mosaic_file}

@@ -76,13 +76,16 @@ def render_image(  # noqa: C901
         image.apply_color_formula(color_formula)
 
     data, mask = image.data.copy(), image.mask.copy()
-    datatype_range = image.dataset_statistics or (dtype_ranges[str(data.dtype)],)
+    input_range = dtype_ranges[str(data.dtype)]
+    output_range = image.dataset_statistics or (input_range,)
 
     if colormap:
         data, alpha_from_cmap = apply_cmap(data, colormap)
+        output_range = (dtype_ranges[str(data.dtype)],)
         # Combine both Mask from dataset and Alpha band from Colormap
-        mask = numpy.bitwise_and(alpha_from_cmap, mask)
-        datatype_range = (dtype_ranges[str(data.dtype)],)
+        mask = numpy.where(
+            mask != input_range[0], alpha_from_cmap, output_range[0][0]
+        ).astype(data.dtype)
 
     # If output_format is not set, we choose between JPEG and PNG
     if not output_format:
@@ -105,7 +108,7 @@ def render_image(  # noqa: C901
             InvalidDatatypeWarning,
             stacklevel=1,
         )
-        data = rescale_array(data, mask, in_range=datatype_range)
+        data = rescale_array(data, mask, in_range=output_range)
 
     creation_options = {**kwargs, **output_format.profile}
     if output_format.driver == "GTiff":

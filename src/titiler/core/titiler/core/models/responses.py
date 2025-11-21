@@ -18,9 +18,10 @@ class Point(BaseModel):
 
     """
 
-    coordinates: List[float]
-    values: List[Optional[float]]
-    band_names: List[str]
+    coordinates: list[float]
+    values: list[float | None]
+    band_names: list[str]
+    band_descriptions: list[str] | None = None
 
 
 InfoGeoJSON = Feature[Union[Polygon, MultiPolygon], Info]
