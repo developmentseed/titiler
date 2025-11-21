@@ -1,8 +1,9 @@
 """rio-cogeo Extension."""
 
+from typing import Annotated
+
 from attrs import define
 from fastapi import Depends, Query
-from typing_extensions import Annotated
 
 from titiler.core.factory import FactoryExtension, TilerFactory
 from titiler.core.resources.responses import JSONResponse

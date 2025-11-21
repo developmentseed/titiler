@@ -4,13 +4,12 @@ Implements support for reading and applying Item level render extension.
 See: https://github.com/stac-extensions/render
 """
 
-from typing import Dict, List, Optional
+from typing import Annotated, Dict, List, Optional
 from urllib.parse import urlencode
 
 from attrs import define
 from fastapi import Depends, HTTPException, Path, Request
 from pydantic import BaseModel
-from typing_extensions import Annotated
 
 from titiler.core.factory import FactoryExtension, MultiBaseTilerFactory
 from titiler.core.models.OGC import Link

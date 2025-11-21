@@ -1,14 +1,14 @@
 """titiler.xarray Extensions."""
 
 import warnings
-from typing import Callable, Dict, List, Optional, Type
+from typing import Annotated, Callable, Dict, List, Optional, Type
 
 import xarray
 from attrs import define
 from fastapi import Depends, Query
 from rio_tiler.constants import WGS84_CRS
 from starlette.responses import HTMLResponse
-from typing_extensions import Annotated, TypedDict
+from typing_extensions import TypedDict
 
 from titiler.core.dependencies import DefaultDependency
 from titiler.core.factory import FactoryExtension

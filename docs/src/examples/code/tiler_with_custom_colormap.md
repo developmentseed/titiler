@@ -34,8 +34,7 @@ app/dependencies.py
 
 import json
 
-from typing import Dict, Optional, Literal
-from typing_extensions import Annotated
+from typing import Annotated, Dict, Optional, Literal
 
 import numpy
 import matplotlib

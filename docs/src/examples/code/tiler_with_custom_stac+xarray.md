@@ -167,8 +167,7 @@ Custom `MultiBaseTilerFactory` which removes some endpoints (`/preview`) and ada
 ```python title="factory.py"
 """Custom MultiBaseTilerFactory."""
 from dataclasses import dataclass
-from typing import Type, Union, Optional, List
-from typing_extensions import Annotated
+from typing import Annotated, Type, Union, Optional, List
 from attrs import define, field
 from geojson_pydantic.features import Feature, FeatureCollection
 from fastapi import Body, Depends, Query

@@ -2,7 +2,19 @@
 
 import logging
 import os
-from typing import Any, Callable, Dict, List, Literal, Optional, Set, Tuple, Type, Union
+from typing import (
+    Annotated,
+    Any,
+    Callable,
+    Dict,
+    List,
+    Literal,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    Union,
+)
 from urllib.parse import urlencode
 
 import rasterio
@@ -25,7 +37,6 @@ from rio_tiler.utils import CRS_to_uri, CRS_to_urn
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, Response
 from starlette.routing import NoMatchFound
-from typing_extensions import Annotated
 
 from titiler.core.algorithm import BaseAlgorithm
 from titiler.core.algorithm import algorithms as available_algorithms
