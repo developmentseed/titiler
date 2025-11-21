@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Misc 
+
+* update rio-tiler requirement to `>=8.0,<9.0`
+
+### titiler.core
+
+* add `band_description` attribute to `Point` output model (returned by /point endpoints)
+
+## 0.26.0 (TBD)
+
 ### titiler.xarray
 
 * add `/validate` endpoint via `ValidateExtension` extension
