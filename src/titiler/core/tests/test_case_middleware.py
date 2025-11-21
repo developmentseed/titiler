@@ -1,10 +1,9 @@
 """Test titiler.core.middleware.LowerCaseQueryStringMiddleware."""
 
-from typing import List
+from typing import Annotated, List
 
 from fastapi import FastAPI, Query
 from starlette.testclient import TestClient
-from typing_extensions import Annotated
 
 from titiler.core.middleware import LowerCaseQueryStringMiddleware
 

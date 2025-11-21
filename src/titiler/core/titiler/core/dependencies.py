@@ -3,7 +3,17 @@
 import json
 import warnings
 from dataclasses import dataclass, field
-from typing import Callable, Dict, List, Literal, Optional, Sequence, Tuple, Union
+from typing import (
+    Annotated,
+    Callable,
+    Dict,
+    List,
+    Literal,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+)
 
 import numpy
 from fastapi import HTTPException, Query
@@ -15,7 +25,6 @@ from rio_tiler.colormap import parse_color
 from rio_tiler.errors import MissingAssets, MissingBands
 from rio_tiler.types import RIOResampling, WarpResampling
 from starlette.requests import Request
-from typing_extensions import Annotated
 
 from titiler.core.resources.enums import ImageType, MediaType
 from titiler.core.utils import accept_media_type

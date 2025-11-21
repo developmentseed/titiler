@@ -1,9 +1,10 @@
 """Test titiler.core.CacheControlMiddleware."""
 
+from typing import Annotated
+
 from fastapi import FastAPI, Path
 from starlette.responses import Response
 from starlette.testclient import TestClient
-from typing_extensions import Annotated
 
 from titiler.core.middleware import CacheControlMiddleware
 

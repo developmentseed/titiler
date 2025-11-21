@@ -5,7 +5,7 @@ import tempfile
 from contextlib import contextmanager
 from dataclasses import dataclass
 from io import BytesIO
-from typing import List, Optional
+from typing import Annotated, List, Optional
 from unittest.mock import patch
 
 import attr
@@ -16,7 +16,6 @@ from cogeo_mosaic.mosaic import MosaicJSON
 from fastapi import FastAPI, Query
 from rio_tiler.mosaic.methods import PixelSelectionMethod
 from starlette.testclient import TestClient
-from typing_extensions import Annotated
 
 from titiler.core.dependencies import DefaultDependency
 from titiler.core.resources.enums import OptionalHeader

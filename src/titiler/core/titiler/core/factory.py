@@ -6,6 +6,7 @@ import logging
 import os
 import warnings
 from typing import (
+    Annotated,
     Any,
     Callable,
     Dict,
@@ -46,7 +47,6 @@ from starlette.routing import Match, NoMatchFound
 from starlette.routing import Route as APIRoute
 from starlette.routing import compile_path, replace_params
 from starlette.templating import Jinja2Templates
-from typing_extensions import Annotated
 
 from titiler.core.algorithm import (
     AlgorithmMetadata,

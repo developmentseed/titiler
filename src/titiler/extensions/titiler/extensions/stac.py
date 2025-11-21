@@ -1,10 +1,10 @@
 """rio-stac Extension."""
 
-from typing import Any, Dict, List, Literal, Optional
+from typing import Annotated, Any, Dict, List, Literal, Optional
 
 from attrs import define
 from fastapi import Depends, Query
-from typing_extensions import Annotated, TypedDict
+from typing_extensions import TypedDict
 
 from titiler.core.factory import FactoryExtension, TilerFactory
 
