@@ -5,10 +5,11 @@ In titiler `Factories`, we use the dependencies to define the inputs for each en
 
 Example:
 ```python
+from typing import Annotated
+
 from dataclasses import dataclass
 from fastapi import Depends, FastAPI, Query
 from titiler.core.dependencies import DefaultDependency
-from typing_extensions import Annotated
 from rio_tiler.io import Reader
 
 @dataclass

@@ -2,14 +2,13 @@
 
 import json
 from dataclasses import dataclass
-from typing import Literal, Optional
+from typing import Annotated, Literal, Optional
 
 import pytest
 from fastapi import Depends, FastAPI, Path
 from morecantile import tms
 from rio_tiler.types import ColorMapType
 from starlette.testclient import TestClient
-from typing_extensions import Annotated
 
 from titiler.core import dependencies, errors
 from titiler.core.resources.responses import JSONResponse

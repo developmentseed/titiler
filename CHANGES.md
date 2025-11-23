@@ -14,6 +14,13 @@
     .../info?tore.zarr?sel=time=nearest::2023-01-01`
     ```
 
+* add `/validate` endpoint via `ValidateExtension` extension
+* add `Latitude` and `Longitude` as compatible spatial dimensions (@abarciauskas-bgse, https://github.com/developmentseed/titiler/pull/1268)
+
+### titiler.mosaic
+
+* remove usage of `mosaic_def.center` and calculate from bounds
+
 ## 0.25.0 (2025-11-07)
 
 ### Misc 

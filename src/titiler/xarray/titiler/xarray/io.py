@@ -20,6 +20,9 @@ from rio_tiler.io.xarray import XarrayReader
 from typing_extensions import TypedDict
 from zarr.storage import ObjectStore
 
+X_DIM_NAMES = ["lon", "longitude", "LON", "LONGITUDE", "Lon", "Longitude"]
+Y_DIM_NAMES = ["lat", "latitude", "LAT", "LATITUDE", "Lat", "Latitude"]
+
 
 def _find_bucket_region(bucket: str, use_https: bool = True) -> str | None:
     prefix = "https" if use_https else "http"
@@ -114,23 +117,14 @@ def _arrange_dims(da: xarray.DataArray) -> xarray.DataArray:
     """
     if "x" not in da.dims and "y" not in da.dims:
         try:
-            latitude_var_name = next(
-                name
-                for name in ["lat", "latitude", "LAT", "LATITUDE", "Latitude", "Lat"]
-                if name in da.dims
-            )
-            longitude_var_name = next(
-                name
-                for name in ["lon", "longitude", "LON", "LONGITUDE", "Longitude", "Lon"]
-                if name in da.dims
-            )
+            y_dim = next(name for name in Y_DIM_NAMES if name in da.dims)
+            x_dim = next(name for name in X_DIM_NAMES if name in da.dims)
         except StopIteration as e:
-            raise ValueError(f"Couldn't find X/Y dimensions in {da.dims}") from e
+            raise ValueError(
+                f"Couldn't find X and Y spatial coordinates in {da.dims}"
+            ) from e
 
-        da = da.rename({latitude_var_name: "y", longitude_var_name: "x"})
-
-    if "TIME" in da.dims:
-        da = da.rename({"TIME": "time"})
+        da = da.rename({y_dim: "y", x_dim: "x"})
 
     if extra_dims := [d for d in da.dims if d not in ["x", "y"]]:
         da = da.transpose(*extra_dims, "y", "x")

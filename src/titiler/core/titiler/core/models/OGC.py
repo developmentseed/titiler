@@ -1,11 +1,10 @@
 """OGC models."""
 
 from datetime import datetime
-from typing import Dict, List, Literal, Optional, Set, Union
+from typing import Annotated, Dict, List, Literal, Optional, Set, Union
 
 from morecantile.models import CRSType
 from pydantic import AnyUrl, BaseModel, Field, RootModel
-from typing_extensions import Annotated
 
 from titiler.core.models.common import Link
 

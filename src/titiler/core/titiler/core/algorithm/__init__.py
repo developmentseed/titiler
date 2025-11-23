@@ -2,12 +2,11 @@
 
 import json
 from copy import copy
-from typing import Dict, List, Literal, Optional, Type
+from typing import Annotated, Dict, List, Literal, Optional, Type
 
 import attr
 from fastapi import HTTPException, Query
 from pydantic import ValidationError
-from typing_extensions import Annotated
 
 from titiler.core.algorithm.base import (  # noqa
     AlgorithmMetadata,

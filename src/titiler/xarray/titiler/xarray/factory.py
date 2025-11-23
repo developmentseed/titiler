@@ -2,7 +2,7 @@
 
 import logging
 import warnings
-from typing import Any, Callable, Optional, Type, Union
+from typing import Annotated, Any, Callable, Optional, Type, Union
 
 import rasterio
 from attrs import define
@@ -11,7 +11,6 @@ from geojson_pydantic.features import Feature, FeatureCollection
 from rio_tiler.constants import WGS84_CRS
 from rio_tiler.io import XarrayReader
 from rio_tiler.models import Info
-from typing_extensions import Annotated
 
 from titiler.core.dependencies import (
     BidxParams,

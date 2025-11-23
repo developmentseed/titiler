@@ -1,14 +1,13 @@
 """titiler.xarray dependencies."""
 
 from dataclasses import dataclass
-from typing import List, Optional, Union
+from typing import Annotated, List, Optional, Union
 
 import numpy
 from fastapi import Query
 from pydantic import Field
 from pydantic.types import StringConstraints
 from rio_tiler.types import RIOResampling, WarpResampling
-from typing_extensions import Annotated
 
 from titiler.core.dependencies import DefaultDependency
 

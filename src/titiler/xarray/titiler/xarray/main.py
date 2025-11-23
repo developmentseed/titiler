@@ -30,7 +30,7 @@ from titiler.core.models.OGC import Conformance, Landing
 from titiler.core.resources.enums import MediaType
 from titiler.core.utils import accept_media_type, create_html_response, update_openapi
 from titiler.xarray import __version__ as titiler_version
-from titiler.xarray.extensions import DatasetMetadataExtension
+from titiler.xarray.extensions import DatasetMetadataExtension, ValidateExtension
 from titiler.xarray.factory import TilerFactory
 
 logging.getLogger("rasterio.session").setLevel(logging.ERROR)
@@ -149,6 +149,7 @@ TITILER_CONFORMS_TO = {
 md = TilerFactory(
     extensions=[
         DatasetMetadataExtension(),
+        ValidateExtension(),
     ],
     enable_telemetry=api_settings.telemetry_enabled,
     templates=titiler_templates,

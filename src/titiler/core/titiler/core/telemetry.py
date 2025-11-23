@@ -3,9 +3,7 @@
 import functools
 import inspect
 from contextlib import contextmanager
-from typing import Any, Callable, Dict, Iterator, Optional, TypeVar
-
-from typing_extensions import ParamSpec
+from typing import Any, Callable, Dict, Iterator, Optional, ParamSpec, TypeVar
 
 from titiler.core import __version__
 
