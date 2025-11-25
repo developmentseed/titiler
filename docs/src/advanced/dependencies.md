@@ -1019,7 +1019,6 @@ Define options to select a **variable** within a Xarray Dataset.
 | ------        | ----------  |----------|--------------
 | **variable**  | Query (str) | Yes      | None
 | **sel**       | Query (list of str) | No | None
-| **method**    | Query (str)| No       | None
 
 <details>
 
@@ -1033,15 +1032,7 @@ class XarrayDsParams(DefaultDependency):
     sel: Annotated[
         Optional[List[SelDimStr]],
         Query(
-            description="Xarray Indexing using dimension names `{dimension}={value}`.",
-        ),
-    ] = None
-
-    method: Annotated[
-        Optional[Literal["nearest", "pad", "ffill", "backfill", "bfill"]],
-        Query(
-            alias="sel_method",
-            description="Xarray indexing method to use for inexact matches.",
+            description="Xarray Indexing using dimension names `{dimension}={value}` or `{dimension}={method}::{value}`.",
         ),
     ] = None
 ```
@@ -1059,7 +1050,6 @@ Combination of `XarrayIOParams` and `XarrayDsParams`
 | **decode_times** | Query (bool)| No       | None
 | **variable**     | Query (str) | Yes      | None
 | **sel**          | Query (list of str) | No | None
-| **method**       | Query (str)| No       | None
 
 <details>
 
@@ -1083,7 +1073,6 @@ same as `XarrayParams` but with optional `variable` option.
 | **decode_times** | Query (bool)| No       | None
 | **variable**     | Query (str) | No      | None
 | **sel**          | Query (list of str) | No | None
-| **method**       | Query (str)| No       | None
 
 <details>
 

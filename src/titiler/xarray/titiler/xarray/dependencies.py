@@ -1,7 +1,7 @@
 """titiler.xarray dependencies."""
 
 from dataclasses import dataclass
-from typing import Annotated, List, Literal, Optional, Union
+from typing import Annotated, List, Optional, Union
 
 import numpy
 from fastapi import Query
@@ -32,7 +32,12 @@ class XarrayIOParams(DefaultDependency):
     ] = None
 
 
-SelDimStr = Annotated[str, StringConstraints(pattern=r"^[^=]+=[^=]+$")]
+SelDimStr = Annotated[
+    str,
+    StringConstraints(
+        pattern=r"^[^=]+=((nearest|pad|ffill|backfill|bfill)::)?[^=::]+$"
+    ),
+]
 
 
 @dataclass
@@ -44,15 +49,7 @@ class XarrayDsParams(DefaultDependency):
     sel: Annotated[
         Optional[List[SelDimStr]],
         Query(
-            description="Xarray Indexing using dimension names `{dimension}={value}`.",
-        ),
-    ] = None
-
-    method: Annotated[
-        Optional[Literal["nearest", "pad", "ffill", "backfill", "bfill"]],
-        Query(
-            alias="sel_method",
-            description="Xarray indexing method to use for inexact matches.",
+            description="Xarray Indexing using dimension names `{dimension}={value}` or `{dimension}={method}::{value}`.",
         ),
     ] = None
 
@@ -80,15 +77,7 @@ class CompatXarrayParams(XarrayIOParams):
     sel: Annotated[
         Optional[List[SelDimStr]],
         Query(
-            description="Xarray Indexing using dimension names `{dimension}={value}`.",
-        ),
-    ] = None
-
-    method: Annotated[
-        Optional[Literal["nearest", "pad", "ffill", "backfill", "bfill"]],
-        Query(
-            alias="sel_method",
-            description="Xarray indexing method to use for inexact matches.",
+            description="Xarray Indexing using dimension names `{dimension}={value}` or `{dimension}={method}::{value}`.",
         ),
     ] = None
 

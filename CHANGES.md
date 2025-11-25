@@ -36,9 +36,19 @@
         assets: list[AssetPoint]
     ```
 
-## 0.26.0 (TBD)
+## 0.26.0 (2025-11-25)
 
 ### titiler.xarray
+
+* use `sel={dim}={method}::{value}` notation  to specify selector method instead of `sel-method` query-parameter **breaking change** 
+
+    ```python
+    # before
+    .../info?tore.zarr?sel=time=2023-01-01&sel_method=nearest`
+
+    # now
+    .../info?tore.zarr?sel=time=nearest::2023-01-01`
+    ```
 
 * add `/validate` endpoint via `ValidateExtension` extension
 * add `Latitude` and `Longitude` as compatible spatial dimensions (@abarciauskas-bgse, https://github.com/developmentseed/titiler/pull/1268)
