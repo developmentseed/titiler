@@ -1,6 +1,6 @@
 # Release Notes
 
-## Unreleased
+## 0.26.0 (2025-11-25)
 
 ### titiler.xarray
 
