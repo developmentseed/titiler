@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1764054354286,
+  "lastUpdate": 1764061166327,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -17443,6 +17443,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WebMercator longest_transaction",
             "value": 0.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.27,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "vincent.sarago@gmail.com",
+            "name": "Vincent Sarago",
+            "username": "vincentsarago"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "df255c298361af8a7c4c3ba647eedfdad6f65fcf",
+          "message": "update for rio-tiler 8.0 (#1272)\n\n* update for rio-tiler 8.0\n\n* update changelog\n\n* update extensions\n\n* update xarray\n\n* update mosaic\n\n* update mosaic and app",
+          "timestamp": "2025-11-25T09:57:43+01:00",
+          "tree_id": "ec6eaef2e368fd14ca41b63a8a88dfb89ea509d6",
+          "url": "https://github.com/developmentseed/titiler/commit/df255c298361af8a7c4c3ba647eedfdad6f65fcf"
+        },
+        "date": 1764061165323,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.05,
             "unit": "s"
           },
           {
