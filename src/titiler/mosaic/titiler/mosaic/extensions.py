@@ -4,13 +4,18 @@ import logging
 from dataclasses import dataclass
 
 import rasterio
-from cogeo_mosaic.mosaic import MosaicJSON
 from fastapi import Depends
 
 from titiler.core.factory import FactoryExtension
 from titiler.mosaic.factory import MosaicTilerFactory
 
 logger = logging.getLogger(__name__)
+
+
+try:
+    from cogeo_mosaic.mosaic import MosaicJSON
+except ImportError:  # pragma: nocover
+    MosaicJSON = None  # type: ignore
 
 
 @dataclass

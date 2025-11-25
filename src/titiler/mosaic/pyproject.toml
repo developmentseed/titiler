@@ -30,6 +30,10 @@ classifiers = [
 dynamic = ["version"]
 dependencies = [
     "titiler-core==0.26.0",
+]
+
+[project.optional-dependencies]
+mosaicjson = [
     "cogeo-mosaic>=9.0,<10.0",
 ]
 

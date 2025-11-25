@@ -32,7 +32,7 @@ dependencies = [
     "titiler-core",
     "titiler-xarray",
     "titiler-extensions",
-    "titiler-mosaic",
+    "titiler-mosaic[mosaicjson]",
     "titiler-application",
 ]
 

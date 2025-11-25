@@ -7,6 +7,7 @@ from typing import Annotated, Literal, Optional
 
 import jinja2
 import rasterio
+from cogeo_mosaic.backends import MosaicBackend as MosaicJSONBackend
 from fastapi import Depends, FastAPI, HTTPException, Query, Security
 from fastapi.security.api_key import APIKeyQuery
 from rio_tiler.io import Reader, STACReader
@@ -170,6 +171,7 @@ if not api_settings.disable_stac:
 # Mosaic endpoints
 if not api_settings.disable_mosaic:
     mosaic = MosaicTilerFactory(
+        backend=MosaicJSONBackend,
         router_prefix="/mosaicjson",
         extensions=[
             MosaicJSONExtension(),
