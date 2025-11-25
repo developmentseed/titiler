@@ -1,5 +1,41 @@
 # Release Notes
 
+## Unreleased
+
+### Misc 
+
+* update rio-tiler requirement to `>=8.0,<9.0`
+
+### titiler.core
+
+* add `band_description` attribute to `Point` output model (returned by /point endpoints)  **breaking change**
+
+### titiler.extensions
+
+* update rio-cogeo requirement to `7.0,<8.0`
+
+### titiler.mosaic
+
+* change Response model for `/point` endpoint  **breaking change**
+
+    ```python
+    # before
+    class Point(BaseModel):
+        coordinates: List[float]
+        values: List[Tuple[str, List[Optional[float]], List[str]]]
+
+    # now
+    class AssetPoint(BaseModel):
+        name: str
+        values: list[float | None]
+        band_names: list[str]
+        band_descriptions: list[str] | None = None
+
+    class Point(BaseModel):
+        coordinates: list[float]
+        assets: list[AssetPoint]
+    ```
+
 ## 0.26.0 (2025-11-25)
 
 ### titiler.xarray

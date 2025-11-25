@@ -34,7 +34,7 @@ dependencies = [
 
 [project.optional-dependencies]
 cogeo = [
-    "rio-cogeo>=5.0,<6.0",
+    "rio-cogeo>=7.0,<8.0",
 ]
 stac = [
     "rio-stac>=0.12,<0.13",

@@ -19,8 +19,7 @@ from urllib.parse import urlencode
 
 import rasterio
 from attrs import define, field
-from cogeo_mosaic.backends import BaseBackend, MosaicBackend
-from cogeo_mosaic.models import Info as mosaicInfo
+from cogeo_mosaic.backends import MosaicBackend as MosaicJSONBackend
 from fastapi import Depends, HTTPException, Path, Query
 from geojson_pydantic.features import Feature
 from geojson_pydantic.geometries import Polygon
@@ -30,6 +29,7 @@ from morecantile.models import crs_axis_inverted
 from pydantic import Field
 from rio_tiler.constants import MAX_THREADS, WGS84_CRS
 from rio_tiler.io import BaseReader, MultiBandReader, MultiBaseReader, Reader
+from rio_tiler.mosaic.backend import BaseBackend, MosaicInfo
 from rio_tiler.mosaic.methods import PixelSelectionMethod
 from rio_tiler.mosaic.methods.base import MosaicMethodBase
 from rio_tiler.types import ColorMapType
@@ -88,7 +88,7 @@ def DatasetPathParams(url: Annotated[str, Query(description="Mosaic URL")]) -> s
 class MosaicTilerFactory(BaseFactory):
     """MosaicTiler Factory."""
 
-    backend: Type[BaseBackend] = MosaicBackend
+    backend: Type[BaseBackend] = MosaicJSONBackend
     backend_dependency: Type[DefaultDependency] = DefaultDependency
 
     dataset_reader: Union[
@@ -171,8 +171,12 @@ class MosaicTilerFactory(BaseFactory):
 
         @self.router.get(
             "/info",
-            response_model=mosaicInfo,
-            responses={200: {"description": "Return info about the MosaicJSON"}},
+            responses={
+                200: {
+                    "description": "Return info about the MosaicJSON",
+                    "model": MosaicInfo,
+                }
+            },
             operation_id=f"{self.operation_prefix}getInfo",
         )
         def info(
@@ -196,13 +200,14 @@ class MosaicTilerFactory(BaseFactory):
 
         @self.router.get(
             "/info.geojson",
-            response_model=Feature[Polygon, mosaicInfo],
+            response_model=Feature,
             response_model_exclude_none=True,
             response_class=GeoJSONResponse,
             responses={
                 200: {
                     "content": {"application/geo+json": {}},
                     "description": "Return mosaic's basic info as a GeoJSON feature.",
+                    "model": Feature[Polygon, MosaicInfo],
                 }
             },
             operation_id=f"{self.operation_prefix}getInfoGeoJSON",
@@ -587,13 +592,13 @@ class MosaicTilerFactory(BaseFactory):
                         x,
                         y,
                         z,
-                        pixel_selection=pixel_selection,
                         tilesize=scale * 256,
+                        search_options=assets_accessor_params.as_dict(),
+                        pixel_selection=pixel_selection,
                         threads=MOSAIC_THREADS,
                         **tile_params.as_dict(),
                         **layer_params.as_dict(),
                         **dataset_params.as_dict(),
-                        **assets_accessor_params.as_dict(),
                     )
 
             if post_process:
@@ -614,6 +619,14 @@ class MosaicTilerFactory(BaseFactory):
                 headers["Content-Bbox"] = ",".join(map(str, image.bounds))
             if uri := CRS_to_uri(image.crs):
                 headers["Content-Crs"] = f"<{uri}>"
+
+            if (
+                OptionalHeader.server_timing in self.optional_headers
+                and image.metadata.get("timings")
+            ):
+                headers["Server-Timing"] = ", ".join(
+                    [f"{name};dur={time}" for (name, time) in image.metadata["timings"]]
+                )
 
             return Response(content, media_type=media_type, headers=headers)
 
@@ -717,7 +730,7 @@ class MosaicTilerFactory(BaseFactory):
                     )
                     return {
                         "bounds": bounds,
-                        "center": tuple(center),
+                        "center": center,
                         "minzoom": minzoom,
                         "maxzoom": maxzoom,
                         "tiles": [tiles_url],
@@ -961,7 +974,6 @@ class MosaicTilerFactory(BaseFactory):
             operation_id=f"{self.operation_prefix}getDataForPoint",
         )
         def point(
-            response: Response,
             lon: Annotated[float, Path(description="Longitude")],
             lat: Annotated[float, Path(description="Latitude")],
             src_path=Depends(self.path_dependency),
@@ -996,8 +1008,14 @@ class MosaicTilerFactory(BaseFactory):
 
             return {
                 "coordinates": [lon, lat],
-                "values": [
-                    (src, pts.array.tolist(), pts.band_names) for src, pts in values
+                "assets": [
+                    {
+                        "name": asset_name,
+                        "values": pt.array.tolist(),
+                        "band_names": pt.band_names,
+                        "band_descriptions": pt.band_descriptions,
+                    }
+                    for asset_name, pt in values
                 ],
             }
 

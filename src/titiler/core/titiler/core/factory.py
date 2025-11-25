@@ -1301,6 +1301,7 @@ class TilerFactory(BaseFactory):
                 "coordinates": [lon, lat],
                 "values": pts.array.tolist(),
                 "band_names": pts.band_names,
+                "band_descriptions": pts.band_descriptions,
             }
 
     ############################################################################
