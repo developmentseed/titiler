@@ -342,12 +342,35 @@ def test_MosaicTilerFactory():
         assert first_id in first_tms["title"]
         assert len(first_tms["links"]) == 2  # no link to the tms definition
 
+        response = client.get(
+            f"/mosaic/tiles?url={mosaic_file}", headers={"Accept": "text/html"}
+        )
+        assert response.status_code == 200
+        assert "text/html" in response.headers["content-type"]
+
+        response = client.get("/mosaic/tiles", params={"url": mosaic_file, "f": "html"})
+        assert response.status_code == 200
+        assert "text/html" in response.headers["content-type"]
+
         response = client.get(f"/mosaic/tiles/WebMercatorQuad?url={mosaic_file}")
         assert response.status_code == 200
         assert response.headers["content-type"] == "application/json"
         resp = response.json()
         # covers only 3 zoom levels
         assert len(resp["tileMatrixSetLimits"]) == 3
+
+        response = client.get(
+            f"/mosaic/tiles/WebMercatorQuad?url={mosaic_file}",
+            headers={"Accept": "text/html"},
+        )
+        assert response.status_code == 200
+        assert "text/html" in response.headers["content-type"]
+
+        response = client.get(
+            "/mosaic/tiles/WebMercatorQuad", params={"url": mosaic_file, "f": "html"}
+        )
+        assert response.status_code == 200
+        assert "text/html" in response.headers["content-type"]
 
         response = client.get(
             "/mosaic/bbox/-74,45,-73,46.png",

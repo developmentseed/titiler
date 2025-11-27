@@ -57,9 +57,14 @@ from titiler.core.factory import BaseFactory, img_endpoint_params
 from titiler.core.models.mapbox import TileJSON
 from titiler.core.models.OGC import TileSet, TileSetList
 from titiler.core.models.responses import StatisticsGeoJSON
-from titiler.core.resources.enums import ImageType, OptionalHeader
+from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
-from titiler.core.utils import bounds_to_geometry, render_image
+from titiler.core.utils import (
+    accept_media_type,
+    bounds_to_geometry,
+    create_html_response,
+    render_image,
+)
 from titiler.mosaic.models.responses import Point
 
 MOSAIC_THREADS = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
@@ -262,7 +267,7 @@ class MosaicTilerFactory(BaseFactory):
     ############################################################################
     # /tileset
     ############################################################################
-    def tilesets(self):
+    def tilesets(self):  # noqa: C901
         """Register OGC tilesets endpoints."""
 
         @self.router.get(
@@ -274,6 +279,7 @@ class MosaicTilerFactory(BaseFactory):
                 200: {
                     "content": {
                         "application/json": {},
+                        "text/html": {},
                     }
                 }
             },
@@ -287,6 +293,12 @@ class MosaicTilerFactory(BaseFactory):
             reader_params=Depends(self.reader_dependency),
             crs=Depends(CRSParams),
             env=Depends(self.environment_dependency),
+            f: Annotated[
+                Optional[Literal["html", "json"]],
+                Query(
+                    description="Response MediaType. Defaults to endpoint's default or value defined in `accept` header."
+                ),
+            ] = None,
         ):
             """Retrieve a list of available raster tilesets for the specified dataset."""
             with rasterio.Env(**env):
@@ -364,6 +376,25 @@ class MosaicTilerFactory(BaseFactory):
                 tilesets.append(tileset)
 
             data = TileSetList.model_validate({"tilesets": tilesets})
+
+            if f:
+                output_type = MediaType[f]
+            else:
+                accepted_media = [MediaType.html, MediaType.json]
+                output_type = (
+                    accept_media_type(request.headers.get("accept", ""), accepted_media)
+                    or MediaType.json
+                )
+
+            if output_type == MediaType.html:
+                return create_html_response(
+                    request,
+                    data.model_dump(exclude_none=True, mode="json"),
+                    title="Tilesets",
+                    template_name="tilesets",
+                    templates=self.templates,
+                )
+
             return data
 
         @self.router.get(
@@ -371,7 +402,14 @@ class MosaicTilerFactory(BaseFactory):
             response_model=TileSet,
             response_class=JSONResponse,
             response_model_exclude_none=True,
-            responses={200: {"content": {"application/json": {}}}},
+            responses={
+                200: {
+                    "content": {
+                        "application/json": {},
+                        "text/html": {},
+                    }
+                }
+            },
             summary="Retrieve the raster tileset metadata for the specified dataset and tiling scheme (tile matrix set).",
             operation_id=f"{self.operation_prefix}getTileSet",
         )
@@ -387,6 +425,12 @@ class MosaicTilerFactory(BaseFactory):
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
+            f: Annotated[
+                Optional[Literal["html", "json"]],
+                Query(
+                    description="Response MediaType. Defaults to endpoint's default or value defined in `accept` header."
+                ),
+            ] = None,
         ):
             """Retrieve the raster tileset metadata for the specified dataset and tiling scheme (tile matrix set)."""
             tms = self.supported_tms.get(tileMatrixSetId)
@@ -501,6 +545,24 @@ class MosaicTilerFactory(BaseFactory):
                     "tileMatrixSetLimits": tilematrix_limit,
                 }
             )
+
+            if f:
+                output_type = MediaType[f]
+            else:
+                accepted_media = [MediaType.html, MediaType.json]
+                output_type = (
+                    accept_media_type(request.headers.get("accept", ""), accepted_media)
+                    or MediaType.json
+                )
+
+            if output_type == MediaType.html:
+                return create_html_response(
+                    request,
+                    data,
+                    title=tileMatrixSetId,
+                    template_name="tileset",
+                    templates=self.templates,
+                )
 
             return data
 

@@ -701,7 +701,14 @@ class TilerFactory(BaseFactory):
             response_model=TileSet,
             response_class=JSONResponse,
             response_model_exclude_none=True,
-            responses={200: {"content": {"application/json": {}}}},
+            responses={
+                200: {
+                    "content": {
+                        "application/json": {},
+                        "text/html": {},
+                    }
+                }
+            },
             summary="Retrieve the raster tileset metadata for the specified dataset and tiling scheme (tile matrix set).",
             operation_id=f"{self.operation_prefix}getTileSet",
         )
