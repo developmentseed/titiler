@@ -7,9 +7,12 @@ from typing import Annotated, Literal, Optional
 
 import jinja2
 import rasterio
+from cogeo_mosaic.backends import MosaicBackend as MosaicJSONBackend
+from cogeo_mosaic.errors import MosaicAuthError, MosaicError, MosaicNotFoundError
 from fastapi import Depends, FastAPI, HTTPException, Query, Security
 from fastapi.security.api_key import APIKeyQuery
 from rio_tiler.io import Reader, STACReader
+from starlette import status
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette.templating import Jinja2Templates
@@ -170,6 +173,7 @@ if not api_settings.disable_stac:
 # Mosaic endpoints
 if not api_settings.disable_mosaic:
     mosaic = MosaicTilerFactory(
+        backend=MosaicJSONBackend,
         router_prefix="/mosaicjson",
         extensions=[
             MosaicJSONExtension(),
@@ -214,6 +218,15 @@ TITILER_CONFORMS_TO.update(cmaps.conforms_to)
 
 
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
+
+# Add Mosaic specific error handlers
+MOSAIC_STATUS_CODES.update(
+    {
+        MosaicAuthError: status.HTTP_401_UNAUTHORIZED,
+        MosaicError: status.HTTP_424_FAILED_DEPENDENCY,
+        MosaicNotFoundError: status.HTTP_404_NOT_FOUND,
+    }
+)
 add_exception_handlers(app, MOSAIC_STATUS_CODES)
 
 # Set all CORS enabled origins

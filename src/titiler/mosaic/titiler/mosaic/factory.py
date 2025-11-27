@@ -19,9 +19,8 @@ from urllib.parse import urlencode
 
 import rasterio
 from attrs import define, field
-from cogeo_mosaic.backends import MosaicBackend as MosaicJSONBackend
-from fastapi import Depends, HTTPException, Path, Query
-from geojson_pydantic.features import Feature
+from fastapi import Body, Depends, HTTPException, Path, Query
+from geojson_pydantic.features import Feature, FeatureCollection
 from geojson_pydantic.geometries import Polygon
 from morecantile import tms as morecantile_tms
 from morecantile.defaults import TileMatrixSets
@@ -47,15 +46,25 @@ from titiler.core.dependencies import (
     CRSParams,
     DatasetParams,
     DefaultDependency,
+    DstCRSParams,
+    HistogramParams,
     ImageRenderingParams,
+    PartFeatureParams,
+    StatisticsParams,
     TileParams,
 )
 from titiler.core.factory import BaseFactory, img_endpoint_params
 from titiler.core.models.mapbox import TileJSON
 from titiler.core.models.OGC import TileSet, TileSetList
-from titiler.core.resources.enums import ImageType, OptionalHeader
+from titiler.core.models.responses import StatisticsGeoJSON
+from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse, XMLResponse
-from titiler.core.utils import bounds_to_geometry, render_image
+from titiler.core.utils import (
+    accept_media_type,
+    bounds_to_geometry,
+    create_html_response,
+    render_image,
+)
 from titiler.mosaic.models.responses import Point
 
 MOSAIC_THREADS = int(os.getenv("MOSAIC_CONCURRENCY", MAX_THREADS))
@@ -88,7 +97,7 @@ def DatasetPathParams(url: Annotated[str, Query(description="Mosaic URL")]) -> s
 class MosaicTilerFactory(BaseFactory):
     """MosaicTiler Factory."""
 
-    backend: Type[BaseBackend] = MosaicJSONBackend
+    backend: Type[BaseBackend]
     backend_dependency: Type[DefaultDependency] = DefaultDependency
 
     dataset_reader: Union[
@@ -118,6 +127,13 @@ class MosaicTilerFactory(BaseFactory):
         available_algorithms.dependency
     )
 
+    # Statistics/Histogram Dependencies
+    stats_dependency: Type[DefaultDependency] = StatisticsParams
+    histogram_dependency: Type[DefaultDependency] = HistogramParams
+
+    # Crop endpoints Dependencies
+    img_part_dependency: Type[DefaultDependency] = PartFeatureParams
+
     # Image rendering Dependencies
     colormap_dependency: Callable[..., Optional[ColorMapType]] = ColorMapParams
     render_dependency: Type[DefaultDependency] = ImageRenderingParams
@@ -135,6 +151,8 @@ class MosaicTilerFactory(BaseFactory):
 
     # Add/Remove some endpoints
     add_viewer: bool = True
+    add_statistics: bool = False
+    add_part: bool = False
 
     conforms_to: Set[str] = field(
         factory=lambda: {
@@ -162,6 +180,12 @@ class MosaicTilerFactory(BaseFactory):
         self.wmts()
         self.point()
         self.assets()
+
+        if self.add_part:
+            self.part()
+
+        if self.add_statistics:
+            self.statistics()
 
     ############################################################################
     # /info
@@ -243,7 +267,7 @@ class MosaicTilerFactory(BaseFactory):
     ############################################################################
     # /tileset
     ############################################################################
-    def tilesets(self):
+    def tilesets(self):  # noqa: C901
         """Register OGC tilesets endpoints."""
 
         @self.router.get(
@@ -255,6 +279,7 @@ class MosaicTilerFactory(BaseFactory):
                 200: {
                     "content": {
                         "application/json": {},
+                        "text/html": {},
                     }
                 }
             },
@@ -268,6 +293,12 @@ class MosaicTilerFactory(BaseFactory):
             reader_params=Depends(self.reader_dependency),
             crs=Depends(CRSParams),
             env=Depends(self.environment_dependency),
+            f: Annotated[
+                Optional[Literal["html", "json"]],
+                Query(
+                    description="Response MediaType. Defaults to endpoint's default or value defined in `accept` header."
+                ),
+            ] = None,
         ):
             """Retrieve a list of available raster tilesets for the specified dataset."""
             with rasterio.Env(**env):
@@ -345,6 +376,25 @@ class MosaicTilerFactory(BaseFactory):
                 tilesets.append(tileset)
 
             data = TileSetList.model_validate({"tilesets": tilesets})
+
+            if f:
+                output_type = MediaType[f]
+            else:
+                accepted_media = [MediaType.html, MediaType.json]
+                output_type = (
+                    accept_media_type(request.headers.get("accept", ""), accepted_media)
+                    or MediaType.json
+                )
+
+            if output_type == MediaType.html:
+                return create_html_response(
+                    request,
+                    data.model_dump(exclude_none=True, mode="json"),
+                    title="Tilesets",
+                    template_name="tilesets",
+                    templates=self.templates,
+                )
+
             return data
 
         @self.router.get(
@@ -352,7 +402,14 @@ class MosaicTilerFactory(BaseFactory):
             response_model=TileSet,
             response_class=JSONResponse,
             response_model_exclude_none=True,
-            responses={200: {"content": {"application/json": {}}}},
+            responses={
+                200: {
+                    "content": {
+                        "application/json": {},
+                        "text/html": {},
+                    }
+                }
+            },
             summary="Retrieve the raster tileset metadata for the specified dataset and tiling scheme (tile matrix set).",
             operation_id=f"{self.operation_prefix}getTileSet",
         )
@@ -368,6 +425,12 @@ class MosaicTilerFactory(BaseFactory):
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
+            f: Annotated[
+                Optional[Literal["html", "json"]],
+                Query(
+                    description="Response MediaType. Defaults to endpoint's default or value defined in `accept` header."
+                ),
+            ] = None,
         ):
             """Retrieve the raster tileset metadata for the specified dataset and tiling scheme (tile matrix set)."""
             tms = self.supported_tms.get(tileMatrixSetId)
@@ -482,6 +545,24 @@ class MosaicTilerFactory(BaseFactory):
                     "tileMatrixSetLimits": tilematrix_limit,
                 }
             )
+
+            if f:
+                output_type = MediaType[f]
+            else:
+                accepted_media = [MediaType.html, MediaType.json]
+                output_type = (
+                    accept_media_type(request.headers.get("accept", ""), accepted_media)
+                    or MediaType.json
+                )
+
+            if output_type == MediaType.html:
+                return create_html_response(
+                    request,
+                    data,
+                    title=tileMatrixSetId,
+                    template_name="tileset",
+                    templates=self.templates,
+                )
 
             return data
 
@@ -1000,10 +1081,10 @@ class MosaicTilerFactory(BaseFactory):
                         lon,
                         lat,
                         coord_crs=coord_crs or WGS84_CRS,
+                        search_options=assets_accessor_params.as_dict(),
                         threads=MOSAIC_THREADS,
                         **layer_params.as_dict(),
                         **dataset_params.as_dict(),
-                        **assets_accessor_params.as_dict(),
                     )
 
             return {
@@ -1018,6 +1099,279 @@ class MosaicTilerFactory(BaseFactory):
                     for asset_name, pt in values
                 ],
             }
+
+    def statistics(self):
+        """Register /statistics endpoint."""
+
+        @self.router.post(
+            "/statistics",
+            response_model=StatisticsGeoJSON,
+            response_model_exclude_none=True,
+            response_class=GeoJSONResponse,
+            responses={
+                200: {
+                    "content": {"application/geo+json": {}},
+                    "description": "Return statistics for geojson features.",
+                }
+            },
+            operation_id=f"{self.operation_prefix}postStatisticsForGeoJSON",
+        )
+        def geojson_statistics(
+            geojson: Annotated[
+                Union[FeatureCollection, Feature],
+                Body(description="GeoJSON Feature or FeatureCollection."),
+            ],
+            src_path=Depends(self.path_dependency),
+            backend_params=Depends(self.backend_dependency),
+            reader_params=Depends(self.reader_dependency),
+            assets_accessor_params=Depends(self.assets_accessor_dependency),
+            coord_crs=Depends(CoordCRSParams),
+            dst_crs=Depends(DstCRSParams),
+            layer_params=Depends(self.layer_dependency),
+            dataset_params=Depends(self.dataset_dependency),
+            pixel_selection=Depends(self.pixel_selection_dependency),
+            image_params=Depends(self.img_part_dependency),
+            post_process=Depends(self.process_dependency),
+            stats_params=Depends(self.stats_dependency),
+            histogram_params=Depends(self.histogram_dependency),
+            env=Depends(self.environment_dependency),
+        ):
+            """Get Statistics from a geojson feature or featureCollection."""
+            fc = geojson
+            if isinstance(fc, Feature):
+                fc = FeatureCollection(type="FeatureCollection", features=[geojson])
+
+            with rasterio.Env(**env):
+                logger.info(
+                    f"opening data with backend: {self.backend} and reader {self.dataset_reader}"
+                )
+                with self.backend(
+                    src_path,
+                    reader=self.dataset_reader,
+                    reader_options=reader_params.as_dict(),
+                    **backend_params.as_dict(),
+                ) as src_dst:
+                    for i, feature in enumerate(fc.features):
+                        shape = feature.model_dump(exclude_none=True)
+
+                        logger.info(f"feature {i}: reading data")
+                        image, assets = src_dst.feature(
+                            shape,
+                            shape_crs=coord_crs or WGS84_CRS,
+                            dst_crs=dst_crs,
+                            align_bounds_with_dataset=True,
+                            search_options=assets_accessor_params.as_dict(),
+                            pixel_selection=pixel_selection,
+                            threads=MOSAIC_THREADS,
+                            **layer_params.as_dict(),
+                            **dataset_params.as_dict(),
+                            **image_params.as_dict(),
+                        )
+
+                        coverage_array = image.get_coverage_array(
+                            shape,
+                            shape_crs=coord_crs or WGS84_CRS,
+                        )
+
+                        if post_process:
+                            logger.info(f"feature {i}: post processing image")
+                            image = post_process(image)
+
+                        logger.info(f"feature {i}: calculating statistics")
+                        stats = image.statistics(
+                            **stats_params.as_dict(),
+                            hist_options=histogram_params.as_dict(),
+                            coverage=coverage_array,
+                        )
+
+                        feature.properties = feature.properties or {}
+                        feature.properties.update({"statistics": stats})
+                        feature.properties.update({"used_assets": assets})
+
+            return fc.features[0] if isinstance(geojson, Feature) else fc
+
+    def part(self):  # noqa: C901
+        """Register /bbox and /feature endpoint."""
+
+        # GET endpoints
+        @self.router.get(
+            "/bbox/{minx},{miny},{maxx},{maxy}.{format}",
+            operation_id=f"{self.operation_prefix}getDataForBoundingBoxWithFormat",
+            **img_endpoint_params,
+        )
+        @self.router.get(
+            "/bbox/{minx},{miny},{maxx},{maxy}/{width}x{height}.{format}",
+            operation_id=f"{self.operation_prefix}getDataForBoundingBoxWithSizesAndFormat",
+            **img_endpoint_params,
+        )
+        def bbox_image(
+            minx: Annotated[float, Path(description="Bounding box min X")],
+            miny: Annotated[float, Path(description="Bounding box min Y")],
+            maxx: Annotated[float, Path(description="Bounding box max X")],
+            maxy: Annotated[float, Path(description="Bounding box max Y")],
+            format: Annotated[
+                ImageType,
+                Field(
+                    description="Default will be automatically defined if the output image needs a mask (png) or not (jpeg)."
+                ),
+            ],
+            src_path=Depends(self.path_dependency),
+            backend_params=Depends(self.backend_dependency),
+            reader_params=Depends(self.reader_dependency),
+            assets_accessor_params=Depends(self.assets_accessor_dependency),
+            coord_crs=Depends(CoordCRSParams),
+            dst_crs=Depends(DstCRSParams),
+            layer_params=Depends(self.layer_dependency),
+            dataset_params=Depends(self.dataset_dependency),
+            pixel_selection=Depends(self.pixel_selection_dependency),
+            image_params=Depends(self.img_part_dependency),
+            post_process=Depends(self.process_dependency),
+            colormap=Depends(self.colormap_dependency),
+            render_params=Depends(self.render_dependency),
+            env=Depends(self.environment_dependency),
+        ):
+            """Create image from a bbox."""
+            with rasterio.Env(**env):
+                logger.info(
+                    f"opening data with backend: {self.backend} and reader {self.dataset_reader}"
+                )
+                with self.backend(
+                    src_path,
+                    reader=self.dataset_reader,
+                    reader_options=reader_params.as_dict(),
+                    **backend_params.as_dict(),
+                ) as src_dst:
+                    image, assets = src_dst.part(
+                        [minx, miny, maxx, maxy],
+                        dst_crs=dst_crs,
+                        bounds_crs=coord_crs or WGS84_CRS,
+                        search_options=assets_accessor_params.as_dict(),
+                        pixel_selection=pixel_selection,
+                        threads=MOSAIC_THREADS,
+                        **layer_params.as_dict(),
+                        **dataset_params.as_dict(),
+                        **image_params.as_dict(),
+                    )
+                    dst_colormap = getattr(src_dst, "colormap", None)
+
+            if post_process:
+                image = post_process(image)
+
+            content, media_type = self.render_func(
+                image,
+                output_format=format,
+                colormap=colormap or dst_colormap,
+                **render_params.as_dict(),
+            )
+
+            headers: Dict[str, str] = {}
+            if OptionalHeader.x_assets in self.optional_headers:
+                headers["X-Assets"] = ",".join(assets)
+
+            if image.bounds is not None:
+                headers["Content-Bbox"] = ",".join(map(str, image.bounds))
+            if uri := CRS_to_uri(image.crs):
+                headers["Content-Crs"] = f"<{uri}>"
+
+            if (
+                OptionalHeader.server_timing in self.optional_headers
+                and image.metadata.get("timings")
+            ):
+                headers["Server-Timing"] = ", ".join(
+                    [f"{name};dur={time}" for (name, time) in image.metadata["timings"]]
+                )
+
+            return Response(content, media_type=media_type, headers=headers)
+
+        @self.router.post(
+            "/feature",
+            operation_id=f"{self.operation_prefix}postDataForGeoJSON",
+            **img_endpoint_params,
+        )
+        @self.router.post(
+            "/feature.{format}",
+            operation_id=f"{self.operation_prefix}postDataForGeoJSONWithFormat",
+            **img_endpoint_params,
+        )
+        @self.router.post(
+            "/feature/{width}x{height}.{format}",
+            operation_id=f"{self.operation_prefix}postDataForGeoJSONWithSizesAndFormat",
+            **img_endpoint_params,
+        )
+        def feature_image(
+            geojson: Annotated[Union[Feature], Body(description="GeoJSON Feature.")],
+            src_path=Depends(self.path_dependency),
+            format: Annotated[
+                ImageType,
+                Field(
+                    description="Default will be automatically defined if the output image needs a mask (png) or not (jpeg)."
+                ),
+            ] = None,
+            backend_params=Depends(self.backend_dependency),
+            reader_params=Depends(self.reader_dependency),
+            assets_accessor_params=Depends(self.assets_accessor_dependency),
+            coord_crs=Depends(CoordCRSParams),
+            dst_crs=Depends(DstCRSParams),
+            layer_params=Depends(self.layer_dependency),
+            dataset_params=Depends(self.dataset_dependency),
+            image_params=Depends(self.img_part_dependency),
+            pixel_selection=Depends(self.pixel_selection_dependency),
+            post_process=Depends(self.process_dependency),
+            colormap=Depends(self.colormap_dependency),
+            render_params=Depends(self.render_dependency),
+            env=Depends(self.environment_dependency),
+        ):
+            """Create image from a geojson feature."""
+            with rasterio.Env(**env):
+                logger.info(
+                    f"opening data with backend: {self.backend} and reader {self.dataset_reader}"
+                )
+                with self.backend(
+                    src_path,
+                    reader=self.dataset_reader,
+                    reader_options=reader_params.as_dict(),
+                    **backend_params.as_dict(),
+                ) as src_dst:
+                    image, assets = src_dst.feature(
+                        geojson.model_dump(exclude_none=True),
+                        shape_crs=coord_crs or WGS84_CRS,
+                        dst_crs=dst_crs,
+                        search_options=assets_accessor_params.as_dict(),
+                        pixel_selection=pixel_selection,
+                        threads=MOSAIC_THREADS,
+                        **layer_params.as_dict(),
+                        **image_params.as_dict(),
+                        **dataset_params.as_dict(),
+                    )
+
+            if post_process:
+                image = post_process(image)
+
+            content, media_type = self.render_func(
+                image,
+                output_format=format,
+                colormap=colormap,
+                **render_params.as_dict(),
+            )
+
+            headers: Dict[str, str] = {}
+            if OptionalHeader.x_assets in self.optional_headers:
+                headers["X-Assets"] = ",".join(assets)
+
+            if image.bounds is not None:
+                headers["Content-Bbox"] = ",".join(map(str, image.bounds))
+            if uri := CRS_to_uri(image.crs):
+                headers["Content-Crs"] = f"<{uri}>"
+
+            if (
+                OptionalHeader.server_timing in self.optional_headers
+                and image.metadata.get("timings")
+            ):
+                headers["Server-Timing"] = ", ".join(
+                    [f"{name};dur={time}" for (name, time) in image.metadata["timings"]]
+                )
+
+            return Response(content, media_type=media_type, headers=headers)
 
     def assets(self):
         """Register /assets endpoint."""

@@ -35,6 +35,9 @@
         coordinates: list[float]
         assets: list[AssetPoint]
     ```
+* add `/feature`, `/bbox` and `/statistics` optional endpoints 
+* make `cogeo-mosaic` an optional dependency **breaking change**
+* remove default for `MosaicTilerFactory.backend` attribute **breaking change**
 
 ## 0.26.0 (2025-11-25)
 
