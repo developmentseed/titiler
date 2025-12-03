@@ -5,10 +5,11 @@
 ### Misc 
 
 * update rio-tiler requirement to `>=8.0,<9.0`
+* return `UINT8` datatype JPEG/PNG when no output format is specified **breaking change**
 
 ### titiler.core
 
-* add `band_description` attribute to `Point` output model (returned by /point endpoints)  **breaking change**
+* add `band_description` attribute to `Point` output model (returned by /point endpoints) **breaking change**
 
 ### titiler.extensions
 
@@ -16,7 +17,7 @@
 
 ### titiler.mosaic
 
-* change Response model for `/point` endpoint  **breaking change**
+* change Response model for `/point` endpoint **breaking change**
 
     ```python
     # before
