@@ -301,35 +301,39 @@ app.include_router(colormap.router)
 
 class: `titiler.mosaic.factory.MosaicTilerFactory`
 
-Endpoints factory for mosaics, built on top of [MosaicJSON](https://github.com/developmentseed/mosaicjson-spec).
+Endpoints factory for mosaics.
 
 #### Attributes
 
-- **backend**: `cogeo_mosaic.backends.BaseBackend` Mosaic backend. Defaults to `cogeo_mosaic.backend.MosaicBackend`.
+- **backend**: `rio_tiler.mosaic.backends.BaseBackend` Mosaic backend.
 - **backend_dependency**: Dependency to control options passed to the backend instance init. Defaults to `titiler.core.dependencies.DefaultDependency`
 - **dataset_reader**: Dataset Reader. Defaults to `rio_tiler.io.Reader`
 - **reader_dependency**: Dependency to control options passed to the reader instance init. Defaults to `titiler.core.dependencies.DefaultDependency`
-- **path_dependency**: Dependency to use to define the dataset url. Defaults to `titiler.mosaic.factory.DatasetPathParams`.
+- **path_dependency**: Dependency to use to define the dataset. Defaults to `titiler.mosaic.factory.DatasetPathParams`.
 - **assets_accessor_dependency**: Dependency to define options to be forwarded to the backend `get_assets` method. Defaults to `titiler.core.dependencies.DefaultDependency`.
 - **layer_dependency**: Dependency to define band indexes or expression. Defaults to `titiler.core.dependencies.BidxExprParams`.
 - **dataset_dependency**: Dependency to overwrite `nodata` value, apply `rescaling` and change the `I/O` or `Warp` resamplings. Defaults to `titiler.core.dependencies.DatasetParams`.
 - **tile_dependency**: Dependency to define `buffer` and `padding` to apply at tile creation. Defaults to `titiler.core.dependencies.TileParams`.
 - **process_dependency**: Dependency to control which `algorithm` to apply to the data. Defaults to `titiler.core.algorithm.algorithms.dependency`.
+- **stats_dependency**: Dependency to define options for *rio-tiler*'s statistics method used in `/statistics` endpoints. Defaults to `titiler.core.dependencies.StatisticsParams`.
+- **histogram_dependency**: Dependency to define *numpy*'s histogram options used in `/statistics` endpoints. Defaults to `titiler.core.dependencies.HistogramParams`.
 - **colormap_dependency**: Dependency to define the Colormap options. Defaults to `titiler.core.dependencies.ColorMapParams`
 - **render_dependency**: Dependency to control output image rendering options. Defaults to `titiler.core.dependencies.ImageRenderingParams`
 - **pixel_selection_dependency**: Dependency to select the `pixel_selection` method. Defaults to `titiler.mosaic.factory.PixelSelectionParams`.
 - **environment_dependency**: Dependency to define GDAL environment at runtime. Default to `lambda: {}`.
 - **supported_tms**: List of available TileMatrixSets. Defaults to `morecantile.tms`.
-- **supported_tms**: List of available TileMatrixSets. Defaults to `morecantile.tms`.
-- **templates**: *Jinja2* templates to use in endpoints. Defaults to `titiler.core.factory.DEFAULT_TEMPLATES`.
+- **render_func**: Image rendering method. Defaults to `titiler.core.utils.render_image`.
 - **optional_headers**: List of OptionalHeader which endpoints could add (if implemented). Defaults to `[]`.
+- **templates**: *Jinja2* templates to use in endpoints. Defaults to `titiler.core.factory.DEFAULT_TEMPLATES`.
 - **add_viewer**: Add `/{TileMatrixSetId}/map.html` endpoints to the router. Defaults to `True`.
+- **add_statistics**: Add `POST - /statistics` endpoints to the router. Defaults to `False`.
+- **add_part**: Add `/bbox` and `/feature` endpoints to the router. Defaults to `False`.
+- **conforms_to**: Set of conformance classes the Factory implement
 
 #### Endpoints
 
 | Method | URL                                                             | Output                                             | Description
 | ------ | --------------------------------------------------------------- |--------------------------------------------------- |--------------
-| `GET`  | `/`                                                             | JSON [MosaicJSON][mosaic_model]                    | return a MosaicJSON document
 | `GET`  | `/info`                                                         | JSON ([Info][mosaic_info_model])                   | return mosaic's basic info
 | `GET`  | `/info.geojson`                                                 | GeoJSON ([InfoGeoJSON][mosaic_geojson_info_model]) | return mosaic's basic info  as a GeoJSON feature
 | `GET`  | `/tiles`                                                        | JSON                                               | List of OGC Tilesets available
@@ -342,6 +346,30 @@ Endpoints factory for mosaics, built on top of [MosaicJSON](https://github.com/d
 | `GET`  | `/point/{lon},{lat}`                                            | JSON ([Point][mosaic_point])                       | return pixel value from a MosaicJSON dataset
 | `GET`  | `/point/{lon},{lat}/assets`                                     | JSON                                               | return list of assets intersecting a point
 | `GET`  | `/bbox/{minx},{miny},{maxx},{maxy}/assets`                      | JSON                                               | return list of assets intersecting a bounding box
+| `POST` | `/statistics`                                                   | GeoJSON ([Statistics][stats_geojson_model])        | return info and statistics for a dataset **Optional**
+| `GET`  | `/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                          | create an image from part of a dataset **Optional**
+| `POST` | `/feature[/{width}x{height}][.{format}]`                        | image/bin                                          | create an image from a geojson feature **Optional**
+
+
+```python
+from fastapi import FastAPI
+
+from titiler.mosaic.factory import MosaicTilerFactory
+from cogeo_mosaic.backends import MosaicBackend as MosaicJSONBackend
+
+# Create FastAPI application
+app = FastAPI()
+
+# Create router and register set of endpoints
+mosaic = TilerFactory(
+    backend=MosaicJSONBackend,
+    add_part=True,     # default to False
+    add_statistics=True,  # default to False
+)
+
+# add router endpoint to the main application
+app.include_router(mosaic.router)
+```
 
 ## titiler.xarray
 

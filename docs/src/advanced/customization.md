@@ -95,9 +95,11 @@ COGTilerWithCustomTMS = TilerFactory(supported_tms=tms)
 ### Add a MosaicJSON creation endpoint
 ```python
 
-from dataclasses import dataclass
 from typing import List, Optional
 
+from attrs import define
+
+from cogeo_mosaic.backends import MosaicBackend as MosaicJSONBackend
 from titiler.mosaic.factory import MosaicTilerFactory
 from titiler.core.errors import BadRequestError
 from cogeo_mosaic.mosaic import MosaicJSON
@@ -128,8 +130,10 @@ class UpdateMosaicJSON(BaseModel):
     add_first: bool = True
 
 
-@dataclass
+@define(kw_only=True)
 class CustomMosaicFactory(MosaicTilerFactory):
+
+    backend: Type[MosaicJSONBackend] = MosaicJSONBackend
 
     def register_routes(self):
         """Update the class method to add create/update"""
@@ -162,8 +166,10 @@ class CustomMosaicFactory(MosaicTilerFactory):
 
             # Write the MosaicJSON using a cogeo-mosaic backend
             with rasterio.Env(**env):
-                with self.reader(
-                    body.url, mosaic_def=mosaic, reader=self.dataset_reader
+                with self.backend(
+                    body.url, 
+                    mosaic_def=mosaic, 
+                    reader=self.dataset_reader
                 ) as mosaic:
                     try:
                         mosaic.write(overwrite=body.overwrite)
@@ -185,7 +191,7 @@ class CustomMosaicFactory(MosaicTilerFactory):
         ):
             """Update an existing MosaicJSON"""
             with rasterio.Env(**env):
-                with self.reader(body.url, reader=self.dataset_reader) as mosaic:
+                with self.backend(body.url, reader=self.dataset_reader) as mosaic:
                     features = get_footprints(body.files, max_threads=body.max_threads)
                     try:
                         mosaic.update(features, add_first=body.add_first, quiet=True)

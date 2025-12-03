@@ -209,7 +209,6 @@ def get_variable(
         ds (xarray.Dataset): Xarray Dataset.
         variable (str): Variable to extract from the Dataset.
         sel (list of str, optional): List of Xarray Indexes.
-        method (str): Xarray indexing method.
 
     Returns:
         xarray.DataArray: 2D or 3D DataArray.

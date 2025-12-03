@@ -116,6 +116,7 @@ nav:
     - titiler.mosaic:
       - factory: api/titiler/mosaic/factory.md
       - errors: api/titiler/mosaic/errors.md
+      - extensions: api/titiler/mosaic/extensions.md
       - models:
         - responses: api/titiler/mosaic/models/responses.md
     - titiler.xarray:
@@ -123,6 +124,7 @@ nav:
       - dependencies: api/titiler/xarray/dependencies.md
       - extensions: api/titiler/xarray/extensions.md
       - factory: api/titiler/xarray/factory.md
+      - main: api/titiler/xarray/main.md
 
   - Deployment:
     - Amazon Web Services:

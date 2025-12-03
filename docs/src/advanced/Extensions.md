@@ -63,6 +63,10 @@ class FactoryExtension(metaclass=abc.ABCMeta):
 
 - Goal: adds `/dataset/`, `/dataset/keys` and `/datasets/dict` endpoints which return metadata about a multidimensional Dataset (not a DataArray)
 
+#### titiler.mosaic.extensions.MosaicJSONExtension
+
+- Goal: adds `/` and `/validate` endpoints to return MosaicJSON content and validate external mosaics.
+
 ## How To
 
 ### Use extensions
