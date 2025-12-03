@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1764109013844,
+  "lastUpdate": 1764771614367,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -17566,6 +17566,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 4.17,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.18,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "vincent.sarago@gmail.com",
+            "name": "Vincent Sarago",
+            "username": "vincentsarago"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e6aeec69eb584945c6e449d6d82515dfa96a5843",
+          "message": "remove cogeo-mosaic (#1279)\n\n* remove cogeo-mosaic\n\n* remove cogeo-mosaic error\n\n* mosaic: add html rendering for tilesets\n\n* update tests",
+          "timestamp": "2025-12-03T15:18:07+01:00",
+          "tree_id": "77cf84cd648cf7318fc51933cc289c4c71ba648a",
+          "url": "https://github.com/developmentseed/titiler/commit/e6aeec69eb584945c6e449d6d82515dfa96a5843"
+        },
+        "date": 1764771613446,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 4.45,
             "unit": "s"
           },
           {
