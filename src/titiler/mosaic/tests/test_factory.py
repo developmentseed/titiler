@@ -418,30 +418,28 @@ def test_MosaicTilerFactory():
         }
         response = client.post(
             "/mosaic/feature",
-            params={"url": mosaic_file},
+            params={"url": mosaic_file, "dst_crs": "EPSG:3857"},
             json={"type": "Feature", "properties": {}, "geometry": feat},
         )
         assert response.status_code == 200
-        assert response.headers["content-type"] == "image/jpeg"
+        assert response.headers["content-type"] == "image/png"
         assert response.headers["X-Assets"]
         assert response.headers["Server-Timing"]
         assert response.headers["Content-Crs"]
         assert response.headers["Content-Bbox"]
-
         meta = parse_img(response.content)
-        assert meta["width"] == 301
-        assert meta["height"] == 301
+        assert meta["width"] == 258
+        assert meta["height"] == 367
 
         response = client.post(
             "/mosaic/feature",
-            params={"url": mosaic_file, "max_size": 200},
+            params={"url": mosaic_file, "max_size": 200, "dst_crs": "EPSG:3857"},
             json={"type": "Feature", "properties": {}, "geometry": feat},
         )
         assert response.status_code == 200
-        assert response.headers["content-type"] == "image/jpeg"
-
+        assert response.headers["content-type"] == "image/png"
         meta = parse_img(response.content)
-        assert meta["width"] == 200
+        assert meta["width"] == 141
         assert meta["height"] == 200
 
         response = client.post(
