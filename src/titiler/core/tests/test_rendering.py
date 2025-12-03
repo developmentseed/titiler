@@ -115,3 +115,46 @@ def test_rendering():
             assert data_converted[:, 2, 2].tolist() == [100, 100, 100, 50]
             # Non-masked from CMAP
             assert data_converted[:, 3, 3].tolist() == [255, 255, 255, 255]
+
+
+def test_rendering_auto_dtype():
+    """Test Automatic format selection and dtype"""
+    data = numpy.ma.zeros((1, 5, 5), dtype="uint16") + 1
+    data.mask = False
+    # add a masked value
+    data.mask[0, 0, 0] = True
+    im = ImageData(data)
+    with pytest.warns(InvalidDatatypeWarning):
+        content, media = render_image(im)
+        assert media == "image/png"
+
+        with MemoryFile(content) as mem:
+            with mem.open() as dst:
+                assert dst.count == 2
+                assert dst.dtypes == ("uint8", "uint8")
+
+    # Not Masked
+    data = numpy.ma.zeros((1, 5, 5), dtype="uint16") + 1
+    data.mask = False
+    im = ImageData(data)
+    with pytest.warns(InvalidDatatypeWarning):
+        content, media = render_image(im)
+        assert media == "image/jpeg"
+
+        with MemoryFile(content) as mem:
+            with mem.open() as dst:
+                assert dst.count == 1
+                assert dst.dtypes == ("uint8",)
+
+    # Full Masked
+    data = numpy.ma.zeros((1, 5, 5), dtype="uint16") + 1
+    data.mask = True
+    im = ImageData(data)
+    with pytest.warns(InvalidDatatypeWarning):
+        content, media = render_image(im)
+        assert media == "image/png"
+
+        with MemoryFile(content) as mem:
+            with mem.open() as dst:
+                assert dst.count == 2
+                assert dst.dtypes == ("uint8", "uint8")
