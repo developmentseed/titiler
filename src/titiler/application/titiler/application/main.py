@@ -43,9 +43,11 @@ from titiler.extensions import (
     stacExtension,
     stacRenderExtension,
     stacViewerExtension,
+    wmtsExtension,
 )
 from titiler.mosaic.errors import MOSAIC_STATUS_CODES
-from titiler.mosaic.extensions import MosaicJSONExtension
+from titiler.mosaic.extensions.mosaicjson import MosaicJSONExtension
+from titiler.mosaic.extensions.wmts import wmtsExtension as mosaic_wmtsExtension
 from titiler.mosaic.factory import MosaicTilerFactory
 
 logging.getLogger("botocore.credentials").disabled = True
@@ -70,7 +72,7 @@ templates_location.extend(
 )
 
 jinja2_env = jinja2.Environment(
-    autoescape=jinja2.select_autoescape(["html", "xml"]),
+    autoescape=jinja2.select_autoescape(["html"]),
     loader=jinja2.ChoiceLoader(templates_location),
 )
 titiler_templates = Jinja2Templates(env=jinja2_env)
@@ -133,6 +135,7 @@ if not api_settings.disable_cog:
             cogValidateExtension(),
             cogViewerExtension(),
             stacExtension(),
+            wmtsExtension(),
         ],
         enable_telemetry=api_settings.telemetry_enabled,
         templates=titiler_templates,
@@ -153,10 +156,7 @@ if not api_settings.disable_stac:
         reader=STACReader,
         router_prefix="/stac",
         add_ogc_maps=True,
-        extensions=[
-            stacViewerExtension(),
-            stacRenderExtension(),
-        ],
+        extensions=[stacViewerExtension(), stacRenderExtension(), wmtsExtension()],
         enable_telemetry=api_settings.telemetry_enabled,
         templates=titiler_templates,
     )
@@ -177,6 +177,7 @@ if not api_settings.disable_mosaic:
         router_prefix="/mosaicjson",
         extensions=[
             MosaicJSONExtension(),
+            mosaic_wmtsExtension(),
         ],
         enable_telemetry=api_settings.telemetry_enabled,
         templates=titiler_templates,

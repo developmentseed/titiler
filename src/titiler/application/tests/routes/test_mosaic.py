@@ -180,7 +180,7 @@ def test_wmts(app):
     """test GET /mosaicjson/WebMercatorQuad/WMTSCapabilities.xml endpoint"""
     with patch.object(FileBackend, "_read", mosaic_read_factory(MOSAICJSON_FILE)):
         response = app.get(
-            "/mosaicjson/WebMercatorQuad/WMTSCapabilities.xml",
+            "/mosaicjson/WMTSCapabilities.xml",
             params={"url": MOSAICJSON_FILE},
         )
         assert response.status_code == 200
@@ -191,7 +191,7 @@ def test_wmts(app):
         )
 
         response = app.get(
-            "/mosaicjson/WebMercatorQuad/WMTSCapabilities.xml",
+            "/mosaicjson/WMTSCapabilities.xml",
             params={"url": MOSAICJSON_FILE, "tile_scale": 2},
         )
         assert response.status_code == 200

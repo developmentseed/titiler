@@ -1,9 +1,9 @@
 """titiler.mosaic extensions."""
 
 import logging
-from dataclasses import dataclass
 
 import rasterio
+from attrs import define
 from fastapi import Depends
 
 from titiler.core.factory import FactoryExtension
@@ -11,14 +11,13 @@ from titiler.mosaic.factory import MosaicTilerFactory
 
 logger = logging.getLogger(__name__)
 
-
 try:
     from cogeo_mosaic.mosaic import MosaicJSON
 except ImportError:  # pragma: nocover
     MosaicJSON = None  # type: ignore
 
 
-@dataclass
+@define
 class MosaicJSONExtension(FactoryExtension):
     """Add MosaicJSON specific endpoints"""
 

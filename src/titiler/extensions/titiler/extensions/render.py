@@ -10,6 +10,7 @@ from urllib.parse import urlencode
 from attrs import define
 from fastapi import Depends, HTTPException, Path, Request
 from pydantic import BaseModel
+from starlette.routing import NoMatchFound
 
 from titiler.core.factory import FactoryExtension, MultiBaseTilerFactory
 from titiler.core.models.OGC import Link
@@ -101,20 +102,24 @@ class stacRenderExtension(FactoryExtension):
                         "rel": "tilesets-map",
                         "title": f"tilejson file for {render_id}",
                         "templated": True,
-                    },
-                    {
-                        "href": factory.url_for(
-                            request,
-                            "wmts",
-                            tileMatrixSetId="{tileMatrixSetId}",
-                        )
-                        + "?"
-                        + query_string,
-                        "rel": "tilesets-map",
-                        "title": f"WMTS service for {render_id}",
-                        "templated": True,
-                    },
+                    }
                 ]
+                try:
+                    links.append(
+                        {
+                            "href": factory.url_for(
+                                request,
+                                "wmts",
+                            )
+                            + "?"
+                            + query_string,
+                            "rel": "tilesets-map",
+                            "title": f"WMTS service for {render_id}",
+                            "templated": True,
+                        },
+                    )
+                except NoMatchFound:
+                    pass
 
             return {"params": render, "links": links}
 

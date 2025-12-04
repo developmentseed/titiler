@@ -42,17 +42,14 @@ def test_wmts(rio, app):
     """test wmts endpoints."""
     rio.open = mock_rasterio_open
 
-    response = app.get(
-        "/cog/WebMercatorQuad/WMTSCapabilities.xml?url=https://myurl.com/cog.tif"
-    )
+    response = app.get("/cog/WMTSCapabilities.xml?url=https://myurl.com/cog.tif")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/xml"
     assert response.headers["Cache-Control"] == "private, max-age=3600"
     assert (
-        "http://testserver/cog/WebMercatorQuad/WMTSCapabilities.xml?url=https"
+        "http://testserver/cog/WMTSCapabilities.xml?url=https"
         in response.content.decode()
     )
-    assert "<ows:Identifier>default</ows:Identifier>" in response.content.decode()
     assert (
         "http://testserver/cog/tiles/WebMercatorQuad/{TileMatrix}/{TileCol}/{TileRow}@1x.png?url=https"
         in response.content.decode()
@@ -63,7 +60,7 @@ def test_wmts(rio, app):
     )
 
     response = app.get(
-        "/cog/WebMercatorQuad/WMTSCapabilities.xml?url=https://myurl.com/cog.tif&tile_scale=2&tile_format=jpg"
+        "/cog/WMTSCapabilities.xml?url=https://myurl.com/cog.tif&tile_scale=2&tile_format=jpg"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/xml"
@@ -73,7 +70,7 @@ def test_wmts(rio, app):
     )
 
     response = app.get(
-        "/cog/WebMercatorQuad/WMTSCapabilities.xml?url=https://myurl.com/cog.tif&use_epsg=true"
+        "/cog/WMTSCapabilities.xml?url=https://myurl.com/cog.tif&use_epsg=true"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/xml"

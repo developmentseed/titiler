@@ -6,6 +6,7 @@
 
 * update rio-tiler requirement to `>=8.0,<9.0`
 * return `UINT8` datatype JPEG/PNG when no output format is specified **breaking change**
+* remove `/{tileMatrixSetId}/WMTSCapabilities.xml` endpoints from factories **breaking change**
 
 ### titiler.core
 
@@ -14,6 +15,8 @@
 ### titiler.extensions
 
 * update rio-cogeo requirement to `7.0,<8.0`
+* add `wmtsExtension` which adds `/WMTSCapabilities.xml` to factories
+* `WMTSCapabilities.xml` response now support all TileMatrixSets as separate layers **breaking change**
 
 ### titiler.mosaic
 
@@ -36,9 +39,12 @@
         coordinates: list[float]
         assets: list[AssetPoint]
     ```
+
 * add `/feature`, `/bbox` and `/statistics` optional endpoints 
 * make `cogeo-mosaic` an optional dependency **breaking change**
 * remove default for `MosaicTilerFactory.backend` attribute **breaking change**
+* add `titiler.mosaic.extensions.mosaicjson.MosaicJSONExtension` which adds MosaicJSON specific `/` and `/validate` endpoints
+* add `titiler.mosaic.extension.wmts.wmtsExtension` which adds `/WMTSCapabilities.xml` endpoint
 
 ## 0.26.0 (2025-11-25)
 
