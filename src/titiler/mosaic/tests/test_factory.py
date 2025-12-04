@@ -19,7 +19,9 @@ from rio_tiler.mosaic.methods import PixelSelectionMethod
 from starlette.testclient import TestClient
 
 from titiler.core.dependencies import DefaultDependency
+from titiler.core.errors import add_exception_handlers
 from titiler.core.resources.enums import OptionalHeader
+from titiler.mosaic.errors import MOSAIC_STATUS_CODES
 from titiler.mosaic.extensions.mosaicjson import MosaicJSONExtension
 from titiler.mosaic.extensions.wmts import wmtsExtension
 from titiler.mosaic.factory import MosaicTilerFactory
@@ -608,3 +610,189 @@ def test_MosaicTilerFactory_asset_accessor():
         )
         assert response.status_code == 200
         assert len(response.json()) == 1
+
+
+def test_ogc_maps_mosaic():
+    """Test TilerFactory class."""
+    mosaic = MosaicTilerFactory(
+        backend=MosaicJSONBackend,
+        add_ogc_maps=True,
+    )
+    app = FastAPI()
+    app.include_router(mosaic.router)
+    add_exception_handlers(app, MOSAIC_STATUS_CODES)
+
+    assert (
+        "https://www.opengis.net/spec/ogcapi-maps-1/1.0/conf/core" in mosaic.conforms_to
+    )
+
+    with TestClient(app) as client:
+        with tmpmosaic() as mosaic_file:
+            # Conformance Class “Core”
+            response = client.get("/map", params={"url": mosaic_file})
+            assert response.status_code == 501
+
+            # Conformance Class “Spatial Subsetting”
+            # /conf/spatial-subsetting/bbox-crs
+            response = client.get(
+                "/map",
+                params={
+                    "url": mosaic_file,
+                    "bbox": "-74,45,-73,46",
+                },
+            )
+            headers = response.headers
+            # Default CRS for Mosaic is EPSG:4326
+            assert (
+                headers["Content-Crs"] == "<http://www.opengis.net/def/crs/EPSG/0/4326>"
+            )
+            assert headers["Content-Bbox"] == "-74.0,45.0,-73.0,46.0"
+            assert headers["content-type"] == "image/png"
+
+        response = client.get(
+            "/map",
+            params={
+                "url": mosaic_file,
+                # tile 9-151-184
+                "bbox": "-8218509.281222152,5557277.704445455,-8140237.7642581295,5635549.221409475",
+                "bbox-crs": "http://www.opengis.net/def/crs/EPSG/0/3857",
+            },
+        )
+        headers = response.headers
+        assert headers["Content-Crs"] == "<http://www.opengis.net/def/crs/EPSG/0/4326>"
+        assert (
+            headers["Content-Bbox"]
+            == "-73.828125,44.590467181308846,-73.125,45.08903556483102"
+        )
+        assert headers["content-type"] == "image/png"
+
+        response = client.get(
+            "/map",
+            params={
+                "url": mosaic_file,
+                # tile 9-151-184
+                "bbox": "-8218509.281222152,5557277.704445455,-8140237.7642581295,5635549.221409475",
+                "bbox-crs": "[EPSG:3857]",
+            },
+        )
+        headers = response.headers
+        assert headers["Content-Crs"] == "<http://www.opengis.net/def/crs/EPSG/0/4326>"
+        assert (
+            headers["Content-Bbox"]
+            == "-73.828125,44.590467181308846,-73.125,45.08903556483102"
+        )
+        assert headers["content-type"] == "image/png"
+
+        response = client.get(
+            "/map",
+            params={
+                "url": mosaic_file,
+                # tile 9-151-184
+                "bbox": "-8218509.281222152,5557277.704445455,-8140237.7642581295,5635549.221409475",
+                "bbox-crs": "[EPSG:3857]",
+                "crs": "[EPSG:3857]",
+            },
+        )
+        assert response.status_code == 200
+        headers = response.headers
+        assert headers["Content-Crs"] == "<http://www.opengis.net/def/crs/EPSG/0/3857>"
+        assert (
+            headers["Content-Bbox"]
+            == "-8218509.281222152,5557277.704445455,-8140237.7642581295,5635549.221409475"
+        )
+        assert headers["content-type"] == "image/png"
+
+        response = client.get(
+            "/map",
+            params={
+                "url": mosaic_file,
+                # tile 4-4-5
+                "bbox": "-10018754.171394622,5009377.085697312,-7514065.628545966,7514065.628545966",
+                "bbox-crs": "[EPSG:3857]",
+                "crs": "[EPSG:3857]",
+            },
+        )
+        assert response.status_code == 200
+        headers = response.headers
+        assert headers["Content-Crs"] == "<http://www.opengis.net/def/crs/EPSG/0/3857>"
+        assert (
+            headers["Content-Bbox"]
+            == "-10018754.171394622,5009377.085697312,-7514065.628545966,7514065.628545966"
+        )
+        assert headers["content-type"] == "image/png"
+        meta = parse_img(response.content)
+        assert meta["width"] == 1024  # default max size
+        assert meta["height"] == 1024
+
+        response = client.get(
+            "/map",
+            params={
+                "url": mosaic_file,
+                "bbox": "-74,45,-73,46",
+            },
+            headers={"Accept": "image/jpeg"},
+        )
+        headers = response.headers
+        assert headers["content-type"] == "image/jpeg"
+
+        response = client.get(
+            "/map",
+            params={
+                "url": mosaic_file,
+                "bbox": "-74,45,-73,46",
+                "f": "tiff",
+            },
+        )
+        headers = response.headers
+        assert headers["content-type"] == "image/tiff; application=geotiff"
+
+        # Conformance Class “Scaling”
+        response = client.get(
+            "/map",
+            params={
+                "url": mosaic_file,
+                "bbox": "-74,45,-73,46",
+                "width": 256,
+            },
+        )
+        assert response.status_code == 200
+        headers = response.headers
+        assert headers["content-type"] == "image/png"
+        meta = parse_img(response.content)
+        assert meta["width"] == 256
+        assert meta["height"] == 256
+
+        response = client.get(
+            "/map",
+            params={
+                "url": mosaic_file,
+                "bbox": "-74,45,-73,46",
+                "width": -256,
+            },
+        )
+        assert response.status_code == 422
+
+        # /req/scaling/height-definition
+        response = client.get(
+            "/map",
+            params={
+                "url": mosaic_file,
+                "bbox": "-74,45,-73,46",
+                "height": 256,
+            },
+        )
+        assert response.status_code == 200
+        headers = response.headers
+        assert headers["content-type"] == "image/png"
+        meta = parse_img(response.content)
+        assert meta["width"] == 256
+        assert meta["height"] == 256
+
+        response = client.get(
+            "/map",
+            params={
+                "url": mosaic_file,
+                "height": -256,
+            },
+        )
+        assert response.status_code == 422
