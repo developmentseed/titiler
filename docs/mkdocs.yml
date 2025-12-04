@@ -114,10 +114,14 @@ nav:
       - cogeo: api/titiler/extensions/cogeo.md
       - stac: api/titiler/extensions/stac.md
       - viewer: api/titiler/extensions/viewer.md
+      - wms: api/titiler/extensions/wms.md
+      - wmts: api/titiler/extensions/wmts.md
     - titiler.mosaic:
       - factory: api/titiler/mosaic/factory.md
       - errors: api/titiler/mosaic/errors.md
-      - extensions: api/titiler/mosaic/extensions.md
+      - extensions:
+        - wmts: api/titiler/mosaic/wmts.md
+        - mosaicjson: api/titiler/mosaic/mosaicjson.md
       - models:
         - responses: api/titiler/mosaic/models/responses.md
     - titiler.xarray:
