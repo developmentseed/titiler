@@ -87,10 +87,6 @@ def render_image(  # noqa: C901
             mask != input_range[0], alpha_from_cmap, output_range[0][0]
         ).astype(data.dtype)
 
-    # If output_format is not set, we choose between JPEG and PNG
-    if not output_format:
-        output_format = ImageType.jpeg if mask.all() else ImageType.png
-
     # format-specific valid dtypes
     format_dtypes = {
         ImageType.png: ["uint8", "uint16"],
@@ -99,6 +95,15 @@ def render_image(  # noqa: C901
         ImageType.webp: ["uint8"],
         ImageType.jp2: ["uint8", "int16", "uint16"],
     }
+
+    # If output_format is not set, we choose between JPEG and PNG
+    if not output_format:
+        # Check if any alpha value == min datatype value (== Masked)
+        is_masked = (mask == dtype_ranges[str(mask.dtype)][0]).any()
+        output_format = ImageType.png if is_masked else ImageType.jpeg
+        # For automatic format we make sure the output datatype
+        # will be the same for both JPEG and PNG
+        format_dtypes[ImageType.png] = ["uint8"]
 
     valid_dtypes = format_dtypes.get(output_format, [])
     if valid_dtypes and data.dtype not in valid_dtypes:
