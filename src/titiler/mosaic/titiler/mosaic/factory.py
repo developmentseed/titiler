@@ -48,6 +48,7 @@ from titiler.core.dependencies import (
     DstCRSParams,
     HistogramParams,
     ImageRenderingParams,
+    OGCMapsParams,
     PartFeatureParams,
     StatisticsParams,
     TileParams,
@@ -152,6 +153,7 @@ class MosaicTilerFactory(BaseFactory):
     add_viewer: bool = True
     add_statistics: bool = False
     add_part: bool = False
+    add_ogc_maps: bool = False
 
     conforms_to: Set[str] = field(
         factory=lambda: {
@@ -184,6 +186,9 @@ class MosaicTilerFactory(BaseFactory):
 
         if self.add_statistics:
             self.statistics()
+
+        if self.add_ogc_maps:
+            self.ogc_maps()
 
     ############################################################################
     # /info
@@ -1346,3 +1351,115 @@ class MosaicTilerFactory(BaseFactory):
                         z,
                         **assets_accessor_params.as_dict(),
                     )
+
+    ############################################################################
+    # OGC Maps (Optional)
+    ############################################################################
+    def ogc_maps(self):  # noqa: C901
+        """Register OGC Maps /map` endpoint."""
+
+        self.conforms_to.update(
+            {
+                "https://www.opengis.net/spec/ogcapi-maps-1/1.0/conf/core",
+                "https://www.opengis.net/spec/ogcapi-maps-1/1.0/conf/crs",
+                "https://www.opengis.net/spec/ogcapi-maps-1/1.0/conf/scaling",
+                "https://www.opengis.net/spec/ogcapi-maps-1/1.0/conf/scaling/width-definition",
+                "https://www.opengis.net/spec/ogcapi-maps-1/1.0/conf/scaling/height-definition",
+                "https://www.opengis.net/spec/ogcapi-maps-1/1.0/conf/spatial-subsetting",
+                "https://www.opengis.net/spec/ogcapi-maps-1/1.0/conf/spatial-subsetting/bbox-definition",
+                "https://www.opengis.net/spec/ogcapi-maps-1/1.0/conf/spatial-subsetting/bbox-crs",
+                "https://www.opengis.net/spec/ogcapi-maps-1/1.0/conf/spatial-subsetting/crs-curie",
+                "https://www.opengis.net/spec/ogcapi-maps-1/1.0/conf/png",
+                "https://www.opengis.net/spec/ogcapi-maps-1/1.0/conf/jpeg",
+                "https://www.opengis.net/spec/ogcapi-maps-1/1.0/conf/tiff",
+            }
+        )
+
+        @self.router.get(
+            "/map",
+            operation_id=f"{self.operation_prefix}getMap",
+            **img_endpoint_params,
+        )
+        def get_map(
+            src_path=Depends(self.path_dependency),
+            ogc_params=Depends(OGCMapsParams),
+            backend_params=Depends(self.backend_dependency),
+            reader_params=Depends(self.reader_dependency),
+            assets_accessor_params=Depends(self.assets_accessor_dependency),
+            layer_params=Depends(self.layer_dependency),
+            dataset_params=Depends(self.dataset_dependency),
+            pixel_selection=Depends(self.pixel_selection_dependency),
+            post_process=Depends(self.process_dependency),
+            colormap=Depends(self.colormap_dependency),
+            render_params=Depends(self.render_dependency),
+            env=Depends(self.environment_dependency),
+        ):
+            """OGC Maps API."""
+            with rasterio.Env(**env):
+                logger.info(
+                    f"opening data with backend: {self.backend} and reader {self.dataset_reader}"
+                )
+                with self.backend(
+                    src_path,
+                    reader=self.dataset_reader,
+                    reader_options=reader_params.as_dict(),
+                    **backend_params.as_dict(),
+                ) as src_dst:
+                    if ogc_params.bbox is not None:
+                        image, assets = src_dst.part(
+                            ogc_params.bbox,
+                            dst_crs=ogc_params.crs or src_dst.crs,
+                            bounds_crs=ogc_params.bbox_crs or WGS84_CRS,
+                            search_options=assets_accessor_params.as_dict(),
+                            pixel_selection=pixel_selection,
+                            threads=MOSAIC_THREADS,
+                            width=ogc_params.width,
+                            height=ogc_params.height,
+                            max_size=ogc_params.max_size,
+                            **layer_params.as_dict(),
+                            **dataset_params.as_dict(),
+                        )
+
+                    else:
+                        # NOTE: Defaults backends do not support preview
+                        image, assets = src_dst.preview(
+                            search_options=assets_accessor_params.as_dict(),
+                            pixel_selection=pixel_selection,
+                            threads=MOSAIC_THREADS,
+                            width=ogc_params.width,
+                            height=ogc_params.height,
+                            max_size=ogc_params.max_size,
+                            dst_crs=ogc_params.crs or src_dst.crs,
+                            **layer_params.as_dict(),
+                            **dataset_params.as_dict(),
+                        )
+                    dst_colormap = getattr(src_dst, "colormap", None)
+
+            if post_process:
+                image = post_process(image)
+
+            content, media_type = self.render_func(
+                image,
+                output_format=ogc_params.format,
+                colormap=colormap or dst_colormap,
+                **render_params.as_dict(),
+            )
+
+            headers: Dict[str, str] = {}
+            if OptionalHeader.x_assets in self.optional_headers:
+                headers["X-Assets"] = ",".join(assets)
+
+            if image.bounds is not None:
+                headers["Content-Bbox"] = ",".join(map(str, image.bounds))
+            if uri := CRS_to_uri(image.crs):
+                headers["Content-Crs"] = f"<{uri}>"
+
+            if (
+                OptionalHeader.server_timing in self.optional_headers
+                and image.metadata.get("timings")
+            ):
+                headers["Server-Timing"] = ", ".join(
+                    [f"{name};dur={time}" for (name, time) in image.metadata["timings"]]
+                )
+
+            return Response(content, media_type=media_type, headers=headers)

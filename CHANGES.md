@@ -45,6 +45,7 @@
 * remove default for `MosaicTilerFactory.backend` attribute **breaking change**
 * add `titiler.mosaic.extensions.mosaicjson.MosaicJSONExtension` which adds MosaicJSON specific `/` and `/validate` endpoints
 * add `titiler.mosaic.extension.wmts.wmtsExtension` which adds `/WMTSCapabilities.xml` endpoint
+* add optional OGC Maps API `/map` endpoint
 
 ## 0.26.0 (2025-11-25)
 

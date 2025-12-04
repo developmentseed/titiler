@@ -325,6 +325,7 @@ Endpoints factory for mosaics.
 - **add_viewer**: Add `/{TileMatrixSetId}/map.html` endpoints to the router. Defaults to `True`.
 - **add_statistics**: Add `POST - /statistics` endpoints to the router. Defaults to `False`.
 - **add_part**: Add `/bbox` and `/feature` endpoints to the router. Defaults to `False`.
+- **add_ogc_maps**: Add `/map` endpoints to the router. Default to `False`.
 - **conforms_to**: Set of conformance classes the Factory implement
 
 #### Endpoints
@@ -345,7 +346,7 @@ Endpoints factory for mosaics.
 | `POST` | `/statistics`                                                   | GeoJSON ([Statistics][stats_geojson_model])        | return info and statistics for a dataset **Optional**
 | `GET`  | `/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                          | create an image from part of a dataset **Optional**
 | `POST` | `/feature[/{width}x{height}][.{format}]`                        | image/bin                                          | create an image from a geojson feature **Optional**
-
+| `GET`  | `/map`                                                          | image/bin                                          | create maps from a dataset **Optional**
 
 ```python
 from fastapi import FastAPI
@@ -361,6 +362,7 @@ mosaic = TilerFactory(
     backend=MosaicJSONBackend,
     add_part=True,     # default to False
     add_statistics=True,  # default to False
+    add_ogc_maps=True,  # default to False
 )
 
 # add router endpoint to the main application
