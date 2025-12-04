@@ -9,6 +9,7 @@ from rio_tiler.io import STACReader
 
 from titiler.core.factory import MultiBaseTilerFactory
 from titiler.extensions.render import stacRenderExtension
+from titiler.extensions.wmts import wmtsExtension
 
 stac_item = os.path.join(os.path.dirname(__file__), "fixtures", "render_item.json")
 
@@ -19,12 +20,12 @@ def test_stacExtension():
     stac_tiler = MultiBaseTilerFactory(reader=STACReader)
 
     stac_tiler_plus_stac_render = MultiBaseTilerFactory(
-        reader=STACReader, extensions=[stacRenderExtension()]
+        reader=STACReader, extensions=[stacRenderExtension(), wmtsExtension()]
     )
-    # Check that we added two routes (/renders & /renders/{render_id})
+    # Check that we added two routes (/renders & /renders/{render_id}) and `/WMTSCapabilities.xml`
     assert (
         len(stac_tiler_plus_stac_render.router.routes)
-        == len(stac_tiler.router.routes) + 2
+        == len(stac_tiler.router.routes) + 3
     )
 
     app = FastAPI()
@@ -58,7 +59,7 @@ def test_stacExtension():
         hrefs = {unquote(urlparse(link["href"]).path) for link in links}
         expected_hrefs = {
             "/renders/ndvi",
-            "/{tileMatrixSetId}/WMTSCapabilities.xml",
+            "/WMTSCapabilities.xml",
             "/{tileMatrixSetId}/tilejson.json",
         }
         assert hrefs == expected_hrefs
