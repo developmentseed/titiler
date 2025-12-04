@@ -55,6 +55,10 @@ class FactoryExtension(metaclass=abc.ABCMeta):
 
 - Goal: adds a `/wms` endpoint to support OGC WMS specification (`GetCapabilities` and `GetMap`)
 
+#### titiler.extensions.wmtsExtension
+
+- Goal: adds a `/WMTSCapabilities.xml` endpoint to support OGC WMTS RESTFULL specification (`GetCapabilities` and `GetTile`)
+
 #### titiler.extensions.stacRenderExtenstion
 
 - Goal: adds `/render` and `/render/{render_id}` endpoints which return the contents of [STAC render extension](https://github.com/stac-extensions/render) and links to tileset.json and WMTS service
@@ -63,7 +67,11 @@ class FactoryExtension(metaclass=abc.ABCMeta):
 
 - Goal: adds `/dataset/`, `/dataset/keys` and `/datasets/dict` endpoints which return metadata about a multidimensional Dataset (not a DataArray)
 
-#### titiler.mosaic.extensions.MosaicJSONExtension
+#### titiler.mosaic.extensions.wmts.wmtsExtension
+
+- Goal: adds `/WMTSCapabilities.xml` to support OGC WMTS RESTFULL specification (`GetCapabilities` and `GetTile`)
+
+#### titiler.mosaic.extensions.mosaicjson.MosaicJSONExtension
 
 - Goal: adds `/` and `/validate` endpoints to return MosaicJSON content and validate external mosaics.
 

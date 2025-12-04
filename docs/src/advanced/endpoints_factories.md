@@ -94,7 +94,6 @@ app.include_router(cog.router)
 | `GET`  | `/tiles/{tileMatrixSetId}/{z}/{x}/{y}[@{scale}x][.{format}]`    | image/bin                                   | create a web map tile image from a dataset
 | `GET`  | `/{tileMatrixSetId}/map.html`                                   | HTML                                        | return a simple map viewer **Optional**
 | `GET`  | `/{tileMatrixSetId}/tilejson.json`                              | JSON ([TileJSON][tilejson_model])           | return a Mapbox TileJSON document
-| `GET`  | `/{tileMatrixSetId}/WMTSCapabilities.xml`                       | XML                                         | return OGC WMTS Get Capabilities
 | `GET`  | `/point/{lon},{lat}`                                            | JSON ([Point][point_model])                 | return pixel values from a dataset
 | `GET`  | `/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                   | create an image from part of a dataset **Optional**
 | `POST` | `/feature[/{width}x{height}][.{format}]`                        | image/bin                                   | create an image from a GeoJSON feature **Optional**
@@ -147,7 +146,6 @@ app.include_router(stac.router)
 | `GET`  | `/tiles/{tileMatrixSetId}/{z}/{x}/{y}[@{scale}x][.{format}]`    | image/bin                                        | create a web map tile image from assets
 | `GET`  | `/{tileMatrixSetId}/map.html`                                   | HTML                                             | return a simple map viewer **Optional**
 | `GET`  | `/{tileMatrixSetId}/tilejson.json`                              | JSON ([TileJSON][tilejson_model])                | return a Mapbox TileJSON document
-| `GET`  | `/{tileMatrixSetId}/WMTSCapabilities.xml`                       | XML                                              | return OGC WMTS Get Capabilities
 | `GET`  | `/point/{lon},{lat}`                                            | JSON ([Point][multipoint_model])                 | return pixel values from assets
 | `GET`  | `/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                        | create an image from part of assets **Optional**
 | `POST` | `/feature[/{width}x{height}][.{format}]`                        | image/bin                                        | create an image from a geojson feature intersecting assets **Optional**
@@ -203,7 +201,6 @@ app.include_router(landsat.router)
 | `GET`  | `/tiles/{tileMatrixSetId}/{z}/{x}/{y}[@{scale}x][.{format}]`    | image/bin                                    | create a web map tile image from a dataset
 | `GET`  | `/{tileMatrixSetId}/map.html`                                   | HTML                                         | return a simple map viewer **Optional**
 | `GET`  | `/{tileMatrixSetId}/tilejson.json`                              | JSON ([TileJSON][tilejson_model])            | return a Mapbox TileJSON document
-| `GET`  | `/{tileMatrixSetId}/WMTSCapabilities.xml`                       | XML                                          | return OGC WMTS Get Capabilities
 | `GET`  | `/point/{lon},{lat}`                                            | JSON ([Point][point_model])                  | return pixel value from a dataset
 | `GET`  | `/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                    | create an image from part of a dataset **Optional**
 | `POST` | `/feature[/{width}x{height}][.{format}]`                        | image/bin                                    | create an image from a geojson feature **Optional**
@@ -342,7 +339,6 @@ Endpoints factory for mosaics.
 | `GET`  | `/tiles/{tileMatrixSetId}/{z}/{x}/{y}/assets`                   | JSON                                               | return list of assets intersecting a XYZ tile
 | `GET`  | `/{tileMatrixSetId}/map.html`                                   | HTML                                               | return a simple map viewer **Optional**
 | `GET`  | `/{tileMatrixSetId}/tilejson.json`                              | JSON ([TileJSON][tilejson_model])                  | return a Mapbox TileJSON document
-| `GET`  | `/{tileMatrixSetId}/WMTSCapabilities.xml`                       | XML                                                | return OGC WMTS Get Capabilities
 | `GET`  | `/point/{lon},{lat}`                                            | JSON ([Point][mosaic_point])                       | return pixel value from a MosaicJSON dataset
 | `GET`  | `/point/{lon},{lat}/assets`                                     | JSON                                               | return list of assets intersecting a point
 | `GET`  | `/bbox/{minx},{miny},{maxx},{maxy}/assets`                      | JSON                                               | return list of assets intersecting a bounding box
@@ -430,7 +426,6 @@ app.include_router(md.router)
 | `GET`  | `/tiles/{tileMatrixSetId}/{z}/{x}/{y}[@{scale}x][.{format}]`    | image/bin                                   | create a web map tile image from a dataset
 | `GET`  | `/{tileMatrixSetId}/map.html`                                   | HTML                                        | return a simple map viewer **Optional**
 | `GET`  | `/{tileMatrixSetId}/tilejson.json`                              | JSON ([TileJSON][tilejson_model])           | return a Mapbox TileJSON document
-| `GET`  | `/{tileMatrixSetId}/WMTSCapabilities.xml`                       | XML                                         | return OGC WMTS Get Capabilities
 | `GET`  | `/point/{lon},{lat}`                                            | JSON ([Point][point_model])                 | return pixel values from a dataset
 | `GET`  | `/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin                                   | create an image from part of a dataset **Optional**
 | `POST` | `/feature[/{width}x{height}][.{format}]`                        | image/bin                                   | create an image from a GeoJSON feature **Optional**

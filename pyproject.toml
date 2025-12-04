@@ -52,6 +52,7 @@ dev = [
     "pystac[validation]>=1.0.0,<2.0.0",
     "brotlipy",
     "boto3",
+    "owslib",
     "pre-commit",
     "bump-my-version",
 ]

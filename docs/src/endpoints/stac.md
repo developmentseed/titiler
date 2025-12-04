@@ -20,12 +20,12 @@ The `/stac` routes are based on `titiler.core.factory.MultiBaseTilerFactory` but
 | `GET`  | `/stac/tiles/{tileMatrixSetId}/{z}/{x}/{y}[@{scale}x][.{format}]`    | image/bin | create a web map tile image from assets
 | `GET`  | `/stac/{tileMatrixSetId}/map.html`                                   | HTML      | simple map viewer
 | `GET`  | `/stac/{tileMatrixSetId}/tilejson.json`                              | JSON      | return a Mapbox TileJSON document
-| `GET`  | `/stac/{tileMatrixSetId}/WMTSCapabilities.xml`                       | XML       | return OGC WMTS Get Capabilities
 | `GET`  | `/stac/point/{lon},{lat}`                                            | JSON      | return pixel value from assets
 | `GET`  | `/stac/bbox/{minx},{miny},{maxx},{maxy}[/{width}x{height}].{format}` | image/bin | create an image from part of assets
 | `POST` | `/stac/feature[/{width}x{height}][.{format}]`                        | image/bin | create an image from a geojson covering the assets
 | `GET`  | `/stac/preview[/{width}x{height}][.{format}]`                        | image/bin | create a preview image from assets
 | `GET`  | `/stac/viewer`                                                       | HTML      | demo webpage (from `titiler.extensions.stacViewerExtension`)
+| `GET`  | `/stac/WMTSCapabilities.xml`                                         | XML       | return OGC WMTS Get Capabilities (from `titiler.extensions.wmts.wmtsExtension`)
 
 ## Description
 

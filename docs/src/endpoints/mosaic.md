@@ -9,7 +9,6 @@ Read Mosaic Info/Metadata and create Web map Tiles from a multiple COG. The `mos
 
 | Method | URL                                                                        | Output    | Description
 | ------ | -------------------------------------------------------------------------- |---------- |--------------
-| `GET`  | `/mosaicjson/`                                                             | JSON      | return a MosaicJSON document
 | `GET`  | `/mosaicjson/info`                                                         | JSON      | return mosaic's basic info
 | `GET`  | `/mosaicjson/info.geojson`                                                 | GeoJSON   | return mosaic's basic info as a GeoJSON feature
 | `GET`  | `/mosaicjson/tiles`                                                        | JSON      | List of OGC Tilesets available
@@ -17,11 +16,13 @@ Read Mosaic Info/Metadata and create Web map Tiles from a multiple COG. The `mos
 | `GET`  | `/mosaicjson/tiles/{tileMatrixSetId}/{z}/{x}/{y}[@{scale}x][.{format}]`    | image/bin | create a web map tile image from mosaic assets
 | `GET`  | `/mosaicjson/{tileMatrixSetId}/map.html`                                   | HTML      | simple map viewer
 | `GET`  | `/mosaicjson/{tileMatrixSetId}/tilejson.json`                              | JSON      | return a Mapbox TileJSON document
-| `GET`  | `/mosaicjson/{tileMatrixSetId}/WMTSCapabilities.xml`                       | XML       | return OGC WMTS Get Capabilities
 | `GET`  | `/mosaicjson/point/{lon},{lat}`                                            | JSON      | return pixel value from a mosaic assets
 | `GET`  | `/mosaicjson/tiles/{tileMatrixSetId}/{z}/{x}/{y}/assets`                   | JSON      | return list of assets intersecting a XYZ tile
 | `GET`  | `/mosaicjson/point/{lon},{lat}/assets`                                     | JSON      | return list of assets intersecting a point
 | `GET`  | `/mosaicjson/bbox/{minx},{miny},{maxx},{maxy}/assets`                      | JSON      | return list of assets intersecting a bounding box
+| `GET`  | `/mosaicjson/`                                                             | JSON      | return a MosaicJSON document (from titiler.mosaic.extensions.mosaicjson.MosaicJSONExtension)
+| `GET`  | `/mosaicjson/validate`                                                     | JSON      | validate a MosaicJSON document (from titiler.mosaic.extensions.mosaicjson.MosaicJSONExtension)
+| `GET`  | `/mosaicjson/WMTSCapabilities.xml`                                         | XML       | return OGC WMTS Get Capabilities (from titiler.mosaic.extensions.wmts.wmtsExtension)
 
 ## Description
 

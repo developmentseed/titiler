@@ -20,7 +20,8 @@ from starlette.testclient import TestClient
 
 from titiler.core.dependencies import DefaultDependency
 from titiler.core.resources.enums import OptionalHeader
-from titiler.mosaic.extensions import MosaicJSONExtension
+from titiler.mosaic.extensions.mosaicjson import MosaicJSONExtension
+from titiler.mosaic.extensions.wmts import wmtsExtension
 from titiler.mosaic.factory import MosaicTilerFactory
 
 from .conftest import DATA_DIR, parse_img
@@ -52,7 +53,7 @@ def test_MosaicTilerFactory():
         optional_headers=[OptionalHeader.x_assets],
         router_prefix="mosaic",
     )
-    assert len(mosaic.router.routes) == 15
+    assert len(mosaic.router.routes) == 14
 
     @dataclass
     class MosaicJSONAccessor(DefaultDependency):
@@ -70,9 +71,7 @@ def test_MosaicTilerFactory():
             OptionalHeader.x_assets,
             OptionalHeader.server_timing,
         ],
-        extensions=[
-            MosaicJSONExtension(),
-        ],
+        extensions=[MosaicJSONExtension(), wmtsExtension()],
         add_statistics=True,
         add_part=True,
         router_prefix="mosaic",
@@ -245,12 +244,10 @@ def test_MosaicTilerFactory():
         assert "tileMatrixSetId" not in body["tiles"][0]
 
         response = client.get(
-            "/mosaic/WebMercatorQuad/WMTSCapabilities.xml",
+            "/mosaic/WMTSCapabilities.xml",
             params={
                 "url": mosaic_file,
                 "tile_format": "png",
-                "minzoom": 6,
-                "maxzoom": 9,
             },
         )
         assert response.status_code == 200

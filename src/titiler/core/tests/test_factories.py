@@ -4,7 +4,6 @@ import json
 import os
 import pathlib
 import warnings
-import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from enum import Enum
 from io import BytesIO
@@ -51,7 +50,7 @@ WEB_TMS = TileMatrixSets({"WebMercatorQuad": morecantile.tms.get("WebMercatorQua
 def test_TilerFactory():
     """Test TilerFactory class."""
     cog = TilerFactory()
-    assert len(cog.router.routes) == 22
+    assert len(cog.router.routes) == 21
     assert len(cog.supported_tms.list()) == NB_DEFAULT_TMS
 
     cog = TilerFactory(router_prefix="something", supported_tms=WEB_TMS)
@@ -78,7 +77,7 @@ def test_TilerFactory():
     assert response.status_code == 422
 
     cog = TilerFactory(add_preview=False, add_part=False, add_viewer=False)
-    assert len(cog.router.routes) == 13
+    assert len(cog.router.routes) == 12
 
     app = FastAPI()
     cog = TilerFactory()
@@ -280,39 +279,6 @@ def test_TilerFactory():
     assert response.json()["tilejson"]
     assert response.json()["minzoom"] == 5
     assert response.json()["maxzoom"] == 12
-
-    response = client.get(
-        f"/WebMercatorQuad/WMTSCapabilities.xml?url={DATA_DIR}/cog.tif&minzoom=5&maxzoom=12"
-    )
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "application/xml"
-    meta = parse_img(response.content)
-    assert meta["driver"] == "WMTS"
-    assert meta["crs"] == "EPSG:3857"
-    root = ET.fromstring(response.content)
-    assert root is not None
-
-    response = client.get(
-        f"/WebMercatorQuad/WMTSCapabilities.xml?url={DATA_DIR}/cog.tif&bdix=1&rescale=0,1000"
-    )
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "application/xml"
-    meta = parse_img(response.content)
-    assert meta["driver"] == "WMTS"
-    assert meta["crs"] == "EPSG:3857"
-    root = ET.fromstring(response.content)
-    assert root is not None
-
-    response = client.get(
-        f"/WorldCRS84Quad/WMTSCapabilities.xml?url={DATA_DIR}/cog.tif&minzoom=5&maxzoom=12"
-    )
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "application/xml"
-    meta = parse_img(response.content)
-    assert meta["driver"] == "WMTS"
-    assert str(meta["crs"]) == "OGC:CRS84"
-    root = ET.fromstring(response.content)
-    assert root is not None
 
     response = client.get(f"/info?url={DATA_DIR}/cog.tif")
     assert response.status_code == 200
@@ -777,7 +743,7 @@ def test_MultiBaseTilerFactory(rio):
     rio.open = mock_rasterio_open
 
     stac = MultiBaseTilerFactory(reader=STACReader)
-    assert len(stac.router.routes) == 24
+    assert len(stac.router.routes) == 23
 
     app = FastAPI()
     app.include_router(stac.router)
@@ -1162,7 +1128,7 @@ def test_MultiBandTilerFactory():
     bands = MultiBandTilerFactory(
         reader=BandFileReader, path_dependency=CustomPathParams
     )
-    assert len(bands.router.routes) == 23
+    assert len(bands.router.routes) == 22
 
     app = FastAPI()
     app.include_router(bands.router)
@@ -1555,7 +1521,7 @@ def test_TilerFactory_WithDependencies():
         ],
         router_prefix="something",
     )
-    assert len(cog.router.routes) == 22
+    assert len(cog.router.routes) == 21
 
     app = FastAPI()
     app.include_router(cog.router, prefix="/something")
@@ -2069,7 +2035,7 @@ def test_ogc_maps_cog():
     cog_path = f"{DATA_DIR}/cog.tif"
 
     cog = TilerFactory(add_ogc_maps=True)
-    assert len(cog.router.routes) == 23
+    assert len(cog.router.routes) == 22
 
     assert "https://www.opengis.net/spec/ogcapi-maps-1/1.0/conf/core" in cog.conforms_to
 
