@@ -26,7 +26,7 @@ def app_zarr():
             ValidateExtension(),
         ],
     )
-    assert len(md.router.routes) == 19
+    assert len(md.router.routes) == 18
 
     app = FastAPI()
     app.include_router(md.router, prefix="/md")
