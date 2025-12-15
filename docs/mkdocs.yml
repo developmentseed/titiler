@@ -139,6 +139,9 @@ nav:
     - k8s / Helm Deployment: "deployment/k8s.md"
     - Azure: "deployment/azure.md"
 
+  - Migrations:
+    - From titiler 0.26.x to 1.x: "migrations/v1_migration.md"
+
   - External links: "external_links.md"
   - Development - Contributing: "contributing.md"
   - Release Notes: "release-notes.md"
