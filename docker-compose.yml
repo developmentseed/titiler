@@ -1,8 +1,5 @@
 services:
   titiler:
-    # TODO: remove once https://github.com/rasterio/rasterio-wheels/issues/69 is resolved
-    # See https://github.com/developmentseed/titiler/discussions/387
-    platform: linux/amd64
     build:
       context: .
       dockerfile: dockerfiles/Dockerfile
@@ -88,7 +85,6 @@ services:
   titiler-xarray:
     extends:
       service: titiler
-    platform: linux/amd64
     build:
       context: .
       dockerfile: dockerfiles/Dockerfile.xarray
