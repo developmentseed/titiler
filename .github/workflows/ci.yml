@@ -19,14 +19,14 @@ on:
   workflow_dispatch:
 
 env:
-  LATEST_PY_VERSION: '3.13'
+  LATEST_PY_VERSION: '3.14'
 
 jobs:
   tests:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.11', '3.12', '3.13']
+        python-version: ['3.11', '3.12', '3.13', '3.14']
 
     steps:
       - uses: actions/checkout@v6
@@ -155,8 +155,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          # TODO: add `linux/arm64 once https://github.com/rasterio/rasterio-wheels/issues/69 is resolved
-          platforms: linux/amd64 # ,linux/arm64
+          platforms: linux/amd64,linux/arm64
           context: .
           file: dockerfiles/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}

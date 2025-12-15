@@ -647,7 +647,7 @@ def test_TilerFactory():
         "masked_pixels",
         "valid_percent",
     }
-    assert len(resp["properties"]["statistics"]["b1"]["histogram"][1]) == 12
+    assert len(resp["properties"]["statistics"]["b1"]["histogram"][1]) == 13
 
     response = client.post(
         "/statistics",

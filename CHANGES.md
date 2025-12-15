@@ -7,6 +7,7 @@
 * update rio-tiler requirement to `>=8.0,<9.0`
 * return `UINT8` datatype JPEG/PNG when no output format is specified **breaking change**
 * remove `/{tileMatrixSetId}/WMTSCapabilities.xml` endpoints from factories **breaking change**
+* add python 3.14 support
 
 ### titiler.core
 
