@@ -21,7 +21,7 @@ class cogViewerExtension(FactoryExtension):
 
     templates: Jinja2Templates = DEFAULT_TEMPLATES
 
-    def register(self, factory: TilerFactory):
+    def register(self, factory: TilerFactory):  # type: ignore [override]
         """Register endpoint to the tiler factory."""
 
         @factory.router.get(
@@ -52,7 +52,7 @@ class stacViewerExtension(FactoryExtension):
 
     templates: Jinja2Templates = DEFAULT_TEMPLATES
 
-    def register(self, factory: TilerFactory):
+    def register(self, factory: TilerFactory):  # type: ignore [override]
         """Register endpoint to the tiler factory."""
 
         @factory.router.get(

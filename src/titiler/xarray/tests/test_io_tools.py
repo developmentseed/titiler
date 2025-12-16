@@ -2,7 +2,7 @@
 
 import os
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
 from urllib.parse import urlparse
 
 import numpy
@@ -241,7 +241,7 @@ def test_opener():
     def custom_netcdf_opener(  # noqa: C901
         src_path: str,
         special_arg: bool,
-        group: Optional[str] = None,
+        group: str | None = None,
         decode_times: bool = True,
     ) -> xarray.Dataset:
         """Open Xarray dataset with fsspec.
@@ -263,7 +263,7 @@ def test_opener():
         if not special_arg:
             raise ValueError("you forgot the special_arg :(")
 
-        xr_open_args: Dict[str, Any] = {
+        xr_open_args: dict[str, Any] = {
             "decode_coords": "all",
             "decode_times": decode_times,
             "engine": "h5netcdf",

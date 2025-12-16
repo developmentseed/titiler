@@ -5,7 +5,7 @@ import tempfile
 from contextlib import contextmanager
 from dataclasses import dataclass
 from io import BytesIO
-from typing import Annotated, Any, List, Optional
+from typing import Annotated, Any
 from unittest.mock import patch
 
 import attr
@@ -573,9 +573,9 @@ class CustomBackend(FileBackend):
         x: int,
         y: int,
         z: int,
-        limit: Optional[int] = None,
+        limit: int | None = None,
         **kwargs: Any,
-    ) -> List[str]:
+    ) -> list[str]:
         """Find assets."""
         assets = super().get_assets(x, y, z)
 

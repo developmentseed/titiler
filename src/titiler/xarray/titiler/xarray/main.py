@@ -4,7 +4,7 @@ import json
 import logging
 import os
 from logging import config as log_config
-from typing import Annotated, Literal, Optional
+from typing import Annotated, Literal
 
 import jinja2
 import rasterio
@@ -58,12 +58,12 @@ class ApiSettings(BaseSettings):
     root_path: str = ""
     debug: bool = False
 
-    template_directory: Optional[str] = None
+    template_directory: str | None = None
 
     telemetry_enabled: bool = False
 
     # an API key required to access any endpoint, passed via the ?access_token= query parameter
-    global_access_token: Optional[str] = None
+    global_access_token: str | None = None
 
     model_config = SettingsConfigDict(
         env_prefix="TITILER_XARRAY_API_", env_file=".env", extra="ignore"
@@ -82,7 +82,7 @@ class ApiSettings(BaseSettings):
 
 api_settings = ApiSettings()
 
-templates_location = (
+templates_location: list[jinja2.PackageLoader | jinja2.FileSystemLoader] = (
     [jinja2.FileSystemLoader(api_settings.template_directory)]
     if api_settings.template_directory
     else []
@@ -316,7 +316,7 @@ def application_health_check():
 def landing(
     request: Request,
     f: Annotated[
-        Optional[Literal["html", "json"]],
+        Literal["html", "json"] | None,
         Query(
             description="Response MediaType. Defaults to endpoint's default or value defined in `accept` header."
         ),
@@ -422,7 +422,7 @@ def landing(
 def conformance(
     request: Request,
     f: Annotated[
-        Optional[Literal["html", "json"]],
+        Literal["html", "json"] | None,
         Query(
             description="Response MediaType. Defaults to endpoint's default or value defined in `accept` header."
         ),

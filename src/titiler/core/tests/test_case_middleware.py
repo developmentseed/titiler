@@ -1,6 +1,6 @@
 """Test titiler.core.middleware.LowerCaseQueryStringMiddleware."""
 
-from typing import Annotated, List
+from typing import Annotated
 
 from fastapi import FastAPI, Query
 from starlette.testclient import TestClient
@@ -33,7 +33,7 @@ def test_lowercase_middleware_multiple_values():
     app = FastAPI()
 
     @app.get("/route1")
-    async def route1(value: Annotated[List[str], Query()]):
+    async def route1(value: Annotated[list[str], Query()]):
         """route1."""
         return {"value": value}
 
@@ -53,7 +53,7 @@ def test_lowercase_middleware_url_with_query_parameters():
     app = FastAPI()
 
     @app.get("/route1")
-    async def route1(url: List[str] = Query(...)):
+    async def route1(url: list[str] = Query(...)):
         """route1."""
         return {"url": url}
 

@@ -5,20 +5,8 @@ import base64
 import logging
 import os
 import warnings
-from typing import (
-    Annotated,
-    Any,
-    Callable,
-    Dict,
-    List,
-    Literal,
-    Optional,
-    Sequence,
-    Set,
-    Tuple,
-    Type,
-    Union,
-)
+from collections.abc import Callable, Sequence
+from typing import Annotated, Any, Literal
 from urllib.parse import urlencode
 
 import jinja2
@@ -108,7 +96,7 @@ jinja2_env = jinja2.Environment(
 )
 DEFAULT_TEMPLATES = Jinja2Templates(env=jinja2_env)
 
-img_endpoint_params: Dict[str, Any] = {
+img_endpoint_params: dict[str, Any] = {
     "responses": {
         200: {
             "content": {
@@ -161,16 +149,16 @@ class BaseFactory(metaclass=abc.ABCMeta):
     router_prefix: str = ""
 
     # add dependencies to specific routes
-    route_dependencies: List[Tuple[List[EndpointScope], List[DependsFunc]]] = field(
+    route_dependencies: list[tuple[list[EndpointScope], list[DependsFunc]]] = field(
         factory=list
     )
 
-    extensions: List[FactoryExtension] = field(factory=list)
+    extensions: list[FactoryExtension] = field(factory=list)
 
-    name: Optional[str] = field(default=None)
+    name: str | None = field(default=None)
     operation_prefix: str = field(init=False, default="")
 
-    conforms_to: Set[str] = field(factory=set)
+    conforms_to: set[str] = field(factory=set)
 
     enable_telemetry: bool = field(default=False)
 
@@ -221,8 +209,8 @@ class BaseFactory(metaclass=abc.ABCMeta):
     def add_route_dependencies(
         self,
         *,
-        scopes: List[EndpointScope],
-        dependencies=List[DependsFunc],
+        scopes: list[EndpointScope],
+        dependencies=list[DependsFunc],
     ):
         """Add dependencies to routes.
 
@@ -302,47 +290,47 @@ class TilerFactory(BaseFactory):
     """
 
     # Default reader is set to rio_tiler.io.Reader
-    reader: Type[BaseReader] = Reader
+    reader: type[BaseReader] = Reader
 
     # Reader dependency
-    reader_dependency: Type[DefaultDependency] = DefaultDependency
+    reader_dependency: type[DefaultDependency] = DefaultDependency
 
     # Path Dependency
     path_dependency: Callable[..., Any] = DatasetPathParams
 
     # Indexes/Expression Dependencies
-    layer_dependency: Type[DefaultDependency] = BidxExprParams
+    layer_dependency: type[DefaultDependency] = BidxExprParams
 
     # Rasterio Dataset Options (nodata, unscale, resampling, reproject)
-    dataset_dependency: Type[DefaultDependency] = DatasetParams
+    dataset_dependency: type[DefaultDependency] = DatasetParams
 
     # Tile/Tilejson/WMTS Dependencies
-    tile_dependency: Type[DefaultDependency] = TileParams
+    tile_dependency: type[DefaultDependency] = TileParams
 
     # Statistics/Histogram Dependencies
-    stats_dependency: Type[DefaultDependency] = StatisticsParams
-    histogram_dependency: Type[DefaultDependency] = HistogramParams
+    stats_dependency: type[DefaultDependency] = StatisticsParams
+    histogram_dependency: type[DefaultDependency] = HistogramParams
 
     # Crop/Preview endpoints Dependencies
-    img_preview_dependency: Type[DefaultDependency] = PreviewParams
-    img_part_dependency: Type[DefaultDependency] = PartFeatureParams
+    img_preview_dependency: type[DefaultDependency] = PreviewParams
+    img_part_dependency: type[DefaultDependency] = PartFeatureParams
 
     # Post Processing Dependencies (algorithm)
-    process_dependency: Callable[..., Optional[BaseAlgorithm]] = (
+    process_dependency: Callable[..., BaseAlgorithm | None] = (
         available_algorithms.dependency
     )
 
     # Image rendering Dependencies
-    colormap_dependency: Callable[..., Optional[ColorMapType]] = ColorMapParams
-    render_dependency: Type[DefaultDependency] = ImageRenderingParams
+    colormap_dependency: Callable[..., ColorMapType | None] = ColorMapParams
+    render_dependency: type[DefaultDependency] = ImageRenderingParams
 
     # GDAL ENV dependency
-    environment_dependency: Callable[..., Dict] = field(default=lambda: {})
+    environment_dependency: Callable[..., dict] = field(default=lambda: {})
 
     # TileMatrixSet dependency
     supported_tms: TileMatrixSets = morecantile_tms
 
-    render_func: Callable[..., Tuple[bytes, str]] = render_image
+    render_func: Callable[..., tuple[bytes, str]] = render_image
 
     # Add/Remove some endpoints
     add_preview: bool = True
@@ -350,7 +338,7 @@ class TilerFactory(BaseFactory):
     add_viewer: bool = True
     add_ogc_maps: bool = False
 
-    conforms_to: Set[str] = field(
+    conforms_to: set[str] = field(
         factory=lambda: {
             # https://docs.ogc.org/is/20-057/20-057.html#toc30
             "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/conf/tileset",
@@ -513,7 +501,7 @@ class TilerFactory(BaseFactory):
         )
         def geojson_statistics(
             geojson: Annotated[
-                Union[FeatureCollection, Feature],
+                FeatureCollection | Feature,
                 Body(description="GeoJSON Feature or FeatureCollection."),
             ],
             src_path=Depends(self.path_dependency),
@@ -596,7 +584,7 @@ class TilerFactory(BaseFactory):
             crs=Depends(CRSParams),
             env=Depends(self.environment_dependency),
             f: Annotated[
-                Optional[Literal["html", "json"]],
+                Literal["html", "json"] | None,
                 Query(
                     description="Response MediaType. Defaults to endpoint's default or value defined in `accept` header."
                 ),
@@ -622,9 +610,9 @@ class TilerFactory(BaseFactory):
 
             attribution = os.environ.get("TITILER_DEFAULT_ATTRIBUTION")
 
-            tilesets = []
+            tilesets: list[dict[str, Any]] = []
             for tms in self.supported_tms.list():
-                tileset = {
+                tileset: dict[str, Any] = {
                     "title": f"tileset tiled using {tms} TileMatrixSet",
                     "attribution": attribution,
                     "dataType": "map",
@@ -722,7 +710,7 @@ class TilerFactory(BaseFactory):
             reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
             f: Annotated[
-                Optional[Literal["html", "json"]],
+                Literal["html", "json"] | None,
                 Query(
                     description="Response MediaType. Defaults to endpoint's default or value defined in `accept` header."
                 ),
@@ -914,7 +902,7 @@ class TilerFactory(BaseFactory):
                 ),
             ] = 1,
             format: Annotated[
-                ImageType,
+                ImageType | None,
                 Field(
                     description="Default will be automatically defined if the output image needs a mask (png) or not (jpeg)."
                 ),
@@ -957,7 +945,7 @@ class TilerFactory(BaseFactory):
                 **render_params.as_dict(),
             )
 
-            headers: Dict[str, str] = {}
+            headers: dict[str, str] = {}
             if image.bounds is not None:
                 headers["Content-Bbox"] = ",".join(map(str, image.bounds))
             if uri := CRS_to_uri(image.crs):
@@ -984,7 +972,7 @@ class TilerFactory(BaseFactory):
                 ),
             ],
             tile_format: Annotated[
-                Optional[ImageType],
+                ImageType | None,
                 Query(
                     description="Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
                 ),
@@ -996,11 +984,11 @@ class TilerFactory(BaseFactory):
                 ),
             ] = 1,
             minzoom: Annotated[
-                Optional[int],
+                int | None,
                 Query(description="Overwrite default minzoom."),
             ] = None,
             maxzoom: Annotated[
-                Optional[int],
+                int | None,
                 Query(description="Overwrite default maxzoom."),
             ] = None,
             src_path=Depends(self.path_dependency),
@@ -1073,7 +1061,7 @@ class TilerFactory(BaseFactory):
                 ),
             ],
             tile_format: Annotated[
-                Optional[ImageType],
+                ImageType | None,
                 Query(
                     description="Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
                 ),
@@ -1085,11 +1073,11 @@ class TilerFactory(BaseFactory):
                 ),
             ] = 1,
             minzoom: Annotated[
-                Optional[int],
+                int | None,
                 Query(description="Overwrite default minzoom."),
             ] = None,
             maxzoom: Annotated[
-                Optional[int],
+                int | None,
                 Query(description="Overwrite default maxzoom."),
             ] = None,
             src_path=Depends(self.path_dependency),
@@ -1190,7 +1178,7 @@ class TilerFactory(BaseFactory):
         )
         def preview(
             format: Annotated[
-                ImageType,
+                ImageType | None,
                 Field(
                     description="Default will be automatically defined if the output image needs a mask (png) or not (jpeg)."
                 ),
@@ -1228,7 +1216,7 @@ class TilerFactory(BaseFactory):
                 **render_params.as_dict(),
             )
 
-            headers: Dict[str, str] = {}
+            headers: dict[str, str] = {}
             if image.bounds is not None:
                 headers["Content-Bbox"] = ",".join(map(str, image.bounds))
             if uri := CRS_to_uri(image.crs):
@@ -1259,7 +1247,7 @@ class TilerFactory(BaseFactory):
             maxx: Annotated[float, Path(description="Bounding box max X")],
             maxy: Annotated[float, Path(description="Bounding box max Y")],
             format: Annotated[
-                ImageType,
+                ImageType | None,
                 Field(
                     description="Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
                 ),
@@ -1300,7 +1288,7 @@ class TilerFactory(BaseFactory):
                 **render_params.as_dict(),
             )
 
-            headers: Dict[str, str] = {}
+            headers: dict[str, str] = {}
             if image.bounds is not None:
                 headers["Content-Bbox"] = ",".join(map(str, image.bounds))
             if uri := CRS_to_uri(image.crs):
@@ -1327,7 +1315,7 @@ class TilerFactory(BaseFactory):
         def feature_image(
             geojson: Annotated[Feature, Body(description="GeoJSON Feature.")],
             format: Annotated[
-                ImageType,
+                ImageType | None,
                 Field(
                     description="Default will be automatically defined if the output image needs a mask (png) or not (jpeg)."
                 ),
@@ -1368,7 +1356,7 @@ class TilerFactory(BaseFactory):
                 **render_params.as_dict(),
             )
 
-            headers: Dict[str, str] = {}
+            headers: dict[str, str] = {}
             if image.bounds is not None:
                 headers["Content-Bbox"] = ",".join(map(str, image.bounds))
             if uri := CRS_to_uri(image.crs):
@@ -1415,7 +1403,7 @@ class TilerFactory(BaseFactory):
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             env=Depends(self.environment_dependency),
-        ):
+        ) -> Response:
             """OGC Maps API."""
             with rasterio.Env(**env):
                 logger.info(f"opening data with reader: {self.reader}")
@@ -1454,7 +1442,7 @@ class TilerFactory(BaseFactory):
                 **render_params.as_dict(),
             )
 
-            headers: Dict[str, str] = {}
+            headers: dict[str, str] = {}
             if image.bounds is not None:
                 headers["Content-Bbox"] = ",".join(map(str, image.bounds))
             if uri := CRS_to_uri(image.crs):
@@ -1478,13 +1466,13 @@ class MultiBaseTilerFactory(TilerFactory):
 
     """
 
-    reader: Type[MultiBaseReader]
+    reader: type[MultiBaseReader]  # type: ignore
 
     # Assets/Indexes/Expression dependency
-    layer_dependency: Type[DefaultDependency] = AssetsBidxExprParams
+    layer_dependency: type[DefaultDependency] = AssetsBidxExprParams
 
     # Assets dependency
-    assets_dependency: Type[DefaultDependency] = AssetsParams
+    assets_dependency: type[DefaultDependency] = AssetsParams
 
     # Overwrite the `/info` endpoint to return the list of assets when no assets is passed.
     def info(self):
@@ -1507,7 +1495,7 @@ class MultiBaseTilerFactory(TilerFactory):
             reader_params=Depends(self.reader_dependency),
             asset_params=Depends(self.assets_dependency),
             env=Depends(self.environment_dependency),
-        ):
+        ) -> MultiBaseInfo:
             """Return dataset's basic info or the list of available assets."""
             with rasterio.Env(**env):
                 logger.info(f"opening data with reader: {self.reader}")
@@ -1533,7 +1521,7 @@ class MultiBaseTilerFactory(TilerFactory):
             asset_params=Depends(self.assets_dependency),
             crs=Depends(CRSParams),
             env=Depends(self.environment_dependency),
-        ):
+        ) -> MultiBaseInfoGeoJSON:
             """Return dataset's basic info as a GeoJSON feature."""
             with rasterio.Env(**env):
                 logger.info(f"opening data with reader: {self.reader}")
@@ -1550,7 +1538,7 @@ class MultiBaseTilerFactory(TilerFactory):
 
         @self.router.get(
             "/assets",
-            response_model=List[str],
+            response_model=list[str],
             responses={200: {"description": "Return a list of supported assets."}},
             operation_id=f"{self.operation_prefix}getAssets",
         )
@@ -1669,7 +1657,7 @@ class MultiBaseTilerFactory(TilerFactory):
         )
         def geojson_statistics(
             geojson: Annotated[
-                Union[FeatureCollection, Feature],
+                FeatureCollection | Feature,
                 Body(description="GeoJSON Feature or FeatureCollection."),
             ],
             src_path=Depends(self.path_dependency),
@@ -1740,13 +1728,13 @@ class MultiBandTilerFactory(TilerFactory):
 
     """
 
-    reader: Type[MultiBandReader]
+    reader: type[MultiBandReader]  # type: ignore
 
     # Assets/Expression dependency
-    layer_dependency: Type[DefaultDependency] = BandsExprParams
+    layer_dependency: type[DefaultDependency] = BandsExprParams
 
     # Bands dependency
-    bands_dependency: Type[DefaultDependency] = BandsParams
+    bands_dependency: type[DefaultDependency] = BandsParams
 
     def info(self):
         """Register /info endpoint."""
@@ -1807,7 +1795,7 @@ class MultiBandTilerFactory(TilerFactory):
 
         @self.router.get(
             "/bands",
-            response_model=List[str],
+            response_model=list[str],
             responses={200: {"description": "Return a list of supported bands."}},
             operation_id=f"{self.operation_prefix}getBands",
         )
@@ -1888,7 +1876,7 @@ class MultiBandTilerFactory(TilerFactory):
         )
         def geojson_statistics(
             geojson: Annotated[
-                Union[FeatureCollection, Feature],
+                FeatureCollection | Feature,
                 Body(description="GeoJSON Feature or FeatureCollection."),
             ],
             src_path=Depends(self.path_dependency),
@@ -1967,7 +1955,7 @@ class TMSFactory(BaseFactory):
         async def tilematrixsets(
             request: Request,
             f: Annotated[
-                Optional[Literal["html", "json"]],
+                Literal["html", "json"] | None,
                 Query(
                     description="Response MediaType. Defaults to endpoint's default or value defined in `accept` header."
                 ),
@@ -1976,9 +1964,10 @@ class TMSFactory(BaseFactory):
             """
             OGC Specification: http://docs.opengeospatial.org/per/19-069.html#_tilematrixsets
             """
+
             data = TileMatrixSetList(
                 tileMatrixSets=[
-                    {
+                    {  # type: ignore
                         "id": tms_id,
                         "links": [
                             {
@@ -2039,7 +2028,7 @@ class TMSFactory(BaseFactory):
                 Path(description="Identifier for a supported TileMatrixSet."),
             ],
             f: Annotated[
-                Optional[Literal["html", "json"]],
+                Literal["html", "json"] | None,
                 Query(
                     description="Response MediaType. Defaults to endpoint's default or value defined in `accept` header."
                 ),
@@ -2082,7 +2071,7 @@ class AlgorithmFactory(BaseFactory):
     # Supported algorithm
     supported_algorithm: Algorithms = available_algorithms
 
-    def _get_algo_metadata(self, algorithm: BaseAlgorithm) -> AlgorithmMetadata:
+    def _get_algo_metadata(self, algorithm: type[BaseAlgorithm]) -> AlgorithmMetadata:
         """Algorithm Metadata"""
         props = algorithm.model_json_schema()["properties"]
 
@@ -2146,7 +2135,7 @@ class AlgorithmFactory(BaseFactory):
         def available_algorithms(
             request: Request,
             f: Annotated[
-                Optional[Literal["html", "json"]],
+                Literal["html", "json"] | None,
                 Query(
                     description="Response MediaType. Defaults to endpoint's default or value defined in `accept` header."
                 ),
@@ -2155,7 +2144,7 @@ class AlgorithmFactory(BaseFactory):
             """Retrieve the list of available Algorithms."""
             data = AlgorithmtList(
                 algorithms=[
-                    {
+                    {  # type: ignore
                         "id": algo_id,
                         "links": [
                             {
@@ -2215,7 +2204,7 @@ class AlgorithmFactory(BaseFactory):
                 Path(description="Algorithm name"),
             ],
             f: Annotated[
-                Optional[Literal["html", "json"]],
+                Literal["html", "json"] | None,
                 Query(
                     description="Response MediaType. Defaults to endpoint's default or value defined in `accept` header."
                 ),
@@ -2255,9 +2244,9 @@ class ColorMapFactory(BaseFactory):
     def _image_from_colormap(
         self,
         cmap,
-        orientation: Optional[Literal["vertical", "horizontal"]] = None,
-        width: Optional[int] = None,
-        height: Optional[int] = None,
+        orientation: Literal["vertical", "horizontal"] | None = None,
+        width: int | None = None,
+        height: int | None = None,
     ) -> ImageData:
         """Create an image from a colormap."""
         orientation = orientation or "horizontal"
@@ -2324,7 +2313,7 @@ class ColorMapFactory(BaseFactory):
         def available_colormaps(
             request: Request,
             f: Annotated[
-                Optional[Literal["html", "json"]],
+                Literal["html", "json"] | None,
                 Query(
                     description="Response MediaType. Defaults to endpoint's default or value defined in `accept` header."
                 ),
@@ -2333,7 +2322,7 @@ class ColorMapFactory(BaseFactory):
             """Retrieve the list of available colormaps."""
             data = ColorMapList(
                 colormaps=[
-                    {
+                    {  # type: ignore
                         "id": cmap_name,
                         "links": [
                             {
@@ -2400,7 +2389,7 @@ class ColorMapFactory(BaseFactory):
                 Path(description="ColorMap name"),
             ],
             f: Annotated[
-                Optional[
+                (
                     Literal[
                         "html",
                         "json",
@@ -2414,25 +2403,26 @@ class ColorMapFactory(BaseFactory):
                         "webp",
                         "pngraw",
                     ]
-                ],
+                    | None
+                ),
                 Query(
                     description="Response MediaType. Defaults to endpoint's default or value defined in `accept` header."
                 ),
             ] = None,
             orientation: Annotated[
-                Optional[Literal["vertical", "horizontal"]],
+                Literal["vertical", "horizontal"] | None,
                 Query(
                     description="Image Orientation.",
                 ),
             ] = None,
             height: Annotated[
-                Optional[int],
+                int | None,
                 Query(
                     description="Image Height (default to 20px for horizontal or 256px for vertical).",
                 ),
             ] = None,
             width: Annotated[
-                Optional[int],
+                int | None,
                 Query(
                     description="Image Width (default to 256px for horizontal or 20px for vertical).",
                 ),
@@ -2465,13 +2455,12 @@ class ColorMapFactory(BaseFactory):
                 )
 
             elif output_type == MediaType.html:
-                img = self._image_from_colormap(cmap, orientation="vertical").render(
-                    img_format="PNG", colormap=cmap
-                )
+                img = self._image_from_colormap(cmap, orientation="vertical")
+                content = img.render(img_format="PNG", colormap=cmap)
 
                 return create_html_response(
                     request,
-                    base64.b64encode(img).decode(),
+                    base64.b64encode(content).decode(),
                     title=colorMapId,
                     template_name="colormap",
                     templates=self.templates,

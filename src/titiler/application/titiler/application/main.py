@@ -3,7 +3,7 @@
 import json
 import logging
 from logging import config as log_config
-from typing import Annotated, Literal, Optional
+from typing import Annotated, Literal
 
 import jinja2
 import rasterio
@@ -58,7 +58,7 @@ logging.getLogger("rio-tiler").setLevel(logging.ERROR)
 api_settings = ApiSettings()
 
 # custom template directory
-templates_location = (
+templates_location: list[jinja2.BaseLoader] = (
     [jinja2.FileSystemLoader(api_settings.template_directory)]
     if api_settings.template_directory
     else []
@@ -173,7 +173,7 @@ if not api_settings.disable_stac:
 # Mosaic endpoints
 if not api_settings.disable_mosaic:
     mosaic = MosaicTilerFactory(
-        backend=MosaicJSONBackend,
+        backend=MosaicJSONBackend,  # type: ignore
         router_prefix="/mosaicjson",
         extensions=[
             MosaicJSONExtension(),
@@ -365,7 +365,7 @@ def application_health_check():
 def landing(
     request: Request,
     f: Annotated[
-        Optional[Literal["html", "json"]],
+        Literal["html", "json"] | None,
         Query(
             description="Response MediaType. Defaults to endpoint's default or value defined in `accept` header."
         ),
@@ -471,7 +471,7 @@ def landing(
 def conformance(
     request: Request,
     f: Annotated[
-        Optional[Literal["html", "json"]],
+        Literal["html", "json"] | None,
         Query(
             description="Response MediaType. Defaults to endpoint's default or value defined in `accept` header."
         ),

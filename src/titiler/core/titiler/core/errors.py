@@ -1,6 +1,6 @@
 """Titiler error classes."""
 
-from typing import Callable, Dict, Type
+from collections.abc import Callable
 
 from fastapi import FastAPI
 from rasterio.errors import RasterioError, RasterioIOError
@@ -61,7 +61,7 @@ def exception_handler_factory(status_code: int) -> Callable:
 
 
 def add_exception_handlers(
-    app: FastAPI, status_codes: Dict[Type[Exception], int]
+    app: FastAPI, status_codes: dict[type[Exception], int]
 ) -> None:
     """
     Add exception handlers to the FastAPI app.

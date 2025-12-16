@@ -6,7 +6,6 @@ import logging
 import re
 import time
 from dataclasses import dataclass, field
-from typing import Set
 from urllib.parse import urlencode
 
 from starlette.datastructures import MutableHeaders
@@ -30,7 +29,7 @@ class CacheControlMiddleware:
     app: ASGIApp
     cachecontrol: str | None = None
     cachecontrol_max_http_code: int = 500
-    exclude_path: Set[str] = field(default_factory=set)
+    exclude_path: set[str] = field(default_factory=set)
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send):
         """Handle call."""

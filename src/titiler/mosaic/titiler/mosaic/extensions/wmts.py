@@ -1,6 +1,6 @@
 """titiler.mosaic wmts extensions."""
 
-from typing import Annotated
+from typing import Annotated, Any
 from urllib.parse import urlencode
 
 import jinja2
@@ -39,7 +39,7 @@ class wmtsExtension(FactoryExtension):
 
     templates: Jinja2Templates = field(default=DEFAULT_TEMPLATES)
 
-    def register(self, factory: MosaicTilerFactory):  # noqa: C901
+    def register(self, factory: MosaicTilerFactory):  # type: ignore [override] # noqa: C901
         """Register endpoint to the tiler factory."""
 
         @factory.router.get(
@@ -185,7 +185,7 @@ class wmtsExtension(FactoryExtension):
             bbox_crs_uri = "urn:ogc:def:crs:OGC:2:84"
             if self.crs != WGS84_CRS:
                 bbox_crs_type = "BoundingBox"
-                bbox_crs_uri = CRS_to_urn(self.crs)
+                bbox_crs_uri = CRS_to_urn(self.crs)  # type: ignore
                 # WGS88BoundingBox is always xy ordered, but BoundingBox must match the CRS order
                 with rasterio.Env(OSR_WKT_FORMAT="WKT2_2018"):
                     proj_crs = pyproj.CRS.from_user_input(self.crs)
@@ -193,25 +193,25 @@ class wmtsExtension(FactoryExtension):
                         # match the bounding box coordinate order to the CRS
                         bounds = [bounds[1], bounds[0], bounds[3], bounds[2]]
 
-            layers = []
-            for tms in tileMatrixSet:
+            layers: list[dict[str, Any]] = []
+            for tilematrix in tileMatrixSet:
                 route_params = {
                     "z": "{TileMatrix}",
                     "x": "{TileCol}",
                     "y": "{TileRow}",
                     "scale": tile_scale,
                     "format": tile_format.value,
-                    "tileMatrixSetId": tms["id"],
+                    "tileMatrixSetId": tilematrix["id"],
                 }
                 layers.append(
                     {
-                        "is_default": tms["id"] == self.default_tms,
+                        "is_default": tilematrix["id"] == self.default_tms,
                         "title": src_path
                         if isinstance(src_path, str)
                         else "TiTiler Mosaic",
-                        "identifier": tms["id"],
-                        "tms_identifier": tms["id"],
-                        "limits": tms["limits"],
+                        "identifier": tilematrix["id"],
+                        "tms_identifier": tilematrix["id"],
+                        "limits": tilematrix["limits"],
                         "tiles_url": factory.url_for(request, "tile", **route_params),
                         "query_string": urlencode(qs, doseq=True) if qs else None,
                         "bounds": bounds,

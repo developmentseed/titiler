@@ -1,7 +1,7 @@
 """OGC models."""
 
 from datetime import datetime
-from typing import Annotated, Dict, List, Literal, Optional, Set, Union
+from typing import Annotated, Literal
 
 from morecantile.models import CRSType
 from pydantic import AnyUrl, BaseModel, Field, RootModel
@@ -17,8 +17,8 @@ class TileMatrixSetRef(BaseModel):
     """
 
     id: str
-    title: Optional[str] = None
-    links: List[Link]
+    title: str | None = None
+    links: list[Link]
 
 
 class TileMatrixSetList(BaseModel):
@@ -28,7 +28,7 @@ class TileMatrixSetList(BaseModel):
     Based on http://docs.opengeospatial.org/per/19-069.html#_tilematrixsets
     """
 
-    tileMatrixSets: List[TileMatrixSetRef]
+    tileMatrixSets: list[TileMatrixSetRef]
 
 
 class TimeStamp(RootModel):
@@ -59,7 +59,7 @@ class BoundingBox(BaseModel):
     """
 
     lowerLeft: Annotated[
-        List[float],
+        list[float],
         Field(
             max_length=2,
             min_length=2,
@@ -69,7 +69,7 @@ class BoundingBox(BaseModel):
         ),
     ]
     upperRight: Annotated[
-        List[float],
+        list[float],
         Field(
             max_length=2,
             min_length=2,
@@ -78,10 +78,8 @@ class BoundingBox(BaseModel):
             },
         ),
     ]
-    crs: Annotated[Optional[CRSType], Field(json_schema_extra={"title": "CRS"})] = None
-    orderedAxes: Annotated[Optional[List[str]], Field(max_length=2, min_length=2)] = (
-        None
-    )
+    crs: Annotated[CRSType | None, Field(json_schema_extra={"title": "CRS"})] = None
+    orderedAxes: Annotated[list[str] | None, Field(max_length=2, min_length=2)] = None
 
 
 # Ref: https://github.com/opengeospatial/ogcapi-tiles/blob/master/openapi/schemas/tms/propertiesSchema.yaml
@@ -101,18 +99,18 @@ class Properties(BaseModel):
     Code generated using https://github.com/koxudaxi/datamodel-code-generator/
     """
 
-    title: Optional[str] = None
+    title: str | None = None
     description: Annotated[
-        Optional[str],
+        str | None,
         Field(
             json_schema_extra={
                 "description": "Implements 'description'",
             }
         ),
     ] = None
-    type: Optional[Type] = None
+    type: Type | None = None
     enum: Annotated[
-        Optional[Set],
+        set | None,
         Field(
             min_length=1,
             json_schema_extra={
@@ -121,7 +119,7 @@ class Properties(BaseModel):
         ),
     ] = None
     format: Annotated[
-        Optional[str],
+        str | None,
         Field(
             json_schema_extra={
                 "description": "Complements implementation of 'type'",
@@ -129,7 +127,7 @@ class Properties(BaseModel):
         ),
     ] = None
     contentMediaType: Annotated[
-        Optional[str],
+        str | None,
         Field(
             json_schema_extra={
                 "description": "Implements 'mediaType'",
@@ -137,7 +135,7 @@ class Properties(BaseModel):
         ),
     ] = None
     maximum: Annotated[
-        Optional[float],
+        float | None,
         Field(
             json_schema_extra={
                 "description": "Implements 'range'",
@@ -145,7 +143,7 @@ class Properties(BaseModel):
         ),
     ] = None
     exclusiveMaximum: Annotated[
-        Optional[float],
+        float | None,
         Field(
             json_schema_extra={
                 "description": "Implements 'range'",
@@ -153,7 +151,7 @@ class Properties(BaseModel):
         ),
     ] = None
     minimum: Annotated[
-        Optional[float],
+        float | None,
         Field(
             json_schema_extra={
                 "description": "Implements 'range'",
@@ -161,16 +159,16 @@ class Properties(BaseModel):
         ),
     ] = None
     exclusiveMinimum: Annotated[
-        Optional[float],
+        float | None,
         Field(
             json_schema_extra={
                 "description": "Implements 'range'",
             }
         ),
     ] = None
-    pattern: Optional[str] = None
+    pattern: str | None = None
     maxItems: Annotated[
-        Optional[int],
+        int | None,
         Field(
             ge=0,
             json_schema_extra={
@@ -179,7 +177,7 @@ class Properties(BaseModel):
         ),
     ] = None
     minItems: Annotated[
-        Optional[int],
+        int | None,
         Field(
             ge=0,
             json_schema_extra={
@@ -187,10 +185,10 @@ class Properties(BaseModel):
             },
         ),
     ] = 0
-    observedProperty: Optional[str] = None
-    observedPropertyURI: Optional[AnyUrl] = None
-    uom: Optional[str] = None
-    uomURI: Optional[AnyUrl] = None
+    observedProperty: str | None = None
+    observedPropertyURI: AnyUrl | None = None
+    uom: str | None = None
+    uomURI: AnyUrl | None = None
 
 
 class PropertiesSchema(BaseModel):
@@ -203,7 +201,7 @@ class PropertiesSchema(BaseModel):
 
     type: Literal["object"]
     required: Annotated[
-        Optional[List[str]],
+        list[str] | None,
         Field(
             min_length=1,
             json_schema_extra={
@@ -211,7 +209,7 @@ class PropertiesSchema(BaseModel):
             },
         ),
     ] = None
-    properties: Dict[str, Properties]
+    properties: dict[str, Properties]
 
 
 class Style(BaseModel):
@@ -231,7 +229,7 @@ class Style(BaseModel):
         ),
     ]
     title: Annotated[
-        Optional[str],
+        str | None,
         Field(
             json_schema_extra={
                 "description": "A title for this style",
@@ -239,7 +237,7 @@ class Style(BaseModel):
         ),
     ] = None
     description: Annotated[
-        Optional[str],
+        str | None,
         Field(
             json_schema_extra={
                 "description": "Brief narrative description of this style",
@@ -247,7 +245,7 @@ class Style(BaseModel):
         ),
     ] = None
     keywords: Annotated[
-        Optional[List[str]],
+        list[str] | None,
         Field(
             json_schema_extra={
                 "description": "keywords about this style",
@@ -255,7 +253,7 @@ class Style(BaseModel):
         ),
     ] = None
     links: Annotated[
-        Optional[List[Link]],
+        list[Link] | None,
         Field(
             min_length=1,
             json_schema_extra={
@@ -274,7 +272,7 @@ class GeospatialData(BaseModel):
     """
 
     title: Annotated[
-        Optional[str],
+        str | None,
         Field(
             json_schema_extra={
                 "description": "Title of this tile matrix set, normally used for display to a human",
@@ -282,7 +280,7 @@ class GeospatialData(BaseModel):
         ),
     ] = None
     description: Annotated[
-        Optional[str],
+        str | None,
         Field(
             json_schema_extra={
                 "description": "Brief narrative description of this tile matrix set, normally available for display to a human",
@@ -290,7 +288,7 @@ class GeospatialData(BaseModel):
         ),
     ] = None
     keywords: Annotated[
-        Optional[str],
+        str | None,
         Field(
             json_schema_extra={
                 "description": "Unordered list of one or more commonly used or formalized word(s) or phrase(s) used to describe this layer",
@@ -314,7 +312,7 @@ class GeospatialData(BaseModel):
         ),
     ]
     geometryDimension: Annotated[
-        Optional[int],
+        int | None,
         Field(  # type: ignore
             ge=0,
             le=3,
@@ -324,7 +322,7 @@ class GeospatialData(BaseModel):
         ),
     ] = None
     featureType: Annotated[
-        Optional[str],
+        str | None,
         Field(
             json_schema_extra={
                 "description": "Feature type identifier. Only applicable to layers of datatype 'geometries'",
@@ -332,7 +330,7 @@ class GeospatialData(BaseModel):
         ),
     ] = None
     attribution: Annotated[
-        Optional[str],
+        str | None,
         Field(
             json_schema_extra={
                 "description": "Short reference to recognize the author or provider",
@@ -340,7 +338,7 @@ class GeospatialData(BaseModel):
         ),
     ] = None
     license: Annotated[
-        Optional[str],
+        str | None,
         Field(
             json_schema_extra={
                 "description": "License applicable to the tiles",
@@ -348,7 +346,7 @@ class GeospatialData(BaseModel):
         ),
     ] = None
     pointOfContact: Annotated[
-        Optional[str],
+        str | None,
         Field(
             json_schema_extra={
                 "description": "Useful information to contact the authors or custodians for the layer (e.g. e-mail address, a physical address,  phone numbers, etc)",
@@ -356,7 +354,7 @@ class GeospatialData(BaseModel):
         ),
     ] = None
     publisher: Annotated[
-        Optional[str],
+        str | None,
         Field(
             json_schema_extra={
                 "description": "Organization or individual responsible for making the layer available",
@@ -364,16 +362,16 @@ class GeospatialData(BaseModel):
         ),
     ] = None
     theme: Annotated[
-        Optional[str],
+        str | None,
         Field(
             json_schema_extra={
                 "description": "Category where the layer can be grouped",
             }
         ),
     ] = None
-    crs: Annotated[Optional[CRSType], Field(json_schema_extra={"title": "CRS"})] = None
+    crs: Annotated[CRSType | None, Field(json_schema_extra={"title": "CRS"})] = None
     epoch: Annotated[
-        Optional[float],
+        float | None,
         Field(
             json_schema_extra={
                 "description": "Epoch of the Coordinate Reference System (CRS)",
@@ -381,7 +379,7 @@ class GeospatialData(BaseModel):
         ),
     ] = None
     minScaleDenominator: Annotated[
-        Optional[float],
+        float | None,
         Field(
             json_schema_extra={
                 "description": "Minimum scale denominator for usage of the layer",
@@ -389,7 +387,7 @@ class GeospatialData(BaseModel):
         ),
     ] = None
     maxScaleDenominator: Annotated[
-        Optional[float],
+        float | None,
         Field(
             json_schema_extra={
                 "description": "Maximum scale denominator for usage of the layer",
@@ -397,7 +395,7 @@ class GeospatialData(BaseModel):
         ),
     ] = None
     minCellSize: Annotated[
-        Optional[float],
+        float | None,
         Field(
             json_schema_extra={
                 "description": "Minimum cell size for usage of the layer",
@@ -405,7 +403,7 @@ class GeospatialData(BaseModel):
         ),
     ] = None
     maxCellSize: Annotated[
-        Optional[float],
+        float | None,
         Field(
             json_schema_extra={
                 "description": "Maximum cell size for usage of the layer",
@@ -413,7 +411,7 @@ class GeospatialData(BaseModel):
         ),
     ] = None
     maxTileMatrix: Annotated[
-        Optional[str],
+        str | None,
         Field(
             json_schema_extra={
                 "description": "TileMatrix identifier associated with the minScaleDenominator",
@@ -421,28 +419,28 @@ class GeospatialData(BaseModel):
         ),
     ] = None
     minTileMatrix: Annotated[
-        Optional[str],
+        str | None,
         Field(
             json_schema_extra={
                 "description": "TileMatrix identifier associated with the maxScaleDenominator",
             }
         ),
     ] = None
-    boundingBox: Optional[BoundingBox] = None
-    created: Optional[TimeStamp] = None
-    updated: Optional[TimeStamp] = None
-    style: Optional[Style] = None
+    boundingBox: BoundingBox | None = None
+    created: TimeStamp | None = None
+    updated: TimeStamp | None = None
+    style: Style | None = None
     geoDataClasses: Annotated[
-        Optional[List[str]],
+        list[str] | None,
         Field(
             json_schema_extra={
                 "description": "URI identifying a class of data contained in this layer (useful to determine compatibility with styles or processes)",
             }
         ),
     ] = None
-    propertiesSchema: Optional[PropertiesSchema] = None
+    propertiesSchema: PropertiesSchema | None = None
     links: Annotated[
-        Optional[List[Link]],
+        list[Link] | None,
         Field(
             min_length=1,
             json_schema_extra={
@@ -460,10 +458,10 @@ class TilePoint(BaseModel):
     Code generated using https://github.com/koxudaxi/datamodel-code-generator/
     """
 
-    coordinates: Annotated[List[float], Field(max_length=2, min_length=2)]
-    crs: Annotated[Optional[CRSType], Field(json_schema_extra={"title": "CRS"})]
+    coordinates: Annotated[list[float], Field(max_length=2, min_length=2)]
+    crs: Annotated[CRSType | None, Field(json_schema_extra={"title": "CRS"})]
     tileMatrix: Annotated[
-        Optional[str],
+        str | None,
         Field(
             json_schema_extra={
                 "description": "TileMatrix identifier associated with the scaleDenominator",
@@ -471,7 +469,7 @@ class TilePoint(BaseModel):
         ),
     ] = None
     scaleDenominator: Annotated[
-        Optional[float],
+        float | None,
         Field(
             json_schema_extra={
                 "description": "Scale denominator of the tile matrix selected",
@@ -479,7 +477,7 @@ class TilePoint(BaseModel):
         ),
     ] = None
     cellSize: Annotated[
-        Optional[float],
+        float | None,
         Field(
             json_schema_extra={
                 "description": "Cell size of the tile matrix selected",
@@ -510,7 +508,7 @@ class TileSet(BaseModel):
     """
 
     title: Annotated[
-        Optional[str],
+        str | None,
         Field(
             json_schema_extra={
                 "description": "A title for this tileset",
@@ -518,7 +516,7 @@ class TileSet(BaseModel):
         ),
     ] = None
     description: Annotated[
-        Optional[str],
+        str | None,
         Field(
             json_schema_extra={
                 "description": "Brief narrative description of this tile set",
@@ -535,7 +533,7 @@ class TileSet(BaseModel):
     ]
     crs: Annotated[CRSType, Field(json_schema_extra={"title": "CRS"})]
     tileMatrixSetURI: Annotated[
-        Optional[AnyUrl],
+        AnyUrl | None,
         Field(
             json_schema_extra={
                 "description": "Reference to a Tile Matrix Set on an official source for Tile Matrix Sets",
@@ -543,7 +541,7 @@ class TileSet(BaseModel):
         ),
     ] = None
     links: Annotated[
-        List[Link],
+        list[Link],
         Field(
             json_schema_extra={
                 "description": "Links to related resources",
@@ -551,7 +549,7 @@ class TileSet(BaseModel):
         ),
     ]
     tileMatrixSetLimits: Annotated[
-        Optional[List[TileMatrixLimits]],
+        list[TileMatrixLimits] | None,
         Field(
             json_schema_extra={
                 "description": "Limits for the TileRow and TileCol values for each TileMatrix in the tileMatrixSet. If missing, there are no limits other that the ones imposed by the TileMatrixSet. If present the TileMatrices listed are limited and the rest not available at all",
@@ -559,7 +557,7 @@ class TileSet(BaseModel):
         ),
     ] = None
     epoch: Annotated[
-        Optional[Union[float, int]],
+        float | int | None,
         Field(
             json_schema_extra={
                 "description": "Epoch of the Coordinate Reference System (CRS)",
@@ -567,14 +565,14 @@ class TileSet(BaseModel):
         ),
     ] = None
     layers: Annotated[
-        Optional[List[GeospatialData]],
+        list[GeospatialData] | None,
         Field(min_length=1),
     ] = None
-    boundingBox: Optional[BoundingBox] = None
-    centerPoint: Optional[TilePoint] = None
-    style: Optional[Style] = None
+    boundingBox: BoundingBox | None = None
+    centerPoint: TilePoint | None = None
+    style: Style | None = None
     attribution: Annotated[
-        Optional[str],
+        str | None,
         Field(
             json_schema_extra={
                 "description": "Short reference to recognize the author or provider",
@@ -582,7 +580,7 @@ class TileSet(BaseModel):
         ),
     ] = None
     license: Annotated[
-        Optional[str],
+        str | None,
         Field(
             json_schema_extra={
                 "description": "License applicable to the tiles",
@@ -590,7 +588,7 @@ class TileSet(BaseModel):
         ),
     ] = None
     accessConstraints: Annotated[
-        Optional[AccessConstraints],
+        AccessConstraints | None,
         Field(
             json_schema_extra={
                 "description": "Restrictions on the availability of the Tile Set that the user needs to be aware of before using or redistributing the Tile Set",
@@ -598,7 +596,7 @@ class TileSet(BaseModel):
         ),
     ] = "unclassified"
     keywords: Annotated[
-        Optional[List[str]],
+        list[str] | None,
         Field(
             json_schema_extra={
                 "description": "keywords about this tileset",
@@ -606,17 +604,17 @@ class TileSet(BaseModel):
         ),
     ] = None
     version: Annotated[
-        Optional[str],
+        str | None,
         Field(
             json_schema_extra={
                 "description": "Version of the Tile Set. Changes if the data behind the tiles has been changed",
             }
         ),
     ] = None
-    created: Optional[TimeStamp] = None
-    updated: Optional[TimeStamp] = None
+    created: TimeStamp | None = None
+    updated: TimeStamp | None = None
     pointOfContact: Annotated[
-        Optional[str],
+        str | None,
         Field(
             json_schema_extra={
                 "description": "Useful information to contact the authors or custodians for the Tile Set",
@@ -624,7 +622,7 @@ class TileSet(BaseModel):
         ),
     ] = None
     mediaTypes: Annotated[
-        Optional[List[str]],
+        list[str] | None,
         Field(
             json_schema_extra={
                 "description": "Media types available for the tiles",
@@ -640,7 +638,7 @@ class TileSetList(BaseModel):
     Based on https://docs.ogc.org/is/20-057/20-057.html#toc34
     """
 
-    tilesets: List[TileSet]
+    tilesets: list[TileSet]
 
 
 class Conformance(BaseModel):
@@ -650,7 +648,7 @@ class Conformance(BaseModel):
 
     """
 
-    conformsTo: List[str]
+    conformsTo: list[str]
 
 
 class Landing(BaseModel):
@@ -660,6 +658,6 @@ class Landing(BaseModel):
 
     """
 
-    title: Optional[str] = None
-    description: Optional[str] = None
-    links: List[Link]
+    title: str | None = None
+    description: str | None = None
+    links: list[Link]

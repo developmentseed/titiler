@@ -9,6 +9,7 @@
 * remove `/{tileMatrixSetId}/WMTSCapabilities.xml` endpoints from factories **breaking change**
 * add python 3.14 support
 * add `linux/arm64` docker image 
+* update/fix type hints 
 
 ### titiler.core
 

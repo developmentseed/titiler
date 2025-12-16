@@ -2,7 +2,8 @@
 
 import logging
 import warnings
-from typing import Annotated, Any, Callable, Optional, Type, Union
+from collections.abc import Callable
+from typing import Annotated, Any
 
 import rasterio
 from attrs import define
@@ -41,27 +42,27 @@ logger = logging.getLogger(__name__)
 class TilerFactory(BaseTilerFactory):
     """Xarray Tiler Factory."""
 
-    reader: Type[XarrayReader] = Reader
+    reader: type[XarrayReader] = Reader
 
     path_dependency: Callable[..., Any] = DatasetPathParams
 
-    reader_dependency: Type[DefaultDependency] = XarrayParams
+    reader_dependency: type[DefaultDependency] = XarrayParams
 
     # Indexes Dependencies
-    layer_dependency: Type[DefaultDependency] = BidxParams
+    layer_dependency: type[DefaultDependency] = BidxParams
 
     # Dataset Options (nodata, reproject)
-    dataset_dependency: Type[DefaultDependency] = DatasetParams
+    dataset_dependency: type[DefaultDependency] = DatasetParams
 
     # Tile/Tilejson/WMTS Dependencies  (Not used in titiler.xarray)
-    tile_dependency: Type[DefaultDependency] = DefaultDependency
+    tile_dependency: type[DefaultDependency] = DefaultDependency
 
     # Statistics/Histogram Dependencies
-    stats_dependency: Type[DefaultDependency] = StatisticsParams
-    histogram_dependency: Type[DefaultDependency] = HistogramParams
+    stats_dependency: type[DefaultDependency] = StatisticsParams
+    histogram_dependency: type[DefaultDependency] = HistogramParams
 
-    img_preview_dependency: Type[DefaultDependency] = PreviewParams
-    img_part_dependency: Type[DefaultDependency] = PartFeatureParams
+    img_preview_dependency: type[DefaultDependency] = PreviewParams
+    img_part_dependency: type[DefaultDependency] = PartFeatureParams
 
     add_viewer: bool = True
     add_part: bool = True
@@ -99,7 +100,7 @@ class TilerFactory(BaseTilerFactory):
             src_path=Depends(self.path_dependency),
             reader_params=Depends(self.reader_dependency),
             show_times: Annotated[
-                Optional[bool],
+                bool | None,
                 Query(description="Show info about the time dimension"),
             ] = None,
             env=Depends(self.environment_dependency),
@@ -133,7 +134,7 @@ class TilerFactory(BaseTilerFactory):
             src_path=Depends(self.path_dependency),
             reader_params=Depends(self.reader_dependency),
             show_times: Annotated[
-                Optional[bool],
+                bool | None,
                 Query(description="Show info about the time dimension"),
             ] = None,
             crs=Depends(CRSParams),
@@ -178,7 +179,7 @@ class TilerFactory(BaseTilerFactory):
         )
         def geojson_statistics(
             geojson: Annotated[
-                Union[FeatureCollection, Feature],
+                FeatureCollection | Feature,
                 Body(description="GeoJSON Feature or FeatureCollection."),
             ],
             src_path=Depends(self.path_dependency),

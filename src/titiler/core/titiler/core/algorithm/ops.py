@@ -1,6 +1,6 @@
 """titiler.core.algorithm Ops."""
 
-from typing import Sequence
+from collections.abc import Sequence
 
 import numpy
 from rio_tiler.models import ImageData
