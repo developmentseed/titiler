@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
 from urllib.parse import urlencode
 
 import jinja2
@@ -62,8 +62,8 @@ class OverlayMethod(MosaicMethodBase):
 class wmsExtension(FactoryExtension):
     """Add /wms endpoint to a TilerFactory."""
 
-    supported_crs: List[str] = field(default=["EPSG:4326"])
-    supported_format: List[str] = field(
+    supported_crs: list[str] = field(default=["EPSG:4326"])
+    supported_format: list[str] = field(
         default=[
             "image/png",
             "image/jpeg",
@@ -73,10 +73,10 @@ class wmsExtension(FactoryExtension):
             "image/tiff; application=geotiff",
         ]
     )
-    supported_version: List[str] = field(default=["1.0.0", "1.1.1", "1.3.0"])
+    supported_version: list[str] = field(default=["1.0.0", "1.1.1", "1.3.0"])
     templates: Jinja2Templates = DEFAULT_TEMPLATES
 
-    def register(self, factory: TilerFactory):  # noqa: C901
+    def register(self, factory: TilerFactory):  # type: ignore [override] # noqa: C901
         """Register endpoint to the tiler factory."""
 
         @factory.router.get(
@@ -371,7 +371,7 @@ class wmsExtension(FactoryExtension):
                     wms_url += f"?{urlencode(qs)}"
 
                 # Grab information from each layer provided
-                layers_dict: Dict[str, Any] = {}
+                layers_dict: dict[str, Any] = {}
                 for layer in layers:
                     layers_dict[layer] = {}
                     with rasterio.Env(**env):
@@ -413,10 +413,10 @@ class wmsExtension(FactoryExtension):
 
             # GetMap: Return an image chip
             def get_map_data(  # noqa: C901
-                req: Dict,
-                req_keys: Set,
+                req: dict,
+                req_keys: set,
                 request_type: str,
-            ) -> Tuple[ImageData, Optional[str], bool]:
+            ) -> tuple[ImageData, str | None, bool]:
                 # Required parameters:
                 # - VERSION
                 # - REQUEST=GetMap,
@@ -519,7 +519,7 @@ class wmsExtension(FactoryExtension):
                                 **dataset_params.as_dict(),
                             )
 
-                image, assets_used = mosaic_reader(
+                image, _ = mosaic_reader(
                     layers,
                     _reader,
                     pixel_selection=OverlayMethod(),

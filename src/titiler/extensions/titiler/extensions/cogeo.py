@@ -13,14 +13,14 @@ try:
     from rio_cogeo.models import Info
 except ImportError:  # pragma: nocover
     cog_info = None  # type: ignore
-    Info = None
+    Info = None  # type: ignore
 
 
 @define
 class cogValidateExtension(FactoryExtension):
     """Add /validate endpoint to a COG TilerFactory."""
 
-    def register(self, factory: TilerFactory):
+    def register(self, factory: TilerFactory):  # type: ignore [override]
         """Register endpoint to the tiler factory."""
 
         assert (

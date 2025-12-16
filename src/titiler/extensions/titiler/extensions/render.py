@@ -4,7 +4,7 @@ Implements support for reading and applying Item level render extension.
 See: https://github.com/stac-extensions/render
 """
 
-from typing import Annotated, Dict, List, Optional
+from typing import Annotated, Any
 from urllib.parse import urlencode
 
 from attrs import define
@@ -20,47 +20,47 @@ from titiler.core.utils import check_query_params
 class RenderItem(BaseModel, extra="allow"):
     """Render item for stac render extension."""
 
-    assets: List[str]
-    title: Optional[str] = None
-    rescale: Optional[List[Annotated[List[float], 2]]] = None
-    nodata: Optional[float] = None
-    colormap_name: Optional[str] = None
-    colormap: Optional[Dict] = None
-    color_formula: Optional[str] = None
-    resampling: Optional[str] = None
-    expression: Optional[str] = None
-    minmax_zoom: Optional[Annotated[List[int], 2]] = None
+    assets: list[str]
+    title: str | None = None
+    rescale: list[Annotated[list[float], 2]] | None = None
+    nodata: float | None = None
+    colormap_name: str | None = None
+    colormap: dict | None = None
+    color_formula: str | None = None
+    resampling: str | None = None
+    expression: str | None = None
+    minmax_zoom: Annotated[list[int], 2] | None = None
 
 
 class RenderItemWithLinks(BaseModel):
     """Same as RenderItem with url and params."""
 
     params: RenderItem
-    links: List[Link]
+    links: list[Link]
 
 
 class RenderItemList(BaseModel):
     """List of Render Items with links."""
 
-    renders: Dict[str, RenderItemWithLinks]
-    links: List[Link]
+    renders: dict[str, RenderItemWithLinks]
+    links: list[Link]
 
 
 @define
 class stacRenderExtension(FactoryExtension):
     """Add /renders endpoint to a STAC TilerFactory."""
 
-    def register(self, factory: MultiBaseTilerFactory):
+    def register(self, factory: MultiBaseTilerFactory):  # type: ignore [override]
         """Register endpoint to the tiler factory."""
 
         def _prepare_render_item(
             render_id: str,
-            render: Dict,
+            render: dict,
             request: Request,
             src_path: str,
-        ) -> Dict:
+        ) -> dict:
             """Prepare single render item."""
-            links = [
+            links: list[dict[str, Any]] = [
                 {
                     "href": factory.url_for(
                         request,
@@ -87,10 +87,10 @@ class stacRenderExtension(FactoryExtension):
                 factory.colormap_dependency,
                 factory.render_dependency,
             ]
-            if check_query_params(tile_dependencies, render):
+            if check_query_params(tile_dependencies, render):  # type: ignore[arg-type]
                 query_string = urlencode({"url": src_path, **render}, doseq=True)
 
-                links += [
+                links.append(
                     {
                         "href": factory.url_for(
                             request,
@@ -103,7 +103,7 @@ class stacRenderExtension(FactoryExtension):
                         "title": f"tilejson file for {render_id}",
                         "templated": True,
                     }
-                ]
+                )
                 try:
                     links.append(
                         {

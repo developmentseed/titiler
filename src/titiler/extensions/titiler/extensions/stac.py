@@ -1,6 +1,6 @@
 """rio-stac Extension."""
 
-from typing import Annotated, Any, Dict, List, Literal, Optional
+from typing import Annotated, Any, Literal
 
 from attrs import define
 from fastapi import Depends, Query
@@ -23,13 +23,13 @@ class Item(TypedDict, total=False):
 
     type: str
     stac_version: str
-    stac_extensions: Optional[List[str]]
+    stac_extensions: list[str] | None
     id: str
-    geometry: Dict[str, Any]
-    bbox: List[float]
-    properties: Dict[str, Any]
-    links: List[Dict[str, Any]]
-    assets: Dict[str, Any]
+    geometry: dict[str, Any]
+    bbox: list[float]
+    properties: dict[str, Any]
+    links: list[dict[str, Any]]
+    assets: dict[str, Any]
     collection: str
 
 
@@ -37,7 +37,7 @@ class Item(TypedDict, total=False):
 class stacExtension(FactoryExtension):
     """Add /stac endpoint to a COG TilerFactory."""
 
-    def register(self, factory: TilerFactory):
+    def register(self, factory: TilerFactory):  # type: ignore [override]
         """Register endpoint to the tiler factory."""
 
         assert (
@@ -56,67 +56,67 @@ class stacExtension(FactoryExtension):
         def create_stac(
             src_path=Depends(factory.path_dependency),
             datetime: Annotated[
-                Optional[str],
+                str | None,
                 Query(
                     description="The date and time of the assets, in UTC (e.g 2020-01-01, 2020-01-01T01:01:01).",
                 ),
             ] = None,
             extensions: Annotated[
-                Optional[List[str]],
+                list[str] | None,
                 Query(description="STAC extension URL the Item implements."),
             ] = None,
             collection: Annotated[
-                Optional[str],
+                str | None,
                 Query(description="The Collection ID that this item belongs to."),
             ] = None,
             collection_url: Annotated[
-                Optional[str],
+                str | None,
                 Query(description="Link to the STAC Collection."),
             ] = None,
             # properties: Optional[Dict] = Query(None, description="Additional properties to add in the item."),
             id: Annotated[
-                Optional[str],
+                str | None,
                 Query(
                     description="Id to assign to the item (default to the source basename)."
                 ),
             ] = None,
             asset_name: Annotated[
-                Optional[str],
+                str,
                 Query(description="asset name for the source (default to 'data')."),
             ] = "data",
             asset_roles: Annotated[
-                Optional[List[str]],
+                list[str] | None,
                 Query(description="list of asset's roles."),
             ] = None,
             asset_media_type: Annotated[  # type: ignore
-                Optional[Literal[tuple(media)]],
+                Literal[tuple(media)],
                 Query(description="Asset's media type"),
             ] = "auto",
             asset_href: Annotated[
-                Optional[str],
+                str | None,
                 Query(description="Asset's URI (default to source's path)"),
             ] = None,
             with_proj: Annotated[
-                Optional[bool],
+                bool,
                 Query(description="Add the `projection` extension and properties."),
             ] = True,
             with_raster: Annotated[
-                Optional[bool],
+                bool,
                 Query(description="Add the `raster` extension and properties."),
             ] = True,
             with_eo: Annotated[
-                Optional[bool],
+                bool,
                 Query(description="Add the `eo` extension and properties."),
             ] = True,
             max_size: Annotated[
-                Optional[int],
+                int,
                 Query(
                     gt=0,
                     description="Limit array size from which to get the raster statistics.",
                 ),
             ] = 1024,
             geom_densify_pts: Annotated[
-                Optional[int],
+                int,
                 Query(
                     alias="geometry_densify",
                     ge=0,
@@ -124,7 +124,7 @@ class stacExtension(FactoryExtension):
                 ),
             ] = 0,
             geom_precision: Annotated[
-                Optional[int],
+                int,
                 Query(
                     alias="geometry_precision",
                     ge=-1,
