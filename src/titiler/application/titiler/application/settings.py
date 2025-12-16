@@ -1,7 +1,5 @@
 """Titiler API settings."""
 
-from typing import Optional
-
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -27,7 +25,7 @@ class ApiSettings(BaseSettings):
     root_path: str = ""
     debug: bool = False
 
-    template_directory: Optional[str] = None
+    template_directory: str | None = None
 
     disable_cog: bool = False
     disable_stac: bool = False
@@ -38,7 +36,7 @@ class ApiSettings(BaseSettings):
     telemetry_enabled: bool = False
 
     # an API key required to access any endpoint, passed via the ?access_token= query parameter
-    global_access_token: Optional[str] = None
+    global_access_token: str | None = None
 
     model_config = SettingsConfigDict(
         env_prefix="TITILER_API_", env_file=".env", extra="ignore"
