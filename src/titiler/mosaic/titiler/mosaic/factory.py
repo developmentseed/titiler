@@ -2,19 +2,8 @@
 
 import logging
 import os
-from typing import (
-    Annotated,
-    Any,
-    Callable,
-    Dict,
-    List,
-    Literal,
-    Optional,
-    Set,
-    Tuple,
-    Type,
-    Union,
-)
+from collections.abc import Callable
+from typing import Annotated, Any, Literal
 from urllib.parse import urlencode
 
 import rasterio
@@ -97,57 +86,55 @@ def DatasetPathParams(url: Annotated[str, Query(description="Mosaic URL")]) -> s
 class MosaicTilerFactory(BaseFactory):
     """MosaicTiler Factory."""
 
-    backend: Type[BaseBackend]
-    backend_dependency: Type[DefaultDependency] = DefaultDependency
+    backend: type[BaseBackend]
+    backend_dependency: type[DefaultDependency] = DefaultDependency
 
-    dataset_reader: Union[
-        Type[BaseReader],
-        Type[MultiBaseReader],
-        Type[MultiBandReader],
-    ] = Reader
-    reader_dependency: Type[DefaultDependency] = DefaultDependency
+    dataset_reader: type[BaseReader] | type[MultiBaseReader] | type[MultiBandReader] = (
+        Reader
+    )
+    reader_dependency: type[DefaultDependency] = DefaultDependency
 
     # Path Dependency
     path_dependency: Callable[..., Any] = DatasetPathParams
 
     # Backend.get_assets() Options
-    assets_accessor_dependency: Type[DefaultDependency] = DefaultDependency
+    assets_accessor_dependency: type[DefaultDependency] = DefaultDependency
 
     # Indexes/Expression Dependencies
-    layer_dependency: Type[DefaultDependency] = BidxExprParams
+    layer_dependency: type[DefaultDependency] = BidxExprParams
 
     # Rasterio Dataset Options (nodata, unscale, resampling, reproject)
-    dataset_dependency: Type[DefaultDependency] = DatasetParams
+    dataset_dependency: type[DefaultDependency] = DatasetParams
 
     # Tile/Tilejson Dependencies
-    tile_dependency: Type[DefaultDependency] = TileParams
+    tile_dependency: type[DefaultDependency] = TileParams
 
     # Post Processing Dependencies (algorithm)
-    process_dependency: Callable[..., Optional[BaseAlgorithm]] = (
+    process_dependency: Callable[..., BaseAlgorithm | None] = (
         available_algorithms.dependency
     )
 
     # Statistics/Histogram Dependencies
-    stats_dependency: Type[DefaultDependency] = StatisticsParams
-    histogram_dependency: Type[DefaultDependency] = HistogramParams
+    stats_dependency: type[DefaultDependency] = StatisticsParams
+    histogram_dependency: type[DefaultDependency] = HistogramParams
 
     # Crop endpoints Dependencies
-    img_part_dependency: Type[DefaultDependency] = PartFeatureParams
+    img_part_dependency: type[DefaultDependency] = PartFeatureParams
 
     # Image rendering Dependencies
-    colormap_dependency: Callable[..., Optional[ColorMapType]] = ColorMapParams
-    render_dependency: Type[DefaultDependency] = ImageRenderingParams
+    colormap_dependency: Callable[..., ColorMapType | None] = ColorMapParams
+    render_dependency: type[DefaultDependency] = ImageRenderingParams
 
     pixel_selection_dependency: Callable[..., MosaicMethodBase] = PixelSelectionParams
 
     # GDAL ENV dependency
-    environment_dependency: Callable[..., Dict] = field(default=lambda: {})
+    environment_dependency: Callable[..., dict] = field(default=lambda: {})
 
     supported_tms: TileMatrixSets = morecantile_tms
 
-    render_func: Callable[..., Tuple[bytes, str]] = render_image
+    render_func: Callable[..., tuple[bytes, str]] = render_image
 
-    optional_headers: List[OptionalHeader] = field(factory=list)
+    optional_headers: list[OptionalHeader] = field(factory=list)
 
     # Add/Remove some endpoints
     add_viewer: bool = True
@@ -155,7 +142,7 @@ class MosaicTilerFactory(BaseFactory):
     add_part: bool = False
     add_ogc_maps: bool = False
 
-    conforms_to: Set[str] = field(
+    conforms_to: set[str] = field(
         factory=lambda: {
             # https://docs.ogc.org/is/20-057/20-057.html#toc30
             "http://www.opengis.net/spec/ogcapi-tiles-1/1.0/conf/tileset",
@@ -297,7 +284,7 @@ class MosaicTilerFactory(BaseFactory):
             crs=Depends(CRSParams),
             env=Depends(self.environment_dependency),
             f: Annotated[
-                Optional[Literal["html", "json"]],
+                Literal["html", "json"] | None,
                 Query(
                     description="Response MediaType. Defaults to endpoint's default or value defined in `accept` header."
                 ),
@@ -329,9 +316,9 @@ class MosaicTilerFactory(BaseFactory):
             ]
             query_string = f"?{urlencode(qs)}" if qs else ""
 
-            tilesets = []
+            tilesets: list[dict[str, Any]] = []
             for tms in self.supported_tms.list():
-                tileset = {
+                tileset: dict[str, Any] = {
                     "title": f"tileset tiled using {tms} TileMatrixSet",
                     "dataType": "map",
                     "crs": self.supported_tms.get(tms).crs,
@@ -429,7 +416,7 @@ class MosaicTilerFactory(BaseFactory):
             reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
             f: Annotated[
-                Optional[Literal["html", "json"]],
+                Literal["html", "json"] | None,
                 Query(
                     description="Response MediaType. Defaults to endpoint's default or value defined in `accept` header."
                 ),
@@ -627,7 +614,7 @@ class MosaicTilerFactory(BaseFactory):
                 ),
             ] = 1,
             format: Annotated[
-                ImageType,
+                ImageType | None,
                 Field(
                     description="Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
                 ),
@@ -695,7 +682,7 @@ class MosaicTilerFactory(BaseFactory):
                 **render_params.as_dict(),
             )
 
-            headers: Dict[str, str] = {}
+            headers: dict[str, str] = {}
             if OptionalHeader.x_assets in self.optional_headers:
                 headers["X-Assets"] = ",".join(assets)
 
@@ -733,7 +720,7 @@ class MosaicTilerFactory(BaseFactory):
                 ),
             ],
             tile_format: Annotated[
-                Optional[ImageType],
+                ImageType | None,
                 Query(
                     description="Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
                 ),
@@ -745,11 +732,11 @@ class MosaicTilerFactory(BaseFactory):
                 ),
             ] = 1,
             minzoom: Annotated[
-                Optional[int],
+                int | None,
                 Query(description="Overwrite default minzoom."),
             ] = None,
             maxzoom: Annotated[
-                Optional[int],
+                int | None,
                 Query(description="Overwrite default maxzoom."),
             ] = None,
             src_path=Depends(self.path_dependency),
@@ -838,7 +825,7 @@ class MosaicTilerFactory(BaseFactory):
                 ),
             ],
             tile_format: Annotated[
-                Optional[ImageType],
+                ImageType | None,
                 Query(
                     description="Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
                 ),
@@ -850,11 +837,11 @@ class MosaicTilerFactory(BaseFactory):
                 ),
             ] = 1,
             minzoom: Annotated[
-                Optional[int],
+                int | None,
                 Query(description="Overwrite default minzoom."),
             ] = None,
             maxzoom: Annotated[
-                Optional[int],
+                int | None,
                 Query(description="Overwrite default maxzoom."),
             ] = None,
             src_path=Depends(self.path_dependency),
@@ -968,7 +955,7 @@ class MosaicTilerFactory(BaseFactory):
         )
         def geojson_statistics(
             geojson: Annotated[
-                Union[FeatureCollection, Feature],
+                FeatureCollection | Feature,
                 Body(description="GeoJSON Feature or FeatureCollection."),
             ],
             src_path=Depends(self.path_dependency),
@@ -1114,7 +1101,7 @@ class MosaicTilerFactory(BaseFactory):
                 **render_params.as_dict(),
             )
 
-            headers: Dict[str, str] = {}
+            headers: dict[str, str] = {}
             if OptionalHeader.x_assets in self.optional_headers:
                 headers["X-Assets"] = ",".join(assets)
 
@@ -1149,10 +1136,10 @@ class MosaicTilerFactory(BaseFactory):
             **img_endpoint_params,
         )
         def feature_image(
-            geojson: Annotated[Union[Feature], Body(description="GeoJSON Feature.")],
+            geojson: Annotated[Feature, Body(description="GeoJSON Feature.")],
             src_path=Depends(self.path_dependency),
             format: Annotated[
-                ImageType,
+                ImageType | None,
                 Field(
                     description="Default will be automatically defined if the output image needs a mask (png) or not (jpeg)."
                 ),
@@ -1204,7 +1191,7 @@ class MosaicTilerFactory(BaseFactory):
                 **render_params.as_dict(),
             )
 
-            headers: Dict[str, str] = {}
+            headers: dict[str, str] = {}
             if OptionalHeader.x_assets in self.optional_headers:
                 headers["X-Assets"] = ",".join(assets)
 
@@ -1393,7 +1380,7 @@ class MosaicTilerFactory(BaseFactory):
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
             env=Depends(self.environment_dependency),
-        ):
+        ) -> Response:
             """OGC Maps API."""
             with rasterio.Env(**env):
                 logger.info(
@@ -1445,7 +1432,7 @@ class MosaicTilerFactory(BaseFactory):
                 **render_params.as_dict(),
             )
 
-            headers: Dict[str, str] = {}
+            headers: dict[str, str] = {}
             if OptionalHeader.x_assets in self.optional_headers:
                 headers["X-Assets"] = ",".join(assets)
 

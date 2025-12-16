@@ -21,7 +21,7 @@ except ImportError:  # pragma: nocover
 class MosaicJSONExtension(FactoryExtension):
     """Add MosaicJSON specific endpoints"""
 
-    def register(self, factory: MosaicTilerFactory):  # noqa: C901
+    def register(self, factory: MosaicTilerFactory):  # type: ignore [override] # noqa: C901
         """Register endpoint to the tiler factory."""
 
         ############################################################################
