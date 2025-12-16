@@ -1,7 +1,7 @@
 """``pytest`` configuration."""
 
 import os
-from typing import Any, Dict
+from typing import Any
 
 import pytest
 import rasterio
@@ -21,7 +21,7 @@ def set_env(monkeypatch):
     monkeypatch.setenv("AWS_CONFIG_FILE", "/tmp/noconfigheere")
 
 
-def parse_img(content: bytes) -> Dict[Any, Any]:
+def parse_img(content: bytes) -> dict[Any, Any]:
     """Read tile image and return metadata."""
     with MemoryFile(content) as mem:
         with mem.open() as dst:

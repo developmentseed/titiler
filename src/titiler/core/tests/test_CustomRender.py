@@ -1,7 +1,6 @@
 """Test TiTiler Custom Render Params."""
 
 from dataclasses import dataclass
-from typing import Optional, Union
 
 import numpy
 from fastapi import FastAPI, Query
@@ -17,12 +16,12 @@ from .conftest import DATA_DIR, parse_img
 class CustomRenderParams(ImageRenderingParams):
     """Custom renderparams class."""
 
-    nodata: Optional[Union[str, int, float]] = Query(
+    nodata: str | int | float | None = Query(
         None,
         title="Tiff Ouptut Nodata value",
         alias="output_nodata",
     )
-    compress: Optional[str] = Query(
+    compress: str | None = Query(
         None,
         title="Tiff compression schema",
         alias="output_compression",

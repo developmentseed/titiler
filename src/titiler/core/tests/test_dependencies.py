@@ -2,7 +2,7 @@
 
 import json
 from dataclasses import dataclass
-from typing import Annotated, Literal, Optional
+from typing import Annotated, Literal
 
 import pytest
 from fastapi import Depends, FastAPI, Path
@@ -146,7 +146,7 @@ def test_default():
 
     @dataclass
     class dep(dependencies.DefaultDependency):
-        v: Optional[int] = None
+        v: int | None = None
 
     assert dep(v=1).as_dict() == {"v": 1}
     assert dep().as_dict() == {}
