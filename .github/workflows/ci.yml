@@ -62,10 +62,11 @@ jobs:
         run: |
           uv run pytest src/titiler/application --cov=titiler.application --cov-report=xml --cov-append --cov-report=term-missing
 
-      - name: run pre-commit
+      - name: run pre-commit and mypy
         if: ${{ matrix.python-version == env.LATEST_PY_VERSION }}
         run: |
           uv run pre-commit run --all-files
+          uv run --with mypy --with types-attrs --with types-simplejson mypy -p titiler.core -p titiler.extensions -p titiler.xarray -p titiler.application -p titiler.mosaic  --ignore-missing-imports
 
       - name: Upload Results
         if: ${{ matrix.python-version == env.LATEST_PY_VERSION }}
