@@ -1,7 +1,7 @@
 """Algorithm base class."""
 
 import abc
-from typing import Dict, List, Optional, Sequence
+from collections.abc import Sequence
 
 from pydantic import BaseModel
 from rio_tiler.models import ImageData
@@ -17,11 +17,11 @@ class BaseAlgorithm(BaseModel, metaclass=abc.ABCMeta):
     """
 
     # metadata
-    input_nbands: Optional[int] = None
-    output_nbands: Optional[int] = None
-    output_dtype: Optional[str] = None
-    output_min: Optional[Sequence] = None
-    output_max: Optional[Sequence] = None
+    input_nbands: int | None = None
+    output_nbands: int | None = None
+    output_dtype: str | None = None
+    output_min: Sequence | None = None
+    output_max: Sequence | None = None
 
     model_config = {"extra": "allow"}
 
@@ -34,23 +34,23 @@ class BaseAlgorithm(BaseModel, metaclass=abc.ABCMeta):
 class AlgorithmMetadata(BaseModel):
     """Algorithm metadata."""
 
-    title: Optional[str] = None
-    description: Optional[str] = None
+    title: str | None = None
+    description: str | None = None
 
-    inputs: Dict
-    outputs: Dict
-    parameters: Dict
+    inputs: dict
+    outputs: dict
+    parameters: dict
 
 
 class AlgorithmRef(BaseModel):
     """AlgorithmRef model."""
 
     id: str
-    title: Optional[str] = None
-    links: List[Link]
+    title: str | None = None
+    links: list[Link]
 
 
 class AlgorithmtList(BaseModel):
     """AlgorithmList model."""
 
-    algorithms: List[AlgorithmRef]
+    algorithms: list[AlgorithmRef]

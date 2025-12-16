@@ -2,8 +2,9 @@
 
 import functools
 import inspect
+from collections.abc import Callable
 from contextlib import contextmanager
-from typing import Any, Callable, Dict, Iterator, Optional, ParamSpec, TypeVar
+from typing import Any, Iterator, ParamSpec, TypeVar
 
 from titiler.core import __version__
 
@@ -13,17 +14,17 @@ try:
 
     tracer = trace.get_tracer("titiler.core", __version__)
 except ImportError:
-    trace = None
-    Span = None
-    Status = None
-    StatusCode = None
-    tracer = None
+    trace = None  # type: ignore
+    Span = None  # type: ignore
+    Status = None  # type: ignore
+    StatusCode = None  # type: ignore
+    tracer = None  # type: ignore
 
 P = ParamSpec("P")
 R = TypeVar("R")
 
 
-def add_span_attributes(attributes: Dict[str, Any]) -> None:
+def add_span_attributes(attributes: dict[str, Any]) -> None:
     """Adds attributes to the current active span."""
     if not tracer:
         return
@@ -49,11 +50,11 @@ def flatten_dict(d: dict, parent_key: str = "", sep: str = ".") -> dict:
 class SpanWrapper:
     """A wrapper class to safely handle an optional OpenTelemetry Span."""
 
-    def __init__(self, span: Optional[Span]):
+    def __init__(self, span: Span | None):
         """Set the span"""
         self._span = span
 
-    def set_attributes(self, attributes: Dict[str, Any]) -> None:
+    def set_attributes(self, attributes: dict[str, Any]) -> None:
         """Safely set attributes on the wrapped span if it exists."""
         if self._span:
             self._span.set_attributes(attributes)
@@ -67,7 +68,7 @@ class SpanWrapper:
 @contextmanager
 def operation_tracer(
     operation_name: str,
-    attributes: Optional[Dict[str, Any]] = None,
+    attributes: dict[str, Any] | None = None,
 ) -> Iterator[SpanWrapper]:
     """Context manager for creating granular child spans."""
     if not tracer:
@@ -95,9 +96,9 @@ def _get_span_name(op_name: str, factory_instance: Any) -> str:
 
 
 def factory_trace(
-    _func: Optional[Callable[P, Any]] = None,
+    _func: Callable[P, Any] | None = None,
     *,
-    factory_instance: Optional[Any] = None,
+    factory_instance: Any | None = None,
 ) -> Any:
     """A decorator for Factory methods that automatically handles tracing for factory methods"""
 

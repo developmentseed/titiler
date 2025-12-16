@@ -1,7 +1,5 @@
 """TiTiler response models."""
 
-from typing import Dict, List, Optional, Union
-
 from geojson_pydantic.features import Feature, FeatureCollection
 from geojson_pydantic.geometries import Geometry, MultiPolygon, Polygon
 from pydantic import BaseModel
@@ -24,8 +22,8 @@ class Point(BaseModel):
     band_descriptions: list[str] | None = None
 
 
-InfoGeoJSON = Feature[Union[Polygon, MultiPolygon], Info]
-Statistics = Dict[str, BandStatistics]
+InfoGeoJSON = Feature[Polygon | MultiPolygon, Info]
+Statistics = dict[str, BandStatistics]
 
 
 class StatisticsInGeoJSON(BaseModel):
@@ -36,16 +34,16 @@ class StatisticsInGeoJSON(BaseModel):
     model_config = {"extra": "allow"}
 
 
-StatisticsGeoJSON = Union[
-    FeatureCollection[Feature[Geometry, StatisticsInGeoJSON]],
-    Feature[Geometry, StatisticsInGeoJSON],
-]
+StatisticsGeoJSON = (
+    FeatureCollection[Feature[Geometry, StatisticsInGeoJSON]]
+    | Feature[Geometry, StatisticsInGeoJSON]
+)
 
 # MultiBase Models
-MultiBaseInfo = Dict[str, Info]
-MultiBaseInfoGeoJSON = Feature[Union[Polygon, MultiPolygon], MultiBaseInfo]
+MultiBaseInfo = dict[str, Info]
+MultiBaseInfoGeoJSON = Feature[Polygon | MultiPolygon, MultiBaseInfo]
 
-MultiBaseStatistics = Dict[str, Statistics]
+MultiBaseStatistics = dict[str, Statistics]
 MultiBaseStatisticsGeoJSON = StatisticsGeoJSON
 
 
@@ -53,11 +51,11 @@ class ColorMapRef(BaseModel):
     """ColorMapRef model."""
 
     id: str
-    title: Optional[str] = None
-    links: List[Link]
+    title: str | None = None
+    links: list[Link]
 
 
 class ColorMapList(BaseModel):
     """Model for colormap list."""
 
-    colormaps: List[ColorMapRef]
+    colormaps: list[ColorMapRef]

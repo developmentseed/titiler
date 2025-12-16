@@ -1,7 +1,5 @@
 """titiler.core.algorithm DEM."""
 
-from typing import Optional
-
 import numpy
 from pydantic import Field
 from rasterio import windows
@@ -82,8 +80,8 @@ class Slope(BaseAlgorithm):
     input_nbands: int = 1
     output_nbands: int = 1
     output_dtype: str = "float32"
-    output_min: float = 0
-    output_max: float = 90
+    output_min: list[float] = [0.0]
+    output_max: list[float] = [90.0]
 
     def __call__(self, img: ImageData) -> ImageData:
         """Calculate degrees slope from DEM dataset."""
@@ -169,7 +167,7 @@ class Terrarium(BaseAlgorithm):
 
     title: str = "Terrarium"
     description: str = "Encode DEM into RGB (Mapzen Terrarium)."
-    nodata_height: Optional[float] = Field(None, ge=-99999.0, le=99999.0)
+    nodata_height: float | None = Field(None, ge=-99999.0, le=99999.0)
 
     # metadata
     input_nbands: int = 1
@@ -180,7 +178,7 @@ class Terrarium(BaseAlgorithm):
         """Encode DEM into RGB."""
         data = numpy.clip(img.array[0] + 32768.0, 0.0, 65535.0)
         if self.nodata_height is not None:
-            data[img.array.mask[0]] = numpy.clip(
+            data[img.array.mask[0]] = numpy.clip(  # type: ignore [index]
                 self.nodata_height + 32768.0, 0.0, 65535.0
             )
         r = data / 256
@@ -204,7 +202,7 @@ class TerrainRGB(BaseAlgorithm):
     # parameters
     interval: float = Field(0.1, ge=0.0, le=1.0)
     baseval: float = Field(-10000.0, ge=-99999.0, le=99999.0)
-    nodata_height: Optional[float] = Field(None, ge=-99999.0, le=99999.0)
+    nodata_height: float | None = Field(None, ge=-99999.0, le=99999.0)
 
     # metadata
     input_nbands: int = 1
@@ -239,7 +237,7 @@ class TerrainRGB(BaseAlgorithm):
             raise ValueError(f"Data of {datarange} larger than 256 ** 3")
 
         if self.nodata_height is not None:
-            data[img.array.mask[0]] = (
+            data[img.array.mask[0]] = (  # type: ignore [index]
                 self.nodata_height - self.baseval
             ) / self.interval
 

@@ -2,18 +2,9 @@
 
 import json
 import warnings
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
-from typing import (
-    Annotated,
-    Callable,
-    Dict,
-    List,
-    Literal,
-    Optional,
-    Sequence,
-    Tuple,
-    Union,
-)
+from typing import Annotated, Literal
 
 import numpy
 from fastapi import HTTPException, Query
@@ -39,7 +30,7 @@ def create_colormap_dependency(cmap: ColorMaps) -> Callable:
             Query(description="Colormap name"),
         ] = None,
         colormap: Annotated[
-            Optional[str], Query(description="JSON encoded custom Colormap")
+            str | None, Query(description="JSON encoded custom Colormap")
         ] = None,
     ):
         if colormap_name:
@@ -81,7 +72,7 @@ def DatasetPathParams(url: Annotated[str, Query(description="Dataset URL")]) -> 
 class DefaultDependency:
     """Dataclass with dict unpacking"""
 
-    def as_dict(self, exclude_none: bool = True) -> Dict:
+    def as_dict(self, exclude_none: bool = True) -> dict:
         """Transform dataclass to dict."""
         if exclude_none:
             return {k: v for k, v in self.__dict__.items() if v is not None}
@@ -95,7 +86,7 @@ class BidxParams(DefaultDependency):
     """Band Indexes parameters."""
 
     indexes: Annotated[
-        Optional[List[int]],
+        list[int] | None,
         Query(
             title="Band indexes",
             alias="bidx",
@@ -114,7 +105,7 @@ class ExpressionParams(DefaultDependency):
     """Expression parameters."""
 
     expression: Annotated[
-        Optional[str],
+        str | None,
         Query(
             title="Band Math expression",
             description="rio-tiler's band math expression",
@@ -143,7 +134,7 @@ class AssetsParams(DefaultDependency):
     """Assets parameters."""
 
     assets: Annotated[
-        Optional[List[str]],
+        list[str] | None,
         Query(
             title="Asset names",
             description="Asset's names.",
@@ -163,8 +154,8 @@ class AssetsParams(DefaultDependency):
 
 
 def parse_asset_indexes(
-    asset_indexes: Union[Sequence[str], Dict[str, Sequence[int]]],
-) -> Dict[str, Sequence[int]]:
+    asset_indexes: Sequence[str] | dict[str, Sequence[int]],
+) -> dict[str, Sequence[int]]:
     """parse asset indexes parameters."""
     return {
         idx.split("|")[0]: list(map(int, idx.split("|")[1].split(",")))
@@ -173,8 +164,8 @@ def parse_asset_indexes(
 
 
 def parse_asset_expression(
-    asset_expression: Union[Sequence[str], Dict[str, str]],
-) -> Dict[str, str]:
+    asset_expression: Sequence[str] | dict[str, str],
+) -> dict[str, str]:
     """parse asset expression parameters."""
     return {idx.split("|")[0]: idx.split("|")[1] for idx in asset_expression}
 
@@ -184,7 +175,7 @@ class AssetsBidxExprParams(AssetsParams, BidxParams):
     """Assets, Expression and Asset's band Indexes parameters."""
 
     expression: Annotated[
-        Optional[str],
+        str | None,
         Query(
             title="Band Math expression",
             description="Band math expression between assets",
@@ -199,7 +190,7 @@ class AssetsBidxExprParams(AssetsParams, BidxParams):
     ] = None
 
     asset_indexes: Annotated[
-        Optional[Sequence[str]],
+        Sequence[str] | None,
         Query(
             title="Per asset band indexes",
             description="Per asset band indexes (coma separated indexes)",
@@ -219,7 +210,7 @@ class AssetsBidxExprParams(AssetsParams, BidxParams):
     ] = None
 
     asset_as_band: Annotated[
-        Optional[bool],
+        bool | None,
         Query(
             title="Consider asset as a 1 band dataset",
             description="Asset as Band",
@@ -266,7 +257,7 @@ class AssetsBidxParams(AssetsParams, BidxParams):
     """Assets, Asset's band Indexes and Asset's band Expression parameters."""
 
     asset_indexes: Annotated[
-        Optional[Sequence[str]],
+        Sequence[str] | None,
         Query(
             title="Per asset band indexes",
             description="Per asset band indexes",
@@ -286,7 +277,7 @@ class AssetsBidxParams(AssetsParams, BidxParams):
     ] = None
 
     asset_expression: Annotated[
-        Optional[Sequence[str]],
+        Sequence[str] | None,
         Query(
             title="Per asset band expression",
             description="Per asset band expression",
@@ -326,7 +317,7 @@ class BandsParams(DefaultDependency):
     """Band names parameters."""
 
     bands: Annotated[
-        Optional[List[str]],
+        list[str] | None,
         Query(
             title="Band names",
             description="Band's names.",
@@ -372,12 +363,10 @@ class PreviewParams(DefaultDependency):
     max_size: Annotated[int, Field(description="Maximum image size to read onto.")] = (
         1024
     )
-    height: Annotated[
-        Optional[int], Field(description="Force output image height.")
-    ] = None
-    width: Annotated[Optional[int], Field(description="Force output image width.")] = (
+    height: Annotated[int | None, Field(description="Force output image height.")] = (
         None
     )
+    width: Annotated[int | None, Field(description="Force output image width.")] = None
 
     def __post_init__(self):
         """Post Init."""
@@ -391,14 +380,12 @@ class PartFeatureParams(DefaultDependency):
 
     # NOTE: the part sizes dependency can either be a Query or a Path Parameter
     max_size: Annotated[
-        Optional[int], Field(description="Maximum image size to read onto.")
+        int | None, Field(description="Maximum image size to read onto.")
     ] = None
-    height: Annotated[
-        Optional[int], Field(description="Force output image height.")
-    ] = None
-    width: Annotated[Optional[int], Field(description="Force output image width.")] = (
+    height: Annotated[int | None, Field(description="Force output image height.")] = (
         None
     )
+    width: Annotated[int | None, Field(description="Force output image width.")] = None
 
     def __post_init__(self):
         """Post Init."""
@@ -411,28 +398,28 @@ class DatasetParams(DefaultDependency):
     """Low level WarpedVRT Optional parameters."""
 
     nodata: Annotated[
-        Optional[Union[str, int, float]],
+        str | int | float | None,
         Query(
             title="Nodata value",
             description="Overwrite internal Nodata value",
         ),
     ] = None
     unscale: Annotated[
-        Optional[bool],
+        bool | None,
         Query(
             title="Apply internal Scale/Offset",
             description="Apply internal Scale/Offset. Defaults to `False`.",
         ),
     ] = None
     resampling_method: Annotated[
-        Optional[RIOResampling],
+        RIOResampling | None,
         Query(
             alias="resampling",
             description="RasterIO resampling algorithm. Defaults to `nearest`.",
         ),
     ] = None
     reproject_method: Annotated[
-        Optional[WarpResampling],
+        WarpResampling | None,
         Query(
             alias="reproject",
             description="WarpKernel resampling algorithm (only used when doing re-projection). Defaults to `nearest`.",
@@ -448,7 +435,7 @@ class DatasetParams(DefaultDependency):
             self.unscale = bool(self.unscale)
 
 
-RescaleType = List[Tuple[float, float]]
+RescaleType = list[tuple[float, float]]
 
 
 @dataclass
@@ -456,7 +443,7 @@ class RenderingParams(DefaultDependency):
     """Image Rendering options."""
 
     rescale: Annotated[
-        Optional[List[str]],
+        list[str] | None,
         Query(
             title="Min/Max data Rescaling",
             description="comma (',') delimited Min,Max range. Can set multiple time for multiple bands.",
@@ -465,7 +452,7 @@ class RenderingParams(DefaultDependency):
     ] = None
 
     color_formula: Annotated[
-        Optional[str],
+        str | None,
         Query(
             title="Color Formula",
             description="rio-color formula (info: https://github.com/mapbox/rio-color)",
@@ -496,7 +483,7 @@ class ImageRenderingParams(RenderingParams):
     """Image Rendering options."""
 
     add_mask: Annotated[
-        Optional[bool],
+        bool | None,
         Query(
             alias="return_mask",
             description="Add mask to the output data. Defaults to `True`",
@@ -509,13 +496,13 @@ class StatisticsParams(DefaultDependency):
     """Statistics options."""
 
     categorical: Annotated[
-        Optional[bool],
+        bool | None,
         Query(
             description="Return statistics for categorical dataset. Defaults to `False`"
         ),
     ] = None
     categories: Annotated[
-        Optional[List[Union[float, int]]],
+        list[float | int] | None,
         Query(
             alias="c",
             title="Pixels values for categories.",
@@ -524,7 +511,7 @@ class StatisticsParams(DefaultDependency):
         ),
     ] = None
     percentiles: Annotated[
-        Optional[List[int]],
+        list[int] | None,
         Query(
             alias="p",
             title="Percentile values",
@@ -544,7 +531,7 @@ class HistogramParams(DefaultDependency):
     """Numpy Histogram options."""
 
     bins: Annotated[
-        Optional[str],
+        str | None,
         Query(
             alias="histogram_bins",
             title="Histogram bins.",
@@ -570,7 +557,7 @@ link: https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
     ] = None
 
     range: Annotated[
-        Optional[str],
+        str | None,
         Query(
             alias="histogram_range",
             title="Histogram range",
@@ -616,13 +603,13 @@ link: https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
 
 def CoordCRSParams(
     crs: Annotated[
-        Optional[str],
+        str | None,
         Query(
             alias="coord_crs",
             description="Coordinate Reference System of the input coords. Default to `epsg:4326`.",
         ),
     ] = None,
-) -> Optional[CRS]:
+) -> CRS | None:
     """Coordinate Reference System Coordinates Param."""
     if crs:
         return CRS.from_user_input(crs)
@@ -632,13 +619,13 @@ def CoordCRSParams(
 
 def DstCRSParams(
     crs: Annotated[
-        Optional[str],
+        str | None,
         Query(
             alias="dst_crs",
             description="Output Coordinate Reference System.",
         ),
     ] = None,
-) -> Optional[CRS]:
+) -> CRS | None:
     """Coordinate Reference System Coordinates Param."""
     if crs:
         return CRS.from_user_input(crs)
@@ -648,12 +635,12 @@ def DstCRSParams(
 
 def CRSParams(
     crs: Annotated[
-        Optional[str],
+        str | None,
         Query(
             description="Coordinate Reference System.",
         ),
     ] = None,
-) -> Optional[CRS]:
+) -> CRS | None:
     """Coordinate Reference System Coordinates Param."""
     if crs:
         return CRS.from_user_input(crs)
@@ -663,14 +650,14 @@ def CRSParams(
 
 def BufferParams(
     buffer: Annotated[
-        Optional[float],
+        float | None,
         Query(
             gt=0,
             title="Tile buffer.",
             description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
         ),
     ] = None,
-) -> Optional[float]:
+) -> float | None:
     """Tile buffer Parameter."""
     return buffer
 
@@ -680,7 +667,7 @@ class TileParams(DefaultDependency):
     """Tile options."""
 
     buffer: Annotated[
-        Optional[float],
+        float | None,
         Query(
             gt=0,
             title="Tile buffer.",
@@ -689,7 +676,7 @@ class TileParams(DefaultDependency):
     ] = None
 
     padding: Annotated[
-        Optional[int],
+        int | None,
         Query(
             gt=0,
             title="Tile padding.",
@@ -705,21 +692,21 @@ class OGCMapsParams(DefaultDependency):
     request: Request
 
     bbox: Annotated[
-        Optional[str],
+        str | None,
         Query(
             description="Bounding box of the rendered map. The bounding box is provided as four or six coordinates.",
         ),
     ] = None
 
     crs: Annotated[
-        Optional[str],
+        str | None,
         Query(
             description="Reproject the output to the given crs.",
         ),
     ] = None
 
     bbox_crs: Annotated[
-        Optional[str],
+        str | None,
         Query(
             description="crs for the specified bbox.",
             alias="bbox-crs",
@@ -727,7 +714,7 @@ class OGCMapsParams(DefaultDependency):
     ] = None
 
     height: Annotated[
-        Optional[int],
+        int | None,
         Query(
             description="Height of the map in pixels. If omitted and `width` is specified, defaults to the `height` maintaining a 1:1 aspect ratio. If both `width` and `height` are omitted, the server will select default dimensions.",
             gt=0,
@@ -735,7 +722,7 @@ class OGCMapsParams(DefaultDependency):
     ] = None
 
     width: Annotated[
-        Optional[int],
+        int | None,
         Query(
             description="Width of the map in pixels. If omitted and `height` is specified, defaults to the `width` maintaining a 1:1 aspect ratio. If both `width` and `height` are omitted, the server will select default dimensions.",
             gt=0,
@@ -743,13 +730,13 @@ class OGCMapsParams(DefaultDependency):
     ] = None
 
     f: Annotated[
-        Optional[ImageType],
+        ImageType | None,
         Query(description="The format of the map response (e.g. png)."),
     ] = None
 
-    max_size: Optional[int] = field(init=False, default=None)
+    max_size: int | None = field(init=False, default=None)
 
-    format: Optional[ImageType] = field(init=False, default=ImageType.png)
+    format: ImageType | None = field(init=False, default=ImageType.png)
 
     def __post_init__(self):  # noqa: C901
         """Parse and validate."""

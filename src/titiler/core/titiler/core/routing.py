@@ -1,7 +1,7 @@
 """Custom routing classes."""
 
 import warnings
-from typing import Callable, Dict, List, Optional, Type
+from collections.abc import Callable
 
 import rasterio
 from fastapi import params
@@ -13,7 +13,7 @@ from starlette.routing import BaseRoute, Match
 from typing_extensions import TypedDict
 
 
-def apiroute_factory(env: Optional[Dict] = None) -> Type[APIRoute]:
+def apiroute_factory(env: dict | None = None) -> type[APIRoute]:
     """
     Create Custom API Route class with custom Env.
 
@@ -57,14 +57,14 @@ class EndpointScope(TypedDict, total=False):
     # https://github.com/encode/starlette/blob/6af5c515e0a896cbf3f86ee043b88f6c24200bcf/starlette/types.py#L3
     path: str
     method: str
-    type: Optional[str]  # http or websocket
+    type: str | None  # http or websocket
 
 
 def add_route_dependencies(
-    routes: List[BaseRoute],
+    routes: list[BaseRoute],
     *,
-    scopes: List[EndpointScope],
-    dependencies=List[params.Depends],
+    scopes: list[EndpointScope],
+    dependencies=list[params.Depends],
 ):
     """Add dependencies to routes.
 

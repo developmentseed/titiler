@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import re
 import warnings
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, TypeVar, Union
+from collections.abc import Callable, Sequence
+from typing import Any, TypeVar, cast
 from urllib.parse import urlencode
 
 import numpy
@@ -31,7 +32,7 @@ def rescale_array(
     mask: numpy.ndarray,
     in_range: Sequence[IntervalTuple],
     out_range: Sequence[IntervalTuple] = ((0, 255),),
-    out_dtype: Union[str, numpy.number] = "uint8",
+    out_dtype: str | numpy.number = "uint8",
 ) -> numpy.ndarray:
     """Rescale data array"""
     if len(array.shape) < 3:
@@ -58,13 +59,13 @@ def rescale_array(
 
 def render_image(  # noqa: C901
     image: ImageData,
-    colormap: Optional[ColorMapType] = None,
-    output_format: Optional[ImageType] = None,
+    colormap: ColorMapType | None = None,
+    output_format: ImageType | None = None,
     add_mask: bool = True,
-    rescale: Optional[Sequence[IntervalTuple]] = None,
-    color_formula: Optional[str] = None,
+    rescale: Sequence[IntervalTuple] | None = None,
+    color_formula: str | None = None,
     **kwargs: Any,
-) -> Tuple[bytes, str]:
+) -> tuple[bytes, str]:
     """convert image data to file.
 
     This is adapted from https://github.com/cogeotiff/rio-tiler/blob/066878704f841a332a53027b74f7e0a97f10f4b2/rio_tiler/models.py#L698-L764
@@ -122,21 +123,24 @@ def render_image(  # noqa: C901
         if "crs" not in creation_options and image.crs:
             creation_options.update({"crs": image.crs})
 
-    if not add_mask:
-        mask = None
-
-    return (
-        render(
+    if add_mask:
+        content = render(
             data,
             mask,
             img_format=output_format.driver,
             **creation_options,
-        ),
-        output_format.mediatype,
-    )
+        )
+    else:
+        content = render(
+            data,
+            img_format=output_format.driver,
+            **creation_options,
+        )
+
+    return content, output_format.mediatype
 
 
-def bounds_to_geometry(bounds: BBox) -> Union[Polygon, MultiPolygon]:
+def bounds_to_geometry(bounds: BBox) -> Polygon | MultiPolygon:
     """Convert bounds to geometry.
 
     Note: if bounds are crossing the dateline separation line, a MultiPolygon geometry will be returned.
@@ -154,14 +158,14 @@ def bounds_to_geometry(bounds: BBox) -> Union[Polygon, MultiPolygon]:
 
 T = TypeVar("T")
 
-ValidParams = Dict[str, Any]
-Errors = List[Any]
+ValidParams = dict[str, Any]
+Errors = list[Any]
 
 
 def get_dependency_query_params(
     dependency: Callable,
-    params: Union[QueryParams, Dict],
-) -> Tuple[ValidParams, Errors]:
+    params: QueryParams | dict,
+) -> tuple[ValidParams, Errors]:
     """Check QueryParams for Query dependency.
 
     1. `get_dependant` is used to get the query-parameters required by the `callable`
@@ -174,15 +178,15 @@ def get_dependency_query_params(
 
     qp = (
         QueryParams(urlencode(params, doseq=True))
-        if isinstance(params, Dict)
+        if isinstance(params, dict)
         else params
     )
     return request_params_to_args(dep.query_params, qp)
 
 
 def deserialize_query_params(
-    dependency: Callable[..., T], params: Union[QueryParams, Dict]
-) -> Tuple[T, Errors]:
+    dependency: Callable[..., T], params: QueryParams | dict
+) -> tuple[T, Errors]:
     """Deserialize QueryParams for given dependency.
 
     Parse params as query params and deserialize with dependency.
@@ -194,9 +198,9 @@ def deserialize_query_params(
 
 
 def extract_query_params(
-    dependencies: List[Callable],
-    params: Union[QueryParams, Dict],
-) -> Tuple[ValidParams, Errors]:
+    dependencies: list[Callable],
+    params: QueryParams | dict,
+) -> tuple[ValidParams, Errors]:
     """Extract query params given list of dependencies."""
     values = {}
     errors = []
@@ -209,7 +213,7 @@ def extract_query_params(
 
 
 def check_query_params(
-    dependencies: List[Callable], params: Union[QueryParams, Dict]
+    dependencies: list[Callable], params: QueryParams | dict
 ) -> bool:
     """Check QueryParams for Query dependency.
 
@@ -222,7 +226,7 @@ def check_query_params(
     """
     qp = (
         QueryParams(urlencode(params, doseq=True))
-        if isinstance(params, Dict)
+        if isinstance(params, dict)
         else params
     )
 
@@ -243,7 +247,7 @@ def check_query_params(
     return True
 
 
-def accept_media_type(accept: str, mediatypes: List[MediaType]) -> Optional[MediaType]:
+def accept_media_type(accept: str, mediatypes: list[MediaType]) -> MediaType | None:
     """Return MediaType based on accept header and available mediatype.
 
     Links:
@@ -322,7 +326,9 @@ def update_openapi(app: FastAPI) -> FastAPI:
     """
     # Find the route for the openapi_url in the app
     openapi_route: Route = next(
-        route for route in app.router.routes if route.path == app.openapi_url
+        cast(Route, route)
+        for route in app.router.routes
+        if route.path == app.openapi_url  # type: ignore
     )
     # Store the old endpoint function so we can call it from the patched function
     old_endpoint = openapi_route.endpoint

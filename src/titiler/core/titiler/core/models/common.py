@@ -1,6 +1,6 @@
 """titiler.core.models.common"""
 
-from typing import Annotated, Optional
+from typing import Annotated
 
 from pydantic import AnyUrl, BaseModel, Field
 
@@ -32,7 +32,7 @@ class Link(BaseModel):
         ),
     ]
     type: Annotated[
-        Optional[str],
+        str | None,
         Field(
             json_schema_extra={
                 "description": "A hint indicating what the media type of the result of dereferencing the link should be.",
@@ -41,7 +41,7 @@ class Link(BaseModel):
         ),
     ] = None
     templated: Annotated[
-        Optional[bool],
+        bool | None,
         Field(
             json_schema_extra={
                 "description": "This flag set to true if the link is a URL template.",
@@ -49,7 +49,7 @@ class Link(BaseModel):
         ),
     ] = None
     varBase: Annotated[
-        Optional[str],
+        str | None,
         Field(
             json_schema_extra={
                 "description": "A base path to retrieve semantic information about the variables used in URL template.",
@@ -58,7 +58,7 @@ class Link(BaseModel):
         ),
     ] = None
     hreflang: Annotated[
-        Optional[str],
+        str | None,
         Field(
             json_schema_extra={
                 "description": "A hint indicating what the language of the result of dereferencing the link should be.",
@@ -67,7 +67,7 @@ class Link(BaseModel):
         ),
     ] = None
     title: Annotated[
-        Optional[str],
+        str | None,
         Field(
             json_schema_extra={
                 "description": "Used to label the destination of a link such that it can be used as a human-readable identifier.",
@@ -75,6 +75,6 @@ class Link(BaseModel):
             }
         ),
     ] = None
-    length: Optional[int] = None
+    length: int | None = None
 
     model_config = {"use_enum_values": True}
