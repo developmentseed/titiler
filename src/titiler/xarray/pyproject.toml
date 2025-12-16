@@ -29,7 +29,7 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-    "titiler-core==0.26.0",
+    "titiler-core==1.0.0",
     "xarray",
     "rioxarray",
     "obstore",
