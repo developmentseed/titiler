@@ -1,5 +1,7 @@
 """OpenTelemetry instrumentation for titiler.core."""
 
+from __future__ import annotations
+
 import functools
 import inspect
 from collections.abc import Callable
