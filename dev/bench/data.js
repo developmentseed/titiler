@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1765874038949,
+  "lastUpdate": 1765899487586,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -18156,6 +18156,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 3.15,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "vincent.sarago@gmail.com",
+            "name": "Vincent Sarago",
+            "username": "vincentsarago"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5bb78c2557904ee6bc1a6092944e73eae3c06004",
+          "message": "update/fix type hints (#1287)\n\n* update/fix type for titiler.core\n\n* update/fix type for titiler.extensions\n\n* update/fix type for titiler.xarray\n\n* update/fix type for titiler.mosaic\n\n* update/fix type for titiler.application\n\n* update changelog\n\n* run mypy in CI\n\n* update type hints for tests",
+          "timestamp": "2025-12-16T16:36:27+01:00",
+          "tree_id": "f9299ed3b9bc9b51c30ff010609199ddaa5d9ab5",
+          "url": "https://github.com/developmentseed/titiler/commit/5bb78c2557904ee6bc1a6092944e73eae3c06004"
+        },
+        "date": 1765899487095,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.07,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.09,
             "unit": "s"
           },
           {
