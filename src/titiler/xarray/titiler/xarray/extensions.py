@@ -1,7 +1,8 @@
 """titiler.xarray Extensions."""
 
 import warnings
-from typing import Annotated, Callable, Dict, List, Optional, Type
+from collections.abc import Callable
+from typing import Annotated
 
 import xarray
 from attrs import define
@@ -23,7 +24,7 @@ class VariablesExtension(FactoryExtension):
     """Add /variables endpoint to a Xarray TilerFactory."""
 
     # Custom dependency for /variables
-    io_dependency: Type[DefaultDependency] = XarrayIOParams
+    io_dependency: type[DefaultDependency] = XarrayIOParams
     dataset_opener: Callable[..., xarray.Dataset] = open_zarr
 
     def __attrs_post_init__(self):
@@ -34,12 +35,12 @@ class VariablesExtension(FactoryExtension):
             stacklevel=1,
         )
 
-    def register(self, factory: TilerFactory):
+    def register(self, factory: TilerFactory):  # type: ignore [override]
         """Register endpoint to the tiler factory."""
 
         @factory.router.get(
             "/variables",
-            response_model=List[str],
+            response_model=list[str],
             responses={200: {"description": "Return Xarray Dataset variables."}},
         )
         def variables(
@@ -55,10 +56,10 @@ class VariablesExtension(FactoryExtension):
 class DatasetMetadataExtension(FactoryExtension):
     """Add dataset metadata endpoints to a Xarray TilerFactory."""
 
-    io_dependency: Type[DefaultDependency] = XarrayIOParams
+    io_dependency: type[DefaultDependency] = XarrayIOParams
     dataset_opener: Callable[..., xarray.Dataset] = open_zarr
 
-    def register(self, factory: TilerFactory):  # noqa: C901
+    def register(self, factory: TilerFactory):  # type: ignore [override] # noqa: C901
         """Register endpoint to the tiler factory."""
 
         @factory.router.get(
@@ -97,7 +98,7 @@ class DatasetMetadataExtension(FactoryExtension):
 
         @factory.router.get(
             "/dataset/keys",
-            response_model=List[str],
+            response_model=list[str],
             responses={
                 200: {
                     "description": "Returns the list of keys/variables in the Dataset."
@@ -117,20 +118,20 @@ class ValidationInfo(TypedDict):
     """Variable Validation model."""
 
     compatible_with_titiler: bool
-    errors: List[str]
-    warnings: List[str]
+    errors: list[str]
+    warnings: list[str]
 
 
 @define
 class ValidateExtension(FactoryExtension):
     """Add /validate endpoints to a Xarray TilerFactory."""
 
-    io_dependency: Type[DefaultDependency] = XarrayIOParams
+    io_dependency: type[DefaultDependency] = XarrayIOParams
     dataset_opener: Callable[..., xarray.Dataset] = open_zarr
 
     def _validate_variable(self, da: xarray.DataArray) -> ValidationInfo:  # noqa: C901
-        errors: List[str] = []
-        warnings: List[str] = []
+        errors: list[str] = []
+        warnings: list[str] = []
 
         if len(da.dims) not in [2, 3]:
             warnings.append(
@@ -201,7 +202,7 @@ class ValidateExtension(FactoryExtension):
             "warnings": warnings,
         }
 
-    def register(self, factory: TilerFactory):  # noqa: C901
+    def register(self, factory: TilerFactory):  # type: ignore [override] # noqa: C901
         """Register endpoint to the tiler factory."""
 
         @factory.router.get(
@@ -213,16 +214,16 @@ class ValidateExtension(FactoryExtension):
                     },
                 },
             },
-            response_model=Dict[str, ValidationInfo],
+            response_model=dict[str, ValidationInfo],
         )
         def validate_dataset(
             src_path=Depends(factory.path_dependency),
             io_params=Depends(self.io_dependency),
             variables: Annotated[
-                Optional[List[str]], Query(description="Xarray Variable name.")
+                list[str] | None, Query(description="Xarray Variable name.")
             ] = None,
         ):
             """Returns the HTML representation of the Xarray Dataset."""
             with self.dataset_opener(src_path, **io_params.as_dict()) as dst:
-                variables = variables or list(dst.data_vars)
+                variables = variables or list(dst.data_vars)  # type: ignore
                 return {v: self._validate_variable(dst[v]) for v in variables}

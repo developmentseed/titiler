@@ -1,7 +1,7 @@
 """titiler.xarray dependencies."""
 
 from dataclasses import dataclass
-from typing import Annotated, List, Optional, Union
+from typing import Annotated
 
 import numpy
 from fastapi import Query
@@ -17,14 +17,14 @@ class XarrayIOParams(DefaultDependency):
     """Dataset IO Options."""
 
     group: Annotated[
-        Optional[str],
+        str | None,
         Query(
             description="Select a specific zarr group from a zarr hierarchy. Could be associated with a zoom level or dataset."
         ),
     ] = None
 
     decode_times: Annotated[
-        Optional[bool],
+        bool | None,
         Query(
             title="decode_times",
             description="Whether to decode times",
@@ -47,7 +47,7 @@ class XarrayDsParams(DefaultDependency):
     variable: Annotated[str, Query(description="Xarray Variable name.")]
 
     sel: Annotated[
-        Optional[List[SelDimStr]],
+        list[SelDimStr] | None,
         Query(
             description="Xarray Indexing using dimension names `{dimension}={value}` or `{dimension}={method}::{value}`.",
         ),
@@ -70,12 +70,10 @@ class CompatXarrayParams(XarrayIOParams):
     it would fail without the variable query-parameter set.
     """
 
-    variable: Annotated[Optional[str], Query(description="Xarray Variable name.")] = (
-        None
-    )
+    variable: Annotated[str | None, Query(description="Xarray Variable name.")] = None
 
     sel: Annotated[
-        Optional[List[SelDimStr]],
+        list[SelDimStr] | None,
         Query(
             description="Xarray Indexing using dimension names `{dimension}={value}` or `{dimension}={method}::{value}`.",
         ),
@@ -87,14 +85,14 @@ class DatasetParams(DefaultDependency):
     """Low level WarpedVRT Optional parameters."""
 
     nodata: Annotated[
-        Optional[Union[str, int, float]],
+        str | int | float | None,
         Query(
             title="Nodata value",
             description="Overwrite internal Nodata value",
         ),
     ] = None
     reproject_method: Annotated[
-        Optional[WarpResampling],
+        WarpResampling | None,
         Query(
             alias="reproject",
             description="WarpKernel resampling algorithm (only used when doing re-projection). Defaults to `nearest`.",
@@ -113,16 +111,14 @@ class PartFeatureParams(DefaultDependency):
     """Common parameters for bbox and feature."""
 
     max_size: Annotated[
-        Optional[int], Field(description="Maximum image size to read onto.")
+        int | None, Field(description="Maximum image size to read onto.")
     ] = None
-    height: Annotated[
-        Optional[int], Field(description="Force output image height.")
-    ] = None
-    width: Annotated[Optional[int], Field(description="Force output image width.")] = (
+    height: Annotated[int | None, Field(description="Force output image height.")] = (
         None
     )
+    width: Annotated[int | None, Field(description="Force output image width.")] = None
     resampling_method: Annotated[
-        Optional[RIOResampling],
+        RIOResampling | None,
         Query(
             alias="resampling",
             description="RasterIO resampling algorithm. Defaults to `nearest`.",
@@ -141,16 +137,14 @@ class PreviewParams(DefaultDependency):
     """Common Preview parameters."""
 
     max_size: Annotated[
-        Optional[int], Field(description="Maximum image size to read onto.")
+        int | None, Field(description="Maximum image size to read onto.")
     ] = 1024
-    height: Annotated[
-        Optional[int], Field(description="Force output image height.")
-    ] = None
-    width: Annotated[Optional[int], Field(description="Force output image width.")] = (
+    height: Annotated[int | None, Field(description="Force output image height.")] = (
         None
     )
+    width: Annotated[int | None, Field(description="Force output image width.")] = None
     resampling_method: Annotated[
-        Optional[RIOResampling],
+        RIOResampling | None,
         Query(
             alias="resampling",
             description="RasterIO resampling algorithm. Defaults to `nearest`.",

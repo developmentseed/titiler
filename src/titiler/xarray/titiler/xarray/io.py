@@ -6,7 +6,7 @@ import os
 import re
 from functools import cache
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Literal, Optional, Union
+from typing import Any, Callable, Literal
 from urllib.parse import urlparse
 
 import attr
@@ -33,7 +33,7 @@ def _find_bucket_region(bucket: str, use_https: bool = True) -> str | None:
 @cache
 def open_zarr(  # noqa: C901
     src_path: str,
-    group: Optional[str] = None,
+    group: str | None = None,
     decode_times: bool = True,
     decode_coords: str = "all",
     infer_region: bool = True,
@@ -57,7 +57,7 @@ def open_zarr(  # noqa: C901
 
     # Arguments for xarray.open_dataset
     # Default args
-    xr_open_args: Dict[str, Any] = {
+    xr_open_args: dict[str, Any] = {
         "engine": "zarr",
         "decode_coords": decode_coords,
         "decode_times": decode_times,
@@ -99,9 +99,9 @@ def open_zarr(  # noqa: C901
                             _find_bucket_region(bucket) or region_name_env
                         )
 
-    store = obstore.store.from_url(src_path, config=config)
+    store = obstore.store.from_url(src_path, config=config)  # type: ignore
     zarr_store = ObjectStore(store=store, read_only=True)
-    ds = xarray.open_dataset(zarr_store, **xr_open_args)
+    ds = xarray.open_dataset(zarr_store, **xr_open_args)  # type: ignore [arg-type]
 
     return ds
 
@@ -135,7 +135,7 @@ def _arrange_dims(da: xarray.DataArray) -> xarray.DataArray:
     vmin, vmax = da.attrs.get("valid_min"), da.attrs.get("valid_max")
     if "valid_range" in da.attrs and not (vmin is not None and vmax is not None):
         valid_range = da.attrs.get("valid_range")
-        da.attrs.update({"valid_min": valid_range[0], "valid_max": valid_range[1]})
+        da.attrs.update({"valid_min": valid_range[0], "valid_max": valid_range[1]})  # type: ignore
 
     return da
 
@@ -160,9 +160,9 @@ def _parse_dsl(sel: list[str] | None) -> list[selector]:
     """
     sel = sel or []
 
-    _idx: Dict[str, List] = {}
+    _idx: dict[str, list] = {}
     for s in sel:
-        val: Union[str, slice]
+        val: str | slice
         dim, val = s.split("=")
 
         if dim in _idx:
@@ -201,7 +201,7 @@ def _parse_dsl(sel: list[str] | None) -> list[selector]:
 def get_variable(
     ds: xarray.Dataset,
     variable: str,
-    sel: Optional[List[str]] = None,
+    sel: list[str] | None = None,
 ) -> xarray.DataArray:
     """Get Xarray variable as DataArray.
 
@@ -258,14 +258,14 @@ class Reader(XarrayReader):
 
     # xarray.Dataset options
     opener: Callable[..., xarray.Dataset] = attr.ib(default=open_zarr)
-    opener_options: Dict = attr.ib(factory=dict)
+    opener_options: dict = attr.ib(factory=dict)
 
-    group: Optional[str] = attr.ib(default=None)
+    group: str | None = attr.ib(default=None)
     decode_times: bool = attr.ib(default=True)
 
     # xarray.DataArray options
-    sel: Optional[List[str]] = attr.ib(default=None)
-    method: Optional[Literal["nearest", "pad", "ffill", "backfill", "bfill"]] = attr.ib(
+    sel: list[str] | None = attr.ib(default=None)
+    method: Literal["nearest", "pad", "ffill", "backfill", "bfill"] | None = attr.ib(
         default=None
     )
 
@@ -274,7 +274,7 @@ class Reader(XarrayReader):
     ds: xarray.Dataset = attr.ib(init=False)
     input: xarray.DataArray = attr.ib(init=False)
 
-    _dims: List = attr.ib(init=False, factory=list)
+    _dims: list = attr.ib(init=False, factory=list)
 
     def __attrs_post_init__(self):
         """Set bounds and CRS."""
@@ -303,7 +303,7 @@ class Reader(XarrayReader):
 
 def fs_open_dataset(  # noqa: C901
     src_path: str,
-    group: Optional[str] = None,
+    group: str | None = None,
     decode_times: bool = True,
     decode_coords: str = "all",
     **kwargs,
@@ -331,7 +331,7 @@ def fs_open_dataset(  # noqa: C901
 
     # Arguments for xarray.open_dataset
     # Default args
-    xr_open_args: Dict[str, Any] = {
+    xr_open_args: dict[str, Any] = {
         "decode_coords": decode_coords,
         "decode_times": decode_times,
     }
