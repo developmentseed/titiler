@@ -28,7 +28,7 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering :: GIS",
 ]
-version="0.26.0"
+version="1.0.0"
 dependencies = [
     "titiler-core",
     "titiler-xarray",
@@ -158,7 +158,7 @@ filterwarnings = [
 ]
 
 [tool.bumpversion]
-current_version = "0.26.0"
+current_version = "1.0.0"
 parse = """(?x)
     (?P<major>\\d+)\\.
     (?P<minor>\\d+)\\.
@@ -258,8 +258,8 @@ replace = 'titiler-extensions[cogeo,stac]=={new_version}'
 
 [[tool.bumpversion.files]]
 filename = "src/titiler/application/pyproject.toml"
-search = 'titiler-mosaic=={current_version}'
-replace = 'titiler-mosaic=={new_version}'
+search = 'titiler-mosaic[mosaicjson]=={current_version}'
+replace = 'titiler-mosaic[mosaicjson]=={new_version}'
 
 ###############################################################################
 # Others
