@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.0.0 (2025-12-17)
+
 ### Misc 
 
 * update rio-tiler requirement to `>=8.0,<9.0`
@@ -10,6 +12,8 @@
 * add python 3.14 support
 * add `linux/arm64` docker image 
 * update/fix type hints 
+* add arm64 docker image
+* add titiler-xarray docker image in  ghcr.io
 
 ### titiler.core
 
