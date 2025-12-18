@@ -8,7 +8,7 @@ WORKDIR /tmp
 RUN dnf install -y gcc-c++ && dnf clean all
 
 RUN python -m pip install pip -U
-RUN python -m pip install "titiler-application==1.0.0" "mangum>=0.10.0" -t /asset --no-binary pydantic
+RUN python -m pip install "titiler-application==1.0.1" "mangum>=0.10.0" -t /asset --no-binary pydantic
 
 # Reduce package size and remove useless files
 RUN cd /asset && find . -type f -name '*.pyc' | while read f; do n=$(echo $f | sed 's/__pycache__\///' | sed 's/.cpython-[0-9]*//'); cp $f $n; done;
