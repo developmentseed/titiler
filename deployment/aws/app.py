@@ -76,7 +76,7 @@ class titilerLambdaStack(Stack):
         id: str,
         memory: int = 1024,
         timeout: int = 30,
-        runtime: aws_lambda.Runtime = aws_lambda.Runtime.PYTHON_3_12,
+        runtime: aws_lambda.Runtime = aws_lambda.Runtime.PYTHON_3_14,
         concurrent: Optional[int] = None,
         permissions: Optional[List[iam.PolicyStatement]] = None,
         environment: Optional[Dict] = None,
@@ -99,7 +99,7 @@ class titilerLambdaStack(Stack):
                 file="lambda/Dockerfile",
                 platform="linux/amd64",
                 build_args={
-                    "PYTHON_VERSION": "3.12",
+                    "PYTHON_VERSION": "3.14",
                 },
             ),
             handler="handler.handler",
@@ -132,7 +132,7 @@ class titilerLambdaStack(Stack):
                 file="lambda/Dockerfile.xarray",
                 platform="linux/amd64",
                 build_args={
-                    "PYTHON_VERSION": "3.12",
+                    "PYTHON_VERSION": "3.14",
                 },
             ),
             handler="handler.handler",

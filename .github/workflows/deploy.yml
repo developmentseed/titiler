@@ -44,7 +44,7 @@ jobs:
         uses: astral-sh/setup-uv@v7
       
       - name: Install dependencies
-        run: uv sync --all-packages && npm install -g aws-cdk@^2
+        run: uv sync --all-packages && npm install -g aws-cdk@^2.232.2
 
       # Let's wait a bit to make sure package is available on pypi
       - name: Sleep for 120 seconds
