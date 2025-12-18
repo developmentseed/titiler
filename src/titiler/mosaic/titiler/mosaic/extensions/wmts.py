@@ -123,7 +123,7 @@ class wmtsExtension(FactoryExtension):
                                 zooms=(tms_minzoom, tms_maxzoom),
                             )
 
-                            tilematrix_limit: list[str] = []
+                            tilematrix_limits: list[str] = []
                             for tms_limit in _limits:
                                 tm = f"""
                                         <TileMatrixLimits>
@@ -133,7 +133,7 @@ class wmtsExtension(FactoryExtension):
                                             <MinTileCol>{tms_limit['minTileCol']}</MinTileCol>
                                             <MaxTileCol>{tms_limit['maxTileCol']}</MaxTileCol>
                                         </TileMatrixLimits>"""
-                                tilematrix_limit.append(tm)
+                                tilematrix_limits.append(tm)
 
                     tileMatrix = []
                     for zoom in range(tms_minzoom, tms_maxzoom + 1):
@@ -160,7 +160,7 @@ class wmtsExtension(FactoryExtension):
                             "id": tms_id,
                             "tilematrix": tileMatrix,
                             "crs": supported_crs,
-                            "limits": tilematrix_limit,
+                            "limits": tilematrix_limits,
                         }
                     )
                 except Exception as e:  # noqa

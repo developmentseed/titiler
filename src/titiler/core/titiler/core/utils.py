@@ -418,14 +418,14 @@ def tms_limits(
     else:
         minzoom, maxzoom = tms.minzoom, tms.maxzoom
 
-    tilematrix_limit: list[dict[str, Any]] = []
+    tilematrix_limits: list[dict[str, Any]] = []
     for zoom in range(minzoom, maxzoom + 1):
         matrix = tms.matrix(zoom)
         ulTile = tms.tile(bounds[0], bounds[3], zoom)
         lrTile = tms.tile(bounds[2], bounds[1], zoom)
         minx, maxx = (min(ulTile.x, lrTile.x), max(ulTile.x, lrTile.x))
         miny, maxy = (min(ulTile.y, lrTile.y), max(ulTile.y, lrTile.y))
-        tilematrix_limit.append(
+        tilematrix_limits.append(
             {
                 "tileMatrix": matrix.id,
                 "minTileRow": max(miny, 0),
@@ -435,4 +435,4 @@ def tms_limits(
             }
         )
 
-    return tilematrix_limit
+    return tilematrix_limits
