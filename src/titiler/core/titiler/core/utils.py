@@ -13,6 +13,7 @@ from fastapi import FastAPI
 from fastapi.datastructures import QueryParams
 from fastapi.dependencies.utils import get_dependant, request_params_to_args
 from geojson_pydantic.geometries import MultiPolygon, Polygon
+from morecantile import TileMatrixSet
 from rasterio.dtypes import dtype_ranges
 from rio_tiler.colormap import apply_cmap
 from rio_tiler.errors import InvalidDatatypeWarning
@@ -404,3 +405,34 @@ def create_html_response(
             **kwargs,
         },
     )
+
+
+def tms_limits(
+    tms: TileMatrixSet,
+    bounds: tuple[float, float, float, float],
+    zooms: tuple[int, int] | None = None,
+) -> list[dict[str, Any]]:
+    """Generate TileMatrixSet limits for given bounds and zoom levels."""
+    if zooms:
+        minzoom, maxzoom = zooms
+    else:
+        minzoom, maxzoom = tms.minzoom, tms.maxzoom
+
+    tilematrix_limit: list[dict[str, Any]] = []
+    for zoom in range(minzoom, maxzoom + 1):
+        matrix = tms.matrix(zoom)
+        ulTile = tms.tile(bounds[0], bounds[3], zoom)
+        lrTile = tms.tile(bounds[2], bounds[1], zoom)
+        minx, maxx = (min(ulTile.x, lrTile.x), max(ulTile.x, lrTile.x))
+        miny, maxy = (min(ulTile.y, lrTile.y), max(ulTile.y, lrTile.y))
+        tilematrix_limit.append(
+            {
+                "tileMatrix": matrix.id,
+                "minTileRow": max(miny, 0),
+                "maxTileRow": min(maxy, matrix.matrixHeight),
+                "minTileCol": max(minx, 0),
+                "maxTileCol": min(maxx, matrix.matrixWidth),
+            }
+        )
+
+    return tilematrix_limit

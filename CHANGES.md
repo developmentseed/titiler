@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 1.0.1 (2025-12-18)
+
+### titiler.core
+
+* add `utils.tms_limits` options to avoid code duplication
+
 ## 1.0.0 (2025-12-17)
 
 ### Misc 

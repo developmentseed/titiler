@@ -53,6 +53,7 @@ from titiler.core.utils import (
     bounds_to_geometry,
     create_html_response,
     render_image,
+    tms_limits,
 )
 from titiler.mosaic.models.responses import Point
 
@@ -445,22 +446,11 @@ class MosaicTilerFactory(BaseFactory):
                         "crs": CRS_to_uri(tms.rasterio_geographic_crs),
                     }
 
-                    tilematrix_limit = []
-                    for zoom in range(minzoom, maxzoom + 1, 1):
-                        matrix = tms.matrix(zoom)
-                        ulTile = tms.tile(bounds[0], bounds[3], int(matrix.id))
-                        lrTile = tms.tile(bounds[2], bounds[1], int(matrix.id))
-                        minx, maxx = (min(ulTile.x, lrTile.x), max(ulTile.x, lrTile.x))
-                        miny, maxy = (min(ulTile.y, lrTile.y), max(ulTile.y, lrTile.y))
-                        tilematrix_limit.append(
-                            {
-                                "tileMatrix": matrix.id,
-                                "minTileRow": max(miny, 0),
-                                "maxTileRow": min(maxy, matrix.matrixHeight),
-                                "minTileCol": max(minx, 0),
-                                "maxTileCol": min(maxx, matrix.matrixWidth),
-                            }
-                        )
+                    tilematrix_limits = tms_limits(
+                        tms,
+                        bounds,
+                        zooms=(minzoom, maxzoom),
+                    )
 
             query_string = (
                 f"?{urlencode(request.query_params._list)}"
@@ -532,7 +522,7 @@ class MosaicTilerFactory(BaseFactory):
                     "crs": tms.crs,
                     "boundingBox": collection_bbox,
                     "links": links,
-                    "tileMatrixSetLimits": tilematrix_limit,
+                    "tileMatrixSetLimits": tilematrix_limits,
                 }
             )
 
