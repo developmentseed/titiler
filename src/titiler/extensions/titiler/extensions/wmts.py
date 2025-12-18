@@ -18,6 +18,7 @@ from starlette.templating import Jinja2Templates
 from titiler.core.factory import FactoryExtension, TilerFactory
 from titiler.core.resources.enums import ImageType
 from titiler.core.resources.responses import XMLResponse
+from titiler.core.utils import tms_limits
 
 jinja2_env = jinja2.Environment(
     autoescape=jinja2.select_autoescape(["xml"]),
@@ -105,39 +106,23 @@ class wmtsExtension(FactoryExtension):
                             tms_minzoom = src_dst.minzoom
                             tms_maxzoom = src_dst.maxzoom
 
-                            tilematrix_limit = []
-                            for zoom in range(tms_minzoom, tms_maxzoom + 1, 1):
-                                matrix = tms.matrix(zoom)
-                                ulTile = tms.tile(
-                                    bounds[0],
-                                    bounds[3],
-                                    int(matrix.id),
-                                    geographic_crs=self.crs,
-                                )
-                                lrTile = tms.tile(
-                                    bounds[2],
-                                    bounds[1],
-                                    int(matrix.id),
-                                    geographic_crs=self.crs,
-                                )
-                                minx, maxx = (
-                                    min(ulTile.x, lrTile.x),
-                                    max(ulTile.x, lrTile.x),
-                                )
-                                miny, maxy = (
-                                    min(ulTile.y, lrTile.y),
-                                    max(ulTile.y, lrTile.y),
-                                )
+                            _limits = tms_limits(
+                                tms,
+                                bounds,
+                                zooms=(tms_minzoom, tms_maxzoom),
+                            )
+
+                            tilematrix_limits: list[str] = []
+                            for tms_limit in _limits:
                                 tm = f"""
                                         <TileMatrixLimits>
-                                            <TileMatrix>{matrix.id}</TileMatrix>
-                                            <MinTileRow>{max(miny, 0)}</MinTileRow>
-                                            <MaxTileRow>{min(maxy, matrix.matrixHeight)}</MaxTileRow>
-                                            <MinTileCol>{max(minx, 0)}</MinTileCol>
-                                            <MaxTileCol>{min(maxx, matrix.matrixWidth)}</MaxTileCol>
+                                            <TileMatrix>{tms_limit['tileMatrix']}</TileMatrix>
+                                            <MinTileRow>{tms_limit['minTileRow']}</MinTileRow>
+                                            <MaxTileRow>{tms_limit['maxTileRow']}</MaxTileRow>
+                                            <MinTileCol>{tms_limit['minTileCol']}</MinTileCol>
+                                            <MaxTileCol>{tms_limit['maxTileCol']}</MaxTileCol>
                                         </TileMatrixLimits>"""
-
-                                tilematrix_limit.append(tm)
+                                tilematrix_limits.append(tm)
 
                     tileMatrix = []
                     for zoom in range(tms_minzoom, tms_maxzoom + 1):
@@ -164,7 +149,7 @@ class wmtsExtension(FactoryExtension):
                             "id": tms_id,
                             "tilematrix": tileMatrix,
                             "crs": supported_crs,
-                            "limits": tilematrix_limit,
+                            "limits": tilematrix_limits,
                         }
                     )
                 except Exception as e:  # noqa
