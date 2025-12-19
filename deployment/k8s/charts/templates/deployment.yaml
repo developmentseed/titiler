@@ -43,7 +43,7 @@ spec:
           {{- end }}
           ports:
             - name: http
-              containerPort: 80
+              containerPort: {{ .Values.titiler.service.port }}
               protocol: TCP
           livenessProbe:
             httpGet:
@@ -146,7 +146,7 @@ spec:
           {{- end }}
           ports:
             - name: http
-              containerPort: 80
+              containerPort: {{ .Values.titiler_xarray.service.port }}
               protocol: TCP
           livenessProbe:
             httpGet:
