@@ -34,7 +34,7 @@ titiler:
       # kubernetes.io/tls-acme: "true"
     hosts:
       - host: titiler.local
-        paths: 
+        paths:
           - path: /
             pathType: Prefix
     tls: []
@@ -92,7 +92,7 @@ titiler:
     # runAsNonRoot: true
     # runAsUser: 1001
 
-  netrc: "" # File content of netrc
+  netrc: ""   # File content of netrc
 
 # Default values for titiler-xarray.
 titiler_xarray:
@@ -130,7 +130,7 @@ titiler_xarray:
       # kubernetes.io/tls-acme: "true"
     hosts:
       - host: titiler-xarray.local
-        paths: 
+        paths:
           - path: /
             pathType: Prefix
     tls: []
@@ -188,4 +188,4 @@ titiler_xarray:
     # runAsNonRoot: true
     # runAsUser: 1001
 
-  netrc: "" # File content of netrc
+  netrc: ""   # File content of netrc
