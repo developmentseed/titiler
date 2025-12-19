@@ -15,8 +15,8 @@ spec:
   selector:
     {{- include "titiler.selectorLabels" . | nindent 4 }}
 {{- end }}
----
 {{- if .Values.titiler_xarray.enabled }}
+---
 apiVersion: v1
 kind: Service
 metadata:

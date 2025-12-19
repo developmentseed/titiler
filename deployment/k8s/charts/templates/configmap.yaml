@@ -8,8 +8,8 @@ data:
   netrc: {{ tpl (.Values.titiler.netrc) . | quote }}
   {{- end }}
 {{- end }}
----
 {{- if .Values.titiler_xarray.enabled }}
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:

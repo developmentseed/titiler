@@ -57,8 +57,8 @@ spec:
           {{- end }}
     {{- end }}
 {{- end }}
----
 {{- if and .Values.titiler_xarray.ingress.enabled .Values.titiler_xarray.enabled }}
+---
 {{- $fullName := include "titiler_xarray.fullname" . -}}
 {{- $svcPort := .Values.titiler_xarray.service.port -}}
 {{- if and .Values.titiler_xarray.ingress.className (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
