@@ -8,7 +8,7 @@ This is a checklist for releasing a new version of **titiler**.
 
 3. Update `version: {chart_version}` (e.g: `version: 1.1.6 -> version: 1.1.7`) in `deployment/k8s/charts/Chart.yaml`
 
-4. Run [`bump-my-version`](https://callowayproject.github.io/bump-my-version/) to update all titiler's module versions: `uv run bump-my-version bump minor --new-version 0.20.0`
+4. Run [`bump-my-version`](https://callowayproject.github.io/bump-my-version/) to update all titiler's module versions: `uv run --with bump-my-version --isolated bump-my-version bump minor --new-version 0.20.0`
 
 5. Push your release branch, create a PR, and get approval
 

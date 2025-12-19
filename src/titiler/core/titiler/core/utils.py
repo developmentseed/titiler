@@ -5,10 +5,12 @@ from __future__ import annotations
 import re
 import warnings
 from collections.abc import Callable, Sequence
-from typing import Any, TypeVar, cast
+from typing import Any, TypedDict, TypeVar, cast
 from urllib.parse import urlencode
 
 import numpy
+import pyproj
+import rasterio
 from fastapi import FastAPI
 from fastapi.datastructures import QueryParams
 from fastapi.dependencies.utils import get_dependant, request_params_to_args
@@ -407,22 +409,36 @@ def create_html_response(
     )
 
 
+class TMSLimits(TypedDict):
+    """TileMatrixSet Limits model."""
+
+    tileMatrix: str
+    minTileRow: int
+    maxTileRow: int
+    minTileCol: int
+    maxTileCol: int
+
+
 def tms_limits(
     tms: TileMatrixSet,
     bounds: tuple[float, float, float, float],
     zooms: tuple[int, int] | None = None,
-) -> list[dict[str, Any]]:
+    geographic_crs: pyproj.CRS | rasterio.crs.CRS | None = None,
+) -> list[TMSLimits]:
     """Generate TileMatrixSet limits for given bounds and zoom levels."""
+    if geographic_crs:
+        geographic_crs = rio_crs_to_pyproj(geographic_crs)
+
     if zooms:
         minzoom, maxzoom = zooms
     else:
         minzoom, maxzoom = tms.minzoom, tms.maxzoom
 
-    tilematrix_limits: list[dict[str, Any]] = []
+    tilematrix_limits: list[TMSLimits] = []
     for zoom in range(minzoom, maxzoom + 1):
         matrix = tms.matrix(zoom)
-        ulTile = tms.tile(bounds[0], bounds[3], zoom)
-        lrTile = tms.tile(bounds[2], bounds[1], zoom)
+        ulTile = tms.tile(bounds[0], bounds[3], zoom, geographic_crs=geographic_crs)
+        lrTile = tms.tile(bounds[2], bounds[1], zoom, geographic_crs=geographic_crs)
         minx, maxx = (min(ulTile.x, lrTile.x), max(ulTile.x, lrTile.x))
         miny, maxy = (min(ulTile.y, lrTile.y), max(ulTile.y, lrTile.y))
         tilematrix_limits.append(
@@ -436,3 +452,49 @@ def tms_limits(
         )
 
     return tilematrix_limits
+
+
+def tms_limits_to_xml(limits: list[TMSLimits]) -> list[str]:
+    """Convert TMS limits to XML."""
+    xml_limits: list[str] = []
+    for limit in limits:
+        xml_limits.append(
+            f"""<TileMatrixLimits>
+                    <TileMatrix>{limit['tileMatrix']}</TileMatrix>
+                    <MinTileRow>{limit['minTileRow']}</MinTileRow>
+                    <MaxTileRow>{limit['maxTileRow']}</MaxTileRow>
+                    <MinTileCol>{limit['minTileCol']}</MinTileCol>
+                    <MaxTileCol>{limit['maxTileCol']}</MaxTileCol>
+                </TileMatrixLimits>""",
+        )
+
+    return xml_limits
+
+
+def tms_to_xml(tms: TileMatrixSet, minzoom, maxzoom) -> list[str]:
+    """Convert TMS Matrices to XML."""
+    xml_matrices: list[str] = []
+    for zoom in range(minzoom, maxzoom + 1):
+        matrix = tms.matrix(zoom)
+        xml_matrices.append(
+            f"""<TileMatrix>
+                    <ows:Identifier>{matrix.id}</ows:Identifier>
+                    <ScaleDenominator>{matrix.scaleDenominator}</ScaleDenominator>
+                    <TopLeftCorner>{matrix.pointOfOrigin[0]} {matrix.pointOfOrigin[1]}</TopLeftCorner>
+                    <TileWidth>{matrix.tileWidth}</TileWidth>
+                    <TileHeight>{matrix.tileHeight}</TileHeight>
+                    <MatrixWidth>{matrix.matrixWidth}</MatrixWidth>
+                    <MatrixHeight>{matrix.matrixHeight}</MatrixHeight>
+                </TileMatrix>""",
+        )
+
+    return xml_matrices
+
+
+def rio_crs_to_pyproj(crs: pyproj.CRS | rasterio.crs.CRS) -> pyproj.CRS:
+    """Convert rasterio CRS to pyproj CRS."""
+    if isinstance(crs, pyproj.CRS):
+        return crs
+
+    with rasterio.Env(OSR_WKT_FORMAT="WKT2_2018"):
+        return pyproj.CRS.from_user_input(crs)
