@@ -1,9 +1,9 @@
-{{- if .Values.ingress.enabled -}}
+{{- if and .Values.titiler.ingress.enabled .Values.titiler.enabled }}
 {{- $fullName := include "titiler.fullname" . -}}
-{{- $svcPort := .Values.service.port -}}
-{{- if and .Values.ingress.className (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
-  {{- if not (hasKey .Values.ingress.annotations "kubernetes.io/ingress.class") }}
-  {{- $_ := set .Values.ingress.annotations "kubernetes.io/ingress.class" .Values.ingress.className}}
+{{- $svcPort := .Values.titiler.service.port -}}
+{{- if and .Values.titiler.ingress.className (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
+  {{- if not (hasKey .Values.titiler.ingress.annotations "kubernetes.io/ingress.class") }}
+  {{- $_ := set .Values.titiler.ingress.annotations "kubernetes.io/ingress.class" .Values.titiler.ingress.className }}
   {{- end }}
 {{- end }}
 {{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion -}}
@@ -16,17 +16,17 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: {{ $fullName }}
-  {{- with .Values.ingress.annotations }}
+  {{- with .Values.titiler.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-  {{- if and .Values.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
-  ingressClassName: {{ .Values.ingress.className }}
+  {{- if and .Values.titiler.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
+  ingressClassName: {{ .Values.titiler.ingress.className }}
   {{- end }}
-  {{- if .Values.ingress.tls }}
+  {{- if .Values.titiler.ingress.tls }}
   tls:
-    {{- range .Values.ingress.tls }}
+    {{- range .Values.titiler.ingress.tls }}
     - hosts:
         {{- range .hosts }}
         - {{ . | quote }}
@@ -35,7 +35,7 @@ spec:
     {{- end }}
   {{- end }}
   rules:
-    {{- range .Values.ingress.hosts }}
+    {{- range .Values.titiler.ingress.hosts }}
     - host: {{ .host | quote }}
       http:
         paths:
@@ -57,3 +57,64 @@ spec:
           {{- end }}
     {{- end }}
 {{- end }}
+---
+{{- if and .Values.titiler_xarray.ingress.enabled .Values.titiler_xarray.enabled }}
+{{- $fullName := include "titiler_xarray.fullname" . -}}
+{{- $svcPort := .Values.titiler_xarray.service.port -}}
+{{- if and .Values.titiler_xarray.ingress.className (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
+  {{- if not (hasKey .Values.titiler_xarray.ingress.annotations "kubernetes.io/ingress.class") }}
+  {{- $_ := set .Values.titiler_xarray.ingress.annotations "kubernetes.io/ingress.class" .Values.titiler_xarray.ingress.className }}
+  {{- end }}
+{{- end }}
+{{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1
+{{- else if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1beta1
+{{- else -}}
+apiVersion: extensions/v1beta1
+{{- end }}
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  {{- with .Values.titiler_xarray.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if and .Values.titiler_xarray.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
+  ingressClassName: {{ .Values.titiler_xarray.ingress.className }}
+  {{- end }}
+  {{- if .Values.titiler_xarray.ingress.tls }}
+  tls:
+    {{- range .Values.titiler_xarray.ingress.tls }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      secretName: {{ .secretName }}
+    {{- end }}
+  {{- end }}
+  rules:
+    {{- range .Values.titiler_xarray.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            {{- if and .pathType (semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion) }}
+            pathType: {{ .pathType }}
+            {{- end }}
+            backend:
+              {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
+              service:
+                name: {{ $fullName }}
+                port:
+                  number: {{ $svcPort }}
+              {{- else }}
+              serviceName: {{ $fullName }}
+              servicePort: {{ $svcPort }}
+              {{- end }}
+          {{- end }}
+    {{- end }}
+{{- end }}
+---

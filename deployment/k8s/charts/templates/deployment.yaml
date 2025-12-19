@@ -1,3 +1,4 @@
+{{- if .Values.titiler.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -5,7 +6,7 @@ metadata:
   labels:
     {{- include "titiler.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ .Values.titiler.replicaCount }}
   selector:
     matchLabels:
       {{- include "titiler.selectorLabels" . | nindent 6 }}
@@ -15,24 +16,24 @@ spec:
         {{- include "titiler.selectorLabels" . | nindent 8 }}
     spec:
       securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+        {{- toYaml .Values.titiler.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          command: [ {{ .Values.image.command }} ]
-          args: [ {{- range $arg := .Values.image.args }}
+          image: "{{ .Values.titiler.image.repository }}:{{ .Values.titiler.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.titiler.image.pullPolicy }}
+          command: [ {{ .Values.titiler.image.command }} ]
+          args: [ {{- range $arg := .Values.titiler.image.args }}
             {{- $arg | quote }},
             {{- end }}
           ]
           securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
+            {{- toYaml .Values.titiler.securityContext | nindent 12 }}
           env:
-          {{- range $key, $val := .Values.env }}
+          {{- range $key, $val := .Values.titiler.env }}
             - name: {{ $key }}
               value: {{ $val | quote }}
           {{- end }}
-          {{- if .Values.netrc }}
+          {{- if .Values.titiler.netrc }}
             - name: NETRC
               value: /config/netrc
             - name: CURLOPT_NETRC
@@ -53,12 +54,12 @@ spec:
               path: /healthz
               port: http
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            {{- toYaml .Values.titiler.resources | nindent 12 }}
           volumeMounts:
             - mountPath: /config
               name: config
               readOnly: true
-          {{- range .Values.extraHostPathMounts }}
+          {{- range .Values.titiler.extraHostPathMounts }}
             - name: {{ .name }}
               mountPath: {{ .mountPath }}
               readOnly: {{ .readOnly }}
@@ -66,35 +67,139 @@ spec:
               mountPropagation: {{ .mountPropagation }}
             {{- end }}
           {{- end }}
-      terminationGracePeriodSeconds: {{ .Values.env.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.titiler.env.terminationGracePeriodSeconds }}
       volumes:
         - name: config
           configMap:
             name: {{ include "titiler.fullname" . }}-configmap
-      {{- range .Values.extraHostPathMounts }}
+      {{- range .Values.titiler.extraHostPathMounts }}
         - name: {{ .name }}
           hostPath:
             path: {{ .hostPath }}
             type: Directory
       {{- end }}
-      {{- with .Values.imagePullSecrets }}
+      {{- with .Values.titiler.imagePullSecrets }}
       imagePullSecrets:
         {{- range . }}
       - name: {{ .name }}
         {{- end }}
       {{- end }}
-      {{- with .Values.serviceAccountName }}
+      {{- with .Values.titiler.serviceAccountName }}
       serviceAccountName: {{ . | quote }}
       {{- end }}
-      {{- with .Values.nodeSelector }}
+      {{- with .Values.titiler.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-    {{- with .Values.affinity }}
+    {{- with .Values.titiler.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
     {{- end }}
-    {{- with .Values.tolerations }}
+    {{- with .Values.titiler.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
     {{- end }}
+{{- end}}
+---
+{{- if .Values.titiler_xarray.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "titiler_xarray.fullname" . }}
+  labels:
+    {{- include "titiler_xarray.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.titiler_xarray.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "titiler_xarray.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "titiler_xarray.selectorLabels" . | nindent 8 }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.titiler_xarray.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.titiler_xarray.image.repository }}:{{ .Values.titiler_xarray.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.titiler_xarray.image.pullPolicy }}
+          command: [ {{ .Values.titiler_xarray.image.command }} ]
+          args: [ {{- range $arg := .Values.titiler_xarray.image.args }}
+            {{- $arg | quote }},
+            {{- end }}
+          ]
+          securityContext:
+            {{- toYaml .Values.titiler_xarray.securityContext | nindent 12 }}
+          env:
+          {{- range $key, $val := .Values.titiler_xarray.env }}
+            - name: {{ $key }}
+              value: {{ $val | quote }}
+          {{- end }}
+          {{- if .Values.titiler_xarray.netrc }}
+            - name: NETRC
+              value: /config/netrc
+            - name: CURLOPT_NETRC
+              value: CURL_NETRC_OPTIONAL
+            - name: CURLOPT_NETRC_FILE
+              value: /config/netrc
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+          resources:
+            {{- toYaml .Values.titiler_xarray.resources | nindent 12 }}
+          volumeMounts:
+            - mountPath: /config
+              name: config
+              readOnly: true
+          {{- range .Values.titiler_xarray.extraHostPathMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .mountPath }}
+              readOnly: {{ .readOnly }}
+            {{- if .mountPropagation }}
+              mountPropagation: {{ .mountPropagation }}
+            {{- end }}
+          {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.titiler_xarray.env.terminationGracePeriodSeconds }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "titiler_xarray.fullname" . }}-configmap
+      {{- range .Values.titiler_xarray.extraHostPathMounts }}
+        - name: {{ .name }}
+          hostPath:
+            path: {{ .hostPath }}
+            type: Directory
+      {{- end }}
+      {{- with .Values.titiler_xarray.imagePullSecrets }}
+      imagePullSecrets:
+        {{- range . }}
+      - name: {{ .name }}
+        {{- end }}
+      {{- end }}
+      {{- with .Values.titiler_xarray.serviceAccountName }}
+      serviceAccountName: {{ . | quote }}
+      {{- end }}
+      {{- with .Values.titiler_xarray.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.titiler_xarray.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.titiler_xarray.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+{{- end}}

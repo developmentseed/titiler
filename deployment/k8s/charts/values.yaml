@@ -1,88 +1,191 @@
 # Default values for titiler.
-replicaCount: 1
+titiler:
+  enabled: true
+  replicaCount: 1
 
-image:
-  repository: ghcr.io/developmentseed/titiler
-  tag: latest
-  pullPolicy: IfNotPresent
-  command: "uvicorn"
-  args:
-    - "titiler.application.main:app"
-    - "--host"
-    - "0.0.0.0"
-    - "--port"
-    - "80"
-    - "--workers"
-    - "1"
+  image:
+    repository: ghcr.io/developmentseed/titiler
+    tag: latest
+    pullPolicy: IfNotPresent
+    command: "uvicorn"
+    args:
+      - "titiler.application.main:app"
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "80"
+      - "--workers"
+      - "1"
 
-nameOverride: ""
-fullnameOverride: ""
+  nameOverride: ""
+  fullnameOverride: ""
 
-terminationGracePeriodSeconds: 30
+  terminationGracePeriodSeconds: 30
 
-service:
-  type: ClusterIP
-  port: 80
+  service:
+    type: ClusterIP
+    port: 80
 
-ingress:
-  enabled: false
-  annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-  hosts:
-    - host: titiler.local
-      paths: ["/"]
-  tls: []
-  #  - secretName: titiler-tls
-  #    hosts:
-  #      - titiler.local
+  ingress:
+    enabled: true
+    className: ""
+    annotations: {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+    hosts:
+      - host: titiler.local
+        paths: 
+          - path: /
+            pathType: Prefix
+    tls: []
+    #  - secretName: titiler-tls
+    #    hosts:
+    #      - titiler.local
 
-extraHostPathMounts: []
-  # - name: map-sources
-  #   mountPath: /map-sources/
-  #   hostPath: /home/ubuntu/map-sources
-  #   readOnly: false
-  #   mountPropagation: HostToContainer # OPTIONAL
+  extraHostPathMounts: []
+    # - name: map-sources
+    #   mountPath: /map-sources/
+    #   hostPath: /home/ubuntu/map-sources
+    #   readOnly: false
+    #   mountPropagation: HostToContainer # OPTIONAL
 
-imagePullSecrets: []
+  imagePullSecrets: []
 
-env:
-  CPL_TMPDIR: /tmp
-  GDAL_CACHEMAX: 200  # 200 mb
-  VSI_CACHE: "TRUE"
-  VSI_CACHE_SIZE: 5000000  # 5 MB (per file-handle)
-  GDAL_DISABLE_READDIR_ON_OPEN: "EMPTY_DIR"
-  GDAL_HTTP_MERGE_CONSECUTIVE_RANGES: "YES"
-  GDAL_HTTP_MULTIPLEX: "YES"
-  GDAL_HTTP_VERSION: 2
-  PYTHONWARNINGS: "ignore"
+  env:
+    CPL_TMPDIR: /tmp
+    GDAL_CACHEMAX: 200  # 200 mb
+    VSI_CACHE: "TRUE"
+    VSI_CACHE_SIZE: 5000000  # 5 MB (per file-handle)
+    GDAL_DISABLE_READDIR_ON_OPEN: "EMPTY_DIR"
+    GDAL_HTTP_MERGE_CONSECUTIVE_RANGES: "YES"
+    GDAL_HTTP_MULTIPLEX: "YES"
+    GDAL_HTTP_VERSION: 2
+    PYTHONWARNINGS: "ignore"
 
-resources:
-  limits:
-    cpu: 1
-    memory: 2Gi
-  requests:
-    cpu: 1
-    memory: 2Gi
+  resources:
+    limits:
+      cpu: 1
+      memory: 2Gi
+    requests:
+      cpu: 1
+      memory: 2Gi
 
-serviceAccountName: ""
+  serviceAccountName: ""
 
-nodeSelector: {}
+  nodeSelector: {}
 
-tolerations: []
+  tolerations: []
 
-affinity: {}
+  affinity: {}
 
-securityContext: {}
-  # capabilities:
-  #   drop:
-  #     - ALL
-  # readOnlyRootFilesystem: true
-  # allowPrivilegeEscalation: false
-  # runAsNonRoot: true
-  # runAsUser: 1001
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #     - ALL
+    # readOnlyRootFilesystem: true
+    # allowPrivilegeEscalation: false
+    # runAsNonRoot: true
+    # runAsUser: 1001
 
-podSecurityContext: {}
-  # fsGroup: 1001
-  # runAsNonRoot: true
-  # runAsUser: 1001
+  podSecurityContext: {}
+    # fsGroup: 1001
+    # runAsNonRoot: true
+    # runAsUser: 1001
+
+  netrc: "" # File content of netrc
+
+# Default values for titiler-xarray.
+titiler_xarray:
+  enabled: true
+  replicaCount: 1
+
+  image:
+    repository: ghcr.io/developmentseed/titiler-xarray
+    tag: latest
+    pullPolicy: IfNotPresent
+    command: "uvicorn"
+    args:
+      - "titiler.xarray.main:app"
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "8082"
+      - "--workers"
+      - "1"
+
+  nameOverride: ""
+  fullnameOverride: ""
+
+  terminationGracePeriodSeconds: 30
+
+  service:
+    type: ClusterIP
+    port: 8082
+
+  ingress:
+    enabled: true
+    className: ""
+    annotations: {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+    hosts:
+      - host: titiler-xarray.local
+        paths: 
+          - path: /
+            pathType: Prefix
+    tls: []
+    #  - secretName: titiler-xarray-tls
+    #    hosts:
+    #      - titiler-xarray.local
+
+  extraHostPathMounts: []
+    # - name: map-sources
+    #   mountPath: /map-sources/
+    #   hostPath: /home/ubuntu/map-sources
+    #   readOnly: false
+    #   mountPropagation: HostToContainer # OPTIONAL
+
+  imagePullSecrets: []
+
+  env:
+    CPL_TMPDIR: /tmp
+    GDAL_CACHEMAX: 200  # 200 mb
+    VSI_CACHE: "TRUE"
+    VSI_CACHE_SIZE: 5000000  # 5 MB (per file-handle)
+    GDAL_DISABLE_READDIR_ON_OPEN: "EMPTY_DIR"
+    GDAL_HTTP_MERGE_CONSECUTIVE_RANGES: "YES"
+    GDAL_HTTP_MULTIPLEX: "YES"
+    GDAL_HTTP_VERSION: 2
+    PYTHONWARNINGS: "ignore"
+
+  resources:
+    limits:
+      cpu: 1
+      memory: 2Gi
+    requests:
+      cpu: 1
+      memory: 2Gi
+
+  serviceAccountName: ""
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #     - ALL
+    # readOnlyRootFilesystem: true
+    # allowPrivilegeEscalation: false
+    # runAsNonRoot: true
+    # runAsUser: 1001
+
+  podSecurityContext: {}
+    # fsGroup: 1001
+    # runAsNonRoot: true
+    # runAsUser: 1001
+
+  netrc: "" # File content of netrc

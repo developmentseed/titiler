@@ -1,5 +1,7 @@
-replicaCount: 1
+titiler:
+  enabled: true
+  replicaCount: 1
 
-image:
-  repository: titiler
-  tag: dev
+  image:
+    repository: titiler
+    tag: dev

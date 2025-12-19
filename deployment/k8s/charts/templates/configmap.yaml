@@ -1,9 +1,21 @@
+{{- if .Values.titiler.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ include "titiler.fullname" . }}-configmap
 data:
-  {{- if .Values.netrc }}
-  netrc: {{ tpl (.Values.netrc) . | quote }}
+  {{- if .Values.titiler.netrc }}
+  netrc: {{ tpl (.Values.titiler.netrc) . | quote }}
   {{- end }}
-    
+{{- end }}
+---
+{{- if .Values.titiler_xarray.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "titiler_xarray.fullname" . }}-configmap
+data:
+  {{- if .Values.titiler_xarray.netrc }}
+  netrc: {{ tpl (.Values.titiler_xarray.netrc) . | quote }}
+  {{- end }}
+{{- end }}

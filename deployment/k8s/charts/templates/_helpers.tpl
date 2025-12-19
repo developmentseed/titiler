@@ -50,3 +50,30 @@ Selector labels
 app.kubernetes.io/name: {{ include "titiler.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
+
+{{/*
+Helpers for titiler_xarray.
+These reuse the titiler helpers and simply append "-xarray".
+*/}}
+
+{{- define "titiler_xarray.name" -}}
+{{- printf "%s-xarray" (include "titiler.name" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "titiler_xarray.fullname" -}}
+{{- printf "%s-xarray" (include "titiler.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "titiler_xarray.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "titiler_xarray.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{- define "titiler_xarray.labels" -}}
+helm.sh/chart: {{ include "titiler.chart" . }}
+{{ include "titiler_xarray.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}

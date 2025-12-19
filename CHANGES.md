@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Helm Chart
+
+* **BREAKING** - Added `titiler-xarray` as a deployable, values file is now nested to support `titiler.enabled` and `titiler_xarray.enabled`
+
 ## 1.0.2 (2025-12-18)
 
 ### titiler.core
