@@ -55,7 +55,6 @@ dev = [
     "boto3",
     "owslib",
     "pre-commit",
-    "bump-my-version",
 ]
 telemetry = [
     "opentelemetry-api",

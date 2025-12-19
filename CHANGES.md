@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 1.0.2 (2025-12-18)
+
+### titiler.core
+
+* add more TMS utilities 
+* remove `bump-my-version` from dev dependencies
+
 ## 1.0.1 (2025-12-18)
 
 ### titiler.core

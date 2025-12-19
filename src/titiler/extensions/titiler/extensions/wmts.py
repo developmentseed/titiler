@@ -4,7 +4,6 @@ from typing import Annotated, Any
 from urllib.parse import urlencode
 
 import jinja2
-import pyproj
 import rasterio
 from attrs import define, field
 from fastapi import Depends, Query
@@ -18,7 +17,12 @@ from starlette.templating import Jinja2Templates
 from titiler.core.factory import FactoryExtension, TilerFactory
 from titiler.core.resources.enums import ImageType
 from titiler.core.resources.responses import XMLResponse
-from titiler.core.utils import tms_limits
+from titiler.core.utils import (
+    rio_crs_to_pyproj,
+    tms_limits,
+    tms_limits_to_xml,
+    tms_to_xml,
+)
 
 jinja2_env = jinja2.Environment(
     autoescape=jinja2.select_autoescape(["xml"]),
@@ -99,9 +103,7 @@ class wmtsExtension(FactoryExtension):
                 try:
                     with rasterio.Env(**env):
                         with factory.reader(
-                            src_path,
-                            tms=tms,
-                            **reader_params.as_dict(),
+                            src_path, tms=tms, **reader_params.as_dict()
                         ) as src_dst:
                             tms_minzoom = src_dst.minzoom
                             tms_maxzoom = src_dst.maxzoom
@@ -110,34 +112,8 @@ class wmtsExtension(FactoryExtension):
                                 tms,
                                 bounds,
                                 zooms=(tms_minzoom, tms_maxzoom),
+                                geographic_crs=self.crs,
                             )
-
-                            tilematrix_limits: list[str] = []
-                            for tms_limit in _limits:
-                                tm = f"""
-                                        <TileMatrixLimits>
-                                            <TileMatrix>{tms_limit['tileMatrix']}</TileMatrix>
-                                            <MinTileRow>{tms_limit['minTileRow']}</MinTileRow>
-                                            <MaxTileRow>{tms_limit['maxTileRow']}</MaxTileRow>
-                                            <MinTileCol>{tms_limit['minTileCol']}</MinTileCol>
-                                            <MaxTileCol>{tms_limit['maxTileCol']}</MaxTileCol>
-                                        </TileMatrixLimits>"""
-                                tilematrix_limits.append(tm)
-
-                    tileMatrix = []
-                    for zoom in range(tms_minzoom, tms_maxzoom + 1):
-                        matrix = tms.matrix(zoom)
-                        tm = f"""
-                                <TileMatrix>
-                                    <ows:Identifier>{matrix.id}</ows:Identifier>
-                                    <ScaleDenominator>{matrix.scaleDenominator}</ScaleDenominator>
-                                    <TopLeftCorner>{matrix.pointOfOrigin[0]} {matrix.pointOfOrigin[1]}</TopLeftCorner>
-                                    <TileWidth>{matrix.tileWidth}</TileWidth>
-                                    <TileHeight>{matrix.tileHeight}</TileHeight>
-                                    <MatrixWidth>{matrix.matrixWidth}</MatrixWidth>
-                                    <MatrixHeight>{matrix.matrixHeight}</MatrixHeight>
-                                </TileMatrix>"""
-                        tileMatrix.append(tm)
 
                     if use_epsg:
                         supported_crs = f"EPSG:{tms.crs.to_epsg()}"
@@ -147,9 +123,9 @@ class wmtsExtension(FactoryExtension):
                     tileMatrixSet.append(
                         {
                             "id": tms_id,
-                            "tilematrix": tileMatrix,
+                            "tilematrix": tms_to_xml(tms, tms_minzoom, tms_maxzoom),
                             "crs": supported_crs,
-                            "limits": tilematrix_limits,
+                            "limits": tms_limits_to_xml(_limits),
                         }
                     )
                 except Exception as e:  # noqa
@@ -161,11 +137,10 @@ class wmtsExtension(FactoryExtension):
                 bbox_crs_type = "BoundingBox"
                 bbox_crs_uri = CRS_to_urn(self.crs)  # type: ignore
                 # WGS88BoundingBox is always xy ordered, but BoundingBox must match the CRS order
-                with rasterio.Env(OSR_WKT_FORMAT="WKT2_2018"):
-                    proj_crs = pyproj.CRS.from_user_input(self.crs)
-                    if crs_axis_inverted(proj_crs):
-                        # match the bounding box coordinate order to the CRS
-                        bounds = [bounds[1], bounds[0], bounds[3], bounds[2]]
+                proj_crs = rio_crs_to_pyproj(self.crs)
+                if crs_axis_inverted(proj_crs):
+                    # match the bounding box coordinate order to the CRS
+                    bounds = [bounds[1], bounds[0], bounds[3], bounds[2]]
 
             layers: list[dict[str, Any]] = []
             for tilematrix in tileMatrixSet:
