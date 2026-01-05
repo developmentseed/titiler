@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### titiler.core 
+
+* Improve `dem` algorithms by using numpy functions (author @manand881, https://github.com/developmentseed/titiler/pull/1294)
+
 ## 1.0.2 (2025-12-18)
 
 ### titiler.core
