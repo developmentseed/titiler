@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1766149600996,
+  "lastUpdate": 1767599533651,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -18864,6 +18864,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 3.27,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "manand881@gmail.com",
+            "name": "Anand Mahesh",
+            "username": "manand881"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "55e9a80a7f500ebd449efa0b86b610575b1f9ae1",
+          "message": "Enhc: Algo numpy improvements (#1294)\n\nThis commit improves on algorithm implementations\nby using more efficient/faster built-in numpy\noperations instead of a python implementation\nwhile retaining the structure of the code for\nreadability.",
+          "timestamp": "2026-01-05T08:50:18+01:00",
+          "tree_id": "ee461233439088da8b97a9a1a2fc63ce23d8a6c6",
+          "url": "https://github.com/developmentseed/titiler/commit/55e9a80a7f500ebd449efa0b86b610575b1f9ae1"
+        },
+        "date": 1767599532312,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.18,
             "unit": "s"
           },
           {
