@@ -1,21 +1,48 @@
-1. Get the Titile docs deployed here:
-{{- if .Values.ingress.enabled }}
-{{- range $host := .Values.ingress.hosts }}
-  {{- range .paths }}
-  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host.host }}{{ . }}docs
+{{- if .Values.titiler.enabled }}
+Titiler Deployed.
+{{- if .Values.titiler.ingress.enabled }}
+Get the Titiler docs deployed here:
+{{- range $host := .Values.titiler.ingress.hosts }}
+  {{- range $p := $host.paths }}
+  http{{ if $.Values.titiler.ingress.tls }}s{{ end }}://{{ $host.host }}{{ trimSuffix "/" $p.path }}/docs
   {{- end }}
 {{- end }}
-{{- else if contains "NodePort" .Values.service.type }}
+{{- else if contains "NodePort" .Values.titiler.service.type }}
   export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "titiler.fullname" . }})
   export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
   echo http://$NODE_IP:$NODE_PORT/docs
-{{- else if contains "LoadBalancer" .Values.service.type }}
+{{- else if contains "LoadBalancer" .Values.titiler.service.type }}
      NOTE: It may take a few minutes for the LoadBalancer IP to be available.
            You can watch the status of by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "titiler.fullname" . }}'
   export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "titiler.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
-  echo http://$SERVICE_IP:{{ .Values.service.port }}
-{{- else if contains "ClusterIP" .Values.service.type }}
+  echo http://$SERVICE_IP:{{ .Values.titiler.service.port }}
+{{- else if contains "ClusterIP" .Values.titiler.service.type }}
   export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "titiler.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
   echo "Visit http://127.0.0.1:8080/docs to use Titiler"
   kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:80
+{{- end }}
+{{- end }}
+{{- if .Values.titiler_xarray.enabled }}
+Titiler Xarray Deployed.
+{{- if .Values.titiler_xarray.ingress.enabled }}
+Get the Titiler Xarray docs deployed here:
+{{- range $host := .Values.titiler_xarray.ingress.hosts }}
+  {{- range $p := $host.paths }}
+  http{{ if $.Values.titiler_xarray.ingress.tls }}s{{ end }}://{{ $host.host }}{{ trimSuffix "/" $p.path }}/docs
+  {{- end }}
+{{- end }}
+{{- else if contains "NodePort" .Values.titiler_xarray.service.type }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "titiler_xarray.fullname" . }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo http://$NODE_IP:$NODE_PORT/docs
+{{- else if contains "LoadBalancer" .Values.titiler_xarray.service.type }}
+     NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+           You can watch the status of by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "titiler_xarray.fullname" . }}'
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "titiler_xarray.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo http://$SERVICE_IP:{{ .Values.titiler_xarray.service.port }}
+{{- else if contains "ClusterIP" .Values.titiler_xarray.service.type }}
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "titiler_xarray.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  echo "Visit http://127.0.0.1:8080/docs to use titiler_xarray.
+  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:80
+{{- end }}
 {{- end }}
