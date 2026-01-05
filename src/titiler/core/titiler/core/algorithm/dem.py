@@ -37,8 +37,8 @@ class HillShade(BaseAlgorithm):
         slope = numpy.pi / 2.0 - numpy.arctan(numpy.sqrt(x * x + y * y))
         aspect = numpy.arctan2(-x, y)
         azimuth = 360.0 - self.azimuth
-        azimuthrad = azimuth * numpy.pi / 180.0
-        altituderad = self.angle_altitude * numpy.pi / 180.0
+        azimuthrad = numpy.deg2rad(azimuth)
+        altituderad = numpy.deg2rad(self.angle_altitude)
         shaded = numpy.sin(altituderad) * numpy.sin(slope) + numpy.cos(
             altituderad
         ) * numpy.cos(slope) * numpy.cos(azimuthrad - aspect)
@@ -95,7 +95,7 @@ class Slope(BaseAlgorithm):
         dx = x / pixel_size_x
         dy = y / pixel_size_y
 
-        slope = numpy.arctan(numpy.sqrt(dx * dx + dy * dy)) * (180 / numpy.pi)
+        slope = numpy.rad2deg(numpy.arctan(numpy.sqrt(dx * dx + dy * dy)))
 
         bounds = img.bounds
         if self.buffer:
