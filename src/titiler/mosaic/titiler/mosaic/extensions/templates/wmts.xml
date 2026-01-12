@@ -42,20 +42,27 @@
         <Layer>
             <ows:Title>{{ layer.title }}</ows:Title>
             <ows:Identifier>{{ layer.identifier }}</ows:Identifier>
-            <ows:{{ bbox_crs_type }} crs="{{ bbox_crs_uri }}">
-                <ows:LowerCorner>{{ layer.bounds[0] }} {{ layer.bounds[1] }}</ows:LowerCorner>
-                <ows:UpperCorner>{{ layer.bounds[2] }} {{ layer.bounds[3] }}</ows:UpperCorner>
-            </ows:{{ bbox_crs_type }}>
-            <Style isDefault="{{ 'true' if layer.is_default else 'false' }}">
+            <ows:{{ layer.bbox_crs_type }} crs="{{ layer.bbox_crs_uri }}">
+                <ows:LowerCorner>{{ layer.bbox[0] }} {{ layer.bbox[1] }}</ows:LowerCorner>
+                <ows:UpperCorner>{{ layer.bbox[2] }} {{ layer.bbox[3] }}</ows:UpperCorner>
+            </ows:{{ layer.bbox_crs_type }}>
+            <Style isDefault="true">
+                <ows:Title>{{ layer.title }}</ows:Title>
                 <ows:Identifier>{{ layer.identifier }}</ows:Identifier>
             </Style>
             <Format>{{ media_type }}</Format>
             <TileMatrixSetLink>
                 <TileMatrixSet>{{ layer.tms_identifier }}</TileMatrixSet>
                 <TileMatrixSetLimits>
-                {% for limit in layer.limits -%}
-                    {{ limit | safe }}
-                {%- endfor %}
+                {% for limit  in layer.tms_limits %}
+                    <TileMatrixLimits>
+                    <TileMatrix>{{ limit.tileMatrix }}</TileMatrix>
+                    <MinTileRow>{{ limit.minTileRow }}</MinTileRow>
+                    <MaxTileRow>{{ limit.maxTileRow }}</MaxTileRow>
+                    <MinTileCol>{{ limit.minTileCol }}</MinTileCol>
+                    <MaxTileCol>{{ limit.maxTileCol }}</MaxTileCol>
+                    </TileMatrixLimits>
+                {% endfor %}
                 </TileMatrixSetLimits>
             </TileMatrixSetLink>
             <ResourceURL format="{{ media_type }}" resourceType="tile" template="{{ layer.tiles_url }}?{{ layer.query_string | escape }}" />
@@ -65,9 +72,17 @@
         <TileMatrixSet>
             <ows:Identifier>{{ tms.id }}</ows:Identifier>
             <ows:SupportedCRS>{{ tms.crs }}</ows:SupportedCRS>
-            {% for item in tms.tilematrix -%}
-            {{ item | safe }}
-            {%- endfor %}
+            {% for matrix in tms.matrices %}
+            <TileMatrix>
+                <ows:Identifier>{{ matrix.id }}</ows:Identifier>
+                <ScaleDenominator>{{ matrix.scaleDenominator }}</ScaleDenominator>
+                <TopLeftCorner>{{ matrix.pointOfOrigin[0] }} {{ matrix.pointOfOrigin[1] }}</TopLeftCorner>
+                <TileWidth>{{ matrix.tileWidth }}</TileWidth>
+                <TileHeight>{{ matrix.tileHeight }}</TileHeight>
+                <MatrixWidth>{{ matrix.matrixWidth }}</MatrixWidth>
+                <MatrixHeight>{{ matrix.matrixHeight }}</MatrixHeight>
+            </TileMatrix>
+            {% endfor %}
         </TileMatrixSet>
     {%- endfor %}
     </Contents>

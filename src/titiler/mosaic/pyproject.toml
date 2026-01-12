@@ -44,6 +44,7 @@ test = [
     "pytest-cov",
     "pytest-asyncio",
     "httpx",
+    "owslib",
 ]
 
 [project.urls]
