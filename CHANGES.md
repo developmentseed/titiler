@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 1.1.0 (2026-01-12)
+
+### Misc
+
+* add `get_renders` attribute to `wmtsExtension` extensions
+* refactor WMTS endpoints to enable renders metadata (e.g STAC renders)
+* update `wmts.xml` template **breaking change**
+
 ### titiler.core 
 
 * Improve `dem` algorithms by using numpy functions (author @manand881, https://github.com/developmentseed/titiler/pull/1294)

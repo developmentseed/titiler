@@ -5174,6 +5174,7 @@ stac = [
 [package.dev-dependencies]
 test = [
     { name = "httpx" },
+    { name = "owslib" },
     { name = "pystac", extra = ["validation"] },
     { name = "pytest" },
     { name = "pytest-asyncio" },
@@ -5191,6 +5192,7 @@ provides-extras = ["cogeo", "stac"]
 [package.metadata.requires-dev]
 test = [
     { name = "httpx" },
+    { name = "owslib" },
     { name = "pystac", extras = ["validation"], specifier = ">=1.0.0,<2.0.0" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
@@ -5212,6 +5214,7 @@ mosaicjson = [
 [package.dev-dependencies]
 test = [
     { name = "httpx" },
+    { name = "owslib" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
@@ -5227,6 +5230,7 @@ provides-extras = ["mosaicjson"]
 [package.metadata.requires-dev]
 test = [
     { name = "httpx" },
+    { name = "owslib" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
