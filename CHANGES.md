@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### titiler.extensions
+
+* add support for `float16`, `int64` and `uint64` datatype in viewers
+
 ## 1.1.0 (2026-01-12)
 
 ### Misc
