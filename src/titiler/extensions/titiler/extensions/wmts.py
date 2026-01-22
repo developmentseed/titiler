@@ -233,7 +233,7 @@ class wmtsExtension(FactoryExtension):
                     supported_crs = tms.crs.srs
 
                 tileMatrixSets.append(
-                    {"id": tms.id, "crs": supported_crs, "matrices": tms.tileMatrices}
+                    {"id": tms_id, "crs": supported_crs, "matrices": tms.tileMatrices}
                 )
 
             return self.templates.TemplateResponse(

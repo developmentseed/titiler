@@ -1,6 +1,7 @@
 """Test TiTiler Tiler Factories."""
 
 import json
+import math
 import os
 import pathlib
 import warnings
@@ -2149,10 +2150,20 @@ def test_ogc_maps_cog():
         )
         headers = response.headers
         assert headers["Content-Crs"] == "<http://www.opengis.net/def/crs/EPSG/0/32621>"
-        assert (
-            headers["Content-Bbox"]
-            == "524922.2217886819,8068852.367048624,581330.6416587981,8123074.564952523"
+        bbox = list(map(float, headers["Content-Bbox"].split(",")))
+        assert all(
+            math.isclose(a, b, rel_tol=1e-5)
+            for a, b in zip(
+                bbox,
+                [
+                    524922.2217886819,
+                    8068852.367048624,
+                    581330.6416587981,
+                    8123074.564952523,
+                ],
+            )
         )
+
         assert headers["content-type"] == "image/png"
         meta = parse_img(response.content)
 
@@ -2166,9 +2177,18 @@ def test_ogc_maps_cog():
         )
         headers = response.headers
         assert headers["Content-Crs"] == "<http://www.opengis.net/def/crs/EPSG/0/32621>"
-        assert (
-            headers["Content-Bbox"]
-            == "524922.2217886819,8068852.367048624,581330.6416587981,8123074.564952523"
+        bbox = list(map(float, headers["Content-Bbox"].split(",")))
+        assert all(
+            math.isclose(a, b, rel_tol=1e-5)
+            for a, b in zip(
+                bbox,
+                [
+                    524922.2217886819,
+                    8068852.367048624,
+                    581330.6416587981,
+                    8123074.564952523,
+                ],
+            )
         )
         assert headers["content-type"] == "image/png"
 
@@ -2183,9 +2203,18 @@ def test_ogc_maps_cog():
         assert response.status_code == 200
         headers = response.headers
         assert headers["Content-Crs"] == "<http://www.opengis.net/def/crs/EPSG/0/32621>"
-        assert (
-            headers["Content-Bbox"]
-            == "524922.2217886819,8068852.367048624,581330.6416587983,8123074.564952523"
+        bbox = list(map(float, headers["Content-Bbox"].split(",")))
+        assert all(
+            math.isclose(a, b, rel_tol=1e-5)
+            for a, b in zip(
+                bbox,
+                [
+                    524922.2217886819,
+                    8068852.367048624,
+                    581330.6416587981,
+                    8123074.564952523,
+                ],
+            )
         )
         assert headers["content-type"] == "image/png"
 

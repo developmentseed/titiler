@@ -2,9 +2,20 @@
 
 ## Unreleased
 
+## 1.1.1 (2026-01-22)
+
 ### titiler.extensions
 
-* add support for `float16`, `int64` and `uint64` datatype in viewers
+* add: support for `float16`, `int64` and `uint64` datatype in viewers
+* fix: make sure TMS have ids in WMTS XML documents
+
+### titiler.mosaic
+
+* fix: make sure TMS have ids in WMTS XML documents
+
+### titiler.xarray
+
+* fix: add `h5py` in optional dependency
 
 ## 1.1.0 (2026-01-12)
 
