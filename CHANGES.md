@@ -13,6 +13,10 @@
 
 * fix: make sure TMS have ids in WMTS XML documents
 
+### titiler.xarray
+
+* fix: add `h5py` in optional dependency
+
 ## 1.1.0 (2026-01-12)
 
 ### Misc

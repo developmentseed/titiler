@@ -39,6 +39,7 @@ dependencies = [
 [project.optional-dependencies]
 fs = [
     "h5netcdf",
+    "h5py",
     "fsspec",
     "s3fs>=2025.2.0",
     "aiohttp",
@@ -60,6 +61,7 @@ test = [
     "pytest-asyncio",
     "httpx",
     "h5netcdf",
+    "h5py",
     "fsspec",
     "s3fs",
     "aiohttp",
