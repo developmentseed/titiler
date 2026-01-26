@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### titiler.extensions
+
+* add: TileMatrixSet extension (`/tms`), to create TMS document from a dataset
+
 ## 1.1.1 (2026-01-22)
 
 ### titiler.extensions
