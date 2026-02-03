@@ -1616,6 +1616,9 @@ class MultiBaseTilerFactory(TilerFactory):
             with rasterio.Env(**env):
                 logger.info(f"opening data with reader: {self.reader}")
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
+                    # Default to all available assets
+                    if not layer_params.assets and not layer_params.expression:
+                        layer_params.assets = src_dst.assets
                     image = src_dst.preview(
                         **layer_params.as_dict(),
                         **image_params.as_dict(),
@@ -1669,6 +1672,9 @@ class MultiBaseTilerFactory(TilerFactory):
             with rasterio.Env(**env):
                 logger.info(f"opening data with reader: {self.reader}")
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
+                    # Default to all available assets
+                    if not layer_params.assets and not layer_params.expression:
+                        layer_params.assets = src_dst.assets
                     for feature in fc.features:
                         image = src_dst.feature(
                             feature.model_dump(exclude_none=True),

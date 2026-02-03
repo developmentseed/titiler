@@ -91,7 +91,7 @@ app.include_router(cog.router)
 | `POST` | `/statistics`                                                   | GeoJSON ([Statistics][stats_geojson_model]) | return dataset's statistics for a GeoJSON
 | `GET`  | `/tiles`                                                        | JSON                                        | List of OGC Tilesets available
 | `GET`  | `/tiles/{tileMatrixSetId}`                                      | JSON                                        | OGC Tileset metadata
-| `GET`  | `/tiles/{tileMatrixSetId}/{z}/{x}/{y}[@{scale}x][.{format}]`    | image/bin                                   | create a web map tile image from a dataset
+| `GET`  | `/tiles/{tileMatrixSetId}/{z}/{x}/{y}[.{format}]`    | image/bin                                   | create a web map tile image from a dataset
 | `GET`  | `/{tileMatrixSetId}/map.html`                                   | HTML                                        | return a simple map viewer **Optional**
 | `GET`  | `/{tileMatrixSetId}/tilejson.json`                              | JSON ([TileJSON][tilejson_model])           | return a Mapbox TileJSON document
 | `GET`  | `/point/{lon},{lat}`                                            | JSON ([Point][point_model])                 | return pixel values from a dataset
@@ -110,7 +110,7 @@ Custom `TilerFactory` to be used with [`rio_tiler.io.MultiBaseReader`](https://c
 #### Attributes
 
 - **reader**: `rio_tiler.io.base.MultiBaseReader` Dataset Reader **required**.
-- **layer_dependency**: Dependency to define assets or expression. Defaults to `titiler.core.dependencies.AssetsBidxExprParams`.
+- **layer_dependency**: Dependency to define assets or expression. Defaults to `titiler.core.dependencies.AssetsExprParams`.
 - **assets_dependency**: Dependency to define assets to be used. Defaults to `titiler.core.dependencies.AssetsParams`.
 
 #### Endpoints
@@ -143,7 +143,7 @@ app.include_router(stac.router)
 | `POST` | `/statistics`                                                   | GeoJSON ([Statistics][multistats_geojson_model]) | return assets statistics for a GeoJSON (merged)
 | `GET`  | `/tiles`                                                        | JSON                                             | List of OGC Tilesets available
 | `GET`  | `/tiles/{tileMatrixSetId}`                                      | JSON                                             | OGC Tileset metadata
-| `GET`  | `/tiles/{tileMatrixSetId}/{z}/{x}/{y}[@{scale}x][.{format}]`    | image/bin                                        | create a web map tile image from assets
+| `GET`  | `/tiles/{tileMatrixSetId}/{z}/{x}/{y}[.{format}]`    | image/bin                                        | create a web map tile image from assets
 | `GET`  | `/{tileMatrixSetId}/map.html`                                   | HTML                                             | return a simple map viewer **Optional**
 | `GET`  | `/{tileMatrixSetId}/tilejson.json`                              | JSON ([TileJSON][tilejson_model])                | return a Mapbox TileJSON document
 | `GET`  | `/point/{lon},{lat}`                                            | JSON ([Point][multipoint_model])                 | return pixel values from assets
@@ -280,7 +280,7 @@ Endpoints factory for mosaics.
 | `GET`  | `/info.geojson`                                                 | GeoJSON ([InfoGeoJSON][mosaic_geojson_info_model]) | return mosaic's basic info  as a GeoJSON feature
 | `GET`  | `/tiles`                                                        | JSON                                               | List of OGC Tilesets available
 | `GET`  | `/tiles/{tileMatrixSetId}`                                      | JSON                                               | OGC Tileset metadata
-| `GET`  | `/tiles/{tileMatrixSetId}/{z}/{x}/{y}[@{scale}x][.{format}]`    | image/bin                                          | create a web map tile image from a MosaicJSON
+| `GET`  | `/tiles/{tileMatrixSetId}/{z}/{x}/{y}[.{format}]`    | image/bin                                          | create a web map tile image from a MosaicJSON
 | `GET`  | `/tiles/{tileMatrixSetId}/{z}/{x}/{y}/assets`                   | JSON                                               | return list of assets intersecting a XYZ tile
 | `GET`  | `/{tileMatrixSetId}/map.html`                                   | HTML                                               | return a simple map viewer **Optional**
 | `GET`  | `/{tileMatrixSetId}/tilejson.json`                              | JSON ([TileJSON][tilejson_model])                  | return a Mapbox TileJSON document
@@ -369,7 +369,7 @@ app.include_router(md.router)
 | `POST` | `/statistics`                                                   | GeoJSON ([Statistics][stats_geojson_model]) | return dataset's statistics for a GeoJSON
 | `GET`  | `/tiles`                                                        | JSON                                        | List of OGC Tilesets available
 | `GET`  | `/tiles/{tileMatrixSetId}`                                      | JSON                                        | OGC Tileset metadata
-| `GET`  | `/tiles/{tileMatrixSetId}/{z}/{x}/{y}[@{scale}x][.{format}]`    | image/bin                                   | create a web map tile image from a dataset
+| `GET`  | `/tiles/{tileMatrixSetId}/{z}/{x}/{y}[.{format}]`    | image/bin                                   | create a web map tile image from a dataset
 | `GET`  | `/{tileMatrixSetId}/map.html`                                   | HTML                                        | return a simple map viewer **Optional**
 | `GET`  | `/{tileMatrixSetId}/tilejson.json`                              | JSON ([TileJSON][tilejson_model])           | return a Mapbox TileJSON document
 | `GET`  | `/point/{lon},{lat}`                                            | JSON ([Point][point_model])                 | return pixel values from a dataset

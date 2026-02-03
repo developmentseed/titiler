@@ -825,6 +825,13 @@ def test_MultiBaseTilerFactory(rio):
     assert resp["B09|indexes=1,1"]["b1"]["description"] == "b1"
     assert resp["B09|indexes=1,1"]["b2"]["description"] == "b1"
 
+    # default to all assets
+    response = client.get(f"/statistics?url={DATA_DIR}/item.json")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    resp = response.json()
+    assert len(resp) == 2
+
     response = client.get(f"/statistics?url={DATA_DIR}/item.json&assets=B01&assets=B09")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
@@ -904,6 +911,16 @@ def test_MultiBaseTilerFactory(rio):
     }
     assert props["b1"]["description"] == "B01_b1"
     assert props["b2"]["description"] == "B09_b1"
+
+    # default to all assets
+    response = client.post(
+        f"/statistics?url={DATA_DIR}/item.json",
+        json=stac_feature["features"][0],
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/geo+json"
+    resp = response.json()
+    assert len(resp["properties"]["statistics"]) == 2
 
     response = client.post(
         f"/statistics?url={DATA_DIR}/item.json&assets=B01&assets=B09", json=stac_feature

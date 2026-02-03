@@ -56,108 +56,69 @@ Define `assets`.
 class AssetsParams(DefaultDependency):
     """Assets parameters."""
 
-    assets: List[str] = Query(
-        None,
-        title="Asset names",
-        description="Asset's names.",
-        openapi_examples={
-            "user-provided": {"value": None},
-            "one-asset": {
-                "description": "Return results for asset `data`.",
-                "value": ["data"],
+    assets: Annotated[
+        list[str] | None,
+        Query(
+            title="Asset names",
+            description="Asset's names.",
+            openapi_examples={
+                "user-provided": {"value": None},
+                "one-asset": {
+                    "description": "Return results for asset `data`.",
+                    "value": ["data"],
+                },
+                "multi-assets": {
+                    "description": "Return results for assets `data` and `cog`.",
+                    "value": ["data", "cog"],
+                },
+                "one-asset-with-option": {
+                    "description": "Return results for asset `data`.",
+                    "value": ["data|indexes=1,2,3"],
+                },
             },
-            "multi-assets": {
-                "description": "Return results for assets `data` and `cog`.",
-                "value": ["data", "cog"],
-            },
-        },
-    )
+        ),
+    ] = None
 ```
 
 </details>
 
 
-#### AssetsBidxParams
+#### AssetsExprParamsOptional
 
-Define `assets` with option of `per-asset` expression with `asset_expression` option.
+Define `assets`. Without requirement on assets nor expression.
 
 | Name      | Type      | Required | Default
 | ------    | ----------|----------|--------------
 | **assets** | Query (str) | No | None
-| **asset_indexes** | Query (str) | No | None
-| **asset_expression** | Query (str) | No | False
+| **expression** | Query (str) | No | None
+| **asset_as_band** | Query (bool) | No | False
 
 <details>
 
 ```python
 @dataclass
-class AssetsBidxParams(AssetsParams):
-    """Assets, Asset's band Indexes and Asset's band Expression parameters."""
+class AssetsExprParamsOptional(AssetsParams, ExpressionParams):
+    """Assets and Expression parameters."""
 
-    asset_indexes: Annotated[
-        Optional[Sequence[str]],
+    asset_as_band: Annotated[
+        bool | None,
         Query(
-            title="Per asset band indexes",
-            description="Per asset band indexes",
-            alias="asset_bidx",
-            openapi_examples={
-                "user-provided": {"value": None},
-                "one-asset": {
-                    "description": "Return indexes 1,2,3 of asset `data`.",
-                    "value": ["data|1;2;3"],
-                },
-                "multi-assets": {
-                    "description": "Return indexes 1,2,3 of asset `data` and indexes 1 of asset `cog`",
-                    "value": ["data|1;2;3", "cog|1"],
-                },
-            },
+            title="Consider asset as a 1 band dataset",
+            description="Asset as Band",
         ),
     ] = None
-
-    asset_expression: Annotated[
-        Optional[Sequence[str]],
-        Query(
-            title="Per asset band expression",
-            description="Per asset band expression",
-            openapi_examples={
-                "user-provided": {"value": None},
-                "one-asset": {
-                    "description": "Return results for expression `b1*b2+b3` of asset `data`.",
-                    "value": ["data|b1*b2+b3"],
-                },
-                "multi-assets": {
-                    "description": "Return results for expressions `b1*b2+b3` for asset `data` and `b1+b3` for asset `cog`.",
-                    "value": ["data|b1*b2+b3", "cog|b1+b3"],
-                },
-            },
-        ),
-    ] = None
-
-    def __post_init__(self):
-        """Post Init."""
-        if self.asset_indexes:
-            self.asset_indexes: Dict[str, Sequence[int]] = {  # type: ignore
-                idx.split("|")[0]: list(map(int, idx.split("|")[1].split(",")))
-                for idx in self.asset_indexes
-            }
-
-        if self.asset_expression:
-            self.asset_expression: Dict[str, str] = {  # type: ignore
-                idx.split("|")[0]: idx.split("|")[1] for idx in self.asset_expression
-            }
 ```
 
 </details>
 
-#### AssetsBidxExprParams
+#### AssetsExprParams
 
 Define `assets`.
 
 | Name      | Type      | Required | Default
 | ------    | ----------|----------|--------------
-| **assets** | Query (str) | No\* | None
-| **expression** | Query (str) | No\* | None
-| **asset_indexes** | Query (str) | No | None
+| **assets** | Query (str) | Yes | None
+| **expression** | Query (str) | No | None
 | **asset_as_band** | Query (bool) | No | False
 
 \* `assets` or `expression` is required.
@@ -166,174 +127,13 @@ Define `assets`.
 
 ```python
 @dataclass
-class AssetsBidxExprParams(AssetsParams):
-    """Assets, Expression and Asset's band Indexes parameters."""
-
-    expression: Annotated[
-        Optional[str],
-        Query(
-            title="Band Math expression",
-            description="Band math expression between assets",
-            openapi_examples={
-                "user-provided": {"value": None},
-                "simple": {
-                    "description": "Return results of expression between assets.",
-                    "value": "asset1_b1 + asset2_b1 / asset3_b1",
-                },
-            },
-        ),
-    ] = None
-
-    asset_indexes: Annotated[
-        Optional[Sequence[str]],
-        Query(
-            title="Per asset band indexes",
-            description="Per asset band indexes (coma separated indexes)",
-            alias="asset_bidx",
-            openapi_examples={
-                "user-provided": {"value": None},
-                "one-asset": {
-                    "description": "Return indexes 1,2,3 of asset `data`.",
-                    "value": ["data|1,2,3"],
-                },
-                "multi-assets": {
-                    "description": "Return indexes 1,2,3 of asset `data` and indexes 1 of asset `cog`",
-                    "value": ["data|1,2,3", "cog|1"],
-                },
-            },
-        ),
-    ] = None
-
-    asset_as_band: Annotated[
-        Optional[bool],
-        Query(
-            title="Consider asset as a 1 band dataset",
-            description="Asset as Band",
-        ),
-    ] = None
+class AssetsExprParams(AssetsExprParamsOptional):
+    """Assets and Expression parameters with required assets."""
 
     def __post_init__(self):
         """Post Init."""
-        if not self.assets and not self.expression:
-            raise MissingAssets(
-                "assets must be defined either via expression or assets options."
-            )
-
-        if self.asset_indexes:
-            self.asset_indexes: Dict[str, Sequence[int]] = {  # type: ignore
-                idx.split("|")[0]: list(map(int, idx.split("|")[1].split(",")))
-                for idx in self.asset_indexes
-            }
-```
-
-</details>
-
-#### AssetsBidxExprParamsOptional
-
-Define `assets`. Without requirement on assets nor expression.
-
-| Name      | Type      | Required | Default
-| ------    | ----------|----------|--------------
-| **assets** | Query (str) | No | None
-| **expression** | Query (str) | No | None
-| **asset_indexes** | Query (str) | No | None
-| **asset_as_band** | Query (bool) | No | False
-
-<details>
-
-```python
-@dataclass
-class AssetsBidxExprParamsOptional(AssetsBidxExprParams):
-    """Assets, Expression and Asset's band Indexes parameters but with no requirement."""
-
-    def __post_init__(self):
-        """Post Init."""
-        if self.asset_indexes:
-            self.asset_indexes: Dict[str, Sequence[int]] = {  # type: ignore
-                idx.split("|")[0]: list(map(int, idx.split("|")[1].split(",")))
-                for idx in self.asset_indexes
-            }
-```
-
-</details>
-
-
-#### BandsParams
-
-Define `bands`.
-
-| Name      | Type      | Required | Default
-| ------    | ----------|----------|--------------
-| **bands** | Query (str) | No | None
-
-<details>
-
-```python
-@dataclass
-class BandsParams(DefaultDependency):
-    """Band names parameters."""
-
-    bands: List[str] = Query(
-        None,
-        title="Band names",
-        description="Band's names.",
-        openapi_examples={
-            "user-provided": {"value": None},
-            "one-band": {
-                "description": "Return results for band `B01`.",
-                "value": ["B01"],
-            },
-            "multi-bands": {
-                "description": "Return results for bands `B01` and `B02`.",
-                "value": ["B01", "B02"],
-            },
-        },
-    )
-```
-
-</details>
-
-
-#### BandsExprParams
-
-Define `bands`.
-
-| Name      | Type      | Required | Default
-| ------    | ----------|----------|--------------
-| **bands** | Query (str) | No\* | None
-| **expression** | Query (str) | No\* | None
-
-\* `bands` or `expression` is required.
-
-<details>
-
-```python
-@dataclass
-class BandsExprParamsOptional(ExpressionParams, BandsParams):
-    """Optional Band names and Expression parameters."""
-
-    pass
-```
-
-</details>
-
-#### BandsExprParamsOptional
-
-Define `bands`.
-
-| Name      | Type      | Required | Default
-| ------    | ----------|----------|--------------
-| **bands** | Query (str) | No | None
-| **expression** | Query (str) | No | None
-
-<details>
-
-```python
-@dataclass
-class BandsExprParamsOptional(ExpressionParams, BandsParams):
-    """Optional Band names and Expression parameters."""
-
-    pass
+        if not self.assets:
+            raise MissingAssets("assets must be defined")
 ```
 
 </details>

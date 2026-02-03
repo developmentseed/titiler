@@ -56,6 +56,10 @@ dev = [
     "boto3",
     "owslib",
     "pre-commit",
+    "IPython",
+    "jupyter",
+    "matplotlib",
+    "folium",
 ]
 telemetry = [
     "opentelemetry-api",
@@ -74,12 +78,6 @@ docs = [
 ]
 server = [
     "uvicorn",
-]
-notebook = [
-    "IPython",
-    "jupyter",
-    "matplotlib",
-    "folium",
 ]
 
 [project.urls]
