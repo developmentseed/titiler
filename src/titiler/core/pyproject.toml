@@ -36,8 +36,7 @@ dependencies = [
     "numpy",
     "pydantic~=2.0",
     "rasterio",
-    # "rio-tiler>=9.0,<10.0",
-    "rio-tiler @ git+https://github.com/cogeotiff/rio-tiler.git",
+    "rio-tiler>=9.0.0a1,<10.0",
     "morecantile",
     "simplejson",
     "typing_extensions>=4.6.1",
@@ -79,6 +78,3 @@ only-include = ["titiler"]
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
-
-[tool.hatch.metadata]
-allow-direct-references = true

@@ -4668,8 +4668,8 @@ wheels = [
 
 [[package]]
 name = "rio-tiler"
-version = "9.0.0.dev0"
-source = { git = "https://github.com/cogeotiff/rio-tiler.git#f59f0151565193b79e3007553ea73c5c78cdb722" }
+version = "9.0.0a1"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "attrs" },
     { name = "cachetools" },
@@ -4683,6 +4683,10 @@ dependencies = [
     { name = "rasterio", version = "1.4.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "rasterio", version = "1.5.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e9/96/085065c323bcec0462dc9d465738e7843d0f454a5d33859f6dc23db4c558/rio_tiler-9.0.0a1.tar.gz", hash = "sha256:dc2199e7f0d9b5b591f6df53bbd679e1d1d67189d7b57a81ab2f9724ba0f712b", size = 181126, upload-time = "2026-02-03T20:08:50.254Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/72/f0/b603c63ce5fc7c3b3601dd68c8e9b01d078378b940264641cbdb0a56367c/rio_tiler-9.0.0a1-py3-none-any.whl", hash = "sha256:b94e2f279153d0f887e15d6793fcc43efb3a2eb85e79cb40477d62e37ca51f95", size = 277124, upload-time = "2026-02-03T20:08:48.475Z" },
 ]
 
 [[package]]
@@ -5306,7 +5310,7 @@ requires-dist = [
     { name = "opentelemetry-sdk", marker = "extra == 'telemetry'" },
     { name = "pydantic", specifier = "~=2.0" },
     { name = "rasterio" },
-    { name = "rio-tiler", git = "https://github.com/cogeotiff/rio-tiler.git" },
+    { name = "rio-tiler", specifier = ">=9.0.0a1,<10.0" },
     { name = "simplejson" },
     { name = "typing-extensions", specifier = ">=4.6.1" },
 ]
@@ -5993,8 +5997,8 @@ wheels = [
 
 [[package]]
 name = "xarray"
-version = "2026.1.1.dev9+ge095d9fbf"
-source = { git = "https://github.com/pydata/xarray#e095d9fbf19e28bf5f06cea857c144c7dab22e54" }
+version = "2026.1.1.dev10+gac3b80c2e"
+source = { git = "https://github.com/pydata/xarray#ac3b80c2e04cda756268d3e5af19e0159dc9c984" }
 dependencies = [
     { name = "numpy" },
     { name = "packaging" },
