@@ -140,6 +140,7 @@ nav:
 
   - Migrations:
     - From titiler 0.26.x to 1.x: "migrations/v1_migration.md"
+    - From titiler 1.x to 2.x: "migrations/v2_migration.md"
 
   - External links: "external_links.md"
   - Development - Contributing: "contributing.md"

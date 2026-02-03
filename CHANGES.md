@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 2.0.0 (TBD)
+
 ### Misc
 
 * remove: 256x256 tilesize default
