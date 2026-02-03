@@ -995,8 +995,9 @@ class TilerFactory(BaseFactory):
                 for (key, value) in request.query_params._list
                 if key.lower() not in qs_key_to_remove
             ]
-            if qs:
-                tiles_url += f"?{urlencode(qs)}"
+            if "tilesize" not in request.query_params:
+                qs.append(("tilesize", str(tilesize)))
+            tiles_url += f"?{urlencode(qs)}"
 
             tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
