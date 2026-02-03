@@ -28,11 +28,13 @@ class NormalizedIndex(BaseAlgorithm):
         b1 = img.array[0].astype("float32")
         b2 = img.array[1].astype("float32")
         arr = numpy.ma.MaskedArray((b2 - b1) / (b2 + b1), dtype=self.output_dtype)
-        bnames = img.band_names
+        bnames = img.band_descriptions
         return ImageData(
             arr,
             assets=img.assets,
             crs=img.crs,
             bounds=img.bounds,
-            band_names=[f"({bnames[1]} - {bnames[0]}) / ({bnames[1]} + {bnames[0]})"],
+            band_descriptions=[
+                f"({bnames[1]} - {bnames[0]}) / ({bnames[1]} + {bnames[0]})"
+            ],
         )

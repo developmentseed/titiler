@@ -7,7 +7,6 @@ from .factory import (  # noqa
     AlgorithmFactory,
     BaseFactory,
     ColorMapFactory,
-    MultiBandTilerFactory,
     MultiBaseTilerFactory,
     TilerFactory,
     TMSFactory,

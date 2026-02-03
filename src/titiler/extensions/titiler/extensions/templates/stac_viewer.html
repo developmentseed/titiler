@@ -449,7 +449,8 @@ const setMapLayers = (url) => {
 
 const set1bViz = () => {
     params = {
-      url: scope.url
+      url: scope.url,
+      tilesize: 256
     }
     const asset = document.getElementById('asset-selector').value
     params.assets = asset
@@ -480,7 +481,8 @@ const set3bViz = () => {
   const b = document.getElementById('b-selector').selectedOptions[0].getAttribute("bidx")
 
   params = {
-    url: scope.url
+    url: scope.url,
+    tilesize: 256
   }
 
   let asset_params

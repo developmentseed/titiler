@@ -2,7 +2,7 @@
 
 import pytest
 
-from titiler.core.dependencies import AssetsBidxExprParams, BidxParams
+from titiler.core.dependencies import AssetsExprParams, BidxParams
 from titiler.core.resources.enums import MediaType
 from titiler.core.utils import (
     accept_media_type,
@@ -121,7 +121,7 @@ def test_check_query_params():
     # assets is required
     assert (
         check_query_params(
-            dependencies=[AssetsBidxExprParams],
+            dependencies=[AssetsExprParams],
             params={},
         )
         is False
@@ -129,8 +129,8 @@ def test_check_query_params():
 
     assert (
         check_query_params(
-            dependencies=[AssetsBidxExprParams, BidxParams],
-            params={"assets": "yo", "bidx": 1},
+            dependencies=[AssetsExprParams, BidxParams],
+            params={"assets": "yo"},
         )
         is True
     )

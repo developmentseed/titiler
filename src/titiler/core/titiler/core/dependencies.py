@@ -1,7 +1,6 @@
 """Common dependency."""
 
 import json
-import warnings
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from typing import Annotated, Literal
@@ -13,7 +12,7 @@ from rasterio.crs import CRS
 from rio_tiler.colormap import ColorMaps
 from rio_tiler.colormap import cmap as default_cmap
 from rio_tiler.colormap import parse_color
-from rio_tiler.errors import MissingAssets, MissingBands
+from rio_tiler.errors import MissingAssets
 from rio_tiler.types import RIOResampling, WarpResampling
 from starlette.requests import Request
 
@@ -148,66 +147,18 @@ class AssetsParams(DefaultDependency):
                     "description": "Return results for assets `data` and `cog`.",
                     "value": ["data", "cog"],
                 },
+                "one-asset-with-option": {
+                    "description": "Return results for asset `data`.",
+                    "value": ["data|indexes=1,2,3"],
+                },
             },
         ),
     ] = None
-
-
-def parse_asset_indexes(
-    asset_indexes: Sequence[str] | dict[str, Sequence[int]],
-) -> dict[str, Sequence[int]]:
-    """parse asset indexes parameters."""
-    return {
-        idx.split("|")[0]: list(map(int, idx.split("|")[1].split(",")))
-        for idx in asset_indexes
-    }
-
-
-def parse_asset_expression(
-    asset_expression: Sequence[str] | dict[str, str],
-) -> dict[str, str]:
-    """parse asset expression parameters."""
-    return {idx.split("|")[0]: idx.split("|")[1] for idx in asset_expression}
 
 
 @dataclass
-class AssetsBidxExprParams(AssetsParams, BidxParams):
-    """Assets, Expression and Asset's band Indexes parameters."""
-
-    expression: Annotated[
-        str | None,
-        Query(
-            title="Band Math expression",
-            description="Band math expression between assets",
-            openapi_examples={
-                "user-provided": {"value": None},
-                "simple": {
-                    "description": "Return results of expression between assets.",
-                    "value": "asset1_b1 + asset2_b1 / asset3_b1",
-                },
-            },
-        ),
-    ] = None
-
-    asset_indexes: Annotated[
-        Sequence[str] | None,
-        Query(
-            title="Per asset band indexes",
-            description="Per asset band indexes (coma separated indexes)",
-            alias="asset_bidx",
-            openapi_examples={
-                "user-provided": {"value": None},
-                "one-asset": {
-                    "description": "Return indexes 1,2,3 of asset `data`.",
-                    "value": ["data|1,2,3"],
-                },
-                "multi-assets": {
-                    "description": "Return indexes 1,2,3 of asset `data` and indexes 1 of asset `cog`",
-                    "value": ["data|1,2,3", "cog|1"],
-                },
-            },
-        ),
-    ] = None
+class AssetsExprParamsOptional(AssetsParams, ExpressionParams):
+    """Assets and Expression parameters."""
 
     asset_as_band: Annotated[
         bool | None,
@@ -217,142 +168,15 @@ class AssetsBidxExprParams(AssetsParams, BidxParams):
         ),
     ] = None
 
-    def __post_init__(self):
-        """Post Init."""
-        if not self.assets and not self.expression:
-            raise MissingAssets(
-                "assets must be defined either via expression or assets options."
-            )
-
-        if self.asset_indexes:
-            self.asset_indexes = parse_asset_indexes(self.asset_indexes)
-
-        if self.asset_indexes and self.indexes:
-            warnings.warn(
-                "Both `asset_bidx` and `bidx` passed; only `asset_bidx` will be considered.",
-                UserWarning,
-                stacklevel=1,
-            )
-
 
 @dataclass
-class AssetsBidxExprParamsOptional(AssetsBidxExprParams):
-    """Assets, Expression and Asset's band Indexes parameters but with no requirement."""
+class AssetsExprParams(AssetsExprParamsOptional):
+    """Assets and Expression parameters with required assets."""
 
     def __post_init__(self):
         """Post Init."""
-        if self.asset_indexes:
-            self.asset_indexes = parse_asset_indexes(self.asset_indexes)
-
-        if self.asset_indexes and self.indexes:
-            warnings.warn(
-                "Both `asset_bidx` and `bidx` passed; only `asset_bidx` will be considered.",
-                UserWarning,
-                stacklevel=1,
-            )
-
-
-@dataclass
-class AssetsBidxParams(AssetsParams, BidxParams):
-    """Assets, Asset's band Indexes and Asset's band Expression parameters."""
-
-    asset_indexes: Annotated[
-        Sequence[str] | None,
-        Query(
-            title="Per asset band indexes",
-            description="Per asset band indexes",
-            alias="asset_bidx",
-            openapi_examples={
-                "user-provided": {"value": None},
-                "one-asset": {
-                    "description": "Return indexes 1,2,3 of asset `data`.",
-                    "value": ["data|1;2;3"],
-                },
-                "multi-assets": {
-                    "description": "Return indexes 1,2,3 of asset `data` and indexes 1 of asset `cog`",
-                    "value": ["data|1;2;3", "cog|1"],
-                },
-            },
-        ),
-    ] = None
-
-    asset_expression: Annotated[
-        Sequence[str] | None,
-        Query(
-            title="Per asset band expression",
-            description="Per asset band expression",
-            openapi_examples={
-                "user-provided": {"value": None},
-                "one-asset": {
-                    "description": "Return results for expression `b1*b2+b3` of asset `data`.",
-                    "value": ["data|b1*b2+b3"],
-                },
-                "multi-assets": {
-                    "description": "Return results for expressions `b1*b2+b3` for asset `data` and `b1+b3` for asset `cog`.",
-                    "value": ["data|b1*b2+b3", "cog|b1+b3"],
-                },
-            },
-        ),
-    ] = None
-
-    def __post_init__(self):
-        """Post Init."""
-        if self.asset_indexes:
-            self.asset_indexes = parse_asset_indexes(self.asset_indexes)
-
-        if self.asset_expression:
-            self.asset_expression = parse_asset_expression(self.asset_expression)
-
-        if self.asset_indexes and self.indexes:
-            warnings.warn(
-                "Both `asset_bidx` and `bidx` passed; only `asset_bidx` will be considered.",
-                UserWarning,
-                stacklevel=1,
-            )
-
-
-# Dependencies for  MultiBandReader
-@dataclass
-class BandsParams(DefaultDependency):
-    """Band names parameters."""
-
-    bands: Annotated[
-        list[str] | None,
-        Query(
-            title="Band names",
-            description="Band's names.",
-            openapi_examples={
-                "user-provided": {"value": None},
-                "one-band": {
-                    "description": "Return results for band `B01`.",
-                    "value": ["B01"],
-                },
-                "multi-bands": {
-                    "description": "Return results for bands `B01` and `B02`.",
-                    "value": ["B01", "B02"],
-                },
-            },
-        ),
-    ] = None
-
-
-@dataclass
-class BandsExprParamsOptional(ExpressionParams, BandsParams):
-    """Optional Band names and Expression parameters."""
-
-    pass
-
-
-@dataclass
-class BandsExprParams(ExpressionParams, BandsParams):
-    """Band names and Expression parameters (Band or Expression required)."""
-
-    def __post_init__(self):
-        """Post Init."""
-        if not self.bands and not self.expression:
-            raise MissingBands(
-                "bands must be defined either via expression or bands options."
-            )
+        if not self.assets:
+            raise MissingAssets("assets must be defined")
 
 
 @dataclass

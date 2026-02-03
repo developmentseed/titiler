@@ -64,12 +64,6 @@ class wmtsExtension(FactoryExtension):
                 ImageType,
                 Query(description="Output image type. Default is png."),
             ] = ImageType.png,
-            tile_scale: Annotated[
-                int,
-                Query(
-                    gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
-                ),
-            ] = 1,
             use_epsg: Annotated[
                 bool,
                 Query(
@@ -111,6 +105,7 @@ class wmtsExtension(FactoryExtension):
                 ##########################################
                 # 1. Create layers from `renders` metadata
                 for name, values in default_renders.items():
+                    values.pop("tilesize", None)  # Ensure tilesize is not overridden
                     if check_query_params(tile_dependencies, values):
                         renders.append(
                             {
@@ -133,8 +128,9 @@ class wmtsExtension(FactoryExtension):
                 # 2. Create layer from query-parameters
                 qs_key_to_remove = [
                     "tile_format",
-                    "tile_scale",
                     "use_epsg",
+                    # Make sure tilesize is not ovewrriden from WMTS request
+                    "tilesize",
                     # OGC WMTS parameters to ignore
                     "service",
                     "request",
@@ -210,7 +206,6 @@ class wmtsExtension(FactoryExtension):
                             "z": "{TileMatrix}",
                             "x": "{TileCol}",
                             "y": "{TileRow}",
-                            "scale": tile_scale,
                             "format": tile_format.value,
                             "tileMatrixSetId": tms_id,
                         }

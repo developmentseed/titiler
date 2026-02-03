@@ -80,15 +80,6 @@ def test_tile(httpx, rio, app):
     assert meta["width"] == 256
     assert meta["height"] == 256
 
-    response = app.get(
-        "/stac/tiles/WebMercatorQuad/9/289/207?url=https://myurl.com/item.json&expression=B01_b1&rescale=0,1000"
-    )
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "image/png"
-    meta = parse_img(response.content)
-    assert meta["width"] == 256
-    assert meta["height"] == 256
-
 
 @patch("rio_tiler.io.rasterio.rasterio")
 @patch("rio_tiler.io.stac.httpx")
@@ -112,7 +103,7 @@ def test_tilejson(httpx, rio, app):
     assert body["scheme"] == "xyz"
     assert len(body["tiles"]) == 1
     assert body["tiles"][0].startswith(
-        "http://testserver/stac/tiles/WebMercatorQuad/{z}/{x}/{y}@1x?url="
+        "http://testserver/stac/tiles/WebMercatorQuad/{z}/{x}/{y}?url="
     )
     assert body["minzoom"] == 5
     assert body["maxzoom"] == 10
@@ -120,13 +111,14 @@ def test_tilejson(httpx, rio, app):
     assert body["center"]
 
     response = app.get(
-        "/stac/WebMercatorQuad/tilejson.json?url=https://myurl.com/item.json&assets=B01&tile_format=png&tile_scale=2"
+        "/stac/WebMercatorQuad/tilejson.json?url=https://myurl.com/item.json&assets=B01&tile_format=png&tilesize=512"
     )
     assert response.status_code == 200
     body = response.json()
     assert body["tiles"][0].startswith(
-        "http://testserver/stac/tiles/WebMercatorQuad/{z}/{x}/{y}@2x.png?url="
+        "http://testserver/stac/tiles/WebMercatorQuad/{z}/{x}/{y}.png?url="
     )
+    assert "tilesize=512" in body["tiles"][0]
 
 
 @patch("rio_tiler.io.rasterio.rasterio")
@@ -157,15 +149,6 @@ def test_preview(httpx, rio, app):
     meta = parse_img(response.content)
     assert meta["width"] == 128
     assert meta["height"] == 128
-
-    response = app.get(
-        "/stac/preview?url=https://myurl.com/item.json&expression=B01_b1&rescale=0,1000&max_size=64"
-    )
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "image/png"
-    meta = parse_img(response.content)
-    assert meta["width"] == 64
-    assert meta["height"] == 64
 
 
 @patch("rio_tiler.io.rasterio.rasterio")
@@ -200,7 +183,7 @@ def test_part(httpx, rio, app):
     assert meta["height"] == 128
 
     response = app.get(
-        "/stac/bbox/23.878,32.063,23.966,32.145.png?url=https://myurl.com/item.json&expression=B01_b1&rescale=0,1000&max_size=64"
+        "/stac/bbox/23.878,32.063,23.966,32.145.png?url=https://myurl.com/item.json&assets=B01&rescale=0,1000&max_size=64"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
@@ -227,24 +210,46 @@ def test_point(httpx, rio, app):
     body = response.json()
     assert body["coordinates"] == [23.878, 32.063]
     assert body["values"] == [3565]
-    assert body["band_names"] == ["B01_b1"]
+    assert body["band_names"] == ["b1"]
+    assert body["band_descriptions"] == ["B01_b1"]
 
     response = app.get(
-        "/stac/point/23.878,32.063?url=https://myurl.com/item.json&expression=B01_b1*2"
+        "/stac/point/23.878,32.063?url=https://myurl.com/item.json&assets=B01&expression=b1*2"
     )
     assert response.status_code == 200
     body = response.json()
     assert body["coordinates"] == [23.878, 32.063]
     assert body["values"] == [7130]
-    assert body["band_names"] == ["B01_b1*2"]
+    assert body["band_names"] == ["b1"]
+    assert body["band_descriptions"] == ["B01_b1*2"]
 
     response = app.get(
-        "/stac/point/23.878,32.063?url=https://myurl.com/item.json&expression=B01_b1/B09_b1"
+        "/stac/point/23.878,32.063?url=https://myurl.com/item.json&assets=B01&expression=b1*2&asset_as_band=true"
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["coordinates"] == [23.878, 32.063]
+    assert body["values"] == [7130]
+    assert body["band_names"] == ["b1"]
+    assert body["band_descriptions"] == ["B01*2"]
+
+    response = app.get(
+        "/stac/point/23.878,32.063?url=https://myurl.com/item.json&assets=B01&assets=B09&expression=b1/b2"
     )
     assert response.status_code == 200
     body = response.json()
     assert body["coordinates"] == [23.878, 32.063]
     assert round(body["values"][0], 2) == 0.49
+    assert body["band_descriptions"] == ["B01_b1/B09_b1"]
+
+    response = app.get(
+        "/stac/point/23.878,32.063?url=https://myurl.com/item.json&assets=B01&assets=B09&expression=b1/b2&asset_as_band=true"
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["coordinates"] == [23.878, 32.063]
+    assert round(body["values"][0], 2) == 0.49
+    assert body["band_descriptions"] == ["B01/B09"]
 
 
 @patch("rio_tiler.io.rasterio.rasterio")

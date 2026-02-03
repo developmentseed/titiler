@@ -25,28 +25,28 @@ def test_deprecated_extension():
     """Test TilerFactory class."""
     with pytest.warns(DeprecationWarning):
         md = TilerFactory(extensions=[VariablesExtension()])
-    assert len(md.router.routes) == 18
+    assert len(md.router.routes) == 16
 
 
 def test_tiler_factory():
     """Test factory with options."""
     """Test TilerFactory class."""
     md = TilerFactory()
-    assert len(md.router.routes) == 17
+    assert len(md.router.routes) == 15
 
     with pytest.warns(UserWarning):
         md = TilerFactory(
             # /preview, /preview.{format}, /preview/{width}x{height}.{format}
             add_preview=True,
         )
-        assert len(md.router.routes) == 20
+        assert len(md.router.routes) == 18
 
     md = TilerFactory(
         router_prefix="/md",
         # /dataset, /dataset/dict, /dataset/keys
         extensions=[DatasetMetadataExtension()],
     )
-    assert len(md.router.routes) == 20
+    assert len(md.router.routes) == 18
 
     app = FastAPI()
     app.include_router(md.router, prefix="/md")
@@ -69,7 +69,7 @@ def app():
         ],
         reader=FsReader,
     )
-    assert len(md.router.routes) == 20
+    assert len(md.router.routes) == 18
 
     app = FastAPI()
     app.include_router(md.router, prefix="/md")
@@ -86,7 +86,7 @@ def app_zarr():
             DatasetMetadataExtension(),
         ],
     )
-    assert len(md.router.routes) == 20
+    assert len(md.router.routes) == 18
 
     app = FastAPI()
     app.include_router(md.router, prefix="/md")

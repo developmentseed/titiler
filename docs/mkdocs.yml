@@ -78,7 +78,6 @@ nav:
       - Tiler with custom Colormap dependency: "examples/code/tiler_with_custom_colormap.md"
       - Loading data with signed URLs: "examples/code/working_with_signed_urls.md"
       - STAC endpoints with custom `/validate`: "examples/code/tiler_with_custom_stac_validation.md"
-      - Custom Sentinel 2 Tiler: "examples/code/tiler_for_sentinel2.md"
       - Add custom algorithms: "examples/code/tiler_with_custom_algorithm.md"
       - GDAL WMTS Extension: "examples/code/create_gdal_wmts_extension.md"
       - STAC + Xarray: "examples/code/tiler_with_custom_stac+xarray.md"

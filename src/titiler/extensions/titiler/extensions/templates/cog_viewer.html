@@ -474,7 +474,8 @@ const setMapLayers = (url) => {
 
 const set1bViz = () => {
   params = {
-    url: scope.url
+    url: scope.url,
+    tilesize: 256
   }
   params.bidx = document.getElementById('layer-selector').selectedOptions[0].getAttribute("bidx")
 
@@ -497,7 +498,8 @@ const set3bViz = () => {
   const b = document.getElementById('b-selector').selectedOptions[0].getAttribute("bidx")
 
   params = {
-    url: scope.url
+    url: scope.url,
+    tilesize: 256
   }
   if (['uint8','int8'].indexOf(scope.data_type) === -1 && !scope.colormap) {
     params.rescale = `${document.getElementById('data-min').value},${document.getElementById('data-max').value}`
