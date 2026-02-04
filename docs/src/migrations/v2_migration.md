@@ -131,7 +131,22 @@ class MyAssetReader(MultiBaseReader):
 tiler = MultiBaseTilerFactory(reader=MyAssetReader)
 ```
 
-### 5. `bidx` Parameter Ignored for MultiBaseReader
+### 5. `assets` Parameter is mandatory for MultiBaseReader when using expressions
+
+The `expression` parameter cannot be used to define `assets` and thus `assets` parameter must be provided.
+
+**Before (1.x):**
+```
+GET /stac/tiles/WebMercatorQuad/10/512/384.png?url=...&expression=B02_b1+B03_b1
+```
+
+**After (2.0):**
+
+```
+GET /stac/tiles/WebMercatorQuad/10/512/384.png?url=...&assets=B02&assets=B03&expression=b1+b2
+```
+
+### 6. `bidx` Parameter Ignored for MultiBaseReader
 
 The `bidx` (band index) parameter is now **ignored** by `MultiBaseTilerFactory` endpoints. Previously, you could use `bidx` to select bands across all assets.
 
@@ -148,7 +163,7 @@ Use new `asset` notation: `assets={AssetName}|indexes=1,2,3`
 GET /stac/tiles/WebMercatorQuad/10/512/384.png?url=...&assets=B02|indexes=1&assets=B03|indexes=1
 ```
 
-### 6. Removed: `asset_indexes` and `asset_expression` Options
+### 7. Removed: `asset_indexes` and `asset_expression` Options
 
 The `asset_indexes` and `asset_expression` query parameters have been removed from `dependencies.py`.
 
@@ -167,7 +182,7 @@ GET /stac/preview.png?url=...&assets=B01|indexes=1,2,3
 GET /stac/preview.png?url=...&assets=B01|expression=b1*2
 ```
 
-### 7. Extension Changes
+### 8. Extension Changes
 
 #### COG and STAC Viewers
 
