@@ -15,7 +15,7 @@ from morecantile import tms as morecantile_tms
 from morecantile.defaults import TileMatrixSets
 from pydantic import Field
 from rio_tiler.constants import MAX_THREADS, WGS84_CRS
-from rio_tiler.io import BaseReader, MultiBandReader, MultiBaseReader, Reader
+from rio_tiler.io import BaseReader, MultiBaseReader, Reader
 from rio_tiler.mosaic.backend import BaseBackend, MosaicInfo
 from rio_tiler.mosaic.methods import PixelSelectionMethod
 from rio_tiler.mosaic.methods.base import MosaicMethodBase
@@ -90,9 +90,7 @@ class MosaicTilerFactory(BaseFactory):
     backend: type[BaseBackend]
     backend_dependency: type[DefaultDependency] = DefaultDependency
 
-    dataset_reader: type[BaseReader] | type[MultiBaseReader] | type[MultiBandReader] = (
-        Reader
-    )
+    dataset_reader: type[BaseReader] | type[MultiBaseReader] = Reader
     reader_dependency: type[DefaultDependency] = DefaultDependency
 
     # Path Dependency
