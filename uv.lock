@@ -3611,7 +3611,7 @@ name = "pexpect"
 version = "4.9.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "ptyprocess", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "ptyprocess" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/42/92/cc564bf6381ff43ce1f4d06852fc19a2f11d180f23dc32d9588bee2f149d/pexpect-4.9.0.tar.gz", hash = "sha256:ee7d41123f3c9911050ea2c2dac107568dc43b2d3b0c7557a33212c398ead30f", size = 166450, upload-time = "2023-11-25T09:07:26.339Z" }
 wheels = [
@@ -4668,7 +4668,7 @@ wheels = [
 
 [[package]]
 name = "rio-tiler"
-version = "9.0.0a1"
+version = "9.0.0a2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "attrs" },
@@ -4684,9 +4684,9 @@ dependencies = [
     { name = "rasterio", version = "1.5.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/e9/96/085065c323bcec0462dc9d465738e7843d0f454a5d33859f6dc23db4c558/rio_tiler-9.0.0a1.tar.gz", hash = "sha256:dc2199e7f0d9b5b591f6df53bbd679e1d1d67189d7b57a81ab2f9724ba0f712b", size = 181126, upload-time = "2026-02-03T20:08:50.254Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/52/31/3964787fce7b459add87ada7133955a19896f5c274be89ed38b0b14c2997/rio_tiler-9.0.0a2.tar.gz", hash = "sha256:4a48cf05985e404fa7e099a2f1d954f70d3bf05941241cb37a2b0cd4824fa634", size = 181109, upload-time = "2026-02-04T09:22:46.682Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/72/f0/b603c63ce5fc7c3b3601dd68c8e9b01d078378b940264641cbdb0a56367c/rio_tiler-9.0.0a1-py3-none-any.whl", hash = "sha256:b94e2f279153d0f887e15d6793fcc43efb3a2eb85e79cb40477d62e37ca51f95", size = 277124, upload-time = "2026-02-03T20:08:48.475Z" },
+    { url = "https://files.pythonhosted.org/packages/c5/c2/b6858193782a8e40796aa4575706e9414c06c58d0c4f6220fe91c65cee6e/rio_tiler-9.0.0a2-py3-none-any.whl", hash = "sha256:0ac2b4209562f464558eeb56af3e3744d44acc5d0a1c745dce6597c57c81cc4e", size = 277107, upload-time = "2026-02-04T09:22:48.061Z" },
 ]
 
 [[package]]
@@ -5993,8 +5993,8 @@ wheels = [
 
 [[package]]
 name = "xarray"
-version = "2026.1.1.dev10+gac3b80c2e"
-source = { git = "https://github.com/pydata/xarray#ac3b80c2e04cda756268d3e5af19e0159dc9c984" }
+version = "2026.1.1.dev11+g7e1118827"
+source = { git = "https://github.com/pydata/xarray#7e111882757853449a4ce8422745988175ae4bba" }
 dependencies = [
     { name = "numpy" },
     { name = "packaging" },
