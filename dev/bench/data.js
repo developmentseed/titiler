@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1770246950576,
+  "lastUpdate": 1770246977195,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -19454,6 +19454,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 3.08,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "vincent.sarago@gmail.com",
+            "name": "Vincent Sarago",
+            "username": "vincentsarago"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d4df94a6587a49af50068f035371eed00b8ae305",
+          "message": "update for rio-tiler 9.0 (#1307)\n\n* update for rio-tiler 9.0\n\n* fix\n\n* migration guide\n\n* use rio-tiler alpha version\n\n* update docs 1\n\n* update docs 2\n\n* fix type\n\n* fix stac viewer\n\n* update docs 3\n\n* update bumpversion config\n\n* update version to 2.0.0dev0\n\n* update chart version",
+          "timestamp": "2026-02-04T16:07:04+01:00",
+          "tree_id": "2f9589987aeda9daecd6328f3eed29a6d3c06fc3",
+          "url": "https://github.com/developmentseed/titiler/commit/d4df94a6587a49af50068f035371eed00b8ae305"
+        },
+        "date": 1770246975597,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.01,
             "unit": "s"
           },
           {
