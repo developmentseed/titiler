@@ -453,10 +453,8 @@ const set1bViz = () => {
       tilesize: 256
     }
     const asset = document.getElementById('asset-selector').value
-    params.assets = asset
-
     const bidx = document.getElementById('layer-selector').selectedOptions[0].getAttribute("bidx")
-    params.asset_bidx = `${asset}|${bidx}`
+    params.assets = `${asset}|indexes=${bidx}`
 
     if (['uint8','int8'].indexOf(scope.dataset_info[asset].dtype) === -1) {
         params.rescale = `${document.getElementById('data-min').value},${document.getElementById('data-max').value}`
@@ -488,14 +486,12 @@ const set3bViz = () => {
   let asset_params
   let indexes_params
   if (document.getElementById("compose-switch").checked === true) {
-    asset_params = [r, g, b].map(i => `assets=${i}`).join('&')
+    asset_params = [r, g, b].map(i => `assets=${i}|indexes=1`).join('&')
     // When doing assets composition we select the first band (bidx=1)
-    indexes_params =  [r, g, b].map(i => `asset_bidx=${i}|1`).join('&')
     params.rescale = `${document.getElementById('data-min').value},${document.getElementById('data-max').value}`
   } else {
     const asset = document.getElementById('asset-selector').value
-    asset_params = `assets=${asset}`
-    indexes_params =  `asset_bidx=${asset}|${r},${g},${b}`
+    asset_params = `assets=${asset}|indexes=${r},${g},${b}`
     if (['uint8','int8'].indexOf(scope.dataset_info[asset].dtype) === -1) {
       params.rescale = `${document.getElementById('data-min').value},${document.getElementById('data-max').value}`
     }
@@ -506,7 +502,7 @@ const set3bViz = () => {
   }
 
   const url_params = Object.keys(params).map(i => `${i}=${params[i]}`).join('&')
-  let url = `{{ tilejson_endpoint }}?${url_params}&${asset_params}&${indexes_params}`
+  let url = `{{ tilejson_endpoint }}?${url_params}&${asset_params}`
   setMapLayers(url)
   if (scope.dataset_statistics) addHisto3Bands()
 }
