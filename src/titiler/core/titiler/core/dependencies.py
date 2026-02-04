@@ -8,7 +8,7 @@ from typing import Annotated, Literal
 
 import numpy
 from fastapi import HTTPException, Query
-from pydantic import Field
+from pydantic import BeforeValidator, Field
 from rasterio.crs import CRS
 from rio_tiler.colormap import ColorMaps
 from rio_tiler.colormap import cmap as default_cmap
@@ -19,6 +19,7 @@ from starlette.requests import Request
 
 from titiler.core.resources.enums import ImageType, MediaType
 from titiler.core.utils import accept_media_type
+from titiler.core.validation import validate_rescale
 
 
 def create_colormap_dependency(cmap: ColorMaps) -> Callable:
@@ -444,6 +445,7 @@ class RenderingParams(DefaultDependency):
 
     rescale: Annotated[
         list[str] | None,
+        BeforeValidator(validate_rescale),
         Query(
             title="Min/Max data Rescaling",
             description="comma (',') delimited Min,Max range. Can set multiple time for multiple bands.",
@@ -467,7 +469,7 @@ class RenderingParams(DefaultDependency):
                 parsed = tuple(
                     map(
                         float,
-                        r.replace(" ", "").replace("[", "").replace("]", "").split(","),
+                        r.split(","),
                     )
                 )
                 assert (

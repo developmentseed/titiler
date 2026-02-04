@@ -530,8 +530,8 @@ def test_rescale_params():
     assert response.status_code == 200
     assert response.json() == [[0, 1], [2, 3]]
 
-    with pytest.raises(AssertionError):
-        client.get("/", params={"rescale": [0, 1]})
+    response = client.get("/", params={"rescale": [0, 1]})
+    assert response.status_code == 422
 
     response = client.get("/", params={"rescale": [[0, 1]]})
     assert response.status_code == 200
