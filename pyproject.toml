@@ -162,7 +162,7 @@ parse = """(?x)
     (?P<minor>\\d+)\\.
     (?P<patch>\\d+)
     (?:
-        (?P<pre_l>a|b|rc)   # pre-release label
+        (?P<pre_l>a|b|rc|dev)   # pre-release label
         (?P<pre_n>\\d+)     # pre-release version number
     )?                      # pre-release section is optional
     (?:
