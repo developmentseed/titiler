@@ -556,6 +556,7 @@ link: https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
                     "value": "0,100,200,300",
                 },
             },
+            pattern=r"^\d+(,\d+)*$",
         ),
     ] = None
 

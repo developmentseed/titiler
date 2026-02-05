@@ -609,6 +609,12 @@ def test_histogram_params():
 
     response = client.get(
         "/",
+        params={"histogram_bins": "invalid value"},
+    )
+    assert response.status_code == 422
+
+    response = client.get(
+        "/",
     )
     assert response.status_code == 200
     assert response.json()["bins"] == 10
