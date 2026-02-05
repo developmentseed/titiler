@@ -5,6 +5,7 @@ on:
   push:
     branches:
     - main
+    - dev
     tags:
     - '*'
     paths:
@@ -15,6 +16,7 @@ on:
       - '.pre-commit-config.yaml'
       - '.github/codecov.yml'
       - 'dockerfiles/**'
+      - '.github/workflows/ci.yml'
   pull_request:
   workflow_dispatch:
 

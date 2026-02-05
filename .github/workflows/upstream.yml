@@ -5,6 +5,7 @@ on:
   push:
     branches:
     - main
+    - dev
     paths:
       # Only run test and docker publish if some code have changed
       - 'src/titiler/xarray/**'
