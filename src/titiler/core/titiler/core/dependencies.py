@@ -589,6 +589,7 @@ link: https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
                     "value": "0,1000",
                 },
             },
+            pattern=rf"^{parseable_float_regex},{parseable_float_regex}$",
         ),
     ] = None
 

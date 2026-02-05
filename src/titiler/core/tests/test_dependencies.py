@@ -629,11 +629,17 @@ def test_histogram_params():
     assert response.status_code == 200
     assert response.json()["range"] == [8.0, 9.0]
 
-    with pytest.raises(AssertionError):
-        client.get(
-            "/",
-            params={"histogram_range": "8"},
-        )
+    response = client.get(
+        "/",
+        params={"histogram_range": "8"},
+    )
+    assert response.status_code == 422
+
+    response = client.get(
+        "/",
+        params={"histogram_range": "invalid value"},
+    )
+    assert response.status_code == 422
 
 
 def test_crs_params():
