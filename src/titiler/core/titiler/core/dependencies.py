@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from typing import Annotated, Literal
 
 import numpy
+from color_operations import parse_operations as parse_color_formula
 from fastapi import HTTPException, Query
 from pydantic import BeforeValidator, Field
 from rasterio.crs import CRS
@@ -456,6 +457,7 @@ class RenderingParams(DefaultDependency):
 
     color_formula: Annotated[
         str | None,
+        BeforeValidator(parse_color_formula),
         Query(
             title="Color Formula",
             description="rio-color formula (info: https://github.com/mapbox/rio-color)",
