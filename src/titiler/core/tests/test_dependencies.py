@@ -561,6 +561,14 @@ def test_rescale_params():
     assert response.status_code == 200
     assert response.json() == [[0, 1], [2, 3]]
 
+    response = client.get("/", params={"rescale": "not a number"})
+    assert response.status_code == 422
+
+    response = client.get(
+        "/", params={"rescale": ["not a number", "also not a number"]}
+    )
+    assert response.status_code == 422
+
 
 def test_histogram_params():
     """Test HistogramParams dependency."""
