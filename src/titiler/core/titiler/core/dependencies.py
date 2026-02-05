@@ -402,7 +402,8 @@ class DatasetParams(DefaultDependency):
         str | int | float | None,
         Query(
             title="Nodata value",
-            description="Overwrite internal Nodata value",
+            description="Overwrite internal Nodata value; nan or valid float values only.",
+            pattern=r"^(nan|\s*(-)?\d+((\.\d+)(e\d+))?\s*)$",
         ),
     ] = None
     unscale: Annotated[

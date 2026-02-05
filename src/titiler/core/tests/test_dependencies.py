@@ -446,6 +446,9 @@ def test_dataset():
     response = client.get("/nan?nodata=nan")
     assert response.json() == "nan"
 
+    response = client.get("/?nodata=invalid-value")
+    assert response.status_code == 422
+
 
 def test_render():
     """test render deps."""
