@@ -24,7 +24,7 @@ from pydantic import Field
 from rio_tiler.colormap import ColorMaps
 from rio_tiler.colormap import cmap as default_cmap
 from rio_tiler.constants import WGS84_CRS
-from rio_tiler.io import BaseReader, MultiBandReader, MultiBaseReader, Reader
+from rio_tiler.io import BaseReader, MultiBaseReader, Reader
 from rio_tiler.models import ImageData, Info
 from rio_tiler.types import ColorMapType
 from rio_tiler.utils import CRS_to_uri
@@ -43,13 +43,9 @@ from titiler.core.algorithm import (
 )
 from titiler.core.algorithm import algorithms as available_algorithms
 from titiler.core.dependencies import (
-    AssetsBidxExprParams,
-    AssetsBidxExprParamsOptional,
-    AssetsBidxParams,
+    AssetsExprParams,
+    AssetsExprParamsOptional,
     AssetsParams,
-    BandsExprParams,
-    BandsExprParamsOptional,
-    BandsParams,
     BidxExprParams,
     ColorMapParams,
     CoordCRSParams,
@@ -850,16 +846,6 @@ class TilerFactory(BaseFactory):
             operation_id=f"{self.operation_prefix}getTileWithFormat",
             **img_endpoint_params,
         )
-        @self.router.get(
-            "/tiles/{tileMatrixSetId}/{z}/{x}/{y}@{scale}x",
-            operation_id=f"{self.operation_prefix}getTileWithScale",
-            **img_endpoint_params,
-        )
-        @self.router.get(
-            "/tiles/{tileMatrixSetId}/{z}/{x}/{y}@{scale}x.{format}",
-            operation_id=f"{self.operation_prefix}getTileWithFormatAndScale",
-            **img_endpoint_params,
-        )
         def tile(
             z: Annotated[
                 int,
@@ -885,17 +871,15 @@ class TilerFactory(BaseFactory):
                     description="Identifier selecting one of the TileMatrixSetId supported."
                 ),
             ],
-            scale: Annotated[
-                int,
-                Field(
-                    gt=0, le=4, description="Tile size scale. 1=256x256, 2=512x512..."
-                ),
-            ] = 1,
             format: Annotated[
                 ImageType | None,
                 Field(
                     description="Default will be automatically defined if the output image needs a mask (png) or not (jpeg)."
                 ),
+            ] = None,
+            tilesize: Annotated[
+                int | None,
+                Query(gt=0, description="Tilesize in pixels."),
             ] = None,
             src_path=Depends(self.path_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -918,7 +902,7 @@ class TilerFactory(BaseFactory):
                         x,
                         y,
                         z,
-                        tilesize=scale * 256,
+                        tilesize=tilesize,
                         **tile_params.as_dict(),
                         **layer_params.as_dict(),
                         **dataset_params.as_dict(),
@@ -961,18 +945,16 @@ class TilerFactory(BaseFactory):
                     description="Identifier selecting one of the TileMatrixSetId supported."
                 ),
             ],
+            tilesize: Annotated[
+                int | None,
+                Query(gt=0, description="Tilesize in pixels. Default to 512."),
+            ] = 512,
             tile_format: Annotated[
                 ImageType | None,
                 Query(
                     description="Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
                 ),
             ] = None,
-            tile_scale: Annotated[
-                int,
-                Query(
-                    gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
-                ),
-            ] = 1,
             minzoom: Annotated[
                 int | None,
                 Query(description="Overwrite default minzoom."),
@@ -996,7 +978,6 @@ class TilerFactory(BaseFactory):
                 "z": "{z}",
                 "x": "{x}",
                 "y": "{y}",
-                "scale": tile_scale,
                 "tileMatrixSetId": tileMatrixSetId,
             }
             if tile_format:
@@ -1006,17 +987,17 @@ class TilerFactory(BaseFactory):
             qs_key_to_remove = [
                 "tilematrixsetid",
                 "tile_format",
-                "tile_scale",
                 "minzoom",
                 "maxzoom",
             ]
-            qs = [
+            qs: list[tuple[str, Any]] = [
                 (key, value)
                 for (key, value) in request.query_params._list
                 if key.lower() not in qs_key_to_remove
             ]
-            if qs:
-                tiles_url += f"?{urlencode(qs)}"
+            if "tilesize" not in request.query_params:
+                qs.append(("tilesize", str(tilesize)))
+            tiles_url += f"?{urlencode(qs)}"
 
             tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
@@ -1056,12 +1037,10 @@ class TilerFactory(BaseFactory):
                     description="Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
                 ),
             ] = None,
-            tile_scale: Annotated[
+            tilesize: Annotated[
                 int,
-                Query(
-                    gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
-                ),
-            ] = 1,
+                Query(gt=0, description="Tilesize in pixels. Default to 256."),
+            ] = 256,
             minzoom: Annotated[
                 int | None,
                 Query(description="Overwrite default minzoom."),
@@ -1084,11 +1063,35 @@ class TilerFactory(BaseFactory):
             tilejson_url = self.url_for(
                 request, "tilejson", tileMatrixSetId=tileMatrixSetId
             )
+
+            qs_key_to_remove = []
+            qs: list[tuple[str, Any]] = [
+                (key, value)
+                for (key, value) in request.query_params._list
+                if key.lower() not in qs_key_to_remove
+            ]
+            if "tilesize" not in request.query_params:
+                qs.append(("tilesize", tilesize))
+            tilejson_url += f"?{urlencode(qs)}"
+
             point_url = self.url_for(request, "point", lon="{lon}", lat="{lat}")
             if request.query_params._list:
-                params = f"?{urlencode(request.query_params._list)}"
-                tilejson_url += params
-                point_url += params
+                qs_key_to_remove = [
+                    "tilesize",
+                    "tile_format",
+                    "minzoom",
+                    "maxzoom",
+                    "buffer",
+                    "padding",
+                    "colormap",
+                    "colormap_name",
+                ]
+                qs = [
+                    (key, value)
+                    for (key, value) in request.query_params._list
+                    if key.lower() not in qs_key_to_remove
+                ]
+                point_url += f"?{urlencode(qs)}"
 
             tms = self.supported_tms.get(tileMatrixSetId)
             return self.templates.TemplateResponse(
@@ -1458,8 +1461,8 @@ class MultiBaseTilerFactory(TilerFactory):
 
     reader: type[MultiBaseReader]  # type: ignore
 
-    # Assets/Indexes/Expression dependency
-    layer_dependency: type[DefaultDependency] = AssetsBidxExprParams
+    # Assets/Expression dependency
+    layer_dependency: type[DefaultDependency] = AssetsExprParams
 
     # Assets dependency
     assets_dependency: type[DefaultDependency] = AssetsParams
@@ -1564,7 +1567,7 @@ class MultiBaseTilerFactory(TilerFactory):
         def asset_statistics(
             src_path=Depends(self.path_dependency),
             reader_params=Depends(self.reader_dependency),
-            asset_params=Depends(AssetsBidxParams),
+            asset_params=Depends(self.assets_dependency),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_preview_dependency),
             stats_params=Depends(self.stats_dependency),
@@ -1601,7 +1604,7 @@ class MultiBaseTilerFactory(TilerFactory):
         def statistics(
             src_path=Depends(self.path_dependency),
             reader_params=Depends(self.reader_dependency),
-            layer_params=Depends(AssetsBidxExprParamsOptional),
+            layer_params=Depends(AssetsExprParamsOptional),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_preview_dependency),
             post_process=Depends(self.process_dependency),
@@ -1616,7 +1619,6 @@ class MultiBaseTilerFactory(TilerFactory):
                     # Default to all available assets
                     if not layer_params.assets and not layer_params.expression:
                         layer_params.assets = src_dst.assets
-
                     image = src_dst.preview(
                         **layer_params.as_dict(),
                         **image_params.as_dict(),
@@ -1652,7 +1654,7 @@ class MultiBaseTilerFactory(TilerFactory):
             ],
             src_path=Depends(self.path_dependency),
             reader_params=Depends(self.reader_dependency),
-            layer_params=Depends(AssetsBidxExprParamsOptional),
+            layer_params=Depends(AssetsExprParamsOptional),
             dataset_params=Depends(self.dataset_dependency),
             coord_crs=Depends(CoordCRSParams),
             dst_crs=Depends(DstCRSParams),
@@ -1673,7 +1675,6 @@ class MultiBaseTilerFactory(TilerFactory):
                     # Default to all available assets
                     if not layer_params.assets and not layer_params.expression:
                         layer_params.assets = src_dst.assets
-
                     for feature in fc.features:
                         image = src_dst.feature(
                             feature.model_dump(exclude_none=True),
@@ -1696,223 +1697,6 @@ class MultiBaseTilerFactory(TilerFactory):
                         feature.properties = feature.properties or {}
                         # NOTE: because we use `src_dst.feature` the statistics will be in form of
                         # `Dict[str, BandStatistics]` and not `Dict[str, Dict[str, BandStatistics]]`
-                        feature.properties.update({"statistics": stats})
-
-            return fc.features[0] if isinstance(geojson, Feature) else fc
-
-
-@define(kw_only=True)
-class MultiBandTilerFactory(TilerFactory):
-    """Custom Tiler Factory for MultiBandReader classes.
-
-    Note:
-        To be able to use the rio_tiler.io.MultiBandReader we need to be able to pass a `bands`
-        argument to most of its methods. By using the `BandsExprParams` for the `layer_dependency`, the
-        .tile(), .point(), .preview() and the .part() methods will receive bands or expression arguments.
-
-        The rio_tiler.io.MultiBandReader  `.info()` and `.metadata()` have `bands` as
-        a requirement arguments (https://github.com/cogeotiff/rio-tiler/blob/main/rio_tiler/io/base.py#L775).
-        This means we have to update the /info and /metadata endpoints in order to add the `bands` dependency.
-
-        For implementation example see https://github.com/developmentseed/titiler-pds
-
-    """
-
-    reader: type[MultiBandReader]  # type: ignore
-
-    # Assets/Expression dependency
-    layer_dependency: type[DefaultDependency] = BandsExprParams
-
-    # Bands dependency
-    bands_dependency: type[DefaultDependency] = BandsParams
-
-    def info(self):
-        """Register /info endpoint."""
-
-        @self.router.get(
-            "/info",
-            response_model=Info,
-            response_model_exclude_none=True,
-            response_class=JSONResponse,
-            responses={200: {"description": "Return dataset's basic info."}},
-            operation_id=f"{self.operation_prefix}getInfo",
-        )
-        def info(
-            src_path=Depends(self.path_dependency),
-            reader_params=Depends(self.reader_dependency),
-            bands_params=Depends(self.bands_dependency),
-            env=Depends(self.environment_dependency),
-        ):
-            """Return dataset's basic info."""
-            with rasterio.Env(**env):
-                logger.info(f"opening data with reader: {self.reader}")
-                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
-                    return src_dst.info(**bands_params.as_dict())
-
-        @self.router.get(
-            "/info.geojson",
-            response_model=InfoGeoJSON,
-            response_model_exclude_none=True,
-            response_class=GeoJSONResponse,
-            responses={
-                200: {
-                    "content": {"application/geo+json": {}},
-                    "description": "Return dataset's basic info as a GeoJSON feature.",
-                }
-            },
-            operation_id=f"{self.operation_prefix}getInfoGeoJSON",
-        )
-        def info_geojson(
-            src_path=Depends(self.path_dependency),
-            reader_params=Depends(self.reader_dependency),
-            bands_params=Depends(self.bands_dependency),
-            crs=Depends(CRSParams),
-            env=Depends(self.environment_dependency),
-        ):
-            """Return dataset's basic info as a GeoJSON feature."""
-            with rasterio.Env(**env):
-                logger.info(f"opening data with reader: {self.reader}")
-                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
-                    bounds = src_dst.get_geographic_bounds(crs or WGS84_CRS)
-                    geometry = bounds_to_geometry(bounds)
-
-                    return Feature(
-                        type="Feature",
-                        bbox=bounds,
-                        geometry=geometry,
-                        properties=src_dst.info(**bands_params.as_dict()),
-                    )
-
-        @self.router.get(
-            "/bands",
-            response_model=list[str],
-            responses={200: {"description": "Return a list of supported bands."}},
-            operation_id=f"{self.operation_prefix}getBands",
-        )
-        def available_bands(
-            src_path=Depends(self.path_dependency),
-            reader_params=Depends(self.reader_dependency),
-            env=Depends(self.environment_dependency),
-        ):
-            """Return a list of supported bands."""
-            with rasterio.Env(**env):
-                logger.info(f"opening data with reader: {self.reader}")
-                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
-                    return src_dst.bands
-
-    # Overwrite the `/statistics` endpoint because we need bands to default to the list of bands.
-    def statistics(self):  # noqa: C901
-        """add statistics endpoints."""
-
-        # GET endpoint
-        @self.router.get(
-            "/statistics",
-            response_class=JSONResponse,
-            response_model=Statistics,
-            responses={
-                200: {
-                    "content": {"application/json": {}},
-                    "description": "Return dataset's statistics.",
-                }
-            },
-            operation_id=f"{self.operation_prefix}getStatistics",
-        )
-        def statistics(
-            src_path=Depends(self.path_dependency),
-            reader_params=Depends(self.reader_dependency),
-            bands_params=Depends(BandsExprParamsOptional),
-            dataset_params=Depends(self.dataset_dependency),
-            image_params=Depends(self.img_preview_dependency),
-            post_process=Depends(self.process_dependency),
-            stats_params=Depends(self.stats_dependency),
-            histogram_params=Depends(self.histogram_dependency),
-            env=Depends(self.environment_dependency),
-        ):
-            """Get Dataset statistics."""
-            with rasterio.Env(**env):
-                logger.info(f"opening data with reader: {self.reader}")
-                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
-                    # Default to all available bands
-                    if not bands_params.bands and not bands_params.expression:
-                        bands_params.bands = src_dst.bands
-
-                    image = src_dst.preview(
-                        **bands_params.as_dict(),
-                        **image_params.as_dict(),
-                        **dataset_params.as_dict(),
-                    )
-
-                    if post_process:
-                        image = post_process(image)
-
-                    return image.statistics(
-                        **stats_params.as_dict(),
-                        hist_options=histogram_params.as_dict(),
-                    )
-
-        # POST endpoint
-        @self.router.post(
-            "/statistics",
-            response_model=StatisticsGeoJSON,
-            response_model_exclude_none=True,
-            response_class=GeoJSONResponse,
-            responses={
-                200: {
-                    "content": {"application/geo+json": {}},
-                    "description": "Return dataset's statistics from feature or featureCollection.",
-                }
-            },
-            operation_id=f"{self.operation_prefix}postStatisticsForGeoJSON",
-        )
-        def geojson_statistics(
-            geojson: Annotated[
-                FeatureCollection | Feature,
-                Body(description="GeoJSON Feature or FeatureCollection."),
-            ],
-            src_path=Depends(self.path_dependency),
-            reader_params=Depends(self.reader_dependency),
-            bands_params=Depends(BandsExprParamsOptional),
-            dataset_params=Depends(self.dataset_dependency),
-            image_params=Depends(self.img_part_dependency),
-            coord_crs=Depends(CoordCRSParams),
-            dst_crs=Depends(DstCRSParams),
-            post_process=Depends(self.process_dependency),
-            stats_params=Depends(self.stats_dependency),
-            histogram_params=Depends(self.histogram_dependency),
-            env=Depends(self.environment_dependency),
-        ):
-            """Get Statistics from a geojson feature or featureCollection."""
-            fc = geojson
-            if isinstance(fc, Feature):
-                fc = FeatureCollection(type="FeatureCollection", features=[geojson])
-
-            with rasterio.Env(**env):
-                logger.info(f"opening data with reader: {self.reader}")
-                with self.reader(src_path, **reader_params.as_dict()) as src_dst:
-                    # Default to all available bands
-                    if not bands_params.bands and not bands_params.expression:
-                        bands_params.bands = src_dst.bands
-
-                    for feature in fc.features:
-                        image = src_dst.feature(
-                            feature.model_dump(exclude_none=True),
-                            shape_crs=coord_crs or WGS84_CRS,
-                            dst_crs=dst_crs,
-                            align_bounds_with_dataset=True,
-                            **bands_params.as_dict(),
-                            **image_params.as_dict(),
-                            **dataset_params.as_dict(),
-                        )
-
-                        if post_process:
-                            image = post_process(image)
-
-                        stats = image.statistics(
-                            **stats_params.as_dict(),
-                            hist_options=histogram_params.as_dict(),
-                        )
-
-                        feature.properties = feature.properties or {}
                         feature.properties.update({"statistics": stats})
 
             return fc.features[0] if isinstance(geojson, Feature) else fc

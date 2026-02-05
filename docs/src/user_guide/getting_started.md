@@ -222,7 +222,7 @@ The following code (in **map.html**) loads a base map, adds your TiTiler raster 
     var rasterPath = 'file:///path_to_your_raster.tif';
 
     // Fetch the raster's bounding box from TiTiler and adjust the map view accordingly
-    var tileJSONUrl = 'http://127.0.0.1:8000/WebMercatorQuad/tilejson.json?url=' + encodeURIComponent(rasterPath);
+    var tileJSONUrl = 'http://127.0.0.1:8000/WebMercatorQuad/tilejson.json?url=' + encodeURIComponent(rasterPath) + "&tilesize=256";
     console.log(tileJSONUrl)
     fetch(tileJSONUrl)
       .then(response => response.json())

@@ -28,7 +28,7 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering :: GIS",
 ]
-version="1.1.1"
+version="2.0.0dev0"
 dependencies = [
     "titiler-core",
     "titiler-xarray",
@@ -56,6 +56,10 @@ dev = [
     "boto3",
     "owslib",
     "pre-commit",
+    "IPython",
+    "jupyter",
+    "matplotlib",
+    "folium",
 ]
 telemetry = [
     "opentelemetry-api",
@@ -74,12 +78,6 @@ docs = [
 ]
 server = [
     "uvicorn",
-]
-notebook = [
-    "IPython",
-    "jupyter",
-    "matplotlib",
-    "folium",
 ]
 
 [project.urls]
@@ -158,13 +156,13 @@ filterwarnings = [
 ]
 
 [tool.bumpversion]
-current_version = "1.1.1"
+current_version = "2.0.0dev0"
 parse = """(?x)
     (?P<major>\\d+)\\.
     (?P<minor>\\d+)\\.
     (?P<patch>\\d+)
     (?:
-        (?P<pre_l>a|b|rc)   # pre-release label
+        (?P<pre_l>a|b|rc|dev)   # pre-release label
         (?P<pre_n>\\d+)     # pre-release version number
     )?                      # pre-release section is optional
     (?:

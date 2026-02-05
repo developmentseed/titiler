@@ -23,7 +23,7 @@ class _Min(BaseAlgorithm):
             assets=img.assets,
             crs=img.crs,
             bounds=img.bounds,
-            band_names=["min"],
+            band_descriptions=["min"],
             metadata=img.metadata,
             cutline_mask=img.cutline_mask,
         )
@@ -44,7 +44,7 @@ class _Max(BaseAlgorithm):
             assets=img.assets,
             crs=img.crs,
             bounds=img.bounds,
-            band_names=["max"],
+            band_descriptions=["max"],
             metadata=img.metadata,
             cutline_mask=img.cutline_mask,
         )
@@ -66,7 +66,7 @@ class _Median(BaseAlgorithm):
             assets=img.assets,
             crs=img.crs,
             bounds=img.bounds,
-            band_names=["median"],
+            band_descriptions=["median"],
             metadata=img.metadata,
             cutline_mask=img.cutline_mask,
         )
@@ -88,7 +88,7 @@ class _Mean(BaseAlgorithm):
             assets=img.assets,
             crs=img.crs,
             bounds=img.bounds,
-            band_names=["mean"],
+            band_descriptions=["mean"],
             metadata=img.metadata,
             cutline_mask=img.cutline_mask,
         )
@@ -110,7 +110,7 @@ class _Std(BaseAlgorithm):
             assets=img.assets,
             crs=img.crs,
             bounds=img.bounds,
-            band_names=["std"],
+            band_descriptions=["std"],
             metadata=img.metadata,
             cutline_mask=img.cutline_mask,
         )
@@ -132,7 +132,7 @@ class _Var(BaseAlgorithm):
             assets=img.assets,
             crs=img.crs,
             bounds=img.bounds,
-            band_names=["var"],
+            band_descriptions=["var"],
             metadata=img.metadata,
             cutline_mask=img.cutline_mask,
         )
@@ -153,7 +153,7 @@ class _Sum(BaseAlgorithm):
             assets=img.assets,
             crs=img.crs,
             bounds=img.bounds,
-            band_names=["sum"],
+            band_descriptions=["sum"],
             metadata=img.metadata,
             cutline_mask=img.cutline_mask,
         )

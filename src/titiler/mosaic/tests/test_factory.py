@@ -56,7 +56,7 @@ def test_MosaicTilerFactory():
         optional_headers=[OptionalHeader.x_assets],
         router_prefix="mosaic",
     )
-    assert len(mosaic.router.routes) == 14
+    assert len(mosaic.router.routes) == 12
 
     @dataclass
     class MosaicJSONAccessor(DefaultDependency):
@@ -79,7 +79,7 @@ def test_MosaicTilerFactory():
         add_part=True,
         router_prefix="mosaic",
     )
-    assert len(mosaic.router.routes) == 23
+    assert len(mosaic.router.routes) == 21
 
     app = FastAPI()
     app.include_router(mosaic.router, prefix="/mosaic")
@@ -220,7 +220,7 @@ def test_MosaicTilerFactory():
         assert response.status_code == 200
         body = response.json()
         assert (
-            "http://testserver/mosaic/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?url="
+            "http://testserver/mosaic/tiles/WebMercatorQuad/{z}/{x}/{y}.png?url="
             in body["tiles"][0]
         )
         assert body["minzoom"] == 6
@@ -239,7 +239,7 @@ def test_MosaicTilerFactory():
         assert response.status_code == 200
         body = response.json()
         assert (
-            "http://testserver/mosaic/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?url="
+            "http://testserver/mosaic/tiles/WebMercatorQuad/{z}/{x}/{y}.png?url="
             in body["tiles"][0]
         )
         assert body["minzoom"] == 6

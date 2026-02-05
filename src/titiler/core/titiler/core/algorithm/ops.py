@@ -28,7 +28,7 @@ class CastToInt(BaseAlgorithm):
             assets=img.assets,
             crs=img.crs,
             bounds=img.bounds,
-            band_names=img.band_names,
+            band_descriptions=img.band_descriptions,
             metadata=img.metadata,
             cutline_mask=img.cutline_mask,
         )
@@ -52,7 +52,7 @@ class Ceil(BaseAlgorithm):
             assets=img.assets,
             crs=img.crs,
             bounds=img.bounds,
-            band_names=img.band_names,
+            band_descriptions=img.band_descriptions,
             metadata=img.metadata,
             cutline_mask=img.cutline_mask,
         )
@@ -76,7 +76,7 @@ class Floor(BaseAlgorithm):
             assets=img.assets,
             crs=img.crs,
             bounds=img.bounds,
-            band_names=img.band_names,
+            band_descriptions=img.band_descriptions,
             metadata=img.metadata,
             cutline_mask=img.cutline_mask,
         )

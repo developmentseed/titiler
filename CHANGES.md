@@ -2,6 +2,45 @@
 
 ## Unreleased
 
+## 2.0.0 (TBD)
+
+### Misc
+
+* remove: 256x256 tilesize default
+* remove: `MultiBandTilerFactory` factory
+* remove: `@{scale}x` suffix for tile endpoints
+* remove: `tile_scale` option in `/tilejson.json` and `/map.html` endpoints
+* change: default to TileMatrix's `tileHeight x tileWidth` for tile endpoints
+* change: set `tilesize=512` for `/tilejson.json` endpoints
+* change: set `tilesize=256` for `/map.html` endpoints
+* change: use `band_descriptions` instead of `band_names`
+* add: `tilesize` optional query-parameter for tile and tilejson endpoints
+
+### titiler.core
+
+* change: `bidx` option is now ignored by `MultiBaseFactory` endpoints
+* change: `expression` cannot be used to declare `assets` in `MultiBaseFactory` endpoints. Use `assets=Red&assets=Green&expression=b1/b2`.
+* remove: `asset_indexes` and `asset_expression` options in `dependencies.py`
+* rename:
+    - `dependencies.AssetsBidxExprParamsOptional` to `dependencies.AssetsExprParamsOptional` 
+    - `dependencies.AssetsBidxExprParams` to `dependencies.AssetsExprParams` 
+* remove: methods or classes:
+    - `titiler.core.dependencies.AssetsBidxParams`
+    - `titiler.core.dependencies.BandsParams`
+    - `titiler.core.dependencies.BandsExprParamsOptional`
+    - `titiler.core.dependencies.BandsExprParams`
+    - `titiler.core.dependencies.parse_asset_indexes()`
+    - `titiler.core.dependencies.parse_asset_expression()`
+
+### titiler.extensions
+
+* change: force `tilesize=256` in `cog` and `stac` viewers
+* remove: `tile_scale` option in `/WMTSCapabilities.xml` endpoints
+
+### titiler.mosaic
+
+* remove: `tile_scale` option in `/WMTSCapabilities.xml` endpoints
+
 ## 1.1.1 (2026-01-22)
 
 ### titiler.extensions

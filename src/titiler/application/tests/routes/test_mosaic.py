@@ -74,7 +74,7 @@ def test_tilejson(app):
     TileJSON(**body)
 
     assert (
-        "http://testserver/mosaicjson/tiles/WebMercatorQuad/{z}/{x}/{y}@1x?url="
+        "http://testserver/mosaicjson/tiles/WebMercatorQuad/{z}/{x}/{y}?url="
         in body["tiles"][0]
     )
     assert body["minzoom"] == mosaicjson["minzoom"]
@@ -118,8 +118,8 @@ def test_tile(app):
         assert meta["width"] == meta["height"] == 256
 
         response = app.get(
-            f"/mosaicjson/tiles/WebMercatorQuad/{tile.z}/{tile.x}/{tile.y}@2x",
-            params={"url": MOSAICJSON_FILE},
+            f"/mosaicjson/tiles/WebMercatorQuad/{tile.z}/{tile.x}/{tile.y}",
+            params={"url": MOSAICJSON_FILE, "tilesize": 512},
         )
         assert response.status_code == 200
         assert response.headers["content-type"] == "image/png"
@@ -137,8 +137,8 @@ def test_tile(app):
         assert meta["crs"] == 3857
 
         response = app.get(
-            f"/mosaicjson/tiles/WebMercatorQuad/{tile.z}/{tile.x}/{tile.y}@2x.tif",
-            params={"url": MOSAICJSON_FILE, "nodata": 0, "bidx": 1},
+            f"/mosaicjson/tiles/WebMercatorQuad/{tile.z}/{tile.x}/{tile.y}.tif",
+            params={"url": MOSAICJSON_FILE, "nodata": 0, "bidx": 1, "tilesize": 512},
         )
         assert response.status_code == 200
         assert response.headers["content-type"] == "image/tiff; application=geotiff"
@@ -149,7 +149,7 @@ def test_tile(app):
         assert meta["height"] == 512
 
         response = app.get(
-            f"/mosaicjson/tiles/WebMercatorQuad/{tile.z}/{tile.x}/{tile.y}@2x.jpg",
+            f"/mosaicjson/tiles/WebMercatorQuad/{tile.z}/{tile.x}/{tile.y}.jpg",
             params={
                 "url": MOSAICJSON_FILE,
                 "rescale": "0,1000",
@@ -186,18 +186,7 @@ def test_wmts(app):
         assert response.status_code == 200
         assert response.headers["content-type"] == "application/xml"
         assert (
-            "http://testserver/mosaicjson/tiles/WebMercatorQuad/{TileMatrix}/{TileCol}/{TileRow}@1x.png?url="
-            in response.content.decode()
-        )
-
-        response = app.get(
-            "/mosaicjson/WMTSCapabilities.xml",
-            params={"url": MOSAICJSON_FILE, "tile_scale": 2},
-        )
-        assert response.status_code == 200
-        assert response.headers["content-type"] == "application/xml"
-        assert (
-            "http://testserver/mosaicjson/tiles/WebMercatorQuad/{TileMatrix}/{TileCol}/{TileRow}@2x.png?url="
+            "http://testserver/mosaicjson/tiles/WebMercatorQuad/{TileMatrix}/{TileCol}/{TileRow}.png?url="
             in response.content.decode()
         )
 

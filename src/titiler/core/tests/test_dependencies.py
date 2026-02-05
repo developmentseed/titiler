@@ -209,12 +209,12 @@ def test_assets():
         return params.assets
 
     @app.get("/second")
-    def _assets_expr(params=Depends(dependencies.AssetsBidxExprParams)):
+    def _assets_expr(params=Depends(dependencies.AssetsExprParams)):
         """return params."""
         return params
 
     @app.get("/third")
-    def _assets_bidx(params=Depends(dependencies.AssetsBidxParams)):
+    def _assets_bidx(params=Depends(dependencies.AssetsExprParamsOptional)):
         """return params."""
         return params
 
@@ -229,21 +229,15 @@ def test_assets():
     assert response.json()["assets"] == ["data", "image"]
     assert not response.json()["expression"]
 
-    response = client.get("/second?expression=data*image")
+    response = client.get("/second?assets=data&assets=image&expression=data*image")
     assert response.json()["expression"] == "data*image"
-    assert not response.json()["assets"]
+    assert response.json()["assets"]
 
     with pytest.raises(errors.MissingAssets):
         response = client.get("/second")
 
-    response = client.get(
-        "/second?assets=data&assets=image&asset_bidx=data|1,2,3&asset_bidx=image|1"
-    )
-    assert response.json()["assets"] == ["data", "image"]
-    assert response.json()["asset_indexes"] == {"data": [1, 2, 3], "image": [1]}
-
-    response = client.get("/third?assets=data&assets=image")
-    assert response.json()["assets"] == ["data", "image"]
+    response = client.get("/third")
+    assert not response.json()["assets"]
 
     response = client.get(
         "/third",
@@ -259,89 +253,6 @@ def test_assets():
 
     response = client.get("/third")
     assert not response.json()["assets"]
-
-    response = client.get(
-        "/third?assets=data&assets=image&asset_bidx=data|1,2,3&asset_bidx=image|1"
-    )
-    assert response.json()["assets"] == ["data", "image"]
-    assert response.json()["asset_indexes"] == {"data": [1, 2, 3], "image": [1]}
-
-    response = client.get(
-        "/third",
-        params=(
-            ("assets", "data"),
-            ("assets", "image"),
-            ("asset_bidx", "data|1,2,3"),
-            ("asset_bidx", "image|1"),
-        ),
-    )
-
-    assert response.json()["assets"] == ["data", "image"]
-    assert response.json()["asset_indexes"] == {"data": [1, 2, 3], "image": [1]}
-
-    response = client.get(
-        "/third?assets=data&assets=image&asset_expression=data|b1/b2&asset_expression=image|b1*b2"
-    )
-    assert response.json()["assets"] == ["data", "image"]
-    assert response.json()["asset_expression"] == {"data": "b1/b2", "image": "b1*b2"}
-
-    response = client.get(
-        "/third",
-        params=(
-            ("assets", "data"),
-            ("assets", "image"),
-            ("asset_expression", "data|b1/b2"),
-            ("asset_expression", "image|b1*b2"),
-        ),
-    )
-    assert response.json()["assets"] == ["data", "image"]
-    assert response.json()["asset_expression"] == {"data": "b1/b2", "image": "b1*b2"}
-
-
-def test_bands():
-    """test bands deps."""
-
-    app = FastAPI()
-
-    @app.get("/first")
-    def _bands(params=Depends(dependencies.BandsParams)):
-        """return bands."""
-        return params.bands
-
-    @app.get("/second")
-    def _bands_expr(params=Depends(dependencies.BandsExprParams)):
-        """return params."""
-        return params
-
-    @app.get("/third")
-    def _bands_expr_opt(params=Depends(dependencies.BandsExprParamsOptional)):
-        """return params."""
-        return params
-
-    client = TestClient(app)
-    response = client.get("/first?bands=b1&bands=b2")
-    assert response.json() == ["b1", "b2"]
-
-    response = client.get("/first")
-    assert not response.json()
-
-    response = client.get("/second?bands=b1&bands=b2")
-    assert response.json()["bands"] == ["b1", "b2"]
-
-    response = client.get("/second", params={"expression": "b1;b2"})
-    assert response.json()["expression"] == "b1;b2"
-
-    with pytest.raises(errors.MissingBands):
-        response = client.get("/second")
-
-    response = client.get("/third?bands=b1&bands=b2")
-    assert response.json()["bands"] == ["b1", "b2"]
-
-    response = client.get("/third", params={"expression": "b1;b2"})
-    assert response.json()["expression"] == "b1;b2"
-
-    response = client.get("/third")
-    assert not response.json()["bands"]
 
 
 def test_preview_part_params():

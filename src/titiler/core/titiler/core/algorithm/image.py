@@ -31,7 +31,7 @@ class ToGrayScale(BaseAlgorithm):
             arr.astype(img.array.dtype),
             assets=img.assets,
             crs=img.crs,
-            band_names=["grayscale"],
+            band_descriptions=["grayscale"],
             bounds=img.bounds,
             cutline_mask=img.cutline_mask,
         )
@@ -68,6 +68,6 @@ class ToBitonal(BaseAlgorithm):
             assets=img.assets,
             crs=img.crs,
             bounds=img.bounds,
-            band_names=["bitonal"],
+            band_descriptions=["bitonal"],
             cutline_mask=img.cutline_mask,
         )

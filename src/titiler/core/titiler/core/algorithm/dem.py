@@ -62,7 +62,7 @@ class HillShade(BaseAlgorithm):
             assets=img.assets,
             crs=img.crs,
             bounds=bounds,
-            band_names=["hillshade"],
+            band_descriptions=["hillshade"],
         )
 
 
@@ -114,7 +114,7 @@ class Slope(BaseAlgorithm):
             assets=img.assets,
             crs=img.crs,
             bounds=bounds,
-            band_names=["slope"],
+            band_descriptions=["slope"],
         )
 
 
@@ -159,6 +159,7 @@ class Contours(BaseAlgorithm):
             assets=img.assets,
             crs=img.crs,
             bounds=img.bounds,
+            band_descriptions=["contours_r", "contours_g", "contours_b"],
         )
 
 
@@ -190,6 +191,7 @@ class Terrarium(BaseAlgorithm):
             assets=img.assets,
             crs=img.crs,
             bounds=img.bounds,
+            band_descriptions=["terranium_r", "terranium_g", "terranium_b"],
         )
 
 
@@ -251,4 +253,5 @@ class TerrainRGB(BaseAlgorithm):
             assets=img.assets,
             crs=img.crs,
             bounds=img.bounds,
+            band_descriptions=["terrain_r", "terrain_g", "terrain_b"],
         )
