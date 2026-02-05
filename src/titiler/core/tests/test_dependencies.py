@@ -141,6 +141,9 @@ def test_cmap():
     assert response.json()[0][0] == [0.0, 0.05263157894736842]
     assert response.json()[0][1] == [247, 252, 240, 255]
 
+    response = client.get("/", params={"colormap": "invalid json"})
+    assert response.status_code == 400  # this can only be validated via exception
+
 
 def test_default():
     """test default dep behavior."""
