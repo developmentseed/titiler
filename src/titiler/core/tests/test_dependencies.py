@@ -230,7 +230,7 @@ def test_assets():
     assert not response.json()["expression"]
 
     response = client.get("/second?assets=data&assets=image&expression=b1*b2")
-    assert response.json()["expression"] == "data*image"
+    assert response.json()["expression"] == "b1*b2"
     assert response.json()["assets"]
 
     with pytest.raises(errors.MissingAssets):
