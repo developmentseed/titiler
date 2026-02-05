@@ -19,7 +19,7 @@ from starlette.requests import Request
 
 from titiler.core.resources.enums import ImageType, MediaType
 from titiler.core.utils import accept_media_type
-from titiler.core.validation import validate_crs, validate_rescale
+from titiler.core.validation import validate_bbox, validate_crs, validate_rescale
 
 
 def create_colormap_dependency(cmap: ColorMaps) -> Callable:
@@ -700,6 +700,7 @@ class OGCMapsParams(DefaultDependency):
 
     bbox: Annotated[
         str | None,
+        BeforeValidator(validate_bbox),
         Query(
             description="Bounding box of the rendered map. The bounding box is provided as four or six coordinates.",
         ),

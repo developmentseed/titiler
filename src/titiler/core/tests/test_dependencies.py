@@ -684,8 +684,8 @@ def test_crs_params():
         assert response.status_code == 422
 
 
-def test_ogc_maps_params():
-    """Test OGCMapsParams."""
+def test_ogc_maps_params_crs():
+    """Test OGCMapsParams crs."""
     app = FastAPI()
 
     @app.get("/")
@@ -731,3 +731,29 @@ def test_ogc_maps_params():
 
         response = client.get("/", params={field: "invalid crs"})
         assert response.status_code == 422
+
+
+def test_ogc_maps_params_bbox():
+    """Test OGCMapsParams bbox."""
+    app = FastAPI()
+
+    @app.get("/")
+    def main(params=Depends(dependencies.OGCMapsParams)):
+        """return bbox params."""
+        return params.bbox
+
+    client = TestClient(app)
+
+    response = client.get("/", params={"bbox": "-2,-1,2,1"})
+    assert response.status_code == 200
+    assert response.json() == [-2, -1, 2, 1]
+
+    response = client.get("/", params={"bbox": "-2,-1,-5,2,1,5"})
+    assert response.status_code == 200
+    assert response.json() == [-2, -1, 2, 1]
+
+    response = client.get("/", params={"bbox": "0"})
+    assert response.status_code == 422
+
+    response = client.get("/", params={"bbox": "invalid bbox"})
+    assert response.status_code == 422

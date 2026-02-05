@@ -2,8 +2,11 @@
 
 import re
 from json import JSONDecodeError, loads
+from typing import Final
 
 from rasterio.crs import CRS
+
+parseable_float_regex: Final[str] = r"\s*(-)?\d+((\.\d+)(e\d+)?)?\s*"
 
 
 def validate_rescale(rescale_strs: list[str]) -> list[str]:
@@ -77,3 +80,20 @@ def validate_json(json_str: str | None) -> str | None:
         raise ValueError("invalid JSON content") from e
     else:
         return json_str
+
+
+def validate_bbox(bbox_str: str | None) -> str | None:
+    """
+    Verify that bbox can be parsed.
+    :param bbox_str: Caller-provided bbox value.
+    :type bbox_str: str | None
+    :return: Caller-provided bbox_str value if valid, otherwise an exception is raised.
+    :rtype: str | None
+    """
+    if bbox_str is None:
+        return None
+    if re.match(
+        ",".join([parseable_float_regex for _ in range(4)]), bbox_str
+    ) or re.match(",".join([parseable_float_regex for _ in range(6)]), bbox_str):
+        return bbox_str
+    raise ValueError("invalid bbox content")
