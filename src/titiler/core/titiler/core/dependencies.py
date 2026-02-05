@@ -22,6 +22,7 @@ from titiler.core.resources.enums import ImageType, MediaType
 from titiler.core.utils import accept_media_type
 from titiler.core.validation import (
     parseable_float_regex,
+    separated_parseable_floats_regex,
     validate_bbox,
     validate_crs,
     validate_rescale,
@@ -589,7 +590,7 @@ link: https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
                     "value": "0,1000",
                 },
             },
-            pattern=rf"^{parseable_float_regex},{parseable_float_regex}$",
+            pattern=separated_parseable_floats_regex(count=2),
         ),
     ] = None
 

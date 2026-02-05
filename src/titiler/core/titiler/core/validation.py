@@ -92,8 +92,23 @@ def validate_bbox(bbox_str: str | None) -> str | None:
     """
     if bbox_str is None:
         return None
-    if re.match(
-        ",".join([parseable_float_regex for _ in range(4)]), bbox_str
-    ) or re.match(",".join([parseable_float_regex for _ in range(6)]), bbox_str):
+    if re.match(separated_parseable_floats_regex(count=4), bbox_str) or re.match(
+        separated_parseable_floats_regex(count=6), bbox_str
+    ):
         return bbox_str
     raise ValueError("invalid bbox content")
+
+
+def separated_parseable_floats_regex(count: int, separator: str = ",") -> str:
+    """
+    Generate a regular expression for n separated strings representing floats.
+    :param count: Number of separated float strings to match
+    :type count: int
+    :param separator: Character used to separate float strings.
+    :type separator: str
+    :return: Generated regular expression.
+    :rtype: str
+    """
+    return "^{}$".format(
+        re.escape(separator).join([parseable_float_regex for _ in range(count)])
+    )
