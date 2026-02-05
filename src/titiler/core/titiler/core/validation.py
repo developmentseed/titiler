@@ -1,6 +1,7 @@
 """Dependency validations."""
 
 import re
+from json import JSONDecodeError, loads
 
 from rasterio.crs import CRS
 
@@ -58,3 +59,21 @@ def validate_crs(crs_str: str | None) -> str | None:
         raise ValueError("invalid CRS format") from e
     else:
         return crs_str
+
+
+def validate_json(json_str: str | None) -> str | None:
+    """
+    Verify that json input can be parsed.
+    :param json_str: Caller-provided crs value.
+    :type json_str: str | None
+    :return: Caller-provided json_str value if valid, otherwise an exception is raised.
+    :rtype: str | None
+    """
+    if json_str is None:
+        return None
+    try:
+        loads(json_str)
+    except JSONDecodeError as e:
+        raise ValueError("invalid JSON content") from e
+    else:
+        return json_str

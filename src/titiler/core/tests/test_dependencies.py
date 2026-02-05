@@ -507,6 +507,14 @@ def test_algo():
     assert response.json()["buffer"] == 4
     assert response.json()["input_nbands"] == 1
 
+    response = client.get(
+        "/",
+        params={
+            "algorithm_params": "invalid json",
+        },
+    )
+    assert response.status_code == 422
+
 
 def test_rescale_params():
     """test RescalingParams dependency."""
