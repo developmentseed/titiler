@@ -4,6 +4,7 @@ import re
 from json import JSONDecodeError, loads
 from typing import Final
 
+from color_operations import parse_operations as parse_color_formula
 from rasterio.crs import CRS
 
 parseable_float_regex: Final[str] = r"\s*(-)?\d+((\.\d+)(e\d+)?)?\s*"
@@ -80,6 +81,24 @@ def validate_json(json_str: str | None) -> str | None:
         raise ValueError("invalid JSON content") from e
     else:
         return json_str
+
+
+def validate_color_formula(color_formula_str: str | None) -> str | None:
+    """
+    Verify that color formula can be parsed.
+    :param color_formula_str: Caller-provided color formula value.
+    :type color_formula_str: str | None
+    :return: Caller-provided color formula value if valid, otherwise an exception is raised.
+    :rtype: str | None
+    """
+    if color_formula_str is None:
+        return None
+    try:
+        parse_color_formula(color_formula_str)
+    except Exception as e:
+        raise ValueError("invalid color formula") from e
+    else:
+        return color_formula_str
 
 
 def validate_bbox(bbox_str: str | None) -> str | None:

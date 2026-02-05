@@ -11,7 +11,7 @@ from urllib.parse import urlencode
 import numpy
 import pyproj
 import rasterio
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI
 from fastapi.datastructures import QueryParams
 from fastapi.dependencies.utils import get_dependant, request_params_to_args
 from geojson_pydantic.geometries import MultiPolygon, Polygon
@@ -77,12 +77,7 @@ def render_image(  # noqa: C901
         image.rescale(rescale)
 
     if color_formula:
-        try:
-            image.apply_color_formula(color_formula)
-        except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
-            ) from e
+        image.apply_color_formula(color_formula)
 
     data, mask = image.data.copy(), image.mask.copy()
     input_range = dtype_ranges[str(data.dtype)]
