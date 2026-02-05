@@ -2,6 +2,8 @@
 
 import re
 
+from rasterio.crs import CRS
+
 
 def validate_rescale(rescale_strs: list[str]) -> list[str]:
     """
@@ -31,3 +33,28 @@ def validate_rescale(rescale_strs: list[str]) -> list[str]:
                 continue
         raise ValueError(error_text)
     return validated_rescales
+
+
+def validate_crs(crs_str: str | None) -> str | None:
+    """
+    Verify that crs input matches an accepted format.
+    :param crs_str: Caller-provided crs value.
+    :type crs_str: str | None
+    :return: Caller-provided crs value if accepted, otherwise an exception is raised.
+    :rtype: str | None
+    """
+    if crs_str is None:
+        return None
+    if crs_str.startswith("[") and crs_str.endswith(
+        "]"
+    ):  # this block lifted from OGCMapsParams
+        crs_str = crs_str[1:-1]
+    try:
+        # CRS does not provide a static `is_valid` check, and "many different kinds" of formats
+        # are supported, making regex impractical.
+        # (https://rasterio.readthedocs.io/en/latest/api/rasterio.crs.html#rasterio.crs.CRS.from_user_input)
+        CRS.from_user_input(crs_str)
+    except ValueError as e:
+        raise ValueError("invalid CRS format") from e
+    else:
+        return crs_str

@@ -19,7 +19,7 @@ from starlette.requests import Request
 
 from titiler.core.resources.enums import ImageType, MediaType
 from titiler.core.utils import accept_media_type
-from titiler.core.validation import validate_rescale
+from titiler.core.validation import validate_crs, validate_rescale
 
 
 def create_colormap_dependency(cmap: ColorMaps) -> Callable:
@@ -606,6 +606,7 @@ link: https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
 def CoordCRSParams(
     crs: Annotated[
         str | None,
+        BeforeValidator(validate_crs),
         Query(
             alias="coord_crs",
             description="Coordinate Reference System of the input coords. Default to `epsg:4326`.",
@@ -622,6 +623,7 @@ def CoordCRSParams(
 def DstCRSParams(
     crs: Annotated[
         str | None,
+        BeforeValidator(validate_crs),
         Query(
             alias="dst_crs",
             description="Output Coordinate Reference System.",
@@ -638,6 +640,7 @@ def DstCRSParams(
 def CRSParams(
     crs: Annotated[
         str | None,
+        BeforeValidator(validate_crs),
         Query(
             description="Coordinate Reference System.",
         ),
@@ -702,6 +705,7 @@ class OGCMapsParams(DefaultDependency):
 
     crs: Annotated[
         str | None,
+        BeforeValidator(validate_crs),
         Query(
             description="Reproject the output to the given crs.",
         ),
@@ -709,6 +713,7 @@ class OGCMapsParams(DefaultDependency):
 
     bbox_crs: Annotated[
         str | None,
+        BeforeValidator(validate_crs),
         Query(
             description="crs for the specified bbox.",
             alias="bbox-crs",
@@ -743,13 +748,9 @@ class OGCMapsParams(DefaultDependency):
     def __post_init__(self):  # noqa: C901
         """Parse and validate."""
         if self.crs:
-            if self.crs.startswith("[") and self.crs.endswith("]"):
-                self.crs = self.crs[1:-1]
             self.crs = CRS.from_user_input(self.crs)  # type: ignore
 
         if self.bbox_crs:
-            if self.bbox_crs.startswith("[") and self.bbox_crs.endswith("]"):
-                self.bbox_crs = self.bbox_crs[1:-1]
             self.bbox_crs = CRS.from_user_input(self.bbox_crs)  # type: ignore
 
         if not self.height and not self.width:

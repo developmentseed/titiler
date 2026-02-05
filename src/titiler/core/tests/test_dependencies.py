@@ -7,6 +7,7 @@ from typing import Annotated, Literal
 import pytest
 from fastapi import Depends, FastAPI, Path
 from morecantile import tms
+from rasterio.crs import CRS
 from rio_tiler.types import ColorMapType
 from starlette.testclient import TestClient
 
@@ -613,3 +614,100 @@ def test_histogram_params():
             "/",
             params={"histogram_range": "8"},
         )
+
+
+def test_crs_params():
+    """Test various crs dependencies."""
+    for alias, dependency in {
+        "crs": dependencies.CRSParams,
+        "coord_crs": dependencies.CoordCRSParams,
+        "dst_crs": dependencies.DstCRSParams,
+    }.items():
+        app = FastAPI()
+
+        @app.get("/")
+        def main(params=Depends(dependency)):
+            """return crs params."""
+            # special handling required for CRS object as it cannot be JSON-serialized by default
+            return params.to_dict()
+
+        client = TestClient(app)
+
+        response = client.get(
+            "/",
+            params={
+                alias: """
+            GEOGCS["WGS 84",
+                DATUM["WGS_1984",
+                    SPHEROID["WGS 84",6378137,298.257223563,
+                        AUTHORITY["EPSG","7030"]],
+                    AUTHORITY["EPSG","6326"]],
+                PRIMEM["Greenwich",0,
+                    AUTHORITY["EPSG","8901"]],
+                UNIT["degree",0.0174532925199433,
+                    AUTHORITY["EPSG","9122"]],
+                AUTHORITY["EPSG","4326"]]
+        """
+            },
+        )
+        assert response.status_code == 200
+
+        response = client.get("/", params={alias: "epsg:4326"})
+        assert response.status_code == 200
+
+        response = client.get(
+            "/", params={alias: "+proj=longlat +datum=WGS84 +no_defs +type=crs"}
+        )
+        assert response.status_code == 200
+
+        response = client.get("/", params={alias: "invalid crs"})
+        assert response.status_code == 422
+
+
+def test_ogc_maps_params():
+    """Test OGCMapsParams."""
+    app = FastAPI()
+
+    @app.get("/")
+    def main(params=Depends(dependencies.OGCMapsParams)):
+        """return crs params."""
+        # special handling required for CRS object as it cannot be JSON-serialized by default
+        # exclude request due to recursion during serialization
+        return {
+            key: value.to_dict() if isinstance(value, CRS) else value
+            for key, value in params.as_dict().items()
+            if key not in ["request"]
+        }
+
+    client = TestClient(app)
+
+    for field in ["crs", "bbox-crs"]:
+        response = client.get(
+            "/",
+            params={
+                field: """
+            GEOGCS["WGS 84",
+                DATUM["WGS_1984",
+                    SPHEROID["WGS 84",6378137,298.257223563,
+                        AUTHORITY["EPSG","7030"]],
+                    AUTHORITY["EPSG","6326"]],
+                PRIMEM["Greenwich",0,
+                    AUTHORITY["EPSG","8901"]],
+                UNIT["degree",0.0174532925199433,
+                    AUTHORITY["EPSG","9122"]],
+                AUTHORITY["EPSG","4326"]]
+        """
+            },
+        )
+        assert response.status_code == 200
+
+        response = client.get("/", params={field: "epsg:4326"})
+        assert response.status_code == 200
+
+        response = client.get(
+            "/", params={field: "+proj=longlat +datum=WGS84 +no_defs +type=crs"}
+        )
+        assert response.status_code == 200
+
+        response = client.get("/", params={field: "invalid crs"})
+        assert response.status_code == 422
