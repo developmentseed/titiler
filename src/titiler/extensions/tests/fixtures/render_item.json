@@ -108,7 +108,7 @@
             "rel": "xyz",
             "type": "image/png",
             "title": "NDVI",
-            "href": "https://api.cogeo.xyz/stac/preview.png?url=https://raw.githubusercontent.com/stac-extensions/raster/main/examples/item-landsat8.json&expression=(B5–B4)/(B5+B4)&max_size=512&width=512&resampling_method=average&rescale=-1,1&color_map=ylgn&return_mask=true",
+            "href": "https://api.cogeo.xyz/stac/preview.png?url=https://raw.githubusercontent.com/stac-extensions/raster/main/examples/item-landsat8.json&assets=B5&assets=B4&expression=(b1-b2)/(b1+b2)&max_size=512&width=512&resampling_method=average&rescale=-1,1&color_map=ylgn&return_mask=true",
             "render": "ndvi"
         },
         {

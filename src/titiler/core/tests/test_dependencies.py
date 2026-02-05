@@ -229,7 +229,7 @@ def test_assets():
     assert response.json()["assets"] == ["data", "image"]
     assert not response.json()["expression"]
 
-    response = client.get("/second?assets=data&assets=image&expression=data*image")
+    response = client.get("/second?assets=data&assets=image&expression=b1*b2")
     assert response.json()["expression"] == "data*image"
     assert response.json()["assets"]
 
