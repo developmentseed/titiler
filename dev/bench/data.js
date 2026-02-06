@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1770362364622,
+  "lastUpdate": 1770399804758,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -19646,6 +19646,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad longest_transaction",
             "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "3608264+mfisher87@users.noreply.github.com",
+            "name": "Matt Fisher",
+            "username": "mfisher87"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "46131281ff7e959c373618ae39ba824e370e6b38",
+          "message": "Update docs for `uv` to use dependency groups, remove undocumented `--dev` flag (#1315)\n\n* Install uvicorn from dependency group\n\n* Remove undocumented --dev flag from uv sync, add context in comment",
+          "timestamp": "2026-02-06T18:41:35+01:00",
+          "tree_id": "11b591358054294fc37e9df51a6c9d43006466ba",
+          "url": "https://github.com/developmentseed/titiler/commit/46131281ff7e959c373618ae39ba824e370e6b38"
+        },
+        "date": 1770399803626,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.17,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
             "unit": "s"
           }
         ]
