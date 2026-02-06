@@ -1,5 +1,6 @@
 """Test TiTiler mosaic Factory."""
 
+import json
 import os
 import tempfile
 from contextlib import contextmanager
@@ -16,6 +17,7 @@ from cogeo_mosaic.backends import MosaicBackend as MosaicJSONBackend
 from cogeo_mosaic.mosaic import MosaicJSON
 from fastapi import FastAPI, Query
 from owslib.wmts import WebMapTileService
+from rasterio.crs import CRS
 from rio_tiler.mosaic.methods import PixelSelectionMethod
 from starlette.testclient import TestClient
 
@@ -849,3 +851,26 @@ def test_wmts_extension_mosaic():
             assert ["0", "1"] == list(
                 layer.tilematrixsetlinks["WebMercatorQuad"].tilematrixlimits
             )
+
+
+def test_optional_headers():
+    """Test TilerFactory class."""
+    mosaic = MosaicTilerFactory(
+        backend=MosaicJSONBackend,
+        optional_headers=[OptionalHeader.projjson_crs],
+        add_part=True,
+    )
+    app = FastAPI()
+    app.include_router(mosaic.router)
+    add_exception_handlers(app, MOSAIC_STATUS_CODES)
+
+    with TestClient(app) as client:
+        with tmpmosaic() as mosaic_file:
+            response = client.get(
+                "/bbox/-74,45,-73,46.png",
+                params={"url": mosaic_file, "dst_crs": "EPSG:3857"},
+            )
+            headers = response.headers
+            assert "content-crs-json" in headers
+            projjson_crs = json.loads(headers["content-crs-json"])
+            assert CRS.from_user_input(projjson_crs).to_epsg() == 3857

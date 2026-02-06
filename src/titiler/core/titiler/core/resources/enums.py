@@ -83,3 +83,4 @@ class OptionalHeader(str, Enum):
 
     server_timing = "Server-Timing"
     x_assets = "X-Assets"
+    projjson_crs = "PROJJSON-Crs"

@@ -2,6 +2,33 @@
 
 ## Unreleased
 
+### Misc
+
+* add: return PROJJSON CRS in headers (`Content-Crs-JSON`) when `OptionalHeader.projjson_crs` is set
+
+    ```python
+    endpoints = TilerFactory(optional_headers=[OptionalHeader.projjson_crs])
+
+    app = FastAPI()
+    app.include_router(endpoints.router)
+    with TestClient(app) as client:
+        response = client.get(
+            "/preview.png",
+            params={
+                "url": cog_path,
+            },
+        )
+        headers = response.headers
+        assert "content-crs-json" in headers
+        projjson_crs = json.loads(headers["content-crs-json"])
+        assert CRS.from_user_input(projjson_crs).to_epsg() == 32621
+    ```
+
+### titiler.core
+
+* add: `optional_headers` attribute to `TilerFactory` class
+* add: `projjson_crs` to `OptionalHeader` enum
+
 ## 1.1.1 (2026-01-22)
 
 ### titiler.extensions

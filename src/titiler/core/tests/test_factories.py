@@ -40,6 +40,7 @@ from titiler.core.factory import (
     TilerFactory,
     TMSFactory,
 )
+from titiler.core.resources.enums import OptionalHeader
 
 from .conftest import DATA_DIR, mock_rasterio_open, parse_img
 
@@ -2233,3 +2234,25 @@ def test_ogc_maps_cog():
         assert headers["Content-Crs"] == "<http://www.opengis.net/def/crs/EPSG/0/4326>"
         assert headers["Content-Bbox"] == "-56.228,72.715,-54.54699999999999,73.188"
         assert headers["content-type"] == "image/png"
+
+
+def test_optional_headers():
+    """Test TilerFactory class."""
+    cog_path = f"{DATA_DIR}/cog.tif"
+
+    cog = TilerFactory(optional_headers=[OptionalHeader.projjson_crs])
+
+    app = FastAPI()
+    app.include_router(cog.router)
+    with TestClient(app) as client:
+        response = client.get(
+            "/preview.png",
+            params={
+                "url": cog_path,
+            },
+        )
+        headers = response.headers
+        assert "content-crs-json" in headers
+        projjson_crs = json.loads(headers["content-crs-json"])
+        assert projjson_crs["type"] == "ProjectedCRS"
+        assert CRS.from_user_input(projjson_crs).to_epsg() == 32621
