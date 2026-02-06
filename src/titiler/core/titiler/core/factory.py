@@ -13,7 +13,7 @@ import jinja2
 import numpy
 import rasterio
 from attrs import define, field
-from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, status
+from fastapi import APIRouter, Body, Depends, Path, Query
 from fastapi.dependencies.utils import get_parameterless_sub_dependant
 from fastapi.params import Depends as DependsFunc
 from geojson_pydantic.features import Feature, FeatureCollection
@@ -24,7 +24,6 @@ from pydantic import Field
 from rio_tiler.colormap import ColorMaps
 from rio_tiler.colormap import cmap as default_cmap
 from rio_tiler.constants import WGS84_CRS
-from rio_tiler.errors import InvalidExpression
 from rio_tiler.io import BaseReader, MultiBandReader, MultiBaseReader, Reader
 from rio_tiler.models import ImageData, Info
 from rio_tiler.types import ColorMapType
@@ -915,20 +914,15 @@ class TilerFactory(BaseFactory):
                 with self.reader(
                     src_path, tms=tms, **reader_params.as_dict()
                 ) as src_dst:
-                    try:
-                        image = src_dst.tile(
-                            x,
-                            y,
-                            z,
-                            tilesize=scale * 256,
-                            **tile_params.as_dict(),
-                            **layer_params.as_dict(),
-                            **dataset_params.as_dict(),
-                        )
-                    except InvalidExpression as e:
-                        raise HTTPException(
-                            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
-                        ) from e
+                    image = src_dst.tile(
+                        x,
+                        y,
+                        z,
+                        tilesize=scale * 256,
+                        **tile_params.as_dict(),
+                        **layer_params.as_dict(),
+                        **dataset_params.as_dict(),
+                    )
                     dst_colormap = getattr(src_dst, "colormap", None)
 
             if post_process:

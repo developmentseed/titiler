@@ -8,6 +8,7 @@ from rio_tiler.errors import (
     InvalidAssetName,
     InvalidBandName,
     InvalidColorFormat,
+    InvalidExpression,
     MissingAssets,
     MissingBands,
     RioTilerError,
@@ -43,6 +44,7 @@ DEFAULT_STATUS_CODES = {
     RasterioError: status.HTTP_500_INTERNAL_SERVER_ERROR,
     RioTilerError: status.HTTP_500_INTERNAL_SERVER_ERROR,
     Exception: status.HTTP_500_INTERNAL_SERVER_ERROR,
+    InvalidExpression: status.HTTP_400_BAD_REQUEST,
 }
 
 
