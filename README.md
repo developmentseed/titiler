@@ -92,8 +92,7 @@ To install from sources and run for development:
 git clone https://github.com/developmentseed/titiler.git
 cd titiler
 
-uv sync
-uv run pip install uvicorn
+uv sync --group server
 uv run uvicorn titiler.application.main:app --reload
 ```
 
