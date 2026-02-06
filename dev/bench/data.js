@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1770399804758,
+  "lastUpdate": 1770399861653,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -19690,6 +19690,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 3.17,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "3608264+mfisher87@users.noreply.github.com",
+            "name": "Matt Fisher",
+            "username": "mfisher87"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1000457c41d289b0ae65a11c6192aac17baad94c",
+          "message": "Add warning of deprecated metapackage to README and docs (#1316)\n\n* Add warning to README of deprecated metapackage\n\n* Add warning to \"getting started\" docs",
+          "timestamp": "2026-02-06T18:42:35+01:00",
+          "tree_id": "e8e9e3df18cccaab6035d0b4e65a8df9d9f0af5c",
+          "url": "https://github.com/developmentseed/titiler/commit/1000457c41d289b0ae65a11c6192aac17baad94c"
+        },
+        "date": 1770399860240,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 2.83,
             "unit": "s"
           },
           {
