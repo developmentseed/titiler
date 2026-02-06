@@ -20,7 +20,6 @@ from starlette.requests import Request
 from titiler.core.resources.enums import ImageType, MediaType
 from titiler.core.utils import accept_media_type
 from titiler.core.validation import (
-    parseable_float_regex,
     separated_parseable_floats_regex,
     validate_bbox,
     validate_color_formula,
@@ -406,11 +405,10 @@ class DatasetParams(DefaultDependency):
     """Low level WarpedVRT Optional parameters."""
 
     nodata: Annotated[
-        str | int | float | None,
+        Literal["nan", "inf", "-inf"] | int | float | None,
         Query(
             title="Nodata value",
             description="Overwrite internal Nodata value; nan or valid float values only.",
-            pattern=rf"^nan|{parseable_float_regex}$",
         ),
     ] = None
     unscale: Annotated[

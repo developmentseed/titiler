@@ -2,12 +2,9 @@
 
 import re
 from json import JSONDecodeError, loads
-from typing import Final
 
 from color_operations import parse_operations as parse_color_formula
 from rasterio.crs import CRS
-
-parseable_float_regex: Final[str] = r"\s*(-)?\d+((\.\d+)(e\d+)?)?\s*"
 
 
 def validate_rescale(rescale_strs: list[str]) -> list[str]:
@@ -128,6 +125,7 @@ def separated_parseable_floats_regex(count: int, separator: str = ",") -> str:
     :return: Generated regular expression.
     :rtype: str
     """
+    parseable_float_regex = r"\s*(-)?\d+((\.\d+)(e\d+)?)?\s*"
     return "^{}$".format(
         re.escape(separator).join([parseable_float_regex for _ in range(count)])
     )
