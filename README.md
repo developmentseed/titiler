@@ -65,6 +65,12 @@ Starting with version `0.3.0`, the `TiTiler` python module has been split into a
 
 ## Installation
 
+> [!WARNING]
+>
+> Do not install the package named `titiler` from PyPI.
+> In late 2025, we [dropped support for this metapackage](https://github.com/developmentseed/titiler/issues/294);
+> now you must install TiTiler from the package names shown below.
+
 To install from PyPI and run:
 
 ```bash
