@@ -2,6 +2,7 @@
 
 import abc
 import base64
+import json
 import logging
 import os
 import warnings
@@ -79,7 +80,7 @@ from titiler.core.models.responses import (
     Statistics,
     StatisticsGeoJSON,
 )
-from titiler.core.resources.enums import ImageType, MediaType
+from titiler.core.resources.enums import ImageType, MediaType, OptionalHeader
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse
 from titiler.core.routing import EndpointScope
 from titiler.core.telemetry import factory_trace
@@ -332,6 +333,8 @@ class TilerFactory(BaseFactory):
     supported_tms: TileMatrixSets = morecantile_tms
 
     render_func: Callable[..., tuple[bytes, str]] = render_image
+
+    optional_headers: list[OptionalHeader] = field(factory=list)
 
     # Add/Remove some endpoints
     add_preview: bool = True
@@ -940,6 +943,10 @@ class TilerFactory(BaseFactory):
                 headers["Content-Bbox"] = ",".join(map(str, image.bounds))
             if uri := CRS_to_uri(image.crs):
                 headers["Content-Crs"] = f"<{uri}>"
+            if OptionalHeader.projjson_crs in self.optional_headers:
+                headers["Content-Crs-JSON"] = json.dumps(
+                    image.crs.to_dict(projjson=True)
+                )
 
             return Response(content, media_type=media_type, headers=headers)
 
@@ -1211,6 +1218,10 @@ class TilerFactory(BaseFactory):
                 headers["Content-Bbox"] = ",".join(map(str, image.bounds))
             if uri := CRS_to_uri(image.crs):
                 headers["Content-Crs"] = f"<{uri}>"
+            if OptionalHeader.projjson_crs in self.optional_headers:
+                headers["Content-Crs-JSON"] = json.dumps(
+                    image.crs.to_dict(projjson=True)
+                )
 
             return Response(content, media_type=media_type, headers=headers)
 
@@ -1283,6 +1294,10 @@ class TilerFactory(BaseFactory):
                 headers["Content-Bbox"] = ",".join(map(str, image.bounds))
             if uri := CRS_to_uri(image.crs):
                 headers["Content-Crs"] = f"<{uri}>"
+            if OptionalHeader.projjson_crs in self.optional_headers:
+                headers["Content-Crs-JSON"] = json.dumps(
+                    image.crs.to_dict(projjson=True)
+                )
 
             return Response(content, media_type=media_type, headers=headers)
 
@@ -1351,6 +1366,10 @@ class TilerFactory(BaseFactory):
                 headers["Content-Bbox"] = ",".join(map(str, image.bounds))
             if uri := CRS_to_uri(image.crs):
                 headers["Content-Crs"] = f"<{uri}>"
+            if OptionalHeader.projjson_crs in self.optional_headers:
+                headers["Content-Crs-JSON"] = json.dumps(
+                    image.crs.to_dict(projjson=True)
+                )
 
             return Response(content, media_type=media_type, headers=headers)
 
@@ -1437,6 +1456,10 @@ class TilerFactory(BaseFactory):
                 headers["Content-Bbox"] = ",".join(map(str, image.bounds))
             if uri := CRS_to_uri(image.crs):
                 headers["Content-Crs"] = f"<{uri}>"
+            if OptionalHeader.projjson_crs in self.optional_headers:
+                headers["Content-Crs-JSON"] = json.dumps(
+                    image.crs.to_dict(projjson=True)
+                )
 
             return Response(content, media_type=media_type, headers=headers)
 
