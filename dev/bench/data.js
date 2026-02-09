@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1770399861653,
+  "lastUpdate": 1770645388528,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -19749,6 +19749,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 2.83,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "64801328+captaincoordinates@users.noreply.github.com",
+            "name": "Tom Christian",
+            "username": "captaincoordinates"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b2605551d03879f96d02e101307d6b698a664846",
+          "message": "1308 input validation changes (#1313)\n\n* fix(#1308): validate rescale values\n\n* fix(#1308): test rescale with non-numerics\n\n* fix(#1308): validate various crs values\n\n* fix(#1308): validate algorithm_params\n\n* fix(#1308): handle invalid expressions\n\n* fix(#1308): validate nodata\n\n* fix(#1308): validate historgram_bins\n\n* fix(#1308): ensure colormap failures are tested\n\n* fix(#1308): validate bbox\n\n* fix(#1308): validate color_formula\n\n* fix(#1308): DRY in nodata\n\n* fix(#1308): validate historgram_range\n\n* fix(#1308): DRY in float validation\n\n* fix(#1308): catch exceptions in color formula validation to avoid 500s from validation attempt\n\n* fix(#1308): update changelog\n\n* fix(#1308): PR feedback simplify validation\n\nCo-authored-by: Vincent Sarago <vincent.sarago@gmail.com>\n\n* fix(#1308): PR feedback universal exception handling\n\nCo-authored-by: Vincent Sarago <vincent.sarago@gmail.com>\n\n---------\n\nCo-authored-by: Vincent Sarago <vincent.sarago@gmail.com>",
+          "timestamp": "2026-02-09T14:54:48+01:00",
+          "tree_id": "1ff5e9863abb7dc7ca82cbb2b3f13bf8055a9fd1",
+          "url": "https://github.com/developmentseed/titiler/commit/b2605551d03879f96d02e101307d6b698a664846"
+        },
+        "date": 1770645387538,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.17,
             "unit": "s"
           },
           {
