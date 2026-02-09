@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Input Validation
+
+* fix: address several instances of validation failures returning 500 instead of 4xx HTTP responses
+
 ## 1.1.1 (2026-01-22)
 
 ### titiler.extensions
