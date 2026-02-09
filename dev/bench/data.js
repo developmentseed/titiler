@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1770645388528,
+  "lastUpdate": 1770645598545,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -19808,6 +19808,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 3.17,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "64060256+jaiindimple@users.noreply.github.com",
+            "name": "Dimple Jain",
+            "username": "jaiindimple"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2615f4c0ba5bf62e757a03d82516291093318301",
+          "message": "added titiler with stac user_guide (#1306)\n\nCo-authored-by: dimplejaiin <dimple@pixxel.co.in>",
+          "timestamp": "2026-02-09T14:58:04+01:00",
+          "tree_id": "09ea362b8215c73a350a4babeb9ef1b1fa3a094d",
+          "url": "https://github.com/developmentseed/titiler/commit/2615f4c0ba5bf62e757a03d82516291093318301"
+        },
+        "date": 1770645596869,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.3,
             "unit": "s"
           },
           {
