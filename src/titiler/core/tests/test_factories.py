@@ -10,7 +10,7 @@ from enum import Enum
 from io import BytesIO
 from typing import Dict, Optional, Sequence, Type
 from unittest.mock import patch
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
 
 import attr
 import httpx
@@ -93,7 +93,7 @@ def test_TilerFactory():
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/jpeg"
     response = client.get(
-        f"/tiles/WebMercatorQuad/8/87/48?url={DATA_DIR}/cog.tif&rescale=-3.4028235e+38,3.4028235e+38"
+        f"/tiles/WebMercatorQuad/8/87/48?url={DATA_DIR}/cog.tif&rescale={quote('-3.4028235e+38,3.4028235e+38')}"  # + symbols are interpreted as spaces without quoting
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/jpeg"

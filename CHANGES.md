@@ -41,6 +41,12 @@
 
 * remove: `tile_scale` option in `/WMTSCapabilities.xml` endpoints
 
+## 1.2.0 (2026-02-09)
+
+### Input Validation
+
+* fix: address several instances of validation failures returning 500 instead of 4xx HTTP responses
+
 ## 1.1.1 (2026-01-22)
 
 ### titiler.extensions

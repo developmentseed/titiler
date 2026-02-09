@@ -7,6 +7,7 @@ from typing import Annotated, Literal
 import pytest
 from fastapi import Depends, FastAPI, Path
 from morecantile import tms
+from rasterio.crs import CRS
 from rio_tiler.types import ColorMapType
 from starlette.testclient import TestClient
 
@@ -139,6 +140,9 @@ def test_cmap():
     assert response.status_code == 200
     assert response.json()[0][0] == [0.0, 0.05263157894736842]
     assert response.json()[0][1] == [247, 252, 240, 255]
+
+    response = client.get("/", params={"colormap": "invalid json"})
+    assert response.status_code == 400  # this can only be validated via exception
 
 
 def test_default():
@@ -356,6 +360,9 @@ def test_dataset():
     response = client.get("/nan?nodata=nan")
     assert response.json() == "nan"
 
+    response = client.get("/?nodata=invalid-value")
+    assert response.status_code == 422
+
 
 def test_render():
     """test render deps."""
@@ -417,6 +424,14 @@ def test_algo():
     assert response.json()["buffer"] == 4
     assert response.json()["input_nbands"] == 1
 
+    response = client.get(
+        "/",
+        params={
+            "algorithm_params": "invalid json",
+        },
+    )
+    assert response.status_code == 422
+
 
 def test_rescale_params():
     """test RescalingParams dependency."""
@@ -441,8 +456,8 @@ def test_rescale_params():
     assert response.status_code == 200
     assert response.json() == [[0, 1], [2, 3]]
 
-    with pytest.raises(AssertionError):
-        client.get("/", params={"rescale": [0, 1]})
+    response = client.get("/", params={"rescale": [0, 1]})
+    assert response.status_code == 422
 
     response = client.get("/", params={"rescale": [[0, 1]]})
     assert response.status_code == 200
@@ -472,6 +487,14 @@ def test_rescale_params():
     assert response.status_code == 200
     assert response.json() == [[0, 1], [2, 3]]
 
+    response = client.get("/", params={"rescale": "not a number"})
+    assert response.status_code == 422
+
+    response = client.get(
+        "/", params={"rescale": ["not a number", "also not a number"]}
+    )
+    assert response.status_code == 422
+
 
 def test_histogram_params():
     """Test HistogramParams dependency."""
@@ -500,6 +523,12 @@ def test_histogram_params():
 
     response = client.get(
         "/",
+        params={"histogram_bins": "invalid value"},
+    )
+    assert response.status_code == 422
+
+    response = client.get(
+        "/",
     )
     assert response.status_code == 200
     assert response.json()["bins"] == 10
@@ -511,8 +540,137 @@ def test_histogram_params():
     assert response.status_code == 200
     assert response.json()["range"] == [8.0, 9.0]
 
-    with pytest.raises(AssertionError):
-        client.get(
+    response = client.get(
+        "/",
+        params={"histogram_range": "8"},
+    )
+    assert response.status_code == 422
+
+    response = client.get(
+        "/",
+        params={"histogram_range": "invalid value"},
+    )
+    assert response.status_code == 422
+
+
+def test_crs_params():
+    """Test various crs dependencies."""
+    for alias, dependency in {
+        "crs": dependencies.CRSParams,
+        "coord_crs": dependencies.CoordCRSParams,
+        "dst_crs": dependencies.DstCRSParams,
+    }.items():
+        app = FastAPI()
+
+        @app.get("/")
+        def main(params=Depends(dependency)):
+            """return crs params."""
+            # special handling required for CRS object as it cannot be JSON-serialized by default
+            return params.to_dict()
+
+        client = TestClient(app)
+
+        response = client.get(
             "/",
-            params={"histogram_range": "8"},
+            params={
+                alias: """
+            GEOGCS["WGS 84",
+                DATUM["WGS_1984",
+                    SPHEROID["WGS 84",6378137,298.257223563,
+                        AUTHORITY["EPSG","7030"]],
+                    AUTHORITY["EPSG","6326"]],
+                PRIMEM["Greenwich",0,
+                    AUTHORITY["EPSG","8901"]],
+                UNIT["degree",0.0174532925199433,
+                    AUTHORITY["EPSG","9122"]],
+                AUTHORITY["EPSG","4326"]]
+        """
+            },
         )
+        assert response.status_code == 200
+
+        response = client.get("/", params={alias: "epsg:4326"})
+        assert response.status_code == 200
+
+        response = client.get(
+            "/", params={alias: "+proj=longlat +datum=WGS84 +no_defs +type=crs"}
+        )
+        assert response.status_code == 200
+
+        response = client.get("/", params={alias: "invalid crs"})
+        assert response.status_code == 422
+
+
+def test_ogc_maps_params_crs():
+    """Test OGCMapsParams crs."""
+    app = FastAPI()
+
+    @app.get("/")
+    def main(params=Depends(dependencies.OGCMapsParams)):
+        """return crs params."""
+        # special handling required for CRS object as it cannot be JSON-serialized by default
+        # exclude request due to recursion during serialization
+        return {
+            key: value.to_dict() if isinstance(value, CRS) else value
+            for key, value in params.as_dict().items()
+            if key not in ["request"]
+        }
+
+    client = TestClient(app)
+
+    for field in ["crs", "bbox-crs"]:
+        response = client.get(
+            "/",
+            params={
+                field: """
+            GEOGCS["WGS 84",
+                DATUM["WGS_1984",
+                    SPHEROID["WGS 84",6378137,298.257223563,
+                        AUTHORITY["EPSG","7030"]],
+                    AUTHORITY["EPSG","6326"]],
+                PRIMEM["Greenwich",0,
+                    AUTHORITY["EPSG","8901"]],
+                UNIT["degree",0.0174532925199433,
+                    AUTHORITY["EPSG","9122"]],
+                AUTHORITY["EPSG","4326"]]
+        """
+            },
+        )
+        assert response.status_code == 200
+
+        response = client.get("/", params={field: "epsg:4326"})
+        assert response.status_code == 200
+
+        response = client.get(
+            "/", params={field: "+proj=longlat +datum=WGS84 +no_defs +type=crs"}
+        )
+        assert response.status_code == 200
+
+        response = client.get("/", params={field: "invalid crs"})
+        assert response.status_code == 422
+
+
+def test_ogc_maps_params_bbox():
+    """Test OGCMapsParams bbox."""
+    app = FastAPI()
+
+    @app.get("/")
+    def main(params=Depends(dependencies.OGCMapsParams)):
+        """return bbox params."""
+        return params.bbox
+
+    client = TestClient(app)
+
+    response = client.get("/", params={"bbox": "-2,-1,2,1"})
+    assert response.status_code == 200
+    assert response.json() == [-2, -1, 2, 1]
+
+    response = client.get("/", params={"bbox": "-2,-1,-5,2,1,5"})
+    assert response.status_code == 200
+    assert response.json() == [-2, -1, 2, 1]
+
+    response = client.get("/", params={"bbox": "0"})
+    assert response.status_code == 422
+
+    response = client.get("/", params={"bbox": "invalid bbox"})
+    assert response.status_code == 422
