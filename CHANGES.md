@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.2.0 (2026-02-09)
+
 ### Input Validation
 
 * fix: address several instances of validation failures returning 500 instead of 4xx HTTP responses
