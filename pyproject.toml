@@ -251,6 +251,11 @@ replace = 'titiler-core[telemetry]=={new_version}'
 
 [[tool.bumpversion.files]]
 filename = "src/titiler/application/pyproject.toml"
+search = 'titiler-xarray=={current_version}'
+replace = 'titiler-xarray=={new_version}'
+
+[[tool.bumpversion.files]]
+filename = "src/titiler/application/pyproject.toml"
 search = 'titiler-extensions[cogeo,stac]=={current_version}'
 replace = 'titiler-extensions[cogeo,stac]=={new_version}'
 
