@@ -71,10 +71,6 @@ class AssetsParams(DefaultDependency):
                     "description": "Return results for assets `data` and `cog`.",
                     "value": ["data", "cog"],
                 },
-                "one-asset-with-option": {
-                    "description": "Return results for asset `data`.",
-                    "value": ["data|indexes=1,2,3"],
-                },
             },
         ),
     ] = None

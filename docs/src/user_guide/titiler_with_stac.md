@@ -87,6 +87,13 @@ Before visualizing, let's understand what's in our STAC item. The `/stac/info` e
 http://127.0.0.1:8000/stac/info?url=https://maxar-opendata.s3.amazonaws.com/events/BayofBengal-Cyclone-Mocha-May-23/ard/46/033111333030/2023-05-22/10300110E84B5A00.json
 ```
 
+### List all available assets
+
+```bash
+http://127.0.0.1:8000/stac/assets?url=https://maxar-opendata.s3.amazonaws.com/events/BayofBengal-Cyclone-Mocha-May-23/ard/46/033111333030/2023-05-22/10300110E84B5A00.json
+```
+
+
 ### Info for Specific Asset
 
 To get detailed information about a specific asset:
@@ -132,7 +139,7 @@ For web maps, you need tiles - small image pieces that load progressively as use
 
 ### Finding Tile Coordinates (Z, X, Y)
 
-To request a specific tile, you need to know its coordinates. You can calculate these from the STAC item's bounding box using the `mercantile` library.
+To request a specific tile, you need to know its coordinates. You can calculate these from the STAC item's bounding box using the `morecantile` library.
 
 **Important**: STAC items have two types of bounding boxes:
 
@@ -141,7 +148,7 @@ To request a specific tile, you need to know its coordinates. You can calculate 
 
 ```python
 import httpx
-import mercantile
+import morecantile
 
 # Fetch the STAC item
 stac_url = "https://maxar-opendata.s3.amazonaws.com/events/BayofBengal-Cyclone-Mocha-May-23/ard/46/033111333030/2023-05-22/10300110E84B5A00.json"
@@ -155,13 +162,16 @@ lon = (bbox[0] + bbox[2]) / 2  # 92.743
 lat = (bbox[1] + bbox[3]) / 2  # 20.506
 zoom = 15
 
+# Load the WebMercatorQuad TileMatrixSet
+tms = morecantile.tms.get("WebMercatorQuad")
+
 # Get the tile containing this point
-tile = mercantile.tile(lon, lat, zoom)
+tile = tms.tile(lon, lat, zoom)
 print(f"z={tile.z}, x={tile.x}, y={tile.y}")
 # Output: z=15, x=24825, y=14476
 ```
 
-> **Tip**: Install mercantile with `pip install mercantile`
+> **Tip**: Install morecantile with `python -m pip install morecantile`
 
 ### Basic Tile Request
 
@@ -191,13 +201,21 @@ The `assets` parameter specifies which asset(s) to render:
 &assets=ms_analytic&assets=pan_analytic
 ```
 
-### Using `asset_bidx` - Band Selection
+### Passing per Asset options using `{name}|{options}={...}`
 
-When working with multi-band asset, use `asset_bidx` to select specific bands:
+When working with multi-band asset, you can extend the **asse**t option to select specific bands or apply expression:
+
+!!! note
+
+    Support of `options` in asset's name may depends on implementation. `rio-tiler`'s STACReader supports both `indexes=` and `expression=`: 
+
+    - Indexes: `assets=ms_analytic|indexes=1,2,3`
+    - Expression: `assets=ms_analytic|expression=b1+b2`
+
 
 ```bash
 # Select band 3 (Green) from ms_analytic
-http://127.0.0.1:8000/stac/tiles/WebMercatorQuad/15/24825/14476.png?url=https://maxar-opendata.s3.amazonaws.com/events/BayofBengal-Cyclone-Mocha-May-23/ard/46/033111333030/2023-05-22/10300110E84B5A00.json&assets=ms_analytic&asset_bidx=ms_analytic|3
+http://127.0.0.1:8000/stac/tiles/WebMercatorQuad/15/24825/14476.png?url=https://maxar-opendata.s3.amazonaws.com/events/BayofBengal-Cyclone-Mocha-May-23/ard/46/033111333030/2023-05-22/10300110E84B5A00.json&assets=ms_analytic|indexes=3
 ```
 
 **Band indices for `ms_analytic`**:
@@ -213,19 +231,19 @@ http://127.0.0.1:8000/stac/tiles/WebMercatorQuad/15/24825/14476.png?url=https://
 | 7 | BAND_N | NIR (Near Infrared) |
 | 8 | BAND_N2 | NIR2 |
 
-### Creating RGB Composites with `asset_bidx`
+### Creating RGB Composites with `{asset}|indexes={}`
 
 Create false-color composites by specifying 3 bands:
 
 ```bash
 # Natural Color (Red, Green, Blue - bands 5,3,2)
-&assets=ms_analytic&asset_bidx=ms_analytic|5,3,2
+&assets=ms_analytic|indexes=5,3,2
 
 # False Color Infrared (NIR, Red, Green - bands 7,5,3)
-&assets=ms_analytic&asset_bidx=ms_analytic|7,5,3
+&assets=ms_analytic|indexes=7,5,3
 
 # Agriculture (NIR, Green, Blue - bands 7,3,2)
-&assets=ms_analytic&asset_bidx=ms_analytic|7,3,2
+&assets=ms_analytic|indexes=7,3,2
 ```
 
 ### Using `rescale` - Adjust Value Range
@@ -245,16 +263,29 @@ http://127.0.0.1:8000/stac/tiles/WebMercatorQuad/15/24825/14476.png?url=https://
 
 The `expression` parameter lets you perform calculations across bands. This is powerful for creating vegetation indices, water indices, and more.
 
-**Syntax**: Bands are referenced as `asset_name_b{index}` (e.g., `ms_analytic_b7` for NIR band).
+**Syntax**: Bands are referenced as `b{index}` (e.g., `b7` for NIR band in the `ms_analytic` asset).
 
-> **Warning**: The `+` sign in URLs is interpreted as a space! Use `%2B` instead of `+` in your expressions, otherwise you'll get a syntax error.
+!!! important
+
+    For STAC, the band index `b{index}` within an expression corresponds to the index of the resulting image created using multiple assets. 
+    If you combine two assets with 2 bands each, the resulting images will have 4 bands, thus an expression could accept `b1 -> b4`.
+
+    ```
+    # select bands 1 & 2 for two assets and apply an expression
+    assets=visual|indexes=1,2&assets=ms_analytic|indexes=1,2&expression=(b1+b2+b3+b4)/4
+    ```
+
+!!! warning
+
+    The `+` sign in URLs is interpreted as a space! Use `%2B` instead of `+` in your expressions, otherwise you'll get a syntax error.
+
 
 #### NDVI (Normalized Difference Vegetation Index)
 
 NDVI highlights vegetation: `(NIR - Red) / (NIR + Red)`
 
 ```bash
-http://127.0.0.1:8000/stac/tiles/WebMercatorQuad/15/24825/14476.png?url=https://maxar-opendata.s3.amazonaws.com/events/BayofBengal-Cyclone-Mocha-May-23/ard/46/033111333030/2023-05-22/10300110E84B5A00.json&assets=ms_analytic&expression=(ms_analytic_b7-ms_analytic_b5)/(ms_analytic_b7%2Bms_analytic_b5)&rescale=-1,1
+http://127.0.0.1:8000/stac/tiles/WebMercatorQuad/15/24825/14476.png?url=https://maxar-opendata.s3.amazonaws.com/events/BayofBengal-Cyclone-Mocha-May-23/ard/46/033111333030/2023-05-22/10300110E84B5A00.json&assets=ms_analytic&expression=(b7-b5)/(b7%2Bb5)&rescale=-1,1
 ```
 
 ![](../img/ndvi_without_color.png)
@@ -264,14 +295,14 @@ http://127.0.0.1:8000/stac/tiles/WebMercatorQuad/15/24825/14476.png?url=https://
 NDWI highlights water bodies: `(Green - NIR) / (Green + NIR)`
 
 ```bash
-http://127.0.0.1:8000/stac/tiles/WebMercatorQuad/15/24825/14476.png?url=https://maxar-opendata.s3.amazonaws.com/events/BayofBengal-Cyclone-Mocha-May-23/ard/46/033111333030/2023-05-22/10300110E84B5A00.json&assets=ms_analytic&expression=(ms_analytic_b3-ms_analytic_b7)/(ms_analytic_b3%2Bms_analytic_b7)&rescale=-1,1
+http://127.0.0.1:8000/stac/tiles/WebMercatorQuad/15/24825/14476.png?url=https://maxar-opendata.s3.amazonaws.com/events/BayofBengal-Cyclone-Mocha-May-23/ard/46/033111333030/2023-05-22/10300110E84B5A00.json&assets=ms_analytic&expression=(b3-b7)/(b3%2Bb7)&rescale=-1,1
 ```
 
 #### Simple Band Ratio
 
 ```bash
 # NIR/Red ratio (vegetation vigor)
-&expression=ms_analytic_b7/ms_analytic_b5
+&assets=ms_analytic&expression=b7/b5
 ```
 
 ### Using `colormap_name` - Apply Color Palettes
@@ -283,7 +314,7 @@ When using expressions (which return single-band results), apply colormaps to ma
 #### NDVI with Colormap
 
 ```bash
-http://127.0.0.1:8000/stac/tiles/WebMercatorQuad/15/24825/14476.png?url=https://maxar-opendata.s3.amazonaws.com/events/BayofBengal-Cyclone-Mocha-May-23/ard/46/033111333030/2023-05-22/10300110E84B5A00.json&assets=ms_analytic&expression=(ms_analytic_b7-ms_analytic_b5)/(ms_analytic_b7%2Bms_analytic_b5)&colormap_name=rdylgn&rescale=-1,1
+http://127.0.0.1:8000/stac/tiles/WebMercatorQuad/15/24825/14476.png?url=https://maxar-opendata.s3.amazonaws.com/events/BayofBengal-Cyclone-Mocha-May-23/ard/46/033111333030/2023-05-22/10300110E84B5A00.json&assets=ms_analytic&expression=(b7-b5)/(b7%2Bb5)&colormap_name=rdylgn&rescale=-1,1
 ```
 
 - `colormap_name=rdylgn`: Red-Yellow-Green colormap (red=low NDVI, green=high NDVI)
@@ -292,14 +323,14 @@ http://127.0.0.1:8000/stac/tiles/WebMercatorQuad/15/24825/14476.png?url=https://
 #### Water Index with Blue Colormap
 
 ```bash
-http://127.0.0.1:8000/stac/tiles/WebMercatorQuad/15/24825/14476.png?url=https://maxar-opendata.s3.amazonaws.com/events/BayofBengal-Cyclone-Mocha-May-23/ard/46/033111333030/2023-05-22/10300110E84B5A00.json&assets=ms_analytic&expression=(ms_analytic_b3-ms_analytic_b7)/(ms_analytic_b3%2Bms_analytic_b7)&colormap_name=blues&rescale=-1,1
+http://127.0.0.1:8000/stac/tiles/WebMercatorQuad/15/24825/14476.png?url=https://maxar-opendata.s3.amazonaws.com/events/BayofBengal-Cyclone-Mocha-May-23/ard/46/033111333030/2023-05-22/10300110E84B5A00.json&assets=ms_analytic&expression=(b3-b7)/(b3%2Bb7)&colormap_name=blues&rescale=-1,1
 ```
 
 ### Visualize at the Image Extent or Crop to Custom Bounds
 
 **NDVI on Image Extent**
 ```bash
-http://127.0.0.1:8000/stac/bbox/92.724,20.481,92.761,20.530.png?url=https://maxar-opendata.s3.amazonaws.com/events/BayofBengal-Cyclone-Mocha-May-23/ard/46/033111333030/2023-05-22/10300110E84B5A00.json&assets=ms_analytic&expression=(ms_analytic_b7-ms_analytic_b5)/(ms_analytic_b7%2Bms_analytic_b5)&colormap_name=rdylgn&rescale=-1,1
+http://127.0.0.1:8000/stac/bbox/92.724,20.481,92.761,20.530.png?url=https://maxar-opendata.s3.amazonaws.com/events/BayofBengal-Cyclone-Mocha-May-23/ard/46/033111333030/2023-05-22/10300110E84B5A00.json&assets=ms_analytic&expression=(b7-b5)/(b7%2Bb5)&colormap_name=rdylgn&rescale=-1,1
 ```
 
 ![](../img/full_ndvi.png)
@@ -358,8 +389,6 @@ http://127.0.0.1:8000/stac/bbox/92.724,20.481,92.761,20.530.png?url=https://maxa
 **Black/white tiles**: Your data values might be outside the default range. Use `rescale` to adjust.
 
 **Slow tiles**: Large files take time. Consider using overviews or lower zoom levels for previews.
-
-**Expression errors**: Make sure band references match exactly: `assetname_b{number}`.
 
 ---
 *Created by [Dimple Jain](https://jaiindimple.github.io)*
