@@ -155,7 +155,7 @@ class AssetsParams(DefaultDependency):
                     "value": ["data", "cog"],
                 },
                 "one-asset-with-option": {
-                    "description": "Return results for asset `data`.",
+                    "description": "Return results for indexes 1,2,3 for asset `data`.",
                     "value": ["data|indexes=1,2,3"],
                 },
             },

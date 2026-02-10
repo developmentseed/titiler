@@ -2,7 +2,7 @@
 
 !!! note
 
-    This migration guide was generated with the help of Claude AI and may require review.
+    This migration guide was generated with the help of Claude AI
 
 
 This document describes the breaking changes and migration steps required when upgrading from TiTiler 1.1.1 to 2.0.0.
@@ -131,7 +131,7 @@ class MyAssetReader(MultiBaseReader):
 tiler = MultiBaseTilerFactory(reader=MyAssetReader)
 ```
 
-### 5. `assets` Parameter is mandatory for MultiBaseReader when using expressions
+### 5. `assets` Parameter is mandatory for MultiBaseReader
 
 The `expression` parameter cannot be used to define `assets` and thus `assets` parameter must be provided.
 
