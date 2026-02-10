@@ -19,13 +19,14 @@
 ### titiler.core
 
 * change: `bidx` option is now ignored by `MultiBaseFactory` endpoints
+* change: `assets` option is now **required** for `MultiBaseFactory` endpoints
+* change: users can use `assets=:all:` in `MultiBaseFactory`'s `/info` and `/statistics` endpoints
 * change: `expression` cannot be used to declare `assets` in `MultiBaseFactory` endpoints. Use `assets=Red&assets=Green&expression=b1/b2`.
 * remove: `asset_indexes` and `asset_expression` options in `dependencies.py`
-* rename:
-    - `dependencies.AssetsBidxExprParamsOptional` to `dependencies.AssetsExprParamsOptional` 
-    - `dependencies.AssetsBidxExprParams` to `dependencies.AssetsExprParams` 
+* rename: `dependencies.AssetsBidxExprParams` to `dependencies.AssetsExprParams` 
 * remove: methods or classes:
     - `titiler.core.dependencies.AssetsBidxParams`
+    - `titiler.core.dependencies.AssetsBidxExprParamsOptional`
     - `titiler.core.dependencies.BandsParams`
     - `titiler.core.dependencies.BandsExprParamsOptional`
     - `titiler.core.dependencies.BandsExprParams`

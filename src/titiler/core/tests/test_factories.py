@@ -694,10 +694,13 @@ def test_MultiBaseTilerFactory(rio):
     assert len(response.json()) == 2
 
     # no assets
-    with pytest.warns(UserWarning):
-        response = client.get(f"/info?url={DATA_DIR}/item.json")
-        assert response.status_code == 200
-        assert len(response.json()) == 2
+    response = client.get(f"/info?url={DATA_DIR}/item.json")
+    assert response.status_code == 422
+
+    # :all: assets
+    response = client.get(f"/info?url={DATA_DIR}/item.json&assets=:all:")
+    assert response.status_code == 200
+    assert len(response.json()) == 2
 
     response = client.get(f"/info?url={DATA_DIR}/item.json&assets=B01&assets=B09")
     assert response.status_code == 200
@@ -709,8 +712,9 @@ def test_MultiBaseTilerFactory(rio):
     assert response.headers["content-type"] == "application/geo+json"
     assert response.json()["type"] == "Feature"
 
+    # missing assets
     response = client.get(f"/preview.tif?url={DATA_DIR}/item.json")
-    assert response.status_code == 400
+    assert response.status_code == 422
 
     response = client.get(
         f"/preview.tif?url={DATA_DIR}/item.json&assets=B01&assets=B09&return_mask=false"
@@ -825,8 +829,12 @@ def test_MultiBaseTilerFactory(rio):
     assert resp["B09|indexes=1,1"]["b1"]["description"] == "b1"
     assert resp["B09|indexes=1,1"]["b2"]["description"] == "b1"
 
-    # default to all assets
+    # missing assets
     response = client.get(f"/statistics?url={DATA_DIR}/item.json")
+    assert response.status_code == 422
+
+    # all assets
+    response = client.get(f"/statistics?url={DATA_DIR}/item.json&assets=:all:")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
@@ -912,9 +920,16 @@ def test_MultiBaseTilerFactory(rio):
     assert props["b1"]["description"] == "B01_b1"
     assert props["b2"]["description"] == "B09_b1"
 
-    # default to all assets
+    # missing assets
     response = client.post(
         f"/statistics?url={DATA_DIR}/item.json",
+        json=stac_feature["features"][0],
+    )
+    assert response.status_code == 422
+
+    # all assets
+    response = client.post(
+        f"/statistics?url={DATA_DIR}/item.json&assets=:all:",
         json=stac_feature["features"][0],
     )
     assert response.status_code == 200

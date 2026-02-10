@@ -12,7 +12,7 @@ This document describes the breaking changes and migration steps required when u
 TiTiler 2.0.0 introduces several breaking changes primarily focused on:
 
 1. **Tile sizing**: Replaced `tile_scale` with direct `tilesize` parameter
-2. **Dependency simplification**: Removed per-asset band indexes (`bidx`) support for multi-asset readers
+2. **Dependency simplification**: changed per-asset band indexes (`bidx`) option for multi-asset readers
 3. **rio-tiler 9.0 compatibility**: Removed `MultiBandTilerFactory` and related classes
 
 ## Breaking Changes
@@ -63,7 +63,6 @@ Several dependency classes have been renamed to reflect their simplified functio
 
 | Old Name (1.x) | New Name (2.0) |
 |----------------|----------------|
-| `AssetsBidxExprParamsOptional` | `AssetsExprParamsOptional` |
 | `AssetsBidxExprParams` | `AssetsExprParams` |
 
 **Migration Steps:**
@@ -72,7 +71,7 @@ Several dependency classes have been renamed to reflect their simplified functio
 from titiler.core.dependencies import AssetsBidxExprParams, AssetsBidxExprParamsOptional
 
 # After (2.0)
-from titiler.core.dependencies import AssetsExprParams, AssetsExprParamsOptional
+from titiler.core.dependencies import AssetsExprParams
 ```
 
 #### Removed Classes
@@ -131,7 +130,24 @@ class MyAssetReader(MultiBaseReader):
 tiler = MultiBaseTilerFactory(reader=MyAssetReader)
 ```
 
-### 5. `assets` Parameter is mandatory for MultiBaseReader
+### 5. `assets` parameter is mandatory for MultiBaseReader
+
+##### Info and statistics
+
+`/info` and `/statistics` endpoints now require `assets=` parameter to be set. Users can use special notation `assets=:all:` to get info/statistics for all assets.
+
+**Before (1.x):**
+```
+GET /stac/info?url=...
+```
+
+**After (2.0):**
+
+```
+GET /stac/info?url=...&assets=:all:
+```
+
+##### Expression 
 
 The `expression` parameter cannot be used to define `assets` and thus `assets` parameter must be provided.
 
@@ -207,11 +223,11 @@ The `tile_scale` parameter has been removed from `/WMTSCapabilities.xml` endpoin
 - [ ] Replace all `@{scale}x` tile URL suffixes with `tilesize` parameter
 - [ ] Replace `tile_scale` query parameter with `tilesize`
 - [ ] Update imports: `AssetsBidxExprParams` → `AssetsExprParams`
-- [ ] Update imports: `AssetsBidxExprParamsOptional` → `AssetsExprParamsOptional`
 - [ ] Remove usage of `AssetsBidxParams`, `BandsParams`, `BandsExprParams`, `BandsExprParamsOptional`
 - [ ] Migrate `MultiBandTilerFactory` usage to `MultiBaseTilerFactory`
 - [ ] Remove `bidx` parameter from multi-asset requests (use `expression` instead)
 - [ ] Remove `asset_indexes` and `asset_expression` parameters
+- [ ] Use `assets=:all:` for `/info` and `/statistics` endpoints for `MultiBaseTilerFactory`
 
 ## Dependency Updates
 

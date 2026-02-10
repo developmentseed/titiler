@@ -4,14 +4,13 @@ import json
 from dataclasses import dataclass
 from typing import Annotated, Literal
 
-import pytest
 from fastapi import Depends, FastAPI, Path
 from morecantile import tms
 from rasterio.crs import CRS
 from rio_tiler.types import ColorMapType
 from starlette.testclient import TestClient
 
-from titiler.core import dependencies, errors
+from titiler.core import dependencies
 from titiler.core.resources.responses import JSONResponse
 
 
@@ -217,17 +216,12 @@ def test_assets():
         """return params."""
         return params
 
-    @app.get("/third")
-    def _assets_bidx(params=Depends(dependencies.AssetsExprParamsOptional)):
-        """return params."""
-        return params
-
     client = TestClient(app)
+    response = client.get("/first")
+    assert response.status_code == 422
+
     response = client.get("/first?assets=data&assets=image")
     assert response.json() == ["data", "image"]
-
-    response = client.get("/first")
-    assert not response.json()
 
     response = client.get("/second?assets=data&assets=image")
     assert response.json()["assets"] == ["data", "image"]
@@ -237,26 +231,8 @@ def test_assets():
     assert response.json()["expression"] == "b1*b2"
     assert response.json()["assets"]
 
-    with pytest.raises(errors.MissingAssets):
-        response = client.get("/second")
-
-    response = client.get("/third")
-    assert not response.json()["assets"]
-
-    response = client.get(
-        "/third",
-        params=(
-            ("assets", "data"),
-            ("assets", "image"),
-        ),
-    )
-    assert response.json()["assets"] == ["data", "image"]
-
-    response = client.get("/third", params={"assets": ["data", "image"]})
-    assert response.json()["assets"] == ["data", "image"]
-
-    response = client.get("/third")
-    assert not response.json()["assets"]
+    response = client.get("/second")
+    assert response.status_code == 422
 
 
 def test_preview_part_params():
