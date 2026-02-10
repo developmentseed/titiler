@@ -217,11 +217,6 @@ def test_assets():
         """return params."""
         return params
 
-    @app.get("/third")
-    def _assets_bidx(params=Depends(dependencies.AssetsExprParamsOptional)):
-        """return params."""
-        return params
-
     client = TestClient(app)
     response = client.get("/first?assets=data&assets=image")
     assert response.json() == ["data", "image"]
@@ -239,9 +234,6 @@ def test_assets():
 
     with pytest.raises(errors.MissingAssets):
         response = client.get("/second")
-
-    response = client.get("/third")
-    assert not response.json()["assets"]
 
     response = client.get(
         "/third",

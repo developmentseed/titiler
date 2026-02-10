@@ -57,7 +57,7 @@ class AssetsParams(DefaultDependency):
     """Assets parameters."""
 
     assets: Annotated[
-        list[str] | None,
+        list[str],
         Query(
             title="Asset names",
             description="Asset's names.",
@@ -73,36 +73,7 @@ class AssetsParams(DefaultDependency):
                 },
             },
         ),
-    ] = None
-```
-
-</details>
-
-
-#### AssetsExprParamsOptional
-
-Define `assets`. Without requirement on assets nor expression.
-
-| Name      | Type      | Required | Default
-| ------    | ----------|----------|--------------
-| **assets** | Query (str) | No | None
-| **expression** | Query (str) | No | None
-| **asset_as_band** | Query (bool) | No | False
-
-<details>
-
-```python
-@dataclass
-class AssetsExprParamsOptional(AssetsParams, ExpressionParams):
-    """Assets and Expression parameters."""
-
-    asset_as_band: Annotated[
-        bool | None,
-        Query(
-            title="Consider asset as a 1 band dataset",
-            description="Asset as Band",
-        ),
-    ] = None
+    ]
 ```
 
 </details>
@@ -113,18 +84,26 @@ Define `assets`.
 
 | Name      | Type      | Required | Default
 | ------    | ----------|----------|--------------
-| **assets** | Query (str) | Yes | None
+| **assets** | Query (str) | Yes  |
 | **expression** | Query (str) | No | None
 | **asset_as_band** | Query (bool) | No | False
 
-\* `assets` or `expression` is required.
+\* `assets` is required.
 
 <details>
 
 ```python
 @dataclass
-class AssetsExprParams(AssetsExprParamsOptional):
-    """Assets and Expression parameters with required assets."""
+class AssetsExprParams(AssetsParams, ExpressionParams):
+    """Assets and Expression parameters."""
+
+    asset_as_band: Annotated[
+        bool | None,
+        Query(
+            title="Consider asset as a 1 band dataset",
+            description="Asset as Band",
+        ),
+    ] = None
 
     def __post_init__(self):
         """Post Init."""

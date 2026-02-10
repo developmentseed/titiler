@@ -3,7 +3,6 @@
 from typing import Dict
 from unittest.mock import patch
 
-import pytest
 from rasterio.io import MemoryFile
 
 from ..conftest import mock_rasterio_open, mock_RequestGet
@@ -27,8 +26,10 @@ def test_info(httpx, rio, app):
     assert body["B01"]
 
     # no assets
-    with pytest.warns(UserWarning):
-        response = app.get("/stac/info?url=https://myurl.com/item.json")
+    response = app.get("/stac/info?url=https://myurl.com/item.json")
+    assert response.status_code == 422
+
+    response = app.get("/stac/info?url=https://myurl.com/item.json&assets=:all:")
     assert response.status_code == 200
     body = response.json()
     assert body["B01"]
@@ -69,7 +70,7 @@ def test_tile(httpx, rio, app):
     response = app.get(
         "/stac/tiles/WebMercatorQuad/9/289/207?url=https://myurl.com/item.json"
     )
-    assert response.status_code == 400
+    assert response.status_code == 422
 
     response = app.get(
         "/stac/tiles/WebMercatorQuad/9/289/207?url=https://myurl.com/item.json&assets=B01&rescale=0,1000"
@@ -91,7 +92,7 @@ def test_tilejson(httpx, rio, app):
     response = app.get(
         "/stac/WebMercatorQuad/tilejson.json?url=https://myurl.com/item.json"
     )
-    assert response.status_code == 400
+    assert response.status_code == 422
 
     response = app.get(
         "/stac/WebMercatorQuad/tilejson.json?url=https://myurl.com/item.json&assets=B01&minzoom=5&maxzoom=10"
@@ -128,9 +129,9 @@ def test_preview(httpx, rio, app):
     httpx.get = mock_RequestGet
     rio.open = mock_rasterio_open
 
-    # Missing Assets or Expression
+    # Missing Assets
     response = app.get("/stac/preview?url=https://myurl.com/item.json")
-    assert response.status_code == 400
+    assert response.status_code == 422
 
     response = app.get(
         "/stac/preview?url=https://myurl.com/item.json&assets=B01&rescale=0,1000&max_size=64"
@@ -158,11 +159,11 @@ def test_part(httpx, rio, app):
     httpx.get = mock_RequestGet
     rio.open = mock_rasterio_open
 
-    # Missing Assets or Expression
+    # Missing Assets
     response = app.get(
         "/stac/bbox/23.878,32.063,23.966,32.145.png?url=https://myurl.com/item.json"
     )
-    assert response.status_code == 400
+    assert response.status_code == 422
 
     response = app.get(
         "/stac/bbox/23.878,32.063,23.966,32.145.png?url=https://myurl.com/item.json&assets=B01&rescale=0,1000&max_size=64"
@@ -199,9 +200,9 @@ def test_point(httpx, rio, app):
     httpx.get = mock_RequestGet
     rio.open = mock_rasterio_open
 
-    # Missing Assets or Expression
+    # Missing Assets
     response = app.get("/stac/point/23.878,32.063?url=https://myurl.com/item.json")
-    assert response.status_code == 400
+    assert response.status_code == 422
 
     response = app.get(
         "/stac/point/23.878,32.063?url=https://myurl.com/item.json&assets=B01"

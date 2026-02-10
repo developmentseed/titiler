@@ -309,9 +309,6 @@ Example:
     - **algorithm** (str): Custom algorithm name (e.g `hillshade`).
     - **algorithm_params** (str): JSON encoded algorithm parameters.
 
-!!! important
-    **assets** OR **expression** is required
-
 Example:
 
 - `https://myendpoint/stac/WebMercatorQuad/tilejson.json?url=https://somewhere.com/item.json&assets=B01`
@@ -325,18 +322,26 @@ Example:
 
 - QueryParams:
     - **url** (str): STAC Item URL. **Required**
-    - **assets** (array[str]): asset names. Default to all available assets.
+    - **assets** (array[str]): asset names. **Required**
 
 Example:
 
 - `https://myendpoint/stac/info?url=https://somewhere.com/item.json&assets=B01`
 
+!!! note
+    
+    Use `assets=:all:` to use all available assets
+
 `:endpoint:/stac/info.geojson` - Return basic info on STAC item's COG as a GeoJSON feature
 
 - QueryParams:
     - **url** (str): STAC Item URL. **Required**
-    - **assets** (array[str]): asset names. Default to all available assets.
+    - **assets** (array[str]): asset names. **Required**
     - **crs** (str): Geographic Coordinate Reference System. Default to `epsg:4326`.
+
+!!! note
+    
+    Use `assets=:all:` to use all available assets
 
 `:endpoint:/stac/assets` - Return the list of available assets
 
@@ -350,7 +355,7 @@ Example:
 
 - QueryParams:
     - **url** (str): STAC Item URL. **Required**
-    - **assets** (array[str]): asset names. Default to all available assets.
+    - **assets** (array[str]): asset names. **Required**
     - **max_size** (int): Max image size from which to calculate statistics, default is 1024.
     - **height** (int): Force image height from which to calculate statistics.
     - **width** (int): Force image width from which to calculate statistics.
@@ -367,12 +372,15 @@ Example:
 
 - `https://myendpoint/stac/statistics?url=https://somewhere.com/item.json&assets=B01&categorical=true&c=1&c=2&c=3&p=2&p98`
 
+!!! note
+    
+    Use `assets=:all:` to use all available assets
 
 `:endpoint:/stac/statistics - [GET]`
 
 - QueryParams:
     - **url** (str): STAC Item URL. **Required**
-    - **assets** (array[str]): asset names. Default to all available assets.
+    - **assets** (array[str]): asset names. **Required**
     - **expression** (str): rio-tiler's math expression (e.g `b1/b2`).
     - **asset_as_band** (bool): tell rio-tiler that each asset is a 1 band dataset.
     - **max_size** (int): Max image size from which to calculate statistics, default is 1024.
@@ -393,6 +401,9 @@ Example:
 
 - `https://myendpoint/stac/statistics?url=https://somewhere.com/item.json&assets=B01&categorical=true&c=1&c=2&c=3&p=2&p98`
 
+!!! note
+    
+    Use `assets=:all:` to use all available assets
 
 `:endpoint:/stac/statistics - [POST]`
 
@@ -401,7 +412,7 @@ Example:
 
 - QueryParams:
     - **url** (str): STAC Item URL. **Required**
-    - **assets** (array[str]): asset names. Default to all available assets.
+    - **assets** (array[str]): asset names. **Required**
     - **expression** (str): rio-tiler's math expression (e.g `b1/b2`).
     - **asset_as_band** (bool): tell rio-tiler that each asset is a 1 band dataset.
     - **coord_crs** (str): Coordinate Reference System of the input geometry coordinates. Default to `epsg:4326`.
@@ -424,6 +435,10 @@ Example:
 Example:
 
 - `https://myendpoint/stac/statistics?url=https://somewhere.com/item.json&assets=B01&categorical=true&c=1&c=2&c=3&p=2&p98`
+
+!!! note
+    
+    Use `assets=:all:` to use all available assets
 
 
 ### Viewer

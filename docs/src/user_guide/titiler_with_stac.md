@@ -81,18 +81,21 @@ Open your browser and go to:
 
 Before visualizing, let's understand what's in our STAC item. The `/stac/info` endpoint returns metadata about available assets and their properties.
 
-### Basic Info Request
-
-```bash
-http://127.0.0.1:8000/stac/info?url=https://maxar-opendata.s3.amazonaws.com/events/BayofBengal-Cyclone-Mocha-May-23/ard/46/033111333030/2023-05-22/10300110E84B5A00.json
-```
-
 ### List all available assets
 
 ```bash
 http://127.0.0.1:8000/stac/assets?url=https://maxar-opendata.s3.amazonaws.com/events/BayofBengal-Cyclone-Mocha-May-23/ard/46/033111333030/2023-05-22/10300110E84B5A00.json
 ```
 
+### Basic Info Request
+
+```bash
+http://127.0.0.1:8000/stac/info?url=https://maxar-opendata.s3.amazonaws.com/events/BayofBengal-Cyclone-Mocha-May-23/ard/46/033111333030/2023-05-22/10300110E84B5A00.json&assets=:all:
+```
+
+!!! note
+
+    `assets=:all:` special notation tells titiler to fetch info for all available asset 
 
 ### Info for Specific Asset
 

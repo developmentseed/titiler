@@ -12,7 +12,6 @@ from rasterio.crs import CRS
 from rio_tiler.colormap import ColorMaps
 from rio_tiler.colormap import cmap as default_cmap
 from rio_tiler.colormap import parse_color
-from rio_tiler.errors import MissingAssets
 from rio_tiler.types import RIOResampling, WarpResampling
 from starlette.requests import Request
 
@@ -140,7 +139,7 @@ class AssetsParams(DefaultDependency):
     """Assets parameters."""
 
     assets: Annotated[
-        list[str] | None,
+        list[str],
         Query(
             title="Asset names",
             description="Asset's names.",
@@ -156,11 +155,11 @@ class AssetsParams(DefaultDependency):
                 },
             },
         ),
-    ] = None
+    ]
 
 
 @dataclass
-class AssetsExprParamsOptional(AssetsParams, ExpressionParams):
+class AssetsExprParams(ExpressionParams, AssetsParams):
     """Assets and Expression parameters."""
 
     asset_as_band: Annotated[
@@ -170,16 +169,6 @@ class AssetsExprParamsOptional(AssetsParams, ExpressionParams):
             description="Asset as Band",
         ),
     ] = None
-
-
-@dataclass
-class AssetsExprParams(AssetsExprParamsOptional):
-    """Assets and Expression parameters with required assets."""
-
-    def __post_init__(self):
-        """Post Init."""
-        if not self.assets:
-            raise MissingAssets("assets must be defined")
 
 
 @dataclass

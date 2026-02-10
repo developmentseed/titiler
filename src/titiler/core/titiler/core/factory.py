@@ -44,7 +44,6 @@ from titiler.core.algorithm import (
 from titiler.core.algorithm import algorithms as available_algorithms
 from titiler.core.dependencies import (
     AssetsExprParams,
-    AssetsExprParamsOptional,
     AssetsParams,
     BidxExprParams,
     ColorMapParams,
@@ -1493,6 +1492,9 @@ class MultiBaseTilerFactory(TilerFactory):
             with rasterio.Env(**env):
                 logger.info(f"opening data with reader: {self.reader}")
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
+                    if asset_params.assets == [":all:"]:
+                        asset_params.assets = src_dst.assets
+
                     return src_dst.info(**asset_params.as_dict())
 
         @self.router.get(
@@ -1519,6 +1521,9 @@ class MultiBaseTilerFactory(TilerFactory):
             with rasterio.Env(**env):
                 logger.info(f"opening data with reader: {self.reader}")
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
+                    if asset_params.assets == [":all:"]:
+                        asset_params.assets = src_dst.assets
+
                     bounds = src_dst.get_geographic_bounds(crs or WGS84_CRS)
                     geometry = bounds_to_geometry(bounds)
 
@@ -1578,6 +1583,9 @@ class MultiBaseTilerFactory(TilerFactory):
             with rasterio.Env(**env):
                 logger.info(f"opening data with reader: {self.reader}")
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
+                    if asset_params.assets == [":all:"]:
+                        asset_params.assets = src_dst.assets
+
                     return src_dst.statistics(
                         **asset_params.as_dict(),
                         **image_params.as_dict(exclude_none=False),
@@ -1604,7 +1612,7 @@ class MultiBaseTilerFactory(TilerFactory):
         def statistics(
             src_path=Depends(self.path_dependency),
             reader_params=Depends(self.reader_dependency),
-            layer_params=Depends(AssetsExprParamsOptional),
+            layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_preview_dependency),
             post_process=Depends(self.process_dependency),
@@ -1616,9 +1624,9 @@ class MultiBaseTilerFactory(TilerFactory):
             with rasterio.Env(**env):
                 logger.info(f"opening data with reader: {self.reader}")
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
-                    # Default to all available assets
-                    if not layer_params.assets and not layer_params.expression:
+                    if layer_params.assets == [":all:"]:
                         layer_params.assets = src_dst.assets
+
                     image = src_dst.preview(
                         **layer_params.as_dict(),
                         **image_params.as_dict(),
@@ -1654,7 +1662,7 @@ class MultiBaseTilerFactory(TilerFactory):
             ],
             src_path=Depends(self.path_dependency),
             reader_params=Depends(self.reader_dependency),
-            layer_params=Depends(AssetsExprParamsOptional),
+            layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             coord_crs=Depends(CoordCRSParams),
             dst_crs=Depends(DstCRSParams),
@@ -1672,9 +1680,9 @@ class MultiBaseTilerFactory(TilerFactory):
             with rasterio.Env(**env):
                 logger.info(f"opening data with reader: {self.reader}")
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
-                    # Default to all available assets
-                    if not layer_params.assets and not layer_params.expression:
+                    if layer_params.assets == [":all:"]:
                         layer_params.assets = src_dst.assets
+
                     for feature in fc.features:
                         image = src_dst.feature(
                             feature.model_dump(exclude_none=True),
