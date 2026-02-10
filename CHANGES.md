@@ -15,6 +15,8 @@
 * change: set `tilesize=256` for `/map.html` endpoints
 * change: use `band_descriptions` instead of `band_names`
 * add: `tilesize` optional query-parameter for tile and tilejson endpoints
+* remove: titiler-xarray in docker-compose file
+* remove: titiler-xarray single application deployement in AWS lambda deployement
 
 ### titiler.core
 
