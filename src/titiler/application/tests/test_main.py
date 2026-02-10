@@ -12,6 +12,8 @@ def test_health(app):
         "geos",
         "proj",
         "rasterio",
+        "zarr",
+        "xarray",
     }
 
     response = app.get("/api")

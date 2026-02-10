@@ -42,6 +42,11 @@
 
 * remove: `tile_scale` option in `/WMTSCapabilities.xml` endpoints
 
+### titiler.application
+
+* add: titiler.xarray dependency
+* add: `/zarr` endpoints
+
 ## 1.2.0 (2026-02-09)
 
 ### Input Validation
