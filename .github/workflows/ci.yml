@@ -17,6 +17,7 @@ on:
       - '.github/codecov.yml'
       - 'dockerfiles/**'
       - '.github/workflows/ci.yml'
+      - 'uv.lock'
   pull_request:
   workflow_dispatch:
 
