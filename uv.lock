@@ -469,11 +469,11 @@ wheels = [
 
 [[package]]
 name = "cachetools"
-version = "7.0.0"
+version = "7.0.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/98/af/df70e9b65bc77a1cbe0768c0aa4617147f30f8306ded98c1744bcdc0ae1e/cachetools-7.0.0.tar.gz", hash = "sha256:a9abf18ff3b86c7d05b27ead412e235e16ae045925e531fae38d5fada5ed5b08", size = 35796, upload-time = "2026-02-01T18:59:47.411Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d4/07/56595285564e90777d758ebd383d6b0b971b87729bbe2184a849932a3736/cachetools-7.0.1.tar.gz", hash = "sha256:e31e579d2c5b6e2944177a0397150d312888ddf4e16e12f1016068f0c03b8341", size = 36126, upload-time = "2026-02-10T22:24:05.03Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/28/df/2dd32cce20cbcf6f2ec456b58d44368161ad28320729f64e5e1d5d7bd0ae/cachetools-7.0.0-py3-none-any.whl", hash = "sha256:d52fef60e6e964a1969cfb61ccf6242a801b432790fe520d78720d757c81cbd2", size = 13487, upload-time = "2026-02-01T18:59:45.981Z" },
+    { url = "https://files.pythonhosted.org/packages/ed/9e/5faefbf9db1db466d633735faceda1f94aa99ce506ac450d232536266b32/cachetools-7.0.1-py3-none-any.whl", hash = "sha256:8f086515c254d5664ae2146d14fc7f65c9a4bce75152eb247e5a9c5e6d7b2ecf", size = 13484, upload-time = "2026-02-10T22:24:03.741Z" },
 ]
 
 [[package]]
@@ -1205,7 +1205,7 @@ wheels = [
 
 [[package]]
 name = "fastapi"
-version = "0.128.7"
+version = "0.128.8"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "annotated-doc" },
@@ -1214,9 +1214,9 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "typing-inspection" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a0/fc/af386750b3fd8d8828167e4c82b787a8eeca2eca5c5429c9db8bb7c70e04/fastapi-0.128.7.tar.gz", hash = "sha256:783c273416995486c155ad2c0e2b45905dedfaf20b9ef8d9f6a9124670639a24", size = 375325, upload-time = "2026-02-10T12:26:40.968Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/01/72/0df5c58c954742f31a7054e2dd1143bae0b408b7f36b59b85f928f9b456c/fastapi-0.128.8.tar.gz", hash = "sha256:3171f9f328c4a218f0a8d2ba8310ac3a55d1ee12c28c949650288aee25966007", size = 375523, upload-time = "2026-02-11T15:19:36.69Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/af/1a/f983b45661c79c31be575c570d46c437a5409b67a939c1b3d8d6b3ed7a7f/fastapi-0.128.7-py3-none-any.whl", hash = "sha256:6bd9bd31cb7047465f2d3fa3ba3f33b0870b17d4eaf7cdb36d1576ab060ad662", size = 103630, upload-time = "2026-02-10T12:26:39.414Z" },
+    { url = "https://files.pythonhosted.org/packages/9f/37/37b07e276f8923c69a5df266bfcb5bac4ba8b55dfe4a126720f8c48681d1/fastapi-0.128.8-py3-none-any.whl", hash = "sha256:5618f492d0fe973a778f8fec97723f598aa9deee495040a8d51aaf3cf123ecf1", size = 103630, upload-time = "2026-02-11T15:19:35.209Z" },
 ]
 
 [[package]]
@@ -2232,7 +2232,7 @@ wheels = [
 
 [[package]]
 name = "jupyterlab"
-version = "4.5.3"
+version = "4.5.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "async-lru" },
@@ -2249,9 +2249,9 @@ dependencies = [
     { name = "tornado" },
     { name = "traitlets" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/3e/76/393eae3349f9a39bf21f8f5406e5244d36e2bfc932049b6070c271f92764/jupyterlab-4.5.3.tar.gz", hash = "sha256:4a159f71067cb38e4a82e86a42de8e7e926f384d7f2291964f282282096d27e8", size = 23939231, upload-time = "2026-01-23T15:04:25.768Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/7c/6b/21af7c0512bdf67e0c54c121779a1f2a97a164a7657e13fced79db8fa5a0/jupyterlab-4.5.4.tar.gz", hash = "sha256:c215f48d8e4582bd2920ad61cc6a40d8ebfef7e5a517ae56b8a9413c9789fdfb", size = 23943597, upload-time = "2026-02-11T00:26:55.308Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/9e/9a/0bf9a7a45f0006d7ff4fdc4fc313de4255acab02bf4db1887c65f0472c01/jupyterlab-4.5.3-py3-none-any.whl", hash = "sha256:63c9f3a48de72ba00df766ad6eed416394f5bb883829f11eeff0872302520ba7", size = 12391761, upload-time = "2026-01-23T15:04:21.214Z" },
+    { url = "https://files.pythonhosted.org/packages/f5/9f/a70972ece62ead2d81acc6223188f6d18a92f665ccce17796a0cdea4fcf5/jupyterlab-4.5.4-py3-none-any.whl", hash = "sha256:cc233f70539728534669fb0015331f2a3a87656207b3bb2d07916e9289192f12", size = 12391867, upload-time = "2026-02-11T00:26:51.23Z" },
 ]
 
 [[package]]
@@ -4707,7 +4707,7 @@ wheels = [
 
 [[package]]
 name = "rio-tiler"
-version = "9.0.0a3"
+version = "9.0.0a4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "attrs" },
@@ -4721,11 +4721,10 @@ dependencies = [
     { name = "pystac" },
     { name = "rasterio", version = "1.4.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "rasterio", version = "1.5.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
-    { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/bc/f2/f879f9f07d944186d29f85654a25580e5f4eeb14bc9903df4861975171c8/rio_tiler-9.0.0a3.tar.gz", hash = "sha256:82dd23cca393d52aa3ffe15fb6911baee15e19f7e6c713ad311d880f3b9112e8", size = 181928, upload-time = "2026-02-05T15:39:26.396Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c0/ba/f065ae284ea8a3d6f0415a8afea6d962a54a0ffbfd0ff583a798c0590b66/rio_tiler-9.0.0a4.tar.gz", hash = "sha256:6ef221368f0f11a7c6198c97a32ee6515b8610e50ee81057f121b958b6c12261", size = 181898, upload-time = "2026-02-11T16:23:37.796Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/97/50/3f928c06ef43b1ccad11fe78f9a112bec36fb3a86bc89772d3f02f0706e6/rio_tiler-9.0.0a3-py3-none-any.whl", hash = "sha256:da03ea09d1942cc35db2348b7033a84e7522f3a619c4c67b4c19fbd3f664d919", size = 277791, upload-time = "2026-02-05T15:39:25.082Z" },
+    { url = "https://files.pythonhosted.org/packages/72/8d/5d3a96d273e0644538d346270fcfc67ff5f0ed83ad98665ab36159c32aeb/rio_tiler-9.0.0a4-py3-none-any.whl", hash = "sha256:a7699b878cb86492a94910d7c6348ba96220ea6bde7acec6aca830a792f57503", size = 277769, upload-time = "2026-02-11T16:23:33.096Z" },
 ]
 
 [[package]]
@@ -5313,7 +5312,6 @@ dependencies = [
     { name = "rasterio", version = "1.5.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "rio-tiler" },
     { name = "simplejson" },
-    { name = "typing-extensions" },
 ]
 
 [package.optional-dependencies]
@@ -5347,9 +5345,8 @@ requires-dist = [
     { name = "opentelemetry-sdk", marker = "extra == 'telemetry'" },
     { name = "pydantic", specifier = "~=2.0" },
     { name = "rasterio" },
-    { name = "rio-tiler", specifier = ">=9.0.0a1,<10.0" },
+    { name = "rio-tiler", specifier = ">=9.0.0a4,<10.0" },
     { name = "simplejson" },
-    { name = "typing-extensions", specifier = ">=4.6.1" },
 ]
 provides-extras = ["telemetry"]
 
@@ -6163,8 +6160,8 @@ wheels = [
 
 [[package]]
 name = "zarr"
-version = "3.1.6.dev32+g22ea09f41"
-source = { git = "https://github.com/zarr-developers/zarr-python#22ea09f410e3b3b89069aeb3f1a6e0d8a1040187" }
+version = "3.1.6.dev34+gf4d122135"
+source = { git = "https://github.com/zarr-developers/zarr-python#f4d122135fb010127484bcad717606b3c15bcb51" }
 dependencies = [
     { name = "donfig" },
     { name = "google-crc32c" },

@@ -7,7 +7,7 @@ import re
 from collections.abc import Callable
 from functools import cache
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, TypedDict
 from urllib.parse import urlparse
 
 import attr
@@ -18,7 +18,6 @@ import zarr
 from morecantile import TileMatrixSet
 from rio_tiler.constants import WEB_MERCATOR_TMS
 from rio_tiler.io.xarray import XarrayReader
-from typing_extensions import TypedDict
 from zarr.storage import ObjectStore
 
 X_DIM_NAMES = ["lon", "longitude", "LON", "LONGITUDE", "Lon", "Longitude"]

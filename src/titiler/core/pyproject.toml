@@ -36,10 +36,9 @@ dependencies = [
     "numpy",
     "pydantic~=2.0",
     "rasterio",
-    "rio-tiler>=9.0.0a1,<10.0",
+    "rio-tiler>=9.0.0a4,<10.0",
     "morecantile",
     "simplejson",
-    "typing_extensions>=4.6.1",
 ]
 
 [project.optional-dependencies]

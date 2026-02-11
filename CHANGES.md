@@ -34,6 +34,7 @@
     - `titiler.core.dependencies.BandsExprParams`
     - `titiler.core.dependencies.parse_asset_indexes()`
     - `titiler.core.dependencies.parse_asset_expression()`
+    - `titiler.core.routing.apiroute_factory()`
 
 ### titiler.extensions
 

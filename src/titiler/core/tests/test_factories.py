@@ -8,7 +8,7 @@ import warnings
 from dataclasses import dataclass
 from enum import Enum
 from io import BytesIO
-from typing import Dict, Optional, Sequence, Type
+from typing import Annotated, Dict, Optional, Sequence, Type
 from unittest.mock import patch
 from urllib.parse import quote, urlencode
 
@@ -27,7 +27,6 @@ from rio_tiler.errors import InvalidDatatypeWarning, NoOverviewWarning
 from rio_tiler.io import BaseReader, MultiBandReader, Reader, STACReader
 from starlette.requests import Request
 from starlette.testclient import TestClient
-from typing_extensions import Annotated
 
 from titiler.core import dependencies
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
