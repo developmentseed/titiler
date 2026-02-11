@@ -15,6 +15,8 @@
 * change: set `tilesize=256` for `/map.html` endpoints
 * change: use `band_descriptions` instead of `band_names`
 * add: `tilesize` optional query-parameter for tile and tilejson endpoints
+* remove: titiler-xarray in docker-compose file
+* remove: titiler-xarray single application deployement in AWS lambda deployement
 
 ### titiler.core
 
@@ -41,6 +43,11 @@
 ### titiler.mosaic
 
 * remove: `tile_scale` option in `/WMTSCapabilities.xml` endpoints
+
+### titiler.application
+
+* add: titiler.xarray dependency
+* add: `/zarr` endpoints
 
 ## 1.2.0 (2026-02-09)
 

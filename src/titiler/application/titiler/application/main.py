@@ -45,10 +45,6 @@ from titiler.extensions import (
     stacViewerExtension,
     wmtsExtension,
 )
-from titiler.mosaic.errors import MOSAIC_STATUS_CODES
-from titiler.mosaic.extensions.mosaicjson import MosaicJSONExtension
-from titiler.mosaic.extensions.wmts import wmtsExtension as mosaic_wmtsExtension
-from titiler.mosaic.factory import MosaicTilerFactory
 
 logging.getLogger("botocore.credentials").disabled = True
 logging.getLogger("botocore.utils").disabled = True
@@ -172,6 +168,11 @@ if not api_settings.disable_stac:
 ###############################################################################
 # Mosaic endpoints
 if not api_settings.disable_mosaic:
+    from titiler.mosaic.errors import MOSAIC_STATUS_CODES
+    from titiler.mosaic.extensions.mosaicjson import MosaicJSONExtension
+    from titiler.mosaic.extensions.wmts import wmtsExtension as mosaic_wmtsExtension
+    from titiler.mosaic.factory import MosaicTilerFactory
+
     mosaic = MosaicTilerFactory(
         backend=MosaicJSONBackend,  # type: ignore
         router_prefix="/mosaicjson",
@@ -188,7 +189,42 @@ if not api_settings.disable_mosaic:
         tags=["MosaicJSON"],
     )
 
+    # Add Mosaic specific error handlers
+    MOSAIC_STATUS_CODES.update(
+        {
+            MosaicAuthError: status.HTTP_401_UNAUTHORIZED,
+            MosaicError: status.HTTP_424_FAILED_DEPENDENCY,
+            MosaicNotFoundError: status.HTTP_404_NOT_FOUND,
+        }
+    )
+    add_exception_handlers(app, MOSAIC_STATUS_CODES)
+
     TITILER_CONFORMS_TO.update(mosaic.conforms_to)
+
+
+###############################################################################
+# Zarr endpoints
+if not api_settings.disable_zarr:
+    from titiler.xarray.extensions import DatasetMetadataExtension, ValidateExtension
+    from titiler.xarray.factory import TilerFactory as XarrayTilerFactory
+
+    md = XarrayTilerFactory(
+        router_prefix="/zarr",
+        extensions=[
+            DatasetMetadataExtension(),
+            ValidateExtension(),
+        ],
+        enable_telemetry=api_settings.telemetry_enabled,
+        templates=titiler_templates,
+    )
+    app.include_router(
+        md.router,
+        prefix="/zarr",
+        tags=["Zarr"],
+    )
+
+    TITILER_CONFORMS_TO.update(md.conforms_to)
+
 
 ###############################################################################
 # TileMatrixSets endpoints
@@ -217,18 +253,8 @@ app.include_router(
 )
 TITILER_CONFORMS_TO.update(cmaps.conforms_to)
 
-
+###############################################################################
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
-
-# Add Mosaic specific error handlers
-MOSAIC_STATUS_CODES.update(
-    {
-        MosaicAuthError: status.HTTP_401_UNAUTHORIZED,
-        MosaicError: status.HTTP_424_FAILED_DEPENDENCY,
-        MosaicNotFoundError: status.HTTP_404_NOT_FOUND,
-    }
-)
-add_exception_handlers(app, MOSAIC_STATUS_CODES)
 
 # Set all CORS enabled origins
 if api_settings.cors_origins:
@@ -337,15 +363,20 @@ if api_settings.lower_case_query_parameters:
 )
 def application_health_check():
     """Health check."""
-    return {
-        "versions": {
-            "titiler": titiler_version,
-            "rasterio": rasterio.__version__,
-            "gdal": rasterio.__gdal_version__,
-            "proj": rasterio.__proj_version__,
-            "geos": rasterio.__geos_version__,
-        }
+    versions = {
+        "titiler": titiler_version,
+        "rasterio": rasterio.__version__,
+        "gdal": rasterio.__gdal_version__,
+        "proj": rasterio.__proj_version__,
+        "geos": rasterio.__geos_version__,
     }
+    if not api_settings.disable_zarr:
+        import xarray
+        import zarr
+
+        versions.update({"zarr": zarr.__version__, "xarray": xarray.__version__})
+
+    return {"versions": versions}
 
 
 @app.get(
