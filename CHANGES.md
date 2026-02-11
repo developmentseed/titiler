@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## 2.0.0 (TBD)
+## 2.0.0a1 (2026-02-11)
 
 ### Misc
 
@@ -17,6 +17,7 @@
 * add: `tilesize` optional query-parameter for tile and tilejson endpoints
 * remove: titiler-xarray in docker-compose file
 * remove: titiler-xarray single application deployement in AWS lambda deployement
+* change: rio-tiler requirement to `>=9.0.0a4,<10.0`
 
 ### titiler.core
 

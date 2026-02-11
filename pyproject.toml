@@ -28,7 +28,7 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering :: GIS",
 ]
-version="2.0.0dev0"
+version="2.0.0a1"
 dependencies = [
     "titiler-core",
     "titiler-xarray",
@@ -156,7 +156,7 @@ filterwarnings = [
 ]
 
 [tool.bumpversion]
-current_version = "2.0.0dev0"
+current_version = "2.0.0a1"
 parse = """(?x)
     (?P<major>\\d+)\\.
     (?P<minor>\\d+)\\.
@@ -270,11 +270,6 @@ replace = 'titiler-mosaic[mosaicjson]=={new_version}'
 filename = "deployment/aws/lambda/Dockerfile"
 search = 'titiler-application=={current_version}'
 replace = 'titiler-application=={new_version}'
-
-[[tool.bumpversion.files]]
-filename = "deployment/aws/lambda/Dockerfile.xarray"
-search = 'titiler-xarray=={current_version}'
-replace = 'titiler-xarray=={new_version}'
 
 [[tool.bumpversion.files]]
 filename = "deployment/k8s/charts/Chart.yaml"

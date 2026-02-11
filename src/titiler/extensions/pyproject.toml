@@ -30,7 +30,7 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-    "titiler-core==2.0.0dev0",
+    "titiler-core==2.0.0a1",
     "typing-extensions; python_version < '3.12'"
 ]
 
