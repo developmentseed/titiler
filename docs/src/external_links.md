@@ -1,7 +1,17 @@
-
-
 !!! tip
-    If you have an article, project, tool, or anything related to TiTiler that is not yet listed here, create a [Pull Request adding it](https://github.com/developmentseed/titiler/edit/main/docs/external-links.md).
+    If you have an article, project, tool, or anything related to TiTiler that is not yet listed here, create a [Pull Request adding it](https://github.com/developmentseed/titiler/edit/main/docs/src/external_links.md).
+
+## eoAPI
+
+[eoAPI](https://eoapi.dev/) is a modular and cloud-native set of services for serving STAC-compliant geospatial data. It builds on the same ecosystem as TiTiler and aims to make deploying and scaling Earth observation APIs easier.
+
+Whether you're getting started locally, deploying on AWS, or using Kubernetes, eoAPI provides flexible components to support your workflows:
+
+- [Intro guide](https://eoapi.dev/intro/)
+- [Deploy to AWS with eoapi-cdk](https://github.com/developmentseed/eoapi-cdk)
+- [Deploy with Kubernetes](https://github.com/developmentseed/eoapi-k8s)
+- [Generate STAC metadata examples](https://github.com/developmentseed/eoAPI/tree/main/demo)
+- [Customize your own version](https://github.com/developmentseed/eoapi-devseed)
 
 ## Mentions
 
@@ -22,7 +32,7 @@
 * [developmentseed/titiler-image](https://github.com/developmentseed/titiler-image): TiTiler demo application for Sentinel-2 Digital Twin dataset
 
 
-## Projects / Demo using TiTiler
+## Projects Using TiTiler
 
 * ESA Charter Mapper [geobrowser](https://docs.charter.uat.esaportal.eu/webPortal/geobrowser/titiler/)
 
