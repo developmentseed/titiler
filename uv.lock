@@ -5363,6 +5363,7 @@ name = "titiler-extensions"
 source = { editable = "src/titiler/extensions" }
 dependencies = [
     { name = "titiler-core" },
+    { name = "typing-extensions", marker = "python_full_version < '3.12'" },
 ]
 
 [package.optional-dependencies]
@@ -5388,6 +5389,7 @@ requires-dist = [
     { name = "rio-cogeo", marker = "extra == 'cogeo'", specifier = ">=7.0,<8.0" },
     { name = "rio-stac", marker = "extra == 'stac'", specifier = ">=0.12,<0.13" },
     { name = "titiler-core", editable = "src/titiler/core" },
+    { name = "typing-extensions", marker = "python_full_version < '3.12'" },
 ]
 provides-extras = ["cogeo", "stac"]
 

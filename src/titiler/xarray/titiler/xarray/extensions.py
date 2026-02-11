@@ -1,8 +1,9 @@
 """titiler.xarray Extensions."""
 
+import sys
 import warnings
 from collections.abc import Callable
-from typing import Annotated, TypedDict
+from typing import Annotated
 
 import xarray
 from attrs import define
@@ -16,6 +17,12 @@ from titiler.core.resources.enums import MediaType
 from titiler.xarray.dependencies import XarrayIOParams
 from titiler.xarray.factory import TilerFactory
 from titiler.xarray.io import X_DIM_NAMES, Y_DIM_NAMES, open_zarr
+
+# Ref: https://docs.pydantic.dev/2.12/errors/usage_errors/#typed-dict-version
+if sys.version_info >= (3, 12):
+    from typing import TypedDict
+else:
+    from typing_extensions import TypedDict
 
 
 @define

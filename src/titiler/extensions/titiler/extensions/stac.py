@@ -1,11 +1,18 @@
 """rio-stac Extension."""
 
-from typing import Annotated, Any, Literal, TypedDict
+import sys
+from typing import Annotated, Any, Literal
 
 from attrs import define
 from fastapi import Depends, Query
 
 from titiler.core.factory import FactoryExtension, TilerFactory
+
+# Ref: https://docs.pydantic.dev/2.12/errors/usage_errors/#typed-dict-version
+if sys.version_info >= (3, 12):
+    from typing import TypedDict
+else:
+    from typing_extensions import TypedDict
 
 try:
     import pystac
