@@ -10,6 +10,7 @@ from urllib.parse import urlencode
 from attrs import define
 from fastapi import Depends, HTTPException, Path, Request
 from pydantic import BaseModel
+from rio_tiler.utils import cast_to_sequence
 from starlette.routing import NoMatchFound
 
 from titiler.core.factory import FactoryExtension, MultiBaseTilerFactory
@@ -20,21 +21,22 @@ from titiler.core.utils import check_query_params
 class RenderItem(BaseModel, extra="allow"):
     """Render item for stac render extension."""
 
-    assets: list[str]
     title: str | None = None
+    assets: list[str] | None = None
+    expression: str | None = None
     rescale: list[Annotated[list[float], 2]] | None = None
     nodata: float | None = None
     colormap_name: str | None = None
     colormap: dict | None = None
     color_formula: str | None = None
     resampling: str | None = None
-    expression: str | None = None
     minmax_zoom: Annotated[list[int], 2] | None = None
 
 
 class RenderItemWithLinks(BaseModel):
     """Same as RenderItem with url and params."""
 
+    valid: bool
     params: RenderItem
     links: list[Link]
 
@@ -44,6 +46,36 @@ class RenderItemList(BaseModel):
 
     renders: dict[str, RenderItemWithLinks]
     links: list[Link]
+
+
+def _adapt_render_for_v2(render: dict) -> None:
+    if assets := render.get("assets"):
+        assets_with_options: dict[str, list] = {
+            asset: [] for asset in cast_to_sequence(assets)
+        }
+
+        # adapt for titiler V2
+        if asset_bidx := render.pop("asset_bidx", None):
+            asset_bidx = cast_to_sequence(asset_bidx)
+            for v in asset_bidx:
+                asset, bidx = v.split("|")
+                if asset in assets_with_options:
+                    assets_with_options[asset].append(f"indexes={bidx}")
+
+        # asset_expression
+        if asset_expr := render.pop("asset_expression", None):
+            asset_expr = cast_to_sequence(asset_expr)
+            for v in asset_expr:
+                asset, expr = v.split("|")
+                if asset in assets_with_options:
+                    assets_with_options[asset].append(f"expression={expr}")
+
+        new_assets = []
+        for asset, options in assets_with_options.items():
+            if options:
+                asset = asset + "|" + "&".join(options)
+            new_assets.append(asset)
+        render["assets"] = new_assets
 
 
 @define
@@ -75,6 +107,8 @@ class stacRenderExtension(FactoryExtension):
                 }
             ]
 
+            _adapt_render_for_v2(render)
+
             # List of dependencies a `/tile` URL should validate
             # Note: Those dependencies should only require Query() inputs
             tile_dependencies = [
@@ -87,9 +121,9 @@ class stacRenderExtension(FactoryExtension):
                 factory.colormap_dependency,
                 factory.render_dependency,
             ]
+
             if check_query_params(tile_dependencies, render):  # type: ignore[arg-type]
                 query_string = urlencode({"url": src_path, **render}, doseq=True)
-
                 links.append(
                     {
                         "href": factory.url_for(
@@ -120,8 +154,10 @@ class stacRenderExtension(FactoryExtension):
                     )
                 except NoMatchFound:
                     pass
+            else:
+                return {"valid": False, "params": render, "links": links}
 
-            return {"params": render, "links": links}
+            return {"valid": True, "params": render, "links": links}
 
         @factory.router.get(
             "/renders",
@@ -171,8 +207,5 @@ class stacRenderExtension(FactoryExtension):
                 raise HTTPException(status_code=404, detail="Render not found")
 
             return _prepare_render_item(
-                render_id,
-                renders[render_id],
-                request,
-                src_path,
+                render_id, renders[render_id], request, src_path
             )

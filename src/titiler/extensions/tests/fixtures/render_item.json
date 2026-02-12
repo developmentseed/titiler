@@ -59,6 +59,40 @@
                     "B2"
                 ]
             },
+            "index": {
+                "title": "Thumbnail",
+                "assets": [
+                    "B5",
+                    "B4"
+                ],
+                "expression": "(b1-b2)/(b1+b2)"
+            },
+            "rgb_old": {
+                "title": "Thumbnail",
+                "assets": [
+                    "B4",
+                    "B3",
+                    "B2"
+                ],
+                "asset_bidx": [
+                    "B4|1",
+                    "B3|1",
+                    "B2|1"
+                ]
+            },
+            "expression_old": {
+                "title": "expression",
+                "assets": [
+                    "B02"
+                ],
+                "asset_expression": [
+                    "B02|b1*2"
+                ]
+            },
+            "missing_asset": {
+                "title": "bad_expression",
+                "expression": "b1*2"
+            },
             "ndvi": {
                 "title": "Normalized Difference Vegetation Index",
                 "assets": [
