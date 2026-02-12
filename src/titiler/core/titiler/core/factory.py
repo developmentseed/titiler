@@ -1063,12 +1063,7 @@ class TilerFactory(BaseFactory):
                 request, "tilejson", tileMatrixSetId=tileMatrixSetId
             )
 
-            qs_key_to_remove = []
-            qs: list[tuple[str, Any]] = [
-                (key, value)
-                for (key, value) in request.query_params._list
-                if key.lower() not in qs_key_to_remove
-            ]
+            qs = list(request.query_params._list)
             if "tilesize" not in request.query_params:
                 qs.append(("tilesize", tilesize))
             tilejson_url += f"?{urlencode(qs)}"

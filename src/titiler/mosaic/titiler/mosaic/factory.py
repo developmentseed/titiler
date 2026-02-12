@@ -799,6 +799,10 @@ class MosaicTilerFactory(BaseFactory):
                     description="Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
                 ),
             ] = None,
+            tilesize: Annotated[
+                int,
+                Query(gt=0, description="Tilesize in pixels. Default to 256."),
+            ] = 256,
             minzoom: Annotated[
                 int | None,
                 Query(description="Overwrite default minzoom."),
@@ -826,14 +830,11 @@ class MosaicTilerFactory(BaseFactory):
                 "tilejson",
                 tileMatrixSetId=tileMatrixSetId,
             )
-            if request.query_params._list:
-                qs_key_to_remove = ["tilesize"]
-                qs: list[tuple[str, Any]] = [
-                    (key, value)
-                    for (key, value) in request.query_params._list
-                    if key.lower() not in qs_key_to_remove
-                ]
-                tilejson_url += f"?{urlencode(qs)}"
+            qs = list(request.query_params._list)
+            if "tilesize" not in request.query_params:
+                qs.append(("tilesize", tilesize))
+
+            tilejson_url += f"?{urlencode(qs)}"
 
             tms = self.supported_tms.get(tileMatrixSetId)
             return self.templates.TemplateResponse(

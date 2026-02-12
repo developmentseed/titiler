@@ -9,6 +9,10 @@
     * change: add `valid: True|False` key to the `RenderItemWithLinks` model
     * add: convert old `asset_bix` and `asset_expression` keys to `{asset}|indexes=...&expression=...`
 
+### titiler.mosaic
+
+* fix: tilesize for `/map.html` endpoint
+
 ## 2.0.0a1 (2026-02-11)
 
 ### Misc
