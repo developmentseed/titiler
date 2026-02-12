@@ -77,3 +77,18 @@ def test_stacExtension():
         hrefs = {unquote(urlparse(link["href"]).path) for link in links}
         assert hrefs == expected_hrefs
         assert body["params"] == expected_params
+
+        response = client.get("/renders/expression_old", params={"url": stac_item})
+        assert response.status_code == 200
+        body = response.json()
+        assert body["valid"]
+        assert body["params"] == {
+            "title": "expression",
+            "assets": ["B02|expression=b1*2"],
+        }
+
+        response = client.get("/renders/missing_asset", params={"url": stac_item})
+        assert response.status_code == 200
+        body = response.json()
+        assert not body["valid"]
+        assert body["params"] == {"title": "bad_expression", "expression": "b1*2"}
