@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+
+## 2.0.0a2 (2026-02-13)
+
 ### titiler.extensions
 
 * **render**:

@@ -28,7 +28,7 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering :: GIS",
 ]
-version="2.0.0a1"
+version="2.0.0a2"
 dependencies = [
     "titiler-core",
     "titiler-xarray",
@@ -156,7 +156,7 @@ filterwarnings = [
 ]
 
 [tool.bumpversion]
-current_version = "2.0.0a1"
+current_version = "2.0.0a2"
 parse = """(?x)
     (?P<major>\\d+)\\.
     (?P<minor>\\d+)\\.
