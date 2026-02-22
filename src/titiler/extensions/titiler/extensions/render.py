@@ -60,7 +60,7 @@ def _adapt_render_for_v2(render: dict) -> None:
             for v in asset_bidx:
                 asset, bidx = v.split("|")
                 if asset in assets_with_options:
-                    assets_with_options[asset].append(f"indexes={bidx}")
+                    assets_with_options[asset].append(f"bidx={bidx}")
 
         # asset_expression
         if asset_expr := render.pop("asset_expression", None):
@@ -73,7 +73,7 @@ def _adapt_render_for_v2(render: dict) -> None:
         new_assets = []
         for asset, options in assets_with_options.items():
             if options:
-                asset = asset + "|" + "&".join(options)
+                asset = asset + "|" + "|".join(options)
             new_assets.append(asset)
         render["assets"] = new_assets
 

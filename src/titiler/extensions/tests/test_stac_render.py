@@ -78,6 +78,15 @@ def test_stacExtension():
         assert hrefs == expected_hrefs
         assert body["params"] == expected_params
 
+        response = client.get("/renders/rgb_old", params={"url": stac_item})
+        assert response.status_code == 200
+        body = response.json()
+        assert body["valid"]
+        assert body["params"] == {
+            "title": "Thumbnail",
+            "assets": ["B4|bidx=1", "B3|bidx=1", "B2|bidx=1"],
+        }
+
         response = client.get("/renders/expression_old", params={"url": stac_item})
         assert response.status_code == 200
         body = response.json()

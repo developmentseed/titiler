@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 2.0.0b2 (2026-02-22)
+
+### titiler.extensions
+
+* fix: render expression adapter
+
 ## 2.0.0b1 (2026-02-22)\
 
 ### titiler.core
