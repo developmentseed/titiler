@@ -17,7 +17,7 @@ import xarray
 import zarr
 from morecantile import TileMatrixSet
 from rio_tiler.constants import WEB_MERCATOR_TMS
-from rio_tiler.io.xarray import XarrayReader
+from rio_tiler.io.xarray import Options, XarrayReader
 from zarr.storage import ObjectStore
 
 X_DIM_NAMES = ["lon", "longitude", "LON", "LONGITUDE", "Lon", "Longitude"]
@@ -271,10 +271,16 @@ class Reader(XarrayReader):
 
     tms: TileMatrixSet = attr.ib(default=WEB_MERCATOR_TMS)
 
+    options: Options = attr.ib()
+
     ds: xarray.Dataset = attr.ib(init=False)
     input: xarray.DataArray = attr.ib(init=False)
 
     _dims: list = attr.ib(init=False, factory=list)
+
+    @options.default
+    def _options_default(self):
+        return {}
 
     def __attrs_post_init__(self):
         """Set bounds and CRS."""

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 2.0.0b1 (2026-02-22)\
+
+### titiler.core
+
+* change: rio-tiler requirement to `>=9.0.0b1,<10.0`
+* add: asset's options parsing in `AssetsParams` dependency
 
 ## 2.0.0a2 (2026-02-13)
 

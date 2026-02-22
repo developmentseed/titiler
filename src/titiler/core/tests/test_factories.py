@@ -728,7 +728,7 @@ def test_MultiBaseTilerFactory(rio):
         "/preview.tif",
         params={
             "url": f"{DATA_DIR}/item.json",
-            "assets": "B01|indexes=1,1,1",
+            "assets": "B01|bidx=1,1,1",
             "return_mask": False,
         },
     )
@@ -817,16 +817,16 @@ def test_MultiBaseTilerFactory(rio):
     assert resp["B09"]["b1"]["description"] == "b1"
 
     response = client.get(
-        f"/asset_statistics?url={DATA_DIR}/item.json&assets=B09|indexes=1,1"
+        f"/asset_statistics?url={DATA_DIR}/item.json&assets=B09|bidx=1,1"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
     assert len(resp) == 1
-    assert resp["B09|indexes=1,1"]["b1"]
-    assert resp["B09|indexes=1,1"]["b2"]
-    assert resp["B09|indexes=1,1"]["b1"]["description"] == "b1"
-    assert resp["B09|indexes=1,1"]["b2"]["description"] == "b1"
+    assert resp["B09|indexes=[1,1]"]["b1"]
+    assert resp["B09|indexes=[1,1]"]["b2"]
+    assert resp["B09|indexes=[1,1]"]["b1"]["description"] == "b1"
+    assert resp["B09|indexes=[1,1]"]["b2"]["description"] == "b1"
 
     # missing assets
     response = client.get(f"/statistics?url={DATA_DIR}/item.json")
