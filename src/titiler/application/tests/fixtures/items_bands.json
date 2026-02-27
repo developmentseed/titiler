@@ -1,0 +1,75 @@
+{
+    "stac_version": "1.1.0",
+    "stac_extensions": [
+        "https://stac-extensions.github.io/eo/v2.0.0/schema.json"
+    ],
+    "type": "Feature",
+    "id": "item-with-bands",
+    "bbox": [
+        -81.3085227080129,
+        32.10817938759764,
+        -78.81735409341113,
+        34.22870275071835
+    ],
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    -81.3085227080129,
+                    32.10817938759764
+                ],
+                [
+                    -78.81735409341113,
+                    32.10817938759764
+                ],
+                [
+                    -78.81735409341113,
+                    34.22870275071835
+                ],
+                [
+                    -81.3085227080129,
+                    34.22870275071835
+                ],
+                [
+                    -81.3085227080129,
+                    32.10817938759764
+                ]
+            ]
+        ]
+    },
+    "properties": {
+        "datetime": "2016-05-03T13:21:30.040Z"
+    },
+    "links": [
+        {
+            "rel": "self",
+            "href": "https://myurl.com/item_bands.json"
+        },
+        {
+            "rel": "collection",
+            "href": "https://myurl.com/catalog.json"
+        }
+    ],
+    "assets": {
+        "rgb": {
+            "href": "https://myurl.com/rgb.tif",
+            "title": "lowres",
+            "bands": [
+                {
+                    "name": "band1",
+                    "eo:common_name": "red"
+                },
+                {
+                    "name": "band2",
+                    "eo:common_name": "green"
+                },
+                {
+                    "name": "band3",
+                    "eo:common_name": "blue"
+                }
+            ]
+        }
+    },
+    "collection": "collection"
+}
