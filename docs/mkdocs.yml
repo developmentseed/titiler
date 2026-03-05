@@ -12,7 +12,7 @@ site_url: "https://developmentseed.org/titiler/"
 extra:
   analytics:
     provider: plausible
-    domain: developmentseed.org
+    domain: developmentseed.org/titiler
 
     feedback:
       title: Was this page helpful?
