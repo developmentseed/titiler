@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Misc
+
+* change: rio-tiler requirement to `>=9.0.0rc2,<10.0`
+
 ## 2.0.0b2 (2026-02-22)
 
 ### titiler.extensions

@@ -7,11 +7,11 @@ RUN apt update && apt upgrade -y \
 
 # Ensure root certificates are always updated at evey container build
 # and curl is using the latest version of them
-RUN mkdir /usr/local/share/ca-certificates/cacert.org
-RUN cd /usr/local/share/ca-certificates/cacert.org && curl -k -O https://www.cacert.org/certs/root.crt
-RUN cd /usr/local/share/ca-certificates/cacert.org && curl -k -O https://www.cacert.org/certs/class3.crt
+# RUN mkdir /usr/local/share/ca-certificates/cacert.org
+# RUN cd /usr/local/share/ca-certificates/cacert.org && curl -k -O https://www.cacert.org/certs/root.crt
+# RUN cd /usr/local/share/ca-certificates/cacert.org && curl -k -O https://www.cacert.org/certs/class3.crt
+# ENV CURL_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 RUN update-ca-certificates
-ENV CURL_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 
 RUN python -m pip install -U pip
 RUN python -m pip install uvicorn uvicorn-worker gunicorn
