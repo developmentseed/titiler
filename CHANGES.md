@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## 1.2.1 (2026-03-09)
+
+### titiler.xarray
+
+* fix: allow `:` characters in xarray reader's `sel` parameter (e.g. for timestamps) (https://github.com/developmentseed/titiler/pull/1336) [Backported from 2.0.0]
+
+### titiler.mosaic
+
+* fix: `pixel-selection` method initialization to avoid FastAPI caching (author @raster-blaster, https://github.com/developmentseed/titiler/pull/1334)  [Backported from 2.0.0]
+
 ## 1.2.0 (2026-02-09)
 
 ### Input Validation
