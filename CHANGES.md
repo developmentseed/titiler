@@ -5,6 +5,7 @@
 ### Misc
 
 * change: rio-tiler requirement to `>=9.0.0rc2,<10.0`
+* fix: allow `:` characters in xarray reader's `sel` parameter (e.g. for timestamps)
 
 ## 2.0.0b2 (2026-02-22)
 
