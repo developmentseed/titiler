@@ -45,23 +45,23 @@ jobs:
 
       - name: Test titiler.core
         run: |
-          uv run pytest src/titiler/core --cov=titiler.core --cov-report=xml --cov-append --cov-report=term-missing
+          uv run pytest src/titiler/core --cov=titiler.core --cov-report=xml:titiler-core.xml --cov-report=term-missing
 
       - name: Test titiler.extensions
         run: |
-          uv run pytest src/titiler/extensions --cov=titiler.extensions --cov-report=xml --cov-append --cov-report=term-missing
+          uv run pytest src/titiler/extensions --cov=titiler.extensions --cov-report=xml:titiler-extensions.xml --cov-report=term-missing
 
       - name: Test titiler.xarray
         run: |
-          uv run pytest src/titiler/xarray --cov=titiler.xarray --cov-report=xml --cov-append --cov-report=term-missing
+          uv run pytest src/titiler/xarray --cov=titiler.xarray --cov-report=xml:titiler-xarray.xml --cov-report=term-missing
 
       - name: Test titiler.mosaic
         run: |
-          uv run pytest src/titiler/mosaic --cov=titiler.mosaic --cov-report=xml --cov-append --cov-report=term-missing
+          uv run pytest src/titiler/mosaic --cov=titiler.mosaic --cov-report=xml:titiler-mosaic.xml --cov-report=term-missing
 
       - name: Test titiler.application
         run: |
-          uv run pytest src/titiler/application --cov=titiler.application --cov-report=xml --cov-append --cov-report=term-missing
+          uv run pytest src/titiler/application --cov=titiler.application --cov-report=xml:titiler-application.xml  --cov-report=term-missing
 
       - name: run pre-commit and mypy
         if: ${{ matrix.python-version == env.LATEST_PY_VERSION }}
@@ -73,7 +73,7 @@ jobs:
         if: ${{ matrix.python-version == env.LATEST_PY_VERSION }}
         uses: codecov/codecov-action@v5
         with:
-          files: ./coverage.xml
+          files: ./titiler-core.xml,./titiler-extensions.xml,./titiler-xarray.xml,./titiler-mosaic.xml,./titiler-application.xml
           flags: unittests
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
