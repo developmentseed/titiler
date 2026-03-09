@@ -5,7 +5,10 @@
 ### Misc
 
 * change: rio-tiler requirement to `>=9.0.0rc2,<10.0`
-* fix: allow `:` characters in xarray reader's `sel` parameter (e.g. for timestamps)
+
+### titiler.xarray
+
+* fix: allow `:` characters in xarray reader's `sel` parameter (e.g. for timestamps) (https://github.com/developmentseed/titiler/pull/1336)
 
 ### titiler.mosaic
 
