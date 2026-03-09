@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1772816570489,
+  "lastUpdate": 1773074441369,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -20693,6 +20693,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 3.2,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "parthivpradeep@gmail.com",
+            "name": "rasterblaster",
+            "username": "raster-blaster"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "13febaa274700156c6cfe998e8637591e65b652b",
+          "message": "fix: reset pixel_selection per feature in statistics FeatureCollection (#1334)\n\n* fix: reset pixel_selection state per feature in statistics endpoint\n\nWhen processing a FeatureCollection with multiple distinct features,\nthe pixel_selection object (e.g. FirstMethod) retained its internal\nmosaic array state from the previous feature. If features had different\ngeometries producing different pixel dimensions, this caused a\nValueError in numpy broadcasting:\n\n  ValueError: operands could not be broadcast together with shapes (1,7,15) (1,4,11)\n\nThe fix creates a fresh pixel_selection instance for each feature in\nthe FeatureCollection loop, ensuring no stale state carries over.\n\n* fix mosaic pixelselection dependency\n\n---------\n\nCo-authored-by: RasterBlaster <rasterblaster@Sravanthis-MacBook-Air.local>\nCo-authored-by: vincentsarago <vincent.sarago@gmail.com>",
+          "timestamp": "2026-03-09T17:38:55+01:00",
+          "tree_id": "54cf754a2180b964a26aa9d71fd1b189d3714a5a",
+          "url": "https://github.com/developmentseed/titiler/commit/13febaa274700156c6cfe998e8637591e65b652b"
+        },
+        "date": 1773074440410,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.08,
             "unit": "s"
           },
           {
