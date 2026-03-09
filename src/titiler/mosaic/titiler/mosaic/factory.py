@@ -961,6 +961,12 @@ class MosaicTilerFactory(BaseFactory):
                     for i, feature in enumerate(fc.features):
                         shape = feature.model_dump(exclude_none=True)
 
+                        # Create a fresh pixel_selection for each feature to avoid
+                        # stale state from previous iterations. The pixel_selection
+                        # object accumulates mosaic data (self.mosaic) that is
+                        # specific to each feature's geometry dimensions.
+                        feature_pixel_selection = pixel_selection.__class__()
+
                         logger.info(f"feature {i}: reading data")
                         image, assets = src_dst.feature(
                             shape,
@@ -968,7 +974,7 @@ class MosaicTilerFactory(BaseFactory):
                             dst_crs=dst_crs,
                             align_bounds_with_dataset=True,
                             search_options=assets_accessor_params.as_dict(),
-                            pixel_selection=pixel_selection,
+                            pixel_selection=feature_pixel_selection,
                             threads=MOSAIC_THREADS,
                             **layer_params.as_dict(),
                             **dataset_params.as_dict(),
