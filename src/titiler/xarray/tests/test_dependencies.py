@@ -57,3 +57,9 @@ def test_xarray_tile():
         response = client.get("/", params={"sel": ["yo=nearest::yo", "ye=ye"]})
         params = response.json()
         assert params == {"sel": ["yo=nearest::yo", "ye=ye"]}
+
+        response = client.get(
+            "/", params={"sel": ["yo=nearest::2023-01-01T00:00:00", "ye=ye"]}
+        )
+        params = response.json()
+        assert params == {"sel": ["yo=nearest::2023-01-01T00:00:00", "ye=ye"]}
