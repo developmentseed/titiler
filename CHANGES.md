@@ -6,6 +6,10 @@
 
 * change: rio-tiler requirement to `>=9.0.0rc2,<10.0`
 
+### titiler.mosaic
+
+* fix: `pixel-selection` method initialization to avoid FastAPI caching (author @raster-blaster, https://github.com/developmentseed/titiler/pull/1334)
+
 ## 2.0.0b2 (2026-02-22)
 
 ### titiler.extensions
