@@ -849,3 +849,103 @@ def test_wmts_extension_mosaic():
             assert ["0", "1"] == list(
                 layer.tilematrixsetlinks["WebMercatorQuad"].tilematrixlimits
             )
+
+
+def test_mosaic_statistics_featurecollection():
+    """Test statistics endpoint with FeatureCollection containing multiple distinct features.
+
+    Regression test for bug where pixel_selection state from feature N
+    carried over to feature N+1, causing ValueError when features have
+    different pixel dimensions.
+    """
+    mosaic = MosaicTilerFactory(
+        backend=MosaicJSONBackend,
+        add_statistics=True,
+        router_prefix="mosaic",
+    )
+    app = FastAPI()
+    app.include_router(mosaic.router, prefix="/mosaic")
+    client = TestClient(app)
+
+    # Two distinct polygons within the mosaic bounds but different sizes
+    # mosaic bounds: [-75.98, 44.93, -71.33, 47.09]
+    feature_a = {
+        "type": "Feature",
+        "properties": {},
+        "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [-74.5, 45.5],
+                    [-74.5, 46.0],
+                    [-74.0, 46.0],
+                    [-74.0, 45.5],
+                    [-74.5, 45.5],
+                ]
+            ],
+        },
+    }
+
+    feature_b = {
+        "type": "Feature",
+        "properties": {},
+        "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [-73.5, 45.0],
+                    [-73.5, 45.3],
+                    [-73.0, 45.3],
+                    [-73.0, 45.0],
+                    [-73.5, 45.0],
+                ]
+            ],
+        },
+    }
+
+    with tmpmosaic() as mosaic_file:
+        # Test 1: Single Feature works
+        response = client.post(
+            "/mosaic/statistics",
+            params={"url": mosaic_file},
+            json=feature_a,
+        )
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "application/geo+json"
+        resp = response.json()
+        assert resp["type"] == "Feature"
+        assert "statistics" in resp["properties"]
+
+        # Test 2: FeatureCollection with 1 feature works
+        fc_single = {"type": "FeatureCollection", "features": [feature_a]}
+        response = client.post(
+            "/mosaic/statistics",
+            params={"url": mosaic_file},
+            json=fc_single,
+        )
+        assert response.status_code == 200
+        resp = response.json()
+        assert resp["type"] == "FeatureCollection"
+        assert len(resp["features"]) == 1
+        assert "statistics" in resp["features"][0]["properties"]
+
+        # Test 3: FeatureCollection with 2 DISTINCT features
+        # This was the bug - pixel_selection state from feature_a
+        # caused ValueError when processing feature_b
+        fc_multi = {"type": "FeatureCollection", "features": [feature_a, feature_b]}
+        response = client.post(
+            "/mosaic/statistics",
+            params={"url": mosaic_file},
+            json=fc_multi,
+        )
+        assert response.status_code == 200
+        resp = response.json()
+        assert resp["type"] == "FeatureCollection"
+        assert len(resp["features"]) == 2
+        assert "statistics" in resp["features"][0]["properties"]
+        assert "statistics" in resp["features"][1]["properties"]
+        # Each feature should have its own statistics
+        stats_a = resp["features"][0]["properties"]["statistics"]
+        stats_b = resp["features"][1]["properties"]["statistics"]
+        assert len(stats_a) > 0
+        assert len(stats_b) > 0
