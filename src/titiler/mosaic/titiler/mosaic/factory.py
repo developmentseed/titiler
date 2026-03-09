@@ -75,7 +75,7 @@ def PixelSelectionParams(
     """
     Returns the mosaic method used to combine datasets together.
     """
-    return PixelSelectionMethod[pixel_selection].value()
+    return PixelSelectionMethod[pixel_selection].value
 
 
 def DatasetPathParams(url: Annotated[str, Query(description="Mosaic URL")]) -> str:
