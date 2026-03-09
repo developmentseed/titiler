@@ -38,6 +38,7 @@ nav:
   - TiTiler: "index.md"
   - User Guide:
     - Getting Started: "user_guide/getting_started.md"
+    - Titiler with STAC: "user_guide/titiler_with_stac.md"
     - Dynamic Tiling: "user_guide/dynamic_tiling.md"
     - TileMatrixSets: "user_guide/tile_matrix_sets.md"
     - Output data format: "user_guide/output_format.md"

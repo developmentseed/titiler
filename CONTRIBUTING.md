@@ -11,7 +11,10 @@ See https://docs.astral.sh/uv/getting-started/installation/ for installation
 ```bash
 git clone https://github.com/developmentseed/titiler.git
 cd titiler
-uv sync --dev
+
+# Install the package in editable mode, plus the "dev" dependency group.
+# You can add `--group` arguments to add more groups, e.g. `--group notebook`.
+uv sync
 ```
 
 **pre-commit**

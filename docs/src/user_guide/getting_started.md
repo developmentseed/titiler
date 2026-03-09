@@ -51,6 +51,9 @@ With your environment activated, install TiTiler and the web server it needs:
 pip install titiler.core uvicorn
 ```
 
+> ⚠️  **Warning**: Previously, TiTiler was available via a `titiler` metapackage, but that's no longer the case.
+> In late 2025, we [dropped support for this metapackage](https://github.com/developmentseed/titiler/issues/294).
+
 This command installs the core TiTiler package and Uvicorn, a lightning-fast ASGI server.
 
 > 💡 **What's happening**: TiTiler.core contains the essential functionality for serving map tiles. Uvicorn is the engine that will run our FastAPI application.
