@@ -249,6 +249,7 @@
 
         fetch(`{{ point_endpoint|safe }}`.replace('{lat}', lat).replace('{lon}', lng))
           .then(res => {
+            if (res.status === 204) return null;
             if (res.ok) return res.json();
 
             return res.json().then(errorData => {
@@ -259,6 +260,11 @@
             })
           })
           .then(data => {
+            if (data === null) {
+              popup.setContent(`<p>No data at ${lat}, ${lng}</p>`);
+              return;
+            }
+
             const renderBandTable = (bandNames, values) => {
               if (bandNames.length === 1) {
                 const value = values[0] !== null ? values[0] : 'No data';
