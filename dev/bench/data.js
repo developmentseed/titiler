@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1773078696542,
+  "lastUpdate": 1773134062700,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -20968,6 +20968,65 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/developmentseed/titiler/commit/75c178c99d77e29a9a1ddb2b40172625a9a7ffe5"
         },
         "date": 1773078694722,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.16,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d1d68c6134de3c858824a52c08e785278fe98eb9",
+          "message": "Bump the all group with 5 updates (#1337)\n\nBumps the all group with 5 updates:\n\n| Package | From | To |\n| --- | --- | --- |\n| [docker/build-push-action](https://github.com/docker/build-push-action) | `6` | `7` |\n| [docker/setup-qemu-action](https://github.com/docker/setup-qemu-action) | `3` | `4` |\n| [docker/setup-buildx-action](https://github.com/docker/setup-buildx-action) | `3` | `4` |\n| [docker/login-action](https://github.com/docker/login-action) | `3` | `4` |\n| [docker/metadata-action](https://github.com/docker/metadata-action) | `5` | `6` |\n\n\nUpdates `docker/build-push-action` from 6 to 7\n- [Release notes](https://github.com/docker/build-push-action/releases)\n- [Commits](https://github.com/docker/build-push-action/compare/v6...v7)\n\nUpdates `docker/setup-qemu-action` from 3 to 4\n- [Release notes](https://github.com/docker/setup-qemu-action/releases)\n- [Commits](https://github.com/docker/setup-qemu-action/compare/v3...v4)\n\nUpdates `docker/setup-buildx-action` from 3 to 4\n- [Release notes](https://github.com/docker/setup-buildx-action/releases)\n- [Commits](https://github.com/docker/setup-buildx-action/compare/v3...v4)\n\nUpdates `docker/login-action` from 3 to 4\n- [Release notes](https://github.com/docker/login-action/releases)\n- [Commits](https://github.com/docker/login-action/compare/v3...v4)\n\nUpdates `docker/metadata-action` from 5 to 6\n- [Release notes](https://github.com/docker/metadata-action/releases)\n- [Commits](https://github.com/docker/metadata-action/compare/v5...v6)\n\n---\nupdated-dependencies:\n- dependency-name: docker/build-push-action\n  dependency-version: '7'\n  dependency-type: direct:production\n  update-type: version-update:semver-major\n  dependency-group: all\n- dependency-name: docker/setup-qemu-action\n  dependency-version: '4'\n  dependency-type: direct:production\n  update-type: version-update:semver-major\n  dependency-group: all\n- dependency-name: docker/setup-buildx-action\n  dependency-version: '4'\n  dependency-type: direct:production\n  update-type: version-update:semver-major\n  dependency-group: all\n- dependency-name: docker/login-action\n  dependency-version: '4'\n  dependency-type: direct:production\n  update-type: version-update:semver-major\n  dependency-group: all\n- dependency-name: docker/metadata-action\n  dependency-version: '6'\n  dependency-type: direct:production\n  update-type: version-update:semver-major\n  dependency-group: all\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2026-03-10T10:12:28+01:00",
+          "tree_id": "d42a0752e0d39f45d3582cc7d2f2841fbce21a95",
+          "url": "https://github.com/developmentseed/titiler/commit/d1d68c6134de3c858824a52c08e785278fe98eb9"
+        },
+        "date": 1773134061864,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
