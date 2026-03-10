@@ -290,7 +290,6 @@
               } else if (data.assets !== undefined) {
                 // MosaicTilerFactory shape: one entry per asset
                 for (const asset of data.assets) {
-                  html += `<p><strong>${asset.name}</strong></p>`;
                   html += renderBandTable(asset.band_names, asset.values);
                 }
               }
