@@ -836,12 +836,33 @@ class MosaicTilerFactory(BaseFactory):
 
             tilejson_url += f"?{urlencode(qs)}"
 
+            point_url = self.url_for(request, "point", lon="{lon}", lat="{lat}")
+            if request.query_params._list:
+                qs_key_to_remove = [
+                    "tilesize",
+                    "tile_format",
+                    "minzoom",
+                    "maxzoom",
+                    "buffer",
+                    "padding",
+                    "colormap",
+                    "colormap_name",
+                ]
+                qs = [
+                    (key, value)
+                    for (key, value) in request.query_params._list
+                    if key.lower() not in qs_key_to_remove
+                ]
+                if qs:
+                    point_url += f"?{urlencode(qs)}"
+
             tms = self.supported_tms.get(tileMatrixSetId)
             return self.templates.TemplateResponse(
                 request,
                 name="map.html",
                 context={
                     "tilejson_endpoint": tilejson_url,
+                    "point_endpoint": point_url,
                     "tms": tms,
                     "resolutions": [matrix.cellSize for matrix in tms],
                 },

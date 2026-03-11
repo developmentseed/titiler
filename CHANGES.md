@@ -13,6 +13,7 @@
 ### titiler.mosaic
 
 * fix: `pixel-selection` method initialization to avoid FastAPI caching (author @raster-blaster, https://github.com/developmentseed/titiler/pull/1334)
+* fix: make the point query feature in map.html work for MosaicTilerFactory (https://github.com/developmentseed/titiler/pull/1338)
 
 ## 2.0.0b2 (2026-02-22)
 
