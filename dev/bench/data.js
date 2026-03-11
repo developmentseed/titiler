@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1773134062700,
+  "lastUpdate": 1773246850751,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -21047,6 +21047,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 3.16,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "henry.rodman@gmail.com",
+            "name": "Henry Rodman",
+            "username": "hrodmn"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "02acb7ded77fc87ce20e3f6b523ea0c871e2ed67",
+          "message": "Fix/map point query mosaic (#1338)\n\n* fix: make point query work for mosaic factory in map.html\n\n* fix: do not render asset name\n\n* fix: gracefully handle 204/nodata responses\n\n* chore: update changelog",
+          "timestamp": "2026-03-11T16:32:21Z",
+          "tree_id": "2b6dbac4e9ac1f2519639af67e3d53c0ca35806f",
+          "url": "https://github.com/developmentseed/titiler/commit/02acb7ded77fc87ce20e3f6b523ea0c871e2ed67"
+        },
+        "date": 1773246849755,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.24,
             "unit": "s"
           },
           {
