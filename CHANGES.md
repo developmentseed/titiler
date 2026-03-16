@@ -2,9 +2,11 @@
 
 ## Unreleased
 
+## 2.0.0 (2026-03-16)
+
 ### Misc
 
-* change: rio-tiler requirement to `>=9.0.0rc2,<10.0`
+* change: rio-tiler requirement to `>=9.0,<10.0`
 
 ### titiler.xarray
 
