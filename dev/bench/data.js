@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1773654771281,
+  "lastUpdate": 1773820623993,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -21165,6 +21165,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 3.08,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hn.campbell@gmail.com",
+            "name": "Hamish Campbell",
+            "username": "hamishcampbell"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a51ab3ded6b8ec743355da3f029a01eb8d46da3e",
+          "message": "Fix command syntax in AWS Lambda deployment guide (#1346)",
+          "timestamp": "2026-03-18T08:55:16+01:00",
+          "tree_id": "c680ac89c3e739b223702c9495c38487830cd66c",
+          "url": "https://github.com/developmentseed/titiler/commit/a51ab3ded6b8ec743355da3f029a01eb8d46da3e"
+        },
+        "date": 1773820622251,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.04,
             "unit": "s"
           },
           {
