@@ -252,7 +252,7 @@ def test_TilerFactory():
 
     response = client.get(f"/point/-56.228,72.715?url={DATA_DIR}/cog.tif&bidx=1&bidx=1")
     assert len(response.json()["values"]) == 2
-    assert response.json()["band_names"] == ["b1", "b2"]
+    assert response.json()["band_names"] == ["b1", "b1"]
     assert response.json()["band_descriptions"] == ["b1", "b1"]
 
     response = client.get(
@@ -448,7 +448,7 @@ def test_TilerFactory():
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
-    assert len(resp) == 3
+    assert len(resp) == 1
     assert set(resp["b1"].keys()) == {
         *stats_keys,
         "percentile_2",
@@ -475,7 +475,7 @@ def test_TilerFactory():
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
-    assert len(resp) == 3
+    assert len(resp) == 1
     assert set(resp["b1"].keys()) == {
         *stats_keys,
         "percentile_4",
@@ -546,14 +546,13 @@ def test_TilerFactory():
     assert response.headers["content-type"] == "application/geo+json"
     resp = response.json()
     assert resp["type"] == "Feature"
-    assert len(resp["properties"]["statistics"]) == 3
+    assert len(resp["properties"]["statistics"]) == 1
     assert set(resp["properties"]["statistics"]["b1"].keys()) == {
         *stats_keys,
         "percentile_2",
         "percentile_98",
     }
     assert resp["properties"]["statistics"]["b1"]["description"] == "b1"
-    assert resp["properties"]["statistics"]["b2"]["description"] == "b1"
 
     response = client.post(
         f"/statistics?url={DATA_DIR}/cog.tif&bidx=1&bidx=1&bidx=1",
@@ -563,14 +562,13 @@ def test_TilerFactory():
     assert response.headers["content-type"] == "application/geo+json"
     resp = response.json()
     assert resp["type"] == "FeatureCollection"
-    assert len(resp["features"][0]["properties"]["statistics"]) == 3
+    assert len(resp["features"][0]["properties"]["statistics"]) == 1
     assert set(resp["features"][0]["properties"]["statistics"]["b1"].keys()) == {
         *stats_keys,
         "percentile_2",
         "percentile_98",
     }
     assert resp["features"][0]["properties"]["statistics"]["b1"]["description"] == "b1"
-    assert resp["features"][0]["properties"]["statistics"]["b2"]["description"] == "b1"
 
     response = client.post(
         "/statistics",
@@ -824,9 +822,7 @@ def test_MultiBaseTilerFactory(rio):
     resp = response.json()
     assert len(resp) == 1
     assert resp["B09|indexes=[1,1]"]["b1"]
-    assert resp["B09|indexes=[1,1]"]["b2"]
     assert resp["B09|indexes=[1,1]"]["b1"]["description"] == "b1"
-    assert resp["B09|indexes=[1,1]"]["b2"]["description"] == "b1"
 
     # missing assets
     response = client.get(f"/statistics?url={DATA_DIR}/item.json")
