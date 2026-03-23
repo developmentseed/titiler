@@ -54,16 +54,16 @@ class wmtsExtension(FactoryExtension):
 
     def register(self, factory: TilerFactory):  # type: ignore [override] # noqa: C901
         """Register extension's endpoints."""
-
-        self.tile_dependencies = self.tile_dependencies or [
-            factory.reader_dependency,
-            factory.tile_dependency,
-            factory.layer_dependency,
-            factory.dataset_dependency,
-            factory.process_dependency,
-            factory.colormap_dependency,
-            factory.render_dependency,
-        ]
+        if self.tile_dependencies is None:
+            self.tile_dependencies = [
+                factory.reader_dependency,
+                factory.tile_dependency,
+                factory.layer_dependency,
+                factory.dataset_dependency,
+                factory.process_dependency,
+                factory.colormap_dependency,
+                factory.render_dependency,
+            ]
 
         @factory.router.get(
             "/WMTSCapabilities.xml",
@@ -76,7 +76,9 @@ class wmtsExtension(FactoryExtension):
             },
             operation_id=f"{factory.operation_prefix}getWMTS",
             openapi_extra={
-                "parameters": dependencies_to_openapi_params(self.tile_dependencies),
+                "parameters": dependencies_to_openapi_params(
+                    self.tile_dependencies or []
+                ),
             },
         )
         def wmts(  # noqa: C901
@@ -107,7 +109,7 @@ class wmtsExtension(FactoryExtension):
             # 1. Create layers from `renders` metadata
             for name, values in default_renders.items():
                 values.pop("tilesize", None)  # Ensure tilesize is not overridden
-                if check_query_params(self.tile_dependencies, values):
+                if check_query_params(self.tile_dependencies or [], values):
                     renders.append(
                         {
                             "name": name,
@@ -150,7 +152,7 @@ class wmtsExtension(FactoryExtension):
                 doseq=True,
             )
 
-            if check_query_params(self.tile_dependencies, QueryParams(qs)):
+            if check_query_params(self.tile_dependencies or [], QueryParams(qs)):
                 renders.append({"name": "default", "query_string": qs})
 
             #################################################
