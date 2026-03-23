@@ -21,7 +21,12 @@ from starlette.templating import Jinja2Templates
 from titiler.core.factory import FactoryExtension, TilerFactory
 from titiler.core.resources.enums import ImageType
 from titiler.core.resources.responses import XMLResponse
-from titiler.core.utils import check_query_params, rio_crs_to_pyproj, tms_limits
+from titiler.core.utils import (
+    check_query_params,
+    dependencies_to_openapi_params,
+    rio_crs_to_pyproj,
+    tms_limits,
+)
 
 jinja2_env = jinja2.Environment(
     autoescape=jinja2.select_autoescape(["xml"]),
@@ -43,8 +48,22 @@ class wmtsExtension(FactoryExtension):
         default=lambda obj: {}
     )
 
+    # List of dependencies a `/tile` URL should validate
+    # Note: Those dependencies should only require Query() inputs
+    tile_dependencies: list[Callable] | None = field(default=None)
+
     def register(self, factory: TilerFactory):  # type: ignore [override] # noqa: C901
         """Register extension's endpoints."""
+
+        self.tile_dependencies = self.tile_dependencies or [
+            factory.reader_dependency,
+            factory.tile_dependency,
+            factory.layer_dependency,
+            factory.dataset_dependency,
+            factory.process_dependency,
+            factory.colormap_dependency,
+            factory.render_dependency,
+        ]
 
         @factory.router.get(
             "/WMTSCapabilities.xml",
@@ -56,6 +75,9 @@ class wmtsExtension(FactoryExtension):
                 }
             },
             operation_id=f"{factory.operation_prefix}getWMTS",
+            openapi_extra={
+                "parameters": dependencies_to_openapi_params(self.tile_dependencies),
+            },
         )
         def wmts(  # noqa: C901
             request: Request,
@@ -79,24 +101,13 @@ class wmtsExtension(FactoryExtension):
                     bounds = src_dst.get_geographic_bounds(self.crs)
                     default_renders = self.get_renders(src_dst)
 
-            # List of dependencies a `/tile` URL should validate
-            # Note: Those dependencies should only require Query() inputs
-            tile_dependencies: list[Callable] = [
-                factory.reader_dependency,
-                factory.tile_dependency,
-                factory.layer_dependency,
-                factory.dataset_dependency,
-                factory.process_dependency,
-                factory.colormap_dependency,
-                factory.render_dependency,
-            ]
             renders: list[dict[str, Any]] = []
 
             ##########################################
             # 1. Create layers from `renders` metadata
             for name, values in default_renders.items():
                 values.pop("tilesize", None)  # Ensure tilesize is not overridden
-                if check_query_params(tile_dependencies, values):
+                if check_query_params(self.tile_dependencies, values):
                     renders.append(
                         {
                             "name": name,
@@ -139,7 +150,7 @@ class wmtsExtension(FactoryExtension):
                 doseq=True,
             )
 
-            if check_query_params(tile_dependencies, QueryParams(qs)):
+            if check_query_params(self.tile_dependencies, QueryParams(qs)):
                 renders.append({"name": "default", "query_string": qs})
 
             #################################################
