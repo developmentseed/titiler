@@ -266,7 +266,7 @@ def dependencies_to_openapi_params(
 ) -> list[dict[str, Any]]:
     """Extract OpenAPI query parameter schemas from a list of FastAPI dependencies.
 
-    This Code was generated using Claude 2.0 with prompt: `I need to create OpenAPI schema from the fastapi dependencies`
+    This Code was generated with help of Claude 2.0. See plans/openapi-params-from-dependencies.prompt.md.
     """
     all_fields = []
     seen: set[str] = set()

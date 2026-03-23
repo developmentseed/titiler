@@ -114,7 +114,7 @@ def test_extract_query_params():
 def test_dependencies_to_openapi_params():
     """Test dependencies_to_openapi_params.
 
-    This Code was generated using Claude 2.0 with prompt: `I need to create OpenAPI schema from the fastapi dependencies`
+    This Code was generated with help of Claude 2.0. See plans/openapi-params-from-dependencies.prompt.md.
     """
 
     # empty list → no params
