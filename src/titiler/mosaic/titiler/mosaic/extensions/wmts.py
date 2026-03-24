@@ -21,7 +21,12 @@ from starlette.templating import Jinja2Templates
 from titiler.core.factory import FactoryExtension
 from titiler.core.resources.enums import ImageType
 from titiler.core.resources.responses import XMLResponse
-from titiler.core.utils import check_query_params, rio_crs_to_pyproj, tms_limits
+from titiler.core.utils import (
+    check_query_params,
+    dependencies_to_openapi_params,
+    rio_crs_to_pyproj,
+    tms_limits,
+)
 from titiler.mosaic.factory import MosaicTilerFactory
 
 jinja2_env = jinja2.Environment(
@@ -44,8 +49,29 @@ class wmtsExtension(FactoryExtension):
         default=lambda obj: {}
     )
 
+    # List of dependencies a `/tile` URL should validate
+    # Note: Those dependencies should only require Query() inputs
+    tile_dependencies: list[Callable] | None = field(default=None)
+
     def register(self, factory: MosaicTilerFactory):  # type: ignore [override] # noqa: C901
         """Register endpoint to the tiler factory."""
+
+        tile_dependencies = (
+            self.tile_dependencies
+            if self.tile_dependencies is not None
+            else [
+                factory.layer_dependency,
+                factory.dataset_dependency,
+                factory.pixel_selection_dependency,
+                factory.process_dependency,
+                factory.colormap_dependency,
+                factory.render_dependency,
+                factory.tile_dependency,
+                factory.assets_accessor_dependency,
+                factory.reader_dependency,
+                factory.backend_dependency,
+            ]
+        )
 
         @factory.router.get(
             "/WMTSCapabilities.xml",
@@ -57,6 +83,9 @@ class wmtsExtension(FactoryExtension):
                 }
             },
             operation_id=f"{factory.operation_prefix}getWMTS",
+            openapi_extra={
+                "parameters": dependencies_to_openapi_params(tile_dependencies),
+            },
         )
         def wmts(  # noqa: C901
             request: Request,
@@ -86,20 +115,6 @@ class wmtsExtension(FactoryExtension):
                     bounds = src_dst.get_geographic_bounds(self.crs)
                     default_renders = self.get_renders(src_dst)
 
-                # List of dependencies a `/tile` URL should validate
-                # Note: Those dependencies should only require Query() inputs
-                tile_dependencies: list[Callable] = [
-                    factory.layer_dependency,
-                    factory.dataset_dependency,
-                    factory.pixel_selection_dependency,
-                    factory.process_dependency,
-                    factory.colormap_dependency,
-                    factory.render_dependency,
-                    factory.tile_dependency,
-                    factory.assets_accessor_dependency,
-                    factory.reader_dependency,
-                    factory.backend_dependency,
-                ]
                 renders: list[dict[str, Any]] = []
 
                 ##########################################
@@ -162,45 +177,42 @@ class wmtsExtension(FactoryExtension):
 
                 layers: list[dict[str, Any]] = []
                 title = src_path if isinstance(src_path, str) else "TiTiler Mosaic"
-
                 for render in renders:
                     for tms_id in factory.supported_tms.list():
                         tms = factory.supported_tms.get(tms_id)
-                        try:
-                            with factory.backend(
-                                src_path,
-                                tms=tms,
-                                reader=factory.dataset_reader,
-                                reader_options=reader_params.as_dict(),
-                                **backend_params.as_dict(),
-                            ) as src_dst:
-                                # NOTE: Custom TiTiler Render key in form of {"tilematrixsets": {"{TMS_ID}": (minzoom, maxzoom)}}
-                                if zooms := render.get("tilematrixsets", {}).get(
-                                    tms_id
-                                ):
-                                    minzoom, maxzoom = zooms
-                                else:
-                                    minzoom = src_dst.minzoom
-                                    maxzoom = src_dst.maxzoom
 
-                                # NOTE: Custom TiTiler Render key in form of {"spatial_extent": (minx, miny, maxx, maxy)}
-                                # NOTE: We assume the spatial_extent is always in WGS84
-                                if render.get("spatial_extent"):
-                                    bbox = render["spatial_extent"]
-                                    crs = WGS84_CRS
-                                else:
-                                    bbox = bounds
-                                    crs = self.crs
+                        bbox = bounds
+                        crs = self.crs
+                        # NOTE: Custom TiTiler Render key in form of {"spatial_extent": (minx, miny, maxx, maxy)}
+                        # NOTE: We assume the spatial_extent is always in WGS84
+                        if render.get("spatial_extent"):
+                            bbox = render["spatial_extent"]
+                            crs = WGS84_CRS
 
-                                tilematrixset_limits = tms_limits(
-                                    tms,
-                                    bbox,
-                                    zooms=(minzoom, maxzoom),
-                                    geographic_crs=crs,
-                                )
+                        # NOTE: Custom TiTiler Render key in form of {"tilematrixsets": {"{tms_id}": (minzoom, maxzoom)}}
+                        zooms: tuple[int, int] = render.get("tilematrixsets", {}).get(
+                            tms_id
+                        )
+                        # If zooms are not in renders then we get them from the backend
+                        if not zooms:
+                            try:
+                                with factory.backend(
+                                    src_path,
+                                    tms=tms,
+                                    reader=factory.dataset_reader,
+                                    reader_options=reader_params.as_dict(),
+                                    **backend_params.as_dict(),
+                                ) as src_dst:
+                                    zooms = (src_dst.minzoom, src_dst.maxzoom)
+                            except Exception as e:  # noqa
+                                zooms = (tms.minzoom, tms.maxzoom)
 
-                        except Exception as e:  # noqa
-                            pass
+                        tilematrixset_limits = tms_limits(
+                            tms,
+                            bbox,
+                            zooms=zooms,
+                            geographic_crs=crs,
+                        )
 
                         route_params = {
                             "z": "{TileMatrix}",

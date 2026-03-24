@@ -54,8 +54,10 @@ class wmtsExtension(FactoryExtension):
 
     def register(self, factory: TilerFactory):  # type: ignore [override] # noqa: C901
         """Register extension's endpoints."""
-        if self.tile_dependencies is None:
-            self.tile_dependencies = [
+        tile_dependencies = (
+            self.tile_dependencies
+            if self.tile_dependencies is not None
+            else [
                 factory.reader_dependency,
                 factory.tile_dependency,
                 factory.layer_dependency,
@@ -64,6 +66,7 @@ class wmtsExtension(FactoryExtension):
                 factory.colormap_dependency,
                 factory.render_dependency,
             ]
+        )
 
         @factory.router.get(
             "/WMTSCapabilities.xml",
@@ -76,9 +79,7 @@ class wmtsExtension(FactoryExtension):
             },
             operation_id=f"{factory.operation_prefix}getWMTS",
             openapi_extra={
-                "parameters": dependencies_to_openapi_params(
-                    self.tile_dependencies or []
-                ),
+                "parameters": dependencies_to_openapi_params(tile_dependencies),
             },
         )
         def wmts(  # noqa: C901
@@ -109,7 +110,7 @@ class wmtsExtension(FactoryExtension):
             # 1. Create layers from `renders` metadata
             for name, values in default_renders.items():
                 values.pop("tilesize", None)  # Ensure tilesize is not overridden
-                if check_query_params(self.tile_dependencies or [], values):
+                if check_query_params(tile_dependencies, values):
                     renders.append(
                         {
                             "name": name,
@@ -152,7 +153,7 @@ class wmtsExtension(FactoryExtension):
                 doseq=True,
             )
 
-            if check_query_params(self.tile_dependencies or [], QueryParams(qs)):
+            if check_query_params(tile_dependencies, QueryParams(qs)):
                 renders.append({"name": "default", "query_string": qs})
 
             #################################################
@@ -168,34 +169,35 @@ class wmtsExtension(FactoryExtension):
             for render in renders:
                 for tms_id in factory.supported_tms.list():
                     tms = factory.supported_tms.get(tms_id)
-                    try:
-                        with factory.reader(
-                            src_path, tms=tms, **reader_params.as_dict()
-                        ) as src_dst:
-                            if zooms := render.get("tilematrixsets", {}).get(tms_id):
-                                minzoom, maxzoom = zooms
-                            else:
-                                minzoom = src_dst.minzoom
-                                maxzoom = src_dst.maxzoom
 
-                            # NOTE: Custom TiTiler Render key in form of {"spatial_extent": (minx, miny, maxx, maxy)}
-                            # NOTE: We assume the spatial_extent is always in WGS84
-                            if render.get("spatial_extent"):
-                                bbox = render["spatial_extent"]
-                                crs = WGS84_CRS
-                            else:
-                                bbox = bounds
-                                crs = self.crs
+                    bbox = bounds
+                    crs = self.crs
+                    # NOTE: Custom TiTiler Render key in form of {"spatial_extent": (minx, miny, maxx, maxy)}
+                    # NOTE: We assume the spatial_extent is always in WGS84
+                    if render.get("spatial_extent"):
+                        bbox = render["spatial_extent"]
+                        crs = WGS84_CRS
 
-                            tilematrixset_limits = tms_limits(
-                                tms,
-                                bbox,
-                                zooms=(minzoom, maxzoom),
-                                geographic_crs=crs,
-                            )
+                    # NOTE: Custom TiTiler Render key in form of {"tilematrixsets": {"{tms_id}": (minzoom, maxzoom)}}
+                    zooms: tuple[int, int] = render.get("tilematrixsets", {}).get(
+                        tms_id
+                    )
+                    # If zooms are not in renders then we get them from the reader
+                    if not zooms:
+                        try:
+                            with factory.reader(
+                                src_path, tms=tms, **reader_params.as_dict()
+                            ) as src_dst:
+                                zooms = (src_dst.minzoom, src_dst.maxzoom)
+                        except Exception as e:  # noqa
+                            zooms = (tms.minzoom, tms.maxzoom)
 
-                    except Exception as e:  # noqa
-                        pass
+                    tilematrixset_limits = tms_limits(
+                        tms,
+                        bbox,
+                        zooms=zooms,
+                        geographic_crs=crs,
+                    )
 
                     route_params = {
                         "z": "{TileMatrix}",
