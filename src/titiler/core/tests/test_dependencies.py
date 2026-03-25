@@ -223,13 +223,23 @@ def test_assets():
     response = client.get("/first?assets=data&assets=image")
     assert response.json() == ["data", "image"]
 
+    response = client.get("/first?assets=data|bidx=1,2|expression=b1*b2")
+    assert response.json()[0]["name"] == "data"
+    assert response.json()[0]["indexes"] == [1, 2]
+    assert response.json()[0]["expression"] == "b1*b2"
+
     response = client.get("/second?assets=data&assets=image")
     assert response.json()["assets"] == ["data", "image"]
     assert not response.json()["expression"]
 
     response = client.get("/second?assets=data&assets=image&expression=b1*b2")
     assert response.json()["expression"] == "b1*b2"
-    assert response.json()["assets"]
+    assert response.json()["assets"] == ["data", "image"]
+
+    response = client.get("/second?assets=data|bidx=1,2|expression=b1*b2")
+    assert response.json()["assets"][0]["name"] == "data"
+    assert response.json()["assets"][0]["indexes"] == [1, 2]
+    assert response.json()["assets"][0]["expression"] == "b1*b2"
 
     response = client.get("/second")
     assert response.status_code == 422

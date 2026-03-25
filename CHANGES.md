@@ -2,6 +2,43 @@
 
 ## Unreleased
 
+### titiler.extensions
+
+* add: tile's endpoint parameters to the OpenAPI documentation for WMTS extension
+* change: internal of the WMTS extension to increase performance
+
+### titiler.mosaic
+
+* add: tile's endpoint parameters to the OpenAPI documentation for WMTS extension
+* change: internal of the WMTS extension to increase performance
+
+## 2.0.0 (2026-03-16)
+
+### Misc
+
+* change: rio-tiler requirement to `>=9.0,<10.0`
+
+### titiler.xarray
+
+* fix: allow `:` characters in xarray reader's `sel` parameter (e.g. for timestamps) (https://github.com/developmentseed/titiler/pull/1336)
+
+### titiler.mosaic
+
+* fix: `pixel-selection` method initialization to avoid FastAPI caching (author @raster-blaster, https://github.com/developmentseed/titiler/pull/1334)
+* fix: make the point query feature in map.html work for MosaicTilerFactory (https://github.com/developmentseed/titiler/pull/1338)
+
+## 2.0.0b2 (2026-02-22)
+
+### titiler.extensions
+
+* fix: render expression adapter
+
+## 2.0.0b1 (2026-02-22)\
+
+### titiler.core
+
+* change: rio-tiler requirement to `>=9.0.0b1,<10.0`
+* add: asset's options parsing in `AssetsParams` dependency
 
 ## 2.0.0a2 (2026-02-13)
 
@@ -64,6 +101,16 @@
 
 * add: titiler.xarray dependency
 * add: `/zarr` endpoints
+
+## 1.2.1 (2026-03-09)
+
+### titiler.xarray
+
+* fix: allow `:` characters in xarray reader's `sel` parameter (e.g. for timestamps) (https://github.com/developmentseed/titiler/pull/1336) [Backported from 2.0.0]
+
+### titiler.mosaic
+
+* fix: `pixel-selection` method initialization to avoid FastAPI caching (author @raster-blaster, https://github.com/developmentseed/titiler/pull/1334)  [Backported from 2.0.0]
 
 ## 1.2.0 (2026-02-09)
 

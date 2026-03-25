@@ -3,16 +3,16 @@
 import json
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal, cast
 
 import numpy
 from fastapi import HTTPException, Query
-from pydantic import BeforeValidator, Field
+from pydantic import AfterValidator, BeforeValidator, Field
 from rasterio.crs import CRS
 from rio_tiler.colormap import ColorMaps
 from rio_tiler.colormap import cmap as default_cmap
 from rio_tiler.colormap import parse_color
-from rio_tiler.types import RIOResampling, WarpResampling
+from rio_tiler.types import AssetType, AssetWithOptions, RIOResampling, WarpResampling
 from starlette.requests import Request
 
 from titiler.core.resources.enums import ImageType, MediaType
@@ -134,12 +134,37 @@ class BidxExprParams(ExpressionParams, BidxParams):
 
 
 # Dependencies for  MultiBaseReader (e.g STACReader)
+def _parse_asset(values: list[str]) -> list[AssetType]:
+    """Parse assets with optional parameter."""
+    assets: list[AssetType] = []
+    for v in values:
+        if "|" in v:
+            asset_name, params = v.split("|", 1)
+            opts: dict[str, Any] = {"name": asset_name}
+            for option in params.split("|"):
+                key, value = option.split("=", 1)
+                if key == "bidx":
+                    opts["indexes"] = list(map(int, value.split(",")))
+                elif key == "expression":
+                    opts["expression"] = value
+                elif key == "bands":
+                    opts["bands"] = value.split(",")
+
+            asset = cast(AssetWithOptions, opts)
+            assets.append(asset)
+        else:
+            assets.append(v)
+
+    return assets
+
+
 @dataclass
 class AssetsParams(DefaultDependency):
     """Assets parameters."""
 
     assets: Annotated[
         list[str],
+        AfterValidator(_parse_asset),
         Query(
             title="Asset names",
             description="Asset's names.",
@@ -152,6 +177,10 @@ class AssetsParams(DefaultDependency):
                 "multi-assets": {
                     "description": "Return results for assets `data` and `cog`.",
                     "value": ["data", "cog"],
+                },
+                "multi-assets-with-options": {
+                    "description": "Return results for assets `data` and `cog`.",
+                    "value": ["data|bidx=1", "cog|bidx=1,2"],
                 },
             },
         ),

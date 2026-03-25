@@ -151,6 +151,27 @@ def test_preview(httpx, rio, app):
     assert meta["width"] == 128
     assert meta["height"] == 128
 
+    response = app.get(
+        "/stac/preview.tiff?url=https://myurl.com/items_bands.json&assets=rgb&return_mask=False"
+    )
+    assert response.status_code == 200
+    meta = parse_img(response.content)
+    assert meta["count"] == 3
+
+    response = app.get(
+        "/stac/preview.tiff?url=https://myurl.com/items_bands.json&assets=rgb|bands=red&return_mask=False"
+    )
+    assert response.status_code == 200
+    meta = parse_img(response.content)
+    assert meta["count"] == 1
+
+    response = app.get(
+        "/stac/preview.tiff?url=https://myurl.com/items_bands.json&assets=rgb|bidx=1&return_mask=False"
+    )
+    assert response.status_code == 200
+    meta = parse_img(response.content)
+    assert meta["count"] == 1
+
 
 @patch("rio_tiler.io.rasterio.rasterio")
 @patch("rio_tiler.io.stac.httpx")
