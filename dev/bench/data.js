@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1774302179516,
+  "lastUpdate": 1774429918412,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -21401,6 +21401,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 3.05,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "vincent.sarago@gmail.com",
+            "name": "Vincent Sarago",
+            "username": "vincentsarago"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8ca050a9872161fee637b88093242840ddfbd19b",
+          "message": "add openapi parameters for tile dependencies in WMTS endpoints (#1349)\n\n* add openapi parameters for tile dependencies in WMTS endpoints\n\n* fix\n\n* add plans\n\n* update mosaic extension\n\n* change; reduce calls to crs methods",
+          "timestamp": "2026-03-25T10:10:14+01:00",
+          "tree_id": "bac82c2e8dc1b6e86d49ada750ec99d39d50379d",
+          "url": "https://github.com/developmentseed/titiler/commit/8ca050a9872161fee637b88093242840ddfbd19b"
+        },
+        "date": 1774429917673,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.11,
             "unit": "s"
           },
           {
