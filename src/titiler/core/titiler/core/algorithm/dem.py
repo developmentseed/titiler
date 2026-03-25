@@ -152,7 +152,7 @@ class Contours(BaseAlgorithm):
         arr = numpy.where(data % self.increment < self.thickness, 0, arr)
 
         data = numpy.ma.MaskedArray(arr)
-        data.mask = ~img.mask.astype(bool)
+        data.mask = img.array.mask
 
         return ImageData(
             data,
