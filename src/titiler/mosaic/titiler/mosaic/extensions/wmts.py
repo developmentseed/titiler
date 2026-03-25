@@ -112,7 +112,7 @@ class wmtsExtension(FactoryExtension):
                     reader_options=reader_params.as_dict(),
                     **backend_params.as_dict(),
                 ) as src_dst:
-                    bounds = src_dst.get_geographic_bounds(self.crs)
+                    dataset_bounds = src_dst.get_geographic_bounds(self.crs)
                     default_renders = self.get_renders(src_dst)
 
                 renders: list[dict[str, Any]] = []
@@ -178,22 +178,41 @@ class wmtsExtension(FactoryExtension):
                 layers: list[dict[str, Any]] = []
                 title = src_path if isinstance(src_path, str) else "TiTiler Mosaic"
                 for render in renders:
+                    # NOTE: Default bounds and CRS for the dataset
+                    bounds = dataset_bounds
+                    geographic_crs = self.crs
+
+                    # NOTE: Custom TiTiler Render key in form of {"spatial_extent": (minx, miny, maxx, maxy)}
+                    # NOTE: We assume the spatial_extent is always in WGS84
+                    if render.get("spatial_extent"):
+                        bounds = render["spatial_extent"]
+                        geographic_crs = WGS84_CRS
+
+                    bbox_crs_type = "WGS84BoundingBox"
+                    bbox_crs_uri = "urn:ogc:def:crs:OGC:2:84"
+                    wmts_bbox = bounds
+                    if geographic_crs != WGS84_CRS:
+                        bbox_crs_type = "BoundingBox"
+                        bbox_crs_uri = CRS_to_urn(geographic_crs)  # type: ignore
+                        # WGS88BoundingBox is always xy ordered, but BoundingBox must match the CRS order
+                        proj_crs = rio_crs_to_pyproj(geographic_crs)
+                        if crs_axis_inverted(proj_crs):
+                            # match the bounding box coordinate order to the CRS
+                            wmts_bbox = [
+                                wmts_bbox[1],
+                                wmts_bbox[0],
+                                wmts_bbox[3],
+                                wmts_bbox[2],
+                            ]
+
                     for tms_id in factory.supported_tms.list():
                         tms = factory.supported_tms.get(tms_id)
-
-                        bbox = bounds
-                        crs = self.crs
-                        # NOTE: Custom TiTiler Render key in form of {"spatial_extent": (minx, miny, maxx, maxy)}
-                        # NOTE: We assume the spatial_extent is always in WGS84
-                        if render.get("spatial_extent"):
-                            bbox = render["spatial_extent"]
-                            crs = WGS84_CRS
 
                         # NOTE: Custom TiTiler Render key in form of {"tilematrixsets": {"{tms_id}": (minzoom, maxzoom)}}
                         zooms: tuple[int, int] = render.get("tilematrixsets", {}).get(
                             tms_id
                         )
-                        # If zooms are not in renders then we get them from the backend
+                        # NOTE: If zooms are not in renders then we get them from the backend
                         if not zooms:
                             try:
                                 with factory.backend(
@@ -209,9 +228,9 @@ class wmtsExtension(FactoryExtension):
 
                         tilematrixset_limits = tms_limits(
                             tms,
-                            bbox,
+                            bounds,
                             zooms=zooms,
-                            geographic_crs=crs,
+                            geographic_crs=geographic_crs,
                         )
 
                         route_params = {
@@ -221,17 +240,7 @@ class wmtsExtension(FactoryExtension):
                             "format": tile_format.value,
                             "tileMatrixSetId": tms_id,
                         }
-
-                        bbox_crs_type = "WGS84BoundingBox"
-                        bbox_crs_uri = "urn:ogc:def:crs:OGC:2:84"
-                        if crs != WGS84_CRS:
-                            bbox_crs_type = "BoundingBox"
-                            bbox_crs_uri = CRS_to_urn(crs)  # type: ignore
-                            # WGS88BoundingBox is always xy ordered, but BoundingBox must match the CRS order
-                            proj_crs = rio_crs_to_pyproj(crs)
-                            if crs_axis_inverted(proj_crs):
-                                # match the bounding box coordinate order to the CRS
-                                bbox = [bbox[1], bbox[0], bbox[3], bbox[2]]
+                        tile_url = factory.url_for(request, "tile", **route_params)
 
                         layers.append(
                             {
@@ -239,13 +248,11 @@ class wmtsExtension(FactoryExtension):
                                 "identifier": f"{title}_{tms_id}_{render['name']}",
                                 "tms_identifier": tms_id,
                                 "tms_limits": tilematrixset_limits,
-                                "tiles_url": factory.url_for(
-                                    request, "tile", **route_params
-                                ),
+                                "tiles_url": tile_url,
                                 "query_string": render["query_string"],
                                 "bbox_crs_type": bbox_crs_type,
                                 "bbox_crs_uri": bbox_crs_uri,
-                                "bbox": bbox,
+                                "bbox": wmts_bbox,
                             }
                         )
 
@@ -258,11 +265,7 @@ class wmtsExtension(FactoryExtension):
                     supported_crs = tms.crs.srs
 
                 tileMatrixSets.append(
-                    {
-                        "id": tms_id,
-                        "crs": supported_crs,
-                        "matrices": tms.tileMatrices,
-                    }
+                    {"id": tms_id, "crs": supported_crs, "matrices": tms.tileMatrices}
                 )
 
             return self.templates.TemplateResponse(

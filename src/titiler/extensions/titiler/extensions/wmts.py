@@ -101,138 +101,145 @@ class wmtsExtension(FactoryExtension):
             """OGC RESTful WMTS endpoint."""
             with rasterio.Env(**env):
                 with factory.reader(src_path, **reader_params.as_dict()) as src_dst:
-                    bounds = src_dst.get_geographic_bounds(self.crs)
+                    dataset_bounds = src_dst.get_geographic_bounds(self.crs)
                     default_renders = self.get_renders(src_dst)
 
-            renders: list[dict[str, Any]] = []
+                renders: list[dict[str, Any]] = []
 
-            ##########################################
-            # 1. Create layers from `renders` metadata
-            for name, values in default_renders.items():
-                values.pop("tilesize", None)  # Ensure tilesize is not overridden
-                if check_query_params(tile_dependencies, values):
-                    renders.append(
-                        {
-                            "name": name,
-                            "query_string": urlencode(values, doseq=True)
-                            if values
-                            else None,
-                            "tilematrixsets": values.get("tilematrixsets", {}),
-                            "spatial_extent": values.get("spatial_extent", None),
-                        }
-                    )
-                else:
-                    warnings.warn(
-                        f"Cannot construct URL for layer `{name}`",
-                        UserWarning,
-                        stacklevel=2,
-                    )
+                ##########################################
+                # 1. Create layers from `renders` metadata
+                for name, values in default_renders.items():
+                    values.pop("tilesize", None)  # Ensure tilesize is not overridden
+                    if check_query_params(tile_dependencies, values):
+                        renders.append(
+                            {
+                                "name": name,
+                                "query_string": urlencode(values, doseq=True)
+                                if values
+                                else None,
+                                "tilematrixsets": values.get("tilematrixsets", {}),
+                                "spatial_extent": values.get("spatial_extent", None),
+                            }
+                        )
+                    else:
+                        warnings.warn(
+                            f"Cannot construct URL for layer `{name}`",
+                            UserWarning,
+                            stacklevel=2,
+                        )
 
-            #######################################
-            # 2. Create layer from query-parameters
-            qs_key_to_remove = [
-                "tile_format",
-                "use_epsg",
-                # Make sure tilesize is not ovewrriden from WMTS request
-                "tilesize",
-                # OGC WMTS parameters to ignore
-                "service",
-                "request",
-                "acceptversions",
-                "sections",
-                "updatesequence",
-                "acceptformats",
-            ]
+                #######################################
+                # 2. Create layer from query-parameters
+                qs_key_to_remove = [
+                    "tile_format",
+                    "use_epsg",
+                    # Make sure tilesize is not ovewrriden from WMTS request
+                    "tilesize",
+                    # OGC WMTS parameters to ignore
+                    "service",
+                    "request",
+                    "acceptversions",
+                    "sections",
+                    "updatesequence",
+                    "acceptformats",
+                ]
 
-            qs = urlencode(
-                [
-                    (key, value)
-                    for (key, value) in request.query_params._list
-                    if key.lower() not in qs_key_to_remove
-                ],
-                doseq=True,
-            )
-
-            if check_query_params(tile_dependencies, QueryParams(qs)):
-                renders.append({"name": "default", "query_string": qs})
-
-            #################################################
-            # 3. if there is no layers we raise and exception
-            if not renders:
-                raise HTTPException(
-                    status_code=400,
-                    detail="Could not find any valid layers in metadata or construct one from Query Parameters.",
+                qs = urlencode(
+                    [
+                        (key, value)
+                        for (key, value) in request.query_params._list
+                        if key.lower() not in qs_key_to_remove
+                    ],
+                    doseq=True,
                 )
 
-            layers: list[dict[str, Any]] = []
-            title = src_path if isinstance(src_path, str) else "TiTiler"
-            for render in renders:
-                for tms_id in factory.supported_tms.list():
-                    tms = factory.supported_tms.get(tms_id)
+                if check_query_params(tile_dependencies, QueryParams(qs)):
+                    renders.append({"name": "default", "query_string": qs})
 
-                    bbox = bounds
-                    crs = self.crs
+                #################################################
+                # 3. if there is no layers we raise and exception
+                if not renders:
+                    raise HTTPException(
+                        status_code=400,
+                        detail="Could not find any valid layers in metadata or construct one from Query Parameters.",
+                    )
+
+                layers: list[dict[str, Any]] = []
+                title = src_path if isinstance(src_path, str) else "TiTiler"
+                for render in renders:
+                    # NOTE: Default bounds and CRS for the dataset
+                    bounds = dataset_bounds
+                    geographic_crs = self.crs
+
                     # NOTE: Custom TiTiler Render key in form of {"spatial_extent": (minx, miny, maxx, maxy)}
                     # NOTE: We assume the spatial_extent is always in WGS84
                     if render.get("spatial_extent"):
-                        bbox = render["spatial_extent"]
-                        crs = WGS84_CRS
-
-                    # NOTE: Custom TiTiler Render key in form of {"tilematrixsets": {"{tms_id}": (minzoom, maxzoom)}}
-                    zooms: tuple[int, int] = render.get("tilematrixsets", {}).get(
-                        tms_id
-                    )
-                    # If zooms are not in renders then we get them from the reader
-                    if not zooms:
-                        try:
-                            with factory.reader(
-                                src_path, tms=tms, **reader_params.as_dict()
-                            ) as src_dst:
-                                zooms = (src_dst.minzoom, src_dst.maxzoom)
-                        except Exception as e:  # noqa
-                            zooms = (tms.minzoom, tms.maxzoom)
-
-                    tilematrixset_limits = tms_limits(
-                        tms,
-                        bbox,
-                        zooms=zooms,
-                        geographic_crs=crs,
-                    )
-
-                    route_params = {
-                        "z": "{TileMatrix}",
-                        "x": "{TileCol}",
-                        "y": "{TileRow}",
-                        "format": tile_format.value,
-                        "tileMatrixSetId": tms_id,
-                    }
+                        bounds = render["spatial_extent"]
+                        geographic_crs = WGS84_CRS
 
                     bbox_crs_type = "WGS84BoundingBox"
                     bbox_crs_uri = "urn:ogc:def:crs:OGC:2:84"
-                    if crs != WGS84_CRS:
+                    wmts_bbox = bounds
+                    if geographic_crs != WGS84_CRS:
                         bbox_crs_type = "BoundingBox"
-                        bbox_crs_uri = CRS_to_urn(crs)  # type: ignore
+                        bbox_crs_uri = CRS_to_urn(geographic_crs)  # type: ignore
                         # WGS88BoundingBox is always xy ordered, but BoundingBox must match the CRS order
-                        proj_crs = rio_crs_to_pyproj(crs)
+                        proj_crs = rio_crs_to_pyproj(geographic_crs)
                         if crs_axis_inverted(proj_crs):
                             # match the bounding box coordinate order to the CRS
-                            bbox = [bbox[1], bbox[0], bbox[3], bbox[2]]
+                            wmts_bbox = [
+                                wmts_bbox[1],
+                                wmts_bbox[0],
+                                wmts_bbox[3],
+                                wmts_bbox[2],
+                            ]
 
-                    layers.append(
-                        {
-                            "title": f"{title}_{tms_id}_{render['name']}",
-                            "identifier": f"{title}_{tms_id}_{render['name']}",
-                            "tms_identifier": tms_id,
-                            "tms_limits": tilematrixset_limits,
-                            "tiles_url": factory.url_for(
-                                request, "tile", **route_params
-                            ),
-                            "query_string": render["query_string"],
-                            "bbox_crs_type": bbox_crs_type,
-                            "bbox_crs_uri": bbox_crs_uri,
-                            "bbox": bbox,
+                    for tms_id in factory.supported_tms.list():
+                        tms = factory.supported_tms.get(tms_id)
+
+                        # NOTE: Custom TiTiler Render key in form of {"tilematrixsets": {"{tms_id}": (minzoom, maxzoom)}}
+                        zooms: tuple[int, int] = render.get("tilematrixsets", {}).get(
+                            tms_id
+                        )
+                        # NOTE: If zooms are not in render then we get them from the dataset
+                        if not zooms:
+                            try:
+                                with factory.reader(
+                                    src_path, tms=tms, **reader_params.as_dict()
+                                ) as src_dst:
+                                    zooms = (src_dst.minzoom, src_dst.maxzoom)
+                            except Exception as e:  # noqa
+                                zooms = (tms.minzoom, tms.maxzoom)
+
+                        tilematrixset_limits = tms_limits(
+                            tms,
+                            bounds,
+                            zooms=zooms,
+                            geographic_crs=geographic_crs,
+                        )
+
+                        route_params = {
+                            "z": "{TileMatrix}",
+                            "x": "{TileCol}",
+                            "y": "{TileRow}",
+                            "format": tile_format.value,
+                            "tileMatrixSetId": tms_id,
                         }
-                    )
+                        tile_url = factory.url_for(request, "tile", **route_params)
+
+                        layers.append(
+                            {
+                                "title": f"{title}_{tms_id}_{render['name']}",
+                                "identifier": f"{title}_{tms_id}_{render['name']}",
+                                "tms_identifier": tms_id,
+                                "tms_limits": tilematrixset_limits,
+                                "tiles_url": tile_url,
+                                "query_string": render["query_string"],
+                                "bbox_crs_type": bbox_crs_type,
+                                "bbox_crs_uri": bbox_crs_uri,
+                                "bbox": wmts_bbox,
+                            }
+                        )
 
             tileMatrixSets: list[dict[str, Any]] = []
             for tms_id in factory.supported_tms.list():
