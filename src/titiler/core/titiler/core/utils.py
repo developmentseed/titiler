@@ -12,8 +12,19 @@ import numpy
 import pyproj
 import rasterio
 from fastapi import FastAPI
+from fastapi._compat import (
+    get_definitions,
+    get_flat_models_from_fields,
+    get_model_name_map,
+)
 from fastapi.datastructures import QueryParams
-from fastapi.dependencies.utils import get_dependant, request_params_to_args
+from fastapi.dependencies.models import Dependant
+from fastapi.dependencies.utils import (
+    get_dependant,
+    get_flat_params,
+    request_params_to_args,
+)
+from fastapi.openapi.utils import _get_openapi_operation_parameters
 from geojson_pydantic.geometries import MultiPolygon, Polygon
 from morecantile import TileMatrixSet
 from rasterio.dtypes import dtype_ranges
@@ -248,6 +259,38 @@ def check_query_params(
             return False
 
     return True
+
+
+def dependencies_to_openapi_params(
+    dependencies: list[Callable],
+) -> list[dict[str, Any]]:
+    """Extract OpenAPI query parameter schemas from a list of FastAPI dependencies.
+
+    This Code was generated with help of Claude 2.0. See plans/openapi-params-from-dependencies.prompt.md.
+    """
+    all_fields = []
+    seen: set[str] = set()
+    for dep in dependencies:
+        dependant = get_dependant(path="", call=dep)
+        for field in get_flat_params(dependant):
+            if field.name not in seen:
+                seen.add(field.name)
+                all_fields.append(field)
+
+    if not all_fields:
+        return []
+
+    flat_models = get_flat_models_from_fields(all_fields, known_models=set())
+    model_name_map = get_model_name_map(flat_models)
+    field_mapping, _ = get_definitions(fields=all_fields, model_name_map=model_name_map)
+
+    combined = Dependant(path="")
+    combined.query_params = all_fields
+    return _get_openapi_operation_parameters(
+        dependant=combined,
+        model_name_map=model_name_map,
+        field_mapping=field_mapping,
+    )
 
 
 def accept_media_type(accept: str, mediatypes: list[MediaType]) -> MediaType | None:

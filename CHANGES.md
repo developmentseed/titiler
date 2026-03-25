@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### titiler.extensions
+
+* add: tile's endpoint parameters to the OpenAPI documentation for WMTS extension
+* change: internal of the WMTS extension to increase performance
+
+### titiler.mosaic
+
+* add: tile's endpoint parameters to the OpenAPI documentation for WMTS extension
+* change: internal of the WMTS extension to increase performance
+
 ## 2.0.0 (2026-03-16)
 
 ### Misc
