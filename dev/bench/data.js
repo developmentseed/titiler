@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1774429918412,
+  "lastUpdate": 1774523029679,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -21460,6 +21460,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 3.11,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "mv1742@nyu.edu",
+            "name": "Manrique Vargas",
+            "username": "machov"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f9dfb3a94959a59948d44a31415f7e0f2e5e2e92",
+          "message": "fix(algorithm): handle mask type compatibility in contours algorithm (#1327)\n\n* fix(algorithm): handle mask type compatibility in contours algorithm\n\nFixes developmentseed/titiler#1326\n\nThe contours algorithm was failing with 'ufunc invert not supported'\nerror when img.mask had an incompatible data type for the bitwise\ninvert (~) operation. Convert mask to boolean type before inversion\nto ensure compatibility with all numpy data types.\n\n* Force push of enhance-contours-algorithm\n\n* remove empty\n\n* fix\n\n---------\n\nCo-authored-by: vincentsarago <vincent.sarago@gmail.com>",
+          "timestamp": "2026-03-26T12:01:59+01:00",
+          "tree_id": "ec29df09a41a320414cba641bcc9b5f6d2b05668",
+          "url": "https://github.com/developmentseed/titiler/commit/f9dfb3a94959a59948d44a31415f7e0f2e5e2e92"
+        },
+        "date": 1774523028621,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.09,
             "unit": "s"
           },
           {
