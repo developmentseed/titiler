@@ -16,10 +16,6 @@ resolution-markers = [
     "python_full_version < '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 
-[options]
-exclude-newer = "2026-03-27T10:06:56.505512Z"
-exclude-newer-span = "P3D"
-
 [manifest]
 members = [
     "titiler",
