@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1774530618426,
+  "lastUpdate": 1774864527396,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -21578,6 +21578,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 3.21,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "10154151+lhoupert@users.noreply.github.com",
+            "name": "Loïc Houpert",
+            "username": "lhoupert"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4b5f858e402d5bc8c3343d361adb3172d76ec9b8",
+          "message": "ci: harden github actions workflows against zizmor findings (#1354)\n\n* ci: harden github actions\n\n* ci: add zizmor in pre-commit and ci pipeline\n\n* ci:  move from \"deploy on every push to main\" toward \"deploy on published GitHub Release + manual dispatch.",
+          "timestamp": "2026-03-30T11:53:29+02:00",
+          "tree_id": "13294e52280d5bad595ec70ae8991daac51de7a4",
+          "url": "https://github.com/developmentseed/titiler/commit/4b5f858e402d5bc8c3343d361adb3172d76ec9b8"
+        },
+        "date": 1774864526059,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.09,
             "unit": "s"
           },
           {
