@@ -3,18 +3,32 @@ name: Release
 on:
   push:
     branches:
-    - main
-    - dev
-    tags:
-    - '*'
+      - main
+  release:
+    types: [published]
+
 env:
   LATEST_PY_VERSION: '3.14'
 
 jobs:
+  release-please:
+    name: Release Please
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: googleapis/release-please-action@16a9c90856f42705d54a6fda1823352bdc62cf38 # v4.4.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
   build:
     name: Build dist
     runs-on: ubuntu-latest
-    if: startsWith(github.event.ref, 'refs/tags') || github.event_name == 'release'
+    if: github.event_name == 'release'
     permissions:
       contents: read
     steps:
@@ -25,33 +39,13 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
         with:
-          version: "0.9.*" 
+          version: "0.9.*"
           enable-cache: false
           python-version: ${{ env.LATEST_PY_VERSION }}
 
       - name: Install dependencies
         run: |
           uv sync
-
-      - name: Set tag version
-        id: tag
-        run: |
-          echo "version=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
-
-      - name: Set module version
-        id: module
-        run: |
-          echo "version=$(uv version --short)" >> $GITHUB_OUTPUT
-
-      - name: Check version match
-        env:
-          TAG_VERSION: ${{ steps.tag.outputs.version }}
-          MODULE_VERSION: ${{ steps.module.outputs.version }}
-        run: |
-          if [ "$TAG_VERSION" != "$MODULE_VERSION" ]; then
-            echo "Tag version ($TAG_VERSION) does not match module version ($MODULE_VERSION)"
-            exit 1
-          fi
 
       - name: Build
         run: |
