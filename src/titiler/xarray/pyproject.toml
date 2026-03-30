@@ -67,13 +67,6 @@ test = [
     "aiohttp",
     "requests",
 ]
-upstream = [
-    'xarray @ git+https://github.com/pydata/xarray',
-    'universal_pathlib @ git+https://github.com/fsspec/universal_pathlib',
-    'numcodecs @ git+https://github.com/zarr-developers/numcodecs',
-    'ujson @ git+https://github.com/ultrajson/ultrajson',
-    'zarr @ git+https://github.com/zarr-developers/zarr-python',
-]
 
 [project.urls]
 Homepage = "https://developmentseed.org/titiler/"

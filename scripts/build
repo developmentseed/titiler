@@ -7,11 +7,9 @@ SUBPACKAGES=(
     "application"
     "extensions"
 )
-
+rm -rf dist
 for PACKAGE in "${SUBPACKAGES[@]}"
 do
-    echo "publishing titiler-${PACKAGE}"
-    rm -rf dist
+    echo "building titiler-${PACKAGE}"
     uv build --package titiler-${PACKAGE}
-    uv publish
 done
