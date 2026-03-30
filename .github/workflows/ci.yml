@@ -88,55 +88,13 @@ jobs:
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
 
-  publish:
-    needs: [tests]
-    runs-on: ubuntu-latest
-    environment: pypi
-    permissions:
-      contents: read
-      id-token: write
-    if: startsWith(github.event.ref, 'refs/tags') || github.event_name == 'release'
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-        with:
-          persist-credentials: false
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
-        with:
-          version: "0.9.*"
-          enable-cache: false
-          python-version: ${{ env.LATEST_PY_VERSION }}
-
-      - name: Install dependencies
-        run: |
-          uv sync
-
-      - name: Set tag version
-        id: tag
-        run: |
-          echo "version=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
-
-      - name: Set module version
-        id: module
-        run: |
-          echo "version=$(uv version --short)" >> $GITHUB_OUTPUT
-
-      - name: Build and publish titiler packages
-        if: steps.tag.outputs.version == steps.module.outputs.version
-        env:
-          UV_PUBLISH_USERNAME: ${{ secrets.PYPI_USERNAME }}
-          UV_PUBLISH_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-        run: |
-          scripts/publish
-
   publish-docker:
     needs: [tests]
     if: github.ref == 'refs/heads/main' || startsWith(github.event.ref, 'refs/tags') || github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write
+      packages: write # Push multi-arch images to ghcr.io for this repository
     strategy:
       matrix:
         include:

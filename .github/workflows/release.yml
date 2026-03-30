@@ -1,0 +1,81 @@
+name: Release
+
+on:
+  push:
+    branches:
+    - main
+    - dev
+    tags:
+    - '*'
+env:
+  LATEST_PY_VERSION: '3.14'
+
+jobs:
+  build:
+    name: Build dist
+    runs-on: ubuntu-latest
+    if: startsWith(github.event.ref, 'refs/tags')
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+        with:
+          version: "0.9.*" 
+          enable-cache: false
+          python-version: ${{ env.LATEST_PY_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          uv sync
+
+      - name: Set tag version
+        id: tag
+        run: |
+          echo "version=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
+
+      - name: Set module version
+        id: module
+        run: |
+          echo "version=$(uv version --short)" >> $GITHUB_OUTPUT
+
+      - name: Check version match
+        env:
+          TAG_VERSION: ${{ steps.tag.outputs.version }}
+          MODULE_VERSION: ${{ steps.module.outputs.version }}
+        run: |
+          if [ "$TAG_VERSION" != "$MODULE_VERSION" ]; then
+            echo "Tag version ($TAG_VERSION) does not match module version ($MODULE_VERSION)"
+            exit 1
+          fi
+
+      - name: Build
+        run: |
+          scripts/build
+
+      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        with:
+          path: ./dist/
+
+  upload_pypi:
+    name: Upload release to PyPI
+    needs: [build]
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi-release
+    permissions:
+      contents: read
+      id-token: write # OIDC token for PyPI trusted publishing (pypa/gh-action-pypi-publish)
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: artifact
+          path: dist
+          merge-multiple: true
+
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # v1.13.0

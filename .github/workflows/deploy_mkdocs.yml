@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: github-pages
     permissions:
-      contents: write
+      contents: write # mkdocs gh-deploy pushes the built site to gh-pages
     steps:
       - name: Checkout main
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
