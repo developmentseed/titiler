@@ -130,23 +130,6 @@ jobs:
         run: |
           scripts/publish
 
-  # Replaces an insecure workflow_run trigger on deploy (see zizmor dangerous-triggers).
-  deploy-cdk-after-main:
-    needs: [tests]
-    if: |
-      github.repository == 'developmentseed/titiler' &&
-      github.event_name == 'push' &&
-      github.ref == 'refs/heads/main'
-    uses: ./.github/workflows/deploy.yml
-    secrets:
-      AWS_IAM_ROLE_ARN: ${{ secrets.AWS_IAM_ROLE_ARN }}
-      STACK_NAME: ${{ secrets.STACK_NAME }}
-      STACK_STAGE: ${{ secrets.STACK_STAGE }}
-      STACK_MEMORY: ${{ secrets.STACK_MEMORY }}
-      STACK_OWNER: ${{ secrets.STACK_OWNER }}
-      STACK_CLIENT: ${{ secrets.STACK_CLIENT }}
-      STACK_BUCKETS: ${{ secrets.STACK_BUCKETS }}
-
   publish-docker:
     needs: [tests]
     if: github.ref == 'refs/heads/main' || startsWith(github.event.ref, 'refs/tags') || github.event_name == 'release'

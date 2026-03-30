@@ -1,25 +1,8 @@
 name: Deploy application
 
 on:
-  workflow_call:
-    secrets:
-      AWS_IAM_ROLE_ARN:
-        required: true
-      STACK_NAME:
-        required: true
-      STACK_STAGE:
-        required: true
-      STACK_MEMORY:
-        required: true
-      STACK_OWNER:
-        required: true
-      STACK_CLIENT:
-        required: true
-      STACK_BUCKETS:
-        required: true
-  push:
-    tags:
-    - '*'
+  release:
+    types: [published]
   workflow_dispatch:
 
 jobs:
