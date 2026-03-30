@@ -44,9 +44,12 @@ jobs:
           echo "version=$(uv version --short)" >> $GITHUB_OUTPUT
 
       - name: Check version match
+        env:
+          TAG_VERSION: ${{ steps.tag.outputs.version }}
+          MODULE_VERSION: ${{ steps.module.outputs.version }}
         run: |
-          if [ "${{ steps.tag.outputs.version }}" != "${{ steps.module.outputs.version }}" ]; then
-            echo "Tag version (${{ steps.tag.outputs.version }}) does not match module version (${{ steps.module.outputs.version }})"
+          if [ "$TAG_VERSION" != "$MODULE_VERSION" ]; then
+            echo "Tag version ($TAG_VERSION) does not match module version ($MODULE_VERSION)"
             exit 1
           fi
 
@@ -66,7 +69,7 @@ jobs:
       name: pypi-release
     permissions:
       contents: read
-      id-token: write
+      id-token: write # OIDC token for PyPI trusted publishing (pypa/gh-action-pypi-publish)
     steps:
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:

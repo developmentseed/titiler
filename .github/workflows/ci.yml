@@ -94,7 +94,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write
+      packages: write # Push multi-arch images to ghcr.io for this repository
     strategy:
       matrix:
         include:

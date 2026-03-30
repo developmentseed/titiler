@@ -21,8 +21,7 @@ jobs:
     name: Run zizmor
     runs-on: ubuntu-latest
     permissions:
-      # Required for upload-sarif (used by zizmor-action) to upload SARIF files.
-      security-events: write
+      security-events: write # Upload zizmor SARIF to GitHub Code Scanning
       contents: read
     steps:
       - name: Checkout repository

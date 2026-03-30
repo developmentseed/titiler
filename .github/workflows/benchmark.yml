@@ -15,8 +15,8 @@ jobs:
     if: github.repository == 'developmentseed/titiler'
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      pull-requests: write
+      contents: write # Push benchmark results to gh-benchmarks branch
+      pull-requests: write # Leave PR comments when benchmark regressions exceed alert threshold
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
