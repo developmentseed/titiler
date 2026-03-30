@@ -27,3 +27,9 @@ repos:
         - types-simplejson
         - types-attrs
         - pydantic~=2.0
+
+  - repo: https://github.com/zizmorcore/zizmor-pre-commit
+    rev: v1.23.1
+    hooks:
+      - id: zizmor
+        args: [--min-severity, medium]
