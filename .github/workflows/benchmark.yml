@@ -14,9 +14,14 @@ jobs:
   benchmark:
     if: github.repository == 'developmentseed/titiler'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
 
       - name: install siege
         run: |
@@ -57,7 +62,7 @@ jobs:
           cat output.json | jq '[inputs]' > benchmark.json
 
       - name: Check and Store benchmark result
-        uses: benchmark-action/github-action-benchmark@v1
+        uses: benchmark-action/github-action-benchmark@a7bc2366eda11037936ea57d811a43b3418d3073 # v1
         with:
           name: TiTiler performance Benchmarks
           tool: 'customSmallerIsBetter'

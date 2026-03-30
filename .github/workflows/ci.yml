@@ -24,21 +24,29 @@ on:
 env:
   LATEST_PY_VERSION: '3.14'
 
+permissions:
+  contents: read
+
 jobs:
   tests:
     runs-on: ubuntu-latest
+    environment: ci
+    permissions:
+      contents: read
     strategy:
       matrix:
         python-version: ['3.11', '3.12', '3.13', '3.14']
 
     steps:
-      - uses: actions/checkout@v6
-     
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
-          version: "0.9.*" 
-          enable-cache: true
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+        with:
+          version: "0.9.*"
+          enable-cache: false
           python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
@@ -73,7 +81,7 @@ jobs:
 
       - name: Upload Results
         if: ${{ matrix.python-version == env.LATEST_PY_VERSION }}
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@75cd11691c0faa626561e295848008c8a7dddffe # v5
         with:
           files: ./titiler-core.xml,./titiler-extensions.xml,./titiler-xarray.xml,./titiler-mosaic.xml,./titiler-application.xml
           flags: unittests
@@ -83,16 +91,22 @@ jobs:
   publish:
     needs: [tests]
     runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      contents: read
+      id-token: write
     if: startsWith(github.event.ref, 'refs/tags') || github.event_name == 'release'
     steps:
-      - uses: actions/checkout@v6
-      
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
-          version: "0.9.*" 
-          enable-cache: true
-          python-version: ${{ matrix.python-version }}
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+        with:
+          version: "0.9.*"
+          enable-cache: false
+          python-version: ${{ env.LATEST_PY_VERSION }}
 
       - name: Install dependencies
         run: |
@@ -109,7 +123,7 @@ jobs:
           echo "version=$(uv version --short)" >> $GITHUB_OUTPUT
 
       - name: Build and publish titiler packages
-        if: ${{ steps.tag.outputs.version }} == ${{ steps.module.outputs.version}}
+        if: steps.tag.outputs.version == steps.module.outputs.version
         env:
           UV_PUBLISH_USERNAME: ${{ secrets.PYPI_USERNAME }}
           UV_PUBLISH_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
@@ -120,6 +134,9 @@ jobs:
     needs: [tests]
     if: github.ref == 'refs/heads/main' || startsWith(github.event.ref, 'refs/tags') || github.event_name == 'release'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     strategy:
       matrix:
         include:
@@ -129,16 +146,18 @@ jobs:
             file: dockerfiles/Dockerfile.xarray
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
+        uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4
 
       - name: Log in to the GitHub Container registry
-        uses: docker/login-action@v4
+        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -146,7 +165,7 @@ jobs:
 
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v6
+        uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6
         with:
           images: ${{ matrix.image }}
           flavor: |
@@ -156,7 +175,7 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7
         with:
           platforms: linux/amd64,linux/arm64
           context: .

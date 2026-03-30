@@ -17,15 +17,26 @@ jobs:
   build:
     name: Deploy docs
     runs-on: ubuntu-latest
+    environment: github-pages
+    permissions:
+      contents: write
     steps:
       - name: Checkout main
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
         with:
-          version: "0.9.*" 
-          enable-cache: true
+          version: "0.9.*"
+          enable-cache: false
     
       - name: Deploy docs
-        run: uv run --group docs mkdocs gh-deploy --force -f docs/mkdocs.yml
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          uv run --group docs mkdocs gh-deploy --force -f docs/mkdocs.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
