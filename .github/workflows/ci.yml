@@ -90,7 +90,7 @@ jobs:
 
   publish-docker:
     needs: [tests]
-    if: github.ref == 'refs/heads/main' || startsWith(github.event.ref, 'refs/tags') || github.event_name == 'release'
+    if: github.ref == 'refs/heads/main' || (startsWith(github.event.ref, 'refs/tags') && !startsWith(github.ref, 'refs/tags/helm-')) || github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions:
       contents: read
