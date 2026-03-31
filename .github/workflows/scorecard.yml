@@ -8,7 +8,7 @@ on:
       - dev
   schedule:
     # Weekly on Saturdays at 01:35 UTC (offset from other scheduled jobs)
-    - cron: "35 1 * * 6"
+    - cron: "30 7 * * 1"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
