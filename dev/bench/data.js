@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1774880244333,
+  "lastUpdate": 1774936896900,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -21696,6 +21696,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 3.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "10154151+lhoupert@users.noreply.github.com",
+            "name": "Loïc Houpert",
+            "username": "lhoupert"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "319ab8b4ffacc100059f371d4e16719837796f0b",
+          "message": "ci: add conventional commit check and release please (#1356)\n\n* ci: setup trusted publishing and update xarray upstream test\n\n* ci: fix zizmor issues\n\n* ci: add conventional commit lint and release please\n\n* ci: fix version check\n\n* chore: version bump\n\n* docs: update guide\n\n* chore: update lock\n\n* chore: add comments\n\n* ci: add helm chart release\n\n* chore: add section on helm versioning\n\n* chore: remove bumpversion as not needed anymore\n\n---------\n\nCo-authored-by: vincentsarago <vincent.sarago@gmail.com>",
+          "timestamp": "2026-03-31T07:59:39+02:00",
+          "tree_id": "4dbb14852fda1ea0d62c4f7a4eabe6d8d02ae196",
+          "url": "https://github.com/developmentseed/titiler/commit/319ab8b4ffacc100059f371d4e16719837796f0b"
+        },
+        "date": 1774936895852,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.17,
             "unit": "s"
           },
           {
