@@ -2,32 +2,31 @@
 
 ## Unreleased
 
+## 2.0.1 (2026-03-31)
+
+## What's Changed
+
+### titiler.core 
+
+* fix(algorithm): handle mask type compatibility in contours algorithm by @machov in https://github.com/developmentseed/titiler/pull/1327
+
 ### titiler.extensions
 
-* add: tile's endpoint parameters to the OpenAPI documentation for WMTS extension
+* add openapi parameters for tile dependencies in WMTS endpoints by @vincentsarago in https://github.com/developmentseed/titiler/pull/1349
 * change: internal of the WMTS extension to increase performance
 
 ### titiler.mosaic
 
-* add: tile's endpoint parameters to the OpenAPI documentation for WMTS extension
+* add openapi parameters for tile dependencies in WMTS endpoints by @vincentsarago in https://github.com/developmentseed/titiler/pull/1349
 * change: internal of the WMTS extension to increase performance
 
-## 2.0.1 (2026-03-31)
+### Misc 
 
-## What's Changed
 * Fix command syntax in AWS Lambda deployment guide by @hamishcampbell in https://github.com/developmentseed/titiler/pull/1346
-* Bump azure/setup-helm from 4 to 5 in the all group by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1350
-* add openapi parameters for tile dependencies in WMTS endpoints by @vincentsarago in https://github.com/developmentseed/titiler/pull/1349
-* fix(algorithm): handle mask type compatibility in contours algorithm by @machov in https://github.com/developmentseed/titiler/pull/1327
 * ci: harden github actions workflows against zizmor findings by @lhoupert in https://github.com/developmentseed/titiler/pull/1354
 * ci: setup trusted publishing and update xarray upstream test by @vincentsarago in https://github.com/developmentseed/titiler/pull/1355
 * ci: add conventional commit check and release please by @lhoupert in https://github.com/developmentseed/titiler/pull/1356
 * ci: add security audtit and ossf scorecard by @lhoupert in https://github.com/developmentseed/titiler/pull/1359
-
-## New Contributors
-* @hamishcampbell made their first contribution in https://github.com/developmentseed/titiler/pull/1346
-* @machov made their first contribution in https://github.com/developmentseed/titiler/pull/1327
-* @lhoupert made their first contribution in https://github.com/developmentseed/titiler/pull/1354
 
 **Full Changelog**: https://github.com/developmentseed/titiler/compare/2.0.0...2.0.1
 
