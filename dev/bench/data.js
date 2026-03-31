@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1774960356262,
+  "lastUpdate": 1774963521677,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -21809,6 +21809,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WebMercator longest_transaction",
             "value": 0.05,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "41898282+github-actions[bot]@users.noreply.github.com",
+            "name": "github-actions[bot]",
+            "username": "github-actions[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "bd1002e0a560f1da772f32d4496a73c1a32e7508",
+          "message": "chore: release main (#1358)\n\n* chore: release main\n\n* fix: update readme\n\n* chore: version from 2.1.1 to 2.1.2\n\n---------\n\nCo-authored-by: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>\nCo-authored-by: vincentsarago <vincent.sarago@gmail.com>\nCo-authored-by: Loïc Houpert <10154151+lhoupert@users.noreply.github.com>",
+          "timestamp": "2026-03-31T15:23:29+02:00",
+          "tree_id": "60af14162a9b2e366a162d1cddfca6183aa4b30e",
+          "url": "https://github.com/developmentseed/titiler/commit/bd1002e0a560f1da772f32d4496a73c1a32e7508"
+        },
+        "date": 1774963520646,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.04,
             "unit": "s"
           },
           {
