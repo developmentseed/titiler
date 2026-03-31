@@ -22,6 +22,9 @@
   <a href="https://hub.docker.com/r/developmentseed/titiler" target="_blank">
       <img src="https://img.shields.io/docker/v/developmentseed/titiler?color=%2334D058&label=docker%20hub" alt="Docker">
   </a>
+  <a href="https://scorecard.dev/viewer/?uri=github.com/developmentseed/titiler" target="_blank">
+      <img src="https://api.scorecard.dev/projects/github.com/developmentseed/titiler/badge" alt="OpenSSF Scorecard">
+  </a>
 </p>
 
 ---
