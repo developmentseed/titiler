@@ -1,19 +1,45 @@
 # Releasing
 
-This is a checklist for releasing a new version of **titiler**.
+Releases are automated via [release-please](https://github.com/googleapis/release-please-action). The process is driven entirely by [conventional commits](https://www.conventionalcommits.org/) merged to `main`.
 
-1. Create a release branch named `release/vX.Y.Z`, where `X.Y.Z` is the new version
+## How it works
 
-2. Make sure the [Changelog](CHANGES.md) is up to date with latest changes and release date set
+1. Every push to `main` triggers the `release-please` job in [`.github/workflows/release.yml`](.github/workflows/release.yml).
+2. release-please opens (or updates) a release PR that:
+   - Bumps the version in `pyproject.toml`, all sub-package `pyproject.toml` files, and `__init__.py` files
+   - Bumps `appVersion` in `deployment/k8s/charts/Chart.yaml`
+   - Updates `CHANGES.md` with the changelog for the new version
+3. When that PR is merged, release-please creates a GitHub release tagged `X.Y.Z`, which triggers the PyPI publish workflow.
 
-3. Update `version: {chart_version}` (e.g: `version: 1.1.6 -> version: 1.1.7`) in `deployment/k8s/charts/Chart.yaml`
+## Helm chart releases
 
-4. Run [`bump-my-version`](https://callowayproject.github.io/bump-my-version/) to update all titiler's module versions: `uv run --with bump-my-version --isolated bump-my-version bump minor --new-version 0.20.0`
+The Helm chart (`deployment/k8s/charts/`) is versioned independently from the Python package. release-please opens a separate helm release PR when commits touch files under `deployment/k8s/charts/`. That PR bumps `version:` in `Chart.yaml` and updates `deployment/k8s/charts/CHANGELOG.md`. The resulting GitHub release is tagged `helm-vX.Y.Z`.
 
-5. Push your release branch, create a PR, and get approval
+**Commit messages matter for chart releases.** A chart version bump only happens when a commit both:
+- touches at least one file under `deployment/k8s/charts/`, **and**
+- uses a bump-triggering type (`fix:`, `feat:`, or a breaking change)
 
-6. Once the PR is merged, create a new (annotated, signed) tag on the appropriate commit. Name the tag `X.Y.Z`, and include `vX.Y.Z` as its annotation message
+`chore:`, `ci:`, `docs:`, and other non-bumping types that touch chart files are valid conventional commits but will **not** produce a chart release. Use them for housekeeping that doesn't warrant a version bump (e.g. updating CI config, fixing a comment).
 
-7. Push your tag to Github, which will kick off the publishing workflow
+Examples:
 
-8. Create a [new release](https://github.com/developmentseed/titiler/releases/new) targeting the new tag, and use the "Generate release notes" feature to populate the description. Publish the release and mark it as the latest
+```
+fix(helm): correct resource limit defaults         → patch bump
+feat(helm): add support for extra environment vars → minor bump
+feat(helm)!: rename required value X to Y         → major bump
+chore(helm): update maintainer list               → no bump
+```
+
+## Commit message convention
+
+Version bumps follow [semantic versioning](https://semver.org/) based on commit type:
+
+| Commit type | Version bump |
+|-------------|-------------|
+| `fix:` | patch |
+| `feat:` | minor |
+| `feat!:` or `BREAKING CHANGE:` footer | major |
+
+## No manual steps required
+
+All version files are updated automatically. Do not manually edit version strings in `pyproject.toml`, `Chart.yaml`, or `__init__.py` files — release-please owns those.

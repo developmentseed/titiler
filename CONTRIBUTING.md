@@ -19,14 +19,29 @@ uv sync
 
 **pre-commit**
 
-This repo is set to use `pre-commit` to run *isort*, *flake8*, *pydocstring*, *black* ("uncompromising Python code formatter") and mypy when committing new code.
+This repo is set to use `pre-commit` to run *isort*, *ruff* (linting and formatting), *mypy*, *zizmor* (GitHub Actions security audit), and *commitizen* (commit message linting) when committing new code.
 
 ```bash
 uv run pre-commit install
 
-# If needed, you can run pre-commit script manually 
-uv run pre-commit run --all-files 
+# If needed, you can run pre-commit script manually
+uv run pre-commit run --all-files
 ```
+
+### Conventional Commits
+
+This repo enforces [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
+Commit messages must follow the format:
+
+```
+<type>[optional scope]: <description>
+```
+
+Common types: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `ci`.
+
+The `commitizen` pre-commit hook (installed in the `commit-msg` stage via `uv run pre-commit install`) validates each commit message locally. The same check runs in CI via the `Commitlint` GitHub Actions workflow on every push.
+
+Release notes and version bumps are generated automatically from conventional commit history using [Release Please](https://github.com/googleapis/release-please).
 
 ### Run tests
 

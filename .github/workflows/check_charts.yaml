@@ -29,7 +29,7 @@ jobs:
       - name: Check Version
         run: |
           current_version=$(grep '^version=' pyproject.toml | cut -f2 -d= | tr -d ' ' | tr -d '"')
-          app_version=$(grep 'appVersion:' deployment/k8s/charts/Chart.yaml | cut -f2 -d: | tr -d ' ')
+          app_version=$(grep 'appVersion:' deployment/k8s/charts/Chart.yaml | cut -f2 -d: | tr -d ' ' | tr -d '"' | cut -d'#' -f1)
           if [[ "$current_version" != "$app_version" ]]; then
             echo "❌ current version from pyproject.toml ($current_version) and appVersion from Chart.yaml ($app_version) differs";
             exit 1;

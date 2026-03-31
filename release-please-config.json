@@ -1,0 +1,53 @@
+{
+  "packages": {
+    ".": {
+      "release-type": "python",
+      "package-name": "titiler",
+      "changelog-path": "CHANGES.md",
+      "changelog-type": "github",
+      "changelog-sections": [
+        { "type": "feat", "section": "Features", "hidden": false },
+        { "type": "fix", "section": "Bug Fixes", "hidden": false },
+        { "type": "perf", "section": "Performance Improvements", "hidden": false },
+        { "type": "revert", "section": "Reverts", "hidden": false },
+        { "type": "docs", "section": "Documentation", "hidden": false },
+        { "type": "refactor", "section": "Code Refactoring", "hidden": false },
+        { "type": "style", "section": "Styles", "hidden": true },
+        { "type": "chore", "section": "Miscellaneous Chores", "hidden": true },
+        { "type": "test", "section": "Tests", "hidden": true },
+        { "type": "build", "section": "Build System", "hidden": true },
+        { "type": "ci", "section": "Continuous Integration", "hidden": true }
+      ],
+      "pull-request-title-pattern": "chore: release ${version}",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": false,
+      "include-component-in-tag": false,
+      "include-v-in-tag": false,
+      "extra-files": [
+        {
+          "type": "toml",
+          "path": "pyproject.toml",
+          "jsonpath": "$.project.version"
+        },
+        { "type": "generic", "path": "src/titiler/core/titiler/core/__init__.py" },
+        { "type": "generic", "path": "src/titiler/xarray/titiler/xarray/__init__.py" },
+        { "type": "generic", "path": "src/titiler/extensions/titiler/extensions/__init__.py" },
+        { "type": "generic", "path": "src/titiler/mosaic/titiler/mosaic/__init__.py" },
+        { "type": "generic", "path": "src/titiler/application/titiler/application/__init__.py" },
+        { "type": "generic", "path": "src/titiler/xarray/pyproject.toml" },
+        { "type": "generic", "path": "src/titiler/extensions/pyproject.toml" },
+        { "type": "generic", "path": "src/titiler/mosaic/pyproject.toml" },
+        { "type": "generic", "path": "src/titiler/application/pyproject.toml" },
+        { "type": "generic", "path": "deployment/aws/lambda/Dockerfile" },
+        { "type": "generic", "path": "deployment/k8s/charts/Chart.yaml" }
+      ]
+    },
+    "deployment/k8s/charts": {
+      "release-type": "helm",
+      "package-name": "titiler-helm",
+      "changelog-path": "deployment/k8s/charts/CHANGELOG.md",
+      "include-component-in-tag": true,
+      "component": "helm"
+    }
+  }
+}
