@@ -348,9 +348,9 @@ def fs_open_dataset(  # noqa: C901
 
     # NetCDF arguments
     if any(src_path.lower().endswith(ext) for ext in [".nc", ".nc4"]):
-        assert (
-            h5netcdf is not None
-        ), "'h5netcdf' must be installed to read NetCDF dataset"
+        assert h5netcdf is not None, (
+            "'h5netcdf' must be installed to read NetCDF dataset"
+        )
 
         xr_open_args.update(
             {

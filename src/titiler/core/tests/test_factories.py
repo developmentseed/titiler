@@ -1370,9 +1370,9 @@ def test_rescale_dependency():
                             .split(","),
                         )
                     )
-                    assert (
-                        len(parsed) == 2
-                    ), f"Invalid rescale values: {self.rescale}, should be of form ['min,max', 'min,max'] or [[min,max], [min, max]]"
+                    assert len(parsed) == 2, (
+                        f"Invalid rescale values: {self.rescale}, should be of form ['min,max', 'min,max'] or [[min,max], [min, max]]"
+                    )
                     rescale_array.append(parsed)
 
                 self.rescale = rescale_array  # Noqa

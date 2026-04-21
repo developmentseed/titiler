@@ -503,11 +503,11 @@ def tms_limits_to_xml(limits: list[TMSLimits]) -> list[str]:
     for limit in limits:
         xml_limits.append(
             f"""<TileMatrixLimits>
-                    <TileMatrix>{limit['tileMatrix']}</TileMatrix>
-                    <MinTileRow>{limit['minTileRow']}</MinTileRow>
-                    <MaxTileRow>{limit['maxTileRow']}</MaxTileRow>
-                    <MinTileCol>{limit['minTileCol']}</MinTileCol>
-                    <MaxTileCol>{limit['maxTileCol']}</MaxTileCol>
+                    <TileMatrix>{limit["tileMatrix"]}</TileMatrix>
+                    <MinTileRow>{limit["minTileRow"]}</MinTileRow>
+                    <MaxTileRow>{limit["maxTileRow"]}</MaxTileRow>
+                    <MinTileCol>{limit["minTileCol"]}</MinTileCol>
+                    <MaxTileCol>{limit["maxTileCol"]}</MaxTileCol>
                 </TileMatrixLimits>""",
         )
 
