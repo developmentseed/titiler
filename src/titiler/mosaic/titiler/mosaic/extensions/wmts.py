@@ -2,7 +2,7 @@
 
 import warnings
 from collections.abc import Callable
-from typing import Annotated, Any
+from typing import Annotated, Any, cast
 from urllib.parse import urlencode
 
 import jinja2
@@ -72,6 +72,7 @@ class wmtsExtension(FactoryExtension):
                 factory.backend_dependency,
             ]
         )
+        tile_dependencies = cast(list[Callable], tile_dependencies)
 
         @factory.router.get(
             "/WMTSCapabilities.xml",

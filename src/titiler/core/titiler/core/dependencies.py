@@ -317,9 +317,9 @@ class RenderingParams(DefaultDependency):
                         r.split(","),
                     )
                 )
-                assert (
-                    len(parsed) == 2
-                ), f"Invalid rescale values: {self.rescale}, should be of form ['min,max', 'min,max'] or [[min,max], [min, max]]"
+                assert len(parsed) == 2, (
+                    f"Invalid rescale values: {self.rescale}, should be of form ['min,max', 'min,max'] or [[min,max], [min, max]]"
+                )
                 rescale_array.append(parsed)
 
             self.rescale: RescaleType = rescale_array  # type: ignore
@@ -443,9 +443,9 @@ link: https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
 
         if self.range:
             parsed = list(map(float, self.range.split(",")))
-            assert (
-                len(parsed) == 2
-            ), f"Invalid histogram_range values: {self.range}, should be of form 'min,max'"
+            assert len(parsed) == 2, (
+                f"Invalid histogram_range values: {self.range}, should be of form 'min,max'"
+            )
 
             self.range = parsed  # type: ignore
 
