@@ -194,7 +194,7 @@ if api_settings.cors_origins:
 
 app.add_middleware(
     CompressionMiddleware,
-    minimum_size=0,
+    minimum_size=1,  # must be >=1: cramjam compresses b"" to ~20 bytes of gzip framing, which h11 rejects for 204/304 (RFC 9110 §15.3.5)
     exclude_mediatype={
         "image/jpeg",
         "image/jpg",
