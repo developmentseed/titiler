@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1777282415569,
+  "lastUpdate": 1777282961553,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -22183,6 +22183,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad longest_transaction",
             "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "126939795+CrepuscularIRIS@users.noreply.github.com",
+            "name": "Yarizakura",
+            "username": "CrepuscularIRIS"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "214cedce1304003674009919dc606482e7547c8f",
+          "message": "fix: set CompressionMiddleware minimum_size=1 to prevent h11 crash on 204 responses (#1373)\n\n* fix: prevent cramjam from compressing empty 204 No Content responses\n\nCompressionMiddleware with minimum_size=0 caused starlette_cramjam to\ngzip-frame empty (b\"\") response bodies, producing ~20 bytes of framing\nfor a 204 No Content response. h11 enforces RFC 9110 §15.3.5 (\"server\nMUST NOT generate content for 204\") and raises LocalProtocolError:\n\"Too much data for declared Content-Length\".\n\nChanging minimum_size to 1 skips compression for zero-byte bodies\n(which can only expand, never shrink). All non-empty responses still\ncompress normally.\n\nFixes #1348\n\n* fix: remove tests and fix dependencies\n\n---------\n\nCo-authored-by: vincentsarago <vincent.sarago@gmail.com>",
+          "timestamp": "2026-04-27T11:40:52+02:00",
+          "tree_id": "f6f1288b4f32d723d85b87f8099934481471c41d",
+          "url": "https://github.com/developmentseed/titiler/commit/214cedce1304003674009919dc606482e7547c8f"
+        },
+        "date": 1777282960157,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.07,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
             "unit": "s"
           }
         ]
