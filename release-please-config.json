@@ -47,6 +47,7 @@
       "package-name": "titiler-helm",
       "changelog-path": "deployment/k8s/charts/CHANGELOG.md",
       "include-component-in-tag": true,
+      "include-v-in-tag": false,
       "component": "helm"
     }
   }
