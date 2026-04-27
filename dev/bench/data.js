@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1777283322420,
+  "lastUpdate": 1777284049948,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -22286,6 +22286,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 3.07,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8e2aab6c98f7f8b8392a9ae54be6eb8328c59ca7",
+          "message": "chore(deps): bump the all group with 12 updates (#1378)\n\n---\nupdated-dependencies:\n- dependency-name: pytest\n  dependency-version: 9.0.3\n  dependency-type: direct:development\n  update-type: version-update:semver-patch\n  dependency-group: all\n- dependency-name: obstore\n  dependency-version: 0.9.3\n  dependency-type: direct:development\n  update-type: version-update:semver-patch\n  dependency-group: all\n- dependency-name: aiohttp\n  dependency-version: 3.13.5\n  dependency-type: direct:development\n  update-type: version-update:semver-patch\n  dependency-group: all\n- dependency-name: requests\n  dependency-version: 2.33.1\n  dependency-type: direct:development\n  update-type: version-update:semver-patch\n  dependency-group: all\n- dependency-name: boto3\n  dependency-version: 1.42.91\n  dependency-type: direct:development\n  update-type: version-update:semver-patch\n  dependency-group: all\n- dependency-name: opentelemetry-api\n  dependency-version: 1.41.0\n  dependency-type: direct:development\n  update-type: version-update:semver-minor\n  dependency-group: all\n- dependency-name: opentelemetry-sdk\n  dependency-version: 1.41.0\n  dependency-type: direct:development\n  update-type: version-update:semver-minor\n  dependency-group: all\n- dependency-name: opentelemetry-instrumentation-fastapi\n  dependency-version: 0.62b0\n  dependency-type: direct:development\n  dependency-group: all\n- dependency-name: opentelemetry-instrumentation-logging\n  dependency-version: 0.62b0\n  dependency-type: direct:development\n  dependency-group: all\n- dependency-name: opentelemetry-exporter-otlp\n  dependency-version: 1.41.0\n  dependency-type: direct:development\n  update-type: version-update:semver-minor\n  dependency-group: all\n- dependency-name: mkdocs-jupyter\n  dependency-version: 0.26.3\n  dependency-type: direct:development\n  update-type: version-update:semver-patch\n  dependency-group: all\n- dependency-name: uvicorn\n  dependency-version: 0.44.0\n  dependency-type: direct:development\n  update-type: version-update:semver-minor\n  dependency-group: all\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2026-04-27T11:58:55+02:00",
+          "tree_id": "4325fca97ce6550ceed957fac594aa7ccf3af3b9",
+          "url": "https://github.com/developmentseed/titiler/commit/8e2aab6c98f7f8b8392a9ae54be6eb8328c59ca7"
+        },
+        "date": 1777284048257,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.29,
             "unit": "s"
           },
           {
