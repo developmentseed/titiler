@@ -15,4 +15,17 @@ updates:
         patterns:
         - "*"
     commit-message:
+      prefix: "ci(deps):"
+
+  - package-ecosystem: uv
+    cooldown:
+      default-days: 7
+    directory: "/"
+    schedule:
+      interval: weekly
+    groups:
+      all:
+        patterns:
+        - "*"
+    commit-message:
       prefix: "chore(deps):"
