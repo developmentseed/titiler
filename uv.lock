@@ -5355,7 +5355,7 @@ test = [
 [package.metadata]
 requires-dist = [
     { name = "pydantic-settings", specifier = "~=2.0" },
-    { name = "starlette-cramjam", specifier = ">=0.4,<0.6" },
+    { name = "starlette-cramjam", specifier = ">=0.4,<1.0" },
     { name = "titiler-core", extras = ["telemetry"], editable = "src/titiler/core" },
     { name = "titiler-extensions", extras = ["cogeo", "stac"], editable = "src/titiler/extensions" },
     { name = "titiler-mosaic", extras = ["mosaicjson"], editable = "src/titiler/mosaic" },
@@ -5521,8 +5521,10 @@ name = "titiler-xarray"
 source = { editable = "src/titiler/xarray" }
 dependencies = [
     { name = "obstore" },
+    { name = "pydantic-settings" },
     { name = "rioxarray", version = "0.19.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "rioxarray", version = "0.22.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+    { name = "starlette-cramjam" },
     { name = "titiler-core" },
     { name = "xarray" },
     { name = "zarr" },
@@ -5573,9 +5575,11 @@ requires-dist = [
     { name = "opentelemetry-instrumentation-fastapi", marker = "extra == 'telemetry'" },
     { name = "opentelemetry-instrumentation-logging", marker = "extra == 'telemetry'" },
     { name = "opentelemetry-sdk", marker = "extra == 'telemetry'" },
+    { name = "pydantic-settings", specifier = "~=2.0" },
     { name = "requests", marker = "extra == 'fs'" },
     { name = "rioxarray" },
     { name = "s3fs", marker = "extra == 'fs'", specifier = ">=2025.2.0" },
+    { name = "starlette-cramjam", specifier = ">=0.4,<1.0" },
     { name = "titiler-core", editable = "src/titiler/core" },
     { name = "xarray" },
     { name = "zarr", specifier = ">=3.1,<4.0" },
