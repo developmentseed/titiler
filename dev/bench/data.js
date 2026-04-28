@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1777360529641,
+  "lastUpdate": 1777379727227,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -22522,6 +22522,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 3.14,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "jos.chemla@gmail.com",
+            "name": "Jonathan Chemla",
+            "username": "jo-chemla"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ed81bc6bfa65a8ce7a4b8e3e63c5c141c373d998",
+          "message": "docs(external-links): add ext-links stacapi, cmr, async-titiler (#1381)\n\n- added titiler-stacapi\n - also added titiler-cmr and demo repo/website\n - added experimental async-titiler\n - moved titiler-image which is now archived (and edited its description to match latest repo desc)",
+          "timestamp": "2026-04-28T14:33:30+02:00",
+          "tree_id": "e64eab1f7ff9930c7635786292af06d88bfadd73",
+          "url": "https://github.com/developmentseed/titiler/commit/ed81bc6bfa65a8ce7a4b8e3e63c5c141c373d998"
+        },
+        "date": 1777379725539,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.36,
             "unit": "s"
           },
           {
