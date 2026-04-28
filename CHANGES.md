@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 2.0.3 (2026-04-28)
+
+## What's Changed
+* docs: Add TiTiler extension links to external_links.md by @jo-chemla in https://github.com/developmentseed/titiler/pull/1381
+
+
+**Full Changelog**: https://github.com/developmentseed/titiler/compare/2.0.2...2.0.3
+
 ## 2.0.2 (2026-04-27)
 
 ## What's Changed
