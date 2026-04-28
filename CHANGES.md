@@ -5,14 +5,8 @@
 ## 2.0.2 (2026-04-27)
 
 ## What's Changed
-* fix(ci): fix docker publish action for helm tag by @lhoupert in https://github.com/developmentseed/titiler/pull/1360
-* chore: fix mypy and update pre-commits by @vincentsarago in https://github.com/developmentseed/titiler/pull/1369
-* Bump the all group across 1 directory with 10 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1367
-* fix: set CompressionMiddleware minimum_size=1 to prevent h11 crash on 204 responses by @CrepuscularIRIS in https://github.com/developmentseed/titiler/pull/1373
-* chore(deps): bump the all group with 12 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1378
 
-## New Contributors
-* @CrepuscularIRIS made their first contribution in https://github.com/developmentseed/titiler/pull/1373
+* fix: set CompressionMiddleware minimum_size=1 to prevent h11 crash on 204 responses by @CrepuscularIRIS in https://github.com/developmentseed/titiler/pull/1373
 
 **Full Changelog**: https://github.com/developmentseed/titiler/compare/2.0.1...2.0.2
 
