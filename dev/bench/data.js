@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1777994303686,
+  "lastUpdate": 1777994437044,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -22699,6 +22699,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 3.28,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "88a56a180cd0b90046d2e082bab88fd1e687152a",
+          "message": "chore(deps): bump the all group with 11 updates (#1387)\n\nBumps the all group with 11 updates:\n\n| Package | From | To |\n| --- | --- | --- |\n| [obstore](https://github.com/geospatial-jeff/pyasyncio-benchmark) | `0.9.3` | `0.9.4` |\n| [boto3](https://github.com/boto/boto3) | `1.42.91` | `1.42.96` |\n| [pre-commit](https://github.com/pre-commit/pre-commit) | `4.5.1` | `4.6.0` |\n| [ipython](https://github.com/ipython/ipython) | `9.10.1` | `9.13.0` |\n| [matplotlib](https://github.com/matplotlib/matplotlib) | `3.10.8` | `3.10.9` |\n| [opentelemetry-api](https://github.com/open-telemetry/opentelemetry-python) | `1.41.0` | `1.41.1` |\n| [opentelemetry-sdk](https://github.com/open-telemetry/opentelemetry-python) | `1.41.0` | `1.41.1` |\n| [opentelemetry-instrumentation-fastapi](https://github.com/open-telemetry/opentelemetry-python-contrib) | `0.62b0` | `0.62b1` |\n| [opentelemetry-instrumentation-logging](https://github.com/open-telemetry/opentelemetry-python-contrib) | `0.62b0` | `0.62b1` |\n| [opentelemetry-exporter-otlp](https://github.com/open-telemetry/opentelemetry-python) | `1.41.0` | `1.41.1` |\n| [uvicorn](https://github.com/Kludex/uvicorn) | `0.44.0` | `0.46.0` |\n\n\nUpdates `obstore` from 0.9.3 to 0.9.4\n- [Commits](https://github.com/geospatial-jeff/pyasyncio-benchmark/commits)\n\nUpdates `boto3` from 1.42.91 to 1.42.96\n- [Release notes](https://github.com/boto/boto3/releases)\n- [Commits](https://github.com/boto/boto3/compare/1.42.91...1.42.96)\n\nUpdates `pre-commit` from 4.5.1 to 4.6.0\n- [Release notes](https://github.com/pre-commit/pre-commit/releases)\n- [Changelog](https://github.com/pre-commit/pre-commit/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/pre-commit/pre-commit/compare/v4.5.1...v4.6.0)\n\nUpdates `ipython` from 9.10.1 to 9.13.0\n- [Release notes](https://github.com/ipython/ipython/releases)\n- [Commits](https://github.com/ipython/ipython/compare/9.10.1...9.13.0)\n\nUpdates `matplotlib` from 3.10.8 to 3.10.9\n- [Release notes](https://github.com/matplotlib/matplotlib/releases)\n- [Commits](https://github.com/matplotlib/matplotlib/compare/v3.10.8...v3.10.9)\n\nUpdates `opentelemetry-api` from 1.41.0 to 1.41.1\n- [Release notes](https://github.com/open-telemetry/opentelemetry-python/releases)\n- [Changelog](https://github.com/open-telemetry/opentelemetry-python/blob/v1.41.1/CHANGELOG.md)\n- [Commits](https://github.com/open-telemetry/opentelemetry-python/compare/v1.41.0...v1.41.1)\n\nUpdates `opentelemetry-sdk` from 1.41.0 to 1.41.1\n- [Release notes](https://github.com/open-telemetry/opentelemetry-python/releases)\n- [Changelog](https://github.com/open-telemetry/opentelemetry-python/blob/v1.41.1/CHANGELOG.md)\n- [Commits](https://github.com/open-telemetry/opentelemetry-python/compare/v1.41.0...v1.41.1)\n\nUpdates `opentelemetry-instrumentation-fastapi` from 0.62b0 to 0.62b1\n- [Release notes](https://github.com/open-telemetry/opentelemetry-python-contrib/releases)\n- [Changelog](https://github.com/open-telemetry/opentelemetry-python-contrib/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/open-telemetry/opentelemetry-python-contrib/commits)\n\nUpdates `opentelemetry-instrumentation-logging` from 0.62b0 to 0.62b1\n- [Release notes](https://github.com/open-telemetry/opentelemetry-python-contrib/releases)\n- [Changelog](https://github.com/open-telemetry/opentelemetry-python-contrib/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/open-telemetry/opentelemetry-python-contrib/commits)\n\nUpdates `opentelemetry-exporter-otlp` from 1.41.0 to 1.41.1\n- [Release notes](https://github.com/open-telemetry/opentelemetry-python/releases)\n- [Changelog](https://github.com/open-telemetry/opentelemetry-python/blob/v1.41.1/CHANGELOG.md)\n- [Commits](https://github.com/open-telemetry/opentelemetry-python/compare/v1.41.0...v1.41.1)\n\nUpdates `uvicorn` from 0.44.0 to 0.46.0\n- [Release notes](https://github.com/Kludex/uvicorn/releases)\n- [Changelog](https://github.com/Kludex/uvicorn/blob/main/docs/release-notes.md)\n- [Commits](https://github.com/Kludex/uvicorn/compare/0.44.0...0.46.0)\n\n---\nupdated-dependencies:\n- dependency-name: obstore\n  dependency-version: 0.9.4\n  dependency-type: direct:development\n  update-type: version-update:semver-patch\n  dependency-group: all\n- dependency-name: boto3\n  dependency-version: 1.42.96\n  dependency-type: direct:development\n  update-type: version-update:semver-patch\n  dependency-group: all\n- dependency-name: pre-commit\n  dependency-version: 4.6.0\n  dependency-type: direct:development\n  update-type: version-update:semver-minor\n  dependency-group: all\n- dependency-name: ipython\n  dependency-version: 9.13.0\n  dependency-type: direct:development\n  update-type: version-update:semver-minor\n  dependency-group: all\n- dependency-name: matplotlib\n  dependency-version: 3.10.9\n  dependency-type: direct:development\n  update-type: version-update:semver-patch\n  dependency-group: all\n- dependency-name: opentelemetry-api\n  dependency-version: 1.41.1\n  dependency-type: direct:development\n  update-type: version-update:semver-patch\n  dependency-group: all\n- dependency-name: opentelemetry-sdk\n  dependency-version: 1.41.1\n  dependency-type: direct:development\n  update-type: version-update:semver-patch\n  dependency-group: all\n- dependency-name: opentelemetry-instrumentation-fastapi\n  dependency-version: 0.62b1\n  dependency-type: direct:development\n  dependency-group: all\n- dependency-name: opentelemetry-instrumentation-logging\n  dependency-version: 0.62b1\n  dependency-type: direct:development\n  dependency-group: all\n- dependency-name: opentelemetry-exporter-otlp\n  dependency-version: 1.41.1\n  dependency-type: direct:development\n  update-type: version-update:semver-patch\n  dependency-group: all\n- dependency-name: uvicorn\n  dependency-version: 0.46.0\n  dependency-type: direct:development\n  update-type: version-update:semver-minor\n  dependency-group: all\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2026-05-05T17:18:36+02:00",
+          "tree_id": "2180ca80f8d79f9202d171cecf1827261139cb72",
+          "url": "https://github.com/developmentseed/titiler/commit/88a56a180cd0b90046d2e082bab88fd1e687152a"
+        },
+        "date": 1777994436254,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.16,
             "unit": "s"
           },
           {
