@@ -3,6 +3,7 @@
 import logging
 import os
 from collections.abc import Callable
+from dataclasses import dataclass
 from typing import Annotated, Any, Literal
 from urllib.parse import urlencode
 
@@ -83,6 +84,14 @@ def DatasetPathParams(url: Annotated[str, Query(description="Mosaic URL")]) -> s
     return url
 
 
+@dataclass
+class ZoomLevelParams:
+    """Zoom level constraint parameters"""
+
+    minzoom: int | None = None
+    maxzoom: int | None = None
+
+
 @define(kw_only=True)
 class MosaicTilerFactory(BaseFactory):
     """MosaicTiler Factory."""
@@ -107,6 +116,9 @@ class MosaicTilerFactory(BaseFactory):
 
     # Tile/Tilejson Dependencies
     tile_dependency: type[DefaultDependency] = TileParams
+
+    # Zoom level Dependencies
+    zoom_level_dependency: type[DefaultDependency] = ZoomLevelParams
 
     # Post Processing Dependencies (algorithm)
     process_dependency: Callable[..., BaseAlgorithm | None] = (
@@ -603,6 +615,7 @@ class MosaicTilerFactory(BaseFactory):
             dataset_params=Depends(self.dataset_dependency),
             pixel_selection=Depends(self.pixel_selection_dependency),
             tile_params=Depends(self.tile_dependency),
+            zoom_level_params=Depends(self.zoom_level_dependency),
             post_process=Depends(self.process_dependency),
             colormap=Depends(self.colormap_dependency),
             render_params=Depends(self.render_dependency),
@@ -621,12 +634,12 @@ class MosaicTilerFactory(BaseFactory):
                     reader_options=reader_params.as_dict(),
                     **backend_params.as_dict(),
                 ) as src_dst:
-                    if MOSAIC_STRICT_ZOOM and (
-                        z < src_dst.minzoom or z > src_dst.maxzoom
-                    ):
+                    minzoom = zoom_level_params.minzoom or src_dst.minzoom
+                    maxzoom = zoom_level_params.maxzoom or src_dst.maxzoom
+                    if MOSAIC_STRICT_ZOOM and (z < minzoom or z > maxzoom):
                         raise HTTPException(
                             400,
-                            f"Invalid ZOOM level {z}. Should be between {src_dst.minzoom} and {src_dst.maxzoom}",
+                            f"Invalid ZOOM level {z}. Should be between {minzoom} and {maxzoom}",
                         )
 
                     image, assets = src_dst.tile(
