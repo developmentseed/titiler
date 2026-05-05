@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1777994729250,
+  "lastUpdate": 1777994744769,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -22817,6 +22817,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 3.14,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9fe66665a43f05267107307ae9a0fa54bc3ece80",
+          "message": "chore(deps): bump notebook from 7.5.5 to 7.5.6 (#1384)\n\nBumps [notebook](https://github.com/jupyter/notebook) from 7.5.5 to 7.5.6.\n- [Release notes](https://github.com/jupyter/notebook/releases)\n- [Changelog](https://github.com/jupyter/notebook/blob/@jupyter-notebook/tree@7.5.6/CHANGELOG.md)\n- [Commits](https://github.com/jupyter/notebook/compare/@jupyter-notebook/tree@7.5.5...@jupyter-notebook/tree@7.5.6)\n\n---\nupdated-dependencies:\n- dependency-name: notebook\n  dependency-version: 7.5.6\n  dependency-type: indirect\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2026-05-05T17:23:39+02:00",
+          "tree_id": "5cef97959ae7a7337340570ec69bc184d0b3f7e3",
+          "url": "https://github.com/developmentseed/titiler/commit/9fe66665a43f05267107307ae9a0fa54bc3ece80"
+        },
+        "date": 1777994743454,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.12,
             "unit": "s"
           },
           {
