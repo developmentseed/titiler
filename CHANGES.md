@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+## 2.0.3 (2026-05-07)
+
+## What's Changed
+* docs: Add TiTiler extension links to external_links.md by @jo-chemla in https://github.com/developmentseed/titiler/pull/1381
+* ci(deps): bump the all group with 4 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1386
+* chore(deps): bump pillow from 12.1.1 to 12.2.0 by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1388
+* chore(deps): bump the all group with 11 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1387
+* chore(deps): bump jupyterlab from 4.5.6 to 4.5.7 by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1385
+* chore(deps): bump notebook from 7.5.5 to 7.5.6 by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1384
+* chore(deps): bump jupyter-server from 2.17.0 to 2.18.0 by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1390
+
+
+**Full Changelog**: https://github.com/developmentseed/titiler/compare/2.0.2...2.0.3
+
 ## 2.0.2 (2026-04-27)
 
 ## What's Changed
