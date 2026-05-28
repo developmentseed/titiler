@@ -30,7 +30,7 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-    "fastapi>=0.108.0",
+    "fastapi>=0.136.1",
     "geojson-pydantic>=1.1.2,<3.0",
     "jinja2>=2.11.2,<4.0.0",
     "numpy",

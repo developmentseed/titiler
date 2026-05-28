@@ -49,19 +49,25 @@ Each `titiler`'s modules has its own test suite which can be ran independently
 
 ```
 # titiler.core
-uv run pytest src/titiler/core --cov=titiler.core --cov-report=xml --cov-append --cov-report=term-missing
+uv run pytest src/titiler/core --cov=titiler.core -cov-report=term-missing
 
 # titiler.extensions
-uv run pytest src/titiler/extensions --cov=titiler.extensions --cov-report=xml --cov-append --cov-report=term-missing
+uv run pytest src/titiler/extensions --cov=titiler.extensions --cov-report=term-missing
 
 # titiler.mosaic
-uv run pytest src/titiler/mosaic --cov=titiler.mosaic --cov-report=xml --cov-append --cov-report=term-missing
+uv run pytest src/titiler/mosaic --cov=titiler.mosaic --cov-report=term-missing
 
 # titiler.xarray
-uv run pytest src/titiler/xarray --cov=titiler.xarray --cov-report=xml --cov-append --cov-report=term-missing
+uv run pytest src/titiler/xarray --cov=titiler.xarray --cov-report=term-missing
 
 # titiler.application
-uv run pytest src/titiler/application --cov=titiler.application --cov-report=xml --cov-append --cov-report=term-missing
+uv run pytest src/titiler/application --cov=titiler.application --cov-report=term-missing
+```
+
+or all at once:
+
+```bash
+./scripts/test
 ```
 
 ### Docs

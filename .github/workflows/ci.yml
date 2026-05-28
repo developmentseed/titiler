@@ -53,31 +53,14 @@ jobs:
         run: |
           uv sync
 
-      - name: Test titiler.core
-        run: |
-          uv run pytest src/titiler/core --cov=titiler.core --cov-report=xml:titiler-core.xml --cov-report=term-missing
-
-      - name: Test titiler.extensions
-        run: |
-          uv run pytest src/titiler/extensions --cov=titiler.extensions --cov-report=xml:titiler-extensions.xml --cov-report=term-missing
-
-      - name: Test titiler.xarray
-        run: |
-          uv run pytest src/titiler/xarray --cov=titiler.xarray --cov-report=xml:titiler-xarray.xml --cov-report=term-missing
-
-      - name: Test titiler.mosaic
-        run: |
-          uv run pytest src/titiler/mosaic --cov=titiler.mosaic --cov-report=xml:titiler-mosaic.xml --cov-report=term-missing
-
-      - name: Test titiler.application
-        run: |
-          uv run pytest src/titiler/application --cov=titiler.application --cov-report=xml:titiler-application.xml  --cov-report=term-missing
-
       - name: run pre-commit and mypy
         if: ${{ matrix.python-version == env.LATEST_PY_VERSION }}
         run: |
           uv run pre-commit run --all-files
           uv run --with mypy --with types-attrs --with types-simplejson mypy -p titiler.core -p titiler.extensions -p titiler.xarray -p titiler.application -p titiler.mosaic  --ignore-missing-imports
+
+      - name: Test titiler modules
+        run: ./scripts/test
 
       - name: Upload Results
         if: ${{ matrix.python-version == env.LATEST_PY_VERSION }}

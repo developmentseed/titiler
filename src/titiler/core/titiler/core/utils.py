@@ -409,7 +409,7 @@ def create_html_response(
     **kwargs: Any,
 ) -> _TemplateResponse:
     """Create Template response."""
-    urlpath = request.url.path
+    urlpath = request.scope["path"]
     if root_path := request.scope.get("root_path"):
         urlpath = re.sub(r"^" + root_path, "", urlpath)
 
