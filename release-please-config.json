@@ -41,14 +41,6 @@
         { "type": "generic", "path": "deployment/aws/lambda/Dockerfile" },
         { "type": "generic", "path": "deployment/k8s/charts/Chart.yaml" }
       ]
-    },
-    "deployment/k8s/charts": {
-      "release-type": "helm",
-      "package-name": "titiler-helm",
-      "changelog-path": "deployment/k8s/charts/CHANGELOG.md",
-      "include-component-in-tag": true,
-      "include-v-in-tag": false,
-      "component": "helm"
     }
   }
 }
