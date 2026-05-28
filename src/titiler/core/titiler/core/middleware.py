@@ -114,7 +114,7 @@ class LoggerMiddleware:
             "http.url": str(request.url),
             "http.scheme": request.url.scheme,
             "http.host": request.headers.get("host", request.url.hostname or "unknown"),
-            "http.target": request.url.path
+            "http.target": request.scope["path"]
             + (f"?{request.url.query}" if request.url.query else ""),
             "http.user_agent": request.headers.get("user-agent"),
             "http.referer": next(
@@ -145,7 +145,7 @@ class LoggerMiddleware:
         data["titiler.path_params"] = request.path_params
 
         self.logger.info(
-            f"Request received: {request.url.path} {request.method}",
+            f"Request received: {request.scope['path']} {request.method}",
             extra=data,
         )
         if exception:

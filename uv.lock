@@ -5390,7 +5390,7 @@ test = [
 
 [package.metadata]
 requires-dist = [
-    { name = "fastapi", specifier = ">=0.108.0" },
+    { name = "fastapi", specifier = ">=0.136.1" },
     { name = "geojson-pydantic", specifier = ">=1.1.2,<3.0" },
     { name = "jinja2", specifier = ">=2.11.2,<4.0.0" },
     { name = "morecantile" },
