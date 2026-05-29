@@ -28,6 +28,11 @@ jobs:
         with:
           app-id: ${{ secrets.RELEASE_APP_ID }}
           private-key: ${{ secrets.RELEASE_APP_KEY }}
+          # Scope the minted token to least privilege instead of inheriting the App's
+          # blanket installation permissions (zizmor: dangerous-github-app-tokens).
+          # release-please only needs Contents (tags/release) + Pull requests (release PR).
+          permission-contents: write
+          permission-pull-requests: write
 
       - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         with:
