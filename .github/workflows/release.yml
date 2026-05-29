@@ -26,8 +26,8 @@ jobs:
       - uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
         id: app-token
         with:
-          app-id: ${{ secrets.RELEASE_APP_ID }}
-          private-key: ${{ secrets.RELEASE_APP_KEY }}
+          app-id: ${{ secrets.DS_RELEASE_BOT_ID }}
+          private-key: ${{ secrets.DS_RELEASE_BOT_PRIVATE_KEY }}
           # Scope the minted token to least privilege instead of inheriting the App's
           # blanket installation permissions (zizmor: dangerous-github-app-tokens).
           # release-please only needs Contents (tags/release) + Pull requests (release PR).
