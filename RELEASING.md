@@ -9,7 +9,7 @@ Releases are automated via [release-please](https://github.com/googleapis/releas
    - Bumps the version in `pyproject.toml`, all sub-package `pyproject.toml` files, and `__init__.py` files
    - Bumps `appVersion` in `deployment/k8s/charts/Chart.yaml`
    - Updates `CHANGES.md` with the changelog for the new version
-3. When that PR is merged, release-please creates a GitHub release tagged `X.Y.Z`, which triggers the PyPI publish workflow.
+3. When that PR is merged, release-please creates a GitHub release tagged `X.Y.Z`. The release is authored via a **GitHub App token** (not the default `GITHUB_TOKEN`), which is what lets the `release: published` event trigger the PyPI publish and AWS deploy workflows — events from the default `GITHUB_TOKEN` do **not** cascade into new workflow runs, so a bot-authored release would otherwise publish nothing.
 
 ## Helm chart version
 
