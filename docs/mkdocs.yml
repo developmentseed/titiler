@@ -61,7 +61,7 @@ nav:
     - titiler.application: "packages/application.md"
 
   - Endpoints documentation:
-    - OpenAPI schema: openapi.json
+    - OpenAPI schema: "endpoints/openapi.json"
     - /cog: "endpoints/cog.md"
     - /stac: "endpoints/stac.md"
     - /mosaicjson: "endpoints/mosaic.md"
