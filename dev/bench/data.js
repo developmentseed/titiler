@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1780416950221,
+  "lastUpdate": 1780433084143,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -23525,6 +23525,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 3.2,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "10154151+lhoupert@users.noreply.github.com",
+            "name": "Loïc Houpert",
+            "username": "lhoupert"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7f8aa5014229fccad357e52b75ea2320e9fd7124",
+          "message": "fix: trigger PyPI publish/deploy by authoring releases with the DS_RELEASE_BOT app token (#1407)\n\n* fix: author release-please releases with a GitHub App token\n\nReleases created by release-please using the default GITHUB_TOKEN are\nauthored by github-actions[bot]. GitHub deliberately does not trigger new\nworkflow runs from events caused by the default GITHUB_TOKEN (anti-recursion),\nso the `release: published` event never fired for bot-created releases. As a\nresult the build / upload_pypi jobs (gated on `github.event_name == 'release'`)\nand the deploy.yml workflow were skipped, and 2.0.3 was never published to PyPI\nnor deployed.\n\nMint a short-lived GitHub App installation token in the release-please job and\npass it to the action so the release is authored by the App. Events from an App\ntoken DO create new workflow runs, so the existing publish + deploy workflows\ncascade automatically — no rewrite of build/upload/deploy needed.\n\nRequires repo/org secrets RELEASE_APP_ID and RELEASE_APP_KEY (see #1406);\ninert until those exist.\n\nRefs #1406\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>\n\n* fix: scope release-please app token to least privilege\n\nSet explicit permission-contents/permission-pull-requests on the\ncreate-github-app-token step so the minted token does not inherit the App\ninstallation's blanket permissions (zizmor: dangerous use of GitHub App tokens).\nrelease-please only needs Contents (tags/releases) and Pull requests (release PR).\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>\n\n* fix: use existing DS_RELEASE_BOT org app secrets for release-please\n\ndevelopmentseed already has an org-level GitHub App for release automation\n(secrets DS_RELEASE_BOT_ID / DS_RELEASE_BOT_PRIVATE_KEY). Use those instead of\nprovisioning a new App, so no new secrets are needed and the workflow is no\nlonger blocked.\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: Claude Opus 4.8 <noreply@anthropic.com>",
+          "timestamp": "2026-06-02T22:42:20+02:00",
+          "tree_id": "b410e08453c7db2b89e559cad93d90ac2bd563e8",
+          "url": "https://github.com/developmentseed/titiler/commit/7f8aa5014229fccad357e52b75ea2320e9fd7124"
+        },
+        "date": 1780433082407,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.02,
             "unit": "s"
           },
           {
