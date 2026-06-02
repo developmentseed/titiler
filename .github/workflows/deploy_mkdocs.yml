@@ -31,7 +31,11 @@ jobs:
         with:
           version: "0.9.*"
           enable-cache: false
-    
+
+      - name: Generate OpenAPI schema          
+        run: |
+          uv run python -c'from titiler.application.main import app; import json; print(json.dumps(app.openapi(), indent=4))' > docs/src/endpoints/openapi.json
+          
       - name: Deploy docs
         run: |
           git config user.name "github-actions[bot]"
