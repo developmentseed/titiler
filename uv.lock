@@ -1433,16 +1433,16 @@ wheels = [
 
 [[package]]
 name = "fsspec"
-version = "2026.4.0"
+version = "2026.3.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/d5/8d/1c51c094345df128ca4a990d633fe1a0ff28726c9e6b3c41ba65087bba1d/fsspec-2026.4.0.tar.gz", hash = "sha256:301d8ac70ae90ef3ad05dcf94d6c3754a097f9b5fe4667d2787aa359ec7df7e4", size = 312760, upload-time = "2026-04-29T20:42:38.635Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e1/cf/b50ddf667c15276a9ab15a70ef5f257564de271957933ffea49d2cdbcdfb/fsspec-2026.3.0.tar.gz", hash = "sha256:1ee6a0e28677557f8c2f994e3eea77db6392b4de9cd1f5d7a9e87a0ae9d01b41", size = 313547, upload-time = "2026-03-27T19:11:14.892Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d5/0c/043d5e551459da400957a1395e0febbf771446ff34291afcbe3d8be2a279/fsspec-2026.4.0-py3-none-any.whl", hash = "sha256:11ef7bb35dab8a394fde6e608221d5cf3e8499401c249bebaeaad760a1a8dec2", size = 203402, upload-time = "2026-04-29T20:42:36.842Z" },
+    { url = "https://files.pythonhosted.org/packages/d5/1f/5f4a3cd9e4440e9d9bc78ad0a91a1c8d46b4d429d5239ebe6793c9fe5c41/fsspec-2026.3.0-py3-none-any.whl", hash = "sha256:d2ceafaad1b3457968ed14efa28798162f1638dbb5d2a6868a2db002a5ee39a4", size = 202595, upload-time = "2026-03-27T19:11:13.595Z" },
 ]
 
 [[package]]
 name = "gcsfs"
-version = "2026.4.0"
+version = "2026.5.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -1454,9 +1454,9 @@ dependencies = [
     { name = "google-cloud-storage-control" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/1c/03/0bd3f6796422cfed6be1949c44668b386400f231d63ab30aefa6165baf0f/gcsfs-2026.4.0.tar.gz", hash = "sha256:f3d80dd1c98737798bc84472e6ff9c59873bd17a26e170d46ce90b3118db4390", size = 1139035, upload-time = "2026-04-29T21:04:11.64Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/78/da/915029bc34b541c5ac3e6ba8b32ca14d278cd17588bbbb6e4b297a944cd9/gcsfs-2026.5.0.tar.gz", hash = "sha256:283941a7a53bdbfed2133f6b471c640e61c0a1379eb52280a26618b83acc49c0", size = 922614, upload-time = "2026-05-07T15:15:51.484Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/10/37/3922951a55a3d0f0340e884929087ce08e333cbb16a86002535c095960fc/gcsfs-2026.4.0-py3-none-any.whl", hash = "sha256:d9e838834d8cce6cb623c6a6a5fad66a4d122dc5c609d4b1c1977b55f759dcc5", size = 72190, upload-time = "2026-04-29T21:04:09.997Z" },
+    { url = "https://files.pythonhosted.org/packages/0d/da/7bed8e864afbb8f1870f8120dc4148ecec5480ba988d4241769a2b308a35/gcsfs-2026.5.0-py3-none-any.whl", hash = "sha256:a6abf1e6ee4b8ad7e0f137ca423c2f1441610ac98c3b933e11c505f8c62a90a9", size = 77744, upload-time = "2026-05-07T15:15:50.01Z" },
 ]
 
 [[package]]
@@ -4937,16 +4937,16 @@ wheels = [
 
 [[package]]
 name = "s3fs"
-version = "2026.4.0"
+version = "2026.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiobotocore" },
     { name = "aiohttp" },
     { name = "fsspec" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/cb/d8/76f3dc1558bdf4494b117a9f7a9cc0a5d9d34edadc9e5d7ceabc5a6a7c37/s3fs-2026.4.0.tar.gz", hash = "sha256:5bdce0abb00b0435ee150807a45fea727451dbc22de4cbc116464f8504ab9d37", size = 85986, upload-time = "2026-04-29T20:52:51.748Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/0b/93/093972862fb9c2fdc24ecf8d6d2212853df1945eddf26ba2625e8eaeee66/s3fs-2026.3.0.tar.gz", hash = "sha256:ce8b30a9dc5e01c5127c96cb7377290243a689a251ef9257336ac29d72d7b0d8", size = 85986, upload-time = "2026-03-27T19:28:20.963Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/5d/a4/9d1ea10ebc9e028a289a72fec84da170689549a8102c8aacfcad26bc5035/s3fs-2026.4.0-py3-none-any.whl", hash = "sha256:de0d2a1f33cdf03831fd2382d278c6e4e31fe57c3bf2f703c61f8aec6b703e2a", size = 32392, upload-time = "2026-04-29T20:52:50.295Z" },
+    { url = "https://files.pythonhosted.org/packages/6a/52/5ccdc01f7a8a61357d15a66b5d8a6580aa8529cb33f32e6cbb71c52622c5/s3fs-2026.3.0-py3-none-any.whl", hash = "sha256:2fa40a64c03003cfa5ae0e352788d97aa78ae8f9e25ea98b28ce9d21ba10c1b8", size = 32399, upload-time = "2026-03-27T19:28:19.702Z" },
 ]
 
 [[package]]
@@ -5202,7 +5202,7 @@ wheels = [
 
 [[package]]
 name = "titiler"
-version = "2.0.2"
+version = "2.0.3"
 source = { virtual = "." }
 dependencies = [
     { name = "titiler-application" },
