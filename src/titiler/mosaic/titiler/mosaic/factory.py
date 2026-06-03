@@ -31,6 +31,7 @@ from titiler.core.dependencies import (
     BidxExprParams,
     ColorMapParams,
     CoordCRSParams,
+    CoverScaleParams,
     CRSParams,
     DatasetParams,
     DefaultDependency,
@@ -959,6 +960,7 @@ class MosaicTilerFactory(BaseFactory):
             dataset_params=Depends(self.dataset_dependency),
             pixel_selection=Depends(self.pixel_selection_dependency),
             image_params=Depends(self.img_part_dependency),
+            cover_scale=Depends(CoverScaleParams),
             post_process=Depends(self.process_dependency),
             stats_params=Depends(self.stats_dependency),
             histogram_params=Depends(self.histogram_dependency),
@@ -999,6 +1001,7 @@ class MosaicTilerFactory(BaseFactory):
                         coverage_array = image.get_coverage_array(
                             shape,
                             shape_crs=coord_crs or WGS84_CRS,
+                            cover_scale=cover_scale,
                         )
 
                         if post_process:

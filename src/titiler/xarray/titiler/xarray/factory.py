@@ -16,6 +16,7 @@ from rio_tiler.models import Info
 from titiler.core.dependencies import (
     BidxParams,
     CoordCRSParams,
+    CoverScaleParams,
     CRSParams,
     DatasetPathParams,
     DefaultDependency,
@@ -189,6 +190,7 @@ class TilerFactory(BaseTilerFactory):
             layer_params=Depends(self.layer_dependency),
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_part_dependency),
+            cover_scale=Depends(CoverScaleParams),
             post_process=Depends(self.process_dependency),
             stats_params=Depends(self.stats_dependency),
             histogram_params=Depends(self.histogram_dependency),
@@ -217,6 +219,7 @@ class TilerFactory(BaseTilerFactory):
                         coverage_array = image.get_coverage_array(
                             shape,
                             shape_crs=coord_crs or WGS84_CRS,
+                            cover_scale=cover_scale,
                         )
 
                         if post_process:

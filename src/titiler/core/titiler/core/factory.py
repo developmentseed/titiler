@@ -48,6 +48,7 @@ from titiler.core.dependencies import (
     BidxExprParams,
     ColorMapParams,
     CoordCRSParams,
+    CoverScaleParams,
     CRSParams,
     DatasetParams,
     DatasetPathParams,
@@ -508,6 +509,7 @@ class TilerFactory(BaseFactory):
             dataset_params=Depends(self.dataset_dependency),
             image_params=Depends(self.img_part_dependency),
             post_process=Depends(self.process_dependency),
+            cover_scale=Depends(CoverScaleParams),
             stats_params=Depends(self.stats_dependency),
             histogram_params=Depends(self.histogram_dependency),
             env=Depends(self.environment_dependency),
@@ -535,6 +537,7 @@ class TilerFactory(BaseFactory):
                         coverage_array = image.get_coverage_array(
                             shape,
                             shape_crs=coord_crs or WGS84_CRS,
+                            cover_scale=cover_scale,
                         )
 
                         if post_process:
@@ -1663,6 +1666,7 @@ class MultiBaseTilerFactory(TilerFactory):
             dst_crs=Depends(DstCRSParams),
             post_process=Depends(self.process_dependency),
             image_params=Depends(self.img_part_dependency),
+            cover_scale=Depends(CoverScaleParams),
             stats_params=Depends(self.stats_dependency),
             histogram_params=Depends(self.histogram_dependency),
             env=Depends(self.environment_dependency),
@@ -1679,8 +1683,9 @@ class MultiBaseTilerFactory(TilerFactory):
                         layer_params.assets = src_dst.assets
 
                     for feature in fc.features:
+                        shape = feature.model_dump(exclude_none=True)
                         image = src_dst.feature(
-                            feature.model_dump(exclude_none=True),
+                            shape,
                             shape_crs=coord_crs or WGS84_CRS,
                             dst_crs=dst_crs,
                             align_bounds_with_dataset=True,
@@ -1689,12 +1694,20 @@ class MultiBaseTilerFactory(TilerFactory):
                             **dataset_params.as_dict(),
                         )
 
+                        # Get the coverage % array
+                        coverage_array = image.get_coverage_array(
+                            shape,
+                            shape_crs=coord_crs or WGS84_CRS,
+                            cover_scale=cover_scale,
+                        )
+
                         if post_process:
                             image = post_process(image)
 
                         stats = image.statistics(
                             **stats_params.as_dict(),
                             hist_options=histogram_params.as_dict(),
+                            coverage=coverage_array,
                         )
 
                         feature.properties = feature.properties or {}

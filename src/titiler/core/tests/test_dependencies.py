@@ -660,3 +660,29 @@ def test_ogc_maps_params_bbox():
 
     response = client.get("/", params={"bbox": "invalid bbox"})
     assert response.status_code == 422
+
+
+def test_cover_scale_params():
+    """Test CoverScaleParams."""
+    app = FastAPI()
+
+    @app.get("/")
+    def main(param=Depends(dependencies.CoverScaleParams)):
+        """return cover scale params."""
+        return param
+
+    client = TestClient(app)
+
+    response = client.get("/")
+    assert response.status_code == 200
+    assert response.json() == 10
+
+    response = client.get("/", params={"cover_scale": 5})
+    assert response.status_code == 200
+    assert response.json() == 5
+
+    response = client.get("/", params={"cover_scale": -100})
+    assert response.status_code == 422
+
+    response = client.get("/", params={"cover_scale": 1000000})
+    assert response.status_code == 422
