@@ -360,6 +360,16 @@ def test_MosaicTilerFactory():
         assert len(resp["tileMatrixSetLimits"]) == 3
 
         response = client.get(
+            "/mosaic/tiles/WebMercatorQuad",
+            params={"url": mosaic_file, "minzoom": 0, "maxzoom": 1},
+        )
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "application/json"
+        resp = response.json()
+        # covers only 2 zoom levels
+        assert len(resp["tileMatrixSetLimits"]) == 2
+
+        response = client.get(
             f"/mosaic/tiles/WebMercatorQuad?url={mosaic_file}",
             headers={"Accept": "text/html"},
         )

@@ -664,6 +664,18 @@ def test_TilerFactory():
     # covers only 5 zoom levels
     assert len(resp["tileMatrixSetLimits"]) == 5
 
+    response = client.get(
+        "/tiles/WebMercatorQuad",
+        params={"url": f"{DATA_DIR}/cog.tif", "minzoom": 5, "maxzoom": 6},
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    resp = response.json()
+    # covers only 2 zoom level
+    assert len(resp["tileMatrixSetLimits"]) == 2
+    assert resp["tileMatrixSetLimits"][0]["tileMatrix"] == "5"
+    assert resp["tileMatrixSetLimits"][1]["tileMatrix"] == "6"
+
 
 @patch("rio_tiler.io.rasterio.rasterio")
 def test_MultiBaseTilerFactory(rio):
@@ -1010,6 +1022,18 @@ def test_MultiBaseTilerFactory(rio):
     resp = response.json()
     # default minzoom/maxzoom are 0->24
     assert len(resp["tileMatrixSetLimits"]) == 25
+
+    response = client.get(
+        "/tiles/WebMercatorQuad",
+        params={"url": f"{DATA_DIR}/item.json", "minzoom": 5, "maxzoom": 6},
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    resp = response.json()
+    # covers only 2 zoom level
+    assert len(resp["tileMatrixSetLimits"]) == 2
+    assert resp["tileMatrixSetLimits"][0]["tileMatrix"] == "5"
+    assert resp["tileMatrixSetLimits"][1]["tileMatrix"] == "6"
 
 
 @attr.s
