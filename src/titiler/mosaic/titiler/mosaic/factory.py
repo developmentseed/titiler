@@ -276,7 +276,7 @@ class MosaicTilerFactory(BaseFactory):
             summary="Retrieve a list of available raster tilesets for the specified dataset.",
             operation_id=f"{self.operation_prefix}getTileSetList",
         )
-        async def tileset_list(
+        def tileset_list(
             request: Request,
             src_path=Depends(self.path_dependency),
             backend_params=Depends(self.backend_dependency),
@@ -403,7 +403,7 @@ class MosaicTilerFactory(BaseFactory):
             summary="Retrieve the raster tileset metadata for the specified dataset and tiling scheme (tile matrix set).",
             operation_id=f"{self.operation_prefix}getTileSet",
         )
-        async def tileset(
+        def tileset(
             request: Request,
             tileMatrixSetId: Annotated[
                 Literal[tuple(self.supported_tms.list())],
@@ -415,6 +415,14 @@ class MosaicTilerFactory(BaseFactory):
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
+            minzoom: Annotated[
+                int | None,
+                Query(description="Overwrite default minzoom."),
+            ] = None,
+            maxzoom: Annotated[
+                int | None,
+                Query(description="Overwrite default maxzoom."),
+            ] = None,
             f: Annotated[
                 Literal["html", "json"] | None,
                 Query(
@@ -436,8 +444,8 @@ class MosaicTilerFactory(BaseFactory):
                     **backend_params.as_dict(),
                 ) as src_dst:
                     bounds = src_dst.get_geographic_bounds(tms.rasterio_geographic_crs)
-                    minzoom = src_dst.minzoom
-                    maxzoom = src_dst.maxzoom
+                    minzoom = minzoom if minzoom is not None else src_dst.minzoom
+                    maxzoom = maxzoom if maxzoom is not None else src_dst.maxzoom
 
                     collection_bbox = {
                         "lowerLeft": [bounds[0], bounds[1]],
