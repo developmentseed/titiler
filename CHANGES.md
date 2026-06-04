@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 2.0.4 (2026-06-03)
+
+## What's Changed
+* chore(deps): bump gcsfs from 2026.4.0 to 2026.5.0 in the all group by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1410
+* ci(deps): bump the all group with 6 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1409
+* fix: trigger PyPI publish/deploy by authoring releases with the DS_RELEASE_BOT app token by @lhoupert in https://github.com/developmentseed/titiler/pull/1407
+* chore: add cover-scale parameter to control shape coverage in statistics by @vincentsarago in https://github.com/developmentseed/titiler/pull/1414
+
+
+**Full Changelog**: https://github.com/developmentseed/titiler/compare/2.0.3...2.0.4
+
 ## 2.0.3 (2026-05-28)
 
 ## What's Changed
