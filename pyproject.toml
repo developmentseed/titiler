@@ -42,7 +42,7 @@ dev = [
     "pytest",
     "pytest-cov",
     "pytest-asyncio",
-    "httpx",
+    "httpx2",
     "obstore",
     "zarr>=3,<4.0",
     "h5netcdf",

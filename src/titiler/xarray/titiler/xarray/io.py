@@ -11,7 +11,7 @@ from typing import Any, Literal, TypedDict
 from urllib.parse import urlparse
 
 import attr
-import httpx
+import httpx2 as httpx
 import obstore
 import xarray
 import zarr

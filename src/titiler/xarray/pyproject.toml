@@ -36,6 +36,7 @@ dependencies = [
     "zarr>=3.1,<4.0",
     "starlette-cramjam>=0.4,<1.0",
     "pydantic-settings~=2.0",
+    "httpx2",
 ]
 
 [project.optional-dependencies]
@@ -61,7 +62,6 @@ test = [
     "pytest",
     "pytest-cov",
     "pytest-asyncio",
-    "httpx",
     "h5netcdf",
     "h5py",
     "fsspec",

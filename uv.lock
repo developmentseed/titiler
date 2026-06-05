@@ -5265,7 +5265,7 @@ dev = [
     { name = "fsspec" },
     { name = "h5netcdf" },
     { name = "h5py" },
-    { name = "httpx" },
+    { name = "httpx2" },
     { name = "ipython" },
     { name = "jupyter" },
     { name = "matplotlib" },
@@ -5318,7 +5318,7 @@ dev = [
     { name = "fsspec" },
     { name = "h5netcdf" },
     { name = "h5py" },
-    { name = "httpx" },
+    { name = "httpx2" },
     { name = "ipython" },
     { name = "jupyter" },
     { name = "matplotlib" },
@@ -5371,7 +5371,7 @@ server = [
 test = [
     { name = "boto3" },
     { name = "brotlipy" },
-    { name = "httpx" },
+    { name = "httpx2" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
@@ -5393,7 +5393,7 @@ provides-extras = ["server"]
 test = [
     { name = "boto3" },
     { name = "brotlipy" },
-    { name = "httpx" },
+    { name = "httpx2" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
@@ -5426,7 +5426,7 @@ telemetry = [
 
 [package.dev-dependencies]
 test = [
-    { name = "httpx" },
+    { name = "httpx2" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
@@ -5453,7 +5453,7 @@ provides-extras = ["telemetry"]
 
 [package.metadata.requires-dev]
 test = [
-    { name = "httpx" },
+    { name = "httpx2" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
@@ -5477,7 +5477,7 @@ stac = [
 
 [package.dev-dependencies]
 test = [
-    { name = "httpx" },
+    { name = "httpx2" },
     { name = "owslib" },
     { name = "pystac", extra = ["validation"] },
     { name = "pytest" },
@@ -5496,7 +5496,7 @@ provides-extras = ["cogeo", "stac"]
 
 [package.metadata.requires-dev]
 test = [
-    { name = "httpx" },
+    { name = "httpx2" },
     { name = "owslib" },
     { name = "pystac", extras = ["validation"], specifier = ">=1.0.0,<2.0.0" },
     { name = "pytest" },
@@ -5518,7 +5518,7 @@ mosaicjson = [
 
 [package.dev-dependencies]
 test = [
-    { name = "httpx" },
+    { name = "httpx2" },
     { name = "owslib" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
@@ -5534,7 +5534,7 @@ provides-extras = ["mosaicjson"]
 
 [package.metadata.requires-dev]
 test = [
-    { name = "httpx" },
+    { name = "httpx2" },
     { name = "owslib" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
@@ -5545,6 +5545,7 @@ test = [
 name = "titiler-xarray"
 source = { editable = "src/titiler/xarray" }
 dependencies = [
+    { name = "httpx2" },
     { name = "obstore" },
     { name = "pydantic-settings" },
     { name = "rioxarray", version = "0.19.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
@@ -5580,7 +5581,6 @@ test = [
     { name = "fsspec" },
     { name = "h5netcdf" },
     { name = "h5py" },
-    { name = "httpx" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
@@ -5595,6 +5595,7 @@ requires-dist = [
     { name = "gcsfs", marker = "extra == 'fs'" },
     { name = "h5netcdf", marker = "extra == 'fs'" },
     { name = "h5py", marker = "extra == 'fs'" },
+    { name = "httpx2" },
     { name = "obstore" },
     { name = "opentelemetry-api", marker = "extra == 'telemetry'" },
     { name = "opentelemetry-exporter-otlp", marker = "extra == 'telemetry'" },
@@ -5618,7 +5619,6 @@ test = [
     { name = "fsspec" },
     { name = "h5netcdf" },
     { name = "h5py" },
-    { name = "httpx" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
