@@ -1,6 +1,6 @@
 """Test route dependencies."""
 
-import httpx
+import httpx2 as httpx
 from fastapi import Depends, FastAPI, HTTPException, security, status
 from starlette.testclient import TestClient
 

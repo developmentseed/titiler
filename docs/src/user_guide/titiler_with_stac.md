@@ -150,7 +150,7 @@ To request a specific tile, you need to know its coordinates. You can calculate 
 - **`proj:bbox`** - In the asset's projection (e.g., UTM meters) - don't use this directly
 
 ```python
-import httpx
+import httpx2 as httpx
 import morecantile
 
 # Fetch the STAC item

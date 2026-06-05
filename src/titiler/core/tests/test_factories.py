@@ -13,7 +13,7 @@ from unittest.mock import patch
 from urllib.parse import quote, urlencode
 
 import attr
-import httpx
+import httpx2 as httpx
 import morecantile
 import numpy
 import pytest

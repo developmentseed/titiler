@@ -29,6 +29,8 @@ We added a set of custom algorithms:
 ### Usage
 
 ```python
+import httpx2 as httpx
+
 # return a
 httpx.get(
     "http://127.0.0.1:8081/cog/tiles/16/34059/23335",
@@ -42,6 +44,8 @@ httpx.get(
 <img width="300" src="https://user-images.githubusercontent.com/10407788/203507832-f92a87d3-d8d4-4f44-b3d8-e8989f3cc43b.jpeg"/>
 
 ```python
+import httpx2 as httpx
+
 # Pass algorithm parameter as a json string
 httpx.get(
     "http://127.0.0.1:8081/cog/preview",
