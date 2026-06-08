@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1780734626997,
+  "lastUpdate": 1780922211095,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -23997,6 +23997,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 3.28,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "70f8ace531d2c7395cdb53c5a396babac2208f4a",
+          "message": "chore(deps): bump the all group with 5 updates (#1421)\n\nBumps the all group with 5 updates:\n\n| Package | From | To |\n| --- | --- | --- |\n| [pytest-asyncio](https://github.com/pytest-dev/pytest-asyncio) | `1.3.0` | `1.4.0` |\n| [fsspec](https://github.com/fsspec/filesystem_spec) | `2026.3.0` | `2026.4.0` |\n| [s3fs](https://github.com/fsspec/s3fs) | `2026.3.0` | `2026.4.0` |\n| [ipython](https://github.com/ipython/ipython) | `9.13.0` | `9.14.0` |\n| [gcsfs](https://github.com/fsspec/gcsfs) | `2026.5.0` | `2026.4.0` |\n\n\nUpdates `pytest-asyncio` from 1.3.0 to 1.4.0\n- [Release notes](https://github.com/pytest-dev/pytest-asyncio/releases)\n- [Commits](https://github.com/pytest-dev/pytest-asyncio/compare/v1.3.0...v1.4.0)\n\nUpdates `fsspec` from 2026.3.0 to 2026.4.0\n- [Commits](https://github.com/fsspec/filesystem_spec/compare/2026.3.0...2026.4.0)\n\nUpdates `s3fs` from 2026.3.0 to 2026.4.0\n- [Changelog](https://github.com/fsspec/s3fs/blob/main/release-procedure.md)\n- [Commits](https://github.com/fsspec/s3fs/compare/2026.3.0...2026.4.0)\n\nUpdates `ipython` from 9.13.0 to 9.14.0\n- [Release notes](https://github.com/ipython/ipython/releases)\n- [Commits](https://github.com/ipython/ipython/compare/9.13.0...9.14.0)\n\nUpdates `gcsfs` from 2026.5.0 to 2026.4.0\n- [Release notes](https://github.com/fsspec/gcsfs/releases)\n- [Commits](https://github.com/fsspec/gcsfs/compare/2026.5.0...2026.4.0)\n\n---\nupdated-dependencies:\n- dependency-name: pytest-asyncio\n  dependency-version: 1.4.0\n  dependency-type: direct:development\n  update-type: version-update:semver-minor\n  dependency-group: all\n- dependency-name: fsspec\n  dependency-version: 2026.4.0\n  dependency-type: direct:development\n  update-type: version-update:semver-minor\n  dependency-group: all\n- dependency-name: s3fs\n  dependency-version: 2026.4.0\n  dependency-type: direct:development\n  update-type: version-update:semver-minor\n  dependency-group: all\n- dependency-name: ipython\n  dependency-version: 9.14.0\n  dependency-type: direct:development\n  update-type: version-update:semver-minor\n  dependency-group: all\n- dependency-name: gcsfs\n  dependency-version: 2026.4.0\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: all\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2026-06-08T14:34:57+02:00",
+          "tree_id": "be6fe3def1a322bef2b636f91104103a364c0f22",
+          "url": "https://github.com/developmentseed/titiler/commit/70f8ace531d2c7395cdb53c5a396babac2208f4a"
+        },
+        "date": 1780922210041,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.05,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.27,
             "unit": "s"
           },
           {
