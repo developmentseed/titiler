@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1780922211095,
+  "lastUpdate": 1780922247199,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -24056,6 +24056,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 3.27,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "356276cb4ab3acb28f612aa45e832a80523cf7b3",
+          "message": "ci(deps): bump the all group with 3 updates (#1420)\n\nBumps the all group with 3 updates: [docker/setup-qemu-action](https://github.com/docker/setup-qemu-action), [aws-actions/configure-aws-credentials](https://github.com/aws-actions/configure-aws-credentials) and [actions/create-github-app-token](https://github.com/actions/create-github-app-token).\n\n\nUpdates `docker/setup-qemu-action` from 4.0.0 to 4.1.0\n- [Release notes](https://github.com/docker/setup-qemu-action/releases)\n- [Commits](https://github.com/docker/setup-qemu-action/compare/ce360397dd3f832beb865e1373c09c0e9f86d70a...06116385d9baf250c9f4dcb4858b16962ea869c3)\n\nUpdates `aws-actions/configure-aws-credentials` from 6.1.1 to 6.1.3\n- [Release notes](https://github.com/aws-actions/configure-aws-credentials/releases)\n- [Changelog](https://github.com/aws-actions/configure-aws-credentials/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/aws-actions/configure-aws-credentials/compare/d979d5b3a71173a29b74b5b88418bfda9437d885...99214aa6889fcddfa57764031d71add364327e59)\n\nUpdates `actions/create-github-app-token` from 2.2.2 to 3.2.0\n- [Release notes](https://github.com/actions/create-github-app-token/releases)\n- [Changelog](https://github.com/actions/create-github-app-token/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/actions/create-github-app-token/compare/fee1f7d63c2ff003460e3d139729b119787bc349...bcd2ba49218906704ab6c1aa796996da409d3eb1)\n\n---\nupdated-dependencies:\n- dependency-name: docker/setup-qemu-action\n  dependency-version: 4.1.0\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: all\n- dependency-name: aws-actions/configure-aws-credentials\n  dependency-version: 6.1.3\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: all\n- dependency-name: actions/create-github-app-token\n  dependency-version: 3.2.0\n  dependency-type: direct:production\n  update-type: version-update:semver-major\n  dependency-group: all\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2026-06-08T14:35:12+02:00",
+          "tree_id": "60c026efdb98eb989254b6ddbd9fc4773bdc7d3d",
+          "url": "https://github.com/developmentseed/titiler/commit/356276cb4ab3acb28f612aa45e832a80523cf7b3"
+        },
+        "date": 1780922245546,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.06,
             "unit": "s"
           },
           {
