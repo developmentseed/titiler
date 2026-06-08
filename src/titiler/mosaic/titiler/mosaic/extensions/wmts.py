@@ -18,6 +18,7 @@ from starlette.datastructures import QueryParams
 from starlette.requests import Request
 from starlette.templating import Jinja2Templates
 
+from titiler.core.dependencies import ZoomsParams
 from titiler.core.factory import FactoryExtension
 from titiler.core.resources.enums import ImageType
 from titiler.core.resources.responses import XMLResponse
@@ -101,6 +102,7 @@ class wmtsExtension(FactoryExtension):
                 ),
             ] = False,
             src_path=Depends(factory.path_dependency),
+            zooms=Depends(ZoomsParams),
             backend_params=Depends(factory.backend_dependency),
             reader_params=Depends(factory.reader_dependency),
             env=Depends(factory.environment_dependency),
@@ -147,6 +149,8 @@ class wmtsExtension(FactoryExtension):
                     "use_epsg",
                     # Make sure tilesize is not ovewrriden from WMTS request
                     "tilesize",
+                    # tilematrixset metadata
+                    "zooms",
                     # OGC WMTS parameters to ignore
                     "service",
                     "request",
@@ -166,7 +170,9 @@ class wmtsExtension(FactoryExtension):
                 )
 
                 if check_query_params(tile_dependencies, QueryParams(qs)):
-                    renders.append({"name": "default", "query_string": qs})
+                    renders.append(
+                        {"name": "default", "query_string": qs, "tilematrixsets": zooms}
+                    )
 
                 #################################################
                 # 3. if there is no layers we raise and exception
@@ -206,15 +212,17 @@ class wmtsExtension(FactoryExtension):
                                 wmts_bbox[2],
                             ]
 
+                    # NOTE: Custom TiTiler Render key in form of {"tilematrixsets": {"{tms_id}": (minzoom, maxzoom)}}
+                    tilematrixsets = render.get("tilematrixsets", {})
+
                     for tms_id in factory.supported_tms.list():
                         tms = factory.supported_tms.get(tms_id)
 
-                        # NOTE: Custom TiTiler Render key in form of {"tilematrixsets": {"{tms_id}": (minzoom, maxzoom)}}
-                        zooms: tuple[int, int] = render.get("tilematrixsets", {}).get(
-                            tms_id
-                        )
                         # NOTE: If zooms are not in renders then we get them from the backend
-                        if not zooms:
+                        tms_zooms: tuple[int, int] | None = tilematrixsets.get(
+                            tms_id
+                        ) or tilematrixsets.get("*")
+                        if not tms_zooms:
                             try:
                                 with factory.backend(
                                     src_path,
@@ -223,14 +231,14 @@ class wmtsExtension(FactoryExtension):
                                     reader_options=reader_params.as_dict(),
                                     **backend_params.as_dict(),
                                 ) as src_dst:
-                                    zooms = (src_dst.minzoom, src_dst.maxzoom)
+                                    tms_zooms = (src_dst.minzoom, src_dst.maxzoom)
                             except Exception as e:  # noqa
-                                zooms = (tms.minzoom, tms.maxzoom)
+                                tms_zooms = (tms.minzoom, tms.maxzoom)
 
                         tilematrixset_limits = tms_limits(
                             tms,
                             bounds,
-                            zooms=zooms,
+                            zooms=tms_zooms,
                             geographic_crs=geographic_crs,
                         )
 

@@ -477,6 +477,10 @@ def tms_limits(
     else:
         minzoom, maxzoom = tms.minzoom, tms.maxzoom
 
+    # Make sure to not overflow the TMS minzoom
+    # if minzoom < tms.minzoom, morecantile won't be able to compute the Matrix
+    minzoom = max(minzoom, tms.minzoom)
+
     tilematrix_limits: list[TMSLimits] = []
     for zoom in range(minzoom, maxzoom + 1):
         matrix = tms.matrix(zoom)

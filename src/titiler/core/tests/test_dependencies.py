@@ -686,3 +686,54 @@ def test_cover_scale_params():
 
     response = client.get("/", params={"cover_scale": 1000000})
     assert response.status_code == 422
+
+
+def test_zooms_params():
+    """Test ZoomsParams."""
+    app = FastAPI()
+
+    @app.get("/")
+    def main(param=Depends(dependencies.ZoomsParams)):
+        """return zooms params."""
+        return param
+
+    client = TestClient(app)
+
+    response = client.get("/")
+    assert response.status_code == 200
+    assert response.json() == {}
+
+    response = client.get(
+        "/", params={"zooms": ["WebMercatorQuad::0,5", "WorldCRS84Quad::0,1"]}
+    )
+    assert response.status_code == 200
+    assert response.json() == {"WebMercatorQuad": [0, 5], "WorldCRS84Quad": [0, 1]}
+
+    response = client.get("/?zooms=WebMercatorQuad::0,5")
+    assert response.status_code == 200
+    assert response.json() == {"WebMercatorQuad": [0, 5]}
+
+    response = client.get("/?zooms=WebMercatorQuad::0,5&zooms=WorldCRS84Quad::0,1")
+    assert response.status_code == 200
+    assert response.json() == {"WebMercatorQuad": [0, 5], "WorldCRS84Quad": [0, 1]}
+
+    response = client.get("/", params={"zooms": ["*::0,1"]})
+    assert response.status_code == 200
+    assert response.json() == {"*": [0, 1]}
+
+    response = client.get("/?zooms=*::0,1")
+    assert response.status_code == 200
+    assert response.json() == {"*": [0, 1]}
+
+    response = client.get("/", params={"zooms": ["*::0,2", "WorldCRS84Quad::0,1"]})
+    assert response.status_code == 200
+    assert response.json() == {"*": [0, 2], "WorldCRS84Quad": [0, 1]}
+
+    response = client.get("/", params={"zooms": ["*"]})
+    assert response.status_code == 422
+
+    response = client.get("/", params={"zooms": ["0,1"]})
+    assert response.status_code == 422
+
+    response = client.get("/", params={"zooms": [0, 1]})
+    assert response.status_code == 422
