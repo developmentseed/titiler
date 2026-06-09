@@ -860,6 +860,29 @@ def test_wmts_extension_mosaic():
                 layer.tilematrixsetlinks["WebMercatorQuad"].tilematrixlimits
             )
 
+            # Overwrite zoom levels via query params
+            response = client.get(
+                f"/WMTSCapabilities.xml?url={mosaic_file}&zooms=WebMercatorQuad::0,2"
+            )
+            assert response.status_code == 200
+
+            wmts = WebMapTileService(
+                f"/WMTSCapabilities.xml?url={mosaic_file}&zooms=WebMercatorQuad:::0,2",
+                xml=response.content,
+            )
+            assert wmts.version == "1.0.0"
+            assert len(wmts.contents) == 39  # (2 renders + default) x 13 TMS
+
+            layer = wmts.contents[f"{mosaic_file}_WebMercatorQuad_default"]
+            assert ["0", "1", "2"] == list(
+                layer.tilematrixsetlinks["WebMercatorQuad"].tilematrixlimits
+            )
+
+            layer = wmts.contents[f"{mosaic_file}_WebMercatorQuad_one_band_limit"]
+            assert ["0", "1"] == list(
+                layer.tilematrixsetlinks["WebMercatorQuad"].tilematrixlimits
+            )
+
 
 def test_mosaic_statistics_featurecollection():
     """Test statistics endpoint with FeatureCollection containing multiple distinct features.

@@ -8,6 +8,7 @@ from typing import Annotated, Any, Literal, cast
 import numpy
 from fastapi import HTTPException, Query
 from pydantic import AfterValidator, BeforeValidator, Field
+from pydantic.types import StringConstraints
 from rasterio.crs import CRS
 from rio_tiler.colormap import ColorMaps
 from rio_tiler.colormap import cmap as default_cmap
@@ -643,3 +644,33 @@ def CoverScaleParams(
 ) -> int:
     """Cover Scale Parameter."""
     return cover_scale or 10
+
+
+ZoomsStr = Annotated[
+    str,
+    StringConstraints(pattern=r"^(\*|\w+)::\d+,\d+$"),
+]
+
+
+def ZoomsParams(
+    zooms: Annotated[
+        list[ZoomsStr] | None,
+        Query(
+            description="Overwrite TMS min/max zoom in form of`tileMatrixSetId::minzoom,maxzoom`",
+            openapi_examples={
+                "user-provided": {"value": None},
+                "Single": {"value": ["WebMercatorQuad::0,5"]},
+                "Multiples": {"value": ["WebMercatorQuad::0,5", "WorldCRS84Quad::0,1"]},
+                "All": {"value": ["*::0,5"]},
+            },
+        ),
+    ] = None,
+) -> dict[str, tuple[int, int]]:
+    """tileMatrixSets Zooms Parameter."""
+    if zooms:
+        return {
+            tms_id: tuple(map(int, zoom_range.split(",")[0:2]))  # type: ignore
+            for tms_id, zoom_range in (zoom.split("::") for zoom in zooms)
+        }
+
+    return {}

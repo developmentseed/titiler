@@ -64,6 +64,56 @@ def test_wmtsExtension():
         ) as sds:
             assert sds.crs == "epsg:3857"
 
+        # Overwrite Zooms
+        response = client.get(
+            f"/WMTSCapabilities.xml?url={DATA_DIR}/cog.tif&zooms=*::0,1"
+        )
+        assert response.status_code == 200
+
+        wmts = WebMapTileService(
+            f"/WMTSCapabilities.xml?url={DATA_DIR}/cog.tif&zooms=*::0,1",
+            xml=response.content,
+        )
+        assert wmts.version == "1.0.0"
+        assert len(wmts.contents) == 13  # 1 render x 13 TMS
+        assert f"{DATA_DIR}/cog.tif_WebMercatorQuad_default" in wmts.contents
+        assert f"{DATA_DIR}/cog.tif_WorldCRS84Quad_default" in wmts.contents
+
+        layer = wmts.contents[f"{DATA_DIR}/cog.tif_WebMercatorQuad_default"]
+        assert ["0", "1"] == list(
+            layer.tilematrixsetlinks["WebMercatorQuad"].tilematrixlimits
+        )
+
+        layer = wmts.contents[f"{DATA_DIR}/cog.tif_WorldCRS84Quad_default"]
+        assert ["0", "1"] == list(
+            layer.tilematrixsetlinks["WorldCRS84Quad"].tilematrixlimits
+        )
+
+        # Overwrite Zooms for a specific TMS
+        response = client.get(
+            f"/WMTSCapabilities.xml?url={DATA_DIR}/cog.tif&zooms=WebMercatorQuad::0,1"
+        )
+        assert response.status_code == 200
+
+        wmts = WebMapTileService(
+            f"/WMTSCapabilities.xml?url={DATA_DIR}/cog.tif&zooms=WebMercatorQuad::0,1",
+            xml=response.content,
+        )
+        assert wmts.version == "1.0.0"
+        assert len(wmts.contents) == 13  # 1 render x 13 TMS
+        assert f"{DATA_DIR}/cog.tif_WebMercatorQuad_default" in wmts.contents
+        assert f"{DATA_DIR}/cog.tif_WorldCRS84Quad_default" in wmts.contents
+
+        layer = wmts.contents[f"{DATA_DIR}/cog.tif_WebMercatorQuad_default"]
+        assert ["0", "1"] == list(
+            layer.tilematrixsetlinks["WebMercatorQuad"].tilematrixlimits
+        )
+
+        layer = wmts.contents[f"{DATA_DIR}/cog.tif_WorldCRS84Quad_default"]
+        assert ["5", "6", "7", "8"] == list(
+            layer.tilematrixsetlinks["WorldCRS84Quad"].tilematrixlimits
+        )
+
 
 def test_wmtsExtension_with_renders():
     """Test wmtsExtension class with Renders."""
