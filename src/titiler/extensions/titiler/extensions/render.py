@@ -168,7 +168,7 @@ class stacRenderExtension(FactoryExtension):
         )
         def render_list(request: Request, src_path=Depends(factory.path_dependency)):
             with factory.reader(src_path) as src:
-                renders = src.item.properties.get("renders", {})
+                renders = factory.get_renders(src)
 
             prepared_renders = {
                 render_id: _prepare_render_item(render_id, render, request, src_path)
@@ -201,7 +201,7 @@ class stacRenderExtension(FactoryExtension):
             src_path=Depends(factory.path_dependency),
         ):
             with factory.reader(src_path) as src:
-                renders = src.item.properties.get("renders", {})
+                renders = factory.get_renders(src)
 
             if render_id not in renders:
                 raise HTTPException(status_code=404, detail="Render not found")

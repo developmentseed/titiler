@@ -46,16 +46,30 @@ class wmtsExtension(FactoryExtension):
 
     templates: Jinja2Templates = field(default=DEFAULT_TEMPLATES)
 
-    get_renders: Callable[[BaseBackend], dict[str, dict[str, Any]]] = field(
-        default=lambda obj: {}
+    # TODO: Remove in 3.0
+    get_renders: Callable[[BaseBackend], dict[str, dict[str, Any]]] | None = field(
+        default=None
     )
 
     # List of dependencies a `/tile` URL should validate
     # Note: Those dependencies should only require Query() inputs
     tile_dependencies: list[Callable] | None = field(default=None)
 
+    # TODO: Remove in 3.0
+    def __attrs_post_init__(self):
+        """Warn about deprecation of `get_renders` attribute."""
+        if self.get_renders:
+            warnings.warn(
+                "The wmtsExtension's `get_renders` attribute is deprecated and will be ignored. Please set it at the factory level.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
     def register(self, factory: MosaicTilerFactory):  # type: ignore [override] # noqa: C901
         """Register endpoint to the tiler factory."""
+
+        # TODO: Remove in 3.0
+        self.get_renders = factory.get_renders
 
         tile_dependencies = (
             self.tile_dependencies
@@ -116,7 +130,7 @@ class wmtsExtension(FactoryExtension):
                     **backend_params.as_dict(),
                 ) as src_dst:
                     dataset_bounds = src_dst.get_geographic_bounds(self.crs)
-                    default_renders = self.get_renders(src_dst)
+                    default_renders = factory.get_renders(src_dst)
 
                 renders: list[dict[str, Any]] = []
 

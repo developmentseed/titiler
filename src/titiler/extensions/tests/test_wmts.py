@@ -118,24 +118,21 @@ def test_wmtsExtension():
 def test_wmtsExtension_with_renders():
     """Test wmtsExtension class with Renders."""
     tiler_plus_wmts = TilerFactory(
-        extensions=[
-            wmtsExtension(
-                get_renders=lambda obj: {
-                    "one_band_limit": {
-                        "tilematrixsets": {
-                            "WebMercatorQuad": [0, 1],
-                        },
-                        "spatial_extent": (-180, -90, 180, 90),
-                        "bidx": [1, 2, 3],
-                        "rescale": [[0, 10000], [0, 5000], [0, 1000]],
-                    },
-                    "one_band": {
-                        "bidx": [1],
-                        "rescale": ["0,10000"],
-                    },
+        get_renders=lambda obj: {
+            "one_band_limit": {
+                "tilematrixsets": {
+                    "WebMercatorQuad": [0, 1],
                 },
-            )
-        ],
+                "spatial_extent": (-180, -90, 180, 90),
+                "bidx": [1, 2, 3],
+                "rescale": [[0, 10000], [0, 5000], [0, 1000]],
+            },
+            "one_band": {
+                "bidx": [1],
+                "rescale": ["0,10000"],
+            },
+        },
+        extensions=[wmtsExtension()],
     )
 
     app = FastAPI()
