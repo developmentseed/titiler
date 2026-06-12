@@ -152,7 +152,7 @@ if not api_settings.disable_stac:
         reader=STACReader,
         router_prefix="/stac",
         add_ogc_maps=True,
-        get_renders=lambda obj: obj.item.properties.get("renders", {}),
+        get_renders=lambda obj: obj.item.properties.get("renders", {}),  # type: ignore
         extensions=[stacViewerExtension(), stacRenderExtension(), wmtsExtension()],
         enable_telemetry=api_settings.telemetry_enabled,
         templates=titiler_templates,

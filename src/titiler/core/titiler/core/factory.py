@@ -1486,7 +1486,7 @@ class MultiBaseTilerFactory(TilerFactory):
     # Assets dependency
     assets_dependency: type[DefaultDependency] = AssetsParams
 
-    get_renders: Callable[[MultiBaseReader], dict[str, dict[str, Any]]] = field(
+    get_renders: Callable[[MultiBaseReader], dict[str, dict[str, Any]]] = field(  # type: ignore
         default=lambda obj: {}
     )
 
