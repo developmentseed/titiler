@@ -1,5 +1,6 @@
 """Titiler error classes."""
 
+import logging
 from collections.abc import Callable
 
 from fastapi import FastAPI
@@ -17,6 +18,8 @@ from rio_tiler.errors import (
 from starlette import status
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
+
+logger = logging.getLogger(__name__)
 
 
 class TilerError(Exception):
@@ -56,6 +59,11 @@ def exception_handler_factory(status_code: int) -> Callable:
     def handler(request: Request, exc: Exception):
         if status_code == status.HTTP_204_NO_CONTENT:
             return Response(content=None, status_code=204)
+
+        logger.error(
+            f"Exception mapped to HTTP {status_code} response",
+            exc_info=exc,
+        )
 
         return JSONResponse(content={"detail": str(exc)}, status_code=status_code)
 
