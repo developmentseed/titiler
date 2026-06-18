@@ -36,6 +36,7 @@ dependencies = [
     "zarr>=3.1,<4.0",
     "starlette-cramjam>=0.4,<1.0",
     "pydantic-settings~=2.0",
+    "httpx",
 ]
 
 [project.optional-dependencies]
