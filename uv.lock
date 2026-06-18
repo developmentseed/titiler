@@ -5230,7 +5230,7 @@ wheels = [
 
 [[package]]
 name = "titiler"
-version = "2.0.3"
+version = "2.0.4"
 source = { virtual = "." }
 dependencies = [
     { name = "titiler-application" },
@@ -5529,6 +5529,7 @@ test = [
 name = "titiler-xarray"
 source = { editable = "src/titiler/xarray" }
 dependencies = [
+    { name = "httpx" },
     { name = "obstore" },
     { name = "pydantic-settings" },
     { name = "rioxarray", version = "0.19.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
@@ -5579,6 +5580,7 @@ requires-dist = [
     { name = "gcsfs", marker = "extra == 'fs'" },
     { name = "h5netcdf", marker = "extra == 'fs'" },
     { name = "h5py", marker = "extra == 'fs'" },
+    { name = "httpx" },
     { name = "obstore" },
     { name = "opentelemetry-api", marker = "extra == 'telemetry'" },
     { name = "opentelemetry-exporter-otlp", marker = "extra == 'telemetry'" },
