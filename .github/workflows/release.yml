@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - maint-2.0.x
   release:
     types: [published]
 

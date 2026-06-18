@@ -6,6 +6,7 @@ on:
     branches:
     - main
     - dev
+    - maint-2.0.x
     tags:
     - '*'
     paths:
