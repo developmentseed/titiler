@@ -60,10 +60,14 @@ def exception_handler_factory(status_code: int) -> Callable:
         if status_code == status.HTTP_204_NO_CONTENT:
             return Response(content=None, status_code=204)
 
-        logger.error(
-            f"Exception mapped to HTTP {status_code} response",
-            exc_info=exc,
-        )
+        # Only log >=500 errors but not generic exceptions (Exception)
+        # already logged by Starlette
+        if status_code >= 500 and exc is not Exception:
+            logger.error(
+                "Exception mapped to HTTP %s response",
+                status_code,
+                exc_info=exc,
+            )
 
         return JSONResponse(content={"detail": str(exc)}, status_code=status_code)
 
