@@ -51,7 +51,7 @@ DEFAULT_STATUS_CODES = {
 }
 
 
-def exception_handler_factory(status_code: int) -> Callable:
+def exception_handler_factory(status_code: int, exc_class: type[Exception]) -> Callable:
     """
     Create a FastAPI exception handler from a status code.
     """
@@ -60,10 +60,14 @@ def exception_handler_factory(status_code: int) -> Callable:
         if status_code == status.HTTP_204_NO_CONTENT:
             return Response(content=None, status_code=204)
 
-        logger.error(
-            f"Exception mapped to HTTP {status_code} response",
-            exc_info=exc,
-        )
+        # Only log concrete >=500 errors; the catch-all Exception/500 is
+        # already re-raised and logged by Starlette's ServerErrorMiddleware.
+        if status_code >= 500 and exc_class is not Exception:
+            logger.error(
+                "Exception mapped to HTTP %s response",
+                status_code,
+                exc_info=exc,
+            )
 
         return JSONResponse(content={"detail": str(exc)}, status_code=status_code)
 
@@ -77,4 +81,4 @@ def add_exception_handlers(
     Add exception handlers to the FastAPI app.
     """
     for exc, code in status_codes.items():
-        app.add_exception_handler(exc, exception_handler_factory(code))
+        app.add_exception_handler(exc, exception_handler_factory(code, exc))
