@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 2.0.5 (2026-06-18)
+
+## What's Changed
+
+* fix: titiler-xarray | add httpx dependency  by @vincentsarago in https://github.com/developmentseed/titiler/pull/1433
+
+**Full Changelog**: https://github.com/developmentseed/titiler/compare/2.0.4...2.0.5
+
 ## 2.0.4 (2026-06-03)
 
 ## What's Changed
