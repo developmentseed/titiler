@@ -2,10 +2,14 @@
 
 import io
 import os
+import xml.etree.ElementTree as ET
 
+import pytest
 import rasterio
 from fastapi import FastAPI
 from owslib.wmts import WebMapTileService
+from rasterio.crs import CRS
+from rio_tiler.utils import CRS_to_urn
 from starlette.testclient import TestClient
 
 from titiler.core.factory import TilerFactory
@@ -113,6 +117,33 @@ def test_wmtsExtension():
         assert ["5", "6", "7", "8"] == list(
             layer.tilematrixsetlinks["WorldCRS84Quad"].tilematrixlimits
         )
+
+
+def test_wmtsExtension_crs_without_urn():
+    """Test BoundingBox CRS fallback to WKT when the CRS cannot be resolved to a URN.
+
+    ref: https://github.com/developmentseed/titiler/issues/1043
+    """
+    # Custom CRS (tweaked polar stereographic) which cannot be resolved to an authority
+    custom_crs = CRS.from_proj4(
+        "+proj=stere +lat_0=90 +lat_ts=71.3 +lon_0=-42.5 +x_0=0 +y_0=0 +a=6378137.1 +b=6356752.3 +units=m +no_defs"
+    )
+    assert CRS_to_urn(custom_crs) is None
+
+    tiler_plus_wmts = TilerFactory(extensions=[wmtsExtension(crs=custom_crs)])
+
+    app = FastAPI()
+    app.include_router(tiler_plus_wmts.router)
+    with TestClient(app) as client:
+        with pytest.warns(UserWarning, match="Could not resolve a URN for CRS"):
+            response = client.get(f"/WMTSCapabilities.xml?url={DATA_DIR}/cog.tif")
+        assert response.status_code == 200
+
+        root = ET.fromstring(response.content)
+        bboxes = root.findall(".//{http://www.opengis.net/ows/1.1}BoundingBox")
+        assert bboxes
+        for bbox in bboxes:
+            assert bbox.attrib["crs"] == custom_crs.to_wkt()
 
 
 def test_wmtsExtension_with_renders():

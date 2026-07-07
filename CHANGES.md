@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### titiler.extensions
+
+* fall back to WKT (with a warning) for the WMTS `BoundingBox` crs attribute when the CRS cannot be resolved to a URN (https://github.com/developmentseed/titiler/issues/1043)
+
+### titiler.mosaic
+
+* fall back to WKT (with a warning) for the WMTS `BoundingBox` crs attribute when the CRS cannot be resolved to a URN (https://github.com/developmentseed/titiler/issues/1043)
+
 ## 2.0.5 (2026-06-18)
 
 ## What's Changed
