@@ -2,36 +2,19 @@
 
 ## Unreleased
 
-### titiler.extensions
-
-* fall back to WKT (with a warning) for the WMTS `BoundingBox` crs attribute when the CRS cannot be resolved to a URN (https://github.com/developmentseed/titiler/issues/1043)
-
-### titiler.mosaic
-
-* fall back to WKT (with a warning) for the WMTS `BoundingBox` crs attribute when the CRS cannot be resolved to a URN (https://github.com/developmentseed/titiler/issues/1043)
-
 ## 2.1.0 (2026-07-20)
 
 ## What's Changed
+
 * feat: add min/max zoom query-parameters to tileset endpoint by @vincentsarago in https://github.com/developmentseed/titiler/pull/1416
-* chore(deps): bump aiohttp from 3.13.5 to 3.14.0 by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1415
 * feat: move from httpx to httpx2 by @vincentsarago in https://github.com/developmentseed/titiler/pull/1419
-* chore(deps): bump the all group with 5 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1421
-* ci(deps): bump the all group with 3 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1420
 * feat: add `zooms` query-parameter to WMTS endpoint to overwrite zoom levels by @vincentsarago in https://github.com/developmentseed/titiler/pull/1423
-* chore(deps): bump the all group with 4 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1428
-* chore(deps): bump tornado from 6.5.5 to 6.5.6 by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1426
-* ci(deps): bump the all group with 5 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1427
 * feat: add error logging within error handler by @vincentsarago in https://github.com/developmentseed/titiler/pull/1429
-* chore(deps): bump the all group with 2 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1439
-* fix: only log non-generic 500 errors by @vincentsarago in https://github.com/developmentseed/titiler/pull/1443
-* ci(deps): bump actions/checkout from 6.0.3 to 7.0.0 in the all group by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1444
-* fix: update mypy type-ignore code in dem algorithm to [call-overload] by @wakame1367 in https://github.com/developmentseed/titiler/pull/1449
-* chore(deps): bump the all group across 1 directory with 9 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1453
-* ci(deps): bump the all group across 1 directory with 11 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1452
-* fix: fall back to WKT for WMTS BoundingBox crs when CRS cannot be resolved to a URN by @wakame1367 in https://github.com/developmentseed/titiler/pull/1448
 * feat: extend tilejson and add get-renders method to tilerFactories by @vincentsarago in https://github.com/developmentseed/titiler/pull/1425
 * feat: update starlette dependency to >=1.0.1 by @vincentsarago in https://github.com/developmentseed/titiler/pull/1454
+* fix: only log non-generic 500 errors by @vincentsarago in https://github.com/developmentseed/titiler/pull/1443
+* fix: update mypy type-ignore code in dem algorithm to [call-overload] by @wakame1367 in https://github.com/developmentseed/titiler/pull/1449
+* fix: fall back to WKT for WMTS BoundingBox crs when CRS cannot be resolved to a URN by @wakame1367 in https://github.com/developmentseed/titiler/pull/1448
 
 
 **Full Changelog**: https://github.com/developmentseed/titiler/compare/2.0.5...2.1.0
