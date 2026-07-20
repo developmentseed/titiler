@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1784561756341,
+  "lastUpdate": 1784562982281,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -24941,6 +24941,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 3.09,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hotwater1367@gmail.com",
+            "name": "KotaYuhara",
+            "username": "wakame1367"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "492fa8471a4ec025da9e0cf2bbacbf91657bd55a",
+          "message": "fix: fall back to WKT for WMTS BoundingBox crs when CRS cannot be resolved to a URN (#1448)\n\n* fix: fall back to WKT for WMTS BoundingBox crs when CRS cannot be resolved to a URN\n\nCo-Authored-By: Claude Fable 5 <noreply@anthropic.com>\n\n* fix: satisfy mypy by narrowing crs urn type before assignment\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: Claude Fable 5 <noreply@anthropic.com>\nCo-authored-by: vincentsarago <vincent.sarago@gmail.com>",
+          "timestamp": "2026-07-20T11:54:37-04:00",
+          "tree_id": "bf25da3acb03c1b9521948742f9c3e0c1ceb9107",
+          "url": "https://github.com/developmentseed/titiler/commit/492fa8471a4ec025da9e0cf2bbacbf91657bd55a"
+        },
+        "date": 1784562981230,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.18,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.21,
             "unit": "s"
           },
           {
