@@ -60,16 +60,13 @@ class wmtsExtension(FactoryExtension):
         """Warn about deprecation of `get_renders` attribute."""
         if self.get_renders:
             warnings.warn(
-                "The wmtsExtension's `get_renders` attribute is deprecated and will be ignored. Please set it at the factory level.",
+                "The wmtsExtension's `get_renders` attribute is deprecated. Please set it at the factory level.",
                 DeprecationWarning,
                 stacklevel=2,
             )
 
     def register(self, factory: MosaicTilerFactory):  # type: ignore [override] # noqa: C901
         """Register endpoint to the tiler factory."""
-
-        # TODO: Remove in 3.0
-        self.get_renders = factory.get_renders
 
         tile_dependencies = (
             self.tile_dependencies
@@ -130,7 +127,13 @@ class wmtsExtension(FactoryExtension):
                     **backend_params.as_dict(),
                 ) as src_dst:
                     dataset_bounds = src_dst.get_geographic_bounds(self.crs)
-                    default_renders = factory.get_renders(src_dst)
+
+                    # TODO: Remove in 3.0
+                    # and use factory.get_renders instead
+                    get_renders: Callable[[BaseBackend], dict[str, dict[str, Any]]] = (
+                        self.get_renders or factory.get_renders
+                    )
+                    default_renders = get_renders(src_dst)
 
                 renders: list[dict[str, Any]] = []
 

@@ -67,9 +67,6 @@ class wmtsExtension(FactoryExtension):
     def register(self, factory: TilerFactory):  # type: ignore [override] # noqa: C901
         """Register extension's endpoints."""
 
-        # TODO: Remove in 3.0
-        self.get_renders = factory.get_renders
-
         tile_dependencies = (
             self.tile_dependencies
             if self.tile_dependencies is not None
@@ -120,7 +117,13 @@ class wmtsExtension(FactoryExtension):
             with rasterio.Env(**env):
                 with factory.reader(src_path, **reader_params.as_dict()) as src_dst:
                     dataset_bounds = src_dst.get_geographic_bounds(self.crs)
-                    default_renders = factory.get_renders(src_dst)
+
+                    # TODO: Remove in 3.0
+                    # and use factory.get_renders instead
+                    get_renders: Callable[[BaseReader], dict[str, dict[str, Any]]] = (
+                        self.get_renders or factory.get_renders
+                    )
+                    default_renders = get_renders(src_dst)
 
                 renders: list[dict[str, Any]] = []
 
