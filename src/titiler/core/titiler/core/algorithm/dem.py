@@ -179,7 +179,7 @@ class Terrarium(BaseAlgorithm):
         """Encode DEM into RGB."""
         data = numpy.clip(img.array[0] + 32768.0, 0.0, 65535.0)
         if self.nodata_height is not None:
-            data[img.array.mask[0]] = numpy.clip(  # type: ignore [index]
+            data[img.array.mask[0]] = numpy.clip(  # type: ignore [call-overload]
                 self.nodata_height + 32768.0, 0.0, 65535.0
             )
         r = data / 256
@@ -239,7 +239,7 @@ class TerrainRGB(BaseAlgorithm):
             raise ValueError(f"Data of {datarange} larger than 256 ** 3")
 
         if self.nodata_height is not None:
-            data[img.array.mask[0]] = (  # type: ignore [index]
+            data[img.array.mask[0]] = (  # type: ignore [call-overload]
                 self.nodata_height - self.baseval
             ) / self.interval
 
