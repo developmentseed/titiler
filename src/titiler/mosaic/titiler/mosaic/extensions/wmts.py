@@ -200,7 +200,15 @@ class wmtsExtension(FactoryExtension):
                     wmts_bbox = bounds
                     if geographic_crs != WGS84_CRS:
                         bbox_crs_type = "BoundingBox"
-                        bbox_crs_uri = CRS_to_urn(geographic_crs)  # type: ignore
+                        crs_urn = CRS_to_urn(geographic_crs)
+                        if not crs_urn:
+                            warnings.warn(
+                                f"Could not resolve a URN for CRS '{geographic_crs}', falling back to WKT for the BoundingBox crs attribute",
+                                UserWarning,
+                                stacklevel=2,
+                            )
+                            crs_urn = geographic_crs.to_wkt()
+                        bbox_crs_uri = crs_urn
                         # WGS88BoundingBox is always xy ordered, but BoundingBox must match the CRS order
                         proj_crs = rio_crs_to_pyproj(geographic_crs)
                         if crs_axis_inverted(proj_crs):

@@ -2,6 +2,7 @@
 
 import os
 import tempfile
+import xml.etree.ElementTree as ET
 from contextlib import contextmanager
 from dataclasses import dataclass
 from io import BytesIO
@@ -11,12 +12,15 @@ from unittest.mock import patch
 import attr
 import morecantile
 import numpy
+import pytest
 from cogeo_mosaic.backends import FileBackend
 from cogeo_mosaic.backends import MosaicBackend as MosaicJSONBackend
 from cogeo_mosaic.mosaic import MosaicJSON
 from fastapi import FastAPI, Query
 from owslib.wmts import WebMapTileService
+from rasterio.crs import CRS
 from rio_tiler.mosaic.methods import PixelSelectionMethod
+from rio_tiler.utils import CRS_to_urn
 from starlette.testclient import TestClient
 
 from titiler.core.dependencies import DefaultDependency
@@ -882,6 +886,38 @@ def test_wmts_extension_mosaic():
             assert ["0", "1"] == list(
                 layer.tilematrixsetlinks["WebMercatorQuad"].tilematrixlimits
             )
+
+
+def test_wmts_extension_mosaic_crs_without_urn():
+    """Test BoundingBox CRS fallback to WKT when the CRS cannot be resolved to a URN.
+
+    ref: https://github.com/developmentseed/titiler/issues/1043
+    """
+    # Custom CRS (tweaked polar stereographic) which cannot be resolved to an authority
+    custom_crs = CRS.from_proj4(
+        "+proj=stere +lat_0=90 +lat_ts=71.3 +lon_0=-42.5 +x_0=0 +y_0=0 +a=6378137.1 +b=6356752.3 +units=m +no_defs"
+    )
+    assert CRS_to_urn(custom_crs) is None
+
+    mosaic = MosaicTilerFactory(
+        backend=MosaicJSONBackend,
+        extensions=[wmtsExtension(crs=custom_crs)],
+    )
+    app = FastAPI()
+    app.include_router(mosaic.router)
+    add_exception_handlers(app, MOSAIC_STATUS_CODES)
+
+    with TestClient(app) as client:
+        with tmpmosaic() as mosaic_file:
+            with pytest.warns(UserWarning, match="Could not resolve a URN for CRS"):
+                response = client.get(f"/WMTSCapabilities.xml?url={mosaic_file}")
+            assert response.status_code == 200
+
+            root = ET.fromstring(response.content)
+            bboxes = root.findall(".//{http://www.opengis.net/ows/1.1}BoundingBox")
+            assert bboxes
+            for bbox in bboxes:
+                assert bbox.attrib["crs"] == custom_crs.to_wkt()
 
 
 def test_mosaic_statistics_featurecollection():
