@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1782986632722,
+  "lastUpdate": 1784557718746,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -24764,6 +24764,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 3.27,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hotwater1367@gmail.com",
+            "name": "KotaYuhara",
+            "username": "wakame1367"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b3194b454548ada6fb55c2663d634eff23d04295",
+          "message": "fix: update mypy type-ignore code in dem algorithm to [call-overload] (#1449)\n\nThe numpy typing stubs now report the masked-array assignment as a\n[call-overload] error instead of [index], leaving the existing\n`# type: ignore [index]` comments uncovered and breaking the mypy CI step.\n\nCo-authored-by: Claude Opus 4.8 <noreply@anthropic.com>",
+          "timestamp": "2026-07-20T10:26:39-04:00",
+          "tree_id": "61760e6cda59f43f07b21ee68c3a7c46a3c7080c",
+          "url": "https://github.com/developmentseed/titiler/commit/b3194b454548ada6fb55c2663d634eff23d04295"
+        },
+        "date": 1784557717006,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.2,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.29,
             "unit": "s"
           },
           {
