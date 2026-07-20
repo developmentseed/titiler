@@ -105,7 +105,7 @@ class TilerFactory(BaseTilerFactory):
                 Query(description="Show info about the time dimension"),
             ] = None,
             env=Depends(self.environment_dependency),
-        ) -> Info:
+        ):
             """Return dataset's basic info."""
             with rasterio.Env(**env):
                 logger.info(f"opening data with reader: {self.reader}")
@@ -116,7 +116,7 @@ class TilerFactory(BaseTilerFactory):
                         info["count"] = len(times)
                         info["times"] = times
 
-            return Info(**info)
+            return info
 
         @self.router.get(
             "/info.geojson",

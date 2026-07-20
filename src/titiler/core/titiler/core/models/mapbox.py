@@ -54,3 +54,13 @@ class TileJSON(BaseModel, extra="allow"):
                 self.minzoom,
             )
         return self
+
+
+class TiTilerJSON(TileJSON):
+    """TiTiler custom TileJSON model."""
+
+    raster_layers: list[dict] | None = None
+
+    band_descriptions: list[tuple[str, str]] | None = None
+    dtype: str | None = None
+    minmax: list[tuple[float, float]] | None = None

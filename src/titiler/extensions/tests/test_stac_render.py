@@ -20,7 +20,9 @@ def test_stacExtension():
     stac_tiler = MultiBaseTilerFactory(reader=STACReader)
 
     stac_tiler_plus_stac_render = MultiBaseTilerFactory(
-        reader=STACReader, extensions=[stacRenderExtension(), wmtsExtension()]
+        reader=STACReader,
+        extensions=[stacRenderExtension(), wmtsExtension()],
+        get_renders=lambda obj: obj.item.properties.get("renders", {}),
     )
     # Check that we added two routes (/renders & /renders/{render_id}) and `/WMTSCapabilities.xml`
     assert (
