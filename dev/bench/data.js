@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1784557718746,
+  "lastUpdate": 1784560394100,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -24823,6 +24823,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 3.29,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "64715604f0ede64f7ac74e657b86bff3120a728b",
+          "message": "chore(deps): bump the all group across 1 directory with 9 updates (#1453)\n\nBumps the all group with 9 updates in the / directory:\n\n| Package | From | To |\n| --- | --- | --- |\n| [httpx2](https://github.com/pydantic/httpx2) | `2.4.0` | `2.5.0` |\n| [obstore](https://github.com/geospatial-jeff/pyasyncio-benchmark) | `0.10.1` | `0.11.0` |\n| [boto3](https://github.com/boto/boto3) | `1.43.0` | `1.43.46` |\n| [ipython](https://github.com/ipython/ipython) | `9.14.1` | `9.15.0` |\n| [uvicorn](https://github.com/Kludex/uvicorn) | `0.49.0` | `0.51.0` |\n| [fastapi](https://github.com/fastapi/fastapi) | `0.138.0` | `0.139.0` |\n| [rio-tiler](https://github.com/cogeotiff/rio-tiler) | `9.3.0` | `9.4.0` |\n| [xarray](https://github.com/pydata/xarray) | `2026.4.0` | `2026.7.0` |\n| [gcsfs](https://github.com/fsspec/gcsfs) | `2026.6.0` | `2026.7.0` |\n\n\n\nUpdates `httpx2` from 2.4.0 to 2.5.0\n- [Release notes](https://github.com/pydantic/httpx2/releases)\n- [Changelog](https://github.com/pydantic/httpx2/blob/main/src/httpx2/CHANGELOG.md)\n- [Commits](https://github.com/pydantic/httpx2/compare/v2.4.0...v2.5.0)\n\nUpdates `obstore` from 0.10.1 to 0.11.0\n- [Commits](https://github.com/geospatial-jeff/pyasyncio-benchmark/commits)\n\nUpdates `boto3` from 1.43.0 to 1.43.46\n- [Release notes](https://github.com/boto/boto3/releases)\n- [Commits](https://github.com/boto/boto3/compare/1.43.0...1.43.46)\n\nUpdates `ipython` from 9.14.1 to 9.15.0\n- [Release notes](https://github.com/ipython/ipython/releases)\n- [Commits](https://github.com/ipython/ipython/compare/9.14.1...9.15.0)\n\nUpdates `uvicorn` from 0.49.0 to 0.51.0\n- [Release notes](https://github.com/Kludex/uvicorn/releases)\n- [Changelog](https://github.com/Kludex/uvicorn/blob/main/docs/release-notes.md)\n- [Commits](https://github.com/Kludex/uvicorn/compare/0.49.0...0.51.0)\n\nUpdates `fastapi` from 0.138.0 to 0.139.0\n- [Release notes](https://github.com/fastapi/fastapi/releases)\n- [Commits](https://github.com/fastapi/fastapi/compare/0.138.0...0.139.0)\n\nUpdates `rio-tiler` from 9.3.0 to 9.4.0\n- [Release notes](https://github.com/cogeotiff/rio-tiler/releases)\n- [Changelog](https://github.com/cogeotiff/rio-tiler/blob/main/CHANGES.md)\n- [Commits](https://github.com/cogeotiff/rio-tiler/compare/9.3.0...9.4.0)\n\nUpdates `xarray` from 2026.4.0 to 2026.7.0\n- [Release notes](https://github.com/pydata/xarray/releases)\n- [Commits](https://github.com/pydata/xarray/compare/v2026.04.0...v2026.07.0)\n\nUpdates `gcsfs` from 2026.6.0 to 2026.7.0\n- [Release notes](https://github.com/fsspec/gcsfs/releases)\n- [Commits](https://github.com/fsspec/gcsfs/compare/2026.6.0...2026.7.0)\n\n---\nupdated-dependencies:\n- dependency-name: httpx2\n  dependency-version: 2.5.0\n  dependency-type: direct:development\n  update-type: version-update:semver-minor\n  dependency-group: all\n- dependency-name: obstore\n  dependency-version: 0.11.0\n  dependency-type: direct:development\n  update-type: version-update:semver-minor\n  dependency-group: all\n- dependency-name: boto3\n  dependency-version: 1.43.46\n  dependency-type: direct:development\n  update-type: version-update:semver-patch\n  dependency-group: all\n- dependency-name: ipython\n  dependency-version: 9.15.0\n  dependency-type: direct:development\n  update-type: version-update:semver-minor\n  dependency-group: all\n- dependency-name: uvicorn\n  dependency-version: 0.51.0\n  dependency-type: direct:development\n  update-type: version-update:semver-minor\n  dependency-group: all\n- dependency-name: fastapi\n  dependency-version: 0.139.0\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: all\n- dependency-name: rio-tiler\n  dependency-version: 9.4.0\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: all\n- dependency-name: xarray\n  dependency-version: 2026.7.0\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: all\n- dependency-name: gcsfs\n  dependency-version: 2026.7.0\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: all\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>\nCo-authored-by: vincentsarago <vincent.sarago@gmail.com>",
+          "timestamp": "2026-07-20T11:11:25-04:00",
+          "tree_id": "79ff56a188cb7e2700e9539f4b8c99fb8f27f195",
+          "url": "https://github.com/developmentseed/titiler/commit/64715604f0ede64f7ac74e657b86bff3120a728b"
+        },
+        "date": 1784560392310,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.19,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.09,
             "unit": "s"
           },
           {
