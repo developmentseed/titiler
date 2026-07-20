@@ -1,3 +1,3 @@
 """titiler.xarray"""
 
-__version__ = "2.0.5"  # x-release-please-version
+__version__ = "2.1.0"  # x-release-please-version

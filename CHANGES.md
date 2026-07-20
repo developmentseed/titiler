@@ -2,13 +2,22 @@
 
 ## Unreleased
 
-### titiler.extensions
+## 2.1.0 (2026-07-20)
 
-* fall back to WKT (with a warning) for the WMTS `BoundingBox` crs attribute when the CRS cannot be resolved to a URN (https://github.com/developmentseed/titiler/issues/1043)
+## What's Changed
 
-### titiler.mosaic
+* feat: add min/max zoom query-parameters to tileset endpoint by @vincentsarago in https://github.com/developmentseed/titiler/pull/1416
+* feat: move from httpx to httpx2 by @vincentsarago in https://github.com/developmentseed/titiler/pull/1419
+* feat: add `zooms` query-parameter to WMTS endpoint to overwrite zoom levels by @vincentsarago in https://github.com/developmentseed/titiler/pull/1423
+* feat: add error logging within error handler by @vincentsarago in https://github.com/developmentseed/titiler/pull/1429
+* feat: extend tilejson and add get-renders method to tilerFactories by @vincentsarago in https://github.com/developmentseed/titiler/pull/1425
+* feat: update starlette dependency to >=1.0.1 by @vincentsarago in https://github.com/developmentseed/titiler/pull/1454
+* fix: only log non-generic 500 errors by @vincentsarago in https://github.com/developmentseed/titiler/pull/1443
+* fix: update mypy type-ignore code in dem algorithm to [call-overload] by @wakame1367 in https://github.com/developmentseed/titiler/pull/1449
+* fix: fall back to WKT for WMTS BoundingBox crs when CRS cannot be resolved to a URN by @wakame1367 in https://github.com/developmentseed/titiler/pull/1448
 
-* fall back to WKT (with a warning) for the WMTS `BoundingBox` crs attribute when the CRS cannot be resolved to a URN (https://github.com/developmentseed/titiler/issues/1043)
+
+**Full Changelog**: https://github.com/developmentseed/titiler/compare/2.0.5...2.1.0
 
 ## 2.0.5 (2026-06-18)
 
