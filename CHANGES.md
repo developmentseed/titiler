@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* feat: optional Prometheus HTTP metrics helper in `titiler.core` via `[metrics]` extra and `instrument_app`
+
 ## 2.1.0 (2026-07-20)
 
 ## What's Changed

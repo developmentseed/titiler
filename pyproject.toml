@@ -60,6 +60,7 @@ dev = [
     "jupyter",
     "matplotlib",
     "folium",
+    "titiler-core[metrics]",
 ]
 telemetry = [
     "opentelemetry-api",
@@ -67,6 +68,10 @@ telemetry = [
     "opentelemetry-instrumentation-fastapi",
     "opentelemetry-instrumentation-logging",
     "opentelemetry-exporter-otlp",
+]
+metrics = [
+    "prometheus-fastapi-instrumentator>=8.0.2",
+    "prometheus-client",
 ]
 docs = [
     "black>=23.10.1",

@@ -3952,6 +3952,19 @@ wheels = [
 ]
 
 [[package]]
+name = "prometheus-fastapi-instrumentator"
+version = "8.0.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "prometheus-client" },
+    { name = "starlette" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/1b/e9/2065686d1dfa62296fdc158b6e8fd25b0cb3dca09b0632cabeb5ae81fe4d/prometheus_fastapi_instrumentator-8.0.2.tar.gz", hash = "sha256:3c252e748151768a7aefd66824a04a870144f71de48a67aed211749a9ca2a548", size = 21342, upload-time = "2026-06-23T09:39:31.611Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c6/c7/fa2b3f469a2e6001b829e0d6bc8680755349aa1329a87bf48731e9d5d30a/prometheus_fastapi_instrumentator-8.0.2-py3-none-any.whl", hash = "sha256:746002ec1e2c58b93f61444e1d104de959a9463a6a3f1c8909ac3757e16c3866", size = 20549, upload-time = "2026-06-23T09:39:32.616Z" },
+]
+
+[[package]]
 name = "prompt-toolkit"
 version = "3.0.52"
 source = { registry = "https://pypi.org/simple" }
@@ -5660,7 +5673,7 @@ wheels = [
 
 [[package]]
 name = "titiler"
-version = "2.0.5"
+version = "2.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "titiler-application" },
@@ -5693,6 +5706,7 @@ dev = [
     { name = "pytest-cov" },
     { name = "requests" },
     { name = "s3fs" },
+    { name = "titiler-core", extra = ["metrics"] },
     { name = "zarr", version = "3.1.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "zarr", version = "3.2.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
 ]
@@ -5703,6 +5717,10 @@ docs = [
     { name = "mkdocs-jupyter" },
     { name = "mkdocs-material", extra = ["imaging"] },
     { name = "mkdocstrings", extra = ["python"] },
+]
+metrics = [
+    { name = "prometheus-client" },
+    { name = "prometheus-fastapi-instrumentator" },
 ]
 server = [
     { name = "uvicorn" },
@@ -5746,6 +5764,7 @@ dev = [
     { name = "pytest-cov" },
     { name = "requests" },
     { name = "s3fs", specifier = ">=2025.2.0" },
+    { name = "titiler-core", extras = ["metrics"], editable = "src/titiler/core" },
     { name = "zarr", specifier = ">=3,<4.0" },
 ]
 docs = [
@@ -5755,6 +5774,10 @@ docs = [
     { name = "mkdocs-jupyter", specifier = ">=0.24.5" },
     { name = "mkdocs-material", extras = ["imaging"], specifier = ">=9.5" },
     { name = "mkdocstrings", extras = ["python"], specifier = ">=0.25.1" },
+]
+metrics = [
+    { name = "prometheus-client" },
+    { name = "prometheus-fastapi-instrumentator", specifier = ">=8.0.2" },
 ]
 server = [{ name = "uvicorn" }]
 telemetry = [
@@ -5833,6 +5856,10 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
+metrics = [
+    { name = "prometheus-client" },
+    { name = "prometheus-fastapi-instrumentator" },
+]
 telemetry = [
     { name = "opentelemetry-api" },
     { name = "opentelemetry-exporter-otlp" },
@@ -5847,6 +5874,7 @@ test = [
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
+    { name = "titiler-core", extra = ["metrics"] },
 ]
 
 [package.metadata]
@@ -5861,13 +5889,15 @@ requires-dist = [
     { name = "opentelemetry-instrumentation-fastapi", marker = "extra == 'telemetry'" },
     { name = "opentelemetry-instrumentation-logging", marker = "extra == 'telemetry'" },
     { name = "opentelemetry-sdk", marker = "extra == 'telemetry'" },
+    { name = "prometheus-client", marker = "extra == 'metrics'" },
+    { name = "prometheus-fastapi-instrumentator", marker = "extra == 'metrics'", specifier = ">=8.0.2" },
     { name = "pydantic", specifier = "~=2.0" },
     { name = "rasterio" },
     { name = "rio-tiler", specifier = ">=9.0,<10.0" },
     { name = "simplejson" },
     { name = "starlette", specifier = ">=1.0.1" },
 ]
-provides-extras = ["telemetry"]
+provides-extras = ["metrics", "telemetry"]
 
 [package.metadata.requires-dev]
 test = [
@@ -5875,6 +5905,7 @@ test = [
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
+    { name = "titiler-core", extras = ["metrics"], editable = "src/titiler/core" },
 ]
 
 [[package]]

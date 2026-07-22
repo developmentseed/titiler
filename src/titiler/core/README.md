@@ -60,5 +60,6 @@ titiler/
         ├── factory.py           - Dynamic tiler endpoints factories
         ├── routing.py           - Custom APIRoute class
         ├── telemetry.py         - OpenTelemetry tracing functions
+        ├── metrics.py           - Optional Prometheus HTTP metrics helper
         └── utils.py             - Titiler utility functions
 ```

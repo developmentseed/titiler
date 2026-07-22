@@ -5,6 +5,8 @@
 
 This instrumentation works seamlessly with other OpenTelemetry libraries, such as FastAPIInstrumentor, to provide a complete, end-to-end view of your application's performance, from incoming request to final response.
 
+For complementary **Prometheus HTTP metrics** (request count / latency scrape endpoint), see [Observability with Prometheus Metrics](metrics.md).
+
 ### Installation
 
 To enable telemetry, you must install titiler.core with the [telemetry] extra. This ensures all necessary OpenTelemetry packages are installed.

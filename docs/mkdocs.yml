@@ -52,6 +52,7 @@ nav:
       - Performance Tuning: "advanced/performance_tuning.md"
       - Extensions: "advanced/Extensions.md"
       - Observability with OpenTelemetry: "advanced/telemetry.md"
+      - Observability with Prometheus Metrics: "advanced/metrics.md"
 
   - Packages:
     - titiler.core: "packages/core.md"

@@ -50,6 +50,10 @@ telemetry = [
     "opentelemetry-instrumentation-logging",
     "opentelemetry-exporter-otlp",
 ]
+metrics = [
+    "prometheus-fastapi-instrumentator>=8.0.2",
+    "prometheus-client",
+]
 
 [dependency-groups]
 test = [
@@ -57,6 +61,7 @@ test = [
     "pytest-cov",
     "pytest-asyncio",
     "httpx2",
+    "titiler-core[metrics]",
 ]
 
 [project.urls]
