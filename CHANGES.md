@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 2.1.1 (2026-07-22)
+
+## What's Changed
+
+* fix(#1455): correct type annotation issue by @captaincoordinates in https://github.com/developmentseed/titiler/pull/1456
+
+
+**Full Changelog**: https://github.com/developmentseed/titiler/compare/2.1.0...2.1.1
+
 ## 2.1.0 (2026-07-20)
 
 ## What's Changed
