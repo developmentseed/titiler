@@ -5,6 +5,7 @@
 ## 2.1.1 (2026-07-22)
 
 ## What's Changed
+
 * fix(#1455): correct type annotation issue by @captaincoordinates in https://github.com/developmentseed/titiler/pull/1456
 
 
