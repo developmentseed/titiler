@@ -21,7 +21,7 @@ def add_route_dependencies(
     routes: list[BaseRoute],
     *,
     scopes: list[EndpointScope],
-    dependencies=list[params.Depends],
+    dependencies: list[params.Depends],
 ):
     """Add dependencies to routes.
 
