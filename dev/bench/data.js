@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1784576325647,
+  "lastUpdate": 1784739617042,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -25177,6 +25177,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 3.33,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "64801328+captaincoordinates@users.noreply.github.com",
+            "name": "Tom Christian",
+            "username": "captaincoordinates"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1cec9563da5a9d083fd568b3cd5fab044749d742",
+          "message": "fix(#1455): correct type annotation issue (#1456)",
+          "timestamp": "2026-07-22T12:58:16-04:00",
+          "tree_id": "1b64a6989eae79091eed772fd522282c51bbe28d",
+          "url": "https://github.com/developmentseed/titiler/commit/1cec9563da5a9d083fd568b3cd5fab044749d742"
+        },
+        "date": 1784739615194,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.2,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.1,
             "unit": "s"
           },
           {
