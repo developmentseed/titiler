@@ -1,12 +1,18 @@
 """rio-stac Extension."""
 
+import sys
 from typing import Annotated, Any, Literal
 
 from attrs import define
 from fastapi import Depends, Query
-from typing_extensions import TypedDict
 
 from titiler.core.factory import FactoryExtension, TilerFactory
+
+# Ref: https://docs.pydantic.dev/2.12/errors/usage_errors/#typed-dict-version
+if sys.version_info >= (3, 12):
+    from typing import TypedDict
+else:
+    from typing_extensions import TypedDict
 
 try:
     import pystac
@@ -40,9 +46,9 @@ class stacExtension(FactoryExtension):
     def register(self, factory: TilerFactory):  # type: ignore [override]
         """Register endpoint to the tiler factory."""
 
-        assert (
-            create_stac_item is not None
-        ), "'rio-stac' must be installed to use stacExtension"
+        assert create_stac_item is not None, (
+            "'rio-stac' must be installed to use stacExtension"
+        )
         assert pystac is not None, "'pystac' must be installed to use stacExtension"
 
         media = [m.value for m in pystac.MediaType] + ["auto"]

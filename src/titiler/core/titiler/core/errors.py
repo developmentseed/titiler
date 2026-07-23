@@ -1,5 +1,6 @@
 """Titiler error classes."""
 
+import logging
 from collections.abc import Callable
 
 from fastapi import FastAPI
@@ -8,6 +9,7 @@ from rio_tiler.errors import (
     InvalidAssetName,
     InvalidBandName,
     InvalidColorFormat,
+    InvalidExpression,
     MissingAssets,
     MissingBands,
     RioTilerError,
@@ -16,6 +18,8 @@ from rio_tiler.errors import (
 from starlette import status
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
+
+logger = logging.getLogger(__name__)
 
 
 class TilerError(Exception):
@@ -43,10 +47,11 @@ DEFAULT_STATUS_CODES = {
     RasterioError: status.HTTP_500_INTERNAL_SERVER_ERROR,
     RioTilerError: status.HTTP_500_INTERNAL_SERVER_ERROR,
     Exception: status.HTTP_500_INTERNAL_SERVER_ERROR,
+    InvalidExpression: status.HTTP_400_BAD_REQUEST,
 }
 
 
-def exception_handler_factory(status_code: int) -> Callable:
+def exception_handler_factory(status_code: int, exc_class: type[Exception]) -> Callable:
     """
     Create a FastAPI exception handler from a status code.
     """
@@ -54,6 +59,15 @@ def exception_handler_factory(status_code: int) -> Callable:
     def handler(request: Request, exc: Exception):
         if status_code == status.HTTP_204_NO_CONTENT:
             return Response(content=None, status_code=204)
+
+        # Only log concrete >=500 errors; the catch-all Exception/500 is
+        # already re-raised and logged by Starlette's ServerErrorMiddleware.
+        if status_code >= 500 and exc_class is not Exception:
+            logger.error(
+                "Exception mapped to HTTP %s response",
+                status_code,
+                exc_info=exc,
+            )
 
         return JSONResponse(content={"detail": str(exc)}, status_code=status_code)
 
@@ -67,4 +81,4 @@ def add_exception_handlers(
     Add exception handlers to the FastAPI app.
     """
     for exc, code in status_codes.items():
-        app.add_exception_handler(exc, exception_handler_factory(code))
+        app.add_exception_handler(exc, exception_handler_factory(code, exc))

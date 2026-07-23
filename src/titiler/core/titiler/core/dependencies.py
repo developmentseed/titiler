@@ -1,24 +1,30 @@
 """Common dependency."""
 
 import json
-import warnings
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal, cast
 
 import numpy
 from fastapi import HTTPException, Query
-from pydantic import Field
+from pydantic import AfterValidator, BeforeValidator, Field
+from pydantic.types import StringConstraints
 from rasterio.crs import CRS
 from rio_tiler.colormap import ColorMaps
 from rio_tiler.colormap import cmap as default_cmap
 from rio_tiler.colormap import parse_color
-from rio_tiler.errors import MissingAssets, MissingBands
-from rio_tiler.types import RIOResampling, WarpResampling
+from rio_tiler.types import AssetType, AssetWithOptions, RIOResampling, WarpResampling
 from starlette.requests import Request
 
 from titiler.core.resources.enums import ImageType, MediaType
 from titiler.core.utils import accept_media_type
+from titiler.core.validation import (
+    separated_parseable_floats_regex,
+    validate_bbox,
+    validate_color_formula,
+    validate_crs,
+    validate_rescale,
+)
 
 
 def create_colormap_dependency(cmap: ColorMaps) -> Callable:
@@ -129,12 +135,37 @@ class BidxExprParams(ExpressionParams, BidxParams):
 
 
 # Dependencies for  MultiBaseReader (e.g STACReader)
+def _parse_asset(values: list[str]) -> list[AssetType]:
+    """Parse assets with optional parameter."""
+    assets: list[AssetType] = []
+    for v in values:
+        if "|" in v:
+            asset_name, params = v.split("|", 1)
+            opts: dict[str, Any] = {"name": asset_name}
+            for option in params.split("|"):
+                key, value = option.split("=", 1)
+                if key == "bidx":
+                    opts["indexes"] = list(map(int, value.split(",")))
+                elif key == "expression":
+                    opts["expression"] = value
+                elif key == "bands":
+                    opts["bands"] = value.split(",")
+
+            asset = cast(AssetWithOptions, opts)
+            assets.append(asset)
+        else:
+            assets.append(v)
+
+    return assets
+
+
 @dataclass
 class AssetsParams(DefaultDependency):
     """Assets parameters."""
 
     assets: Annotated[
-        list[str] | None,
+        list[str],
+        AfterValidator(_parse_asset),
         Query(
             title="Asset names",
             description="Asset's names.",
@@ -148,66 +179,18 @@ class AssetsParams(DefaultDependency):
                     "description": "Return results for assets `data` and `cog`.",
                     "value": ["data", "cog"],
                 },
+                "multi-assets-with-options": {
+                    "description": "Return results for assets `data` and `cog`.",
+                    "value": ["data|bidx=1", "cog|bidx=1,2"],
+                },
             },
         ),
-    ] = None
-
-
-def parse_asset_indexes(
-    asset_indexes: Sequence[str] | dict[str, Sequence[int]],
-) -> dict[str, Sequence[int]]:
-    """parse asset indexes parameters."""
-    return {
-        idx.split("|")[0]: list(map(int, idx.split("|")[1].split(",")))
-        for idx in asset_indexes
-    }
-
-
-def parse_asset_expression(
-    asset_expression: Sequence[str] | dict[str, str],
-) -> dict[str, str]:
-    """parse asset expression parameters."""
-    return {idx.split("|")[0]: idx.split("|")[1] for idx in asset_expression}
+    ]
 
 
 @dataclass
-class AssetsBidxExprParams(AssetsParams, BidxParams):
-    """Assets, Expression and Asset's band Indexes parameters."""
-
-    expression: Annotated[
-        str | None,
-        Query(
-            title="Band Math expression",
-            description="Band math expression between assets",
-            openapi_examples={
-                "user-provided": {"value": None},
-                "simple": {
-                    "description": "Return results of expression between assets.",
-                    "value": "asset1_b1 + asset2_b1 / asset3_b1",
-                },
-            },
-        ),
-    ] = None
-
-    asset_indexes: Annotated[
-        Sequence[str] | None,
-        Query(
-            title="Per asset band indexes",
-            description="Per asset band indexes (coma separated indexes)",
-            alias="asset_bidx",
-            openapi_examples={
-                "user-provided": {"value": None},
-                "one-asset": {
-                    "description": "Return indexes 1,2,3 of asset `data`.",
-                    "value": ["data|1,2,3"],
-                },
-                "multi-assets": {
-                    "description": "Return indexes 1,2,3 of asset `data` and indexes 1 of asset `cog`",
-                    "value": ["data|1,2,3", "cog|1"],
-                },
-            },
-        ),
-    ] = None
+class AssetsExprParams(ExpressionParams, AssetsParams):
+    """Assets and Expression parameters."""
 
     asset_as_band: Annotated[
         bool | None,
@@ -216,143 +199,6 @@ class AssetsBidxExprParams(AssetsParams, BidxParams):
             description="Asset as Band",
         ),
     ] = None
-
-    def __post_init__(self):
-        """Post Init."""
-        if not self.assets and not self.expression:
-            raise MissingAssets(
-                "assets must be defined either via expression or assets options."
-            )
-
-        if self.asset_indexes:
-            self.asset_indexes = parse_asset_indexes(self.asset_indexes)
-
-        if self.asset_indexes and self.indexes:
-            warnings.warn(
-                "Both `asset_bidx` and `bidx` passed; only `asset_bidx` will be considered.",
-                UserWarning,
-                stacklevel=1,
-            )
-
-
-@dataclass
-class AssetsBidxExprParamsOptional(AssetsBidxExprParams):
-    """Assets, Expression and Asset's band Indexes parameters but with no requirement."""
-
-    def __post_init__(self):
-        """Post Init."""
-        if self.asset_indexes:
-            self.asset_indexes = parse_asset_indexes(self.asset_indexes)
-
-        if self.asset_indexes and self.indexes:
-            warnings.warn(
-                "Both `asset_bidx` and `bidx` passed; only `asset_bidx` will be considered.",
-                UserWarning,
-                stacklevel=1,
-            )
-
-
-@dataclass
-class AssetsBidxParams(AssetsParams, BidxParams):
-    """Assets, Asset's band Indexes and Asset's band Expression parameters."""
-
-    asset_indexes: Annotated[
-        Sequence[str] | None,
-        Query(
-            title="Per asset band indexes",
-            description="Per asset band indexes",
-            alias="asset_bidx",
-            openapi_examples={
-                "user-provided": {"value": None},
-                "one-asset": {
-                    "description": "Return indexes 1,2,3 of asset `data`.",
-                    "value": ["data|1;2;3"],
-                },
-                "multi-assets": {
-                    "description": "Return indexes 1,2,3 of asset `data` and indexes 1 of asset `cog`",
-                    "value": ["data|1;2;3", "cog|1"],
-                },
-            },
-        ),
-    ] = None
-
-    asset_expression: Annotated[
-        Sequence[str] | None,
-        Query(
-            title="Per asset band expression",
-            description="Per asset band expression",
-            openapi_examples={
-                "user-provided": {"value": None},
-                "one-asset": {
-                    "description": "Return results for expression `b1*b2+b3` of asset `data`.",
-                    "value": ["data|b1*b2+b3"],
-                },
-                "multi-assets": {
-                    "description": "Return results for expressions `b1*b2+b3` for asset `data` and `b1+b3` for asset `cog`.",
-                    "value": ["data|b1*b2+b3", "cog|b1+b3"],
-                },
-            },
-        ),
-    ] = None
-
-    def __post_init__(self):
-        """Post Init."""
-        if self.asset_indexes:
-            self.asset_indexes = parse_asset_indexes(self.asset_indexes)
-
-        if self.asset_expression:
-            self.asset_expression = parse_asset_expression(self.asset_expression)
-
-        if self.asset_indexes and self.indexes:
-            warnings.warn(
-                "Both `asset_bidx` and `bidx` passed; only `asset_bidx` will be considered.",
-                UserWarning,
-                stacklevel=1,
-            )
-
-
-# Dependencies for  MultiBandReader
-@dataclass
-class BandsParams(DefaultDependency):
-    """Band names parameters."""
-
-    bands: Annotated[
-        list[str] | None,
-        Query(
-            title="Band names",
-            description="Band's names.",
-            openapi_examples={
-                "user-provided": {"value": None},
-                "one-band": {
-                    "description": "Return results for band `B01`.",
-                    "value": ["B01"],
-                },
-                "multi-bands": {
-                    "description": "Return results for bands `B01` and `B02`.",
-                    "value": ["B01", "B02"],
-                },
-            },
-        ),
-    ] = None
-
-
-@dataclass
-class BandsExprParamsOptional(ExpressionParams, BandsParams):
-    """Optional Band names and Expression parameters."""
-
-    pass
-
-
-@dataclass
-class BandsExprParams(ExpressionParams, BandsParams):
-    """Band names and Expression parameters (Band or Expression required)."""
-
-    def __post_init__(self):
-        """Post Init."""
-        if not self.bands and not self.expression:
-            raise MissingBands(
-                "bands must be defined either via expression or bands options."
-            )
 
 
 @dataclass
@@ -398,10 +244,10 @@ class DatasetParams(DefaultDependency):
     """Low level WarpedVRT Optional parameters."""
 
     nodata: Annotated[
-        str | int | float | None,
+        Literal["nan", "inf", "-inf"] | int | float | None,
         Query(
             title="Nodata value",
-            description="Overwrite internal Nodata value",
+            description="Overwrite internal Nodata value; nan or valid float values only.",
         ),
     ] = None
     unscale: Annotated[
@@ -444,6 +290,7 @@ class RenderingParams(DefaultDependency):
 
     rescale: Annotated[
         list[str] | None,
+        BeforeValidator(validate_rescale),
         Query(
             title="Min/Max data Rescaling",
             description="comma (',') delimited Min,Max range. Can set multiple time for multiple bands.",
@@ -453,6 +300,7 @@ class RenderingParams(DefaultDependency):
 
     color_formula: Annotated[
         str | None,
+        BeforeValidator(validate_color_formula),
         Query(
             title="Color Formula",
             description="rio-color formula (info: https://github.com/mapbox/rio-color)",
@@ -467,12 +315,12 @@ class RenderingParams(DefaultDependency):
                 parsed = tuple(
                     map(
                         float,
-                        r.replace(" ", "").replace("[", "").replace("]", "").split(","),
+                        r.split(","),
                     )
                 )
-                assert (
-                    len(parsed) == 2
-                ), f"Invalid rescale values: {self.rescale}, should be of form ['min,max', 'min,max'] or [[min,max], [min, max]]"
+                assert len(parsed) == 2, (
+                    f"Invalid rescale values: {self.rescale}, should be of form ['min,max', 'min,max'] or [[min,max], [min, max]]"
+                )
                 rescale_array.append(parsed)
 
             self.rescale: RescaleType = rescale_array  # type: ignore
@@ -553,6 +401,7 @@ link: https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
                     "value": "0,100,200,300",
                 },
             },
+            pattern=r"^\d+(,\d+)*$",
         ),
     ] = None
 
@@ -578,6 +427,7 @@ link: https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
                     "value": "0,1000",
                 },
             },
+            pattern=separated_parseable_floats_regex(count=2),
         ),
     ] = None
 
@@ -594,9 +444,9 @@ link: https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
 
         if self.range:
             parsed = list(map(float, self.range.split(",")))
-            assert (
-                len(parsed) == 2
-            ), f"Invalid histogram_range values: {self.range}, should be of form 'min,max'"
+            assert len(parsed) == 2, (
+                f"Invalid histogram_range values: {self.range}, should be of form 'min,max'"
+            )
 
             self.range = parsed  # type: ignore
 
@@ -604,6 +454,7 @@ link: https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
 def CoordCRSParams(
     crs: Annotated[
         str | None,
+        BeforeValidator(validate_crs),
         Query(
             alias="coord_crs",
             description="Coordinate Reference System of the input coords. Default to `epsg:4326`.",
@@ -620,6 +471,7 @@ def CoordCRSParams(
 def DstCRSParams(
     crs: Annotated[
         str | None,
+        BeforeValidator(validate_crs),
         Query(
             alias="dst_crs",
             description="Output Coordinate Reference System.",
@@ -636,6 +488,7 @@ def DstCRSParams(
 def CRSParams(
     crs: Annotated[
         str | None,
+        BeforeValidator(validate_crs),
         Query(
             description="Coordinate Reference System.",
         ),
@@ -693,6 +546,7 @@ class OGCMapsParams(DefaultDependency):
 
     bbox: Annotated[
         str | None,
+        BeforeValidator(validate_bbox),
         Query(
             description="Bounding box of the rendered map. The bounding box is provided as four or six coordinates.",
         ),
@@ -700,6 +554,7 @@ class OGCMapsParams(DefaultDependency):
 
     crs: Annotated[
         str | None,
+        BeforeValidator(validate_crs),
         Query(
             description="Reproject the output to the given crs.",
         ),
@@ -707,6 +562,7 @@ class OGCMapsParams(DefaultDependency):
 
     bbox_crs: Annotated[
         str | None,
+        BeforeValidator(validate_crs),
         Query(
             description="crs for the specified bbox.",
             alias="bbox-crs",
@@ -741,13 +597,9 @@ class OGCMapsParams(DefaultDependency):
     def __post_init__(self):  # noqa: C901
         """Parse and validate."""
         if self.crs:
-            if self.crs.startswith("[") and self.crs.endswith("]"):
-                self.crs = self.crs[1:-1]
             self.crs = CRS.from_user_input(self.crs)  # type: ignore
 
         if self.bbox_crs:
-            if self.bbox_crs.startswith("[") and self.bbox_crs.endswith("]"):
-                self.bbox_crs = self.bbox_crs[1:-1]
             self.bbox_crs = CRS.from_user_input(self.bbox_crs)  # type: ignore
 
         if not self.height and not self.width:
@@ -769,3 +621,56 @@ class OGCMapsParams(DefaultDependency):
                 [MediaType[e] for e in ImageType],
             ):
                 self.format = ImageType[media.name]
+
+
+def CoverScaleParams(
+    cover_scale: Annotated[
+        int | None,
+        Query(
+            description="""Scale used when generating coverage estimates of each
+                raster cell by vector feature. Coverage is generated by
+                rasterizing the feature at a finer resolution than the raster then using a summation to aggregate
+                to the raster resolution and dividing by the square of cover_scale
+                to get coverage value for each cell. Increasing cover_scale
+                will increase the accuracy of coverage values; three orders
+                magnitude finer resolution (cover_scale=1000) is usually enough to
+                get coverage estimates with <1% error in individual edge cells coverage
+                estimates, though much smaller values (e.g., cover_scale=10) are often
+                sufficient (<10% error) and require less memory. Defaults to `10`.""",
+            gt=0,
+            le=1000,
+        ),
+    ] = None,
+) -> int:
+    """Cover Scale Parameter."""
+    return cover_scale or 10
+
+
+ZoomsStr = Annotated[
+    str,
+    StringConstraints(pattern=r"^(\*|\w+)::\d+,\d+$"),
+]
+
+
+def ZoomsParams(
+    zooms: Annotated[
+        list[ZoomsStr] | None,
+        Query(
+            description="Overwrite TMS min/max zoom in form of`tileMatrixSetId::minzoom,maxzoom`",
+            openapi_examples={
+                "user-provided": {"value": None},
+                "Single": {"value": ["WebMercatorQuad::0,5"]},
+                "Multiples": {"value": ["WebMercatorQuad::0,5", "WorldCRS84Quad::0,1"]},
+                "All": {"value": ["*::0,5"]},
+            },
+        ),
+    ] = None,
+) -> dict[str, tuple[int, int]]:
+    """tileMatrixSets Zooms Parameter."""
+    if zooms:
+        return {
+            tms_id: tuple(map(int, zoom_range.split(",")[0:2]))  # type: ignore
+            for tms_id, zoom_range in (zoom.split("::") for zoom in zooms)
+        }
+
+    return {}

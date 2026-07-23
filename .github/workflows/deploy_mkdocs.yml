@@ -17,15 +17,30 @@ jobs:
   build:
     name: Deploy docs
     runs-on: ubuntu-latest
+    environment: github-pages
+    permissions:
+      contents: write # mkdocs gh-deploy pushes the built site to gh-pages
     steps:
       - name: Checkout main
-        uses: actions/checkout@v6
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
         with:
-          version: "0.9.*" 
-          enable-cache: true
-    
+          version: "0.9.*"
+          enable-cache: false
+
+      - name: Generate OpenAPI schema          
+        run: |
+          uv run python -c'from titiler.application.main import app; import json; print(json.dumps(app.openapi(), indent=4))' > docs/src/endpoints/openapi.json
+          
       - name: Deploy docs
-        run: uv run --group docs mkdocs gh-deploy --force -f docs/mkdocs.yml
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          uv run --group docs mkdocs gh-deploy --force -f docs/mkdocs.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

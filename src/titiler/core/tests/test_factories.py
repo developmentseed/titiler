@@ -8,12 +8,12 @@ import warnings
 from dataclasses import dataclass
 from enum import Enum
 from io import BytesIO
-from typing import Dict, Optional, Sequence, Type
+from typing import Annotated, Dict, Optional, Sequence, Type
 from unittest.mock import patch
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
 
 import attr
-import httpx
+import httpx2 as httpx
 import morecantile
 import numpy
 import pytest
@@ -27,7 +27,6 @@ from rio_tiler.errors import InvalidDatatypeWarning, NoOverviewWarning
 from rio_tiler.io import BaseReader, MultiBandReader, Reader, STACReader
 from starlette.requests import Request
 from starlette.testclient import TestClient
-from typing_extensions import Annotated
 
 from titiler.core import dependencies
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
@@ -35,7 +34,6 @@ from titiler.core.factory import (
     AlgorithmFactory,
     BaseFactory,
     ColorMapFactory,
-    MultiBandTilerFactory,
     MultiBaseTilerFactory,
     TilerFactory,
     TMSFactory,
@@ -52,7 +50,7 @@ WEB_TMS = TileMatrixSets({"WebMercatorQuad": morecantile.tms.get("WebMercatorQua
 def test_TilerFactory():
     """Test TilerFactory class."""
     cog = TilerFactory()
-    assert len(cog.router.routes) == 21
+    assert len(cog.router.routes) == 19
     assert len(cog.supported_tms.list()) == NB_DEFAULT_TMS
 
     cog = TilerFactory(router_prefix="something", supported_tms=WEB_TMS)
@@ -79,7 +77,7 @@ def test_TilerFactory():
     assert response.status_code == 422
 
     cog = TilerFactory(add_preview=False, add_part=False, add_viewer=False)
-    assert len(cog.router.routes) == 12
+    assert len(cog.router.routes) == 10
 
     app = FastAPI()
     cog = TilerFactory()
@@ -95,7 +93,7 @@ def test_TilerFactory():
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/jpeg"
     response = client.get(
-        f"/tiles/WebMercatorQuad/8/87/48?url={DATA_DIR}/cog.tif&rescale=-3.4028235e+38,3.4028235e+38"
+        f"/tiles/WebMercatorQuad/8/87/48?url={DATA_DIR}/cog.tif&rescale={quote('-3.4028235e+38,3.4028235e+38')}"  # + symbols are interpreted as spaces without quoting
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/jpeg"
@@ -202,6 +200,14 @@ def test_TilerFactory():
     assert npy_tile.shape == (2, 276, 276)  # mask + data
 
     response = client.get(
+        f"/tiles/WebMercatorQuad/8/87/48.png?url={DATA_DIR}/cog.tif&tilesize=512"
+    )
+    assert response.status_code == 200
+    meta = parse_img(response.content)
+    assert meta["width"] == 512
+    assert meta["height"] == 512
+
+    response = client.get(
         f"/preview?url={DATA_DIR}/cog.tif&rescale=0,1000&max_size=256"
     )
     assert response.status_code == 200
@@ -248,17 +254,29 @@ def test_TilerFactory():
     response = client.get(f"/point/-56.228,72.715?url={DATA_DIR}/cog.tif&bidx=1&bidx=1")
     assert len(response.json()["values"]) == 2
     assert response.json()["band_names"] == ["b1", "b1"]
+    assert response.json()["band_descriptions"] == ["b1", "b1"]
 
     response = client.get(
         f"/point/-56.228,72.715?url={DATA_DIR}/cog.tif&expression=b1*2"
     )
     assert len(response.json()["values"]) == 1
-    assert response.json()["band_names"] == ["b1*2"]
+    assert response.json()["band_descriptions"] == ["b1*2"]
 
+    # NOTE: tilejson tilesize default to 512x512
+    # because Mapbox and Maplibre expect tiles to be 512x512
     response = client.get(f"/WebMercatorQuad/tilejson.json?url={DATA_DIR}/cog.tif")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
     assert response.json()["tilejson"]
+    assert "tilesize=512" in response.json()["tiles"][0]
+
+    response = client.get(
+        f"/WebMercatorQuad/tilejson.json?url={DATA_DIR}/cog.tif&tilesize=256"
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    assert response.json()["tilejson"]
+    assert "tilesize=256" in response.json()["tiles"][0]
 
     response = client.get(f"/WorldCRS84Quad/tilejson.json?url={DATA_DIR}/cog.tif")
     assert response.status_code == 200
@@ -409,54 +427,48 @@ def test_TilerFactory():
     assert meta["height"] == 100
 
     # GET - statistics
+    stats_keys = [
+        "min",
+        "max",
+        "mean",
+        "count",
+        "sum",
+        "std",
+        "median",
+        "majority",
+        "minority",
+        "unique",
+        "histogram",
+        "valid_percent",
+        "masked_pixels",
+        "valid_pixels",
+        "description",
+    ]
+
     response = client.get(f"/statistics?url={DATA_DIR}/cog.tif&bidx=1&bidx=1&bidx=1")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
     assert len(resp) == 1
     assert set(resp["b1"].keys()) == {
-        "min",
-        "max",
-        "mean",
-        "count",
-        "sum",
-        "std",
-        "median",
-        "majority",
-        "minority",
-        "unique",
-        "histogram",
-        "valid_percent",
-        "masked_pixels",
-        "valid_pixels",
+        *stats_keys,
         "percentile_2",
         "percentile_98",
     }
     assert len(resp["b1"]["histogram"][0]) == 10
+    assert resp["b1"]["description"] == "b1"
 
     response = client.get(f"/statistics?url={DATA_DIR}/cog.tif&expression=b1*2")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
     assert len(resp) == 1
-    assert set(resp["b1*2"].keys()) == {
-        "min",
-        "max",
-        "mean",
-        "count",
-        "sum",
-        "std",
-        "median",
-        "majority",
-        "minority",
-        "unique",
-        "histogram",
-        "valid_percent",
-        "masked_pixels",
-        "valid_pixels",
+    assert set(resp["b1"].keys()) == {
+        *stats_keys,
         "percentile_2",
         "percentile_98",
     }
+    assert resp["b1"]["description"] == "b1*2"
 
     response = client.get(
         f"/statistics?url={DATA_DIR}/cog.tif&bidx=1&bidx=1&bidx=1&p=4&p=5"
@@ -466,23 +478,11 @@ def test_TilerFactory():
     resp = response.json()
     assert len(resp) == 1
     assert set(resp["b1"].keys()) == {
-        "min",
-        "max",
-        "mean",
-        "count",
-        "sum",
-        "std",
-        "median",
-        "majority",
-        "minority",
-        "unique",
-        "histogram",
-        "valid_percent",
-        "masked_pixels",
-        "valid_pixels",
+        *stats_keys,
         "percentile_4",
         "percentile_5",
     }
+    assert resp["b1"]["description"] == "b1"
 
     response = client.get(f"/statistics?url={DATA_DIR}/cog.tif&categorical=true")
     assert response.status_code == 200
@@ -490,20 +490,7 @@ def test_TilerFactory():
     resp = response.json()
     assert len(resp) == 1
     assert set(resp["b1"].keys()) == {
-        "min",
-        "max",
-        "mean",
-        "count",
-        "sum",
-        "std",
-        "median",
-        "majority",
-        "minority",
-        "unique",
-        "histogram",
-        "valid_percent",
-        "masked_pixels",
-        "valid_pixels",
+        *stats_keys,
         "percentile_2",
         "percentile_98",
     }
@@ -518,20 +505,7 @@ def test_TilerFactory():
     resp = response.json()
     assert len(resp) == 1
     assert set(resp["b1"].keys()) == {
-        "min",
-        "max",
-        "mean",
-        "count",
-        "sum",
-        "std",
-        "median",
-        "majority",
-        "minority",
-        "unique",
-        "histogram",
-        "valid_percent",
-        "masked_pixels",
-        "valid_pixels",
+        *stats_keys,
         "percentile_2",
         "percentile_98",
     }
@@ -563,7 +537,7 @@ def test_TilerFactory():
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
     assert len(resp) == 1
-    assert "(b1 - b1) / (b1 + b1)" in resp
+    assert resp["b1"]["description"] == "(b1 - b1) / (b1 + b1)"
 
     # POST - statistics
     response = client.post(
@@ -575,23 +549,11 @@ def test_TilerFactory():
     assert resp["type"] == "Feature"
     assert len(resp["properties"]["statistics"]) == 1
     assert set(resp["properties"]["statistics"]["b1"].keys()) == {
-        "min",
-        "max",
-        "mean",
-        "count",
-        "sum",
-        "std",
-        "median",
-        "majority",
-        "minority",
-        "unique",
-        "histogram",
+        *stats_keys,
         "percentile_2",
         "percentile_98",
-        "valid_pixels",
-        "masked_pixels",
-        "valid_percent",
     }
+    assert resp["properties"]["statistics"]["b1"]["description"] == "b1"
 
     response = client.post(
         f"/statistics?url={DATA_DIR}/cog.tif&bidx=1&bidx=1&bidx=1",
@@ -603,23 +565,11 @@ def test_TilerFactory():
     assert resp["type"] == "FeatureCollection"
     assert len(resp["features"][0]["properties"]["statistics"]) == 1
     assert set(resp["features"][0]["properties"]["statistics"]["b1"].keys()) == {
-        "min",
-        "max",
-        "mean",
-        "count",
-        "sum",
-        "std",
-        "median",
-        "majority",
-        "minority",
-        "unique",
-        "histogram",
+        *stats_keys,
         "percentile_2",
         "percentile_98",
-        "valid_pixels",
-        "masked_pixels",
-        "valid_percent",
     }
+    assert resp["features"][0]["properties"]["statistics"]["b1"]["description"] == "b1"
 
     response = client.post(
         "/statistics",
@@ -632,24 +582,12 @@ def test_TilerFactory():
     assert resp["type"] == "Feature"
     assert len(resp["properties"]["statistics"]) == 1
     assert set(resp["properties"]["statistics"]["b1"].keys()) == {
-        "min",
-        "max",
-        "mean",
-        "count",
-        "sum",
-        "std",
-        "median",
-        "majority",
-        "minority",
-        "unique",
-        "histogram",
+        *stats_keys,
         "percentile_2",
         "percentile_98",
-        "valid_pixels",
-        "masked_pixels",
-        "valid_percent",
     }
     assert len(resp["properties"]["statistics"]["b1"]["histogram"][1]) == 13
+    assert resp["properties"]["statistics"]["b1"]["description"] == "b1"
 
     response = client.post(
         "/statistics",
@@ -670,22 +608,9 @@ def test_TilerFactory():
     assert resp["type"] == "Feature"
     assert len(resp["properties"]["statistics"]) == 1
     assert set(resp["properties"]["statistics"]["b1"].keys()) == {
-        "min",
-        "max",
-        "mean",
-        "count",
-        "sum",
-        "std",
-        "median",
-        "majority",
-        "minority",
-        "unique",
-        "histogram",
+        *stats_keys,
         "percentile_2",
         "percentile_98",
-        "valid_pixels",
-        "masked_pixels",
-        "valid_percent",
     }
     assert len(resp["properties"]["statistics"]["b1"]["histogram"][0]) == 4
     assert resp["properties"]["statistics"]["b1"]["histogram"][0][3] == 0
@@ -700,7 +625,9 @@ def test_TilerFactory():
     resp = response.json()
     assert resp["type"] == "Feature"
     assert len(resp["properties"]["statistics"]) == 1
-    assert "(b1 - b1) / (b1 + b1)" in resp["properties"]["statistics"]
+    assert (
+        resp["properties"]["statistics"]["b1"]["description"] == "(b1 - b1) / (b1 + b1)"
+    )
 
     # Test with Algorithm
     response = client.get(f"/preview.tif?url={DATA_DIR}/dem.tif&return_mask=False")
@@ -738,6 +665,18 @@ def test_TilerFactory():
     # covers only 5 zoom levels
     assert len(resp["tileMatrixSetLimits"]) == 5
 
+    response = client.get(
+        "/tiles/WebMercatorQuad",
+        params={"url": f"{DATA_DIR}/cog.tif", "minzoom": 5, "maxzoom": 6},
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    resp = response.json()
+    # covers only 2 zoom level
+    assert len(resp["tileMatrixSetLimits"]) == 2
+    assert resp["tileMatrixSetLimits"][0]["tileMatrix"] == "5"
+    assert resp["tileMatrixSetLimits"][1]["tileMatrix"] == "6"
+
 
 @patch("rio_tiler.io.rasterio.rasterio")
 def test_MultiBaseTilerFactory(rio):
@@ -745,7 +684,7 @@ def test_MultiBaseTilerFactory(rio):
     rio.open = mock_rasterio_open
 
     stac = MultiBaseTilerFactory(reader=STACReader)
-    assert len(stac.router.routes) == 23
+    assert len(stac.router.routes) == 21
 
     app = FastAPI()
     app.include_router(stac.router)
@@ -765,10 +704,13 @@ def test_MultiBaseTilerFactory(rio):
     assert len(response.json()) == 2
 
     # no assets
-    with pytest.warns(UserWarning):
-        response = client.get(f"/info?url={DATA_DIR}/item.json")
-        assert response.status_code == 200
-        assert len(response.json()) == 2
+    response = client.get(f"/info?url={DATA_DIR}/item.json")
+    assert response.status_code == 422
+
+    # :all: assets
+    response = client.get(f"/info?url={DATA_DIR}/item.json&assets=:all:")
+    assert response.status_code == 200
+    assert len(response.json()) == 2
 
     response = client.get(f"/info?url={DATA_DIR}/item.json&assets=B01&assets=B09")
     assert response.status_code == 200
@@ -780,8 +722,9 @@ def test_MultiBaseTilerFactory(rio):
     assert response.headers["content-type"] == "application/geo+json"
     assert response.json()["type"] == "Feature"
 
+    # missing assets
     response = client.get(f"/preview.tif?url={DATA_DIR}/item.json")
-    assert response.status_code == 400
+    assert response.status_code == 422
 
     response = client.get(
         f"/preview.tif?url={DATA_DIR}/item.json&assets=B01&assets=B09&return_mask=false"
@@ -796,7 +739,22 @@ def test_MultiBaseTilerFactory(rio):
         "/preview.tif",
         params={
             "url": f"{DATA_DIR}/item.json",
-            "expression": "B01_b1;B01_b1;B01_b1",
+            "assets": "B01|bidx=1,1,1",
+            "return_mask": False,
+        },
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/tiff; application=geotiff"
+    meta = parse_img(response.content)
+    assert meta["dtype"] == "uint16"
+    assert meta["count"] == 3
+
+    response = client.get(
+        "/preview.tif",
+        params={
+            "url": f"{DATA_DIR}/item.json",
+            "assets": "B01",
+            "expression": "b1;b1;b1",
             "return_mask": False,
         },
     )
@@ -807,38 +765,10 @@ def test_MultiBaseTilerFactory(rio):
     assert meta["count"] == 3
 
     response = client.get(
-        f"/preview.tif?url={DATA_DIR}/item.json&assets=B01&asset_bidx=B01|1,1,1&return_mask=false"
-    )
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "image/tiff; application=geotiff"
-    meta = parse_img(response.content)
-    assert meta["dtype"] == "uint16"
-    assert meta["count"] == 3
-
-    response = client.get(
-        f"/preview.tif?url={DATA_DIR}/item.json&assets=B01&bidx=1&bidx=1&return_mask=false"
-    )
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "image/tiff; application=geotiff"
-    meta = parse_img(response.content)
-    assert meta["dtype"] == "uint16"
-    assert meta["count"] == 2
-
-    with pytest.warns(UserWarning):
-        response = client.get(
-            f"/preview.tif?url={DATA_DIR}/item.json&assets=B01&asset_bidx=B01|1,1,1&bidx=1&return_mask=false"
-        )
-        assert response.status_code == 200
-        assert response.headers["content-type"] == "image/tiff; application=geotiff"
-        meta = parse_img(response.content)
-        assert meta["dtype"] == "uint16"
-        assert meta["count"] == 3
-
-    response = client.get(
         "/preview.tif",
         params={
             "url": f"{DATA_DIR}/item.json",
-            "expression": "B01_b1;B01_b1;B01_b1",
+            "assets": "B01|expression=b1;b1;b1",
             "return_mask": False,
         },
     )
@@ -853,7 +783,7 @@ def test_MultiBaseTilerFactory(rio):
         "/preview.tif",
         params={
             "url": f"{DATA_DIR}/item.json",
-            "expression": "B01;B01;B01",
+            "assets": "B01",
             "asset_as_band": True,
             "return_mask": False,
         },
@@ -861,10 +791,28 @@ def test_MultiBaseTilerFactory(rio):
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/tiff; application=geotiff"
     meta = parse_img(response.content)
-    assert meta["dtype"] == "int32"
-    assert meta["count"] == 3
+    assert meta["dtype"] == "uint16"
+    assert meta["count"] == 1
 
     # GET - statistics
+    stats_keys = [
+        "min",
+        "max",
+        "mean",
+        "count",
+        "sum",
+        "std",
+        "median",
+        "majority",
+        "minority",
+        "unique",
+        "histogram",
+        "valid_percent",
+        "masked_pixels",
+        "valid_pixels",
+        "description",
+    ]
+
     response = client.get(
         f"/asset_statistics?url={DATA_DIR}/item.json&assets=B01&assets=B09"
     )
@@ -873,66 +821,63 @@ def test_MultiBaseTilerFactory(rio):
     resp = response.json()
     assert len(resp) == 2
     assert set(resp["B01"]["b1"].keys()) == {
-        "min",
-        "max",
-        "mean",
-        "count",
-        "sum",
-        "std",
-        "median",
-        "majority",
-        "minority",
-        "unique",
-        "histogram",
-        "valid_percent",
-        "masked_pixels",
-        "valid_pixels",
+        *stats_keys,
         "percentile_2",
         "percentile_98",
     }
+    assert resp["B09"]["b1"]["description"] == "b1"
+
     response = client.get(
-        f"/asset_statistics?url={DATA_DIR}/item.json&assets=B01&assets=B09&asset_bidx=B01|1&asset_bidx=B09|1"
+        f"/asset_statistics?url={DATA_DIR}/item.json&assets=B09|bidx=1,1"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
+    assert len(resp) == 1
+    assert resp["B09|indexes=[1,1]"]["b1"]
+    assert resp["B09|indexes=[1,1]"]["b1"]["description"] == "b1"
+
+    # missing assets
+    response = client.get(f"/statistics?url={DATA_DIR}/item.json")
+    assert response.status_code == 422
+
+    # all assets
+    response = client.get(f"/statistics?url={DATA_DIR}/item.json&assets=:all:")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    resp = response.json()
     assert len(resp) == 2
-    assert resp["B01"]["b1"]
-    assert resp["B09"]["b1"]
 
     response = client.get(f"/statistics?url={DATA_DIR}/item.json&assets=B01&assets=B09")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
-    assert list(resp) == ["B01_b1", "B09_b1"]
-    assert set(resp["B01_b1"].keys()) == {
-        "min",
-        "max",
-        "mean",
-        "count",
-        "sum",
-        "std",
-        "median",
-        "majority",
-        "minority",
-        "unique",
-        "histogram",
-        "valid_percent",
-        "masked_pixels",
-        "valid_pixels",
+    assert list(resp) == ["b1", "b2"]
+    assert set(resp["b1"].keys()) == {
+        *stats_keys,
         "percentile_2",
         "percentile_98",
     }
+    assert resp["b1"]["description"] == "B01_b1"
+    assert resp["b2"]["description"] == "B09_b1"
+
+    response = client.get(f"/statistics?url={DATA_DIR}/item.json&assets=B01&assets=B09")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    resp = response.json()
+    assert len(resp) == 2
+    assert resp["b1"]["description"] == "B01_b1"
+    assert resp["b2"]["description"] == "B09_b1"
 
     response = client.get(
-        f"/statistics?url={DATA_DIR}/item.json&assets=B01&assets=B09&asset_bidx=B01|1&asset_bidx=B09|1"
+        f"/statistics?url={DATA_DIR}/item.json&assets=B01&assets=B09&asset_as_band=True"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
     assert len(resp) == 2
-    assert resp["B01_b1"]
-    assert resp["B09_b1"]
+    assert resp["b1"]["description"] == "B01"
+    assert resp["b2"]["description"] == "B09"
 
     # with Algorithm
     response = client.get(
@@ -941,7 +886,7 @@ def test_MultiBaseTilerFactory(rio):
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
     resp = response.json()
-    assert "(B09 - B01) / (B09 + B01)" in resp
+    assert resp["b1"]["description"] == "(B09 - B01) / (B09 + B01)"
 
     stac_feature = {
         "type": "FeatureCollection",
@@ -975,25 +920,30 @@ def test_MultiBaseTilerFactory(rio):
     resp = response.json()
     props = resp["properties"]["statistics"]
     assert len(props) == 2
-    assert set(props["B01_b1"].keys()) == {
-        "min",
-        "max",
-        "mean",
-        "count",
-        "sum",
-        "std",
-        "median",
-        "majority",
-        "minority",
-        "unique",
-        "histogram",
-        "valid_percent",
-        "masked_pixels",
-        "valid_pixels",
+    assert set(props["b1"].keys()) == {
+        *stats_keys,
         "percentile_2",
         "percentile_98",
     }
-    assert props["B09_b1"]
+    assert props["b1"]["description"] == "B01_b1"
+    assert props["b2"]["description"] == "B09_b1"
+
+    # missing assets
+    response = client.post(
+        f"/statistics?url={DATA_DIR}/item.json",
+        json=stac_feature["features"][0],
+    )
+    assert response.status_code == 422
+
+    # all assets
+    response = client.post(
+        f"/statistics?url={DATA_DIR}/item.json&assets=:all:",
+        json=stac_feature["features"][0],
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/geo+json"
+    resp = response.json()
+    assert len(resp["properties"]["statistics"]) == 2
 
     response = client.post(
         f"/statistics?url={DATA_DIR}/item.json&assets=B01&assets=B09", json=stac_feature
@@ -1003,28 +953,15 @@ def test_MultiBaseTilerFactory(rio):
     resp = response.json()
     props = resp["features"][0]["properties"]["statistics"]
     assert len(props) == 2
-    assert set(props["B01_b1"].keys()) == {
-        "min",
-        "max",
-        "mean",
-        "count",
-        "sum",
-        "std",
-        "median",
-        "majority",
-        "minority",
-        "unique",
-        "histogram",
-        "valid_percent",
-        "masked_pixels",
-        "valid_pixels",
+    assert set(props["b1"].keys()) == {
+        *stats_keys,
         "percentile_2",
         "percentile_98",
     }
-    assert props["B09_b1"]
+    assert props["b1"]["description"] == "B01_b1"
 
     response = client.post(
-        f"/statistics?url={DATA_DIR}/item.json&assets=B01&assets=B09&asset_bidx=B01|1&asset_bidx=B09|1",
+        f"/statistics?url={DATA_DIR}/item.json&assets=B01&assets=B09&asset_as_band=True",
         json=stac_feature["features"][0],
     )
     assert response.status_code == 200
@@ -1032,25 +969,29 @@ def test_MultiBaseTilerFactory(rio):
     resp = response.json()
     props = resp["properties"]["statistics"]
     assert len(props) == 2
-    assert set(props["B01_b1"].keys()) == {
-        "min",
-        "max",
-        "mean",
-        "count",
-        "sum",
-        "std",
-        "median",
-        "majority",
-        "minority",
-        "unique",
-        "histogram",
-        "valid_percent",
-        "masked_pixels",
-        "valid_pixels",
+    assert set(props["b1"].keys()) == {
+        *stats_keys,
         "percentile_2",
         "percentile_98",
     }
-    assert props["B09_b1"]
+    assert props["b1"]["description"] == "B01"
+    assert props["b2"]["description"] == "B09"
+
+    response = client.post(
+        f"/statistics?url={DATA_DIR}/item.json&assets=B01&assets=B09&expression=b1/b2&asset_as_band=True",
+        json=stac_feature["features"][0],
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/geo+json"
+    resp = response.json()
+    props = resp["properties"]["statistics"]
+    assert len(props) == 1
+    assert set(props["b1"].keys()) == {
+        *stats_keys,
+        "percentile_2",
+        "percentile_98",
+    }
+    assert props["b1"]["description"] == "B01/B09"
 
     # with Algorithm
     response = client.post(
@@ -1062,7 +1003,7 @@ def test_MultiBaseTilerFactory(rio):
     resp = response.json()
     props = resp["properties"]["statistics"]
     assert len(props) == 1
-    assert "(B09 - B01) / (B09 + B01)" in props
+    assert props["b1"]["description"] == "(B09 - B01) / (B09 + B01)"
 
     # OGC Tileset
     response = client.get(f"/tiles?url={DATA_DIR}/item.json")
@@ -1082,6 +1023,18 @@ def test_MultiBaseTilerFactory(rio):
     resp = response.json()
     # default minzoom/maxzoom are 0->24
     assert len(resp["tileMatrixSetLimits"]) == 25
+
+    response = client.get(
+        "/tiles/WebMercatorQuad",
+        params={"url": f"{DATA_DIR}/item.json", "minzoom": 5, "maxzoom": 6},
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    resp = response.json()
+    # covers only 2 zoom level
+    assert len(resp["tileMatrixSetLimits"]) == 2
+    assert resp["tileMatrixSetLimits"][0]["tileMatrix"] == "5"
+    assert resp["tileMatrixSetLimits"][1]["tileMatrix"] == "6"
 
 
 @attr.s
@@ -1117,333 +1070,6 @@ class BandFileReader(MultiBandReader):
     def _get_band_url(self, band: str) -> str:
         """Validate band's name and return band's url."""
         return os.path.join(self.input, f"{band}.tif")
-
-
-def CustomPathParams(directory: str = Query(..., description="Give me a url.")) -> str:
-    """Custom path Dependency."""
-    return directory
-
-
-def test_MultiBandTilerFactory():
-    """test MultiBandTilerFactory."""
-
-    bands = MultiBandTilerFactory(
-        reader=BandFileReader, path_dependency=CustomPathParams
-    )
-    assert len(bands.router.routes) == 22
-
-    app = FastAPI()
-    app.include_router(bands.router)
-
-    add_exception_handlers(app, DEFAULT_STATUS_CODES)
-
-    client = TestClient(app)
-
-    response = client.get("/openapi.json")
-    assert response.status_code == 200
-
-    response = client.get("/docs")
-    assert response.status_code == 200
-
-    response = client.get(f"/bands?directory={DATA_DIR}")
-    assert response.status_code == 200
-    assert response.json() == ["B01", "B09"]
-
-    # default bands
-    # no bands
-    with pytest.warns(UserWarning):
-        response = client.get(f"/info?directory={DATA_DIR}")
-    assert response.json()["band_metadata"] == [["B01", {}], ["B09", {}]]
-
-    response = client.get(f"/info?directory={DATA_DIR}&bands=B01")
-    assert response.status_code == 200
-    assert response.json()["band_metadata"] == [["B01", {}]]
-
-    response = client.get(f"/info.geojson?directory={DATA_DIR}&bands=B01")
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "application/geo+json"
-    assert response.json()["properties"]["band_metadata"] == [["B01", {}]]
-
-    # need bands or expression
-    response = client.get(f"/preview.tif?directory={DATA_DIR}&return_mask=false")
-    assert response.status_code == 400
-
-    response = client.get(
-        f"/preview.tif?directory={DATA_DIR}&bands=B01&bands=B09&bands=B01&return_mask=false"
-    )
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "image/tiff; application=geotiff"
-    meta = parse_img(response.content)
-    assert meta["dtype"] == "uint16"
-    assert meta["count"] == 3
-
-    response = client.get(
-        "/preview.tif",
-        params={
-            "directory": DATA_DIR,
-            "expression": "B01;B09;B01",
-            "return_mask": False,
-        },
-    )
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "image/tiff; application=geotiff"
-    meta = parse_img(response.content)
-    assert (
-        meta["dtype"] == "int32"
-    )  # when using expression, numexpr will change the datatype
-    assert meta["count"] == 3
-
-    # GET - statistics
-    response = client.get(f"/statistics?directory={DATA_DIR}")
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "application/json"
-    resp = response.json()
-    assert len(resp) == 2
-    assert resp["B01"]
-    assert resp["B09"]
-
-    response = client.get(f"/statistics?directory={DATA_DIR}&bands=B01&bands=B09")
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "application/json"
-    resp = response.json()
-    assert len(resp) == 2
-    assert set(resp["B01"].keys()) == {
-        "min",
-        "max",
-        "mean",
-        "count",
-        "sum",
-        "std",
-        "median",
-        "majority",
-        "minority",
-        "unique",
-        "histogram",
-        "valid_percent",
-        "masked_pixels",
-        "valid_pixels",
-        "percentile_2",
-        "percentile_98",
-    }
-    assert resp["B09"]
-
-    response = client.get(f"/statistics?directory={DATA_DIR}&expression=B01/B09")
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "application/json"
-    resp = response.json()
-    assert len(resp) == 1
-    assert set(resp["B01/B09"].keys()) == {
-        "min",
-        "max",
-        "mean",
-        "count",
-        "sum",
-        "std",
-        "median",
-        "majority",
-        "minority",
-        "unique",
-        "histogram",
-        "valid_percent",
-        "masked_pixels",
-        "valid_pixels",
-        "percentile_2",
-        "percentile_98",
-    }
-
-    response = client.get(
-        f"/statistics?directory={DATA_DIR}&bands=B01&bands=B09&algorithm=normalizedIndex"
-    )
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "application/json"
-    resp = response.json()
-    assert len(resp) == 1
-    assert "(B09 - B01) / (B09 + B01)" in resp
-
-    # POST - statistics
-    band_feature = {
-        "type": "FeatureCollection",
-        "features": [
-            {
-                "type": "Feature",
-                "properties": {},
-                "geometry": {
-                    "type": "Polygon",
-                    "coordinates": [
-                        [
-                            [23.62060546875, 31.834399275715842],
-                            [23.838958740234375, 31.834399275715842],
-                            [23.838958740234375, 32.072101858328686],
-                            [23.62060546875, 32.072101858328686],
-                            [23.62060546875, 31.834399275715842],
-                        ]
-                    ],
-                },
-            }
-        ],
-    }
-
-    response = client.post(
-        f"/statistics?directory={DATA_DIR}&bands=B01&bands=B09",
-        json=band_feature["features"][0],
-    )
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "application/geo+json"
-    resp = response.json()
-    props = resp["properties"]["statistics"]
-    assert len(props) == 2
-    assert set(props["B01"].keys()) == {
-        "min",
-        "max",
-        "mean",
-        "count",
-        "sum",
-        "std",
-        "median",
-        "majority",
-        "minority",
-        "unique",
-        "histogram",
-        "valid_percent",
-        "masked_pixels",
-        "valid_pixels",
-        "percentile_2",
-        "percentile_98",
-    }
-    assert props["B09"]
-
-    response = client.post(
-        f"/statistics?directory={DATA_DIR}&expression=B01/B09",
-        json=band_feature["features"][0],
-    )
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "application/geo+json"
-    resp = response.json()
-    props = resp["properties"]["statistics"]
-    assert len(props) == 1
-    assert set(props["B01/B09"].keys()) == {
-        "min",
-        "max",
-        "mean",
-        "count",
-        "sum",
-        "std",
-        "median",
-        "majority",
-        "minority",
-        "unique",
-        "histogram",
-        "valid_percent",
-        "masked_pixels",
-        "valid_pixels",
-        "percentile_2",
-        "percentile_98",
-    }
-
-    response = client.post(
-        f"/statistics?directory={DATA_DIR}&bands=B01&bands=B09", json=band_feature
-    )
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "application/geo+json"
-    resp = response.json()
-    props = resp["features"][0]["properties"]["statistics"]
-    assert len(props) == 2
-    assert set(props["B01"].keys()) == {
-        "min",
-        "max",
-        "mean",
-        "count",
-        "sum",
-        "std",
-        "median",
-        "majority",
-        "minority",
-        "unique",
-        "histogram",
-        "valid_percent",
-        "masked_pixels",
-        "valid_pixels",
-        "percentile_2",
-        "percentile_98",
-    }
-    assert props["B09"]
-
-    response = client.post(
-        f"/statistics?directory={DATA_DIR}&expression=B01/B09", json=band_feature
-    )
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "application/geo+json"
-    resp = response.json()
-    props = resp["features"][0]["properties"]["statistics"]
-    assert len(props) == 1
-    assert set(props["B01/B09"].keys()) == {
-        "min",
-        "max",
-        "mean",
-        "count",
-        "sum",
-        "std",
-        "median",
-        "majority",
-        "minority",
-        "unique",
-        "histogram",
-        "valid_percent",
-        "masked_pixels",
-        "valid_pixels",
-        "percentile_2",
-        "percentile_98",
-    }
-
-    response = client.post(
-        f"/statistics?directory={DATA_DIR}&bands=B01&bands=B09&algorithm=normalizedIndex",
-        json=band_feature,
-    )
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "application/geo+json"
-    resp = response.json()
-    props = resp["features"][0]["properties"]["statistics"]
-    assert len(props) == 1
-    assert "(B09 - B01) / (B09 + B01)" in props
-
-    # default bands
-    response = client.post(f"/statistics?directory={DATA_DIR}", json=band_feature)
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "application/geo+json"
-    resp = response.json()
-    props = resp["features"][0]["properties"]["statistics"]
-    assert props["B01"]
-    assert props["B09"]
-
-    response = client.post(
-        f"/statistics?directory={DATA_DIR}",
-        json=band_feature["features"][0],
-    )
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "application/geo+json"
-    resp = response.json()
-    props = resp["properties"]["statistics"]
-    assert props["B01"]
-    assert props["B09"]
-
-    # OGC Tileset
-    response = client.get(f"/tiles?directory={DATA_DIR}")
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "application/json"
-    resp = response.json()
-    assert len(resp["tilesets"]) == NB_DEFAULT_TMS
-
-    first_tms = resp["tilesets"][0]
-    first_id = DEFAULT_TMS.list()[0]
-    assert first_id in first_tms["title"]
-    assert len(first_tms["links"]) == 2  # no link to the tms definition
-
-    response = client.get(f"/tiles/WebMercatorQuad?directory={DATA_DIR}")
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "application/json"
-    resp = response.json()
-    # 1 Zoom level (8)
-    assert len(resp["tileMatrixSetLimits"]) == 1
 
 
 def test_TMSFactory():
@@ -1523,7 +1149,7 @@ def test_TilerFactory_WithDependencies():
         ],
         router_prefix="something",
     )
-    assert len(cog.router.routes) == 21
+    assert len(cog.router.routes) == 19
 
     app = FastAPI()
     app.include_router(cog.router, prefix="/something")
@@ -1769,9 +1395,9 @@ def test_rescale_dependency():
                             .split(","),
                         )
                     )
-                    assert (
-                        len(parsed) == 2
-                    ), f"Invalid rescale values: {self.rescale}, should be of form ['min,max', 'min,max'] or [[min,max], [min, max]]"
+                    assert len(parsed) == 2, (
+                        f"Invalid rescale values: {self.rescale}, should be of form ['min,max', 'min,max'] or [[min,max], [min, max]]"
+                    )
                     rescale_array.append(parsed)
 
                 self.rescale = rescale_array  # Noqa
@@ -2037,7 +1663,7 @@ def test_ogc_maps_cog():
     cog_path = f"{DATA_DIR}/cog.tif"
 
     cog = TilerFactory(add_ogc_maps=True)
-    assert len(cog.router.routes) == 22
+    assert len(cog.router.routes) == 20
 
     assert "https://www.opengis.net/spec/ogcapi-maps-1/1.0/conf/core" in cog.conforms_to
 

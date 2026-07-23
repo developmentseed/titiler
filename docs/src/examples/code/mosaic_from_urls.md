@@ -20,30 +20,24 @@ app/backends.py
 from typing import Type, List, Tuple, Dict, Union
 
 import attr
-from rio_tiler.io import BaseReader, COGReader, MultiBandReader, MultiBaseReader
+from rio_tiler.io import BaseReader, Reader, MultiBaseReader
 from rio_tiler.constants import WEB_MERCATOR_TMS, WGS84_CRS
+from rio_tiler.mosaic.backend import BaseBackend
 from rasterio.crs import CRS
 from morecantile import TileMatrixSet
-
-from cogeo_mosaic.backends.base import BaseBackend
-from cogeo_mosaic.mosaic import MosaicJSON
 
 
 @attr.s
 class MultiFilesBackend(BaseBackend):
 
-    input: List[str] = attr.ib()
-
-    reader: Union[
-        Type[BaseReader],
-        Type[MultiBaseReader],
-        Type[MultiBandReader],
-    ] = attr.ib(default=COGReader)
-    reader_options: Dict = attr.ib(factory=dict)
-
-    geographic_crs: CRS = attr.ib(default=WGS84_CRS)
-
+    input: list[str] = attr.ib()
     tms: TileMatrixSet = attr.ib(default=WEB_MERCATOR_TMS)
+
+    reader: type[BaseReader] | type[MultiBaseReader] = (
+        attr.ib(default=Reader)
+    )
+    reader_options: dict = attr.ib(factory=dict)
+
     minzoom: int = attr.ib(default=0)
     maxzoom: int = attr.ib(default=30)
 
@@ -53,51 +47,33 @@ class MultiFilesBackend(BaseBackend):
     )
     crs: CRS = attr.ib(init=False, default=WGS84_CRS)
 
-    # mosaic_def is outside the __init__ method
-    mosaic_def: MosaicJSON = attr.ib(init=False)
-
-    _backend_name = "MultiFiles"
-
-    def __attrs_post_init__(self):
-        """Post Init."""
-        # Construct a FAKE/Empty mosaicJSON
-        # mosaic_def has to be defined.
-        self.mosaic_def = MosaicJSON(
-            mosaicjson="0.0.2",
-            name="it's fake but it's ok",
-            minzoom=self.minzoom,
-            maxzoom=self.maxzoom,
-            tiles=[]  # we set `tiles` to an empty list.
-        )
-
-    def write(self, overwrite: bool = True):
-        """This method is not used but is required by the abstract class."""
-        pass
-
-    def update(self):
-        """We overwrite the default method."""
-        pass
-
-    def _read(self) -> MosaicJSON:
-        """This method is not used but is required by the abstract class."""
-        pass
-
-    def assets_for_tile(self, x: int, y: int, z: int) -> List[str]:
+    def assets_for_tile(self, x: int, y: int, z: int) -> list[str]:
         """Retrieve assets for tile."""
         return self.get_assets()
 
-    def assets_for_point(self, lng: float, lat: float) -> List[str]:
+    def assets_for_point(self, lng: float, lat: float) -> list[str]:
         """Retrieve assets for point."""
         return self.get_assets()
 
-    def get_assets(self) -> List[str]:
+    def assets_for_bbox(
+        self,
+        left: float,
+        bottom: float,
+        right: float,
+        top: float,
+        coord_crs: CRS | None = None,
+        **kwargs,
+    ) -> list[str]:
+        """Retrieve assets for bbox."""
+        return self.get_assets()
+
+    def get_assets(self) -> list[str]:
         """assets are just files we give in path"""
         return self.input
 
     @property
     def _quadkeys(self) -> List[str]:
         return []
-
 ```
 
 2 - Create endpoints

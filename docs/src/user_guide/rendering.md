@@ -23,7 +23,7 @@ A list of available color maps can be found in Titiler's Swagger docs, or in the
 To use a default colormap, simply use the parameter `colormap_name`:
 
 ```python
-import httpx
+import httpx2 as httpx
 
 resp = httpx.get(
     "https://titiler.xyz/cog/preview",
@@ -41,7 +41,7 @@ You can take any of the colormaps listed on `rio-tiler`, and add `_r` to reverse
 If you'd like to specify your own colormap, you can specify your own using an encoded JSON:
 
 ```python
-import httpx
+import httpx2 as httpx
 
 response = httpx.get(
     "https://titiler.xyz/cog/preview",
@@ -79,7 +79,7 @@ Titiler supports color formulae as defined in [Mapbox's `rio-color` plugin](http
 In TiTiler, color_formulae are applied through the `color_formula` parameter as a string. An example of this option in action:
 
 ```python
-import httpx
+import httpx2 as httpx
 
 response = httpx.get(
     "https://titiler.xyz/cog/preview",
@@ -97,7 +97,7 @@ Rescaling is the act of adjusting the minimum and maximum values when rendering 
 All TiTiler endpoinds returning *image* support `rescale` parameter. The parameter should be in form of `"rescale={min},{max}"`.
 
 ```python
-import httpx
+import httpx2 as httpx
 
 response = httpx.get(
     "https;//titiler.xyz/cog/preview",
@@ -111,7 +111,7 @@ response = httpx.get(
 TiTiler supports rescaling on a per-band basis, using multiple `rescale` parameters.
 
 ```python
-import httpx
+import httpx2 as httpx
 
 response = httpx.get(
     "https;//titiler.xyz/cog/preview",

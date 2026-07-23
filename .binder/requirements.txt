@@ -1,7 +1,7 @@
 # Requirements to run notebooks in BinderHub
 
 folium
-httpx
+httpx2
 
 rasterio
 boto3

@@ -1,12 +1,16 @@
 """Test utils."""
 
-import pytest
+from typing import Annotated
 
-from titiler.core.dependencies import AssetsBidxExprParams, BidxParams
+import pytest
+from fastapi import Query
+
+from titiler.core.dependencies import AssetsExprParams, BidxParams
 from titiler.core.resources.enums import MediaType
 from titiler.core.utils import (
     accept_media_type,
     check_query_params,
+    dependencies_to_openapi_params,
     deserialize_query_params,
     extract_query_params,
     get_dependency_query_params,
@@ -107,6 +111,41 @@ def test_extract_query_params():
     assert len(err) == 0
 
 
+def test_dependencies_to_openapi_params():
+    """Test dependencies_to_openapi_params.
+
+    This Code was generated with help of Claude 2.0. See plans/openapi-params-from-dependencies.prompt.md.
+    """
+
+    # empty list → no params
+    assert dependencies_to_openapi_params([]) == []
+
+    # single dependency
+    params = dependencies_to_openapi_params([BidxParams])
+    names = [p["name"] for p in params]
+    assert names == ["bidx"]
+    assert all(p["in"] == "query" for p in params)
+    assert params[0]["required"] is False
+
+    # multiple dependencies are merged
+    params = dependencies_to_openapi_params([BidxParams, AssetsExprParams])
+    names = [p["name"] for p in params]
+    assert "bidx" in names
+    assert "assets" in names
+    assert "expression" in names
+
+    # required flag is respected
+    assets_param = next(p for p in params if p["name"] == "assets")
+    assert assets_param["required"] is True
+
+    # duplicate params across dependencies are deduplicated
+    def dep_a(scale: Annotated[float | None, Query()] = None): ...
+    def dep_b(scale: Annotated[float | None, Query()] = None): ...
+
+    params = dependencies_to_openapi_params([dep_a, dep_b])
+    assert len([p for p in params if p["name"] == "scale"]) == 1
+
+
 def test_check_query_params():
     """Test check_query_params."""
     # invalid bidx value
@@ -121,7 +160,7 @@ def test_check_query_params():
     # assets is required
     assert (
         check_query_params(
-            dependencies=[AssetsBidxExprParams],
+            dependencies=[AssetsExprParams],
             params={},
         )
         is False
@@ -129,8 +168,8 @@ def test_check_query_params():
 
     assert (
         check_query_params(
-            dependencies=[AssetsBidxExprParams, BidxParams],
-            params={"assets": "yo", "bidx": 1},
+            dependencies=[AssetsExprParams, BidxParams],
+            params={"assets": "yo"},
         )
         is True
     )

@@ -7,18 +7,17 @@ import re
 from collections.abc import Callable
 from functools import cache
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, TypedDict
 from urllib.parse import urlparse
 
 import attr
-import httpx
+import httpx2 as httpx
 import obstore
 import xarray
 import zarr
 from morecantile import TileMatrixSet
 from rio_tiler.constants import WEB_MERCATOR_TMS
-from rio_tiler.io.xarray import XarrayReader
-from typing_extensions import TypedDict
+from rio_tiler.io.xarray import Options, XarrayReader
 from zarr.storage import ObjectStore
 
 X_DIM_NAMES = ["lon", "longitude", "LON", "LONGITUDE", "Lon", "Longitude"]
@@ -272,10 +271,16 @@ class Reader(XarrayReader):
 
     tms: TileMatrixSet = attr.ib(default=WEB_MERCATOR_TMS)
 
+    options: Options = attr.ib()
+
     ds: xarray.Dataset = attr.ib(init=False)
     input: xarray.DataArray = attr.ib(init=False)
 
     _dims: list = attr.ib(init=False, factory=list)
+
+    @options.default
+    def _options_default(self):
+        return {}
 
     def __attrs_post_init__(self):
         """Set bounds and CRS."""
@@ -343,9 +348,9 @@ def fs_open_dataset(  # noqa: C901
 
     # NetCDF arguments
     if any(src_path.lower().endswith(ext) for ext in [".nc", ".nc4"]):
-        assert (
-            h5netcdf is not None
-        ), "'h5netcdf' must be installed to read NetCDF dataset"
+        assert h5netcdf is not None, (
+            "'h5netcdf' must be installed to read NetCDF dataset"
+        )
 
         xr_open_args.update(
             {

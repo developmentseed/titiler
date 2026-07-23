@@ -16,7 +16,7 @@ from morecantile import tms as morecantile_tms
 from morecantile.defaults import TileMatrixSets
 from pydantic import Field
 from rio_tiler.constants import MAX_THREADS, WGS84_CRS
-from rio_tiler.io import BaseReader, MultiBandReader, MultiBaseReader, Reader
+from rio_tiler.io import BaseReader, MultiBaseReader, Reader
 from rio_tiler.mosaic.backend import BaseBackend, MosaicInfo
 from rio_tiler.mosaic.methods import PixelSelectionMethod
 from rio_tiler.mosaic.methods.base import MosaicMethodBase
@@ -32,6 +32,7 @@ from titiler.core.dependencies import (
     BidxExprParams,
     ColorMapParams,
     CoordCRSParams,
+    CoverScaleParams,
     CRSParams,
     DatasetParams,
     DefaultDependency,
@@ -76,7 +77,7 @@ def PixelSelectionParams(
     """
     Returns the mosaic method used to combine datasets together.
     """
-    return PixelSelectionMethod[pixel_selection].value()
+    return PixelSelectionMethod[pixel_selection].value
 
 
 def DatasetPathParams(url: Annotated[str, Query(description="Mosaic URL")]) -> str:
@@ -91,9 +92,7 @@ class MosaicTilerFactory(BaseFactory):
     backend: type[BaseBackend]
     backend_dependency: type[DefaultDependency] = DefaultDependency
 
-    dataset_reader: type[BaseReader] | type[MultiBaseReader] | type[MultiBandReader] = (
-        Reader
-    )
+    dataset_reader: type[BaseReader] | type[MultiBaseReader] = Reader
     reader_dependency: type[DefaultDependency] = DefaultDependency
 
     # Path Dependency
@@ -135,6 +134,10 @@ class MosaicTilerFactory(BaseFactory):
     supported_tms: TileMatrixSets = morecantile_tms
 
     render_func: Callable[..., tuple[bytes, str]] = render_image
+
+    get_renders: Callable[[BaseBackend], dict[str, dict[str, Any]]] = field(
+        default=lambda obj: {}
+    )
 
     optional_headers: list[OptionalHeader] = field(factory=list)
 
@@ -278,7 +281,7 @@ class MosaicTilerFactory(BaseFactory):
             summary="Retrieve a list of available raster tilesets for the specified dataset.",
             operation_id=f"{self.operation_prefix}getTileSetList",
         )
-        async def tileset_list(
+        def tileset_list(
             request: Request,
             src_path=Depends(self.path_dependency),
             backend_params=Depends(self.backend_dependency),
@@ -405,7 +408,7 @@ class MosaicTilerFactory(BaseFactory):
             summary="Retrieve the raster tileset metadata for the specified dataset and tiling scheme (tile matrix set).",
             operation_id=f"{self.operation_prefix}getTileSet",
         )
-        async def tileset(
+        def tileset(
             request: Request,
             tileMatrixSetId: Annotated[
                 Literal[tuple(self.supported_tms.list())],
@@ -417,6 +420,14 @@ class MosaicTilerFactory(BaseFactory):
             backend_params=Depends(self.backend_dependency),
             reader_params=Depends(self.reader_dependency),
             env=Depends(self.environment_dependency),
+            minzoom: Annotated[
+                int | None,
+                Query(description="Overwrite default minzoom."),
+            ] = None,
+            maxzoom: Annotated[
+                int | None,
+                Query(description="Overwrite default maxzoom."),
+            ] = None,
             f: Annotated[
                 Literal["html", "json"] | None,
                 Query(
@@ -438,8 +449,8 @@ class MosaicTilerFactory(BaseFactory):
                     **backend_params.as_dict(),
                 ) as src_dst:
                     bounds = src_dst.get_geographic_bounds(tms.rasterio_geographic_crs)
-                    minzoom = src_dst.minzoom
-                    maxzoom = src_dst.maxzoom
+                    minzoom = minzoom if minzoom is not None else src_dst.minzoom
+                    maxzoom = maxzoom if maxzoom is not None else src_dst.maxzoom
 
                     collection_bbox = {
                         "lowerLeft": [bounds[0], bounds[1]],
@@ -563,16 +574,6 @@ class MosaicTilerFactory(BaseFactory):
             operation_id=f"{self.operation_prefix}getTileWithFormat",
             **img_endpoint_params,
         )
-        @self.router.get(
-            "/tiles/{tileMatrixSetId}/{z}/{x}/{y}@{scale}x",
-            operation_id=f"{self.operation_prefix}getTileWithScale",
-            **img_endpoint_params,
-        )
-        @self.router.get(
-            "/tiles/{tileMatrixSetId}/{z}/{x}/{y}@{scale}x.{format}",
-            operation_id=f"{self.operation_prefix}getTileWithFormatAndScale",
-            **img_endpoint_params,
-        )
         def tile(
             z: Annotated[
                 int,
@@ -598,17 +599,15 @@ class MosaicTilerFactory(BaseFactory):
                     description="Identifier selecting one of the TileMatrixSetId supported."
                 ),
             ],
-            scale: Annotated[
-                int,
-                Field(
-                    gt=0, le=4, description="Tile size scale. 1=256x256, 2=512x512..."
-                ),
-            ] = 1,
             format: Annotated[
                 ImageType | None,
                 Field(
                     description="Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
                 ),
+            ] = None,
+            tilesize: Annotated[
+                int | None,
+                Query(gt=0, description="Tilesize in pixels."),
             ] = None,
             src_path=Depends(self.path_dependency),
             backend_params=Depends(self.backend_dependency),
@@ -624,12 +623,6 @@ class MosaicTilerFactory(BaseFactory):
             env=Depends(self.environment_dependency),
         ):
             """Create map tile from a COG."""
-            if scale < 1 or scale > 4:
-                raise HTTPException(
-                    400,
-                    f"Invalid 'scale' parameter: {scale}. Scale HAVE TO be between 1 and 4",
-                )
-
             tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
                 logger.info(
@@ -654,7 +647,7 @@ class MosaicTilerFactory(BaseFactory):
                         x,
                         y,
                         z,
-                        tilesize=scale * 256,
+                        tilesize=tilesize,
                         search_options=assets_accessor_params.as_dict(),
                         pixel_selection=pixel_selection,
                         threads=MOSAIC_THREADS,
@@ -715,18 +708,16 @@ class MosaicTilerFactory(BaseFactory):
                     description="Identifier selecting one of the TileMatrixSetId supported."
                 ),
             ],
+            tilesize: Annotated[
+                int | None,
+                Query(gt=0, description="Tilesize in pixels. Default to 512."),
+            ] = None,
             tile_format: Annotated[
                 ImageType | None,
                 Query(
                     description="Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
                 ),
             ] = None,
-            tile_scale: Annotated[
-                int,
-                Query(
-                    gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
-                ),
-            ] = 1,
             minzoom: Annotated[
                 int | None,
                 Query(description="Overwrite default minzoom."),
@@ -753,7 +744,6 @@ class MosaicTilerFactory(BaseFactory):
                 "z": "{z}",
                 "x": "{x}",
                 "y": "{y}",
-                "scale": tile_scale,
                 "tileMatrixSetId": tileMatrixSetId,
             }
             if tile_format:
@@ -763,15 +753,17 @@ class MosaicTilerFactory(BaseFactory):
             qs_key_to_remove = [
                 "tilematrixsetid",
                 "tile_format",
-                "tile_scale",
                 "minzoom",
                 "maxzoom",
             ]
-            qs = [
+            qs: list[tuple[str, Any]] = [
                 (key, value)
                 for (key, value) in request.query_params._list
                 if key.lower() not in qs_key_to_remove
             ]
+            if "tilesize" not in request.query_params:
+                qs.append(("tilesize", 512))
+
             if qs:
                 tiles_url += f"?{urlencode(qs)}"
 
@@ -787,22 +779,20 @@ class MosaicTilerFactory(BaseFactory):
                     reader_options=reader_params.as_dict(),
                     **backend_params.as_dict(),
                 ) as src_dst:
-                    bounds = src_dst.get_geographic_bounds(tms.rasterio_geographic_crs)
-                    minzoom = minzoom if minzoom is not None else src_dst.minzoom
-                    maxzoom = maxzoom if maxzoom is not None else src_dst.maxzoom
-                    center = (
-                        (bounds[0] + bounds[2]) / 2,
-                        (bounds[1] + bounds[3]) / 2,
-                        minzoom,
-                    )
-                    return {
-                        "bounds": bounds,
-                        "center": center,
-                        "minzoom": minzoom,
-                        "maxzoom": maxzoom,
+                    body = {
+                        "bounds": src_dst.get_geographic_bounds(
+                            tms.rasterio_geographic_crs
+                        ),
+                        "minzoom": minzoom if minzoom is not None else src_dst.minzoom,
+                        "maxzoom": maxzoom if maxzoom is not None else src_dst.maxzoom,
                         "tiles": [tiles_url],
                         "attribution": os.environ.get("TITILER_DEFAULT_ATTRIBUTION"),
                     }
+
+                    # Custom TiTiler tilejson fields
+                    body["raster_layers"] = self.get_renders(src_dst)
+
+            return body
 
     def map_viewer(self):  # noqa: C901
         """Register /map.html endpoint."""
@@ -826,12 +816,10 @@ class MosaicTilerFactory(BaseFactory):
                     description="Default will be automatically defined if the output image needs a mask (png) or not (jpeg).",
                 ),
             ] = None,
-            tile_scale: Annotated[
+            tilesize: Annotated[
                 int,
-                Query(
-                    gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
-                ),
-            ] = 1,
+                Query(gt=0, description="Tilesize in pixels. Default to 256."),
+            ] = 256,
             minzoom: Annotated[
                 int | None,
                 Query(description="Overwrite default minzoom."),
@@ -859,8 +847,31 @@ class MosaicTilerFactory(BaseFactory):
                 "tilejson",
                 tileMatrixSetId=tileMatrixSetId,
             )
+            qs = list(request.query_params._list)
+            if "tilesize" not in request.query_params:
+                qs.append(("tilesize", tilesize))
+
+            tilejson_url += f"?{urlencode(qs)}"
+
+            point_url = self.url_for(request, "point", lon="{lon}", lat="{lat}")
             if request.query_params._list:
-                tilejson_url += f"?{urlencode(request.query_params._list, doseq=True)}"
+                qs_key_to_remove = [
+                    "tilesize",
+                    "tile_format",
+                    "minzoom",
+                    "maxzoom",
+                    "buffer",
+                    "padding",
+                    "colormap",
+                    "colormap_name",
+                ]
+                qs = [
+                    (key, value)
+                    for (key, value) in request.query_params._list
+                    if key.lower() not in qs_key_to_remove
+                ]
+                if qs:
+                    point_url += f"?{urlencode(qs)}"
 
             tms = self.supported_tms.get(tileMatrixSetId)
             return self.templates.TemplateResponse(
@@ -868,6 +879,7 @@ class MosaicTilerFactory(BaseFactory):
                 name="map.html",
                 context={
                     "tilejson_endpoint": tilejson_url,
+                    "point_endpoint": point_url,
                     "tms": tms,
                     "resolutions": [matrix.cellSize for matrix in tms],
                 },
@@ -964,6 +976,7 @@ class MosaicTilerFactory(BaseFactory):
             dataset_params=Depends(self.dataset_dependency),
             pixel_selection=Depends(self.pixel_selection_dependency),
             image_params=Depends(self.img_part_dependency),
+            cover_scale=Depends(CoverScaleParams),
             post_process=Depends(self.process_dependency),
             stats_params=Depends(self.stats_dependency),
             histogram_params=Depends(self.histogram_dependency),
@@ -1004,6 +1017,7 @@ class MosaicTilerFactory(BaseFactory):
                         coverage_array = image.get_coverage_array(
                             shape,
                             shape_crs=coord_crs or WGS84_CRS,
+                            cover_scale=cover_scale,
                         )
 
                         if post_process:

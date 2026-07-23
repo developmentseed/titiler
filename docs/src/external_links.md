@@ -17,10 +17,15 @@
 
 * [stac-utils/titiler-pgstac](https://github.com/stac-utils/titiler-pgstac): TiTiler extension which connects to a PgSTAC database to create dynamic mosaics based on search queries.
 
-* [developmentseed/titiler-xarray](https://github.com/developmentseed/titiler-xarray): TiTiler extension for xarray
+* [developmentseed/titiler-multidim](https://github.com/developmentseed/titiler-multidim): TiTiler extension for NetCDF/Zarr datasets (previously xarray)
 
-* [developmentseed/titiler-image](https://github.com/developmentseed/titiler-image): TiTiler demo application for Sentinel-2 Digital Twin dataset
+* [developmentseed//titiler-stacapi](https://github.com/developmentseed/titiler-stacapi): TiTiler extension to connect to STAC APIs
 
+* [developmentseed/titiler-cmr](https://github.com/developmentseed/titiler-cmr): Dynamic tiles from CMR queries, see [demo](http://developmentseed.org/titiler-cmr-browser/) and  [titiler-cmr-browser repo](https://github.com/developmentseed/titiler-cmr-browser)
+
+* Experimental [developmentseed/async-titiler]([url](https://github.com/developmentseed/async-titiler)): TiTiler + Async-GeoTIFF
+
+* Archived [developmentseed/titiler-image](https://github.com/developmentseed/titiler-image): TiTiler extension to work with non-geo images
 
 ## Projects / Demo using TiTiler
 

@@ -5,6 +5,7 @@ on:
   push:
     branches:
     - main
+    - dev
     tags:
     - '*'
   pull_request:
@@ -13,9 +14,14 @@ jobs:
   benchmark:
     if: github.repository == 'developmentseed/titiler'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # Push benchmark results to gh-benchmarks branch
+      pull-requests: write # Leave PR comments when benchmark regressions exceed alert threshold
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
 
       - name: install siege
         run: |
@@ -56,7 +62,7 @@ jobs:
           cat output.json | jq '[inputs]' > benchmark.json
 
       - name: Check and Store benchmark result
-        uses: benchmark-action/github-action-benchmark@v1
+        uses: benchmark-action/github-action-benchmark@52576c92bccf6ac60c8223ec7eb2565637cae9ba # v1
         with:
           name: TiTiler performance Benchmarks
           tool: 'customSmallerIsBetter'

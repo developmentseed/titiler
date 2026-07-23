@@ -29,11 +29,14 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-    "titiler-core==1.1.1",
+    "titiler-core==2.1.1",  # x-release-please-version
     "xarray",
     "rioxarray",
     "obstore",
     "zarr>=3.1,<4.0",
+    "starlette-cramjam>=0.4,<1.0",
+    "pydantic-settings~=2.0",
+    "httpx2",
 ]
 
 [project.optional-dependencies]
@@ -59,20 +62,12 @@ test = [
     "pytest",
     "pytest-cov",
     "pytest-asyncio",
-    "httpx",
     "h5netcdf",
     "h5py",
     "fsspec",
     "s3fs",
     "aiohttp",
     "requests",
-]
-upstream = [
-    'xarray @ git+https://github.com/pydata/xarray',
-    'universal_pathlib @ git+https://github.com/fsspec/universal_pathlib',
-    'numcodecs @ git+https://github.com/zarr-developers/numcodecs',
-    'ujson @ git+https://github.com/ultrajson/ultrajson',
-    'zarr @ git+https://github.com/zarr-developers/zarr-python',
 ]
 
 [project.urls]

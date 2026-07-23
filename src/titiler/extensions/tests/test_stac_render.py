@@ -20,7 +20,9 @@ def test_stacExtension():
     stac_tiler = MultiBaseTilerFactory(reader=STACReader)
 
     stac_tiler_plus_stac_render = MultiBaseTilerFactory(
-        reader=STACReader, extensions=[stacRenderExtension(), wmtsExtension()]
+        reader=STACReader,
+        extensions=[stacRenderExtension(), wmtsExtension()],
+        get_renders=lambda obj: obj.item.properties.get("renders", {}),
     )
     # Check that we added two routes (/renders & /renders/{render_id}) and `/WMTSCapabilities.xml`
     assert (
@@ -77,3 +79,27 @@ def test_stacExtension():
         hrefs = {unquote(urlparse(link["href"]).path) for link in links}
         assert hrefs == expected_hrefs
         assert body["params"] == expected_params
+
+        response = client.get("/renders/rgb_old", params={"url": stac_item})
+        assert response.status_code == 200
+        body = response.json()
+        assert body["valid"]
+        assert body["params"] == {
+            "title": "Thumbnail",
+            "assets": ["B4|bidx=1", "B3|bidx=1", "B2|bidx=1"],
+        }
+
+        response = client.get("/renders/expression_old", params={"url": stac_item})
+        assert response.status_code == 200
+        body = response.json()
+        assert body["valid"]
+        assert body["params"] == {
+            "title": "expression",
+            "assets": ["B02|expression=b1*2"],
+        }
+
+        response = client.get("/renders/missing_asset", params={"url": stac_item})
+        assert response.status_code == 200
+        body = response.json()
+        assert not body["valid"]
+        assert body["params"] == {"title": "bad_expression", "expression": "b1*2"}

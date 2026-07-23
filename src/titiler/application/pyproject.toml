@@ -30,10 +30,11 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-    "titiler-core[telemetry]==1.1.1",
-    "titiler-extensions[cogeo,stac]==1.1.1",
-    "titiler-mosaic[mosaicjson]==1.1.1",
-    "starlette-cramjam>=0.4,<0.6",
+    "titiler-core[telemetry]==2.1.1",  # x-release-please-version
+    "titiler-xarray==2.1.1",  # x-release-please-version
+    "titiler-extensions[cogeo,stac]==2.1.1",  # x-release-please-version
+    "titiler-mosaic[mosaicjson]==2.1.1",  # x-release-please-version
+    "starlette-cramjam>=0.4,<1.0",
     "pydantic-settings~=2.0",
 ]
 
@@ -47,7 +48,7 @@ test = [
     "pytest",
     "pytest-cov",
     "pytest-asyncio",
-    "httpx",
+    "httpx2",
     "brotlipy",
     "boto3",
 ]

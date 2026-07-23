@@ -21,7 +21,7 @@ def test_info(rio, app):
     assert response.status_code == 200
     body = response.json()
     assert len(body["bounds"]) == 4
-    assert body["band_descriptions"] == [["b1", ""]]
+    assert body["band_descriptions"] == [["b1", "b1"]]
     assert body["dtype"] == "uint16"
     assert body["colorinterp"] == ["gray"]
     assert body["nodata_type"] == "None"
@@ -31,7 +31,7 @@ def test_info(rio, app):
     assert response.headers["content-type"] == "application/geo+json"
     body = response.json()
     assert body["geometry"]
-    assert body["properties"]["band_descriptions"] == [["b1", ""]]
+    assert body["properties"]["band_descriptions"] == [["b1", "b1"]]
     assert body["properties"]["dtype"] == "uint16"
     assert body["properties"]["colorinterp"] == ["gray"]
     assert body["properties"]["nodata_type"] == "None"
@@ -51,21 +51,11 @@ def test_wmts(rio, app):
         in response.content.decode()
     )
     assert (
-        "http://testserver/cog/tiles/WebMercatorQuad/{TileMatrix}/{TileCol}/{TileRow}@1x.png?url=https"
+        "http://testserver/cog/tiles/WebMercatorQuad/{TileMatrix}/{TileCol}/{TileRow}.png?url=https"
         in response.content.decode()
     )
     assert (
         "<ows:SupportedCRS>http://www.opengis.net/def/crs/EPSG/0/3857</ows:SupportedCRS>"
-        in response.content.decode()
-    )
-
-    response = app.get(
-        "/cog/WMTSCapabilities.xml?url=https://myurl.com/cog.tif&tile_scale=2&tile_format=jpg"
-    )
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "application/xml"
-    assert (
-        "http://testserver/cog/tiles/WebMercatorQuad/{TileMatrix}/{TileCol}/{TileRow}@2x.jpg?url=https"
         in response.content.decode()
     )
 
@@ -94,7 +84,7 @@ def test_tile(rio, app):
     assert meta["height"] == 256
 
     response = app.get(
-        "/cog/tiles/WebMercatorQuad/8/87/48@2x?url=https://myurl.com/cog.tif&rescale=0,1000&color_formula=Gamma R 3"
+        "/cog/tiles/WebMercatorQuad/8/87/48?url=https://myurl.com/cog.tif&rescale=0,1000&tilesize=512&color_formula=Gamma R 3"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/jpeg"
@@ -115,13 +105,7 @@ def test_tile(rio, app):
     assert response.headers["content-type"] == "image/jpeg"
 
     response = app.get(
-        "/cog/tiles/WebMercatorQuad/8/87/48@2x.jpg?url=https://myurl.com/cog.tif&rescale=0,1000"
-    )
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "image/jpg"
-
-    response = app.get(
-        "/cog/tiles/WebMercatorQuad/8/87/48@2x.tif?url=https://myurl.com/cog.tif&nodata=0&bidx=1"
+        "/cog/tiles/WebMercatorQuad/8/87/48.tif?url=https://myurl.com/cog.tif&nodata=0&bidx=1&tilesize=512"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/tiff; application=geotiff"
@@ -224,7 +208,7 @@ def test_tile(rio, app):
     assert response.status_code == 422
 
     response = app.get(
-        "/cog/tiles/WebMercatorQuad/8/87/48@2x.tif?url=https://myurl.com/cog.tif&nodata=0&bidx=1&return_mask=false"
+        "/cog/tiles/WebMercatorQuad/8/87/48.tif?url=https://myurl.com/cog.tif&nodata=0&bidx=1&return_mask=false&tilesize=512"
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/tiff; application=geotiff"
@@ -250,21 +234,12 @@ def test_tilejson(rio, app):
     assert body["scheme"] == "xyz"
     assert len(body["tiles"]) == 1
     assert body["tiles"][0].startswith(
-        "http://testserver/cog/tiles/WebMercatorQuad/{z}/{x}/{y}@1x?url=https"
+        "http://testserver/cog/tiles/WebMercatorQuad/{z}/{x}/{y}?url=https"
     )
     assert body["minzoom"] == 5
     assert body["maxzoom"] == 9
     assert body["bounds"]
     assert body["center"]
-
-    response = app.get(
-        "/cog/WebMercatorQuad/tilejson.json?url=https://myurl.com/cog.tif&tile_format=png&tile_scale=2"
-    )
-    assert response.status_code == 200
-    body = response.json()
-    assert body["tiles"][0].startswith(
-        "http://testserver/cog/tiles/WebMercatorQuad/{z}/{x}/{y}@2x.png?url=https"
-    )
 
     cmap_dict = {
         "1": [58, 102, 24, 255],
@@ -283,7 +258,7 @@ def test_tilejson(rio, app):
     assert response.status_code == 200
     body = response.json()
     assert body["tiles"][0].startswith(
-        "http://testserver/cog/tiles/WebMercatorQuad/{z}/{x}/{y}@1x?url=https"
+        "http://testserver/cog/tiles/WebMercatorQuad/{z}/{x}/{y}?url=https"
     )
     query = dict(parse_qsl(urlparse(body["tiles"][0]).query))
     assert json.loads(query["colormap"]) == cmap_dict

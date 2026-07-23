@@ -3,6 +3,7 @@
 import json
 import os
 import tempfile
+import xml.etree.ElementTree as ET
 from contextlib import contextmanager
 from dataclasses import dataclass
 from io import BytesIO
@@ -12,6 +13,7 @@ from unittest.mock import patch
 import attr
 import morecantile
 import numpy
+import pytest
 from cogeo_mosaic.backends import FileBackend
 from cogeo_mosaic.backends import MosaicBackend as MosaicJSONBackend
 from cogeo_mosaic.mosaic import MosaicJSON
@@ -19,6 +21,7 @@ from fastapi import FastAPI, Query
 from owslib.wmts import WebMapTileService
 from rasterio.crs import CRS
 from rio_tiler.mosaic.methods import PixelSelectionMethod
+from rio_tiler.utils import CRS_to_urn
 from starlette.testclient import TestClient
 
 from titiler.core.dependencies import DefaultDependency
@@ -58,7 +61,7 @@ def test_MosaicTilerFactory():
         optional_headers=[OptionalHeader.x_assets],
         router_prefix="mosaic",
     )
-    assert len(mosaic.router.routes) == 14
+    assert len(mosaic.router.routes) == 12
 
     @dataclass
     class MosaicJSONAccessor(DefaultDependency):
@@ -81,7 +84,7 @@ def test_MosaicTilerFactory():
         add_part=True,
         router_prefix="mosaic",
     )
-    assert len(mosaic.router.routes) == 23
+    assert len(mosaic.router.routes) == 21
 
     app = FastAPI()
     app.include_router(mosaic.router, prefix="/mosaic")
@@ -222,7 +225,7 @@ def test_MosaicTilerFactory():
         assert response.status_code == 200
         body = response.json()
         assert (
-            "http://testserver/mosaic/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?url="
+            "http://testserver/mosaic/tiles/WebMercatorQuad/{z}/{x}/{y}.png?url="
             in body["tiles"][0]
         )
         assert body["minzoom"] == 6
@@ -241,7 +244,7 @@ def test_MosaicTilerFactory():
         assert response.status_code == 200
         body = response.json()
         assert (
-            "http://testserver/mosaic/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?url="
+            "http://testserver/mosaic/tiles/WebMercatorQuad/{z}/{x}/{y}.png?url="
             in body["tiles"][0]
         )
         assert body["minzoom"] == 6
@@ -360,6 +363,16 @@ def test_MosaicTilerFactory():
         resp = response.json()
         # covers only 3 zoom levels
         assert len(resp["tileMatrixSetLimits"]) == 3
+
+        response = client.get(
+            "/mosaic/tiles/WebMercatorQuad",
+            params={"url": mosaic_file, "minzoom": 0, "maxzoom": 1},
+        )
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "application/json"
+        resp = response.json()
+        # covers only 2 zoom levels
+        assert len(resp["tileMatrixSetLimits"]) == 2
 
         response = client.get(
             f"/mosaic/tiles/WebMercatorQuad?url={mosaic_file}",
@@ -805,24 +818,21 @@ def test_wmts_extension_mosaic():
     """Test wmtsExtension extension."""
     mosaic = MosaicTilerFactory(
         backend=MosaicJSONBackend,
-        extensions=[
-            wmtsExtension(
-                get_renders=lambda obj: {
-                    "one_band_limit": {
-                        "tilematrixsets": {
-                            "WebMercatorQuad": [0, 1],
-                        },
-                        "spatial_extent": (-180, -90, 180, 90),
-                        "bidx": [1, 2, 3],
-                        "rescale": [[0, 10000], [0, 5000], [0, 1000]],
-                    },
-                    "one_band": {
-                        "bidx": [1],
-                        "rescale": ["0,10000"],
-                    },
+        get_renders=lambda obj: {
+            "one_band_limit": {
+                "tilematrixsets": {
+                    "WebMercatorQuad": [0, 1],
                 },
-            )
-        ],
+                "spatial_extent": (-180, -90, 180, 90),
+                "bidx": [1, 2, 3],
+                "rescale": [[0, 10000], [0, 5000], [0, 1000]],
+            },
+            "one_band": {
+                "bidx": [1],
+                "rescale": ["0,10000"],
+            },
+        },
+        extensions=[wmtsExtension()],
     )
     app = FastAPI()
     app.include_router(mosaic.router)
@@ -852,6 +862,61 @@ def test_wmts_extension_mosaic():
                 layer.tilematrixsetlinks["WebMercatorQuad"].tilematrixlimits
             )
 
+            # Overwrite zoom levels via query params
+            response = client.get(
+                f"/WMTSCapabilities.xml?url={mosaic_file}&zooms=WebMercatorQuad::0,2"
+            )
+            assert response.status_code == 200
+
+            wmts = WebMapTileService(
+                f"/WMTSCapabilities.xml?url={mosaic_file}&zooms=WebMercatorQuad:::0,2",
+                xml=response.content,
+            )
+            assert wmts.version == "1.0.0"
+            assert len(wmts.contents) == 39  # (2 renders + default) x 13 TMS
+
+            layer = wmts.contents[f"{mosaic_file}_WebMercatorQuad_default"]
+            assert ["0", "1", "2"] == list(
+                layer.tilematrixsetlinks["WebMercatorQuad"].tilematrixlimits
+            )
+
+            layer = wmts.contents[f"{mosaic_file}_WebMercatorQuad_one_band_limit"]
+            assert ["0", "1"] == list(
+                layer.tilematrixsetlinks["WebMercatorQuad"].tilematrixlimits
+            )
+
+
+def test_wmts_extension_mosaic_crs_without_urn():
+    """Test BoundingBox CRS fallback to WKT when the CRS cannot be resolved to a URN.
+
+    ref: https://github.com/developmentseed/titiler/issues/1043
+    """
+    # Custom CRS (tweaked polar stereographic) which cannot be resolved to an authority
+    custom_crs = CRS.from_proj4(
+        "+proj=stere +lat_0=90 +lat_ts=71.3 +lon_0=-42.5 +x_0=0 +y_0=0 +a=6378137.1 +b=6356752.3 +units=m +no_defs"
+    )
+    assert CRS_to_urn(custom_crs) is None
+
+    mosaic = MosaicTilerFactory(
+        backend=MosaicJSONBackend,
+        extensions=[wmtsExtension(crs=custom_crs)],
+    )
+    app = FastAPI()
+    app.include_router(mosaic.router)
+    add_exception_handlers(app, MOSAIC_STATUS_CODES)
+
+    with TestClient(app) as client:
+        with tmpmosaic() as mosaic_file:
+            with pytest.warns(UserWarning, match="Could not resolve a URN for CRS"):
+                response = client.get(f"/WMTSCapabilities.xml?url={mosaic_file}")
+            assert response.status_code == 200
+
+            root = ET.fromstring(response.content)
+            bboxes = root.findall(".//{http://www.opengis.net/ows/1.1}BoundingBox")
+            assert bboxes
+            for bbox in bboxes:
+                assert bbox.attrib["crs"] == custom_crs.to_wkt()
+
 
 def test_optional_headers():
     """Test TilerFactory class."""
@@ -874,3 +939,103 @@ def test_optional_headers():
             assert "content-crs-json" in headers
             projjson_crs = json.loads(headers["content-crs-json"])
             assert CRS.from_user_input(projjson_crs).to_epsg() == 3857
+
+
+def test_mosaic_statistics_featurecollection():
+    """Test statistics endpoint with FeatureCollection containing multiple distinct features.
+
+    Regression test for bug where pixel_selection state from feature N
+    carried over to feature N+1, causing ValueError when features have
+    different pixel dimensions.
+    """
+    mosaic = MosaicTilerFactory(
+        backend=MosaicJSONBackend,
+        add_statistics=True,
+        router_prefix="mosaic",
+    )
+    app = FastAPI()
+    app.include_router(mosaic.router, prefix="/mosaic")
+    client = TestClient(app)
+
+    # Two distinct polygons within the mosaic bounds but different sizes
+    # mosaic bounds: [-75.98, 44.93, -71.33, 47.09]
+    feature_a = {
+        "type": "Feature",
+        "properties": {},
+        "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [-74.5, 45.5],
+                    [-74.5, 46.0],
+                    [-74.0, 46.0],
+                    [-74.0, 45.5],
+                    [-74.5, 45.5],
+                ]
+            ],
+        },
+    }
+
+    feature_b = {
+        "type": "Feature",
+        "properties": {},
+        "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [-73.5, 45.0],
+                    [-73.5, 45.3],
+                    [-73.0, 45.3],
+                    [-73.0, 45.0],
+                    [-73.5, 45.0],
+                ]
+            ],
+        },
+    }
+
+    with tmpmosaic() as mosaic_file:
+        # Test 1: Single Feature works
+        response = client.post(
+            "/mosaic/statistics",
+            params={"url": mosaic_file},
+            json=feature_a,
+        )
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "application/geo+json"
+        resp = response.json()
+        assert resp["type"] == "Feature"
+        assert "statistics" in resp["properties"]
+
+        # Test 2: FeatureCollection with 1 feature works
+        fc_single = {"type": "FeatureCollection", "features": [feature_a]}
+        response = client.post(
+            "/mosaic/statistics",
+            params={"url": mosaic_file},
+            json=fc_single,
+        )
+        assert response.status_code == 200
+        resp = response.json()
+        assert resp["type"] == "FeatureCollection"
+        assert len(resp["features"]) == 1
+        assert "statistics" in resp["features"][0]["properties"]
+
+        # Test 3: FeatureCollection with 2 DISTINCT features
+        # This was the bug - pixel_selection state from feature_a
+        # caused ValueError when processing feature_b
+        fc_multi = {"type": "FeatureCollection", "features": [feature_a, feature_b]}
+        response = client.post(
+            "/mosaic/statistics",
+            params={"url": mosaic_file},
+            json=fc_multi,
+        )
+        assert response.status_code == 200
+        resp = response.json()
+        assert resp["type"] == "FeatureCollection"
+        assert len(resp["features"]) == 2
+        assert "statistics" in resp["features"][0]["properties"]
+        assert "statistics" in resp["features"][1]["properties"]
+        # Each feature should have its own statistics
+        stats_a = resp["features"][0]["properties"]["statistics"]
+        stats_b = resp["features"][1]["properties"]["statistics"]
+        assert len(stats_a) > 0
+        assert len(stats_b) > 0

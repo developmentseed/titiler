@@ -6,7 +6,7 @@ from typing import Annotated, Literal
 
 import attr
 from fastapi import HTTPException, Query
-from pydantic import ValidationError
+from pydantic import BeforeValidator, ValidationError
 
 from titiler.core.algorithm.base import (  # noqa
     AlgorithmMetadata,
@@ -18,6 +18,7 @@ from titiler.core.algorithm.image import ToBitonal, ToGrayScale
 from titiler.core.algorithm.index import NormalizedIndex
 from titiler.core.algorithm.math import _Max, _Mean, _Median, _Min, _Std, _Sum, _Var
 from titiler.core.algorithm.ops import CastToInt, Ceil, Floor
+from titiler.core.validation import validate_json
 
 default_algorithms: dict[str, type[BaseAlgorithm]] = {
     "hillshade": HillShade,
@@ -81,6 +82,7 @@ class Algorithms:
             ] = None,
             algorithm_params: Annotated[
                 str | None,
+                BeforeValidator(validate_json),
                 Query(description="Algorithm parameter"),
             ] = None,
         ) -> BaseAlgorithm | None:

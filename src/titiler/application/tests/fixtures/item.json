@@ -1,6 +1,6 @@
 {
     "type": "Feature",
-    "stac_version": "1.0.0",
+    "stac_version": "1.1.0",
     "id": "S2A_34SGA_20200318_0_L2A",
     "properties": {
         "datetime": "2020-03-18T09:11:33Z"

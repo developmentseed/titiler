@@ -1,0 +1,15 @@
+#! /usr/bin/env bash
+
+SUBPACKAGES=(
+    "core"
+    "xarray"
+    "mosaic"
+    "application"
+    "extensions"
+)
+rm -rf dist
+for PACKAGE in "${SUBPACKAGES[@]}"
+do
+    echo "building titiler-${PACKAGE}"
+    uv build --package titiler-${PACKAGE}
+done

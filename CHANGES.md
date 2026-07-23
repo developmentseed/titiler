@@ -2,32 +2,210 @@
 
 ## Unreleased
 
+## 2.1.1 (2026-07-22)
+
+## What's Changed
+
+* fix(#1455): correct type annotation issue by @captaincoordinates in https://github.com/developmentseed/titiler/pull/1456
+
+
+**Full Changelog**: https://github.com/developmentseed/titiler/compare/2.1.0...2.1.1
+
+## 2.1.0 (2026-07-20)
+
+## What's Changed
+
+* feat: add min/max zoom query-parameters to tileset endpoint by @vincentsarago in https://github.com/developmentseed/titiler/pull/1416
+* feat: move from httpx to httpx2 by @vincentsarago in https://github.com/developmentseed/titiler/pull/1419
+* feat: add `zooms` query-parameter to WMTS endpoint to overwrite zoom levels by @vincentsarago in https://github.com/developmentseed/titiler/pull/1423
+* feat: add error logging within error handler by @vincentsarago in https://github.com/developmentseed/titiler/pull/1429
+* feat: extend tilejson and add get-renders method to tilerFactories by @vincentsarago in https://github.com/developmentseed/titiler/pull/1425
+* feat: update starlette dependency to >=1.0.1 by @vincentsarago in https://github.com/developmentseed/titiler/pull/1454
+* fix: only log non-generic 500 errors by @vincentsarago in https://github.com/developmentseed/titiler/pull/1443
+* fix: update mypy type-ignore code in dem algorithm to [call-overload] by @wakame1367 in https://github.com/developmentseed/titiler/pull/1449
+* fix: fall back to WKT for WMTS BoundingBox crs when CRS cannot be resolved to a URN by @wakame1367 in https://github.com/developmentseed/titiler/pull/1448
+
+
+**Full Changelog**: https://github.com/developmentseed/titiler/compare/2.0.5...2.1.0
+
+## 2.0.5 (2026-06-18)
+
+## What's Changed
+
+* fix: titiler-xarray | add httpx dependency  by @vincentsarago in https://github.com/developmentseed/titiler/pull/1433
+
+**Full Changelog**: https://github.com/developmentseed/titiler/compare/2.0.4...2.0.5
+
+## 2.0.4 (2026-06-03)
+
+## What's Changed
+* chore(deps): bump gcsfs from 2026.4.0 to 2026.5.0 in the all group by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1410
+* ci(deps): bump the all group with 6 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1409
+* fix: trigger PyPI publish/deploy by authoring releases with the DS_RELEASE_BOT app token by @lhoupert in https://github.com/developmentseed/titiler/pull/1407
+* chore: add cover-scale parameter to control shape coverage in statistics by @vincentsarago in https://github.com/developmentseed/titiler/pull/1414
+
+
+**Full Changelog**: https://github.com/developmentseed/titiler/compare/2.0.3...2.0.4
+
+## 2.0.3 (2026-05-28)
+
+## What's Changed
+* docs: Add TiTiler extension links to external_links.md by @jo-chemla in https://github.com/developmentseed/titiler/pull/1381
+* ci(deps): bump the all group with 4 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1386
+* chore(deps): bump pillow from 12.1.1 to 12.2.0 by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1388
+* chore(deps): bump the all group with 11 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1387
+* chore(deps): bump jupyterlab from 4.5.6 to 4.5.7 by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1385
+* chore(deps): bump notebook from 7.5.5 to 7.5.6 by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1384
+* chore(deps): bump jupyter-server from 2.17.0 to 2.18.0 by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1390
+* chore(deps): bump the all group across 1 directory with 15 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1402
+* ci(deps): bump the all group across 1 directory with 4 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1401
+* fix: starlette path security issue and update dependencies by @vincentsarago in https://github.com/developmentseed/titiler/pull/1404
+* ci: remove helm chart from release please automation by @lhoupert in https://github.com/developmentseed/titiler/pull/1382
+
+
+**Full Changelog**: https://github.com/developmentseed/titiler/compare/2.0.2...2.0.3
+
+## 2.0.2 (2026-04-27)
+
+## What's Changed
+
+* fix: set CompressionMiddleware minimum_size=1 to prevent h11 crash on 204 responses by @CrepuscularIRIS in https://github.com/developmentseed/titiler/pull/1373
+
+**Full Changelog**: https://github.com/developmentseed/titiler/compare/2.0.1...2.0.2
+
+## 2.0.1 (2026-03-31)
+
+## What's Changed
+
+### titiler.core 
+
+* fix(algorithm): handle mask type compatibility in contours algorithm by @machov in https://github.com/developmentseed/titiler/pull/1327
+
+### titiler.extensions
+
+* add openapi parameters for tile dependencies in WMTS endpoints by @vincentsarago in https://github.com/developmentseed/titiler/pull/1349
+* change: internal of the WMTS extension to increase performance
+
+### titiler.mosaic
+
+* add openapi parameters for tile dependencies in WMTS endpoints by @vincentsarago in https://github.com/developmentseed/titiler/pull/1349
+* change: internal of the WMTS extension to increase performance
+
+### Misc 
+
+* Fix command syntax in AWS Lambda deployment guide by @hamishcampbell in https://github.com/developmentseed/titiler/pull/1346
+* ci: harden github actions workflows against zizmor findings by @lhoupert in https://github.com/developmentseed/titiler/pull/1354
+* ci: setup trusted publishing and update xarray upstream test by @vincentsarago in https://github.com/developmentseed/titiler/pull/1355
+* ci: add conventional commit check and release please by @lhoupert in https://github.com/developmentseed/titiler/pull/1356
+* ci: add security audtit and ossf scorecard by @lhoupert in https://github.com/developmentseed/titiler/pull/1359
+
+**Full Changelog**: https://github.com/developmentseed/titiler/compare/2.0.0...2.0.1
+
+## 2.0.0 (2026-03-16)
+
 ### Misc
 
-* add: return PROJJSON CRS in headers (`Content-Crs-JSON`) when `OptionalHeader.projjson_crs` is set
+* change: rio-tiler requirement to `>=9.0,<10.0`
 
-    ```python
-    endpoints = TilerFactory(optional_headers=[OptionalHeader.projjson_crs])
+### titiler.xarray
 
-    app = FastAPI()
-    app.include_router(endpoints.router)
-    with TestClient(app) as client:
-        response = client.get(
-            "/preview.png",
-            params={
-                "url": cog_path,
-            },
-        )
-        headers = response.headers
-        assert "content-crs-json" in headers
-        projjson_crs = json.loads(headers["content-crs-json"])
-        assert CRS.from_user_input(projjson_crs).to_epsg() == 32621
-    ```
+* fix: allow `:` characters in xarray reader's `sel` parameter (e.g. for timestamps) (https://github.com/developmentseed/titiler/pull/1336)
+
+### titiler.mosaic
+
+* fix: `pixel-selection` method initialization to avoid FastAPI caching (author @raster-blaster, https://github.com/developmentseed/titiler/pull/1334)
+* fix: make the point query feature in map.html work for MosaicTilerFactory (https://github.com/developmentseed/titiler/pull/1338)
+
+## 2.0.0b2 (2026-02-22)
+
+### titiler.extensions
+
+* fix: render expression adapter
+
+## 2.0.0b1 (2026-02-22)\
 
 ### titiler.core
 
-* add: `optional_headers` attribute to `TilerFactory` class
-* add: `projjson_crs` to `OptionalHeader` enum
+* change: rio-tiler requirement to `>=9.0.0b1,<10.0`
+* add: asset's options parsing in `AssetsParams` dependency
+
+## 2.0.0a2 (2026-02-13)
+
+### titiler.extensions
+
+* **render**:
+    * change: make `assets` optional in `RenderItem` model
+    * change: add `valid: True|False` key to the `RenderItemWithLinks` model
+    * add: convert old `asset_bix` and `asset_expression` keys to `{asset}|indexes=...&expression=...`
+
+### titiler.mosaic
+
+* fix: tilesize for `/map.html` endpoint
+
+## 2.0.0a1 (2026-02-11)
+
+### Misc
+
+* remove: 256x256 tilesize default
+* remove: `MultiBandTilerFactory` factory
+* remove: `@{scale}x` suffix for tile endpoints
+* remove: `tile_scale` option in `/tilejson.json` and `/map.html` endpoints
+* change: default to TileMatrix's `tileHeight x tileWidth` for tile endpoints
+* change: set `tilesize=512` for `/tilejson.json` endpoints
+* change: set `tilesize=256` for `/map.html` endpoints
+* change: use `band_descriptions` instead of `band_names`
+* add: `tilesize` optional query-parameter for tile and tilejson endpoints
+* remove: titiler-xarray in docker-compose file
+* remove: titiler-xarray single application deployement in AWS lambda deployement
+* change: rio-tiler requirement to `>=9.0.0a4,<10.0`
+
+### titiler.core
+
+* change: `bidx` option is now ignored by `MultiBaseFactory` endpoints
+* change: `assets` option is now **required** for `MultiBaseFactory` endpoints
+* change: users can use `assets=:all:` in `MultiBaseFactory`'s `/info` and `/statistics` endpoints
+* change: `expression` cannot be used to declare `assets` in `MultiBaseFactory` endpoints. Use `assets=Red&assets=Green&expression=b1/b2`.
+* remove: `asset_indexes` and `asset_expression` options in `dependencies.py`
+* rename: `dependencies.AssetsBidxExprParams` to `dependencies.AssetsExprParams` 
+* remove: methods or classes:
+    - `titiler.core.dependencies.AssetsBidxParams`
+    - `titiler.core.dependencies.AssetsBidxExprParamsOptional`
+    - `titiler.core.dependencies.BandsParams`
+    - `titiler.core.dependencies.BandsExprParamsOptional`
+    - `titiler.core.dependencies.BandsExprParams`
+    - `titiler.core.dependencies.parse_asset_indexes()`
+    - `titiler.core.dependencies.parse_asset_expression()`
+    - `titiler.core.routing.apiroute_factory()`
+
+### titiler.extensions
+
+* change: force `tilesize=256` in `cog` and `stac` viewers
+* remove: `tile_scale` option in `/WMTSCapabilities.xml` endpoints
+
+### titiler.mosaic
+
+* remove: `tile_scale` option in `/WMTSCapabilities.xml` endpoints
+
+### titiler.application
+
+* add: titiler.xarray dependency
+* add: `/zarr` endpoints
+
+## 1.2.1 (2026-03-09)
+
+### titiler.xarray
+
+* fix: allow `:` characters in xarray reader's `sel` parameter (e.g. for timestamps) (https://github.com/developmentseed/titiler/pull/1336) [Backported from 2.0.0]
+
+### titiler.mosaic
+
+* fix: `pixel-selection` method initialization to avoid FastAPI caching (author @raster-blaster, https://github.com/developmentseed/titiler/pull/1334)  [Backported from 2.0.0]
+
+## 1.2.0 (2026-02-09)
+
+### Input Validation
+
+* fix: address several instances of validation failures returning 500 instead of 4xx HTTP responses
 
 ## 1.1.1 (2026-01-22)
 

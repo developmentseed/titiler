@@ -28,6 +28,7 @@ services:
       # - TITILER_API_DISABLE_STAC=TRUE/FALSE
       # - TITILER_API_DISABLE_MOSAIC=TRUE/FALSE
       # - TITILER_API_DISABLE_COG=TRUE/FALSE
+      # - TITILER_API_DISABLE_ZARR=TRUE/FALSE
       # - TITILER_API_CORS_ORIGIN=url.io,url.xyz
       # - TITILER_API_CACHECONTROL=public, max-age=3600
       # - TITILER_API_DEBUG=TRUE/FALSE
@@ -81,16 +82,6 @@ services:
     depends_on:
       - nginx-titiler
     command: ["nginx-debug", "-g", "daemon off;"]
-
-  titiler-xarray:
-    extends:
-      service: titiler
-    build:
-      context: .
-      dockerfile: dockerfiles/Dockerfile.xarray
-    ports:
-      - "8082:8082"
-    command: ["uvicorn", "titiler.xarray.main:app", "--host", "0.0.0.0", "--port", "8082", "--workers", "1"]
 
   otel-collector:
     image: otel/opentelemetry-collector-contrib:latest

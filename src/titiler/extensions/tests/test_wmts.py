@@ -2,10 +2,16 @@
 
 import io
 import os
+import re
+import xml.etree.ElementTree as ET
+from typing import cast
 
+import pytest
 import rasterio
 from fastapi import FastAPI
-from owslib.wmts import WebMapTileService
+from owslib.wmts import ContentMetadata, WebMapTileService
+from rasterio.crs import CRS
+from rio_tiler.utils import CRS_to_urn
 from starlette.testclient import TestClient
 
 from titiler.core.factory import TilerFactory
@@ -64,28 +70,102 @@ def test_wmtsExtension():
         ) as sds:
             assert sds.crs == "epsg:3857"
 
+        # Overwrite Zooms
+        response = client.get(
+            f"/WMTSCapabilities.xml?url={DATA_DIR}/cog.tif&zooms=*::0,1"
+        )
+        assert response.status_code == 200
+
+        wmts = WebMapTileService(
+            f"/WMTSCapabilities.xml?url={DATA_DIR}/cog.tif&zooms=*::0,1",
+            xml=response.content,
+        )
+        assert wmts.version == "1.0.0"
+        assert len(wmts.contents) == 13  # 1 render x 13 TMS
+        assert f"{DATA_DIR}/cog.tif_WebMercatorQuad_default" in wmts.contents
+        assert f"{DATA_DIR}/cog.tif_WorldCRS84Quad_default" in wmts.contents
+
+        layer = wmts.contents[f"{DATA_DIR}/cog.tif_WebMercatorQuad_default"]
+        assert ["0", "1"] == list(
+            layer.tilematrixsetlinks["WebMercatorQuad"].tilematrixlimits
+        )
+
+        layer = wmts.contents[f"{DATA_DIR}/cog.tif_WorldCRS84Quad_default"]
+        assert ["0", "1"] == list(
+            layer.tilematrixsetlinks["WorldCRS84Quad"].tilematrixlimits
+        )
+
+        # Overwrite Zooms for a specific TMS
+        response = client.get(
+            f"/WMTSCapabilities.xml?url={DATA_DIR}/cog.tif&zooms=WebMercatorQuad::0,1"
+        )
+        assert response.status_code == 200
+
+        wmts = WebMapTileService(
+            f"/WMTSCapabilities.xml?url={DATA_DIR}/cog.tif&zooms=WebMercatorQuad::0,1",
+            xml=response.content,
+        )
+        assert wmts.version == "1.0.0"
+        assert len(wmts.contents) == 13  # 1 render x 13 TMS
+        assert f"{DATA_DIR}/cog.tif_WebMercatorQuad_default" in wmts.contents
+        assert f"{DATA_DIR}/cog.tif_WorldCRS84Quad_default" in wmts.contents
+
+        layer = wmts.contents[f"{DATA_DIR}/cog.tif_WebMercatorQuad_default"]
+        assert ["0", "1"] == list(
+            layer.tilematrixsetlinks["WebMercatorQuad"].tilematrixlimits
+        )
+
+        layer = wmts.contents[f"{DATA_DIR}/cog.tif_WorldCRS84Quad_default"]
+        assert ["5", "6", "7", "8"] == list(
+            layer.tilematrixsetlinks["WorldCRS84Quad"].tilematrixlimits
+        )
+
+
+def test_wmtsExtension_crs_without_urn():
+    """Test BoundingBox CRS fallback to WKT when the CRS cannot be resolved to a URN.
+
+    ref: https://github.com/developmentseed/titiler/issues/1043
+    """
+    # Custom CRS (tweaked polar stereographic) which cannot be resolved to an authority
+    custom_crs = CRS.from_proj4(
+        "+proj=stere +lat_0=90 +lat_ts=71.3 +lon_0=-42.5 +x_0=0 +y_0=0 +a=6378137.1 +b=6356752.3 +units=m +no_defs"
+    )
+    assert CRS_to_urn(custom_crs) is None
+
+    tiler_plus_wmts = TilerFactory(extensions=[wmtsExtension(crs=custom_crs)])
+
+    app = FastAPI()
+    app.include_router(tiler_plus_wmts.router)
+    with TestClient(app) as client:
+        with pytest.warns(UserWarning, match="Could not resolve a URN for CRS"):
+            response = client.get(f"/WMTSCapabilities.xml?url={DATA_DIR}/cog.tif")
+        assert response.status_code == 200
+
+        root = ET.fromstring(response.content)
+        bboxes = root.findall(".//{http://www.opengis.net/ows/1.1}BoundingBox")
+        assert bboxes
+        for bbox in bboxes:
+            assert bbox.attrib["crs"] == custom_crs.to_wkt()
+
 
 def test_wmtsExtension_with_renders():
     """Test wmtsExtension class with Renders."""
     tiler_plus_wmts = TilerFactory(
-        extensions=[
-            wmtsExtension(
-                get_renders=lambda obj: {
-                    "one_band_limit": {
-                        "tilematrixsets": {
-                            "WebMercatorQuad": [0, 1],
-                        },
-                        "spatial_extent": (-180, -90, 180, 90),
-                        "bidx": [1, 2, 3],
-                        "rescale": [[0, 10000], [0, 5000], [0, 1000]],
-                    },
-                    "one_band": {
-                        "bidx": [1],
-                        "rescale": ["0,10000"],
-                    },
+        get_renders=lambda obj: {
+            "one_band_limit": {
+                "tilematrixsets": {
+                    "WebMercatorQuad": [0, 1],
                 },
-            )
-        ],
+                "spatial_extent": (-180, -90, 180, 90),
+                "bidx": [1, 2, 3],
+                "rescale": [[0, 10000], [0, 5000], [0, 1000]],
+            },
+            "one_band": {
+                "bidx": [1],
+                "rescale": ["0,10000"],
+            },
+        },
+        extensions=[wmtsExtension()],
     )
 
     app = FastAPI()
@@ -131,3 +211,109 @@ def test_wmtsExtension_with_renders():
 
         assert wmts.provider.name == "TiTiler"
         assert wmts.provider.url == "https://developmentseed.org/titiler/"
+
+
+def test_wmtsExtension_with_renders_old():
+    """Test wmtsExtension class with Renders (old)."""
+    with pytest.warns(
+        DeprecationWarning, match=r".+`get_renders` attribute is deprecated.+"
+    ):
+        tiler_plus_wmts = TilerFactory(
+            extensions=[
+                wmtsExtension(
+                    get_renders=lambda obj: {
+                        "one_band_limit": {
+                            "tilematrixsets": {
+                                "WebMercatorQuad": [0, 1],
+                            },
+                            "spatial_extent": (-180, -90, 180, 90),
+                            "bidx": [1, 2, 3],
+                            "rescale": [[0, 10000], [0, 5000], [0, 1000]],
+                        },
+                        "one_band": {
+                            "bidx": [1],
+                            "rescale": ["0,10000"],
+                        },
+                    },
+                )
+            ],
+        )
+
+    app = FastAPI()
+    app.include_router(tiler_plus_wmts.router)
+    with TestClient(app) as client:
+        response = client.get(f"/WMTSCapabilities.xml?url={DATA_DIR}/cog.tif")
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "application/xml"
+        meta = parse_img(response.content)
+        assert meta["driver"] == "WMTS"
+
+        wmts = WebMapTileService(
+            f"/WMTSCapabilities.xml?url={DATA_DIR}/cog.tif", xml=response.content
+        )
+        assert wmts.version == "1.0.0"
+        assert len(wmts.contents) == 39  # (2 renders + default) x 13 TMS
+
+        assert f"{DATA_DIR}/cog.tif_WebMercatorQuad_default" in wmts.contents
+        assert f"{DATA_DIR}/cog.tif_WorldCRS84Quad_default" in wmts.contents
+
+        layer = wmts.contents[f"{DATA_DIR}/cog.tif_WebMercatorQuad_default"]
+        assert ["5", "6", "7", "8", "9"] == list(
+            layer.tilematrixsetlinks["WebMercatorQuad"].tilematrixlimits
+        )
+
+        assert f"{DATA_DIR}/cog.tif_WebMercatorQuad_one_band_limit" in wmts.contents
+        assert f"{DATA_DIR}/cog.tif_WorldCRS84Quad_one_band_limit" in wmts.contents
+
+        layer = wmts.contents[f"{DATA_DIR}/cog.tif_WebMercatorQuad_one_band_limit"]
+        assert ["0", "1"] == list(
+            layer.tilematrixsetlinks["WebMercatorQuad"].tilematrixlimits
+        )
+        assert (
+            layer.tilematrixsetlinks["WebMercatorQuad"].tilematrixlimits["0"].mintilerow
+            == 0
+        )
+
+        assert f"{DATA_DIR}/cog.tif_WebMercatorQuad_one_band" in wmts.contents
+        assert f"{DATA_DIR}/cog.tif_WorldCRS84Quad_one_band" in wmts.contents
+
+        assert "WebMercatorQuad" in wmts.tilematrixsets
+        assert "WorldCRS84Quad" in wmts.tilematrixsets
+
+        assert wmts.provider.name == "TiTiler"
+        assert wmts.provider.url == "https://developmentseed.org/titiler/"
+
+
+def test_wmtsExtension_layer_identifier_provider():
+    """Test wmtsExtension class with a custom layer identifier provider."""
+    layer_identifier_prefix = "layer_prefix_"
+    tiler_plus_wmts = TilerFactory(
+        extensions=[
+            wmtsExtension(
+                layer_identifier_provider=lambda src_path: (
+                    f"{layer_identifier_prefix}{src_path}"
+                )
+            )
+        ],
+    )
+    app = FastAPI()
+    app.include_router(tiler_plus_wmts.router)
+    with TestClient(app) as client:
+        data_url = f"{DATA_DIR}/cog.tif"
+        response = client.get(f"/WMTSCapabilities.xml?url={data_url}")
+        assert response.status_code == 200
+        wmts = WebMapTileService(
+            f"/WMTSCapabilities.xml?url={data_url}", xml=response.content
+        )
+        for id, content in wmts.contents.items():
+            identifier_regex = re.compile(
+                f"^{re.escape(layer_identifier_prefix)}{re.escape(data_url)}_.+_default$"
+            )
+            for location, value in (
+                ("key", id),
+                ("object.id", cast(ContentMetadata, content).id),
+                ("object.title", cast(ContentMetadata, content).title),
+            ):
+                assert re.match(identifier_regex, cast(str, value)) is not None, (
+                    f"unexpected value in {location} for {id}"
+                )

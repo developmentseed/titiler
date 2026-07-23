@@ -384,6 +384,17 @@ def test_io_open_zarr(src_path, options):
                 {"dimension": "level", "values": ["10"], "method": "nearest"},
             ],
         ),
+        (
+            ["time=nearest::2022-01-01T00:00:00", "level=nearest::10"],
+            [
+                {
+                    "dimension": "time",
+                    "values": ["2022-01-01T00:00:00"],
+                    "method": "nearest",
+                },
+                {"dimension": "level", "values": ["10"], "method": "nearest"},
+            ],
+        ),
         ([], []),
     ],
 )

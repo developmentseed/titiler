@@ -15,7 +15,7 @@ The `/cog` routes are based on `titiler.core.factory.TilerFactory` but with `cog
 | `POST` | `/cog/statistics`                                                   | GeoJSON   | return dataset's statistics for a GeoJSON
 | `GET`  | `/cog/tiles`                                                        | JSON      | List of OGC Tilesets available
 | `GET`  | `/cog/tiles/{tileMatrixSetId}`                                      | JSON      | OGC Tileset metadata
-| `GET`  | `/cog/tiles/{tileMatrixSetId}/{z}/{x}/{y}[@{scale}x][.{format}]`    | image/bin | create a web map tile image from a dataset
+| `GET`  | `/cog/tiles/{tileMatrixSetId}/{z}/{x}/{y}[.{format}]`    | image/bin | create a web map tile image from a dataset
 | `GET`  | `/cog/{tileMatrixSetId}/map.html`                                   | HTML      | simple map viewer
 | `GET`  | `/cog/{tileMatrixSetId}/tilejson.json`                              | JSON      | return a Mapbox TileJSON document
 | `GET`  | `/cog/point/{lon},{lat}`                                            | JSON      | return pixel values from a dataset
@@ -33,18 +33,18 @@ The `/cog` routes are based on `titiler.core.factory.TilerFactory` but with `cog
 
 ### Tiles
 
-`:endpoint:/cog/tiles/{tileMatrixSetId}/{z}/{x}/{y}[@{scale}x][.{format}]`
+`:endpoint:/cog/tiles/{tileMatrixSetId}/{z}/{x}/{y}[.{format}]`
 
 - PathParams:
     - **tileMatrixSetId** (str): TileMatrixSet name (e.g `WebMercatorQuad`)
     - **z** (int): TMS tile's zoom level.
     - **x** (int): TMS tile's column.
     - **y** (int): TMS tile's row.
-    - **scale** (int): Tile size scale, default is set to 1 (256x256). **Optional**
     - **format** (str): Output [image format](../user_guide/output_format.md), default is set to None and will be either JPEG or PNG depending on masked value. **Optional**
 
 - QueryParams:
     - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
+    - **tilesize** (int): overwrite TMS tileWidth x tileHeight with fixed tilesize.
     - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
     - **expression** (str): rio-tiler's band math expression (e.g `expression=b1/b2`).
     - **nodata** (str, int, float): Overwrite internal Nodata value.
@@ -250,7 +250,7 @@ Example:
 - QueryParams:
     - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
     - **tile_format** (str): Output [image format](../user_guide/output_format.md), default is set to None and will be either JPEG or PNG depending on masked value.
-    - **tile_scale** (int): Tile size scale, default is set to 1 (256x256).
+    - **tilesize** (int): overwrite TMS tileWidth x tileHeight with fixed tilesize. Default to 512.
     - **minzoom** (int): Overwrite default minzoom.
     - **maxzoom** (int): Overwrite default maxzoom.
     - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
@@ -273,7 +273,7 @@ Example:
 
 - `https://myendpoint/cog/WebMercatorQuad/tilejson.json?url=https://somewhere.com/mycog.tif`
 - `https://myendpoint/cog/WebMercatorQuad/tilejson.json?url=https://somewhere.com/mycog.tif&tile_format=png`
-- `https://myendpoint/cog/WorldCRS84Quad/tilejson.json?url=https://somewhere.com/mycog.tif&tile_scale=2&bidx=1,2,3`
+- `https://myendpoint/cog/WorldCRS84Quad/tilejson.json?url=https://somewhere.com/mycog.tif&tilesize=256&bidx=1,2,3`
 
 
 ### Map
@@ -286,7 +286,7 @@ Example:
 - QueryParams:
     - **url** (str): Cloud Optimized GeoTIFF URL. **Required**
     - **tile_format** (str): Output [image format](../user_guide/output_format.md), default is set to None and will be either JPEG or PNG depending on masked value.
-    - **tile_scale** (int): Tile size scale, default is set to 1 (256x256).
+    - **tilesize** (int): overwrite TMS tileWidth x tileHeight with fixed tilesize. Defaults to 256.
     - **minzoom** (int): Overwrite default minzoom.
     - **maxzoom** (int): Overwrite default maxzoom.
     - **bidx** (array[int]): Dataset band indexes (e.g `bidx=1`, `bidx=1&bidx=2&bidx=3`).
@@ -309,7 +309,7 @@ Example:
 
 - `https://myendpoint/cog/WebMercatorQuad/map.html?url=https://somewhere.com/mycog.tif`
 - `https://myendpoint/cog/WebMercatorQuad/map.html?url=https://somewhere.com/mycog.tif&tile_format=png`
-- `https://myendpoint/cog/WorldCRS84Quad/map.html?url=https://somewhere.com/mycog.tif&tile_scale=2&bidx=1,2,3`
+- `https://myendpoint/cog/WorldCRS84Quad/map.html?url=https://somewhere.com/mycog.tif&tilesize=512&bidx=1,2,3`
 
 
 ### Info

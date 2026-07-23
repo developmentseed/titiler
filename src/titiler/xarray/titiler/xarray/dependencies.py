@@ -35,7 +35,7 @@ class XarrayIOParams(DefaultDependency):
 SelDimStr = Annotated[
     str,
     StringConstraints(
-        pattern=r"^[^=]+=((nearest|pad|ffill|backfill|bfill)::)?[^=::]+$"
+        pattern=r"^[^=]+=((nearest|pad|ffill|backfill|bfill)::)?([^=:]|:[^:])+$"
     ),
 ]
 

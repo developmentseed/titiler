@@ -62,7 +62,7 @@ class HillShade(BaseAlgorithm):
             assets=img.assets,
             crs=img.crs,
             bounds=bounds,
-            band_names=["hillshade"],
+            band_descriptions=["hillshade"],
         )
 
 
@@ -114,7 +114,7 @@ class Slope(BaseAlgorithm):
             assets=img.assets,
             crs=img.crs,
             bounds=bounds,
-            band_names=["slope"],
+            band_descriptions=["slope"],
         )
 
 
@@ -152,13 +152,14 @@ class Contours(BaseAlgorithm):
         arr = numpy.where(data % self.increment < self.thickness, 0, arr)
 
         data = numpy.ma.MaskedArray(arr)
-        data.mask = ~img.mask
+        data.mask = img.array.mask
 
         return ImageData(
             data,
             assets=img.assets,
             crs=img.crs,
             bounds=img.bounds,
+            band_descriptions=["contours_r", "contours_g", "contours_b"],
         )
 
 
@@ -178,7 +179,7 @@ class Terrarium(BaseAlgorithm):
         """Encode DEM into RGB."""
         data = numpy.clip(img.array[0] + 32768.0, 0.0, 65535.0)
         if self.nodata_height is not None:
-            data[img.array.mask[0]] = numpy.clip(  # type: ignore [index]
+            data[img.array.mask[0]] = numpy.clip(  # type: ignore [call-overload]
                 self.nodata_height + 32768.0, 0.0, 65535.0
             )
         r = data / 256
@@ -190,6 +191,7 @@ class Terrarium(BaseAlgorithm):
             assets=img.assets,
             crs=img.crs,
             bounds=img.bounds,
+            band_descriptions=["terranium_r", "terranium_g", "terranium_b"],
         )
 
 
@@ -237,7 +239,7 @@ class TerrainRGB(BaseAlgorithm):
             raise ValueError(f"Data of {datarange} larger than 256 ** 3")
 
         if self.nodata_height is not None:
-            data[img.array.mask[0]] = (  # type: ignore [index]
+            data[img.array.mask[0]] = (  # type: ignore [call-overload]
                 self.nodata_height - self.baseval
             ) / self.interval
 
@@ -251,4 +253,5 @@ class TerrainRGB(BaseAlgorithm):
             assets=img.assets,
             crs=img.crs,
             bounds=img.bounds,
+            band_descriptions=["terrain_r", "terrain_g", "terrain_b"],
         )

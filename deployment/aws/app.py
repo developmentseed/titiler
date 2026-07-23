@@ -89,7 +89,7 @@ class titilerLambdaStack(Stack):
         permissions = permissions or []
         environment = environment or {}
 
-        # COG / STAC / MosaicJSON
+        # COG / STAC / MosaicJSON / Zarr endpoints
         lambda_function = aws_lambda.Function(
             self,
             f"{id}-lambda",
@@ -121,39 +121,6 @@ class titilerLambdaStack(Stack):
             ),
         )
         CfnOutput(self, "Endpoint", value=api.url)
-
-        # Xarray
-        xarray_lambda_function = aws_lambda.Function(
-            self,
-            f"{id}-xarray-lambda",
-            runtime=runtime,
-            code=aws_lambda.Code.from_docker_build(
-                path=os.path.abspath(code_dir),
-                file="lambda/Dockerfile.xarray",
-                platform="linux/amd64",
-                build_args={
-                    "PYTHON_VERSION": "3.14",
-                },
-            ),
-            handler="handler.handler",
-            memory_size=memory,
-            reserved_concurrent_executions=concurrent,
-            timeout=Duration.seconds(timeout),
-            environment=environment,
-            log_retention=logs.RetentionDays.ONE_WEEK,
-        )
-
-        for perm in permissions:
-            xarray_lambda_function.add_to_role_policy(perm)
-
-        xarray_api = apigw.HttpApi(
-            self,
-            f"{id}-xarray-endpoint",
-            default_integration=HttpLambdaIntegration(
-                f"{id}-xarray-integration", handler=xarray_lambda_function
-            ),
-        )
-        CfnOutput(self, "Xarray-Endpoint", value=xarray_api.url)
 
 
 app = App()

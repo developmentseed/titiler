@@ -5,6 +5,8 @@ updates:
 
   - package-ecosystem: "github-actions"
     directory: "/"
+    cooldown:
+      default-days: 7
     schedule:
       # Check for updates to GitHub Actions every week
       interval: "weekly"
@@ -12,3 +14,18 @@ updates:
       all:
         patterns:
         - "*"
+    commit-message:
+      prefix: "ci(deps):"
+
+  - package-ecosystem: uv
+    cooldown:
+      default-days: 7
+    directory: "/"
+    schedule:
+      interval: weekly
+    groups:
+      all:
+        patterns:
+        - "*"
+    commit-message:
+      prefix: "chore(deps):"

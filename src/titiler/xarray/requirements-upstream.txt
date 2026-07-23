@@ -1,0 +1,5 @@
+xarray@git+https://github.com/pydata/xarray.git
+universal_pathlib@git+https://github.com/fsspec/universal_pathlib.git
+numcodecs@git+https://github.com/zarr-developers/numcodecs.git
+ujson@git+https://github.com/ultrajson/ultrajson.git
+zarr@git+https://github.com/zarr-developers/zarr-python.git

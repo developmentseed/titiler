@@ -4,13 +4,13 @@ import json
 from dataclasses import dataclass
 from typing import Annotated, Literal
 
-import pytest
 from fastapi import Depends, FastAPI, Path
 from morecantile import tms
+from rasterio.crs import CRS
 from rio_tiler.types import ColorMapType
 from starlette.testclient import TestClient
 
-from titiler.core import dependencies, errors
+from titiler.core import dependencies
 from titiler.core.resources.responses import JSONResponse
 
 
@@ -140,6 +140,9 @@ def test_cmap():
     assert response.json()[0][0] == [0.0, 0.05263157894736842]
     assert response.json()[0][1] == [247, 252, 240, 255]
 
+    response = client.get("/", params={"colormap": "invalid json"})
+    assert response.status_code == 400  # this can only be validated via exception
+
 
 def test_default():
     """test default dep behavior."""
@@ -209,139 +212,37 @@ def test_assets():
         return params.assets
 
     @app.get("/second")
-    def _assets_expr(params=Depends(dependencies.AssetsBidxExprParams)):
-        """return params."""
-        return params
-
-    @app.get("/third")
-    def _assets_bidx(params=Depends(dependencies.AssetsBidxParams)):
+    def _assets_expr(params=Depends(dependencies.AssetsExprParams)):
         """return params."""
         return params
 
     client = TestClient(app)
+    response = client.get("/first")
+    assert response.status_code == 422
+
     response = client.get("/first?assets=data&assets=image")
     assert response.json() == ["data", "image"]
 
-    response = client.get("/first")
-    assert not response.json()
+    response = client.get("/first?assets=data|bidx=1,2|expression=b1*b2")
+    assert response.json()[0]["name"] == "data"
+    assert response.json()[0]["indexes"] == [1, 2]
+    assert response.json()[0]["expression"] == "b1*b2"
 
     response = client.get("/second?assets=data&assets=image")
     assert response.json()["assets"] == ["data", "image"]
     assert not response.json()["expression"]
 
-    response = client.get("/second?expression=data*image")
-    assert response.json()["expression"] == "data*image"
-    assert not response.json()["assets"]
-
-    with pytest.raises(errors.MissingAssets):
-        response = client.get("/second")
-
-    response = client.get(
-        "/second?assets=data&assets=image&asset_bidx=data|1,2,3&asset_bidx=image|1"
-    )
-    assert response.json()["assets"] == ["data", "image"]
-    assert response.json()["asset_indexes"] == {"data": [1, 2, 3], "image": [1]}
-
-    response = client.get("/third?assets=data&assets=image")
+    response = client.get("/second?assets=data&assets=image&expression=b1*b2")
+    assert response.json()["expression"] == "b1*b2"
     assert response.json()["assets"] == ["data", "image"]
 
-    response = client.get(
-        "/third",
-        params=(
-            ("assets", "data"),
-            ("assets", "image"),
-        ),
-    )
-    assert response.json()["assets"] == ["data", "image"]
+    response = client.get("/second?assets=data|bidx=1,2|expression=b1*b2")
+    assert response.json()["assets"][0]["name"] == "data"
+    assert response.json()["assets"][0]["indexes"] == [1, 2]
+    assert response.json()["assets"][0]["expression"] == "b1*b2"
 
-    response = client.get("/third", params={"assets": ["data", "image"]})
-    assert response.json()["assets"] == ["data", "image"]
-
-    response = client.get("/third")
-    assert not response.json()["assets"]
-
-    response = client.get(
-        "/third?assets=data&assets=image&asset_bidx=data|1,2,3&asset_bidx=image|1"
-    )
-    assert response.json()["assets"] == ["data", "image"]
-    assert response.json()["asset_indexes"] == {"data": [1, 2, 3], "image": [1]}
-
-    response = client.get(
-        "/third",
-        params=(
-            ("assets", "data"),
-            ("assets", "image"),
-            ("asset_bidx", "data|1,2,3"),
-            ("asset_bidx", "image|1"),
-        ),
-    )
-
-    assert response.json()["assets"] == ["data", "image"]
-    assert response.json()["asset_indexes"] == {"data": [1, 2, 3], "image": [1]}
-
-    response = client.get(
-        "/third?assets=data&assets=image&asset_expression=data|b1/b2&asset_expression=image|b1*b2"
-    )
-    assert response.json()["assets"] == ["data", "image"]
-    assert response.json()["asset_expression"] == {"data": "b1/b2", "image": "b1*b2"}
-
-    response = client.get(
-        "/third",
-        params=(
-            ("assets", "data"),
-            ("assets", "image"),
-            ("asset_expression", "data|b1/b2"),
-            ("asset_expression", "image|b1*b2"),
-        ),
-    )
-    assert response.json()["assets"] == ["data", "image"]
-    assert response.json()["asset_expression"] == {"data": "b1/b2", "image": "b1*b2"}
-
-
-def test_bands():
-    """test bands deps."""
-
-    app = FastAPI()
-
-    @app.get("/first")
-    def _bands(params=Depends(dependencies.BandsParams)):
-        """return bands."""
-        return params.bands
-
-    @app.get("/second")
-    def _bands_expr(params=Depends(dependencies.BandsExprParams)):
-        """return params."""
-        return params
-
-    @app.get("/third")
-    def _bands_expr_opt(params=Depends(dependencies.BandsExprParamsOptional)):
-        """return params."""
-        return params
-
-    client = TestClient(app)
-    response = client.get("/first?bands=b1&bands=b2")
-    assert response.json() == ["b1", "b2"]
-
-    response = client.get("/first")
-    assert not response.json()
-
-    response = client.get("/second?bands=b1&bands=b2")
-    assert response.json()["bands"] == ["b1", "b2"]
-
-    response = client.get("/second", params={"expression": "b1;b2"})
-    assert response.json()["expression"] == "b1;b2"
-
-    with pytest.raises(errors.MissingBands):
-        response = client.get("/second")
-
-    response = client.get("/third?bands=b1&bands=b2")
-    assert response.json()["bands"] == ["b1", "b2"]
-
-    response = client.get("/third", params={"expression": "b1;b2"})
-    assert response.json()["expression"] == "b1;b2"
-
-    response = client.get("/third")
-    assert not response.json()["bands"]
+    response = client.get("/second")
+    assert response.status_code == 422
 
 
 def test_preview_part_params():
@@ -445,6 +346,9 @@ def test_dataset():
     response = client.get("/nan?nodata=nan")
     assert response.json() == "nan"
 
+    response = client.get("/?nodata=invalid-value")
+    assert response.status_code == 422
+
 
 def test_render():
     """test render deps."""
@@ -506,6 +410,14 @@ def test_algo():
     assert response.json()["buffer"] == 4
     assert response.json()["input_nbands"] == 1
 
+    response = client.get(
+        "/",
+        params={
+            "algorithm_params": "invalid json",
+        },
+    )
+    assert response.status_code == 422
+
 
 def test_rescale_params():
     """test RescalingParams dependency."""
@@ -530,8 +442,8 @@ def test_rescale_params():
     assert response.status_code == 200
     assert response.json() == [[0, 1], [2, 3]]
 
-    with pytest.raises(AssertionError):
-        client.get("/", params={"rescale": [0, 1]})
+    response = client.get("/", params={"rescale": [0, 1]})
+    assert response.status_code == 422
 
     response = client.get("/", params={"rescale": [[0, 1]]})
     assert response.status_code == 200
@@ -561,6 +473,14 @@ def test_rescale_params():
     assert response.status_code == 200
     assert response.json() == [[0, 1], [2, 3]]
 
+    response = client.get("/", params={"rescale": "not a number"})
+    assert response.status_code == 422
+
+    response = client.get(
+        "/", params={"rescale": ["not a number", "also not a number"]}
+    )
+    assert response.status_code == 422
+
 
 def test_histogram_params():
     """Test HistogramParams dependency."""
@@ -589,6 +509,12 @@ def test_histogram_params():
 
     response = client.get(
         "/",
+        params={"histogram_bins": "invalid value"},
+    )
+    assert response.status_code == 422
+
+    response = client.get(
+        "/",
     )
     assert response.status_code == 200
     assert response.json()["bins"] == 10
@@ -600,8 +526,214 @@ def test_histogram_params():
     assert response.status_code == 200
     assert response.json()["range"] == [8.0, 9.0]
 
-    with pytest.raises(AssertionError):
-        client.get(
+    response = client.get(
+        "/",
+        params={"histogram_range": "8"},
+    )
+    assert response.status_code == 422
+
+    response = client.get(
+        "/",
+        params={"histogram_range": "invalid value"},
+    )
+    assert response.status_code == 422
+
+
+def test_crs_params():
+    """Test various crs dependencies."""
+    for alias, dependency in {
+        "crs": dependencies.CRSParams,
+        "coord_crs": dependencies.CoordCRSParams,
+        "dst_crs": dependencies.DstCRSParams,
+    }.items():
+        app = FastAPI()
+
+        @app.get("/")
+        def main(params=Depends(dependency)):
+            """return crs params."""
+            # special handling required for CRS object as it cannot be JSON-serialized by default
+            return params.to_dict()
+
+        client = TestClient(app)
+
+        response = client.get(
             "/",
-            params={"histogram_range": "8"},
+            params={
+                alias: """
+            GEOGCS["WGS 84",
+                DATUM["WGS_1984",
+                    SPHEROID["WGS 84",6378137,298.257223563,
+                        AUTHORITY["EPSG","7030"]],
+                    AUTHORITY["EPSG","6326"]],
+                PRIMEM["Greenwich",0,
+                    AUTHORITY["EPSG","8901"]],
+                UNIT["degree",0.0174532925199433,
+                    AUTHORITY["EPSG","9122"]],
+                AUTHORITY["EPSG","4326"]]
+        """
+            },
         )
+        assert response.status_code == 200
+
+        response = client.get("/", params={alias: "epsg:4326"})
+        assert response.status_code == 200
+
+        response = client.get(
+            "/", params={alias: "+proj=longlat +datum=WGS84 +no_defs +type=crs"}
+        )
+        assert response.status_code == 200
+
+        response = client.get("/", params={alias: "invalid crs"})
+        assert response.status_code == 422
+
+
+def test_ogc_maps_params_crs():
+    """Test OGCMapsParams crs."""
+    app = FastAPI()
+
+    @app.get("/")
+    def main(params=Depends(dependencies.OGCMapsParams)):
+        """return crs params."""
+        # special handling required for CRS object as it cannot be JSON-serialized by default
+        # exclude request due to recursion during serialization
+        return {
+            key: value.to_dict() if isinstance(value, CRS) else value
+            for key, value in params.as_dict().items()
+            if key not in ["request"]
+        }
+
+    client = TestClient(app)
+
+    for field in ["crs", "bbox-crs"]:
+        response = client.get(
+            "/",
+            params={
+                field: """
+            GEOGCS["WGS 84",
+                DATUM["WGS_1984",
+                    SPHEROID["WGS 84",6378137,298.257223563,
+                        AUTHORITY["EPSG","7030"]],
+                    AUTHORITY["EPSG","6326"]],
+                PRIMEM["Greenwich",0,
+                    AUTHORITY["EPSG","8901"]],
+                UNIT["degree",0.0174532925199433,
+                    AUTHORITY["EPSG","9122"]],
+                AUTHORITY["EPSG","4326"]]
+        """
+            },
+        )
+        assert response.status_code == 200
+
+        response = client.get("/", params={field: "epsg:4326"})
+        assert response.status_code == 200
+
+        response = client.get(
+            "/", params={field: "+proj=longlat +datum=WGS84 +no_defs +type=crs"}
+        )
+        assert response.status_code == 200
+
+        response = client.get("/", params={field: "invalid crs"})
+        assert response.status_code == 422
+
+
+def test_ogc_maps_params_bbox():
+    """Test OGCMapsParams bbox."""
+    app = FastAPI()
+
+    @app.get("/")
+    def main(params=Depends(dependencies.OGCMapsParams)):
+        """return bbox params."""
+        return params.bbox
+
+    client = TestClient(app)
+
+    response = client.get("/", params={"bbox": "-2,-1,2,1"})
+    assert response.status_code == 200
+    assert response.json() == [-2, -1, 2, 1]
+
+    response = client.get("/", params={"bbox": "-2,-1,-5,2,1,5"})
+    assert response.status_code == 200
+    assert response.json() == [-2, -1, 2, 1]
+
+    response = client.get("/", params={"bbox": "0"})
+    assert response.status_code == 422
+
+    response = client.get("/", params={"bbox": "invalid bbox"})
+    assert response.status_code == 422
+
+
+def test_cover_scale_params():
+    """Test CoverScaleParams."""
+    app = FastAPI()
+
+    @app.get("/")
+    def main(param=Depends(dependencies.CoverScaleParams)):
+        """return cover scale params."""
+        return param
+
+    client = TestClient(app)
+
+    response = client.get("/")
+    assert response.status_code == 200
+    assert response.json() == 10
+
+    response = client.get("/", params={"cover_scale": 5})
+    assert response.status_code == 200
+    assert response.json() == 5
+
+    response = client.get("/", params={"cover_scale": -100})
+    assert response.status_code == 422
+
+    response = client.get("/", params={"cover_scale": 1000000})
+    assert response.status_code == 422
+
+
+def test_zooms_params():
+    """Test ZoomsParams."""
+    app = FastAPI()
+
+    @app.get("/")
+    def main(param=Depends(dependencies.ZoomsParams)):
+        """return zooms params."""
+        return param
+
+    client = TestClient(app)
+
+    response = client.get("/")
+    assert response.status_code == 200
+    assert response.json() == {}
+
+    response = client.get(
+        "/", params={"zooms": ["WebMercatorQuad::0,5", "WorldCRS84Quad::0,1"]}
+    )
+    assert response.status_code == 200
+    assert response.json() == {"WebMercatorQuad": [0, 5], "WorldCRS84Quad": [0, 1]}
+
+    response = client.get("/?zooms=WebMercatorQuad::0,5")
+    assert response.status_code == 200
+    assert response.json() == {"WebMercatorQuad": [0, 5]}
+
+    response = client.get("/?zooms=WebMercatorQuad::0,5&zooms=WorldCRS84Quad::0,1")
+    assert response.status_code == 200
+    assert response.json() == {"WebMercatorQuad": [0, 5], "WorldCRS84Quad": [0, 1]}
+
+    response = client.get("/", params={"zooms": ["*::0,1"]})
+    assert response.status_code == 200
+    assert response.json() == {"*": [0, 1]}
+
+    response = client.get("/?zooms=*::0,1")
+    assert response.status_code == 200
+    assert response.json() == {"*": [0, 1]}
+
+    response = client.get("/", params={"zooms": ["*::0,2", "WorldCRS84Quad::0,1"]})
+    assert response.status_code == 200
+    assert response.json() == {"*": [0, 2], "WorldCRS84Quad": [0, 1]}
+
+    response = client.get("/", params={"zooms": ["*"]})
+    assert response.status_code == 422
+
+    response = client.get("/", params={"zooms": ["0,1"]})
+    assert response.status_code == 422
+
+    response = client.get("/", params={"zooms": [0, 1]})
+    assert response.status_code == 422

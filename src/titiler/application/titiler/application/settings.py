@@ -30,6 +30,7 @@ class ApiSettings(BaseSettings):
     disable_cog: bool = False
     disable_stac: bool = False
     disable_mosaic: bool = False
+    disable_zarr: bool = False
 
     lower_case_query_parameters: bool = False
 

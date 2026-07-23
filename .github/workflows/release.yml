@@ -1,0 +1,90 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+  release:
+    types: [published]
+
+env:
+  LATEST_PY_VERSION: '3.14'
+
+jobs:
+  release-please:
+    name: Release Please
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    permissions:
+      contents: write # Needed for release-please to create PRs
+      pull-requests: write # Needed for release-please to create PRs
+    steps:
+      # Mint a GitHub App token so the release-please-created release is authored by the
+      # App, not github-actions[bot]. Events from the default GITHUB_TOKEN do NOT trigger
+      # new workflow runs (GitHub anti-recursion), which is why bot-created releases never
+      # fired `release: published` and the build/upload_pypi/deploy jobs below were skipped.
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        id: app-token
+        with:
+          app-id: ${{ secrets.DS_RELEASE_BOT_ID }}
+          private-key: ${{ secrets.DS_RELEASE_BOT_PRIVATE_KEY }}
+          # Scope the minted token to least privilege instead of inheriting the App's
+          # blanket installation permissions (zizmor: dangerous-github-app-tokens).
+          # release-please only needs Contents (tags/release) + Pull requests (release PR).
+          permission-contents: write
+          permission-pull-requests: write
+
+      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  build:
+    name: Build dist
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          version: "0.9.*"
+          enable-cache: false
+          python-version: ${{ env.LATEST_PY_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          uv sync
+
+      - name: Build
+        run: |
+          scripts/build
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          path: ./dist/
+
+  upload_pypi:
+    name: Upload release to PyPI
+    needs: [build]
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi-release
+    permissions:
+      contents: read
+      id-token: write # OIDC token for PyPI trusted publishing (pypa/gh-action-pypi-publish)
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: artifact
+          path: dist
+          merge-multiple: true
+
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # v1.14.0
