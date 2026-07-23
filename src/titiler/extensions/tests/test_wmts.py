@@ -2,12 +2,14 @@
 
 import io
 import os
+import re
 import xml.etree.ElementTree as ET
+from typing import cast
 
 import pytest
 import rasterio
 from fastapi import FastAPI
-from owslib.wmts import WebMapTileService
+from owslib.wmts import ContentMetadata, WebMapTileService
 from rasterio.crs import CRS
 from rio_tiler.utils import CRS_to_urn
 from starlette.testclient import TestClient
@@ -280,3 +282,38 @@ def test_wmtsExtension_with_renders_old():
 
         assert wmts.provider.name == "TiTiler"
         assert wmts.provider.url == "https://developmentseed.org/titiler/"
+
+
+def test_wmtsExtension_layer_identifier_provider():
+    """Test wmtsExtension class with a custom layer identifier provider."""
+    layer_identifier_prefix = "layer_prefix_"
+    tiler_plus_wmts = TilerFactory(
+        extensions=[
+            wmtsExtension(
+                layer_identifier_provider=lambda src_path: (
+                    f"{layer_identifier_prefix}{src_path}"
+                )
+            )
+        ],
+    )
+    app = FastAPI()
+    app.include_router(tiler_plus_wmts.router)
+    with TestClient(app) as client:
+        data_url = f"{DATA_DIR}/cog.tif"
+        response = client.get(f"/WMTSCapabilities.xml?url={data_url}")
+        assert response.status_code == 200
+        wmts = WebMapTileService(
+            f"/WMTSCapabilities.xml?url={data_url}", xml=response.content
+        )
+        for id, content in wmts.contents.items():
+            identifier_regex = re.compile(
+                f"^{re.escape(layer_identifier_prefix)}{re.escape(data_url)}_.+_default$"
+            )
+            for location, value in (
+                ("key", id),
+                ("object.id", cast(ContentMetadata, content).id),
+                ("object.title", cast(ContentMetadata, content).title),
+            ):
+                assert re.match(identifier_regex, cast(str, value)) is not None, (
+                    f"unexpected value in {location} for {id}"
+                )

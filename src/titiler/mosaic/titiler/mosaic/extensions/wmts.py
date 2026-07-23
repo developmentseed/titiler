@@ -55,6 +55,10 @@ class wmtsExtension(FactoryExtension):
     # Note: Those dependencies should only require Query() inputs
     tile_dependencies: list[Callable] | None = field(default=None)
 
+    layer_identifier_provider: Callable[[Any], str] = field(
+        default=lambda x: x if isinstance(x, str) else "TiTiler Mosaic"
+    )
+
     # TODO: Remove in 3.0
     def __attrs_post_init__(self):
         """Warn about deprecation of `get_renders` attribute."""
@@ -200,7 +204,7 @@ class wmtsExtension(FactoryExtension):
                     )
 
                 layers: list[dict[str, Any]] = []
-                title = src_path if isinstance(src_path, str) else "TiTiler Mosaic"
+                title = self.layer_identifier_provider(src_path)
                 for render in renders:
                     # NOTE: Default bounds and CRS for the dataset
                     bounds = dataset_bounds
