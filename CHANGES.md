@@ -5,12 +5,13 @@
 ## 2.2.0 (2026-07-24)
 
 ## What's Changed
-* feat(#1458): control XML layer identifiers by @captaincoordinates in https://github.com/developmentseed/titiler/pull/1459
-* chore(deps): bump jupyterlab from 4.6.1 to 4.6.2 by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1460
-* fix: use environment_dependency in cogeo extension by @glostis in https://github.com/developmentseed/titiler/pull/1462
+
+* feat: control XML layer identifiers by @captaincoordinates in https://github.com/developmentseed/titiler/pull/1459
 * feat: add projjson headers by @vincentsarago in https://github.com/developmentseed/titiler/pull/1301
+* fix: use environment_dependency in cogeo extension by @glostis in https://github.com/developmentseed/titiler/pull/1462
 
 ## New Contributors
+
 * @glostis made their first contribution in https://github.com/developmentseed/titiler/pull/1462
 
 **Full Changelog**: https://github.com/developmentseed/titiler/compare/2.1.1...2.2.0
