@@ -2,7 +2,7 @@
 
 Issues and pull requests are more than welcome: https://github.com/developmentseed/titiler/issues
 
-We recommand using [`uv`](https://docs.astral.sh/uv) as project manager for development.
+We recommend using [`uv`](https://docs.astral.sh/uv) as project manager for development.
 
 See https://docs.astral.sh/uv/getting-started/installation/ for installation 
 

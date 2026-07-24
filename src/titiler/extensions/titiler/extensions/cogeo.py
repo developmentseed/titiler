@@ -2,6 +2,7 @@
 
 from typing import Annotated
 
+import rasterio
 from attrs import define
 from fastapi import Depends, Query
 
@@ -39,6 +40,8 @@ class cogValidateExtension(FactoryExtension):
                 bool,
                 Query(description="Treat warnings as errors"),
             ] = False,
+            env=Depends(factory.environment_dependency),
         ):
             """Validate a COG"""
-            return cog_info(src_path, strict=strict)
+            with rasterio.Env(**env):
+                return cog_info(src_path, strict=strict)
