@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1784908024966,
+  "lastUpdate": 1784908701756,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -25546,6 +25546,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad longest_transaction",
             "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "116609932+ds-release-bot[bot]@users.noreply.github.com",
+            "name": "ds-release-bot[bot]",
+            "username": "ds-release-bot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2ef0a8fd29eabfb2daa8ffc8eb97fe7adeff01a9",
+          "message": "chore: release 2.2.0 (#1461)\n\n* chore: release 2.2.0\n\n* chore: update changelog and chart version\n\n---------\n\nCo-authored-by: ds-release-bot[bot] <116609932+ds-release-bot[bot]@users.noreply.github.com>\nCo-authored-by: vincentsarago <vincent.sarago@gmail.com>",
+          "timestamp": "2026-07-24T11:56:08-04:00",
+          "tree_id": "2fdb2265825c0eb42a15428082a8f57b1a74327f",
+          "url": "https://github.com/developmentseed/titiler/commit/2ef0a8fd29eabfb2daa8ffc8eb97fe7adeff01a9"
+        },
+        "date": 1784908700123,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.14,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 2.65,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.03,
             "unit": "s"
           }
         ]
