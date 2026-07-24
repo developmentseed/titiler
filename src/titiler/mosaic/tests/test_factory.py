@@ -1,5 +1,6 @@
 """Test TiTiler mosaic Factory."""
 
+import json
 import os
 import tempfile
 import xml.etree.ElementTree as ET
@@ -915,6 +916,29 @@ def test_wmts_extension_mosaic_crs_without_urn():
             assert bboxes
             for bbox in bboxes:
                 assert bbox.attrib["crs"] == custom_crs.to_wkt()
+
+
+def test_optional_headers():
+    """Test TilerFactory class."""
+    mosaic = MosaicTilerFactory(
+        backend=MosaicJSONBackend,
+        optional_headers=[OptionalHeader.projjson_crs],
+        add_part=True,
+    )
+    app = FastAPI()
+    app.include_router(mosaic.router)
+    add_exception_handlers(app, MOSAIC_STATUS_CODES)
+
+    with TestClient(app) as client:
+        with tmpmosaic() as mosaic_file:
+            response = client.get(
+                "/bbox/-74,45,-73,46.png",
+                params={"url": mosaic_file, "dst_crs": "EPSG:3857"},
+            )
+            headers = response.headers
+            assert "content-crs-json" in headers
+            projjson_crs = json.loads(headers["content-crs-json"])
+            assert CRS.from_user_input(projjson_crs).to_epsg() == 3857
 
 
 def test_mosaic_statistics_featurecollection():

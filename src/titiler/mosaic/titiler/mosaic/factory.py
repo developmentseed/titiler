@@ -1,5 +1,6 @@
 """TiTiler.mosaic Router factories."""
 
+import json
 import logging
 import os
 from collections.abc import Callable
@@ -674,6 +675,11 @@ class MosaicTilerFactory(BaseFactory):
             if uri := CRS_to_uri(image.crs):
                 headers["Content-Crs"] = f"<{uri}>"
 
+            if OptionalHeader.projjson_crs in self.optional_headers:
+                headers["Content-Crs-JSON"] = json.dumps(
+                    image.crs.to_dict(projjson=True)
+                )
+
             if (
                 OptionalHeader.server_timing in self.optional_headers
                 and image.metadata.get("timings")
@@ -1114,6 +1120,11 @@ class MosaicTilerFactory(BaseFactory):
             if uri := CRS_to_uri(image.crs):
                 headers["Content-Crs"] = f"<{uri}>"
 
+            if OptionalHeader.projjson_crs in self.optional_headers:
+                headers["Content-Crs-JSON"] = json.dumps(
+                    image.crs.to_dict(projjson=True)
+                )
+
             if (
                 OptionalHeader.server_timing in self.optional_headers
                 and image.metadata.get("timings")
@@ -1203,6 +1214,11 @@ class MosaicTilerFactory(BaseFactory):
                 headers["Content-Bbox"] = ",".join(map(str, image.bounds))
             if uri := CRS_to_uri(image.crs):
                 headers["Content-Crs"] = f"<{uri}>"
+
+            if OptionalHeader.projjson_crs in self.optional_headers:
+                headers["Content-Crs-JSON"] = json.dumps(
+                    image.crs.to_dict(projjson=True)
+                )
 
             if (
                 OptionalHeader.server_timing in self.optional_headers
@@ -1444,6 +1460,11 @@ class MosaicTilerFactory(BaseFactory):
                 headers["Content-Bbox"] = ",".join(map(str, image.bounds))
             if uri := CRS_to_uri(image.crs):
                 headers["Content-Crs"] = f"<{uri}>"
+
+            if OptionalHeader.projjson_crs in self.optional_headers:
+                headers["Content-Crs-JSON"] = json.dumps(
+                    image.crs.to_dict(projjson=True)
+                )
 
             if (
                 OptionalHeader.server_timing in self.optional_headers
