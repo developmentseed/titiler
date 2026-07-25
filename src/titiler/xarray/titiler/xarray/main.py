@@ -432,9 +432,6 @@ def conformance(
 
     Called with `GET /conformance`.
 
-    Returns:
-        Conformance classes which the server conforms to.
-
     """
     data = {"conformsTo": sorted(TITILER_CONFORMS_TO)}
 
