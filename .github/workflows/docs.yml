@@ -1,0 +1,90 @@
+name: Publish docs via GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      # Only rebuild/deploy the website when docs have changed
+      - 'README.md'
+      - 'CHANGES.md'
+      - 'CONTRIBUTING.md'
+      - 'deployment/**'
+      - 'docs/**'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    paths:
+      # Test the docs build whenever something that feeds the docs changes.
+      # The API reference and OpenAPI schema are generated from the source,
+      # so source/dependency changes can break the strict build too.
+      - 'README.md'
+      - 'CHANGES.md'
+      - 'CONTRIBUTING.md'
+      - 'deployment/**'
+      - 'docs/**'
+      - 'src/titiler/**'
+      - 'pyproject.toml'
+      - 'uv.lock'
+      - '.github/workflows/docs.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test docs build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.9.*"
+          enable-cache: false
+
+      - name: Generate OpenAPI schema
+        run: |
+          uv run python -c'from titiler.application.main import app; import json; print(json.dumps(app.openapi(), indent=4))' > docs/src/endpoints/openapi.json
+
+      - name: Build docs (strict)
+        run: |
+          uv run --group docs mkdocs build --strict -f docs/mkdocs.yml
+
+  deploy:
+    name: Deploy docs
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: github-pages
+    permissions:
+      contents: write # mkdocs gh-deploy pushes the built site to gh-pages
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.9.*"
+          enable-cache: false
+
+      - name: Generate OpenAPI schema
+        run: |
+          uv run python -c'from titiler.application.main import app; import json; print(json.dumps(app.openapi(), indent=4))' > docs/src/endpoints/openapi.json
+
+      - name: Deploy docs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          uv run --group docs mkdocs gh-deploy --force -f docs/mkdocs.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
