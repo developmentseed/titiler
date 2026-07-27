@@ -4,7 +4,7 @@ version = "0.0.0"
 
 dependencies = [
     # aws cdk
-    "aws-cdk-lib~=2.232.2",
+    "aws-cdk-lib~=2.253.0",
     "constructs>=10.4.2",
     # pydantic settings
     "pydantic~=2.0",
