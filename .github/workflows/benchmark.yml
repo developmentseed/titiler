@@ -68,7 +68,11 @@ jobs:
           tool: 'customSmallerIsBetter'
           output-file-path: benchmark.json
           alert-threshold: '130%'
-          comment-on-alert: true
+          # Only comment on alert when we can actually write to the repository.
+          # Pull requests from a fork get a read-only GITHUB_TOKEN, so posting the
+          # alert comment fails with "Resource not accessible by integration" and
+          # takes the whole job down, despite `fail-on-alert: false`.
+          comment-on-alert: ${{ github.event.pull_request.head.repo.fork != true }}
           fail-on-alert: false
           # GitHub API token to make a commit comment
           github-token: ${{ secrets.GITHUB_TOKEN }}
