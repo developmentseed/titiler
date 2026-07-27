@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785158441904,
+  "lastUpdate": 1785158455120,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -25708,6 +25708,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 3.16,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2b547a2357fd675d0ddc2f9ed70fb2f4a4c77188",
+          "message": "chore(deps): bump aws-cdk-lib from 2.232.2 to 2.253.0 in /deployment/aws (#1467)\n\nBumps [aws-cdk-lib](https://github.com/aws/aws-cdk) from 2.232.2 to 2.253.0.\n- [Release notes](https://github.com/aws/aws-cdk/releases)\n- [Changelog](https://github.com/aws/aws-cdk/blob/main/CHANGELOG.v2.alpha.md)\n- [Commits](https://github.com/aws/aws-cdk/compare/v2.232.2...v2.253.0)\n\n---\nupdated-dependencies:\n- dependency-name: aws-cdk-lib\n  dependency-version: 2.253.0\n  dependency-type: direct:production\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2026-07-27T09:19:07-04:00",
+          "tree_id": "220efe60684ea6c60dfff8b92edf0ca1fed0be10",
+          "url": "https://github.com/developmentseed/titiler/commit/2b547a2357fd675d0ddc2f9ed70fb2f4a4c77188"
+        },
+        "date": 1785158453574,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.19,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.18,
             "unit": "s"
           },
           {
