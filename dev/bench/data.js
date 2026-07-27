@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1784908701756,
+  "lastUpdate": 1785154283310,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -25605,6 +25605,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad longest_transaction",
             "value": 0.03,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hotwater1367@gmail.com",
+            "name": "KotaYuhara",
+            "username": "wakame1367"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "229d6212b3abf9da93baa2dfe856189a74590c85",
+          "message": "fix(ci): don't fail benchmark on fork PRs when an alert fires (#1464)\n\n`fail-on-alert: false` is set, so a performance alert is not supposed to fail\nthe job. But with `comment-on-alert: true` the action tries to POST a PR\ncomment, and pull requests from a fork only get a read-only GITHUB_TOKEN, so\nthe write fails with \"Resource not accessible by integration\" and takes the\nwhole job down.\n\nOnly enable the alert comment when the pull request does not come from a fork.\nBehaviour on push events and on same-repo pull requests is unchanged.\n\nCo-authored-by: Claude Opus 5 <noreply@anthropic.com>",
+          "timestamp": "2026-07-27T08:09:32-04:00",
+          "tree_id": "30649c080d6b16e7aa35ce0f9a6f234109568910",
+          "url": "https://github.com/developmentseed/titiler/commit/229d6212b3abf9da93baa2dfe856189a74590c85"
+        },
+        "date": 1785154282364,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.2,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.16,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
             "unit": "s"
           }
         ]
