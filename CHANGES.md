@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 2.2.1 (2026-07-29)
+
+## What's Changed
+* fix(ci): don't fail benchmark on fork PRs when an alert fires by @wakame1367 in https://github.com/developmentseed/titiler/pull/1464
+* ci(deps): bump the all group with 3 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1465
+* chore(deps): bump aws-cdk-lib from 2.232.2 to 2.253.0 in /deployment/aws by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1467
+* fix: update usage of fastapi openapi tools by @vincentsarago in https://github.com/developmentseed/titiler/pull/1468
+
+
+**Full Changelog**: https://github.com/developmentseed/titiler/compare/2.2.0...2.2.1
+
 ## 2.2.0 (2026-07-24)
 
 ## What's Changed
