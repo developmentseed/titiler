@@ -1,24 +1,65 @@
 ARG PYTHON_VERSION=3.14
 
-FROM python:${PYTHON_VERSION}
-RUN apt update && apt upgrade -y \
-  && apt install curl -y \
-  && rm -rf /var/lib/apt/lists/*
+FROM python:${PYTHON_VERSION}  AS builder
 
-# Ensure root certificates are always updated at evey container build
-# and curl is using the latest version of them
-# RUN mkdir /usr/local/share/ca-certificates/cacert.org
-# RUN cd /usr/local/share/ca-certificates/cacert.org && curl -k -O https://www.cacert.org/certs/root.crt
-# RUN cd /usr/local/share/ca-certificates/cacert.org && curl -k -O https://www.cacert.org/certs/class3.crt
-# ENV CURL_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
-RUN update-ca-certificates
+# Set build labels
+LABEL stage=builder
+LABEL org.opencontainers.image.source="https://github.com/developmentseed/titiler"
+LABEL org.opencontainers.image.description="TiTiler"
+LABEL org.opencontainers.image.licenses="MIT"
 
-RUN python -m pip install -U pip
-RUN python -m pip install uvicorn uvicorn-worker gunicorn
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
 
-COPY src/titiler/ /tmp/titiler/
-RUN python -m pip install /tmp/titiler/core /tmp/titiler/extensions["cogeo,stac"] /tmp/titiler/mosaic["mosaicjson"] /tmp/titiler/xarray /tmp/titiler/application --no-cache-dir --upgrade
-RUN rm -rf /tmp/titiler
+# Install build dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    libexpat1 curl && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
+
+# Configure uv-managed virtual environment
+ENV UV_LINK_MODE=copy \
+    UV_PROJECT_ENVIRONMENT=/opt/venv \
+    PATH="/opt/venv/bin:${PATH}"
+
+WORKDIR /tmp
+
+# Copy project metadata and code
+COPY pyproject.toml uv.lock README.md LICENSE ./
+COPY src/titiler/ ./src/titiler/
+RUN uv sync --frozen --no-dev --no-editable --group server
+RUN uv pip install --no-deps --no-editable .
+
+# Runtime stage
+FROM python:${PYTHON_VERSION}-slim
+
+# Set runtime labels
+LABEL org.opencontainers.image.source="https://github.com/developmentseed/titiler"
+LABEL org.opencontainers.image.description="TiTiler"
+LABEL org.opencontainers.image.licenses="MIT"
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PATH="/opt/venv/bin:$PATH"
+
+# Install runtime dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    libexpat1 curl && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy virtual environment from builder
+COPY --from=builder /opt/venv /opt/venv
+
+RUN groupadd -g 1000 user && \
+    useradd -u 1000 -g user -s /bin/bash -m user
+
+USER user
 
 ###################################################
 # For compatibility (might be removed at one point)

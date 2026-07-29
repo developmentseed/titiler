@@ -20,6 +20,8 @@ COPY src/titiler/ /tmp/titiler/
 RUN python -m pip install /tmp/titiler/core["telemetry"] /tmp/titiler/xarray --no-cache-dir --upgrade
 RUN rm -rf /tmp/titiler
 
+LABEL deprecated=TRUE
+
 ###################################################
 # For compatibility (might be removed at one point)
 ENV MODULE_NAME=titiler.xarray.main
