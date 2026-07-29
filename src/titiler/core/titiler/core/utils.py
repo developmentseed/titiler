@@ -24,7 +24,10 @@ from fastapi.dependencies.utils import (
     get_flat_params,
     request_params_to_args,
 )
-from fastapi.openapi.utils import _get_openapi_operation_parameters
+from fastapi.openapi.utils import (
+    _get_openapi_dependency_data,
+    _get_openapi_operation_parameters,
+)
 from geojson_pydantic.geometries import MultiPolygon, Polygon
 from morecantile import TileMatrixSet
 from rasterio.dtypes import dtype_ranges
@@ -286,8 +289,9 @@ def dependencies_to_openapi_params(
 
     combined = Dependant(path="")
     combined.query_params = all_fields
+    dependency_data = _get_openapi_dependency_data(combined)
     return _get_openapi_operation_parameters(
-        dependant=combined,
+        dependency_data=dependency_data,
         model_name_map=model_name_map,
         field_mapping=field_mapping,
     )
