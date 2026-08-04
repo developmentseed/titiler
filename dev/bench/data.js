@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785742244686,
+  "lastUpdate": 1785840325231,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -26062,6 +26062,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 3.15,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hotwater1367@gmail.com",
+            "name": "KotaYuhara",
+            "username": "wakame1367"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a29dd50ea390ac78bd8472dbffd5b987d9092f57",
+          "message": "ci: test docs build on PRs (strict) and rename to docs.yml (#1463)\n\n* docs(xarray): drop stray Returns section from conformance docstring\n\nThe conformance endpoint had a docstring `Returns:` section but no return\ntype annotation, which makes griffe emit a warning and fails `mkdocs build\n--strict`. Match the sibling `landing` endpoint (summary-only docstring, no\nannotation) so the strict docs build passes.\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>\n\n* ci: test docs build on PRs and rename workflow to docs.yml\n\nRename `deploy_mkdocs.yml` -> `docs.yml` and add a `test` job that runs\n`mkdocs build --strict` on pull requests, so broken docs are caught before\nthey reach main. The existing deploy job is preserved and now gated behind\n`needs: test` (push to main only).\n\nRefs #1408\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: Claude Opus 4.8 <noreply@anthropic.com>",
+          "timestamp": "2026-08-04T12:43:58+02:00",
+          "tree_id": "ea98f3f361c732fc04c8bc96d301490f94d7a733",
+          "url": "https://github.com/developmentseed/titiler/commit/a29dd50ea390ac78bd8472dbffd5b987d9092f57"
+        },
+        "date": 1785840324134,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.22,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.26,
             "unit": "s"
           },
           {
