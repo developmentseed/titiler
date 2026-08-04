@@ -33,7 +33,16 @@ see https://gdal.org/en/stable/user/security.html#gdal-vrt-driver
 
 Thus we recommend deploying titiler in infrastructure with limited access to the filesystem. Users can also `disable` the VRT driver completely by using `GDAL_SKIP=VRT` environment variable.
 
-In GDAL 3.12, new environment variables might be introduced to enable more control over the VRT driver: https://github.com/OSGeo/gdal/pull/12669
+GDAL 3.12 added two configuration options for finer control over the VRT driver, which are useful when `GDAL_SKIP=VRT` is too blunt because VRT is part of your product:
+
+- `GDAL_VRT_ENABLE_RAWRASTERBAND` (default `YES`). Set it to `NO` to disable `VRTRawRasterBand` entirely.
+- `GDAL_VRT_RAWRASTERBAND_ALLOWED_SOURCE` (default `SIBLING_OR_CHILD_OF_VRT_PATH`). Restricts which `SourceFilename` values a raw band may reference. The other values are `ONLY_REMOTE`, `ALL`, and an explicit path prefix.
+
+The default is already restrictive, so running GDAL 3.12 or later closes most of this path without any configuration. Setting both options explicitly is still worth doing, because it survives a base image bump that changes the defaults.
+
+GDAL 3.13.2 also restricts the `/vsicurl/` `header_file` option, which could otherwise be pointed at an arbitrary local file. The filename now defaults to being under `/vsimem/`, `/tmp`, or `TEMP`, and `CPL_VSIL_CURL_HEADER_FILE_KVP_ENABLED` controls the policy.
+
+see https://gdal.org/en/stable/drivers/raster/vrt.html and https://gdal.org/en/stable/user/virtual_file_systems.html
 
 #### Limit source's host
 
@@ -71,3 +80,27 @@ app.include_router(TilerFactory(path_dependency=DatasetPathParams).router)
 
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
 ```
+
+## Band math
+
+The `expression` parameter is evaluated by rio-tiler through `numexpr`. rio-tiler validates expressions against an allowlist before evaluating them, and that validation was hardened in 9.1.0, so keep rio-tiler current.
+
+Applications that only need band selection can remove the parameter altogether by passing a `layer_dependency` that omits it. `BidxParams` provides `bidx` without `expression`:
+
+```python
+from titiler.core.factory import TilerFactory
+from titiler.core.dependencies import BidxParams
+from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
+
+from fastapi import FastAPI
+
+app = FastAPI(title="My simple app")
+
+# BidxExprParams (the default) provides both `bidx` and `expression`.
+# BidxParams provides `bidx` only, so `expression` is not part of the API.
+app.include_router(TilerFactory(layer_dependency=BidxParams).router)
+
+add_exception_handlers(app, DEFAULT_STATUS_CODES)
+```
+
+The parameter then disappears from the OpenAPI schema and the endpoints reject it, which is a stronger guarantee than relying on validation.
