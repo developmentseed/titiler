@@ -3,12 +3,10 @@ name: Publish Docker image
 on:
   release:
     types: [published]
-  # TODO: only for test
-  pull_request:
-
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  push:
+    branches:
+    - main
+  workflow_dispatch:
 
 jobs:
   build-and-push:
@@ -21,10 +19,10 @@ jobs:
     strategy:
       matrix:
         include:
-          - image: ghcr.io/${{ env.IMAGE_NAME }}
+          - image: ghcr.io/${{ github.repository }}
             file: dockerfiles/Dockerfile
           # TODO: Remove this for titiler 3.0
-          - image: ghcr.io/${{ env.IMAGE_NAME }}-xarray
+          - image: ghcr.io/${{ github.repository }}-xarray
             file: dockerfiles/Dockerfile.xarray
     steps:
       - name: Checkout
@@ -41,7 +39,7 @@ jobs:
       - name: Log in to the GitHub Container registry
         uses: docker/login-action@abd2ef45e78c5afb21d64d4ca52ee8550d9572c7 # v4
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
@@ -107,7 +105,7 @@ jobs:
           severity: HIGH
 
       - name: Push Docker image
-        if: github.ref == 'refs/heads/main' || (startsWith(github.event.ref, 'refs/tags') && !startsWith(github.ref, 'refs/tags/helm-')) || github.event_name == 'release'
+        if: github.ref == 'refs/heads/main' || github.event_name == 'release'
         env:
           META_TAGS: ${{ steps.meta.outputs.tags }}
         run: |
