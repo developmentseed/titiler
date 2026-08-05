@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785846615470,
+  "lastUpdate": 1785917342758,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -26180,6 +26180,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 3.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "ishiland@gmail.com",
+            "name": "Ian Shiland",
+            "username": "ishiland"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5e5c97230e3bc00b791d5912f2f4b91da488d203",
+          "message": "docs(security): document the GDAL 3.12 VRT options and how to remove the expression parameter (#1476)\n\nThe GDAL section said new variables 'might be introduced' in 3.12; they\nshipped, so name them and their defaults, and add the 3.13.2 header_file\nrestriction.\n\nAdd a band math section showing how to drop the expression parameter via\nlayer_dependency=BidxParams, for applications that only need band selection.",
+          "timestamp": "2026-08-05T10:07:36+02:00",
+          "tree_id": "09f26a0d7ffc5050aa3283ce5ab3351583f9e6bf",
+          "url": "https://github.com/developmentseed/titiler/commit/5e5c97230e3bc00b791d5912f2f4b91da488d203"
+        },
+        "date": 1785917341209,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.21,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.09,
             "unit": "s"
           },
           {
