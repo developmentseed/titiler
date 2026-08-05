@@ -1,0 +1,72 @@
+name: CI
+
+# On every pull request, but only on push to main
+on:
+  push:
+    branches:
+    - main
+    - dev
+    tags:
+    - '*'
+    paths:
+      # Only run test and docker publish if some code have changed
+      - 'setup.py'
+      - 'setup.cfg'
+      - 'src/titiler/**'
+      - '.pre-commit-config.yaml'
+      - '.github/codecov.yml'
+      - 'dockerfiles/**'
+      - '.github/workflows/ci.yml'
+      - 'uv.lock'
+  pull_request:
+  workflow_dispatch:
+
+env:
+  LATEST_PY_VERSION: '3.14'
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    environment: ci
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12', '3.13', '3.14']
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.9.*"
+          enable-cache: false
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          uv sync
+
+      - name: run pre-commit and mypy
+        if: ${{ matrix.python-version == env.LATEST_PY_VERSION }}
+        run: |
+          uv run pre-commit run --all-files
+          uv run --with mypy --with types-attrs --with types-simplejson mypy -p titiler.core -p titiler.extensions -p titiler.xarray -p titiler.application -p titiler.mosaic  --ignore-missing-imports
+
+      - name: Test titiler modules
+        run: ./scripts/test
+
+      - name: Upload Results
+        if: ${{ matrix.python-version == env.LATEST_PY_VERSION }}
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        with:
+          files: ./titiler-core.xml,./titiler-extensions.xml,./titiler-xarray.xml,./titiler-mosaic.xml,./titiler-application.xml
+          flags: unittests
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}

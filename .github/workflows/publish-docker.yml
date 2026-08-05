@@ -1,0 +1,125 @@
+name: Publish Docker image
+
+on:
+  release:
+    types: [published]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write # Push multi-arch images to ghcr.io for this repository
+      actions: write # Persist Docker layer cache for docker/build-push-action (type=gha).
+      security-events: write # Upload Trivy SARIF to the GitHub Security tab.
+    strategy:
+      matrix:
+        include:
+          - image: ghcr.io/${{ env.IMAGE_NAME }}
+            file: dockerfiles/Dockerfile
+          # TODO: Remove this for titiler 3.0
+          - image: ghcr.io/${{ env.IMAGE_NAME }}-xarray
+            file: dockerfiles/Dockerfile.xarray
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
+
+      - name: Log in to the GitHub Container registry
+        uses: docker/login-action@abd2ef45e78c5afb21d64d4ca52ee8550d9572c7 # v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6
+        with:
+          images: ${{ matrix.image }}
+          flavor: |
+            latest=false
+          tags: |
+            type=semver,pattern={{version}}
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      # Build once, into the local daemon. Nothing is published until Trivy has
+      # cleared this exact image: the push step below uploads these very tags,
+      # it does not rebuild.
+      - name: Build Docker image
+        id: build
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          platforms: linux/amd64,linux/arm64
+          context: .
+          file: ${{ matrix.file }}
+          push: false
+          load: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Scanned by image ID rather than by tag: every tag above points at this
+      # ID, and it does not depend on the order metadata-action emits tags in.
+      - name: Scan image with Trivy (SARIF CRITICAL/HIGH, incl. unfixed)
+        id: trivy-sarif-critical-high
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ steps.build.outputs.imageid }}
+          format: sarif
+          output: trivy-results-critical-high.sarif
+          exit-code: '0'
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
+
+      - name: Fail on fixable CRITICAL vulnerabilities
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ steps.build.outputs.imageid }}
+          format: table
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL
+
+      - name: Warn on fixable HIGH vulnerabilities
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ steps.build.outputs.imageid }}
+          format: table
+          exit-code: '0'
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: HIGH
+
+      - name: Push Docker image
+        if: github.ref == 'refs/heads/main' || (startsWith(github.event.ref, 'refs/tags') && !startsWith(github.ref, 'refs/tags/helm-')) || github.event_name == 'release'
+        env:
+          META_TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          set -euo pipefail
+          printf '%s\n' "$META_TAGS" | while read -r tag; do
+            [ -n "$tag" ] || continue
+            echo "Pushing $tag"
+            docker push "$tag"
+          done
+
+      # Fork PRs get a read-only GITHUB_TOKEN, so the upload would fail there.
+      - name: Upload Trivy SARIF (CRITICAL/HIGH) to GitHub Security tab
+        if: steps.trivy-sarif-critical-high.outcome == 'success' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        uses: github/codeql-action/upload-sarif@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a # v4.36.3
+        with:
+          sarif_file: trivy-results-critical-high.sarif
+          category: trivy-critical-high
