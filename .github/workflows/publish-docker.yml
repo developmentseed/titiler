@@ -54,30 +54,30 @@ jobs:
             type=semver,pattern={{version}}
             type=raw,value=latest,enable={{is_default_branch}}
 
-      # Build once, into the local daemon. Nothing is published until Trivy has
-      # cleared this exact image: the push step below uploads these very tags,
-      # it does not rebuild.
+      # Multi-platform results can't be loaded into the local Docker daemon
+      # (the docker exporter doesn't support manifest lists), so we export an
+      # OCI layout directory instead and scan that directly. tar=false is
+      # required: Trivy can't read a compressed OCI tarball, only a directory
+      # (https://github.com/aquasecurity/trivy/issues/5136). Nothing is
+      # published until Trivy has cleared it.
       - name: Build Docker image
-        id: build
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           platforms: linux/amd64,linux/arm64
           context: .
           file: ${{ matrix.file }}
           push: false
-          load: true
+          outputs: type=oci,dest=/tmp/image-oci,tar=false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # Scanned by image ID rather than by tag: every tag above points at this
-      # ID, and it does not depend on the order metadata-action emits tags in.
       - name: Scan image with Trivy (SARIF CRITICAL/HIGH, incl. unfixed)
         id: trivy-sarif-critical-high
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
-          image-ref: ${{ steps.build.outputs.imageid }}
+          input: /tmp/image-oci
           format: sarif
           output: trivy-results-critical-high.sarif
           exit-code: '0'
@@ -87,7 +87,7 @@ jobs:
       - name: Fail on fixable CRITICAL vulnerabilities
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
-          image-ref: ${{ steps.build.outputs.imageid }}
+          input: /tmp/image-oci
           format: table
           exit-code: '1'
           ignore-unfixed: true
@@ -97,24 +97,27 @@ jobs:
       - name: Warn on fixable HIGH vulnerabilities
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
-          image-ref: ${{ steps.build.outputs.imageid }}
+          input: /tmp/image-oci
           format: table
           exit-code: '0'
           ignore-unfixed: true
           vuln-type: os,library
           severity: HIGH
 
+      # Rebuilds from the same context/cache as the scanned image above (all
+      # layers are already warm, so this is a cache hit, not a real rebuild)
+      # and pushes the result as a normal multi-arch manifest list.
       - name: Push Docker image
         if: github.ref == 'refs/heads/main' || github.event_name == 'release'
-        env:
-          META_TAGS: ${{ steps.meta.outputs.tags }}
-        run: |
-          set -euo pipefail
-          printf '%s\n' "$META_TAGS" | while read -r tag; do
-            [ -n "$tag" ] || continue
-            echo "Pushing $tag"
-            docker push "$tag"
-          done
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          platforms: linux/amd64,linux/arm64
+          context: .
+          file: ${{ matrix.file }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
 
       # Fork PRs get a read-only GITHUB_TOKEN, so the upload would fail there.
       - name: Upload Trivy SARIF (CRITICAL/HIGH) to GitHub Security tab
