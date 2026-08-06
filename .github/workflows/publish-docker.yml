@@ -9,21 +9,138 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-push:
+  # A multi-platform build can't be loaded into the local Docker daemon (the
+  # docker exporter doesn't support manifest lists), so each platform is
+  # built, loaded and scanned separately - one matrix cell per (image,
+  # platform) pair. Trivy itself can't scan a multi-platform image/index in
+  # one pass either
+  # (https://github.com/aquasecurity/trivy/discussions/6122,
+  # https://github.com/aquasecurity/trivy/issues/3571), which is the other
+  # reason this can't be collapsed back into a single multi-platform build.
+  build-and-scan:
+    name: build-and-scan (${{ matrix.target.name }}, ${{ matrix.platform.name }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write # Persist Docker layer cache for docker/build-push-action (type=gha).
+      security-events: write # Upload Trivy SARIF to the GitHub Security tab.
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - image: ghcr.io/${{ github.repository }}
+            file: dockerfiles/Dockerfile
+            name: main
+          # TODO: Remove this for titiler 3.0
+          - image: ghcr.io/${{ github.repository }}-xarray
+            file: dockerfiles/Dockerfile.xarray
+            name: xarray
+        platform:
+          - name: amd64
+            tag: linux/amd64
+          - name: arm64
+            tag: linux/arm64
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6
+        with:
+          images: ${{ matrix.target.image }}
+          flavor: |
+            latest=false
+          tags: |
+            type=semver,pattern={{version}}
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      # Scanned by image ID rather than by tag: every tag above points at
+      # this ID, and it does not depend on the order metadata-action emits
+      # tags in.
+      - name: Build image
+        id: build
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          platforms: ${{ matrix.platform.tag }}
+          context: .
+          file: ${{ matrix.target.file }}
+          push: false
+          load: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.target.name }}-${{ matrix.platform.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.target.name }}-${{ matrix.platform.name }}
+
+      - name: Scan image with Trivy (SARIF CRITICAL/HIGH, incl. unfixed)
+        id: trivy-sarif-critical-high
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ steps.build.outputs.imageid }}
+          format: sarif
+          output: trivy-results-critical-high.sarif
+          exit-code: '0'
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
+
+      - name: Fail on fixable CRITICAL vulnerabilities
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ steps.build.outputs.imageid }}
+          format: table
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL
+
+      - name: Warn on fixable HIGH vulnerabilities
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ steps.build.outputs.imageid }}
+          format: table
+          exit-code: '0'
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: HIGH
+
+      - name: Upload Trivy SARIF (CRITICAL/HIGH) to GitHub Security tab
+        if: steps.trivy-sarif-critical-high.outcome == 'success'
+        uses: github/codeql-action/upload-sarif@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a # v4.36.3
+        with:
+          sarif_file: trivy-results-critical-high.sarif
+          category: trivy-critical-high-${{ matrix.target.name }}-${{ matrix.platform.name }}
+
+  # Runs only once every (image, platform) cell above has been scanned clean.
+  # NOTE: this waits on the *entire* build-and-scan job, so e.g. a Trivy
+  # failure on titiler-xarray currently blocks publishing titiler too, even
+  # though the two images are otherwise independent - say if you'd rather
+  # keep them fully decoupled and want that split out.
+  push:
+    name: push (${{ matrix.name }})
+    needs: build-and-scan
+    if: github.ref == 'refs/heads/main' || github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write # Push multi-arch images to ghcr.io for this repository
-      actions: write # Persist Docker layer cache for docker/build-push-action (type=gha).
-      security-events: write # Upload Trivy SARIF to the GitHub Security tab.
     strategy:
       matrix:
         include:
           - image: ghcr.io/${{ github.repository }}
             file: dockerfiles/Dockerfile
+            name: main
           # TODO: Remove this for titiler 3.0
           - image: ghcr.io/${{ github.repository }}-xarray
             file: dockerfiles/Dockerfile.xarray
+            name: xarray
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -54,61 +171,10 @@ jobs:
             type=semver,pattern={{version}}
             type=raw,value=latest,enable={{is_default_branch}}
 
-      # Multi-platform results can't be loaded into the local Docker daemon
-      # (the docker exporter doesn't support manifest lists), so we export an
-      # OCI layout directory instead and scan that directly. tar=false is
-      # required: Trivy can't read a compressed OCI tarball, only a directory
-      # (https://github.com/aquasecurity/trivy/issues/5136). Nothing is
-      # published until Trivy has cleared it.
-      - name: Build Docker image
-        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
-        with:
-          platforms: linux/amd64,linux/arm64
-          context: .
-          file: ${{ matrix.file }}
-          push: false
-          outputs: type=oci,dest=/tmp/image-oci,tar=false
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Scan image with Trivy (SARIF CRITICAL/HIGH, incl. unfixed)
-        id: trivy-sarif-critical-high
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
-        with:
-          input: /tmp/image-oci
-          format: sarif
-          output: trivy-results-critical-high.sarif
-          exit-code: '0'
-          vuln-type: os,library
-          severity: CRITICAL,HIGH
-
-      - name: Fail on fixable CRITICAL vulnerabilities
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
-        with:
-          input: /tmp/image-oci
-          format: table
-          exit-code: '1'
-          ignore-unfixed: true
-          vuln-type: os,library
-          severity: CRITICAL
-
-      - name: Warn on fixable HIGH vulnerabilities
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
-        with:
-          input: /tmp/image-oci
-          format: table
-          exit-code: '0'
-          ignore-unfixed: true
-          vuln-type: os,library
-          severity: HIGH
-
-      # Rebuilds from the same context/cache as the scanned image above (all
+      # Rebuilds from the same cache as the two scanned platforms above (all
       # layers are already warm, so this is a cache hit, not a real rebuild)
-      # and pushes the result as a normal multi-arch manifest list.
+      # and pushes the result as one multi-arch manifest list.
       - name: Push Docker image
-        if: github.ref == 'refs/heads/main' || github.event_name == 'release'
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           platforms: linux/amd64,linux/arm64
@@ -117,12 +183,6 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-
-      # Fork PRs get a read-only GITHUB_TOKEN, so the upload would fail there.
-      - name: Upload Trivy SARIF (CRITICAL/HIGH) to GitHub Security tab
-        if: steps.trivy-sarif-critical-high.outcome == 'success' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
-        uses: github/codeql-action/upload-sarif@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a # v4.36.3
-        with:
-          sarif_file: trivy-results-critical-high.sarif
-          category: trivy-critical-high
+          cache-from: |
+            type=gha,scope=${{ matrix.name }}-amd64
+            type=gha,scope=${{ matrix.name }}-arm64
