@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786459519875,
+  "lastUpdate": 1787214720004,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -26475,6 +26475,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 2.96,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b5eec970a9cf691926106e2da68e677d876fc552",
+          "message": "chore(deps): bump the all group with 3 updates (#1484)\n\nBumps the all group with 3 updates: [ipython](https://github.com/ipython/ipython), [pydantic-settings](https://github.com/pydantic/pydantic-settings) and [starlette](https://github.com/Kludex/starlette).\n\n\nUpdates `ipython` from 9.16.0 to 9.16.1\n- [Release notes](https://github.com/ipython/ipython/releases)\n- [Commits](https://github.com/ipython/ipython/compare/9.16.0...9.16.1)\n\nUpdates `pydantic-settings` from 2.14.2 to 2.15.0\n- [Release notes](https://github.com/pydantic/pydantic-settings/releases)\n- [Commits](https://github.com/pydantic/pydantic-settings/compare/v2.14.2...v2.15.0)\n\nUpdates `starlette` from 1.3.1 to 1.6.0\n- [Release notes](https://github.com/Kludex/starlette/releases)\n- [Changelog](https://github.com/Kludex/starlette/blob/main/docs/release-notes.md)\n- [Commits](https://github.com/Kludex/starlette/compare/1.3.1...1.6.0)\n\n---\nupdated-dependencies:\n- dependency-name: ipython\n  dependency-version: 9.16.1\n  dependency-type: direct:development\n  update-type: version-update:semver-patch\n  dependency-group: all\n- dependency-name: pydantic-settings\n  dependency-version: 2.15.0\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: all\n- dependency-name: starlette\n  dependency-version: 1.6.0\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: all\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2026-08-20T10:30:35+02:00",
+          "tree_id": "ded675cd8689c59d4f35cb9bc1ac21c3b488c9de",
+          "url": "https://github.com/developmentseed/titiler/commit/b5eec970a9cf691926106e2da68e677d876fc552"
+        },
+        "date": 1787214718460,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.21,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.05,
             "unit": "s"
           },
           {
