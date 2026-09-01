@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788257823816,
+  "lastUpdate": 1788271337623,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -26770,6 +26770,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 3.23,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "08a2d1ccb947c62523a2d6ee4dc5a43bae146ce9",
+          "message": "chore(deps): bump the all group with 4 updates (#1488)\n\nBumps the all group with 4 updates: [httpx2](https://github.com/pydantic/httpx2), [obstore](https://github.com/geospatial-jeff/pyasyncio-benchmark), [gunicorn](https://github.com/benoitc/gunicorn) and [rio-tiler](https://github.com/cogeotiff/rio-tiler).\n\n\nUpdates `httpx2` from 2.10.0 to 2.12.0\n- [Release notes](https://github.com/pydantic/httpx2/releases)\n- [Changelog](https://github.com/pydantic/httpx2/blob/main/src/httpx2/CHANGELOG.md)\n- [Commits](https://github.com/pydantic/httpx2/compare/v2.10.0...v2.12.0)\n\nUpdates `obstore` from 0.11.0 to 0.11.1\n- [Commits](https://github.com/geospatial-jeff/pyasyncio-benchmark/commits)\n\nUpdates `gunicorn` from 26.0.0 to 26.1.0\n- [Release notes](https://github.com/benoitc/gunicorn/releases)\n- [Commits](https://github.com/benoitc/gunicorn/compare/26.0.0...26.1.0)\n\nUpdates `rio-tiler` from 9.4.2 to 9.4.3\n- [Release notes](https://github.com/cogeotiff/rio-tiler/releases)\n- [Changelog](https://github.com/cogeotiff/rio-tiler/blob/main/CHANGES.md)\n- [Commits](https://github.com/cogeotiff/rio-tiler/compare/9.4.2...9.4.3)\n\n---\nupdated-dependencies:\n- dependency-name: httpx2\n  dependency-version: 2.12.0\n  dependency-type: direct:development\n  update-type: version-update:semver-minor\n  dependency-group: all\n- dependency-name: obstore\n  dependency-version: 0.11.1\n  dependency-type: direct:development\n  update-type: version-update:semver-patch\n  dependency-group: all\n- dependency-name: gunicorn\n  dependency-version: 26.1.0\n  dependency-type: direct:development\n  update-type: version-update:semver-minor\n  dependency-group: all\n- dependency-name: rio-tiler\n  dependency-version: 9.4.3\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: all\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2026-09-01T16:00:45+02:00",
+          "tree_id": "989945b9725fa62448af8d5ab6d9c9f53abc6071",
+          "url": "https://github.com/developmentseed/titiler/commit/08a2d1ccb947c62523a2d6ee4dc5a43bae146ce9"
+        },
+        "date": 1788271335380,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.22,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.2,
             "unit": "s"
           },
           {
