@@ -128,6 +128,8 @@
 
 ## 2.0.0 (2026-03-16)
 
+Migration doc available at: https://developmentseed.org/titiler/migrations/v2_migration/
+
 ### Misc
 
 * change: rio-tiler requirement to `>=9.0,<10.0`
@@ -161,7 +163,7 @@
 * **render**:
     * change: make `assets` optional in `RenderItem` model
     * change: add `valid: True|False` key to the `RenderItemWithLinks` model
-    * add: convert old `asset_bix` and `asset_expression` keys to `{asset}|indexes=...&expression=...`
+    * add: convert old `asset_bix` and `asset_expression` keys to `{asset}|bidx=...&expression=...`
 
 ### titiler.mosaic
 
