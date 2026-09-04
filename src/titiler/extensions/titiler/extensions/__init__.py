@@ -1,6 +1,6 @@
 """titiler.extensions"""
 
-__version__ = "2.2.1"  # x-release-please-version
+__version__ = "2.2.2"  # x-release-please-version
 
 from .cogeo import cogValidateExtension  # noqa
 from .render import stacRenderExtension  # noqa
