@@ -2,6 +2,32 @@
 
 ## Unreleased
 
+## 2.2.2 (2026-09-04)
+
+## What's Changed
+* chore: refactor dockerfile to use uv lock file by @vincentsarago in https://github.com/developmentseed/titiler/pull/1470
+* ci(deps): bump the all group with 8 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1473
+* chore(deps): bump boto3 from 1.43.46 to 1.43.56 in the all group by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1474
+* ci: test docs build on PRs (strict) and rename to docs.yml by @wakame1367 in https://github.com/developmentseed/titiler/pull/1463
+* chore(deps): bump cryptography from 49.0.0 to 50.0.0 by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1475
+* docs(security): document the GDAL 3.12 VRT options and how to remove the expression parameter by @ishiland in https://github.com/developmentseed/titiler/pull/1476
+* ci: scan the Docker image with Trivy before publishing it by @vincentsarago in https://github.com/developmentseed/titiler/pull/1478
+* ci: fix trivy scan by @vincentsarago in https://github.com/developmentseed/titiler/pull/1480
+* chore(deps): bump the all group with 2 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1482
+* ci(deps): bump the all group with 4 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1481
+* chore(deps): bump the all group with 3 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1484
+* ci(deps): bump github/codeql-action/upload-sarif from 4.37.4 to 4.37.6 in the all group by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1483
+* ci(deps): bump the all group with 2 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1485
+* chore(deps): bump the all group with 3 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1486
+* chore(deps): bump the all group with 4 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1488
+* ci(deps): bump the all group with 2 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1487
+* chore(deps): bump tornado from 6.5.7 to 6.5.8 by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1489
+
+## New Contributors
+* @ishiland made their first contribution in https://github.com/developmentseed/titiler/pull/1476
+
+**Full Changelog**: https://github.com/developmentseed/titiler/compare/2.2.1...2.2.2
+
 ## 2.2.1 (2026-07-29)
 
 ## What's Changed
