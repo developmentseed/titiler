@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788504355336,
+  "lastUpdate": 1788767581050,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -26962,6 +26962,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad longest_transaction",
             "value": 0.05,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "27e398156ad7fd19452c039120cd768bdb762903",
+          "message": "chore(deps): bump the all group with 5 updates (#1491)\n\nBumps the all group with 5 updates:\n\n| Package | From | To |\n| --- | --- | --- |\n| [ipython](https://github.com/ipython/ipython) | `9.16.1` | `9.17.0` |\n| [gunicorn](https://github.com/benoitc/gunicorn) | `26.1.0` | `26.2.0` |\n| [geojson-pydantic](https://github.com/developmentseed/geojson-pydantic) | `2.1.1` | `2.1.2` |\n| [pydantic](https://github.com/pydantic/pydantic) | `2.13.4` | `2.13.5` |\n| [simplejson](https://github.com/simplejson/simplejson) | `4.1.1` | `4.1.2` |\n\n\nUpdates `ipython` from 9.16.1 to 9.17.0\n- [Release notes](https://github.com/ipython/ipython/releases)\n- [Commits](https://github.com/ipython/ipython/compare/9.16.1...9.17.0)\n\nUpdates `gunicorn` from 26.1.0 to 26.2.0\n- [Release notes](https://github.com/benoitc/gunicorn/releases)\n- [Commits](https://github.com/benoitc/gunicorn/compare/26.1.0...26.2.0)\n\nUpdates `geojson-pydantic` from 2.1.1 to 2.1.2\n- [Release notes](https://github.com/developmentseed/geojson-pydantic/releases)\n- [Changelog](https://github.com/developmentseed/geojson-pydantic/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/developmentseed/geojson-pydantic/compare/2.1.1...2.1.2)\n\nUpdates `pydantic` from 2.13.4 to 2.13.5\n- [Release notes](https://github.com/pydantic/pydantic/releases)\n- [Changelog](https://github.com/pydantic/pydantic/blob/v2.13.5/HISTORY.md)\n- [Commits](https://github.com/pydantic/pydantic/compare/v2.13.4...v2.13.5)\n\nUpdates `simplejson` from 4.1.1 to 4.1.2\n- [Release notes](https://github.com/simplejson/simplejson/releases)\n- [Changelog](https://github.com/simplejson/simplejson/blob/main/CHANGES.txt)\n- [Commits](https://github.com/simplejson/simplejson/compare/v4.1.1...v4.1.2)\n\n---\nupdated-dependencies:\n- dependency-name: ipython\n  dependency-version: 9.17.0\n  dependency-type: direct:development\n  update-type: version-update:semver-minor\n  dependency-group: all\n- dependency-name: gunicorn\n  dependency-version: 26.2.0\n  dependency-type: direct:development\n  update-type: version-update:semver-minor\n  dependency-group: all\n- dependency-name: geojson-pydantic\n  dependency-version: 2.1.2\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: all\n- dependency-name: pydantic\n  dependency-version: 2.13.5\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: all\n- dependency-name: simplejson\n  dependency-version: 4.1.2\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: all\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2026-09-07T09:51:42+02:00",
+          "tree_id": "3eb7c6d6df4c2b9c8a2c0919330506a6d304a751",
+          "url": "https://github.com/developmentseed/titiler/commit/27e398156ad7fd19452c039120cd768bdb762903"
+        },
+        "date": 1788767579469,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.19,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 2.84,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
             "unit": "s"
           }
         ]
