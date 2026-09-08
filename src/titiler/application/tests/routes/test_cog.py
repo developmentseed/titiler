@@ -443,3 +443,14 @@ def test_json_response_with_nan(rio, app):
     assert response.status_code == 200
     body = response.json()
     assert body["values"][0] is None
+
+
+@patch("rio_tiler.io.rasterio.rasterio")
+def test_invalid_format(rio, app):
+    """test /preview endpoint."""
+    rio.open = mock_rasterio_open
+
+    response = app.get(
+        "/cog/preview.png?url=https://myurl.com/cog.tif&bidx=1&bidx=1&bidx=1&bidx=1&rescale=0,1000&max_size=256"
+    )
+    assert response.status_code == 400
