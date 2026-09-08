@@ -10,6 +10,7 @@ from rio_tiler.errors import (
     InvalidBandName,
     InvalidColorFormat,
     InvalidExpression,
+    InvalidFormat,
     MissingAssets,
     MissingBands,
     RioTilerError,
@@ -48,6 +49,7 @@ DEFAULT_STATUS_CODES = {
     RioTilerError: status.HTTP_500_INTERNAL_SERVER_ERROR,
     Exception: status.HTTP_500_INTERNAL_SERVER_ERROR,
     InvalidExpression: status.HTTP_400_BAD_REQUEST,
+    InvalidFormat: status.HTTP_400_BAD_REQUEST,
 }
 
 
