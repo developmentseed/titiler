@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 2.2.2 (2026-09-09)
+
+## What's Changed
+
+* fix: raise 400 error for invalid render format by @vincentsarago in https://github.com/developmentseed/titiler/pull/1494
+
+## New Contributors
+* @ishiland made their first contribution in https://github.com/developmentseed/titiler/pull/1476
+
+**Full Changelog**: https://github.com/developmentseed/titiler/compare/2.2.1...2.2.2
+
 ## 2.2.1 (2026-07-29)
 
 ## What's Changed
