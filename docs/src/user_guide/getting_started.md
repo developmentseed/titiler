@@ -73,7 +73,9 @@ app = FastAPI()
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins (for development - be more specific in production)
+    allow_origins=[
+        "*"
+    ],  # Allows all origins (for development - be more specific in production)
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -163,7 +165,7 @@ import morecantile
 # Web Mercator is the default tiling scheme for most web map clients
 WEB_MERCATOR_TMS = morecantile.tms.get("WebMercatorQuad")
 
-with Reader('/path/to/your/raster.tif', tms=WEB_MERCATOR_TMS) as src:
+with Reader("/path/to/your/raster.tif", tms=WEB_MERCATOR_TMS) as src:
     bbox = src.get_geographic_bounds("epsg:4326")
     zoom = 15
     # Find all tiles covering the bounding box
@@ -375,7 +377,7 @@ tiler = TilerFactory(router_prefix="private/cog", router=router)
 app.include_router(tiler.router, prefix="/private/cog", tags=["Private"])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     uvicorn.run(app=app, host="127.0.0.1", port=8080, log_level="info")
 ```
 

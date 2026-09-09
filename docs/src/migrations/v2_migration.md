@@ -107,8 +107,9 @@ The `MultiBandTilerFactory` class has been completely removed because `MultiBand
 from titiler.core.factory import MultiBandTilerFactory
 from rio_tiler.io import MultiBandReader
 
-class MyBandReader(MultiBandReader):
-    ...
+
+class MyBandReader(MultiBandReader): ...
+
 
 tiler = MultiBandTilerFactory(reader=MyBandReader)
 ```
@@ -123,9 +124,11 @@ tiler = MultiBandTilerFactory(reader=MyBandReader)
 from titiler.core.factory import MultiBaseTilerFactory
 from rio_tiler.io import MultiBaseReader
 
+
 class MyAssetReader(MultiBaseReader):
     # Expose bands as assets
     ...
+
 
 tiler = MultiBaseTilerFactory(reader=MyAssetReader)
 ```

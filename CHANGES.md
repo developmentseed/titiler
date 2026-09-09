@@ -307,12 +307,14 @@ Migration doc available at: https://developmentseed.org/titiler/migrations/v2_mi
         coordinates: List[float]
         values: List[Tuple[str, List[Optional[float]], List[str]]]
 
+
     # now
     class AssetPoint(BaseModel):
         name: str
         values: list[float | None]
         band_names: list[str]
         band_descriptions: list[str] | None = None
+
 
     class Point(BaseModel):
         coordinates: list[float]
@@ -517,7 +519,9 @@ Migration doc available at: https://developmentseed.org/titiler/migrations/v2_mi
     app.add_middlewares(
         LoggerMiddleware,
         # custom Logger
-        logger=logging.getLogger("mytiler.requests"),  # default to logging.getLogger("titiler.requests")
+        logger=logging.getLogger(
+            "mytiler.requests"
+        ),  # default to logging.getLogger("titiler.requests")
     )
     ```
 
@@ -525,6 +529,7 @@ Migration doc available at: https://developmentseed.org/titiler/migrations/v2_mi
 
     ```python
     from logging import config
+
     config.dictConfig(
         {
             "version": 1,
@@ -1057,7 +1062,7 @@ Migration doc available at: https://developmentseed.org/titiler/migrations/v2_mi
             ("assets", "asset2"),
             ("asset_bidx", "asset1|1"),
             ("asset_bidx", "asset2|1"),
-        )
+        ),
     )
 
     # now
@@ -1068,7 +1073,7 @@ Migration doc available at: https://developmentseed.org/titiler/migrations/v2_mi
             ("assets", "asset1"),
             ("assets", "asset2"),
             ("bidx", 1),
-        )
+        ),
     )
     ```
 
@@ -1451,11 +1456,12 @@ Migration doc available at: https://developmentseed.org/titiler/migrations/v2_mi
 router = TilerFactory(gdal_config={"GDAL_DISABLE_READDIR_ON_OPEN": "FALSE"}).router
 
 # now
-router = TilerFactory(environment_dependency=lambda: {"GDAL_DISABLE_READDIR_ON_OPEN": "FALSE"}).router
+router = TilerFactory(
+    environment_dependency=lambda: {"GDAL_DISABLE_READDIR_ON_OPEN": "FALSE"}
+).router
 
 
 class ReaddirType(str, Enum):
-
     false = "false"
     true = "true"
     empty_dir = "empty_dir"
@@ -1464,6 +1470,7 @@ class ReaddirType(str, Enum):
 # or at endpoint call. The user could choose between false/true/empty_dir
 def gdal_env(disable_read: ReaddirType = Query(ReaddirType.false)):
     return {"GDAL_DISABLE_READDIR_ON_OPEN": disable_read.value.upper()}
+
 
 router = TilerFactory(environment_dependency=gdal_env).router
 ```
@@ -1904,6 +1911,7 @@ rescale=0,1000&rescale=0,1000&rescale=0,1000
 
 ```python
 "rio-cogeo~=2.0"
+
 "rio-tiler>=2.0.0rc1,<2.1"
 "cogeo-mosaic>=3.0.0a17,<3.1"
 ```
@@ -1967,6 +1975,7 @@ app.add_middleware(TotalTimeMiddleware)
     @dataclass  # type: ignore
     class BaseFactory(metaclass=abc.ABCMeta):
         """BaseTiler Factory."""
+
         ...
         # provide custom dependency
         additional_dependency: Callable[..., Dict] = field(default=lambda: dict())
@@ -1978,7 +1987,7 @@ app.add_middleware(TotalTimeMiddleware)
             None,
             title="Asset indexes",
             description="comma (',') delimited asset names (might not be an available options of some readers)",
-        )
+        ),
     ) -> Dict:
         """Assets Dependency."""
         kwargs = {}
@@ -1998,14 +2007,18 @@ app.add_middleware(TotalTimeMiddleware)
     @dataclass
     class MetadataParams(DefaultDependency):
         """Common Metadada parameters."""
+
         # Required params
         pmin: float = Query(2.0, description="Minimum percentile")
         pmax: float = Query(98.0, description="Maximum percentile")
         # Optional parameters
         bidx: Optional[str] = Query(
-            None, title="Band indexes", description="comma (',') delimited band indexes",
+            None,
+            title="Band indexes",
+            description="comma (',') delimited band indexes",
         )
         ...
+
         def __post_init__(self):
             """Post Init."""
 
@@ -2013,7 +2026,9 @@ app.add_middleware(TotalTimeMiddleware)
                 self.kwargs["indexes"] = tuple(
                     int(s) for s in re.findall(r"\d+", self.bidx)
                 )
+
         ...
+
 
     # metadata method in factory
     def metadata(
@@ -2106,11 +2121,13 @@ app.add_middleware(TotalTimeMiddleware)
     route_class = apiroute_factory({"GDAL_DISABLE_READDIR_ON_OPEN": "FALSE"})
     router = APIRouter(route_class=route_class)
 
+
     @router.get("/simple")
     def simple():
         """should return FALSE."""
         res = get_gdal_config("GDAL_DISABLE_READDIR_ON_OPEN")
         return {"env": res}
+
 
     app.include_router(router)
     ```

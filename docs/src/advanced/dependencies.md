@@ -12,13 +12,16 @@ from fastapi import Depends, FastAPI, Query
 from titiler.core.dependencies import DefaultDependency
 from rio_tiler.io import Reader
 
+
 @dataclass
 class ImageParams(DefaultDependency):
-    max_size: Annotated[
-        int, Query(description="Maximum image size to read onto.")
-    ] = 1024
+    max_size: Annotated[int, Query(description="Maximum image size to read onto.")] = (
+        1024
+    )
+
 
 app = FastAPI()
+
 
 # Simple preview endpoint
 @app.get("/preview.png")
@@ -27,7 +30,9 @@ def preview(
     params: ImageParams = Depends(),
 ):
     with Reader(url) as cog:
-        img = cog.preview(**params.as_dict())  # we use `DefaultDependency().as_dict()` to pass only non-None parameters
+        img = cog.preview(
+            **params.as_dict()
+        )  # we use `DefaultDependency().as_dict()` to pass only non-None parameters
         # or
         img = cog.preview(max_size=params.max_size)
     ...
@@ -215,6 +220,7 @@ Colormap options. See [titiler.core.dependencies](https://github.com/development
 ```python
 cmap = {}
 
+
 def ColorMapParams(
     colormap_name: Annotated[  # type: ignore
         Literal[tuple(cmap.list())],
@@ -231,9 +237,7 @@ def ColorMapParams(
         try:
             c = json.loads(
                 colormap,
-                object_hook=lambda x: {
-                    int(k): parse_color(v) for k, v in x.items()
-                },
+                object_hook=lambda x: {int(k): parse_color(v) for k, v in x.items()},
             )
 
             # Make sure to match colormap type
@@ -351,9 +355,7 @@ Set dataset path.
 <details>
 
 ```python
-def DatasetPathParams(
-    url: Annotated[str, Query(description="Dataset URL")]
-) -> str:
+def DatasetPathParams(url: Annotated[str, Query(description="Dataset URL")]) -> str:
     """Create dataset path from args"""
     return url
 ```
@@ -522,13 +524,12 @@ class ImageRenderingParams(DefaultDependency):
                         r.replace(" ", "").replace("[", "").replace("]", "").split(","),
                     )
                 )
-                assert (
-                    len(parsed) == 2
-                ), f"Invalid rescale values: {self.rescale}, should be of form ['min,max', 'min,max'] or [[min,max], [min, max]]"
+                assert len(parsed) == 2, (
+                    f"Invalid rescale values: {self.rescale}, should be of form ['min,max', 'min,max'] or [[min,max], [min, max]]"
+                )
                 rescale_array.append(parsed)
 
             self.rescale: RescaleType = rescale_array  # Noqa
-
 ```
 
 </details>
@@ -643,7 +644,9 @@ class StatisticsParams(DefaultDependency):
 
     categorical: Annotated[
         Optional[bool],
-        Query(description="Return statistics for categorical dataset. Defaults to `False` in rio-tiler"),
+        Query(
+            description="Return statistics for categorical dataset. Defaults to `False` in rio-tiler"
+        ),
     ] = None
     categories: Annotated[
         Optional[List[Union[float, int]]],
@@ -724,6 +727,7 @@ See [titiler.core.algorithm](https://github.com/developmentseed/titiler/blob/e46
 
 ```python
 algorithms = {}
+
 
 def post_process(
     algorithm: Annotated[

@@ -24,7 +24,7 @@ EPSG6933 = TileMatrixSet.custom(
     matrix_scale=[1, 1],
 )
 # 2. Register TMS
-tms = tms.register({EPSG6933.id:EPSG6933})
+tms = tms.register({EPSG6933.id: EPSG6933})
 
 tms_factory = TMSFactory(supported_tms=tms)
 cog_factory = TilerFactory(supported_tms=tms)

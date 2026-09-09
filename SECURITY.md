@@ -59,20 +59,21 @@ from fastapi import FastAPI, Query, HTTPException
 
 # List of known host where dataset can be read from
 known_host = [
-   "devseed.org",
+    "devseed.org",
 ]
 
-def DatasetPathParams(url: Annotated[str, Query(description="Dataset URL")]) -> str:
-   """Create dataset path from args"""
-   # validate Dataset host
-   parsed = urlparse(url)
-   if parsed.netloc not in known_host:
-      raise HTTPException(
-         status_code=400,
-         detail="Nope, this is not a valid File - Please Try Again",
-      )
 
-   return url
+def DatasetPathParams(url: Annotated[str, Query(description="Dataset URL")]) -> str:
+    """Create dataset path from args"""
+    # validate Dataset host
+    parsed = urlparse(url)
+    if parsed.netloc not in known_host:
+        raise HTTPException(
+            status_code=400,
+            detail="Nope, this is not a valid File - Please Try Again",
+        )
+
+    return url
 
 
 app = FastAPI(title="My simple app")

@@ -52,7 +52,9 @@ httpx.get(
     params={
         "url": "https://data.geo.admin.ch/ch.swisstopo.swissalti3d/swissalti3d_2019_2573-1085/swissalti3d_2019_2573-1085_0.5_2056_5728.tif",
         "algorithm": "contour",
-        "algorithm_params": json.dumps({"minz": 1600, "maxz": 2100}) # algorithm params HAVE TO be provided as a JSON string
+        "algorithm_params": json.dumps(
+            {"minz": 1600, "maxz": 2100}
+        ),  # algorithm params HAVE TO be provided as a JSON string
     },
 )
 ```
@@ -102,10 +104,10 @@ Here is a simple example of a custom algorithm:
 from titiler.core.algorithm import BaseAlgorithm
 from rio_tiler.models import ImageData
 
-class Multiply(BaseAlgorithm):
 
+class Multiply(BaseAlgorithm):
     # Parameters
-    factor: int # There is no default, which means calls to this algorithm without any parameter will fail
+    factor: int  # There is no default, which means calls to this algorithm without any parameter will fail
 
     # We don't set any metadata for this Algorithm
 
@@ -132,6 +134,7 @@ If we look at the `Multiply` algorithm, we can see it needs a `factor` parameter
 ```python
 # Available algorithm
 algo = {"multiply": Multiply}
+
 
 def post_process_dependency(
     algorithm: Literal[tuple(algo.keys())] = Query(None, description="Algorithm name"),

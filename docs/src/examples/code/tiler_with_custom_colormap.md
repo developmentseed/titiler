@@ -75,7 +75,7 @@ def ColorMapParams(
         if colormap_type == "linear":
             # input colormap has to start from 0 to 255 ?
             cm = matplotlib.colors.LinearSegmentedColormap.from_list(
-                'custom',
+                "custom",
                 [
                     (k / 255, matplotlib.colors.to_hex([v / 255 for v in rgba]))
                     for (k, rgba) in cm.items()
@@ -84,7 +84,7 @@ def ColorMapParams(
             )
             x = numpy.linspace(0, 1, 256)
             cmap_vals = cm(x)[:, :]
-            cmap_uint8 = (cmap_vals * 255).astype('uint8')
+            cmap_uint8 = (cmap_vals * 255).astype("uint8")
             cm = {idx: value.tolist() for idx, value in enumerate(cmap_uint8)}
 
         return cm

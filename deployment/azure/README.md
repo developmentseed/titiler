@@ -13,15 +13,14 @@ from fastapi import FastAPI
 
 app = FastAPI()
 app.include_router(cog.router, prefix="/cog", tags=["Cloud Optimized GeoTIFF"])
-app.include_router(
-    stac.router, prefix="/stac", tags=["SpatioTemporal Asset Catalog"]
-)
+app.include_router(stac.router, prefix="/stac", tags=["SpatioTemporal Asset Catalog"])
 app.include_router(mosaic.router, prefix="/mosaicjson", tags=["MosaicJSON"])
 app.include_router(tms.router, tags=["TileMatrixSets"])
 
 
 async def main(
-    req: func.HttpRequest, context: func.Context,
+    req: func.HttpRequest,
+    context: func.Context,
 ) -> func.HttpResponse:
     return await func.AsgiMiddleware(app).handle_async(req, context)
 ```

@@ -47,16 +47,14 @@ MOSAIC_BACKEND = os.getenv("TITILER_MOSAIC_BACKEND")
 MOSAIC_HOST = os.getenv("TITILER_MOSAIC_HOST")
 
 
-def MosaicPathParams(
-    mosaic: str = Query(..., description="mosaic name")
-) -> str:
+def MosaicPathParams(mosaic: str = Query(..., description="mosaic name")) -> str:
     """Create dataset path from args"""
     # mosaic name should be in form of `{user}.{layername}`
     if not re.match(self.mosaic, r"^[a-zA-Z0-9-_]{1,32}\.[a-zA-Z0-9-_]{1,32}$"):
         raise HTTPException(
             status_code=400,
-                detail=f"Invalid mosaic name {self.input}.",
-            )
+            detail=f"Invalid mosaic name {self.input}.",
+        )
 
         return f"{MOSAIC_BACKEND}{MOSAIC_HOST}/{self.input}.json.gz"
 
@@ -94,7 +92,6 @@ COGTilerWithCustomTMS = TilerFactory(supported_tms=tms)
 
 ### Add a MosaicJSON creation endpoint
 ```python
-
 from typing import List, Optional
 
 from attrs import define
@@ -113,8 +110,8 @@ from pydantic import BaseModel
 class CreateMosaicJSON(BaseModel):
     """Request body for MosaicJSON creation"""
 
-    files: List[str]              # Files to add to the mosaic
-    url: str                      # path where to save the mosaicJSON
+    files: List[str]  # Files to add to the mosaic
+    url: str  # path where to save the mosaicJSON
     minzoom: Optional[int] = None
     maxzoom: Optional[int] = None
     max_threads: int = 20
@@ -124,15 +121,14 @@ class CreateMosaicJSON(BaseModel):
 class UpdateMosaicJSON(BaseModel):
     """Request body for updating an existing MosaicJSON"""
 
-    files: List[str]              # Files to add to the mosaic
-    url: str                      # path where to save the mosaicJSON
+    files: List[str]  # Files to add to the mosaic
+    url: str  # path where to save the mosaicJSON
     max_threads: int = 20
     add_first: bool = True
 
 
 @define(kw_only=True)
 class CustomMosaicFactory(MosaicTilerFactory):
-
     backend: Type[MosaicJSONBackend] = MosaicJSONBackend
 
     def register_routes(self):
@@ -167,9 +163,7 @@ class CustomMosaicFactory(MosaicTilerFactory):
             # Write the MosaicJSON using a cogeo-mosaic backend
             with rasterio.Env(**env):
                 with self.backend(
-                    body.url, 
-                    mosaic_def=mosaic, 
-                    reader=self.dataset_reader
+                    body.url, mosaic_def=mosaic, reader=self.dataset_reader
                 ) as mosaic:
                     try:
                         mosaic.write(overwrite=body.overwrite)
@@ -200,5 +194,4 @@ class CustomMosaicFactory(MosaicTilerFactory):
                             f"{mosaic.__class__.__name__} does not support update operations"
                         )
                     return mosaic.mosaic_def
-
 ```
