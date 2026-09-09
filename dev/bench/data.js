@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788941214813,
+  "lastUpdate": 1788944022728,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -27242,6 +27242,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 3.2,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "116609932+ds-release-bot[bot]@users.noreply.github.com",
+            "name": "ds-release-bot[bot]",
+            "username": "ds-release-bot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e85ece6a40e93ca6e677fdeeec7a340d3e8d5a00",
+          "message": "chore: release 2.2.2 (#1471)\n\n* chore: release 2.2.2\n\n* chore: release 2.2.2\n\n---------\n\nCo-authored-by: ds-release-bot[bot] <116609932+ds-release-bot[bot]@users.noreply.github.com>\nCo-authored-by: vincentsarago <vincent.sarago@gmail.com>",
+          "timestamp": "2026-09-09T10:52:28+02:00",
+          "tree_id": "1ccddab98b6146146431c13cab8706696474e4cb",
+          "url": "https://github.com/developmentseed/titiler/commit/e85ece6a40e93ca6e677fdeeec7a340d3e8d5a00"
+        },
+        "date": 1788944021058,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.22,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.23,
             "unit": "s"
           },
           {
