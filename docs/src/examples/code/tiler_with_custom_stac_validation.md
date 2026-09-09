@@ -25,7 +25,7 @@ stac = MultiBaseTilerFactory(reader=STACReader, router_prefix="stac")
 def stac_validate_get(src_path=Depends(DatasetPathParams)):
     """STAC validation."""
     with STACReader(src_path) as stac_src:
-       return stac_src.item.validate()
+        return stac_src.item.validate()
 
 
 # Create FastAPI application

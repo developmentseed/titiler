@@ -74,9 +74,7 @@ class cached(aiocache.cached):
                 value.headers["X-Cache"] = "HIT"
             return value
         except Exception:
-            aiocache.logger.exception(
-                "Couldn't retrieve %s, unexpected error", key
-            )
+            aiocache.logger.exception("Couldn't retrieve %s, unexpected error", key)
 
     async def decorator(
         self,
@@ -112,10 +110,8 @@ class cached(aiocache.cached):
 def setup_cache():
     """Setup aiocache."""
     config: Dict[str, Any] = {
-        'cache': "aiocache.SimpleMemoryCache",
-        'serializer': {
-            'class': "aiocache.serializers.PickleSerializer"
-        }
+        "cache": "aiocache.SimpleMemoryCache",
+        "serializer": {"class": "aiocache.serializers.PickleSerializer"},
     }
     if cache_setting.ttl is not None:
         config["ttl"] = cache_setting.ttl
@@ -154,6 +150,7 @@ def setup_cache():
 
 app/routes.py
 """
+
 from dataclasses import dataclass
 from typing import Callable, Dict, Type, Literal, List, Tuple, Optional
 from urllib.parse import urlencode
@@ -176,7 +173,6 @@ from .cache import cached
 
 @dataclass
 class TilerFactory(TiTilerFactory):
-
     reader: Type[BaseReader] = Reader
 
     def register_routes(self):
@@ -249,7 +245,6 @@ class TilerFactory(TiTilerFactory):
                 )
                 dst_colormap = getattr(src_dst, "colormap", None)
 
-
             if post_process:
                 image = post_process(image)
 
@@ -314,9 +309,7 @@ class TilerFactory(TiTilerFactory):
                 description="Buffer on each side of the given tile. It must be a multiple of `0.5`. Output **tilesize** will be expanded to `tilesize + 2 * buffer` (e.g 0.5 = 257x257, 1.0 = 258x258).",
             ),
             post_process=Depends(self.process_dependency),  # noqa
-            rescale: Optional[List[Tuple[float, ...]]] = Depends(
-                RescalingParams
-            ),  # noqa
+            rescale: Optional[List[Tuple[float, ...]]] = Depends(RescalingParams),  # noqa
             color_formula: Optional[str] = Query(  # noqa
                 None,
                 title="Color Formula",
@@ -365,6 +358,7 @@ class TilerFactory(TiTilerFactory):
 
         # Register Map viewer
         self.map_viewer()
+
 
 cog = TilerFactory()
 ```

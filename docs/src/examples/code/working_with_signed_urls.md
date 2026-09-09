@@ -38,13 +38,13 @@ from fastapi import FastAPI
 
 # Custom Path dependency which can `decode` a base64 url
 def DatasetPathParams(
-    url: str = Query(..., description="Dataset URL"),
-    base64_encoded: bool = Query(None)
+    url: str = Query(..., description="Dataset URL"), base64_encoded: bool = Query(None)
 ) -> str:
     """Create dataset path from args"""
     if base64_encoded:
         url = base64.b64decode(url).decode()
     return url
+
 
 app = FastAPI(title="My simple app")
 
@@ -130,7 +130,9 @@ signed_params = urlparse(my_signed_url).query
 # Encode the parameters using base64
 encoded_params = base64.b64encode(signed_params.encode())
 
-info = request.get(f"{titiler_endpoint}/info", params={"url": url, url_params: encoded_params})
+info = request.get(
+    f"{titiler_endpoint}/info", params={"url": url, url_params: encoded_params}
+)
 ```
 
 ### 2. Signing URL in the application

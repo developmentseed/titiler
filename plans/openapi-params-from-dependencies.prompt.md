@@ -13,10 +13,15 @@ See issue [#1345](https://github.com/developmentseed/titiler/issues/1345)
 Add to your utils module:
 
 ```python
-from fastapi._compat import get_definitions, get_flat_models_from_fields, get_model_name_map
+from fastapi._compat import (
+    get_definitions,
+    get_flat_models_from_fields,
+    get_model_name_map,
+)
 from fastapi.dependencies.models import Dependant
 from fastapi.dependencies.utils import get_dependant, get_flat_params
 from fastapi.openapi.utils import _get_openapi_operation_parameters
+
 
 def dependencies_to_openapi_params(
     dependencies: list[Callable],

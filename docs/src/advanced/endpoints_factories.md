@@ -304,7 +304,7 @@ app = FastAPI()
 # Create router and register set of endpoints
 mosaic = TilerFactory(
     backend=MosaicJSONBackend,
-    add_part=True,     # default to False
+    add_part=True,  # default to False
     add_statistics=True,  # default to False
     add_ogc_maps=True,  # default to False
 )
@@ -351,8 +351,8 @@ app = FastAPI()
 
 # Create router and register set of endpoints
 md = TilerFactory(
-    add_part=True,     # default to True
-    add_viewer=True,   # default to True
+    add_part=True,  # default to True
+    add_viewer=True,  # default to True
     add_preview=True,  # default to False
 )
 

@@ -138,7 +138,9 @@ add_exception_handlers(app, DEFAULT_STATUS_CODES)
 ```python
 from rio_tiler.io import Reader
 
-with Reader("http://0.0.0.0/WebMercatorQuad/wmts.xml?url=file.tif&bidx=1&bandscount=1&datatype=float32&tile_format=tif") as src:
+with Reader(
+    "http://0.0.0.0/WebMercatorQuad/wmts.xml?url=file.tif&bidx=1&bandscount=1&datatype=float32&tile_format=tif"
+) as src:
     im = src.preview()
 ```
 

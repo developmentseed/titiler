@@ -37,10 +37,7 @@ The `/{tileMatrixSetId}/WMTSCapabilities.xml` endpoints have been removed from t
 from titiler.extensions import wmtsExtension
 
 # Add extension to factory
-factory = TilerFactory(
-    router_prefix="/cog",
-    extensions=[wmtsExtension()]
-)
+factory = TilerFactory(router_prefix="/cog", extensions=[wmtsExtension()])
 
 # WMTS now available at: /WMTSCapabilities.xml
 ```
@@ -67,6 +64,7 @@ class Point(BaseModel):
     values: List[Optional[float]]
     # ... other fields
 
+
 # Now (1.0)
 class Point(BaseModel):
     coordinates: List[float]
@@ -91,12 +89,14 @@ class Point(BaseModel):
     coordinates: List[float]
     values: List[Tuple[str, List[Optional[float]], List[str]]]
 
+
 # Now (1.0)
 class AssetPoint(BaseModel):
     name: str
     values: list[float | None]
     band_names: list[str]
     band_descriptions: list[str] | None = None
+
 
 class Point(BaseModel):
     coordinates: list[float]
@@ -110,8 +110,8 @@ response = {
     "coordinates": [-122.5, 37.5],
     "values": [
         ("asset1", [100.0, 200.0], ["B1", "B2"]),
-        ("asset2", [150.0, 250.0], ["B1", "B2"])
-    ]
+        ("asset2", [150.0, 250.0], ["B1", "B2"]),
+    ],
 }
 
 # Now (1.0)
@@ -122,15 +122,15 @@ response = {
             "name": "asset1",
             "values": [100.0, 200.0],
             "band_names": ["B1", "B2"],
-            "band_descriptions": None
+            "band_descriptions": None,
         },
         {
             "name": "asset2",
             "values": [150.0, 250.0],
             "band_names": ["B1", "B2"],
-            "band_descriptions": None
-        }
-    ]
+            "band_descriptions": None,
+        },
+    ],
 }
 ```
 
@@ -167,9 +167,7 @@ factory = MosaicTilerFactory()
 # Must explicitly set backend
 from titiler.mosaic.backends import MosaicBackend
 
-factory = MosaicTilerFactory(
-    backend=MosaicBackend
-)
+factory = MosaicTilerFactory(backend=MosaicBackend)
 ```
 
 **Action Required:** Explicitly set the `backend` attribute when creating `MosaicTilerFactory` instances.
@@ -188,9 +186,7 @@ factory = MosaicTilerFactory()
 # Now (1.0)
 from titiler.mosaic.extensions import MosaicJSONExtension
 
-factory = MosaicTilerFactory(
-    extensions=[MosaicJSONExtension()]
-)
+factory = MosaicTilerFactory(extensions=[MosaicJSONExtension()])
 ```
 
 **Action Required:** Add `MosaicJSONExtension` to your factory if you need the `/` and `/validate` endpoints.
@@ -221,8 +217,8 @@ Three new optional endpoints are available for mosaic operations:
 # Enable in your factory
 factory = MosaicTilerFactory(
     add_feature=True,  # Enables /feature endpoint
-    add_bbox=True,     # Enables /bbox endpoint
-    add_statistics=True # Enables /statistics endpoint
+    add_bbox=True,  # Enables /bbox endpoint
+    add_statistics=True,  # Enables /statistics endpoint
 )
 ```
 
@@ -233,9 +229,7 @@ A dedicated WMTS extension is now available for mosaic factories:
 ```python
 from titiler.mosaic.extensions import wmtsExtension
 
-factory = MosaicTilerFactory(
-    extensions=[wmtsExtension()]
-)
+factory = MosaicTilerFactory(extensions=[wmtsExtension()])
 ```
 
 #### OGC Maps API Support

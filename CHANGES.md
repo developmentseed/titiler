@@ -2,28 +2,10 @@
 
 ## Unreleased
 
-## 2.2.2 (2026-09-08)
+## 2.2.2 (2026-09-09)
 
 ## What's Changed
-* chore: refactor dockerfile to use uv lock file by @vincentsarago in https://github.com/developmentseed/titiler/pull/1470
-* ci(deps): bump the all group with 8 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1473
-* chore(deps): bump boto3 from 1.43.46 to 1.43.56 in the all group by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1474
-* ci: test docs build on PRs (strict) and rename to docs.yml by @wakame1367 in https://github.com/developmentseed/titiler/pull/1463
-* chore(deps): bump cryptography from 49.0.0 to 50.0.0 by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1475
-* docs(security): document the GDAL 3.12 VRT options and how to remove the expression parameter by @ishiland in https://github.com/developmentseed/titiler/pull/1476
-* ci: scan the Docker image with Trivy before publishing it by @vincentsarago in https://github.com/developmentseed/titiler/pull/1478
-* ci: fix trivy scan by @vincentsarago in https://github.com/developmentseed/titiler/pull/1480
-* chore(deps): bump the all group with 2 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1482
-* ci(deps): bump the all group with 4 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1481
-* chore(deps): bump the all group with 3 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1484
-* ci(deps): bump github/codeql-action/upload-sarif from 4.37.4 to 4.37.6 in the all group by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1483
-* ci(deps): bump the all group with 2 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1485
-* chore(deps): bump the all group with 3 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1486
-* chore(deps): bump the all group with 4 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1488
-* ci(deps): bump the all group with 2 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1487
-* chore(deps): bump tornado from 6.5.7 to 6.5.8 by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1489
-* chore(deps): bump the all group with 5 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1491
-* ci(deps): bump github/codeql-action/upload-sarif from 4.37.8 to 4.37.9 in the all group by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1490
+
 * fix: raise 400 error for invalid render format by @vincentsarago in https://github.com/developmentseed/titiler/pull/1494
 
 ## New Contributors
@@ -336,12 +318,14 @@ Migration doc available at: https://developmentseed.org/titiler/migrations/v2_mi
         coordinates: List[float]
         values: List[Tuple[str, List[Optional[float]], List[str]]]
 
+
     # now
     class AssetPoint(BaseModel):
         name: str
         values: list[float | None]
         band_names: list[str]
         band_descriptions: list[str] | None = None
+
 
     class Point(BaseModel):
         coordinates: list[float]
@@ -546,7 +530,9 @@ Migration doc available at: https://developmentseed.org/titiler/migrations/v2_mi
     app.add_middlewares(
         LoggerMiddleware,
         # custom Logger
-        logger=logging.getLogger("mytiler.requests"),  # default to logging.getLogger("titiler.requests")
+        logger=logging.getLogger(
+            "mytiler.requests"
+        ),  # default to logging.getLogger("titiler.requests")
     )
     ```
 
@@ -554,6 +540,7 @@ Migration doc available at: https://developmentseed.org/titiler/migrations/v2_mi
 
     ```python
     from logging import config
+
     config.dictConfig(
         {
             "version": 1,
@@ -1086,7 +1073,7 @@ Migration doc available at: https://developmentseed.org/titiler/migrations/v2_mi
             ("assets", "asset2"),
             ("asset_bidx", "asset1|1"),
             ("asset_bidx", "asset2|1"),
-        )
+        ),
     )
 
     # now
@@ -1097,7 +1084,7 @@ Migration doc available at: https://developmentseed.org/titiler/migrations/v2_mi
             ("assets", "asset1"),
             ("assets", "asset2"),
             ("bidx", 1),
-        )
+        ),
     )
     ```
 
@@ -1480,11 +1467,12 @@ Migration doc available at: https://developmentseed.org/titiler/migrations/v2_mi
 router = TilerFactory(gdal_config={"GDAL_DISABLE_READDIR_ON_OPEN": "FALSE"}).router
 
 # now
-router = TilerFactory(environment_dependency=lambda: {"GDAL_DISABLE_READDIR_ON_OPEN": "FALSE"}).router
+router = TilerFactory(
+    environment_dependency=lambda: {"GDAL_DISABLE_READDIR_ON_OPEN": "FALSE"}
+).router
 
 
 class ReaddirType(str, Enum):
-
     false = "false"
     true = "true"
     empty_dir = "empty_dir"
@@ -1493,6 +1481,7 @@ class ReaddirType(str, Enum):
 # or at endpoint call. The user could choose between false/true/empty_dir
 def gdal_env(disable_read: ReaddirType = Query(ReaddirType.false)):
     return {"GDAL_DISABLE_READDIR_ON_OPEN": disable_read.value.upper()}
+
 
 router = TilerFactory(environment_dependency=gdal_env).router
 ```
@@ -1933,6 +1922,7 @@ rescale=0,1000&rescale=0,1000&rescale=0,1000
 
 ```python
 "rio-cogeo~=2.0"
+
 "rio-tiler>=2.0.0rc1,<2.1"
 "cogeo-mosaic>=3.0.0a17,<3.1"
 ```
@@ -1996,6 +1986,7 @@ app.add_middleware(TotalTimeMiddleware)
     @dataclass  # type: ignore
     class BaseFactory(metaclass=abc.ABCMeta):
         """BaseTiler Factory."""
+
         ...
         # provide custom dependency
         additional_dependency: Callable[..., Dict] = field(default=lambda: dict())
@@ -2007,7 +1998,7 @@ app.add_middleware(TotalTimeMiddleware)
             None,
             title="Asset indexes",
             description="comma (',') delimited asset names (might not be an available options of some readers)",
-        )
+        ),
     ) -> Dict:
         """Assets Dependency."""
         kwargs = {}
@@ -2027,14 +2018,18 @@ app.add_middleware(TotalTimeMiddleware)
     @dataclass
     class MetadataParams(DefaultDependency):
         """Common Metadada parameters."""
+
         # Required params
         pmin: float = Query(2.0, description="Minimum percentile")
         pmax: float = Query(98.0, description="Maximum percentile")
         # Optional parameters
         bidx: Optional[str] = Query(
-            None, title="Band indexes", description="comma (',') delimited band indexes",
+            None,
+            title="Band indexes",
+            description="comma (',') delimited band indexes",
         )
         ...
+
         def __post_init__(self):
             """Post Init."""
 
@@ -2042,7 +2037,9 @@ app.add_middleware(TotalTimeMiddleware)
                 self.kwargs["indexes"] = tuple(
                     int(s) for s in re.findall(r"\d+", self.bidx)
                 )
+
         ...
+
 
     # metadata method in factory
     def metadata(
@@ -2135,11 +2132,13 @@ app.add_middleware(TotalTimeMiddleware)
     route_class = apiroute_factory({"GDAL_DISABLE_READDIR_ON_OPEN": "FALSE"})
     router = APIRouter(route_class=route_class)
 
+
     @router.get("/simple")
     def simple():
         """should return FALSE."""
         res = get_gdal_config("GDAL_DISABLE_READDIR_ON_OPEN")
         return {"env": res}
+
 
     app.include_router(router)
     ```

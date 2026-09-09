@@ -123,6 +123,7 @@ def DatasetPathParams(layer_id: layers_list = Path()) -> str:
 @dataclass
 class CustomAsDict:
     """Custom `DefaultDependency` to ignore `requests`"""
+
     def as_dict(self, exclude_none: bool = True) -> Dict:
         """Transform dataclass to dict."""
         exclude_keys = {"request"}
@@ -139,7 +140,6 @@ class CustomAsDict:
 # Custom Layer Param
 @dataclass
 class LayerParams(CustomAsDict, dependencies.BidxExprParams):
-
     request: Request = field(default=None)
 
     def __post_init__(self):
@@ -152,10 +152,10 @@ class LayerParams(CustomAsDict, dependencies.BidxExprParams):
             elif expr := layer_params.get("expression"):
                 self.expression = expr
 
+
 # Custom Rendering Params
 @dataclass
 class RenderingParams(CustomAsDict, dependencies.ImageRenderingParams):
-
     request: Request = field(default=None)
 
     def __post_init__(self):
@@ -167,7 +167,9 @@ class RenderingParams(CustomAsDict, dependencies.ImageRenderingParams):
             if not self.rescale and (rescale := layer_params.get("rescale")):
                 self.rescale = rescale
 
-            if not self.color_formula and (color_formula := layer_params.get("color_formula")):
+            if not self.color_formula and (
+                color_formula := layer_params.get("color_formula")
+            ):
                 self.color_formula = color_formula
 
             if self.add_mask is not None and (add_mask := layer_params.get("add_mask")):
@@ -197,9 +199,7 @@ def ColorMapParams(
         try:
             c = json.loads(
                 colormap,
-                object_hook=lambda x: {
-                    int(k): parse_color(v) for k, v in x.items()
-                },
+                object_hook=lambda x: {int(k): parse_color(v) for k, v in x.items()},
             )
 
             # Make sure to match colormap type
@@ -229,6 +229,7 @@ add_exception_handlers(app, DEFAULT_STATUS_CODES)
 
 # Run the application
 import uvicorn
+
 uvicorn.run(app=app, host="127.0.0.1", port=8080, log_level="info")
 ```
 

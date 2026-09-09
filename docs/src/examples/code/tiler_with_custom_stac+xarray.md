@@ -53,6 +53,7 @@ class STACReader(BaseSTACReader):
         {'url': 'https://raw.githubusercontent.com/cogeotiff/rio-tiler/refs/heads/main/tests/fixtures/dataset_2d.nc', 'name': 'netcdf', 'metadata': {}, 'reader_options': {'variable': 'dataset'}, 'method_options': {}, 'media_type': 'application/x-netcdf'}
 
     """
+
     include_asset_types: set[str] = attr.ib(default=valid_types)
 
     def _get_reader(self, asset_info: AssetInfo) -> type[BaseReader]:
@@ -79,7 +80,7 @@ class STACReader(BaseSTACReader):
 
         """
         asset, vrt_options = self._parse_vrt_asset(asset)
-        
+
         reader_options: dict[str, Any] = {}
         method_options: dict[str, Any] = {}
         # NOTE: asset can be in form of
@@ -100,12 +101,16 @@ class STACReader(BaseSTACReader):
                     elif key == "group":
                         reader_options["group"] = value
                     elif key == "decode_times":
-                        reader_options["decode_times"] = value.lower() in ["true", "yes", "1"]
+                        reader_options["decode_times"] = value.lower() in [
+                            "true",
+                            "yes",
+                            "1",
+                        ]
                     elif key == "datetime":
                         reader_options["datetime"] = value
                     elif key == "drop_dim":
                         reader_options["drop_dim"] = value
-                                                                                                                  
+
         if asset not in self.assets:
             raise InvalidAssetName(
                 f"'{asset}' is not valid, should be one of {self.assets}"
@@ -163,6 +168,7 @@ class STACReader(BaseSTACReader):
 
 ```python title="main.py"
 """FastAPI application."""
+
 from fastapi import FastAPI
 from titiler.core.factory import MultiBaseTilerFactory
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
@@ -171,8 +177,8 @@ from .stac import STACReader
 
 # STAC uses MultiBaseReader so we use MultiBaseTilerFactory to built the default endpoints
 stac = MultiBaseTilerFactory(
-    reader=STACReader, 
-    add_preview=False, 
+    reader=STACReader,
+    add_preview=False,
     add_ogc_maps=False,
 )
 

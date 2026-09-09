@@ -58,6 +58,7 @@ app.include_router(cog.router, prefix="/cog", tags=["COG"])
 stac = MultiBaseTilerFactory(reader=STACReader)
 app.include_router(stac.router, prefix="/stac", tags=["STAC"])
 
+
 @app.get("/")
 def read_index():
     return {"message": "Welcome to TiTiler!"}

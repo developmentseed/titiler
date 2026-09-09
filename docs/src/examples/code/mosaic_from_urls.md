@@ -17,6 +17,7 @@ The goal is to build a minimalist Mosaic Backend which takes COG paths as input.
 app/backends.py
 
 """
+
 from typing import Type, List, Tuple, Dict, Union
 
 import attr
@@ -29,22 +30,17 @@ from morecantile import TileMatrixSet
 
 @attr.s
 class MultiFilesBackend(BaseBackend):
-
     input: list[str] = attr.ib()
     tms: TileMatrixSet = attr.ib(default=WEB_MERCATOR_TMS)
 
-    reader: type[BaseReader] | type[MultiBaseReader] = (
-        attr.ib(default=Reader)
-    )
+    reader: type[BaseReader] | type[MultiBaseReader] = attr.ib(default=Reader)
     reader_options: dict = attr.ib(factory=dict)
 
     minzoom: int = attr.ib(default=0)
     maxzoom: int = attr.ib(default=30)
 
     # default values for bounds
-    bounds: Tuple[float, float, float, float] = attr.ib(
-        default=(-180, -90, 180, 90)
-    )
+    bounds: Tuple[float, float, float, float] = attr.ib(default=(-180, -90, 180, 90))
     crs: CRS = attr.ib(init=False, default=WGS84_CRS)
 
     def assets_for_tile(self, x: int, y: int, z: int) -> list[str]:
@@ -93,6 +89,7 @@ from fastapi import Query
 
 from .backends import MultiFilesBackend
 
+
 @dataclass
 class MosaicTiler(MosaicTilerFactory):
     """Custom MosaicTilerFactory.
@@ -101,7 +98,7 @@ class MosaicTiler(MosaicTilerFactory):
     """
 
     def register_routes(self):
-        """This Method register routes to the router. """
+        """This Method register routes to the router."""
 
         self.tile()
         self.tilejson()
@@ -113,7 +110,6 @@ def DatasetPathParams(url: str = Query(..., description="Dataset URL")) -> List[
 
 
 mosaic = MosaicTiler(backend=MultiFilesBackend, path_dependency=DatasetPathParams)
-
 ```
 
 3 - Create app and register our custom endpoints
@@ -136,7 +132,6 @@ app = FastAPI()
 app.include_router(mosaic.router)
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
 add_exception_handlers(app, MOSAIC_STATUS_CODES)
-
 ```
 
 4. Run and Use

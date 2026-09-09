@@ -29,8 +29,8 @@ resp = httpx.get(
     "https://titiler.xyz/cog/preview",
     params={
         "url": "<YOUR DATASET URL HERE>",
-        "colormap_name": "<YOUR COLORMAP NAME HERE>" # e.g. autumn_r
-    }
+        "colormap_name": "<YOUR COLORMAP NAME HERE>",  # e.g. autumn_r
+    },
 )
 ```
 
@@ -48,12 +48,14 @@ response = httpx.get(
     params={
         "url": "<YOUR DATASET URL HERE>",
         "bidx": "1",
-        "colormap": json.dumps({
-            "0": "#e5f5f9",
-            "10": "#99d8c9",
-            "255": "#2ca25f",
-        })
-    }
+        "colormap": json.dumps(
+            {
+                "0": "#e5f5f9",
+                "10": "#99d8c9",
+                "255": "#2ca25f",
+            }
+        ),
+    },
 )
 ```
 
@@ -85,8 +87,8 @@ response = httpx.get(
     "https://titiler.xyz/cog/preview",
     params={
         "url": "<YOUR DATASET URL HERE>",
-        "color_formula": "gamma rg 1.3, sigmoidal rgb 22 0.1, saturation 1.5"
-    }
+        "color_formula": "gamma rg 1.3, sigmoidal rgb 22 0.1, saturation 1.5",
+    },
 )
 ```
 

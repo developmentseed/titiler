@@ -135,7 +135,7 @@ api_key_query = APIKeyQuery(name="access_token", auto_error=False)
 # Custom Dataset Path dependency
 def DatasetPathParams(
     url: str = Query(..., description="Dataset URL"),
-    api_key_query: str = Security(api_key_query)
+    api_key_query: str = Security(api_key_query),
 ) -> str:
     """Create dataset path from args"""
 
@@ -212,6 +212,7 @@ app.include_router(cog.router, tags=["Cloud Optimized GeoTIFF"])
 
 # optional
 from . import tokens
+
 app.include_router(tokens.router)
 
 add_exception_handlers(app, DEFAULT_STATUS_CODES)

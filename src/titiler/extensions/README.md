@@ -51,7 +51,7 @@ tiler = TilerFactory(
     router_prefix="/cog",
     extensions=[
         cogValidateExtension()  # the cogeoExtension will add a rio-cogeo /validate endpoint
-    ]
+    ],
 )
 
 # Register endpoints to the application
@@ -132,12 +132,9 @@ class thumbnailExtension(FactoryExtension):
 
             return Response(content, media_type=media_type)
 
+
 # Use it
 app = FastAPI()
-tiler = TilerFactory(
-    extensions=[
-        thumbnailExtension(max_size=64)
-    ]
-)
+tiler = TilerFactory(extensions=[thumbnailExtension(max_size=64)])
 app.include_router(tiler.router)
 ```

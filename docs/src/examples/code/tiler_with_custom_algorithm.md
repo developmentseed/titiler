@@ -12,6 +12,7 @@
 app/algorithms.py
 
 """
+
 from titiler.core.algorithm import BaseAlgorithm
 from titiler.core.algorithm import algorithms as default_algorithms
 
@@ -19,9 +20,8 @@ from rio_tiler.models import ImageData
 
 
 class Multiply(BaseAlgorithm):
-
     # Parameters
-    factor: int # There is no default, which means calls to this algorithm without any parameter will fail
+    factor: int  # There is no default, which means calls to this algorithm without any parameter will fail
 
     # We don't set any metadata for this Algorithm
 
@@ -37,13 +37,13 @@ class Multiply(BaseAlgorithm):
             bounds=img.bounds,
         )
 
+
 # default_algorithms is a `titiler.core.algorithm.Algorithms` Object
 algorithms = default_algorithms.register(
     {
         "multiply": Multiply,
     }
 )
-
 ```
 
 2 - Create application and register endpoints
@@ -54,6 +54,7 @@ algorithms = default_algorithms.register(
 app/app.py
 
 """
+
 from fastapi import FastAPI
 from titiler.core.factory import TilerFactory
 

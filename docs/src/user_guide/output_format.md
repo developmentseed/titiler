@@ -56,15 +56,17 @@ Sometimes rio-tiler's responses can contain `NaN`, `Infinity` or `-Infinity` val
 In  order to allow TiTiler to return valid responses we added a custom `JSONResponse` in `v0.3.10` which will automatically translate `float('nan')`, `float('inf')` and `float('-inf')` to `null` and thus avoid in valid JSON response.
 
 ```python
-
 from fastapi import FastAPI
 from titiler.core.resources.responses import JSONResponse
 
-app = FastAPI(default_response_class=JSONResponse,)
+app = FastAPI(
+    default_response_class=JSONResponse,
+)
+
 
 @app.get("/something")
 def return_something():
-    return float('nan')
+    return float("nan")
 ```
 
 This `JSONResponse` is used by default in `titiler` Tiler Factories where `NaN` are expected (`info`, `statistics` and `point` endpoints).
