@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 2.2.3 (2026-09-11)
+
+**Full Changelog**: https://github.com/developmentseed/titiler/compare/2.2.2...2.2.3
+
 ## 2.2.2 (2026-09-09)
 
 ## What's Changed
