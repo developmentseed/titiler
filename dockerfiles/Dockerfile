@@ -60,7 +60,8 @@ RUN apt-get update && \
 COPY --from=builder /opt/venv /opt/venv
 
 RUN groupadd -g 1000 user && \
-    useradd -u 1000 -g user -s /bin/bash -m user
+    useradd -u 1000 -g user -s /bin/bash -m user && \
+    chown -R user:user /opt/venv
 
 USER user
 
