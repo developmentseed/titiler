@@ -33,6 +33,9 @@ COPY pyproject.toml uv.lock README.md LICENSE ./
 COPY src/titiler/ ./src/titiler/
 RUN uv sync --frozen --no-dev --no-editable --group server
 RUN uv pip install --no-deps --no-editable .
+# Keep pip inside the runtime venv so downstream images install into the
+# environment used by the application rather than the system interpreter.
+RUN uv pip install --python /opt/venv/bin/python pip
 
 # Runtime stage
 FROM python:${PYTHON_VERSION}-slim
