@@ -5921,7 +5921,7 @@ wheels = [
 
 [[package]]
 name = "titiler"
-version = "2.2.1"
+version = "2.2.2"
 source = { virtual = "." }
 dependencies = [
     { name = "titiler-application" },
