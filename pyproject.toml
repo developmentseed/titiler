@@ -30,9 +30,9 @@ classifiers = [
 ]
 version="2.2.2"
 dependencies = [
-    "titiler-core",
-    "titiler-xarray",
-    "titiler-extensions",
+    "titiler-core[telemetry]",
+    "titiler-xarray[fs]",
+    "titiler-extensions[cogeo,stac]",
     "titiler-mosaic[mosaicjson]",
     "titiler-application",
 ]
@@ -42,17 +42,8 @@ dev = [
     "pytest",
     "pytest-cov",
     "pytest-asyncio",
-    "httpx2",
-    "obstore",
-    "zarr>=3,<4.0",
-    "h5netcdf",
-    "h5py",
-    "fsspec",
-    "s3fs>=2025.2.0",
-    "aiohttp",
-    "requests",
+    "brotlicffi",
     "pystac[validation]>=1.0.0,<2.0.0",
-    "brotlipy",
     "boto3",
     "owslib",
     "pre-commit",
@@ -60,13 +51,6 @@ dev = [
     "jupyter",
     "matplotlib",
     "folium",
-]
-telemetry = [
-    "opentelemetry-api",
-    "opentelemetry-sdk",
-    "opentelemetry-instrumentation-fastapi",
-    "opentelemetry-instrumentation-logging",
-    "opentelemetry-exporter-otlp",
 ]
 docs = [
     "black>=23.10.1",
