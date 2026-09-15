@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 2.3.0 (2026-09-15)
+
+## What's Changed
+
+* Feat/refactor dockerimage and switch to `wolfi-base` as base image by @vincentsarago in https://github.com/developmentseed/titiler/pull/1499
+
+**Full Changelog**: https://github.com/developmentseed/titiler/compare/2.2.2...2.3.0
+
 ## 2.2.2 (2026-09-09)
 
 ## What's Changed
