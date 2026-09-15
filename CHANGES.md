@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## 2.3.0 (2026-09-15)
+
+## What's Changed
+* ci(deps): bump the all group with 4 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1498
+* Feat/refactor dockerimage by @vincentsarago in https://github.com/developmentseed/titiler/pull/1499
+* chore(deps): bump httpx2 from 2.11.0 to 2.12.0 by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1500
+
+
+**Full Changelog**: https://github.com/developmentseed/titiler/compare/2.2.2...2.3.0
+
 ## 2.2.2 (2026-09-09)
 
 ## What's Changed
