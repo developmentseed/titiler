@@ -1,4 +1,4 @@
-FROM cgr.dev/chainguard/wolfi-base:latest@sha256:1aa9de0e8107fa1c71c30f1e7fa85216bb7374a7a182722598023ef6318a38a4 AS base
+FROM cgr.dev/chainguard/wolfi-base:latest@sha256:3754b6da0e1ccdab0fe46abfdd7bbbba994b593c28149f6659fa6597f2261aeb AS base
 
 ARG PYTHON_VERSION=3.14
 
@@ -61,6 +61,11 @@ COPY src/titiler/ ./src/titiler/
 # back at /tmp/app) would leave `import titiler...` broken at runtime.
 RUN uv sync --frozen --no-dev --no-editable --group server
 RUN uv pip install --no-deps --no-editable .
+
+# uv skips downloading its own managed interpreter when the apk python already
+# satisfies UV_PYTHON, leaving UV_PYTHON_INSTALL_DIR absent. Make sure it
+# exists (even empty) so the unconditional COPY below never fails.
+RUN mkdir -p /opt/uv-python
 
 # Runtime stage
 FROM base
