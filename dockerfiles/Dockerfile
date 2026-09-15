@@ -1,65 +1,95 @@
+FROM cgr.dev/chainguard/wolfi-base:latest@sha256:3754b6da0e1ccdab0fe46abfdd7bbbba994b593c28149f6659fa6597f2261aeb AS base
+
 ARG PYTHON_VERSION=3.14
 
-FROM python:${PYTHON_VERSION}  AS builder
+ENV PYTHONUNBUFFERED=1
 
-# Set build labels
-LABEL stage=builder
-LABEL org.opencontainers.image.source="https://github.com/developmentseed/titiler"
-LABEL org.opencontainers.image.description="TiTiler"
-LABEL org.opencontainers.image.licenses="MIT"
+# Install runtime dependencies. Versions deliberately unpinned: Wolfi rolls
+# forward and garbage-collects old versions, so an "=<version>" pin breaks the
+# build within days. The guardrails are the version-scoped names plus the
+# digest above. No pip: uv (below) installs everything.
+#   libstdc++  NOT optional: the rasterio/pyproj/duckdb manylinux wheels list
+#              libstdc++.so.6 in DT_NEEDED and auditwheel does not vendor it.
+#   bash, tzdata, curl  parity with the old Debian base: /bin/sh is busybox,
+#              Wolfi ships no /usr/share/zoneinfo, curl is for in-pod debugging.
+RUN apk add --no-cache \
+      python-${PYTHON_VERSION} \
+      libstdc++ bash tzdata curl libexpat1
 
-# Set environment variables
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1
+# uv as a pass-through stage rather than a direct COPY --from=<image>:
+# Dependabot only parses FROM lines (dependabot/dependabot-core#5103), so this
+# keeps the version pinned *and* auto-updated by the docker ecosystem.
+FROM ghcr.io/astral-sh/uv:0.12.5@sha256:e85be844203885286c60ffad8a858d48afb6c5a5c237ca0e67f12e74b8f174b1 AS uv
 
-# Install build dependencies
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    libexpat1 curl && \
-    rm -rf /var/lib/apt/lists/*
+# Build stage
+FROM base AS builder
+
+ARG PYTHON_VERSION
 
 # Install uv
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
+COPY --from=uv /uv /uvx /usr/local/bin/
 
 # Configure uv-managed virtual environment
+#   UV_PYTHON: the apk python's version, but resolved by uv (not the apk
+#     binary itself: Wolfi's rolling python-3.14 build has repeatedly required
+#     a newer glibc than the glibc package available in the same repo snapshot,
+#     making /usr/bin/python3.14 unable to import stdlib extension modules).
+#     uv instead downloads its own self-contained, statically-linked build.
+#   UV_PYTHON_INSTALL_DIR: put that managed interpreter next to /opt/venv (both
+#     get copied into the runtime stage below) — otherwise it lands under
+#     /root/.local/share/uv, which never reaches the runtime stage, leaving
+#     /opt/venv/bin/python (and every venv script's shebang, eg uvicorn) a
+#     dangling symlink: `exec .../uvicorn: no such file or directory`.
+#   UV_COMPILE_BYTECODE: .pyc at install time, as pip did, so cold starts
+#     don't pay the compile on first import
 ENV UV_LINK_MODE=copy \
     UV_PROJECT_ENVIRONMENT=/opt/venv \
+    UV_PYTHON=${PYTHON_VERSION} \
+    UV_PYTHON_INSTALL_DIR=/opt/uv-python \
+    UV_COMPILE_BYTECODE=1 \
     PATH="/opt/venv/bin:${PATH}"
 
-WORKDIR /tmp
+WORKDIR /tmp/app
 
-# Copy project metadata and code
+# Copy project metadata and dependencies
 COPY pyproject.toml uv.lock README.md LICENSE ./
 COPY src/titiler/ ./src/titiler/
+
+# Install project dependencies into the uv-managed virtual environment.
+# --no-editable: the runtime stage only copies /opt/venv (and /opt/uv-python),
+# not this /tmp/app source tree, so editable installs (.pth files pointing
+# back at /tmp/app) would leave `import titiler...` broken at runtime.
 RUN uv sync --frozen --no-dev --no-editable --group server
 RUN uv pip install --no-deps --no-editable .
 
+# uv skips downloading its own managed interpreter when the apk python already
+# satisfies UV_PYTHON, leaving UV_PYTHON_INSTALL_DIR absent. Make sure it
+# exists (even empty) so the unconditional COPY below never fails.
+RUN mkdir -p /opt/uv-python
+
 # Runtime stage
-FROM python:${PYTHON_VERSION}-slim
+FROM base
 
 # Set runtime labels
 LABEL org.opencontainers.image.source="https://github.com/developmentseed/titiler"
 LABEL org.opencontainers.image.description="TiTiler"
 LABEL org.opencontainers.image.licenses="MIT"
 
-# Set environment variables
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PATH="/opt/venv/bin:$PATH"
+# The chart execs `command: ["uvicorn"]` — a bare binary, resolved against the
+# image's PATH.
+ENV PATH="/opt/venv/bin:${PATH}"
 
-# Install runtime dependencies
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    libexpat1 curl && \
-    rm -rf /var/lib/apt/lists/*
-
-# Copy virtual environment from builder
+# Copy virtual environment and its interpreter from builder
 COPY --from=builder /opt/venv /opt/venv
+COPY --from=builder /opt/uv-python /opt/uv-python
 
-RUN groupadd -g 1000 user && \
-    useradd -u 1000 -g user -s /bin/bash -m user
+WORKDIR /tmp
 
-USER user
+# Run as the wolfi-base nonroot user (uid 65532). On Kubernetes the chart sets 
+# the net.ipv4.ip_unprivileged_port_start sysctl per pod. 
+# Other deployments must allow unprivileged low ports the same way,
+# or override PORT to something >=1024.
+USER nonroot
 
 ###################################################
 # For compatibility (might be removed at one point)
