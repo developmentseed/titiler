@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1789490751429,
+  "lastUpdate": 1789541142753,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -27891,6 +27891,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 3.21,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "96697647a61ce89c7d0fa32520cd66242259dfcb",
+          "message": "chore(deps): bump astral-sh/uv from 0.12.5 to 0.12.15 in /dockerfiles (#1502)\n\nBumps [astral-sh/uv](https://github.com/astral-sh/uv) from 0.12.5 to 0.12.15.\n- [Release notes](https://github.com/astral-sh/uv/releases)\n- [Changelog](https://github.com/astral-sh/uv/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/astral-sh/uv/compare/0.12.5...0.12.15)\n\n---\nupdated-dependencies:\n- dependency-name: astral-sh/uv\n  dependency-version: 0.12.15\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2026-09-16T08:44:05+02:00",
+          "tree_id": "846377eef67c76e2cef2f46452e6c818139a52f3",
+          "url": "https://github.com/developmentseed/titiler/commit/96697647a61ce89c7d0fa32520cd66242259dfcb"
+        },
+        "date": 1789541140997,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.14,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 2.51,
             "unit": "s"
           },
           {
