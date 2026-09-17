@@ -43,10 +43,10 @@ def test_tiler_factory():
 
     md = TilerFactory(
         router_prefix="/md",
-        # /dataset, /dataset/dict, /dataset/keys
+        # /dataset, /dataset/dict, /dataset/keys, /dataset/coordinates/{name}
         extensions=[DatasetMetadataExtension()],
     )
-    assert len(md.router.routes) == 18
+    assert len(md.router.routes) == 19
 
     app = FastAPI()
     app.include_router(md.router, prefix="/md")
@@ -69,7 +69,7 @@ def app():
         ],
         reader=FsReader,
     )
-    assert len(md.router.routes) == 18
+    assert len(md.router.routes) == 19
 
     app = FastAPI()
     app.include_router(md.router, prefix="/md")
@@ -86,7 +86,7 @@ def app_zarr():
             DatasetMetadataExtension(),
         ],
     )
-    assert len(md.router.routes) == 18
+    assert len(md.router.routes) == 19
 
     app = FastAPI()
     app.include_router(md.router, prefix="/md")
@@ -113,6 +113,37 @@ def test_dataset_extension(filename, app):
     resp = app.get("/md/dataset/", params={"url": filename})
     assert resp.status_code == 200
     assert "text/html" in resp.headers["content-type"]
+
+
+def test_dataset_coordinate(app):
+    """Test coordinate metadata and values."""
+    resp = app.get(
+        "/md/dataset/coordinates/x",
+        params={"url": dataset_2d_nc},
+    )
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "application/json"
+    coordinate = resp.json()
+    assert coordinate["name"] == "x"
+    assert coordinate["dims"] == ["x"]
+    assert coordinate["data"][:2] == [-170.0, -169.83]
+
+    resp = app.get(
+        "/md/dataset/coordinates/time",
+        params={"url": dataset_3d_nc},
+    )
+    assert resp.status_code == 200
+    assert resp.json()["data"] == [
+        "2022-01-01T00:00:00",
+        "2023-01-01T00:00:00",
+    ]
+
+    resp = app.get(
+        "/md/dataset/coordinates/missing",
+        params={"url": dataset_2d_nc},
+    )
+    assert resp.status_code == 404
+    assert resp.json() == {"detail": "Coordinate 'missing' not found"}
 
 
 @pytest.mark.parametrize(

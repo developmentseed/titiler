@@ -65,7 +65,7 @@ class FactoryExtension(metaclass=abc.ABCMeta):
 
 #### titiler.xarray.DatasetMetadataExtension
 
-- Goal: adds `/dataset/`, `/dataset/keys` and `/datasets/dict` endpoints which return metadata about a multidimensional Dataset (not a DataArray)
+- Goal: adds `/dataset/`, `/dataset/keys`, `/dataset/dict` and `/dataset/coordinates/{name}` endpoints which return metadata about a multidimensional Dataset (not a DataArray)
 
 #### titiler.mosaic.extensions.wmts.wmtsExtension
 
