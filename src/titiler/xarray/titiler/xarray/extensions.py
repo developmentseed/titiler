@@ -7,7 +7,7 @@ from typing import Annotated
 
 import xarray
 from attrs import define
-from fastapi import Depends, Query
+from fastapi import Depends, HTTPException, Query
 from rio_tiler.constants import WGS84_CRS
 from starlette.responses import HTMLResponse
 
@@ -101,6 +101,39 @@ class DatasetMetadataExtension(FactoryExtension):
             """Returns the full Xarray dataset as a dictionary."""
             with self.dataset_opener(src_path, **io_params.as_dict()) as ds:
                 return ds.to_dict(data=False)
+
+        @factory.router.get(
+            "/dataset/dimensions",
+            response_model=dict[str, int],
+            responses={200: {"description": "Returns the Dataset dimension sizes."}},
+        )
+        def dataset_dimensions(
+            src_path=Depends(factory.path_dependency),
+            io_params=Depends(self.io_dependency),
+        ):
+            """Returns the Dataset dimension sizes."""
+            with self.dataset_opener(src_path, **io_params.as_dict()) as ds:
+                return dict(ds.sizes)
+
+        @factory.router.get(
+            "/dataset/coordinates/{name}",
+            responses={
+                200: {"description": "Returns a Dataset coordinate and its values."}
+            },
+        )
+        def dataset_coordinate(
+            name: str,
+            src_path=Depends(factory.path_dependency),
+            io_params=Depends(self.io_dependency),
+        ):
+            """Returns a Dataset coordinate and its values."""
+            with self.dataset_opener(src_path, **io_params.as_dict()) as ds:
+                try:
+                    return ds.coords[name].to_dict(data=True)
+                except KeyError as e:
+                    raise HTTPException(
+                        status_code=404, detail=f"Coordinate '{name}' not found"
+                    ) from e
 
         @factory.router.get(
             "/dataset/keys",
