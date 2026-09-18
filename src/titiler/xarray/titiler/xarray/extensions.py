@@ -103,6 +103,19 @@ class DatasetMetadataExtension(FactoryExtension):
                 return ds.to_dict(data=False)
 
         @factory.router.get(
+            "/dataset/dimensions",
+            response_model=dict[str, int],
+            responses={200: {"description": "Returns the Dataset dimension sizes."}},
+        )
+        def dataset_dimensions(
+            src_path=Depends(factory.path_dependency),
+            io_params=Depends(self.io_dependency),
+        ):
+            """Returns the Dataset dimension sizes."""
+            with self.dataset_opener(src_path, **io_params.as_dict()) as ds:
+                return dict(ds.sizes)
+
+        @factory.router.get(
             "/dataset/coordinates/{name}",
             responses={
                 200: {"description": "Returns a Dataset coordinate and its values."}

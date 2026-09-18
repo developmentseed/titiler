@@ -43,10 +43,11 @@ def test_tiler_factory():
 
     md = TilerFactory(
         router_prefix="/md",
-        # /dataset, /dataset/dict, /dataset/keys, /dataset/coordinates/{name}
+        # /dataset, /dataset/dict, /dataset/keys, /dataset/dimensions,
+        # /dataset/coordinates/{name}
         extensions=[DatasetMetadataExtension()],
     )
-    assert len(md.router.routes) == 19
+    assert len(md.router.routes) == 20
 
     app = FastAPI()
     app.include_router(md.router, prefix="/md")
@@ -69,7 +70,7 @@ def app():
         ],
         reader=FsReader,
     )
-    assert len(md.router.routes) == 19
+    assert len(md.router.routes) == 20
 
     app = FastAPI()
     app.include_router(md.router, prefix="/md")
@@ -86,7 +87,7 @@ def app_zarr():
             DatasetMetadataExtension(),
         ],
     )
-    assert len(md.router.routes) == 19
+    assert len(md.router.routes) == 20
 
     app = FastAPI()
     app.include_router(md.router, prefix="/md")
@@ -113,6 +114,14 @@ def test_dataset_extension(filename, app):
     resp = app.get("/md/dataset/", params={"url": filename})
     assert resp.status_code == 200
     assert "text/html" in resp.headers["content-type"]
+
+
+def test_dataset_dimensions(app):
+    """Test dimension names and sizes."""
+    resp = app.get("/md/dataset/dimensions", params={"url": dataset_2d_nc})
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "application/json"
+    assert resp.json() == {"y": 1000, "x": 2000}
 
 
 def test_dataset_coordinate(app):
