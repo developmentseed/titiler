@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 2.4.0 (2026-09-18)
+
+## What's Changed
+* chore(deps): bump astral-sh/uv from 0.12.5 to 0.12.15 in /dockerfiles by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1502
+* feat: add xarray dataset coordinate endpoint by @hrodmn in https://github.com/developmentseed/titiler/pull/1504
+
+
+**Full Changelog**: https://github.com/developmentseed/titiler/compare/2.3.0...2.4.0
+
 ## 2.3.0 (2026-09-15)
 
 ## What's Changed
