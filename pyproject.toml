@@ -28,7 +28,7 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering :: GIS",
 ]
-version="2.3.0"
+version="2.4.0"
 dependencies = [
     "titiler-core[telemetry]",
     "titiler-xarray[fs]",

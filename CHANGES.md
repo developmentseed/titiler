@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## 2.4.0 (2026-09-21)
+
+## What's Changed
+* chore(deps): bump astral-sh/uv from 0.12.5 to 0.12.15 in /dockerfiles by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1502
+* feat: add xarray dataset coordinate endpoint by @hrodmn in https://github.com/developmentseed/titiler/pull/1504
+* chore(deps): bump astral-sh/uv from 0.12.15 to 0.12.17 in /dockerfiles by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1506
+* chore(deps): bump chainguard/wolfi-base from `3754b6d` to `1d95114` in /dockerfiles by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1507
+* ci(deps): bump the all group with 3 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1508
+
+
+**Full Changelog**: https://github.com/developmentseed/titiler/compare/2.3.0...2.4.0
+
 ## 2.3.0 (2026-09-15)
 
 ## What's Changed
