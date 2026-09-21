@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 2.4.0 (2026-09-21)
+
+## What's Changed
+
+* feat: add xarray dataset coordinate endpoint by @hrodmn in https://github.com/developmentseed/titiler/pull/1504
+
+
+**Full Changelog**: https://github.com/developmentseed/titiler/compare/2.3.0...2.4.0
+
 ## 2.3.0 (2026-09-15)
 
 ## What's Changed
