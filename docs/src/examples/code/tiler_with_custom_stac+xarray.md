@@ -13,7 +13,7 @@
 
 **links**:
 
-- https://cogeotiff.github.io/rio-tiler/examples/STAC_datacube_support/
+- https://cogeotiff.github.io/rio-tiler/latest/examples/STAC_datacube_support/
 
 
 #### 1. Custom STACReader

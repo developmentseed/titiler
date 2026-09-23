@@ -3,7 +3,7 @@ TiTiler's endpoints factories are helper functions that let users create a FastA
 
 !!! Important
 
-    Most of `tiler` **Factories** are built around [`rio_tiler.io.BaseReader`](https://cogeotiff.github.io/rio-tiler/advanced/custom_readers/), which defines basic methods to access datasets (e.g COG or STAC). The default reader is `Reader` for `TilerFactory` and `MosaicBackend` for `MosaicTilerFactory`.
+    Most of `tiler` **Factories** are built around [`rio_tiler.io.BaseReader`](https://cogeotiff.github.io/rio-tiler/latest/advanced/custom_readers/), which defines basic methods to access datasets (e.g COG or STAC). The default reader is `Reader` for `TilerFactory` and `MosaicBackend` for `MosaicTilerFactory`.
 
     Factories classes use [dependencies injection](dependencies.md) to define most of the endpoint options.
 
@@ -35,7 +35,7 @@ Most **Factories** are built from this [abstract based class](https://docs.pytho
 
 class: `titiler.core.factory.TilerFactory`
 
-Factory meant to create endpoints for single dataset using [*rio-tiler*'s `Reader`](https://cogeotiff.github.io/rio-tiler/readers/#rio_tileriorasterioreader).
+Factory meant to create endpoints for single dataset using [*rio-tiler*'s `Reader`](https://cogeotiff.github.io/rio-tiler/latest/readers/#rio_tileriorasterioreader).
 
 #### Attributes
 
@@ -105,7 +105,7 @@ app.include_router(cog.router)
 
 class: `titiler.core.factory.MultiBaseTilerFactory`
 
-Custom `TilerFactory` to be used with [`rio_tiler.io.MultiBaseReader`](https://cogeotiff.github.io/rio-tiler/advanced/custom_readers/#multibasereader) type readers (e.g [`rio_tiler.io.STACReader`](https://cogeotiff.github.io/rio-tiler/readers/#rio_tileriostacstacreader)).
+Custom `TilerFactory` to be used with [`rio_tiler.io.MultiBaseReader`](https://cogeotiff.github.io/rio-tiler/latest/advanced/custom_readers/#multibasereader) type readers (e.g [`rio_tiler.io.STACReader`](https://cogeotiff.github.io/rio-tiler/latest/readers/#rio_tileriostacstacreader)).
 
 #### Attributes
 

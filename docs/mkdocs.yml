@@ -180,7 +180,7 @@ plugins:
             - https://rasterio.readthedocs.io/en/stable/objects.inv
             - https://docs.pydantic.dev/latest/objects.inv
             - https://fastapi.tiangolo.com/objects.inv
-            - https://cogeotiff.github.io/rio-tiler/objects.inv
+            - https://cogeotiff.github.io/rio-tiler/latest/objects.inv
 
 theme:
   name: material
