@@ -1431,9 +1431,9 @@ Migration doc available at: https://developmentseed.org/titiler/migrations/v2_mi
 **breaking changes**
 
 * remove `timing headers` and `titiler.core.utils` submodule
-* remove `asset_expression` (except in `/asset_statistics` endpoint) (see https://cogeotiff.github.io/rio-tiler/v4_migration/#multibasereader-expressions)
+* remove `asset_expression` (except in `/asset_statistics` endpoint) (see https://cogeotiff.github.io/rio-tiler/latest/migrations/v4_migration/#multibasereader-expressions)
 * update Point output model to include `band_names`
-* histogram and info band names are prefixed with `b` (e.g `b1`) (ref: https://cogeotiff.github.io/rio-tiler/v4_migration/#band-names)
+* histogram and info band names are prefixed with `b` (e.g `b1`) (ref: https://cogeotiff.github.io/rio-tiler/latest/migrations/v4_migration/#band-names)
 * add `/map` endpoint in TilerFactory to display tiles given query-parameters
 * remove `TMSParams` and `WebMercatorTMSParams` dependencies.
 * replace `TilerFactory.tms_dependency` attribute by `TilerFactory.supported_tms`. This attribute gets a `morecantile.defaults.TileMatrixSets` store and will create the tms dependencies dynamically

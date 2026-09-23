@@ -2,7 +2,7 @@
 
 <img style="max-width:400px" src="https://github.com/user-attachments/assets/14b92588-14eb-4b37-b862-cc5d0d8015c9"/>
 
-Adds support for Mosaic in Titiler. `Mosaic's` backend needs to be built on top of rio-tiler's Mosaic Backend https://cogeotiff.github.io/rio-tiler/advanced/mosaic_backend/
+Adds support for Mosaic in Titiler. `Mosaic's` backend needs to be built on top of rio-tiler's Mosaic Backend https://cogeotiff.github.io/rio-tiler/latest/advanced/mosaic_backend/
 
 ## Installation
 

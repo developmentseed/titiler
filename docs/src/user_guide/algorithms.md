@@ -92,7 +92,7 @@ class BaseAlgorithm(BaseModel, metaclass=abc.ABCMeta):
 
 This base class defines that algorithm:
 
-- **HAVE TO** implement an `__call__` method which takes an [ImageData](https://cogeotiff.github.io/rio-tiler/models/#imagedata) as input and return an [ImageData](https://cogeotiff.github.io/rio-tiler/models/#imagedata). Using `__call__` let us use the object as a callable (e.g `Algorithm(**kwargs)(image)`).
+- **HAVE TO** implement an `__call__` method which takes an [ImageData](https://cogeotiff.github.io/rio-tiler/latest/models/#imagedata) as input and return an [ImageData](https://cogeotiff.github.io/rio-tiler/latest/models/#imagedata). Using `__call__` let us use the object as a callable (e.g `Algorithm(**kwargs)(image)`).
 
 - can have input/output metadata (informative)
 
