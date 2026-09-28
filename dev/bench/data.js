@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1790177032434,
+  "lastUpdate": 1790611748826,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -28319,6 +28319,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad longest_transaction",
             "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "04b22ef49bc3238ccd8e9bda847d03bc7e5fcfac",
+          "message": "chore(deps): bump the all group with 4 updates (#1513)\n\nBumps the all group with 4 updates: [rio-tiler](https://github.com/cogeotiff/rio-tiler), [morecantile](https://github.com/developmentseed/morecantile), [fsspec](https://github.com/fsspec/filesystem_spec) and [s3fs](https://github.com/fsspec/s3fs).\n\n\nUpdates `rio-tiler` from 9.4.4 to 9.4.6\n- [Release notes](https://github.com/cogeotiff/rio-tiler/releases)\n- [Changelog](https://github.com/cogeotiff/rio-tiler/blob/main/CHANGES.md)\n- [Commits](https://github.com/cogeotiff/rio-tiler/compare/9.4.4...9.4.6)\n\nUpdates `morecantile` from 7.0.3 to 7.1.0\n- [Release notes](https://github.com/developmentseed/morecantile/releases)\n- [Changelog](https://github.com/developmentseed/morecantile/blob/main/CHANGES.md)\n- [Commits](https://github.com/developmentseed/morecantile/compare/7.0.3...7.1.0)\n\nUpdates `fsspec` from 2026.7.0 to 2026.9.0\n- [Commits](https://github.com/fsspec/filesystem_spec/compare/2026.7.0...2026.9.0)\n\nUpdates `s3fs` from 2026.7.0 to 2026.9.0\n- [Changelog](https://github.com/fsspec/s3fs/blob/main/release-procedure.md)\n- [Commits](https://github.com/fsspec/s3fs/compare/2026.7.0...2026.9.0)\n\n---\nupdated-dependencies:\n- dependency-name: rio-tiler\n  dependency-version: 9.4.6\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: all\n- dependency-name: morecantile\n  dependency-version: 7.1.0\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: all\n- dependency-name: fsspec\n  dependency-version: 2026.9.0\n  dependency-type: direct:development\n  update-type: version-update:semver-minor\n  dependency-group: all\n- dependency-name: s3fs\n  dependency-version: 2026.9.0\n  dependency-type: direct:development\n  update-type: version-update:semver-minor\n  dependency-group: all\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2026-09-28T18:07:46+02:00",
+          "tree_id": "4c25e242825b20881eeee65c39628a24e0710357",
+          "url": "https://github.com/developmentseed/titiler/commit/04b22ef49bc3238ccd8e9bda847d03bc7e5fcfac"
+        },
+        "date": 1790611747178,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.21,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.17,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.05,
             "unit": "s"
           }
         ]
