@@ -62,7 +62,7 @@ jobs:
           cat output.json | jq '[inputs]' > benchmark.json
 
       - name: Check and Store benchmark result
-        uses: benchmark-action/github-action-benchmark@52576c92bccf6ac60c8223ec7eb2565637cae9ba # v1
+        uses: benchmark-action/github-action-benchmark@4322e5726e6334590d251fc4f92bec0efafc45dc # v1
         with:
           name: TiTiler performance Benchmarks
           tool: 'customSmallerIsBetter'
