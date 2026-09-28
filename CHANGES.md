@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+## 2.4.1 (2026-09-28)
+
+## What's Changed
+* docs: fix links to rio-tiler documentation by @m-mohr in https://github.com/developmentseed/titiler/pull/1509
+* chore(deps): bump the all group with 4 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1513
+* ci(deps): bump astral-sh/uv from 0.12.17 to 0.12.19 in /dockerfiles by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1511
+* ci(deps): bump the all group with 7 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1512
+
+## New Contributors
+* @m-mohr made their first contribution in https://github.com/developmentseed/titiler/pull/1509
+
+**Full Changelog**: https://github.com/developmentseed/titiler/compare/2.4.0...2.4.1
+
 ## 2.4.0 (2026-09-21)
 
 ## What's Changed
