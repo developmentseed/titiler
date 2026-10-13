@@ -94,8 +94,8 @@ class stacExtension(FactoryExtension):
                 list[str] | None,
                 Query(description="list of asset's roles."),
             ] = None,
-            asset_media_type: Annotated[  # type: ignore
-                Literal[tuple(media)],
+            asset_media_type: Annotated[
+                Literal[tuple(media)],  # type: ignore[valid-type]
                 Query(description="Asset's media type"),
             ] = "auto",
             asset_href: Annotated[
