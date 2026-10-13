@@ -69,8 +69,8 @@ logger = logging.getLogger(__name__)
 
 
 def PixelSelectionParams(
-    pixel_selection: Annotated[  # type: ignore
-        Literal[tuple([e.name for e in PixelSelectionMethod])],
+    pixel_selection: Annotated[
+        Literal[tuple([e.name for e in PixelSelectionMethod])],  # type: ignore[valid-type]
         Query(description="Pixel selection method."),
     ] = "first",
 ) -> MosaicMethodBase:
