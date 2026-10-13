@@ -31,8 +31,8 @@ def create_colormap_dependency(cmap: ColorMaps) -> Callable:
     """Create Colormap Dependency."""
 
     def deps(
-        colormap_name: Annotated[  # type: ignore
-            Literal[tuple(cmap.list())],
+        colormap_name: Annotated[
+            Literal[tuple(cmap.list())],  # type: ignore[valid-type]
             Query(description="Colormap name"),
         ] = None,
         colormap: Annotated[
