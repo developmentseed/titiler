@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791885792515,
+  "lastUpdate": 1791892957349,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -28732,6 +28732,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad longest_transaction",
             "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a10ff79809772dbb9929b36b6b6b2b1b4e403b8e",
+          "message": "chore(deps): bump multidict from 6.8.0 to 6.9.1 (#1528)\n\nBumps [multidict](https://github.com/aio-libs/multidict) from 6.8.0 to 6.9.1.\n- [Release notes](https://github.com/aio-libs/multidict/releases)\n- [Changelog](https://github.com/aio-libs/multidict/blob/master/CHANGES.rst)\n- [Commits](https://github.com/aio-libs/multidict/compare/v6.8.0...v6.9.1)\n\n---\nupdated-dependencies:\n- dependency-name: multidict\n  dependency-version: 6.9.1\n  dependency-type: indirect\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2026-10-13T14:01:16+02:00",
+          "tree_id": "6b6144a098e88e9a85900aaa7af6b8f8a71e8a22",
+          "url": "https://github.com/developmentseed/titiler/commit/a10ff79809772dbb9929b36b6b6b2b1b4e403b8e"
+        },
+        "date": 1791892956016,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.01,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.1,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 1.84,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.03,
             "unit": "s"
           }
         ]
