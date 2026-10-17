@@ -19,7 +19,7 @@ RUN apk add --no-cache \
 # uv as a pass-through stage rather than a direct COPY --from=<image>:
 # Dependabot only parses FROM lines (dependabot/dependabot-core#5103), so this
 # keeps the version pinned *and* auto-updated by the docker ecosystem.
-FROM ghcr.io/astral-sh/uv:0.12.19@sha256:04d046b13e60d6bcec73cbc5e1cad25d680dea90c8573340950a0ac2d1aef424 AS uv
+FROM ghcr.io/astral-sh/uv:0.13.1@sha256:4a1f3666816dafadd20ceb71eac9a7d56d7ef30279f7d64048519ab901ada336 AS uv
 
 # Build stage
 FROM base AS builder
