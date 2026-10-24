@@ -113,7 +113,7 @@ jobs:
 
       - name: Upload Trivy SARIF (CRITICAL/HIGH) to GitHub Security tab
         if: steps.trivy-sarif-critical-high.outcome == 'success'
-        uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        uses: github/codeql-action/upload-sarif@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4.39.0
         with:
           sarif_file: trivy-results-critical-high.sarif
           category: trivy-critical-high-${{ matrix.target.name }}-${{ matrix.platform.name }}
