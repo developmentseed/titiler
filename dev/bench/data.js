@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1792917238954,
+  "lastUpdate": 1792917244533,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -28904,6 +28904,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad response_time",
             "value": 0.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "16eb979abcd0130d30fc223ab843ab6ef50a5a8b",
+          "message": "ci(deps): bump the all group across 1 directory with 9 updates (#1542)\n\nBumps the all group with 9 updates in the / directory:\n\n| Package | From | To |\n| --- | --- | --- |\n| [helm/chart-testing-action](https://github.com/helm/chart-testing-action) | `2.8.0` | `2.9.0` |\n| [helm/kind-action](https://github.com/helm/kind-action) | `1.15.0` | `1.15.1` |\n| [astral-sh/setup-uv](https://github.com/astral-sh/setup-uv) | `10.2.0` | `10.3.0` |\n| [github/codeql-action/upload-sarif](https://github.com/github/codeql-action) | `4.38.2` | `4.39.0` |\n| [actions/create-github-app-token](https://github.com/actions/create-github-app-token) | `3.2.0` | `3.3.0` |\n| [actions/upload-artifact](https://github.com/actions/upload-artifact) | `7.0.1` | `7.0.2` |\n| [actions/download-artifact](https://github.com/actions/download-artifact) | `8.0.1` | `8.0.2` |\n| [ossf/scorecard-action](https://github.com/ossf/scorecard-action) | `2.4.4` | `2.5.0` |\n| [zizmorcore/zizmor-action](https://github.com/zizmorcore/zizmor-action) | `0.6.4` | `0.7.1` |\n\n\n\nUpdates `helm/chart-testing-action` from 2.8.0 to 2.9.0\n- [Release notes](https://github.com/helm/chart-testing-action/releases)\n- [Commits](https://github.com/helm/chart-testing-action/compare/6ec842c01de15ebb84c8627d2744a0c2f2755c9f...720270857a28afd41e2426521a7801db09e9b510)\n\nUpdates `helm/kind-action` from 1.15.0 to 1.15.1\n- [Release notes](https://github.com/helm/kind-action/releases)\n- [Commits](https://github.com/helm/kind-action/compare/06c1ae10762d3b9c1644e7fe69596ae519e015a2...1544676c07bb3570fcb70166beaa07c4528fd4aa)\n\nUpdates `astral-sh/setup-uv` from 10.2.0 to 10.3.0\n- [Release notes](https://github.com/astral-sh/setup-uv/releases)\n- [Commits](https://github.com/astral-sh/setup-uv/compare/c18668ad3cf93ea998bef934396af7bb5c839dc7...1c37ad07a6a961277cf70c0d37d6f313000f5884)\n\nUpdates `github/codeql-action/upload-sarif` from 4.38.2 to 4.39.0\n- [Release notes](https://github.com/github/codeql-action/releases)\n- [Changelog](https://github.com/github/codeql-action/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/github/codeql-action/compare/2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2...6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee)\n\nUpdates `actions/create-github-app-token` from 3.2.0 to 3.3.0\n- [Release notes](https://github.com/actions/create-github-app-token/releases)\n- [Changelog](https://github.com/actions/create-github-app-token/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/actions/create-github-app-token/compare/bcd2ba49218906704ab6c1aa796996da409d3eb1...64ab729a6294000f5aa4a4bc0b73d1f32bc45510)\n\nUpdates `actions/upload-artifact` from 7.0.1 to 7.0.2\n- [Release notes](https://github.com/actions/upload-artifact/releases)\n- [Commits](https://github.com/actions/upload-artifact/compare/043fb46d1a93c77aae656e7c1c64a875d1fc6a0a...cf430e030ddbb5b0abf93d22962f4752f3646cd9)\n\nUpdates `actions/download-artifact` from 8.0.1 to 8.0.2\n- [Release notes](https://github.com/actions/download-artifact/releases)\n- [Commits](https://github.com/actions/download-artifact/compare/3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c...9000827ccba6bdab643e8b6fd33ac0654aef8333)\n\nUpdates `ossf/scorecard-action` from 2.4.4 to 2.5.0\n- [Release notes](https://github.com/ossf/scorecard-action/releases)\n- [Changelog](https://github.com/ossf/scorecard-action/blob/main/RELEASE.md)\n- [Commits](https://github.com/ossf/scorecard-action/compare/2d1146689b8cda280b9bc96326124645441f03bc...fa7117db83c52d787ae5a89f350999701505d78e)\n\nUpdates `zizmorcore/zizmor-action` from 0.6.4 to 0.7.1\n- [Release notes](https://github.com/zizmorcore/zizmor-action/releases)\n- [Commits](https://github.com/zizmorcore/zizmor-action/compare/cc914d7f3750a2d13d75c7f184a1060aa0e9d482...85b2b9fb8e3325e7a23d7d0a9d7ba5ae0f999e3e)\n\n---\nupdated-dependencies:\n- dependency-name: helm/chart-testing-action\n  dependency-version: 2.9.0\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: all\n- dependency-name: helm/kind-action\n  dependency-version: 1.15.1\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: all\n- dependency-name: astral-sh/setup-uv\n  dependency-version: 10.3.0\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: all\n- dependency-name: github/codeql-action/upload-sarif\n  dependency-version: 4.39.0\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: all\n- dependency-name: actions/create-github-app-token\n  dependency-version: 3.3.0\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: all\n- dependency-name: actions/upload-artifact\n  dependency-version: 7.0.2\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: all\n- dependency-name: actions/download-artifact\n  dependency-version: 8.0.2\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: all\n- dependency-name: ossf/scorecard-action\n  dependency-version: 2.5.0\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: all\n- dependency-name: zizmorcore/zizmor-action\n  dependency-version: 0.7.1\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: all\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2026-10-25T09:32:48+01:00",
+          "tree_id": "34f901e7a6529cc425a69e2c4b6a1675041e5e34",
+          "url": "https://github.com/developmentseed/titiler/commit/16eb979abcd0130d30fc223ab843ab6ef50a5a8b"
+        },
+        "date": 1792917242708,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.2,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.33,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
             "unit": "s"
           },
           {
