@@ -48,7 +48,7 @@ test = [
     "pytest",
     "pytest-cov",
     "pytest-asyncio",
-    "brotlicffi",
+    "brotlicffi>=1.2.1.0",
     "boto3",
 ]
 
