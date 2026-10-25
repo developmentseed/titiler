@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1792536877067,
+  "lastUpdate": 1792917238954,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -28845,6 +28845,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad response_time",
             "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "anthonylukach@gmail.com",
+            "name": "Anthony Lukach",
+            "username": "alukach"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d110535af7cfc8fa1aab94ca6707f0644e75bf75",
+          "message": "chore(deps): bump brotlicffi to >=1.2.1.0 in dev/test groups (CVE-2026-111497) (#1544)\n\nCo-authored-by: Claude Opus 5.5 <noreply@anthropic.com>",
+          "timestamp": "2026-10-25T09:32:31+01:00",
+          "tree_id": "c180c175c827e5ac8ac7226ef9a6d153dfc118c8",
+          "url": "https://github.com/developmentseed/titiler/commit/d110535af7cfc8fa1aab94ca6707f0644e75bf75"
+        },
+        "date": 1792917237985,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.21,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.57,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.04,
             "unit": "s"
           },
           {
