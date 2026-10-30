@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793094491218,
+  "lastUpdate": 1793359425383,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -29258,6 +29258,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad response_time",
             "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.03,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "10154151+lhoupert@users.noreply.github.com",
+            "name": "Loïc Houpert",
+            "username": "lhoupert"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1145d9f8f64a1dbd9487c8f53a8dc9425309a530",
+          "message": "docs: document the Docker image runtime user (#1549)\n\nSince 2.2.2 the image no longer runs as root (#1470, then #1499), which\nwas not in the release notes and breaks bind mounts under rootless\nPodman (#1548).\n\n\nClaude-Session: https://claude.ai/code/session_01M7v378ooJ8tX8eHR8gzy2p\n\nCo-authored-by: Claude <noreply@anthropic.com>",
+          "timestamp": "2026-10-30T12:22:30+01:00",
+          "tree_id": "8e01fb4c7c5d519eaf055f7408dbbea06c231d32",
+          "url": "https://github.com/developmentseed/titiler/commit/1145d9f8f64a1dbd9487c8f53a8dc9425309a530"
+        },
+        "date": 1793359424259,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.12,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 2.53,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
             "unit": "s"
           },
           {
