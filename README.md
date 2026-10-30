@@ -127,6 +127,17 @@ cd titiler
 docker compose up --build titiler
 ```
 
+### Runtime user
+
+The image runs as the non-root user `nonroot` (uid/gid `65532`). Releases up to 2.2.1 ran as `root`.
+
+With rootless Podman, `nonroot` maps to a subordinate host uid, so it can't read bind-mounted files that only your account or its groups can access. Run as container root, which maps to your own uid, or map your uid onto `nonroot` (Podman >= 4.3):
+
+```bash
+podman run --user 0:0 --group-add keep-groups ...
+podman run --userns=keep-id:uid=65532,gid=65532 --group-add keep-groups ...
+```
+
 ## Project structure
 
 ```

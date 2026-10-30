@@ -17,6 +17,8 @@
 
 * Feat/refactor dockerimage and switch to `wolfi-base` as base image by @vincentsarago in https://github.com/developmentseed/titiler/pull/1499
 
+**Note:** the `titiler` image now runs as `nonroot` (uid `65532`). See [Runtime user](https://github.com/developmentseed/titiler#runtime-user).
+
 **Full Changelog**: https://github.com/developmentseed/titiler/compare/2.2.2...2.3.0
 
 ## 2.2.2 (2026-09-09)
@@ -24,6 +26,8 @@
 ## What's Changed
 
 * fix: raise 400 error for invalid render format by @vincentsarago in https://github.com/developmentseed/titiler/pull/1494
+
+**Note:** the `titiler` image now runs as `user` (uid `1000`) instead of `root` (https://github.com/developmentseed/titiler/pull/1470). See [Runtime user](https://github.com/developmentseed/titiler#runtime-user).
 
 ## New Contributors
 * @ishiland made their first contribution in https://github.com/developmentseed/titiler/pull/1476
