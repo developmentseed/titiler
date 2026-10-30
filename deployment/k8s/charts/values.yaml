@@ -73,6 +73,7 @@ tolerations: []
 
 affinity: {}
 
+# 65532 is the image's `nonroot` user; keep runAsUser with runAsNonRoot (the image's USER is non-numeric).
 securityContext: {}
   # capabilities:
   #   drop:
@@ -80,9 +81,12 @@ securityContext: {}
   # readOnlyRootFilesystem: true
   # allowPrivilegeEscalation: false
   # runAsNonRoot: true
-  # runAsUser: 1001
+  # runAsUser: 65532
+  # runAsGroup: 65532
 
+# 65532 is the image's `nonroot` user (uid/gid).
 podSecurityContext: {}
-  # fsGroup: 1001
+  # fsGroup: 65532
   # runAsNonRoot: true
-  # runAsUser: 1001
+  # runAsUser: 65532
+  # runAsGroup: 65532
