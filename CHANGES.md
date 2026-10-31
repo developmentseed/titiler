@@ -2,6 +2,33 @@
 
 ## Unreleased
 
+## 2.4.1 (2026-10-31)
+
+## What's Changed
+* docs: fix links to rio-tiler documentation by @m-mohr in https://github.com/developmentseed/titiler/pull/1509
+* chore(deps): bump the all group with 4 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1513
+* ci(deps): bump astral-sh/uv from 0.12.17 to 0.12.19 in /dockerfiles by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1511
+* ci(deps): bump the all group with 7 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1512
+* ci(deps): bump the all group with 2 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1520
+* ci(deps): bump chainguard/wolfi-base from `1d95114` to `9c2092b` in /dockerfiles by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1519
+* chore(deps): bump multidict from 6.8.0 to 6.9.1 by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1528
+* chore(deps): bump brotlicffi to >=1.2.1.0 in dev/test groups (CVE-2026-111497) by @alukach in https://github.com/developmentseed/titiler/pull/1544
+* ci(deps): bump the all group across 1 directory with 9 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1542
+* chore(deps): bump the all group across 1 directory with 21 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1543
+* chore(deps): bump astral-sh/uv from 0.12.19 to 0.13.5 in /dockerfiles by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1541
+* chore(deps): bump chainguard/wolfi-base from `9c2092b` to `c2a4815` in /dockerfiles by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1529
+* ci: group Dependabot security updates and Docker image bumps by @lhoupert in https://github.com/developmentseed/titiler/pull/1546
+* chore(deps): bump certifi to 2026.10.23 by @lhoupert in https://github.com/developmentseed/titiler/pull/1545
+* docs: document the Docker image runtime user by @lhoupert in https://github.com/developmentseed/titiler/pull/1549
+* chore(deps): bump chainguard/wolfi-base from `c2a4815` to `360896e` in /dockerfiles in the all group by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1547
+* chore(deps): bump the security group across 1 directory with 8 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1550
+
+## New Contributors
+* @m-mohr made their first contribution in https://github.com/developmentseed/titiler/pull/1509
+* @alukach made their first contribution in https://github.com/developmentseed/titiler/pull/1544
+
+**Full Changelog**: https://github.com/developmentseed/titiler/compare/2.4.0...2.4.1
+
 ## 2.4.0 (2026-09-21)
 
 ## What's Changed
