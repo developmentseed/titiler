@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793359477720,
+  "lastUpdate": 1793465924176,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -29381,6 +29381,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad longest_transaction",
             "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0bcf1829877ac595d344f76377381042a2acee22",
+          "message": "chore(deps): bump the security group across 1 directory with 8 updates (#1550)\n\nBumps the security group with 8 updates in the / directory:\n\n| Package | From | To |\n| --- | --- | --- |\n| [filelock](https://github.com/tox-dev/filelock) | `3.32.6` | `4.2.1` |\n| [jupyterlab](https://github.com/jupyterlab/jupyterlab) | `4.6.3` | `4.6.4` |\n| [nbconvert](https://github.com/jupyter/nbconvert) | `7.17.1` | `7.17.2` |\n| [oauthlib](https://github.com/oauthlib/oauthlib) | `3.3.1` | `4.0.0` |\n| [pillow](https://github.com/python-pillow/Pillow) | `12.3.0` | `13.0.0` |\n| [tornado](https://github.com/tornadoweb/tornado) | `6.5.8` | `6.6` |\n| [urllib3](https://github.com/urllib3/urllib3) | `2.7.0` | `2.8.0` |\n| [virtualenv](https://github.com/pypa/virtualenv) | `21.7.9` | `21.15.2` |\n\n\n\nUpdates `filelock` from 3.32.6 to 4.2.1\n- [Release notes](https://github.com/tox-dev/filelock/releases)\n- [Changelog](https://github.com/tox-dev/filelock/blob/main/docs/changelog.rst)\n- [Commits](https://github.com/tox-dev/filelock/compare/3.32.6...4.2.1)\n\nUpdates `jupyterlab` from 4.6.3 to 4.6.4\n- [Release notes](https://github.com/jupyterlab/jupyterlab/releases)\n- [Changelog](https://github.com/jupyterlab/jupyterlab/blob/main/RELEASE.md)\n- [Commits](https://github.com/jupyterlab/jupyterlab/compare/@jupyterlab/lsp@4.6.3...@jupyterlab/lsp@4.6.4)\n\nUpdates `nbconvert` from 7.17.1 to 7.17.2\n- [Release notes](https://github.com/jupyter/nbconvert/releases)\n- [Changelog](https://github.com/jupyter/nbconvert/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/jupyter/nbconvert/compare/v7.17.1...v7.17.2)\n\nUpdates `oauthlib` from 3.3.1 to 4.0.0\n- [Release notes](https://github.com/oauthlib/oauthlib/releases)\n- [Changelog](https://github.com/oauthlib/oauthlib/blob/master/CHANGELOG.rst)\n- [Commits](https://github.com/oauthlib/oauthlib/compare/v3.3.1...v4.0.0)\n\nUpdates `pillow` from 12.3.0 to 13.0.0\n- [Release notes](https://github.com/python-pillow/Pillow/releases)\n- [Changelog](https://github.com/python-pillow/Pillow/blob/main/CHANGES.rst)\n- [Commits](https://github.com/python-pillow/Pillow/compare/12.3.0...13.0.0)\n\nUpdates `tornado` from 6.5.8 to 6.6\n- [Changelog](https://github.com/tornadoweb/tornado/blob/master/docs/releases.rst)\n- [Commits](https://github.com/tornadoweb/tornado/compare/v6.5.8...v6.6.0)\n\nUpdates `urllib3` from 2.7.0 to 2.8.0\n- [Release notes](https://github.com/urllib3/urllib3/releases)\n- [Changelog](https://github.com/urllib3/urllib3/blob/main/CHANGES.rst)\n- [Commits](https://github.com/urllib3/urllib3/compare/2.7.0...2.8.0)\n\nUpdates `virtualenv` from 21.7.9 to 21.15.2\n- [Release notes](https://github.com/pypa/virtualenv/releases)\n- [Changelog](https://github.com/pypa/virtualenv/blob/main/docs/changelog.rst)\n- [Commits](https://github.com/pypa/virtualenv/compare/21.7.9...21.15.2)\n\n---\nupdated-dependencies:\n- dependency-name: filelock\n  dependency-version: 4.2.1\n  dependency-type: indirect\n  dependency-group: security\n- dependency-name: jupyterlab\n  dependency-version: 4.6.4\n  dependency-type: indirect\n  dependency-group: security\n- dependency-name: nbconvert\n  dependency-version: 7.17.2\n  dependency-type: indirect\n  dependency-group: security\n- dependency-name: oauthlib\n  dependency-version: 4.0.0\n  dependency-type: indirect\n  dependency-group: security\n- dependency-name: pillow\n  dependency-version: 13.0.0\n  dependency-type: indirect\n  dependency-group: security\n- dependency-name: tornado\n  dependency-version: '6.6'\n  dependency-type: indirect\n  dependency-group: security\n- dependency-name: urllib3\n  dependency-version: 2.8.0\n  dependency-type: indirect\n  dependency-group: security\n- dependency-name: virtualenv\n  dependency-version: 21.15.2\n  dependency-type: indirect\n  dependency-group: security\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2026-10-31T17:57:22+01:00",
+          "tree_id": "fb87bcbd7a7c008b337a44cb6c51813914c08d35",
+          "url": "https://github.com/developmentseed/titiler/commit/0bcf1829877ac595d344f76377381042a2acee22"
+        },
+        "date": 1793465922340,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.12,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 2.51,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.03,
             "unit": "s"
           }
         ]
