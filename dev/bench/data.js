@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793636060794,
+  "lastUpdate": 1793636068523,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -29499,6 +29499,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad longest_transaction",
             "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1d11811a80f2b6ae24b3b84bf82f3ed2a3322953",
+          "message": "chore(deps): bump the all group in /dockerfiles with 2 updates (#1551)\n\nBumps the all group in /dockerfiles with 2 updates: [chainguard/wolfi-base](https://github.com/chainguard-images/images) and [astral-sh/uv](https://github.com/astral-sh/uv).\n\n\nUpdates `chainguard/wolfi-base` from `360896e` to `88a20e2`\n- [Commits](https://github.com/chainguard-images/images/commits)\n\nUpdates `astral-sh/uv` from 0.13.5 to 0.13.6\n- [Release notes](https://github.com/astral-sh/uv/releases)\n- [Changelog](https://github.com/astral-sh/uv/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/astral-sh/uv/compare/0.13.5...0.13.6)\n\n---\nupdated-dependencies:\n- dependency-name: chainguard/wolfi-base\n  dependency-version: latest\n  dependency-type: direct:production\n  dependency-group: all\n- dependency-name: astral-sh/uv\n  dependency-version: 0.13.6\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: all\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2026-11-02T17:13:10+01:00",
+          "tree_id": "7fc1188bba19cf5f62976676cd7d420a69c0496b",
+          "url": "https://github.com/developmentseed/titiler/commit/1d11811a80f2b6ae24b3b84bf82f3ed2a3322953"
+        },
+        "date": 1793636067185,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.01,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.1,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 1.79,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.02,
             "unit": "s"
           }
         ]
