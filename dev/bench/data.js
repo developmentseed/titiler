@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793636089975,
+  "lastUpdate": 1793636326673,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -29617,6 +29617,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad longest_transaction",
             "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1db42625bb1dcf81f54978ade35c9865ff5e25a2",
+          "message": "chore(deps): bump pyasn1 (#1554)\n\nBumps the security group with 1 update in the / directory: [pyasn1](https://github.com/pyasn1/pyasn1).\n\n\nUpdates `pyasn1` from 0.6.4 to 0.6.5\n- [Release notes](https://github.com/pyasn1/pyasn1/releases)\n- [Changelog](https://github.com/pyasn1/pyasn1/blob/main/CHANGES.rst)\n- [Commits](https://github.com/pyasn1/pyasn1/compare/v0.6.4...v0.6.5)\n\n---\nupdated-dependencies:\n- dependency-name: pyasn1\n  dependency-version: 0.6.5\n  dependency-type: indirect\n  dependency-group: security\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2026-11-02T17:17:15+01:00",
+          "tree_id": "7e6f4741e480bdef989e9c00a05030b1d65c0f18",
+          "url": "https://github.com/developmentseed/titiler/commit/1db42625bb1dcf81f54978ade35c9865ff5e25a2"
+        },
+        "date": 1793636324956,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.1,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 1.96,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.03,
             "unit": "s"
           }
         ]
