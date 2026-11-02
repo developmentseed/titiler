@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793636068523,
+  "lastUpdate": 1793636089975,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -29558,6 +29558,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad longest_transaction",
             "value": 0.02,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "617b7a0cba5278f4564469a1bc6c0e3855ad0afe",
+          "message": "chore(deps): bump the all group with 3 updates (#1553)\n\nBumps the all group with 3 updates: [pydantic-settings](https://github.com/pydantic/pydantic-settings), [fastapi](https://github.com/fastapi/fastapi) and [starlette](https://github.com/Kludex/starlette).\n\n\nUpdates `pydantic-settings` from 2.16.0 to 2.16.1\n- [Release notes](https://github.com/pydantic/pydantic-settings/releases)\n- [Commits](https://github.com/pydantic/pydantic-settings/compare/v2.16.0...v2.16.1)\n\nUpdates `fastapi` from 0.143.3 to 0.162.0\n- [Release notes](https://github.com/fastapi/fastapi/releases)\n- [Commits](https://github.com/fastapi/fastapi/compare/0.143.3...0.162.0)\n\nUpdates `starlette` from 1.8.0 to 1.10.0\n- [Release notes](https://github.com/Kludex/starlette/releases)\n- [Changelog](https://github.com/Kludex/starlette/blob/main/docs/release-notes.md)\n- [Commits](https://github.com/Kludex/starlette/compare/1.8.0...1.10.0)\n\n---\nupdated-dependencies:\n- dependency-name: pydantic-settings\n  dependency-version: 2.16.1\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: all\n- dependency-name: fastapi\n  dependency-version: 0.162.0\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: all\n- dependency-name: starlette\n  dependency-version: 1.10.0\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: all\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2026-11-02T17:13:27+01:00",
+          "tree_id": "ce6ee58e3dc640bc68aab4448a1102916b955d34",
+          "url": "https://github.com/developmentseed/titiler/commit/617b7a0cba5278f4564469a1bc6c0e3855ad0afe"
+        },
+        "date": 1793636087987,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.18,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.48,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
             "unit": "s"
           }
         ]
