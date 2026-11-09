@@ -1,4 +1,4 @@
-# AGENTS.md for eoapi-k8s
+# AGENTS.md for titiler
 
 Executable reference for AI agents working in this repo. Follow these rules literally.
 
