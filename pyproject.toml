@@ -42,7 +42,7 @@ dev = [
     "pytest",
     "pytest-cov",
     "pytest-asyncio",
-    "brotlicffi",
+    "brotlicffi>=1.2.1.0",
     "pystac[validation]>=1.0.0,<2.0.0",
     "boto3",
     "owslib",
