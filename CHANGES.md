@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+## 2.4.1 (2026-11-16)
+
+## What's Changed
+* docs: fix links to rio-tiler documentation by @m-mohr in https://github.com/developmentseed/titiler/pull/1509
+* docs: document the Docker image runtime user by @lhoupert in https://github.com/developmentseed/titiler/pull/1549
+
+### titiler.extensions
+* fix: do not add `url=` query-parameter for Factory with path-parameter in path-dependency by @vincentsarago in https://github.com/developmentseed/titiler/pull/1560
+
+## New Contributors
+* @m-mohr made their first contribution in https://github.com/developmentseed/titiler/pull/1509
+* @alukach made their first contribution in https://github.com/developmentseed/titiler/pull/1544
+
+**Full Changelog**: https://github.com/developmentseed/titiler/compare/2.4.0...2.4.1
+
 ## 2.4.0 (2026-09-21)
 
 ## What's Changed
