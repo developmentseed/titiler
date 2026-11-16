@@ -15,7 +15,7 @@ from starlette.routing import NoMatchFound
 
 from titiler.core.factory import FactoryExtension, MultiBaseTilerFactory
 from titiler.core.models.OGC import Link
-from titiler.core.utils import check_query_params
+from titiler.core.utils import check_query_params, get_dependency_query_params
 
 
 class RenderItem(BaseModel, extra="allow"):
@@ -89,18 +89,18 @@ class stacRenderExtension(FactoryExtension):
             render_id: str,
             render: dict,
             request: Request,
-            src_path: str,
+            additional_params: dict[str, Any] | None = None,
         ) -> dict:
             """Prepare single render item."""
+            self_url = factory.url_for(
+                request, "STAC Renders metadata", render_id=render_id
+            )
+            if additional_params:
+                self_url += "?" + urlencode(additional_params)
+
             links: list[dict[str, Any]] = [
                 {
-                    "href": factory.url_for(
-                        request,
-                        "STAC Renders metadata",
-                        render_id=render_id,
-                    )
-                    + "?"
-                    + urlencode({"url": src_path}),
+                    "href": self_url,
                     "rel": "self",
                     "type": "application/json",
                     "title": f"STAC Renders metadata for {render_id}",
@@ -121,41 +121,38 @@ class stacRenderExtension(FactoryExtension):
                 factory.colormap_dependency,
                 factory.render_dependency,
             ]
+            if not check_query_params(tile_dependencies, render):  # type: ignore[arg-type]
+                return {"valid": False, "params": render, "links": links}
 
-            if check_query_params(tile_dependencies, render):  # type: ignore[arg-type]
-                query_string = urlencode({"url": src_path, **render}, doseq=True)
+            render_ops = {k: v for k, v in render.items() if k != "title"}
+            if additional_params:
+                render_ops.update(additional_params)
+
+            query_string = urlencode(render_ops, doseq=True)
+            tilejson_url = factory.url_for(
+                request, "tilejson", tileMatrixSetId="{tileMatrixSetId}"
+            ).replace("%7BtileMatrixSetId%7D", "{tileMatrixSetId}")
+
+            links.append(
+                {
+                    "href": tilejson_url + "?" + query_string,
+                    "rel": "tilesets-map",
+                    "title": f"tilejson file for {render_id}",
+                    "templated": True,
+                }
+            )
+            try:
+                wmts_url = factory.url_for(request, "wmts")
                 links.append(
                     {
-                        "href": factory.url_for(
-                            request,
-                            "tilejson",
-                            tileMatrixSetId="{tileMatrixSetId}",
-                        )
-                        + "?"
-                        + query_string,
+                        "href": wmts_url + "?" + query_string,
                         "rel": "tilesets-map",
-                        "title": f"tilejson file for {render_id}",
+                        "title": f"WMTS service for {render_id}",
                         "templated": True,
-                    }
+                    },
                 )
-                try:
-                    links.append(
-                        {
-                            "href": factory.url_for(
-                                request,
-                                "wmts",
-                            )
-                            + "?"
-                            + query_string,
-                            "rel": "tilesets-map",
-                            "title": f"WMTS service for {render_id}",
-                            "templated": True,
-                        },
-                    )
-                except NoMatchFound:
-                    pass
-            else:
-                return {"valid": False, "params": render, "links": links}
+            except NoMatchFound:
+                pass
 
             return {"valid": True, "params": render, "links": links}
 
@@ -166,12 +163,24 @@ class stacRenderExtension(FactoryExtension):
             name="List STAC Renders metadata",
             operation_id=f"{factory.operation_prefix}getRenderList",
         )
-        def render_list(request: Request, src_path=Depends(factory.path_dependency)):
-            with factory.reader(src_path) as src:
+        def render_list(
+            request: Request,
+            src_path=Depends(factory.path_dependency),
+        ):
+            with factory.reader(input=src_path) as src:
                 renders = factory.get_renders(src)
 
+            additional_params, _ = get_dependency_query_params(
+                factory.path_dependency, request.query_params
+            )
+
             prepared_renders = {
-                render_id: _prepare_render_item(render_id, render, request, src_path)
+                render_id: _prepare_render_item(
+                    render_id,
+                    render,
+                    request,
+                    additional_params=additional_params,
+                )
                 for render_id, render in renders.items()
             }
             return {
@@ -200,12 +209,19 @@ class stacRenderExtension(FactoryExtension):
             ),
             src_path=Depends(factory.path_dependency),
         ):
-            with factory.reader(src_path) as src:
+            with factory.reader(input=src_path) as src:
                 renders = factory.get_renders(src)
 
             if render_id not in renders:
                 raise HTTPException(status_code=404, detail="Render not found")
 
+            additional_params, _ = get_dependency_query_params(
+                factory.path_dependency, request.query_params
+            )
+
             return _prepare_render_item(
-                render_id, renders[render_id], request, src_path
+                render_id,
+                renders[render_id],
+                request,
+                additional_params=additional_params,
             )
