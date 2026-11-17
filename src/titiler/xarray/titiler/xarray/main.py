@@ -125,6 +125,31 @@ if api_settings.global_access_token:
     app_dependencies.append(Depends(validate_access_token))
 
 
+def reject_removed_params(request: Request):
+    """Raises an HTTPException (400) for query-parameters removed in titiler.xarray 0.22,
+    which would otherwise be silently ignored, unless `sel` selects the same dimensions.
+    """
+    params = request.query_params
+    selected = {s.split("=", 1)[0] for s in params.getlist("sel")}
+    removed = {
+        # name: (dimensions it selected, hint)
+        "datetime": (
+            {"time"},
+            "use `sel=time=nearest::<value>` (closest to the old behaviour) or `sel=time=<value>` for an exact match, or drop it if the variable has no `time` dimension",
+        ),
+        "drop_dim": (
+            {v.split("=", 1)[0] for v in params.getlist("drop_dim")},
+            "use `sel=<dimension>=<value>`",
+        ),
+    }
+    for name, (dims, hint) in removed.items():
+        if name in params and not dims <= selected:
+            raise HTTPException(
+                status_code=400,
+                detail=f"`{name}` query-parameter was removed in titiler.xarray 0.22; {hint}.",
+            )
+
+
 app = FastAPI(
     title=api_settings.name,
     openapi_url="/api",
@@ -154,7 +179,11 @@ md = TilerFactory(
     enable_telemetry=api_settings.telemetry_enabled,
     templates=titiler_templates,
 )
-app.include_router(md.router, tags=["Multi Dimensional"])
+app.include_router(
+    md.router,
+    tags=["Multi Dimensional"],
+    dependencies=[Depends(reject_removed_params)],
+)
 
 TITILER_CONFORMS_TO.update(md.conforms_to)
 
