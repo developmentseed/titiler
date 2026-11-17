@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Annotated
 
 import numpy
-from fastapi import Query
+from fastapi import HTTPException, Query, Request
 from pydantic import Field
 from pydantic.types import StringConstraints
 from rio_tiler.types import RIOResampling, WarpResampling
@@ -161,3 +161,28 @@ class PreviewParams(DefaultDependency):
         # So we need to set the `resampling_method` to a default = 'nearest'
         # https://github.com/developmentseed/titiler/blob/b8cc304382d0cb3b4f16cea9dbb0cfba35517085/src/titiler/core/titiler/core/factory.py#L1300
         self.resampling_method = self.resampling_method or "nearest"
+
+
+def reject_removed_params(request: Request):
+    """Raises an HTTPException (400) for query-parameters removed in titiler.xarray 0.22,
+    which would otherwise be silently ignored, unless `sel` selects the same dimensions.
+    """
+    params = request.query_params
+    selected = {s.split("=", 1)[0] for s in params.getlist("sel")}
+    removed = {
+        # name: (dimensions it selected, hint)
+        "datetime": (
+            {"time"},
+            "use `sel=time=nearest::<value>` (closest to the old behaviour) or `sel=time=<value>` for an exact match, or drop it if the variable has no `time` dimension",
+        ),
+        "drop_dim": (
+            {v.split("=", 1)[0] for v in params.getlist("drop_dim")},
+            "use `sel=<dimension>=<value>`",
+        ),
+    }
+    for name, (dims, hint) in removed.items():
+        if name in params and not dims <= selected:
+            raise HTTPException(
+                status_code=400,
+                detail=f"`{name}` query-parameter was removed in titiler.xarray 0.22; {hint}.",
+            )

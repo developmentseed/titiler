@@ -30,6 +30,7 @@ from titiler.core.models.OGC import Conformance, Landing
 from titiler.core.resources.enums import MediaType
 from titiler.core.utils import accept_media_type, create_html_response, update_openapi
 from titiler.xarray import __version__ as titiler_version
+from titiler.xarray.dependencies import reject_removed_params
 from titiler.xarray.extensions import DatasetMetadataExtension, ValidateExtension
 from titiler.xarray.factory import TilerFactory
 
@@ -123,31 +124,6 @@ if api_settings.global_access_token:
         return True
 
     app_dependencies.append(Depends(validate_access_token))
-
-
-def reject_removed_params(request: Request):
-    """Raises an HTTPException (400) for query-parameters removed in titiler.xarray 0.22,
-    which would otherwise be silently ignored, unless `sel` selects the same dimensions.
-    """
-    params = request.query_params
-    selected = {s.split("=", 1)[0] for s in params.getlist("sel")}
-    removed = {
-        # name: (dimensions it selected, hint)
-        "datetime": (
-            {"time"},
-            "use `sel=time=nearest::<value>` (closest to the old behaviour) or `sel=time=<value>` for an exact match, or drop it if the variable has no `time` dimension",
-        ),
-        "drop_dim": (
-            {v.split("=", 1)[0] for v in params.getlist("drop_dim")},
-            "use `sel=<dimension>=<value>`",
-        ),
-    }
-    for name, (dims, hint) in removed.items():
-        if name in params and not dims <= selected:
-            raise HTTPException(
-                status_code=400,
-                detail=f"`{name}` query-parameter was removed in titiler.xarray 0.22; {hint}.",
-            )
 
 
 app = FastAPI(

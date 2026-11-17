@@ -35,3 +35,21 @@ def test_zarr_endpoints(app):
     )
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "image/png"
+
+
+def test_zarr_removed_params(app):
+    """Query-parameters removed in titiler.xarray 0.22 return 400 instead of being ignored."""
+    params = {"url": dataset_3d_zarr, "variable": "dataset", "rescale": "0,500"}
+
+    resp = app.get(
+        "/zarr/tiles/WebMercatorQuad/0/0/0", params={**params, "datetime": "2022-01-01"}
+    )
+    assert resp.status_code == 400
+    assert "sel=" in resp.json()["detail"]
+
+    resp = app.get(
+        "/zarr/tiles/WebMercatorQuad/0/0/0",
+        params={**params, "datetime": "2022-01-01", "sel": "time=nearest::2022-01-01"},
+    )
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "image/png"

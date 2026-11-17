@@ -206,6 +206,7 @@ if not api_settings.disable_mosaic:
 ###############################################################################
 # Zarr endpoints
 if not api_settings.disable_zarr:
+    from titiler.xarray.dependencies import reject_removed_params
     from titiler.xarray.extensions import DatasetMetadataExtension, ValidateExtension
     from titiler.xarray.factory import TilerFactory as XarrayTilerFactory
 
@@ -222,6 +223,7 @@ if not api_settings.disable_zarr:
         md.router,
         prefix="/zarr",
         tags=["Zarr"],
+        dependencies=[Depends(reject_removed_params)],
     )
 
     TITILER_CONFORMS_TO.update(md.conforms_to)
