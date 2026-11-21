@@ -256,8 +256,25 @@
               <div class='select-arrow color-black'></div>
             </div>
           </div>
+
+        <!-- Expression -->
+        <div id='expression-section' class='px6 py6'>
+          <div class='txt-h5 mb6 color-black'><svg class='icon icon--l inline-block'><use xlink:href='#icon-printer'/></svg> Expression</div>
+          <input name="expression" id="expression" type="text" class="input input--s row" value="" onChange="updateViz()" />
+        </div>
         </section>
 
+        <!-- Algorithm -->
+        <div id='algorithm-section' class='px6 py6'>
+          <div class='txt-h5 mb6 color-black'><svg class='icon icon--l inline-block'><use xlink:href='#icon-viewport'/></svg> Algorithm</div>
+          <div class='select-container wmax-full grid'>
+            <select id='algorithm-selector' class='select select--s select--stroke wmax-full color-black row'>
+              <option id='no-algo' value='no-algo'>None</option>
+            </select>
+            <div class='select-arrow color-black'></div>
+          </div>
+        </div>
+        
         <!-- Min/Max -->
         <div id="minmax-data" class='px6 py6 none'>
           <div class='txt-h5 mb6 color-black'><svg class='icon icon--l inline-block'><use xlink:href='#icon-smooth-ramp'/></svg> Rescale</div>
@@ -338,7 +355,8 @@ var scope = {
   dataset_statistics: undefined,
   data_type: undefined,
   band_descriptions: undefined,
-  colormap: undefined
+  colormap: undefined, 
+  algorithms: undefined, 
 }
 
 const tilejson_endpoint = '{{ tilejson_endpoint }}'
@@ -472,6 +490,20 @@ const setMapLayers = (url) => {
     })
 }
 
+const setAlgorithmParams = (params) => {
+  const algorithmSelector = document.getElementById('algorithm-selector');
+  const algorithm = algorithmSelector.selectedOptions[0].value; 
+  if (algorithm !== 'no-algo') {
+    params.algorithm = algorithm
+    const params_inputs = document.getElementById('algorithm-params-form')?.getElementsByTagName('input')
+    if (params_inputs) {
+      const algorithm_params = Object.fromEntries(Array.from(params_inputs).map(e => [e.name, e.value]))
+      params.algorithm_params = JSON.stringify(algorithm_params)
+    }
+  }
+  return params
+}
+
 const set1bViz = () => {
   params = {
     url: scope.url,
@@ -482,6 +514,13 @@ const set1bViz = () => {
   if (['uint8','int8'].indexOf(scope.data_type) === -1 && !scope.colormap) {
     params.rescale = `${document.getElementById('data-min').value},${document.getElementById('data-max').value}`
   }
+
+  params = setAlgorithmParams(params)
+
+  const expression = document.getElementById('expression').value
+  if (expression && expression?.length > 0) {
+    params.expression = encodeURIComponent(expression)
+  } 
 
   const cmap = document.getElementById('colormap-selector')[document.getElementById('colormap-selector').selectedIndex]
   if (cmap.value !== 'b&w') params.colormap_name = cmap.value
@@ -504,6 +543,14 @@ const set3bViz = () => {
   if (['uint8','int8'].indexOf(scope.data_type) === -1 && !scope.colormap) {
     params.rescale = `${document.getElementById('data-min').value},${document.getElementById('data-max').value}`
   }
+
+  params = setAlgorithmParams(params)
+
+  const expression = document.getElementById('expression').value
+  if (expression && expression?.length > 0) {
+    params.expression = expression
+  } 
+  
   let url_params = Object.keys(params).map(i => `${i}=${params[i]}`).join('&')
   if (url_params !== '') url_params = `${url_params}&`
 
@@ -515,6 +562,29 @@ const set3bViz = () => {
 
 const updateViz = () => {
   const rasterType = document.getElementById('toolbar').querySelector(".active").id
+
+  // only select algorithms applicable to 1d or 3d inputs
+  const algorithms_arr = Object.entries(scope.algorithms);
+  const filtered_1b = algorithms_arr.filter(([algo_id, algo]) => (algo.inputs.nbands === 1) || (algo.inputs.nbands === null));
+  const algorithms_filtered_1b = Object.fromEntries(filtered_1b);
+  const filtered_3b = algorithms_arr.filter(([algo_id, algo]) => (algo.inputs.nbands >= 2) || (algo.inputs.nbands === null));
+  const algorithms_filtered_3b = Object.fromEntries(filtered_3b);
+  const algorithmOptions = Array.from(document.getElementById('algorithm-selector').getElementsByTagName('option'));
+  for (o of algorithmOptions) {o.disabled = true}
+  document.getElementById('no-algo').disabled = false
+  switch (rasterType) {
+    case '1b':
+      for (const algo_id in algorithms_filtered_1b) {
+        algorithmOptions.find(o => o.value == algo_id).disabled = false
+      }
+      break
+    case '3b':
+    for (const algo_id in algorithms_filtered_3b) {
+        algorithmOptions.find(o => o.value == algo_id).disabled = false
+      }
+      break
+  }
+
   switch (rasterType) {
     case '1b':
       set1bViz()
@@ -915,6 +985,63 @@ const addCogeo = () => {
     .catch(err => {
       console.warn(err)
     })
+    
+  fetch(`/algorithms`)
+    .then(res => {
+      if (res.ok) return res.json()
+      throw new Error('Network response was not ok.')
+    })
+    .then(algorithms => {
+      // console.log('ALGORITHMS', algorithms)
+      scope.algorithms = algorithms;
+      const algorithmSelector = document.getElementById('algorithm-selector');
+      for (const algo_id in algorithms) {
+        const algo = algorithms[algo_id];
+        const opt = document.createElement('option');
+        opt.value = algo_id;
+        opt.innerHTML = algo['title'];
+        algorithmSelector.appendChild(opt);
+      }
+      algorithmSelector.addEventListener('change', updateAlgorithmParams);
+    })
+    .catch(err => {
+      console.warn(err);
+    })
+}
+
+function updateAlgorithmParams() {
+  const algorithmSelector = document.getElementById('algorithm-selector');
+  // Recreate div to host params
+  const paramsElOld = Array.from(algorithmSelector.parentNode.parentNode.children).find(el => el.id == 'algorithm-params');
+  if (paramsElOld) {
+    paramsElOld.remove();
+  }
+  const selected = algorithmSelector.selectedOptions[0].value; 
+  if (selected === 'no-algo') { return; }
+
+  // Reproduce the div + form from lat/lon inputs
+  const paramsEl = document.createElement('div');
+  paramsEl.className = 'grid w-full';
+  paramsEl.id = 'algorithm-params';
+  algorithmSelector.parentNode.parentNode.appendChild(paramsEl);
+  const paramsForm = document.createElement('form');
+  paramsForm.className = 'grid';
+  paramsForm.id = 'algorithm-params-form';
+  paramsEl.appendChild(paramsForm);
+  
+  const params = scope.algorithms[selected]['parameters']; 
+  for (const param_id in params) {
+    const param = params[param_id];
+    const paramEl = document.createElement('div');
+    paramEl.className = 'row';
+    paramsForm.appendChild(paramEl);
+    paramEl.innerHTML = `
+      <label for="param_${param_id}" class='col' style="font-size:80%;">${param_id}:</label>
+      <input name="${param_id}" id="param_${param_id}" type="${(['integer', 'number'].includes(param.type)) ? 'number' : 'text'}" class="input input--s col" onChange="updateViz()" step=1 value="${param.default}"/>
+    `;
+  }
+  // Update to react to params change
+  updateViz();
 }
 
 document.getElementById('launch').addEventListener('click', () => {
