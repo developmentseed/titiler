@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794820351729,
+  "lastUpdate": 1795558706180,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -30310,6 +30310,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 2.27,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.03,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "10154151+lhoupert@users.noreply.github.com",
+            "name": "Loïc Houpert",
+            "username": "lhoupert"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4a251ef9410bf169b1f187598a2629751850d790",
+          "message": "ci: stop grouping Dependabot security updates (#1569)",
+          "timestamp": "2026-11-24T23:16:42+01:00",
+          "tree_id": "e9b6e552a94f620c57e502455723114d8b94b9c6",
+          "url": "https://github.com/developmentseed/titiler/commit/4a251ef9410bf169b1f187598a2629751850d790"
+        },
+        "date": 1795558704809,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.12,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 2.33,
             "unit": "s"
           },
           {
