@@ -27,12 +27,7 @@ updates:
       all:
         patterns:
         - "*"
-      # `all` only applies to version updates, so without this each security
-      # advisory opens its own PR.
-      security:
-        applies-to: security-updates
-        patterns:
-        - "*"
+      # No security-updates group: while a grouped security PR is open, Dependabot defers fixes for packages not already in it.
     commit-message:
       prefix: "chore(deps):"
 
