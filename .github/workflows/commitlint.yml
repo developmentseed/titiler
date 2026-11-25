@@ -38,5 +38,7 @@ jobs:
           if [ "$BEFORE" = "0000000000000000000000000000000000000000" ] || [ "$EVENT_FORCED" = "true" ]; then
             BEFORE="$(git merge-base "origin/$DEFAULT_BRANCH" "$AFTER")"
           fi
+          # Exit code 3 (NoCommitsFoundError) means the range is empty, e.g.,
+          # when release-please recreates its branch at the default branch's tip.
           uv run --with 'commitizen==4.13.9' --isolated \
-            cz check --rev-range "$BEFORE..$AFTER"
+            cz --no-raise 3 check --rev-range "$BEFORE..$AFTER"
