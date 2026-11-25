@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795558706180,
+  "lastUpdate": 1795622508333,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -30384,6 +30384,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad longest_transaction",
             "value": 0.03,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "chuck@developmentseed.org",
+            "name": "Chuck Daniels",
+            "username": "chuckwondo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "54509531405382368025cdf2639a547e6c085dab",
+          "message": "Merge pull request #1566 from developmentseed/dependabot/docker/dockerfiles/all-5dcd634a17\n\nchore(deps): bump the all group across 1 directory with 2 updates",
+          "timestamp": "2026-11-25T10:59:50-05:00",
+          "tree_id": "f325e9564cb0865715127eabd12ec6a6abd40edf",
+          "url": "https://github.com/developmentseed/titiler/commit/54509531405382368025cdf2639a547e6c085dab"
+        },
+        "date": 1795622506883,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.15,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.1,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
             "unit": "s"
           }
         ]
