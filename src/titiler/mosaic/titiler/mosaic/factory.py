@@ -14,7 +14,7 @@ from geojson_pydantic.features import Feature, FeatureCollection
 from geojson_pydantic.geometries import Polygon
 from morecantile import tms as morecantile_tms
 from morecantile.defaults import TileMatrixSets
-from pydantic import Field
+from pydantic import AfterValidator, Field
 from rio_tiler.constants import MAX_THREADS, WGS84_CRS
 from rio_tiler.io import BaseReader, MultiBaseReader, Reader
 from rio_tiler.mosaic.backend import BaseBackend, MosaicInfo
@@ -966,6 +966,7 @@ class MosaicTilerFactory(BaseFactory):
             geojson: Annotated[
                 FeatureCollection | Feature,
                 Body(description="GeoJSON Feature or FeatureCollection."),
+                AfterValidator(require_geometries),
             ],
             src_path=Depends(self.path_dependency),
             backend_params=Depends(self.backend_dependency),
@@ -984,8 +985,6 @@ class MosaicTilerFactory(BaseFactory):
             env=Depends(self.environment_dependency),
         ):
             """Get Statistics from a geojson feature or featureCollection."""
-            require_geometries(geojson)
-
             fc = geojson
             if isinstance(fc, Feature):
                 fc = FeatureCollection(type="FeatureCollection", features=[geojson])
@@ -1154,7 +1153,11 @@ class MosaicTilerFactory(BaseFactory):
             **img_endpoint_params,
         )
         def feature_image(
-            geojson: Annotated[Feature, Body(description="GeoJSON Feature.")],
+            geojson: Annotated[
+                Feature,
+                Body(description="GeoJSON Feature."),
+                AfterValidator(require_geometries),
+            ],
             src_path=Depends(self.path_dependency),
             format: Annotated[
                 ImageType | None,
@@ -1177,8 +1180,6 @@ class MosaicTilerFactory(BaseFactory):
             env=Depends(self.environment_dependency),
         ):
             """Create image from a geojson feature."""
-            require_geometries(geojson)
-
             with rasterio.Env(**env):
                 logger.info(
                     f"opening data with backend: {self.backend} and reader {self.dataset_reader}"

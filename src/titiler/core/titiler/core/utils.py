@@ -174,7 +174,9 @@ def bounds_to_geometry(bounds: BBox) -> Polygon | MultiPolygon:
     return Polygon.from_bounds(*bounds)
 
 
-def require_geometries(geojson: Feature | FeatureCollection) -> None:
+def require_geometries(
+    geojson: Feature | FeatureCollection,
+) -> Feature | FeatureCollection:
     """Raise HTTP 422 if a Feature in the GeoJSON body has a null geometry."""
     if isinstance(geojson, Feature):
         if geojson.geometry is None:
@@ -182,7 +184,7 @@ def require_geometries(geojson: Feature | FeatureCollection) -> None:
                 status_code=422,
                 detail="Feature has a null 'geometry'; this endpoint needs a geometry.",
             )
-        return
+        return geojson
 
     for i, feature in enumerate(geojson.features):
         if feature.geometry is None:
@@ -191,6 +193,8 @@ def require_geometries(geojson: Feature | FeatureCollection) -> None:
                 detail=f"features[{i}] has a null 'geometry'; "
                 "this endpoint needs a geometry for every feature.",
             )
+
+    return geojson
 
 
 T = TypeVar("T")

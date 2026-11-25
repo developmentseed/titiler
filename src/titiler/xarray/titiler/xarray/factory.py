@@ -9,6 +9,7 @@ import rasterio
 from attrs import define
 from fastapi import Body, Depends, Query
 from geojson_pydantic.features import Feature, FeatureCollection
+from pydantic import AfterValidator
 from rio_tiler.constants import WGS84_CRS
 from rio_tiler.io import XarrayReader
 from rio_tiler.models import Info
@@ -182,6 +183,7 @@ class TilerFactory(BaseTilerFactory):
             geojson: Annotated[
                 FeatureCollection | Feature,
                 Body(description="GeoJSON Feature or FeatureCollection."),
+                AfterValidator(require_geometries),
             ],
             src_path=Depends(self.path_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -197,8 +199,6 @@ class TilerFactory(BaseTilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Get Statistics from a geojson feature or featureCollection."""
-            require_geometries(geojson)
-
             fc = geojson
             if isinstance(fc, Feature):
                 fc = FeatureCollection(type="FeatureCollection", features=[geojson])

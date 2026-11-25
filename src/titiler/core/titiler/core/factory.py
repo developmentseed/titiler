@@ -21,7 +21,7 @@ from geojson_pydantic.features import Feature, FeatureCollection
 from morecantile import TileMatrixSet
 from morecantile import tms as morecantile_tms
 from morecantile.defaults import TileMatrixSets
-from pydantic import Field
+from pydantic import AfterValidator, Field
 from rio_tiler.colormap import ColorMaps
 from rio_tiler.colormap import cmap as default_cmap
 from rio_tiler.constants import WGS84_CRS
@@ -508,6 +508,7 @@ class TilerFactory(BaseFactory):
             geojson: Annotated[
                 FeatureCollection | Feature,
                 Body(description="GeoJSON Feature or FeatureCollection."),
+                AfterValidator(require_geometries),
             ],
             src_path=Depends(self.path_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -523,8 +524,6 @@ class TilerFactory(BaseFactory):
             env=Depends(self.environment_dependency),
         ):
             """Get Statistics from a geojson feature or featureCollection."""
-            require_geometries(geojson)
-
             fc = geojson
             if isinstance(fc, Feature):
                 fc = FeatureCollection(type="FeatureCollection", features=[geojson])
@@ -1343,7 +1342,11 @@ class TilerFactory(BaseFactory):
             **img_endpoint_params,
         )
         def feature_image(
-            geojson: Annotated[Feature, Body(description="GeoJSON Feature.")],
+            geojson: Annotated[
+                Feature,
+                Body(description="GeoJSON Feature."),
+                AfterValidator(require_geometries),
+            ],
             format: Annotated[
                 ImageType | None,
                 Field(
@@ -1363,8 +1366,6 @@ class TilerFactory(BaseFactory):
             env=Depends(self.environment_dependency),
         ):
             """Create image from a geojson feature."""
-            require_geometries(geojson)
-
             with rasterio.Env(**env):
                 logger.info(f"opening data with reader: {self.reader}")
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
@@ -1711,6 +1712,7 @@ class MultiBaseTilerFactory(TilerFactory):
             geojson: Annotated[
                 FeatureCollection | Feature,
                 Body(description="GeoJSON Feature or FeatureCollection."),
+                AfterValidator(require_geometries),
             ],
             src_path=Depends(self.path_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -1726,8 +1728,6 @@ class MultiBaseTilerFactory(TilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Get Statistics from a geojson feature or featureCollection."""
-            require_geometries(geojson)
-
             fc = geojson
             if isinstance(fc, Feature):
                 fc = FeatureCollection(type="FeatureCollection", features=[geojson])
