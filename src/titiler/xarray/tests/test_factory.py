@@ -343,6 +343,17 @@ def test_statistics(filename, app):
     assert resp.headers["content-type"] == "application/geo+json"
 
 
+def test_statistics_null_geometry(app):
+    """A Feature with a null geometry gets HTTP 422, not a server error."""
+    resp = app.post(
+        "/md/statistics",
+        params={"url": dataset_2d_nc, "variable": "dataset"},
+        json={"type": "Feature", "properties": {}, "geometry": None},
+    )
+
+    assert resp.status_code == 422
+
+
 @pytest.mark.parametrize(
     "filename",
     [dataset_2d_nc, dataset_3d_nc, dataset_3d_zarr],

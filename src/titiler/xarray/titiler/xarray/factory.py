@@ -27,7 +27,7 @@ from titiler.core.dependencies import (
 from titiler.core.factory import TilerFactory as BaseTilerFactory
 from titiler.core.models.responses import InfoGeoJSON, StatisticsGeoJSON
 from titiler.core.resources.responses import GeoJSONResponse, JSONResponse
-from titiler.core.utils import bounds_to_geometry
+from titiler.core.utils import bounds_to_geometry, require_geometries
 from titiler.xarray.dependencies import (
     DatasetParams,
     PartFeatureParams,
@@ -197,6 +197,8 @@ class TilerFactory(BaseTilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Get Statistics from a geojson feature or featureCollection."""
+            require_geometries(geojson)
+
             fc = geojson
             if isinstance(fc, Feature):
                 fc = FeatureCollection(type="FeatureCollection", features=[geojson])

@@ -14,7 +14,7 @@ import jinja2
 import numpy
 import rasterio
 from attrs import define, field
-from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query
+from fastapi import APIRouter, Body, Depends, Path, Query
 from fastapi.dependencies.utils import get_parameterless_sub_dependant
 from fastapi.params import Depends as DependsFunc
 from geojson_pydantic.features import Feature, FeatureCollection
@@ -85,6 +85,7 @@ from titiler.core.utils import (
     bounds_to_geometry,
     create_html_response,
     render_image,
+    require_geometries,
     tms_limits,
 )
 
@@ -522,12 +523,11 @@ class TilerFactory(BaseFactory):
             env=Depends(self.environment_dependency),
         ):
             """Get Statistics from a geojson feature or featureCollection."""
+            require_geometries(geojson)
+
             fc = geojson
             if isinstance(fc, Feature):
                 fc = FeatureCollection(type="FeatureCollection", features=[geojson])
-
-            if any(feature.geometry is None for feature in fc.features):
-                raise HTTPException(status_code=422, detail="Invalid geometry")
 
             with rasterio.Env(**env):
                 with self.reader(src_path, **reader_params.as_dict()) as src_dst:
@@ -1363,8 +1363,7 @@ class TilerFactory(BaseFactory):
             env=Depends(self.environment_dependency),
         ):
             """Create image from a geojson feature."""
-            if geojson.geometry is None:
-                raise HTTPException(status_code=422, detail="Invalid geometry")
+            require_geometries(geojson)
 
             with rasterio.Env(**env):
                 logger.info(f"opening data with reader: {self.reader}")
@@ -1727,6 +1726,8 @@ class MultiBaseTilerFactory(TilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Get Statistics from a geojson feature or featureCollection."""
+            require_geometries(geojson)
+
             fc = geojson
             if isinstance(fc, Feature):
                 fc = FeatureCollection(type="FeatureCollection", features=[geojson])

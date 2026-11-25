@@ -55,6 +55,7 @@ from titiler.core.utils import (
     bounds_to_geometry,
     create_html_response,
     render_image,
+    require_geometries,
     tms_limits,
 )
 from titiler.mosaic.models.responses import Point
@@ -983,6 +984,8 @@ class MosaicTilerFactory(BaseFactory):
             env=Depends(self.environment_dependency),
         ):
             """Get Statistics from a geojson feature or featureCollection."""
+            require_geometries(geojson)
+
             fc = geojson
             if isinstance(fc, Feature):
                 fc = FeatureCollection(type="FeatureCollection", features=[geojson])
@@ -1174,6 +1177,8 @@ class MosaicTilerFactory(BaseFactory):
             env=Depends(self.environment_dependency),
         ):
             """Create image from a geojson feature."""
+            require_geometries(geojson)
+
             with rasterio.Env(**env):
                 logger.info(
                     f"opening data with backend: {self.backend} and reader {self.dataset_reader}"
