@@ -16,6 +16,7 @@ from morecantile import tms as morecantile_tms
 from morecantile.defaults import TileMatrixSets
 from pydantic import Field
 from rio_tiler.constants import MAX_THREADS, WGS84_CRS
+from rio_tiler.errors import NoAssetFoundError
 from rio_tiler.io import BaseReader, MultiBaseReader, Reader
 from rio_tiler.mosaic.backend import BaseBackend, MosaicInfo
 from rio_tiler.mosaic.methods import PixelSelectionMethod
@@ -987,6 +988,9 @@ class MosaicTilerFactory(BaseFactory):
             if isinstance(fc, Feature):
                 fc = FeatureCollection(type="FeatureCollection", features=[geojson])
 
+            stats_count = 0
+            no_asset_error: NoAssetFoundError | None = None
+
             with rasterio.Env(**env):
                 logger.info(
                     f"opening data with backend: {self.backend} and reader {self.dataset_reader}"
@@ -1001,18 +1005,27 @@ class MosaicTilerFactory(BaseFactory):
                         shape = feature.model_dump(exclude_none=True)
 
                         logger.info(f"feature {i}: reading data")
-                        image, assets = src_dst.feature(
-                            shape,
-                            shape_crs=coord_crs or WGS84_CRS,
-                            dst_crs=dst_crs,
-                            align_bounds_with_dataset=True,
-                            search_options=assets_accessor_params.as_dict(),
-                            pixel_selection=pixel_selection,
-                            threads=MOSAIC_THREADS,
-                            **layer_params.as_dict(),
-                            **dataset_params.as_dict(),
-                            **image_params.as_dict(),
-                        )
+                        try:
+                            image, assets = src_dst.feature(
+                                shape,
+                                shape_crs=coord_crs or WGS84_CRS,
+                                dst_crs=dst_crs,
+                                align_bounds_with_dataset=True,
+                                search_options=assets_accessor_params.as_dict(),
+                                pixel_selection=pixel_selection,
+                                threads=MOSAIC_THREADS,
+                                **layer_params.as_dict(),
+                                **dataset_params.as_dict(),
+                                **image_params.as_dict(),
+                            )
+                        except NoAssetFoundError as exc:
+                            logger.info(f"feature {i}: no assets found")
+                            no_asset_error = exc
+                            feature.properties = feature.properties or {}
+                            feature.properties.update(
+                                {"statistics": {}, "used_assets": []}
+                            )
+                            continue
 
                         coverage_array = image.get_coverage_array(
                             shape,
@@ -1034,6 +1047,10 @@ class MosaicTilerFactory(BaseFactory):
                         feature.properties = feature.properties or {}
                         feature.properties.update({"statistics": stats})
                         feature.properties.update({"used_assets": assets})
+                        stats_count += 1
+
+            if stats_count == 0 and no_asset_error is not None:
+                raise no_asset_error
 
             return fc.features[0] if isinstance(geojson, Feature) else fc
 

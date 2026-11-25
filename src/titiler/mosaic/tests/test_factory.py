@@ -1039,3 +1039,82 @@ def test_mosaic_statistics_featurecollection():
         stats_b = resp["features"][1]["properties"]["statistics"]
         assert len(stats_a) > 0
         assert len(stats_b) > 0
+
+
+def test_mosaic_statistics_featurecollection_missing_assets():
+    """A feature without assets should not discard the statistics of the others."""
+    mosaic = MosaicTilerFactory(
+        backend=MosaicJSONBackend,
+        add_statistics=True,
+        router_prefix="mosaic",
+    )
+    app = FastAPI()
+    app.include_router(mosaic.router, prefix="/mosaic")
+    add_exception_handlers(app, MOSAIC_STATUS_CODES)
+    client = TestClient(app)
+
+    feature = {
+        "type": "Feature",
+        "properties": {},
+        "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [-74.5, 45.5],
+                    [-74.5, 46.0],
+                    [-74.0, 46.0],
+                    [-74.0, 45.5],
+                    [-74.5, 45.5],
+                ]
+            ],
+        },
+    }
+    missing_assets = {
+        "type": "Feature",
+        "properties": {},
+        "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [-80.0, 40.0],
+                    [-80.0, 40.5],
+                    [-79.5, 40.5],
+                    [-79.5, 40.0],
+                    [-80.0, 40.0],
+                ]
+            ],
+        },
+    }
+
+    with tmpmosaic() as mosaic_file:
+        response = client.post(
+            "/mosaic/statistics",
+            params={"url": mosaic_file},
+            json={
+                "type": "FeatureCollection",
+                "features": [feature, missing_assets],
+            },
+        )
+        assert response.status_code == 200
+        resp = response.json()
+        assert len(resp["features"]) == 2
+        assert resp["features"][0]["properties"]["statistics"]
+        assert resp["features"][1]["properties"]["statistics"] == {}
+        assert resp["features"][1]["properties"]["used_assets"] == []
+
+        response = client.post(
+            "/mosaic/statistics",
+            params={"url": mosaic_file},
+            json={
+                "type": "FeatureCollection",
+                "features": [missing_assets],
+            },
+        )
+        assert response.status_code == 204
+
+        response = client.post(
+            "/mosaic/statistics",
+            params={"url": mosaic_file},
+            json=missing_assets,
+        )
+        assert response.status_code == 204
