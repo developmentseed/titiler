@@ -27,11 +27,15 @@ jobs:
         env:
           EVENT_BEFORE: ${{ github.event.before }}
           EVENT_AFTER: ${{ github.event.after }}
+          EVENT_FORCED: ${{ github.event.forced }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           BEFORE="$EVENT_BEFORE"
           AFTER="$EVENT_AFTER"
-          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+          # A new branch has no previous head. After a force-push (e.g., a
+          # Dependabot rebase), the previous head is on no branch, so checkout
+          # does not fetch it. Either way, check the branch's own commits.
+          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ] || [ "$EVENT_FORCED" = "true" ]; then
             BEFORE="$(git merge-base "origin/$DEFAULT_BRANCH" "$AFTER")"
           fi
           uv run --with 'commitizen==4.13.9' --isolated \
