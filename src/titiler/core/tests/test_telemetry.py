@@ -88,9 +88,11 @@ def test_tracing_enabled_success_path(memory_exporter):
     )
     assert response.status_code == 200
 
-    finished_spans = memory_exporter.get_finished_spans()
-    assert len(finished_spans) == 1
-
-    span = next(filter(lambda x: x.name == "TilerFactory.tile", finished_spans), None)
-    assert span
-    assert span.status.status_code == StatusCode.OK
+    # FastAPI records its own spans to the same provider, so keep only titiler's.
+    titiler_spans = [
+        span
+        for span in memory_exporter.get_finished_spans()
+        if span.instrumentation_scope.name == "titiler.core"
+    ]
+    assert [span.name for span in titiler_spans] == ["TilerFactory.tile"]
+    assert titiler_spans[0].status.status_code == StatusCode.OK
