@@ -8,8 +8,11 @@ SUBMODULES=(
     "extensions"
 )
 
+status=0
 for SUBMODULE in "${SUBMODULES[@]}"
 do
     echo "Running tests for titiler-${SUBMODULE}"
-    uv run pytest src/titiler/${SUBMODULE} --cov=titiler.${SUBMODULE} --cov-report=xml:titiler-${SUBMODULE}.xml  --cov-report=term-missing
+    uv run pytest "src/titiler/${SUBMODULE}" --cov="titiler.${SUBMODULE}" --cov-report="xml:titiler-${SUBMODULE}.xml"  --cov-report=term-missing || status=1
 done
+
+exit $status
