@@ -1110,11 +1110,17 @@ def test_mosaic_statistics_featurecollection_missing_assets():
                 "features": [missing_assets],
             },
         )
-        assert response.status_code == 204
+        assert response.status_code == 200
+        resp = response.json()
+        assert resp["features"][0]["properties"]["statistics"] == {}
+        assert resp["features"][0]["properties"]["used_assets"] == []
 
         response = client.post(
             "/mosaic/statistics",
             params={"url": mosaic_file},
             json=missing_assets,
         )
-        assert response.status_code == 204
+        assert response.status_code == 200
+        resp = response.json()
+        assert resp["properties"]["statistics"] == {}
+        assert resp["properties"]["used_assets"] == []

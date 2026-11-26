@@ -988,9 +988,6 @@ class MosaicTilerFactory(BaseFactory):
             if isinstance(fc, Feature):
                 fc = FeatureCollection(type="FeatureCollection", features=[geojson])
 
-            stats_count = 0
-            no_asset_error: NoAssetFoundError | None = None
-
             with rasterio.Env(**env):
                 logger.info(
                     f"opening data with backend: {self.backend} and reader {self.dataset_reader}"
@@ -1018,9 +1015,8 @@ class MosaicTilerFactory(BaseFactory):
                                 **dataset_params.as_dict(),
                                 **image_params.as_dict(),
                             )
-                        except NoAssetFoundError as exc:
+                        except NoAssetFoundError:
                             logger.info(f"feature {i}: no assets found")
-                            no_asset_error = exc
                             feature.properties = feature.properties or {}
                             feature.properties.update(
                                 {"statistics": {}, "used_assets": []}
@@ -1047,10 +1043,6 @@ class MosaicTilerFactory(BaseFactory):
                         feature.properties = feature.properties or {}
                         feature.properties.update({"statistics": stats})
                         feature.properties.update({"used_assets": assets})
-                        stats_count += 1
-
-            if stats_count == 0 and no_asset_error is not None:
-                raise no_asset_error
 
             return fc.features[0] if isinstance(geojson, Feature) else fc
 
