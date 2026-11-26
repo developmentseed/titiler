@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795704897160,
+  "lastUpdate": 1795705223361,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -30782,6 +30782,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 2.04,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.03,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "chuck@developmentseed.org",
+            "name": "Chuck Daniels",
+            "username": "chuckwondo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e73eb6f0d58e43c61b75fd9c8e2c21b69d9ed460",
+          "message": "fix: show the service name in telemetry log lines (#1581)",
+          "timestamp": "2026-11-26T09:58:47-05:00",
+          "tree_id": "a3a1ba9991ea432c6601bfa09d873f57de1d9e2a",
+          "url": "https://github.com/developmentseed/titiler/commit/e73eb6f0d58e43c61b75fd9c8e2c21b69d9ed460"
+        },
+        "date": 1795705222050,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.01,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.1,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 2,
             "unit": "s"
           },
           {
