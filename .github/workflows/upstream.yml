@@ -36,4 +36,4 @@ jobs:
       - name: Test titiler.xarray
         working-directory: src/titiler/xarray
         run: |
-          uv run --group test --with-requirements requirements-upstream.txt pytest
+          uv run --group test --extra telemetry --with-requirements requirements-upstream.txt pytest
