@@ -458,6 +458,14 @@ def test_MosaicTilerFactory():
         assert meta["height"] == 200
 
         response = client.post(
+            "/mosaic/feature",
+            params={"url": mosaic_file},
+            json={"type": "Feature", "properties": {}, "geometry": None},
+        )
+
+        assert response.status_code == 422
+
+        response = client.post(
             "/mosaic/feature.png",
             params={"url": mosaic_file},
             json={"type": "Feature", "properties": {}, "geometry": feat},
@@ -1005,6 +1013,15 @@ def test_mosaic_statistics_featurecollection():
         resp = response.json()
         assert resp["type"] == "Feature"
         assert "statistics" in resp["properties"]
+
+        # Null geometry
+        response = client.post(
+            "/mosaic/statistics",
+            params={"url": mosaic_file},
+            json={"type": "Feature", "properties": {}, "geometry": None},
+        )
+
+        assert response.status_code == 422
 
         # Test 2: FeatureCollection with 1 feature works
         fc_single = {"type": "FeatureCollection", "features": [feature_a]}

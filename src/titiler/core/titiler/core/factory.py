@@ -21,7 +21,7 @@ from geojson_pydantic.features import Feature, FeatureCollection
 from morecantile import TileMatrixSet
 from morecantile import tms as morecantile_tms
 from morecantile.defaults import TileMatrixSets
-from pydantic import Field
+from pydantic import AfterValidator, Field
 from rio_tiler.colormap import ColorMaps
 from rio_tiler.colormap import cmap as default_cmap
 from rio_tiler.constants import WGS84_CRS
@@ -85,6 +85,7 @@ from titiler.core.utils import (
     bounds_to_geometry,
     create_html_response,
     render_image,
+    require_geometries,
     tms_limits,
 )
 
@@ -507,6 +508,7 @@ class TilerFactory(BaseFactory):
             geojson: Annotated[
                 FeatureCollection | Feature,
                 Body(description="GeoJSON Feature or FeatureCollection."),
+                AfterValidator(require_geometries),
             ],
             src_path=Depends(self.path_dependency),
             reader_params=Depends(self.reader_dependency),
@@ -1340,7 +1342,11 @@ class TilerFactory(BaseFactory):
             **img_endpoint_params,
         )
         def feature_image(
-            geojson: Annotated[Feature, Body(description="GeoJSON Feature.")],
+            geojson: Annotated[
+                Feature,
+                Body(description="GeoJSON Feature."),
+                AfterValidator(require_geometries),
+            ],
             format: Annotated[
                 ImageType | None,
                 Field(
@@ -1706,6 +1712,7 @@ class MultiBaseTilerFactory(TilerFactory):
             geojson: Annotated[
                 FeatureCollection | Feature,
                 Body(description="GeoJSON Feature or FeatureCollection."),
+                AfterValidator(require_geometries),
             ],
             src_path=Depends(self.path_dependency),
             reader_params=Depends(self.reader_dependency),

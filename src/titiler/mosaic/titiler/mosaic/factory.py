@@ -14,7 +14,7 @@ from geojson_pydantic.features import Feature, FeatureCollection
 from geojson_pydantic.geometries import Polygon
 from morecantile import tms as morecantile_tms
 from morecantile.defaults import TileMatrixSets
-from pydantic import Field
+from pydantic import AfterValidator, Field
 from rio_tiler.constants import MAX_THREADS, WGS84_CRS
 from rio_tiler.errors import NoAssetFoundError
 from rio_tiler.io import BaseReader, MultiBaseReader, Reader
@@ -56,6 +56,7 @@ from titiler.core.utils import (
     bounds_to_geometry,
     create_html_response,
     render_image,
+    require_geometries,
     tms_limits,
 )
 from titiler.mosaic.models.responses import Point
@@ -966,6 +967,7 @@ class MosaicTilerFactory(BaseFactory):
             geojson: Annotated[
                 FeatureCollection | Feature,
                 Body(description="GeoJSON Feature or FeatureCollection."),
+                AfterValidator(require_geometries),
             ],
             src_path=Depends(self.path_dependency),
             backend_params=Depends(self.backend_dependency),
@@ -1160,7 +1162,11 @@ class MosaicTilerFactory(BaseFactory):
             **img_endpoint_params,
         )
         def feature_image(
-            geojson: Annotated[Feature, Body(description="GeoJSON Feature.")],
+            geojson: Annotated[
+                Feature,
+                Body(description="GeoJSON Feature."),
+                AfterValidator(require_geometries),
+            ],
             src_path=Depends(self.path_dependency),
             format: Annotated[
                 ImageType | None,

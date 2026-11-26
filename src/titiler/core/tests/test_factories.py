@@ -399,6 +399,10 @@ def test_TilerFactory():
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
 
+    null_feature = {"type": "Feature", "properties": {}, "geometry": None}
+    response = client.post(f"/feature?url={DATA_DIR}/cog.tif", json=null_feature)
+    assert response.status_code == 422
+
     response = client.post(
         f"/feature/100x100.png?url={DATA_DIR}/cog.tif&rescale=0,1000", json=feature
     )
@@ -540,6 +544,26 @@ def test_TilerFactory():
     assert resp["b1"]["description"] == "(b1 - b1) / (b1 + b1)"
 
     # POST - statistics
+    response = client.post(
+        f"/statistics?url={DATA_DIR}/cog.tif&bidx=1&bidx=1&bidx=1", json=null_feature
+    )
+
+    assert response.status_code == 422
+    assert response.json() == {
+        "detail": "Feature has a null 'geometry'; this endpoint needs a geometry."
+    }
+
+    response = client.post(
+        f"/statistics?url={DATA_DIR}/cog.tif",
+        json={"type": "FeatureCollection", "features": [feature, null_feature]},
+    )
+
+    assert response.status_code == 422
+    assert response.json() == {
+        "detail": "features[1] has a null 'geometry'; "
+        "this endpoint needs a geometry for every feature."
+    }
+
     response = client.post(
         f"/statistics?url={DATA_DIR}/cog.tif&bidx=1&bidx=1&bidx=1", json=feature
     )
@@ -927,6 +951,14 @@ def test_MultiBaseTilerFactory(rio):
     }
     assert props["b1"]["description"] == "B01_b1"
     assert props["b2"]["description"] == "B09_b1"
+
+    # null geometry
+    response = client.post(
+        f"/statistics?url={DATA_DIR}/item.json&assets=B01&assets=B09",
+        json={"type": "Feature", "properties": {}, "geometry": None},
+    )
+
+    assert response.status_code == 422
 
     # missing assets
     response = client.post(

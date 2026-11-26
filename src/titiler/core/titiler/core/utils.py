@@ -11,7 +11,7 @@ from urllib.parse import urlencode
 import numpy
 import pyproj
 import rasterio
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi._compat import (
     get_definitions,
     get_flat_models_from_fields,
@@ -28,6 +28,7 @@ from fastapi.openapi.utils import (
     _get_openapi_dependency_data,
     _get_openapi_operation_parameters,
 )
+from geojson_pydantic.features import Feature, FeatureCollection
 from geojson_pydantic.geometries import MultiPolygon, Polygon
 from morecantile import TileMatrixSet
 from rasterio.dtypes import dtype_ranges
@@ -171,6 +172,29 @@ def bounds_to_geometry(bounds: BBox) -> Polygon | MultiPolygon:
             coordinates=[pl.coordinates, pr.coordinates],
         )
     return Polygon.from_bounds(*bounds)
+
+
+def require_geometries(
+    geojson: Feature | FeatureCollection,
+) -> Feature | FeatureCollection:
+    """Raise HTTP 422 if a Feature in the GeoJSON body has a null geometry."""
+    if isinstance(geojson, Feature):
+        if geojson.geometry is None:
+            raise HTTPException(
+                status_code=422,
+                detail="Feature has a null 'geometry'; this endpoint needs a geometry.",
+            )
+        return geojson
+
+    for i, feature in enumerate(geojson.features):
+        if feature.geometry is None:
+            raise HTTPException(
+                status_code=422,
+                detail=f"features[{i}] has a null 'geometry'; "
+                "this endpoint needs a geometry for every feature.",
+            )
+
+    return geojson
 
 
 T = TypeVar("T")
