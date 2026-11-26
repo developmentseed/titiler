@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+## 2.4.2 (2026-11-26)
+
+## What's Changed
+* ci: stop grouping Dependabot security updates by @lhoupert in https://github.com/developmentseed/titiler/pull/1569
+* chore(deps): bump the all group across 1 directory with 2 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1566
+* ci(deps): bump azure/setup-helm from 5.0.1 to 5.1.0 in the all group across 1 directory by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1567
+* chore(deps): bump the all group across 1 directory with 8 updates by @dependabot[bot] in https://github.com/developmentseed/titiler/pull/1571
+* ci: lint commit messages after a force-push by @chuckwondo in https://github.com/developmentseed/titiler/pull/1573
+* ci: pass commit lint when a push adds no commits by @chuckwondo in https://github.com/developmentseed/titiler/pull/1575
+* docs: fix AI policy link in bug report template by @chuckwondo in https://github.com/developmentseed/titiler/pull/1576
+* fix: return empty mosaic statistics instead of 204 for features without assets by @agustin18 in https://github.com/developmentseed/titiler/pull/1579
+* fix: show the service name in telemetry log lines by @chuckwondo in https://github.com/developmentseed/titiler/pull/1581
+* ci: fail scripts/test when any package fails by @chuckwondo in https://github.com/developmentseed/titiler/pull/1583
+* ci: install the telemetry extra in the upstream tests by @chuckwondo in https://github.com/developmentseed/titiler/pull/1584
+
+## New Contributors
+* @chuckwondo made their first contribution in https://github.com/developmentseed/titiler/pull/1573
+* @agustin18 made their first contribution in https://github.com/developmentseed/titiler/pull/1579
+
+**Full Changelog**: https://github.com/developmentseed/titiler/compare/2.4.1...2.4.2
+
 ## 2.4.1 (2026-11-16)
 
 ## What's Changed
