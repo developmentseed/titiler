@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795626565531,
+  "lastUpdate": 1795704897160,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -30723,6 +30723,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 2.06,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.02,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.03,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "agustinsaiz018@gmail.com",
+            "name": "agustin18",
+            "username": "agustin18"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a793d9d4139eaa08808bc730a881697e44fb12b9",
+          "message": "fix: return empty mosaic statistics instead of 204 for features without assets (#1579)",
+          "timestamp": "2026-11-26T15:53:05+01:00",
+          "tree_id": "73eb68c0486478037f111b3e5dbb22b3fd6d4274",
+          "url": "https://github.com/developmentseed/titiler/commit/a793d9d4139eaa08808bc730a881697e44fb12b9"
+        },
+        "date": 1795704895720,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.01,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.09,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 2.04,
             "unit": "s"
           },
           {
