@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795705256306,
+  "lastUpdate": 1795707738047,
   "repoUrl": "https://github.com/developmentseed/titiler",
   "entries": {
     "TiTiler performance Benchmarks": [
@@ -30900,6 +30900,65 @@ window.BENCHMARK_DATA = {
           {
             "name": "WGS1984Quad elapsed_time",
             "value": 3.12,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad data_transferred",
+            "value": 5.34,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WGS1984Quad response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad longest_transaction",
+            "value": 0.04,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "chuck@developmentseed.org",
+            "name": "Chuck Daniels",
+            "username": "chuckwondo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c41b5e1c5ea15fbfc3093e0f4f5aab9a8d04537d",
+          "message": "ci: install the telemetry extra in the upstream tests (#1584)",
+          "timestamp": "2026-11-26T10:40:28-05:00",
+          "tree_id": "638ca6ac4bc21c39c637244c8441ceab73d5d079",
+          "url": "https://github.com/developmentseed/titiler/commit/c41b5e1c5ea15fbfc3093e0f4f5aab9a8d04537d"
+        },
+        "date": 1795707736974,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "WebMercator data_transferred",
+            "value": 5.29,
+            "unit": "Megabytes"
+          },
+          {
+            "name": "WebMercator response_time",
+            "value": 0.03,
+            "unit": "s"
+          },
+          {
+            "name": "WebMercator longest_transaction",
+            "value": 0.16,
+            "unit": "s"
+          },
+          {
+            "name": "WGS1984Quad elapsed_time",
+            "value": 3.43,
             "unit": "s"
           },
           {
