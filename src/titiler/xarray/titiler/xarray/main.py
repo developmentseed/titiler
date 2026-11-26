@@ -465,7 +465,6 @@ if api_settings.telemetry_enabled:
     from opentelemetry.sdk.trace import TracerProvider
     from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
-    LoggingInstrumentor().instrument(set_logging_format=True)
     FastAPIInstrumentor.instrument_app(app)
 
     resource = Resource.create(
@@ -482,3 +481,6 @@ if api_settings.telemetry_enabled:
     provider.add_span_processor(processor)
 
     trace.set_tracer_provider(provider)
+
+    # Reads the service name from the global tracer provider set above.
+    LoggingInstrumentor().instrument(set_logging_format=True)
