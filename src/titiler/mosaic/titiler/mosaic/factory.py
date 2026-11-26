@@ -16,6 +16,7 @@ from morecantile import tms as morecantile_tms
 from morecantile.defaults import TileMatrixSets
 from pydantic import Field
 from rio_tiler.constants import MAX_THREADS, WGS84_CRS
+from rio_tiler.errors import NoAssetFoundError
 from rio_tiler.io import BaseReader, MultiBaseReader, Reader
 from rio_tiler.mosaic.backend import BaseBackend, MosaicInfo
 from rio_tiler.mosaic.methods import PixelSelectionMethod
@@ -1001,18 +1002,26 @@ class MosaicTilerFactory(BaseFactory):
                         shape = feature.model_dump(exclude_none=True)
 
                         logger.info(f"feature {i}: reading data")
-                        image, assets = src_dst.feature(
-                            shape,
-                            shape_crs=coord_crs or WGS84_CRS,
-                            dst_crs=dst_crs,
-                            align_bounds_with_dataset=True,
-                            search_options=assets_accessor_params.as_dict(),
-                            pixel_selection=pixel_selection,
-                            threads=MOSAIC_THREADS,
-                            **layer_params.as_dict(),
-                            **dataset_params.as_dict(),
-                            **image_params.as_dict(),
-                        )
+                        try:
+                            image, assets = src_dst.feature(
+                                shape,
+                                shape_crs=coord_crs or WGS84_CRS,
+                                dst_crs=dst_crs,
+                                align_bounds_with_dataset=True,
+                                search_options=assets_accessor_params.as_dict(),
+                                pixel_selection=pixel_selection,
+                                threads=MOSAIC_THREADS,
+                                **layer_params.as_dict(),
+                                **dataset_params.as_dict(),
+                                **image_params.as_dict(),
+                            )
+                        except NoAssetFoundError:
+                            logger.info(f"feature {i}: no assets found")
+                            feature.properties = feature.properties or {}
+                            feature.properties.update(
+                                {"statistics": {}, "used_assets": []}
+                            )
+                            continue
 
                         coverage_array = image.get_coverage_array(
                             shape,
